@@ -31,10 +31,4 @@
         <field name="res_model">master.data.attendance</field>
         <field name="view_mode">tree,form</field>
     </record>
-
-    <menuitem id="menu_master_data_attendance"
-              name="Master Data Attendance"
-              parent="hr_attendance.menu_hr_attendance_root"
-              action="action_master_data_attendance"
-              sequence="20"/>
 </odoo>
