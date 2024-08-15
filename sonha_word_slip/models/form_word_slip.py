@@ -8,3 +8,7 @@ class FormWordSlip(models.Model):
     type = fields.Many2one('config.word.slip', "Loại đơn")
     word_slip_id = fields.One2many('word.slip', 'word_slip', string="Ngày")
     description = fields.Text("Lý do")
+    status = fields.Selection([
+        ('draft', 'Nháp'),
+        ('done', 'Đã duyệt'),
+    ], string='Trạng thái')

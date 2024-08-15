@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Tree View -->
+    <record id="view_register_work_tree" model="ir.ui.view">
+        <field name="name">register.work.tree</field>
+        <field name="model">register.work</field>
+        <field name="arch" type="xml">
+            <tree string="Lịch làm việc">
+                <field name="employee_id" />
+                <field name="shift" />
+                <field name="start_date" />
+                <field name="end_date" />
+            </tree>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_register_work_form" model="ir.ui.view">
+        <field name="name">register.work.form</field>
+        <field name="model">register.work</field>
+        <field name="arch" type="xml">
+            <form string="Lịch làm việc">
+                <group>
+                    <field name="employee_id" />
+                    <field name="shift" />
+                </group>
+                <group>
+                    <field name="start_date" />
+                    <field name="end_date" />
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action for Config Work -->
+    <record id="action_register_work_calendar" model="ir.actions.act_window">
+        <field name="name">Lịch làm việc</field>
+        <field name="res_model">register.work</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

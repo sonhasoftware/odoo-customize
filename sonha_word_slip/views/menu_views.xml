@@ -1,36 +1,60 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <menuitem id="menu_word_slip_root"
-              name="Đơn từ"
+              name="Công"
               sequence="10"/>
 
     <menuitem
             id="menu_config"
-            name="Cấu hình"
+            name="Danh mục"
             parent="menu_word_slip_root"
-            sequence="100"/>
+            sequence="98"/>
 
     <menuitem id="menu_config_word_slip"
-              name="Cấu hình đơn từ"
+              name="Danh mục đơn từ"
               parent="menu_config"
               action="config_word_slip_action"
               sequence="1"/>
 
     <menuitem id="menu_config_shift"
-              name="Cấu hình ca đăng ký"
+              name="Danh mục ca làm việc"
               parent="menu_config"
               action="config_shift_action"
               sequence="2"/>
 
     <menuitem id="menu_form_word_slip"
-              name="Đơn từ"
+              name="Đơn đăng ký đơn từ"
               parent="menu_word_slip_root"
               action="action_form_word_slip"
               sequence="0"/>
 
     <menuitem id="menu_register_shift"
-              name="Đơn đăng ký ca"
+              name="Đơn đổi ca làm việc"
               parent="menu_word_slip_root"
               action="action_register_shift"
               sequence="1"/>
+
+    <menuitem id="menu_register_work"
+              name="Đăng ký ca làm việc"
+              parent="menu_word_slip_root"
+              action="action_register_work_calendar"
+              sequence="2"/>
+
+    <menuitem id="menu_register_overtime"
+              name="Danh mục làm thêm cho nhân sự"
+              parent="menu_word_slip_root"
+              action="action_register_overtime_calendar"
+              sequence="3"/>
+
+    <menuitem id="menu_data_attendance"
+              name="Dữ liệu chấm công (thô)"
+              parent="menu_word_slip_root"
+              action="hr_zk_attendance.action_master_data_attendance"
+              sequence="100"/>
+
+    <menuitem id="menu_employeee_attendance"
+              name="Bảng tính công chi tiết"
+              parent="menu_word_slip_root"
+              action="employee_attendance_action"
+              sequence="99"/>
 </odoo>

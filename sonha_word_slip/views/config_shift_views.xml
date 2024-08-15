@@ -4,15 +4,53 @@
         <field name="name">config.shift.tree</field>
         <field name="model">config.shift</field>
         <field name="arch" type="xml">
-            <tree string="Config Word Slips" editable="bottom">
+            <tree string="Danh mục ca làm việc">
                 <field name="name"/>
             </tree>
+        </field>
+    </record>
+
+    <record id="view_config_shift_form" model="ir.ui.view">
+        <field name="name">config.shift.form</field>
+        <field name="model">config.shift</field>
+        <field name="arch" type="xml">
+            <form string="Danh mục ca làm việc">
+                <group>
+                    <group>
+                        <field name="code"/>
+                        <field name="name"/>
+                        <field name="earliest"/>
+                        <field name="overtime_before_shift"/>
+                        <field name="start"/>
+                        <field name="late_entry_allowed"/>
+                        <field name="latest"/>
+                        <field name="rest"/>
+                        <field name="from_rest"/>
+                        <field name="minutes_rest"/>
+                        <field name="to_rest"/>
+                    </group>
+                    <group>
+                        <field name="earliest_out"/>
+                        <field name="allow_early_exit"/>
+                        <field name="end_shift"/>
+                        <field name="overtime_after_shift"/>
+                        <field name="latest_out"/>
+                        <field name="night_shift"/>
+                        <field name="night_shift_from"/>
+                        <field name="night_shift_to"/>
+                        <field name="effect_from"/>
+                        <field name="effect_to"/>
+                        <field name="using"/>
+                    </group>
+                    <field name="note"/>
+                </group>
+            </form>
         </field>
     </record>
 
     <record id="config_shift_action" model="ir.actions.act_window">
         <field name="name">Cấu hình ca đăng ký</field>
         <field name="res_model">config.shift</field>
-        <field name="view_mode">tree</field>
+        <field name="view_mode">tree,form</field>
     </record>
 </odoo>

@@ -33,7 +33,6 @@
                     <field name="onboard"/>
                     <field name="type_contract"/>
                 </xpath>
-
             </field>
         </record>
 

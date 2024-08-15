@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Tree View -->
+    <record id="view_register_overtime_tree" model="ir.ui.view">
+        <field name="name">register.overtime.tree</field>
+        <field name="model">register.overtime</field>
+        <field name="arch" type="xml">
+            <tree string="Danh mục làm thêm cho nhân sự">
+                <field name="employee_id" widget="many2many_tags"/>
+                <field name="shift" />
+                <field name="start_time" widget="float_time"/>
+                <field name="end_time" widget="float_time"/>
+                <field name="start_date" />
+                <field name="end_date" />
+            </tree>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_register_overtime_form" model="ir.ui.view">
+        <field name="name">register.overtime.form</field>
+        <field name="model">register.overtime</field>
+        <field name="arch" type="xml">
+            <form string="Danh mục làm thêm cho nhân sự">
+                <group>
+                    <field name="employee_id" widget="many2many_tags"/>
+                    <field name="shift" />
+                </group>
+                <group>
+                    <field name="start_date" />
+                    <field name="end_date" />
+                    <field name="start_time" widget="float_time"/>
+                    <field name="end_time" widget="float_time"/>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action for Config Work -->
+    <record id="action_register_overtime_calendar" model="ir.actions.act_window">
+        <field name="name">Danh mục làm thêm cho nhân sự</field>
+        <field name="res_model">register.overtime</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

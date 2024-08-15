@@ -44,6 +44,7 @@ class SonHaEmployee(models.Model):
     type_contract = fields.Many2one('hr.contract', "Loại hợp đồng")
     employee_code = fields.Char("Mã nhân viên")
 
+
     # các field page infomation page 1
 
 
