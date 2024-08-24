@@ -32,9 +32,9 @@
 
                 <xpath expr="//page[@name='hr_settings']//field[@name='pin']" position="after">
                     <field name="onboard"/>
-<!--                    <field name="type_contract"/>-->
+<!--    <field name="type_contract"/>-->
                 </xpath>
-                <!--    kế thừa thêm field vào page hr setting (page 2)-->
+<!--    kế thừa thêm field vào page hr setting (page 2)-->
                 <xpath expr="//page[@name='personal_information']//field[@name='private_phone']" position="after">
                     <field name="number_cccd"/>
                     <field name="date_cccd"/>
@@ -53,6 +53,18 @@
                     <field name="party_member_day"/>
                     <field name="place_party_member"/>
                     <field name="fee_party_member"/>
+                </xpath>
+<!--    kế thừa thêm field vào page hr setting (page 1)-->
+                <xpath expr="//page[@name='public']//field[@name='work_location_id']" position="after">
+                    <field name="date_birthday"/>
+                    <field name="place_birthday"/>
+                    <field name="gender"/>
+                    <field name="marital_status"/>
+                    <field name="nation"/>
+                    <field name="religion"/>
+                    <field name="hometown"/>
+                    <field name="permanent_address"/>
+                    <field name="current_residence"/>
                 </xpath>
 <!--    ẩn đi các field k cần dùng đến trên form-->
                 <xpath expr="//field[@name='coach_id']" position="attributes">
