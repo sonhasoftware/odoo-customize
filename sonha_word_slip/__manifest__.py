@@ -15,7 +15,13 @@
         'views/config_shift_views.xml',
         'views/register_shift_rel_views.xml',
         'views/register_shift_views.xml',
+        'views/register_work_views.xml',
+        'views/register_overtime_views.xml',
+        'views/employee_attendance_views.xml',
+        'views/synthetic_work_views.xml',
+        'wizard/timesheet_views.xml',
         'views/menu_views.xml',
+        'data/cron_job.xml'
     ],
     'installable': True,
     'application': True,

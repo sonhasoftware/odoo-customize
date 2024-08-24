@@ -5,6 +5,9 @@
         <field name="model">form.word.slip</field>
         <field name="arch" type="xml">
             <form string="Đơn từ">
+                <header>
+                    <field name="status" widget="statusbar" options="{'clickable': '1'}" readonly="status == 'done'"/>
+                </header>
                 <sheet>
                     <group>
                         <field name="employee_id"/>

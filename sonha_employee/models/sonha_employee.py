@@ -41,8 +41,9 @@ class SonHaEmployee(models.Model):
 
     # các field page hr setting
     onboard = fields.Date('Ngày vào công ty')
-    type_contract = fields.Many2one('hr.contract', "Loại hợp đồng")
+    # type_contract = fields.Many2one('hr.contract', string="Loại hợp đồng")
     employee_code = fields.Char("Mã nhân viên")
+    shift = fields.Many2one('config.shift')
 
     # các field page infomation page 1
 
