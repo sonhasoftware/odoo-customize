@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_config_contract_tree" model="ir.ui.view">
+        <field name="name">config.contract.tree</field>
+        <field name="model">hr.contract.type</field>
+        <field name="arch" type="xml">
+            <tree string="Config Type Contract" editable="bottom">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="description"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="config_contract_action" model="ir.actions.act_window">
+        <field name="name">Cấu hình Loại hợp đồng</field>
+        <field name="res_model">hr.contract.type</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

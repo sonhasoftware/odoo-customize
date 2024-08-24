@@ -46,11 +46,26 @@ class SonHaEmployee(models.Model):
 
     # các field page infomation page 1
 
-
-
     # các field page private infomation page 2
+    number_cccd = fields.Char("Số CCCD")
+    date_cccd = fields.Date("Ngày cấp")
+    place_of_issue = fields.Char("Nơi cấp")
+    passport_number = fields.Char("Số hộ chiếu")
+    date_passport = fields.Date("Ngày hộ chiếu")
+    expiration_date_passport = fields.Date("Ngày hết hạn")
+    place_of_issue_passport = fields.Char("Nơi cấp hộ chiếu")
+    number_visa = fields.Char("Số visa")
+    date_visa = fields.Date("Ngày cấp(visa)")
+    expiration_date_visa = fields.Date("Ngày hết hạn(visa)")
+    place_of_issue_visa = fields.Char("Nơi cấp(visa)")
+    reunion_day = fields.Date("Ngày vào Đoàn")
+    place_reunion = fields.Char("Nơi vào(Đoàn)")
+    fee_reunion = fields.Boolean("Đoàn phí")
+    party_member_day = fields.Date("Ngày vào Đảng")
+    place_party_member = fields.Char("Nơi vào Đảng")
+    fee_party_member = fields.Boolean("Đảng phí")
 
-    # @api.onchange('list_employee')
+# @api.onchange('list_employee')
     # def _onchange_list_employee(self):
     #     if self.list_employee:
     #         return {'domain': {'kpi': [('id', 'in', self.list_employee.ids)]}}
