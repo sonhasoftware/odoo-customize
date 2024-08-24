@@ -34,6 +34,78 @@
                     <field name="onboard"/>
 <!--                    <field name="type_contract"/>-->
                 </xpath>
+                <!--    kế thừa thêm field vào page hr setting (page 2)-->
+                <xpath expr="//page[@name='personal_information']//field[@name='private_phone']" position="after">
+                    <field name="number_cccd"/>
+                    <field name="date_cccd"/>
+                    <field name="place_of_issue"/>
+                    <field name="passport_number"/>
+                    <field name="date_passport"/>
+                    <field name="expiration_date_passport"/>
+                    <field name="place_of_issue_passport"/>
+                    <field name="number_visa"/>
+                    <field name="date_visa"/>
+                    <field name="expiration_date_visa"/>
+                    <field name="place_of_issue_visa"/>
+                    <field name="reunion_day"/>
+                    <field name="place_reunion"/>
+                    <field name="fee_reunion"/>
+                    <field name="party_member_day"/>
+                    <field name="place_party_member"/>
+                    <field name="fee_party_member"/>
+                </xpath>
+<!--    ẩn đi các field k cần dùng đến trên form-->
+                <xpath expr="//field[@name='coach_id']" position="attributes">
+                    <attribute name="invisible">True</attribute>
+                </xpath>
+                <xpath expr="//page[@name='skills_resume']" position="attributes">
+                    <attribute name="invisible">True</attribute>
+                </xpath>
+                <xpath expr="//h2/field[@name='job_title']" position="attributes">
+                    <attribute name="invisible">True</attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='category_ids']" position="attributes">
+                    <attribute name="invisible">True</attribute>
+                </xpath>
+                <xpath expr="//field[@name='work_phone']" position="attributes">
+                    <attribute name="invisible">True</attribute>
+                </xpath>
+                <xpath expr="//field[@name='lang']" position="attributes">
+                    <attribute name="invisible">True</attribute>
+                </xpath>
+                <xpath expr="//field[@name='km_home_work']" position="attributes">
+                    <attribute name="invisible">True</attribute>
+                </xpath>
+                <xpath expr="//field[@name='private_car_plate']" position="attributes">
+                    <attribute name="invisible">True</attribute>
+                </xpath>
+                <xpath expr="//field[@name='private_car_plate']" position="attributes">
+                    <attribute name="invisible">True</attribute>
+                </xpath>
+
+                <xpath expr="//div[@name='div_km_home_work']" position="attributes">
+                    <attribute name="invisible">True</attribute>
+                </xpath>
+                <xpath expr="//field[@name='identification_id']" position="attributes">
+                    <attribute name="invisible">True</attribute>
+                </xpath>
+                <xpath expr="//field[@name='ssnid']" position="attributes">
+                    <attribute name="invisible">True</attribute>
+                </xpath>
+                <xpath expr="//field[@name='passport_id']" position="attributes">
+                    <attribute name="invisible">True</attribute>
+                </xpath>
+                <xpath expr="//field[@name='visa_no']" position="attributes">
+                    <attribute name="invisible">True</attribute>
+                </xpath>
+                <xpath expr="//field[@name='visa_expire']" position="attributes">
+                    <attribute name="invisible">True</attribute>
+                </xpath>
+                <xpath expr="//field[@name='study_field']" position="attributes">
+                    <attribute name="invisible">True</attribute>
+                </xpath>
+
             </field>
         </record>
 
