@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_timesheet_form" model="ir.ui.view">
+        <field name="name">timesheet.form</field>
+        <field name="model">timesheet</field>
+        <field name="arch" type="xml">
+            <form string="Chốt công">
+                <group>
+                    <field name="department"/>
+                    <field name="start_date"/>
+                    <field name="end_date"/>
+                </group>
+                <group>
+                    <button name="action_confirm" string="Chốt công" type="object" class="btn-primary"/>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_timesheet" model="ir.actions.act_window">
+        <field name="name">Chốt công</field>
+        <field name="res_model">timesheet</field>
+        <field name="view_mode">form</field>
+    </record>
+
+</odoo>

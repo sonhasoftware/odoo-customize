@@ -12,3 +12,7 @@ access_register_work,register.work,model_register_work,,1,1,1,1
 access_register_overtime,register.overtime,model_register_overtime,,1,1,1,1
 
 access_employee_attendance,employee.attendance,model_employee_attendance,,1,1,1,1
+
+access_synthetic_work,synthetic.work,model_synthetic_work,,1,1,1,1
+
+access_timesheet,timesheet,model_timesheet,,1,1,1,1

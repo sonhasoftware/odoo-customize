@@ -41,6 +41,7 @@
                         <field name="effect_from"/>
                         <field name="effect_to"/>
                         <field name="using"/>
+                        <field name="contract"/>
                     </group>
                     <field name="note"/>
                 </group>

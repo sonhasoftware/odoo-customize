@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_synthetic_work_form" model="ir.ui.view">
+        <field name="name">synthetic.work.form</field>
+        <field name="model">synthetic.work</field>
+        <field name="arch" type="xml">
+            <form string="Bảng công tổng hợp">
+                <sheet>
+                    <group>
+                        <field name="employee_id"/>
+                        <field name="employee_code" readonly="1"/>
+                        <field name="department_id"/>
+                    </group>
+                    <group>
+                        <group string="Công sản phẩm">
+                            <field name="workday"/>
+                            <field name="hours_reinforcement"/>
+                            <field name="public_management"/>
+                            <field name="ot_management"/>
+                            <field name="service"/>
+                            <field name="ot_service"/>
+                            <field name="toxic_work"/>
+                        </group>
+                        <group string="Công thời gian">
+                            <field name="date_work"/>
+                            <field name="apprenticeship"/>
+                            <field name="probationary_period"/>
+                            <field name="ot_one_hundred"/>
+                            <field name="ot_one_hundred_fifty"/>
+                            <field name="ot_three_hundred"/>
+                            <field name="paid_leave"/>
+                            <field name="number_minutes_late"/>
+                            <field name="number_minutes_early"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="shift_two_crew_three"/>
+                        <field name="shift_three_crew_four"/>
+                        <field name="on_leave"/>
+                        <field name="compensatory_leave"/>
+                        <field name="filial_leave"/>
+                        <field name="grandparents_leave"/>
+                        <field name="vacation"/>
+                        <field name="public_leave"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_synthetic_work_tree" model="ir.ui.view">
+        <field name="name">synthetic.work.tree</field>
+        <field name="model">synthetic.work</field>
+        <field name="arch" type="xml">
+            <tree string="Bảng công tổng hợp">
+                <field name="employee_id"/>
+                <field name="employee_code"/>
+                <field name="department_id"/>
+                <field name="workday"/>
+                <field name="hours_reinforcement"/>
+                <field name="public_management"/>
+                <field name="ot_management"/>
+                <field name="service"/>
+                <field name="ot_service"/>
+                <field name="toxic_work"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_synthetic_work" model="ir.actions.act_window">
+        <field name="name">Bảng công tổng hợp</field>
+        <field name="res_model">synthetic.work</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+</odoo>

@@ -27,11 +27,12 @@
 <!--                kế thừa thêm field vào page hr setting (page 3)-->
                 <xpath expr="//page[@name='hr_settings']//field[@name='user_id']" position="after">
                     <field name="employee_code"/>
+                    <field name="shift"/>
                 </xpath>
 
                 <xpath expr="//page[@name='hr_settings']//field[@name='pin']" position="after">
                     <field name="onboard"/>
-                    <field name="type_contract"/>
+<!--                    <field name="type_contract"/>-->
                 </xpath>
             </field>
         </record>

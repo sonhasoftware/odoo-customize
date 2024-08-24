@@ -1,4 +1,5 @@
 from odoo import api, fields, models
+from datetime import timedelta
 
 
 class ConfigShift(models.Model):
@@ -27,3 +28,14 @@ class ConfigShift(models.Model):
     effect_to = fields.Date("Hiệu lực đến")
     using = fields.Integer("Dùng")
     note = fields.Char("Ghi chú")
+    contract = fields.Integer("Ca khoán")
+
+    night = fields.Boolean("Check ca ngày/đêm", default=False, compute="check_shift_night")
+
+    @api.depends('start', 'end_shift')
+    def check_shift_night(self):
+        for r in self:
+            if (r.end_shift + timedelta(hours=7)).time() < (r.start + timedelta(hours=7)).time():
+                r.night = True
+            else:
+                r.night = False

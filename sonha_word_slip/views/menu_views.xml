@@ -46,6 +46,18 @@
               action="action_register_overtime_calendar"
               sequence="3"/>
 
+    <menuitem id="menu_synthetic_work"
+              name="Bảng công tổng hợp"
+              parent="menu_word_slip_root"
+              action="action_synthetic_work"
+              sequence="4"/>
+
+    <menuitem id="menu_timesheet"
+              name="Chốt công"
+              parent="menu_word_slip_root"
+              action="action_timesheet"
+              sequence="5"/>
+
     <menuitem id="menu_data_attendance"
               name="Dữ liệu chấm công (thô)"
               parent="menu_word_slip_root"
