@@ -57,6 +57,13 @@
               parent="menu_word_slip_root"
               action="action_timesheet"
               sequence="5"/>
+              
+    <!-- Menu con để quản lý nghỉ lễ -->
+    <menuitem id="menu_holiday_config"
+              name="Cấu hình Nghỉ lễ"
+              parent="menu_word_slip_root"
+              action="hr_holidays.open_view_public_holiday"
+              sequence="6"/>
 
     <menuitem id="menu_data_attendance"
               name="Dữ liệu chấm công (thô)"
