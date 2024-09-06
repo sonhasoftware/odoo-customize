@@ -23,6 +23,8 @@ class EmployeeAttendance(models.Model):
                             string="Ghi chú",
                             compute="_get_attendance")
     work_day = fields.Float("Ngày công", compute="_get_work_day")
+    minutes_late = fields.Float("Số phút đi muộn", compute="_get_minute_late_early")
+    minutes_early = fields.Float("Số phút về sớm", compute="_get_minute_late_early")
 
     def update_attendance_data(self):
         employees = self.env['hr.employee'].search([])
@@ -50,7 +52,7 @@ class EmployeeAttendance(models.Model):
             if shift:
                 r.shift = shift.shift.id
             elif r.employee_id.shift:
-                r.shift = r.employee_id.shift
+                r.shift = r.employee_id.shift.id
             else:
                 r.shift = None
 
@@ -130,5 +132,45 @@ class EmployeeAttendance(models.Model):
             elif not r.check_out:
                 r.note = 'no_out'
 
+    def _get_minute_late_early(self):
+        for r in self:
+            if r.shift:
+                if r.check_in and (r.check_in + timedelta(hours=7)).time() > (r.shift.start + timedelta(hours=7)).time():
+                    check_in_time = datetime.combine(r.check_in.date(), r.check_in.time())
+                    shift_start_time = datetime.combine(r.check_in.date(), r.shift.start.time())
+
+                    minute_late = (check_in_time + timedelta(hours=7)) - (shift_start_time + timedelta(hours=7))
+                    r.minutes_late = minute_late.total_seconds() / 60
+                else:
+                    r.minutes_late = 0
+                if r.check_out and (r.check_out + timedelta(hours=7)).time() < (r.shift.end_shift + timedelta(hours=7)).time():
+                    check_out_time = datetime.combine(r.check_out.date(), r.check_out.time())
+                    shift_end_time = datetime.combine(r.check_out.date(), r.shift.end_shift.time())
+
+                    minute_early = (shift_end_time + timedelta(hours=7)) - (check_out_time + + timedelta(hours=7))
+                    r.minutes_early = minute_early.total_seconds() / 60
+                else:
+                    r.minutes_early = 0
+            else:
+                r.minutes_late = 0
+                r.minutes_early = 0
+
     def _get_work_day(self):
-        pass
+        for r in self:
+            work_leave = self.env['word.slip'].sudo().search([
+                ('employee_id', '=', r.employee_id.id),
+                ('from_date', '<=', r.date),
+                ('to_date', '>=', r.date),
+                ('level', '=', 'full_day')
+            ])
+            work_leave = work_leave.filtered(lambda x: x.type.paid == True)
+            public_holiday = self.env['resource.calendar.leaves'].sudo().search([])
+            public_holiday = public_holiday.filtered(lambda x: x.date_from.date() <= r.date <= x.date_to.date())
+            if public_holiday:
+                r.work_day = 1
+            elif work_leave:
+                r.work_day = 1
+            elif r.check_in or r.check_out:
+                r.work_day = 1
+            else:
+                r.work_day = 0

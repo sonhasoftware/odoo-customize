@@ -35,3 +35,6 @@ class SyntheticWork(models.Model):
     vacation = fields.Float("Nghỉ mát")
     public_leave = fields.Float("Nghỉ lễ")
 
+    start_date = fields.Date("Từ ngày")
+    end_date = fields.Date("Đến ngày")
+
