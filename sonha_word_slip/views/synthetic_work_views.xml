@@ -53,16 +53,22 @@
         <field name="model">synthetic.work</field>
         <field name="arch" type="xml">
             <tree string="Bảng công tổng hợp">
-                <field name="employee_id"/>
                 <field name="employee_code"/>
+                <field name="employee_id"/>
                 <field name="department_id"/>
-                <field name="workday"/>
-                <field name="hours_reinforcement"/>
-                <field name="public_management"/>
-                <field name="ot_management"/>
-                <field name="service"/>
-                <field name="ot_service"/>
-                <field name="toxic_work"/>
+                <field name="date_work"/>
+                <field name="apprenticeship"/>
+                <field name="probationary_period"/>
+                <field name="ot_one_hundred"/>
+                <field name="ot_one_hundred_fifty"/>
+                <field name="ot_three_hundred"/>
+                <field name="paid_leave"/>
+                <field name="number_minutes_late"/>
+                <field name="number_minutes_early"/>
+                <field name="on_leave"/>
+                <field name="compensatory_leave"/>
+                <field name="filial_leave"/>
+                <field name="public_leave"/>
             </tree>
         </field>
     </record>
