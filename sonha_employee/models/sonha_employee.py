@@ -46,6 +46,14 @@ class SonHaEmployee(models.Model):
     shift = fields.Many2one('config.shift')
 
     # các field page infomation page 1
+    date_birthday = fields.Date("Ngày sinh")
+    place_birthday = fields.Char("Nơi sinh")
+    marital_status = fields.Char("Tình trạng hôn nhân")
+    nation = fields.Char("Dân tộc")
+    religion = fields.Char("Tôn giáo")
+    hometown = fields.Char("Quê quán")
+    permanent_address = fields.Char("Địa chỉ thường trú")
+    current_residence = fields.Char("Nơi ở hiện tại")
 
     # các field page private infomation page 2
     number_cccd = fields.Char("Số CCCD")
