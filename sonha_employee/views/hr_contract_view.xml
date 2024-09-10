@@ -68,7 +68,7 @@
                 <xpath expr="//field[@name='contract_type_id' and @groups='hr_contract.group_hr_contract_manager']" position="attributes">
                     <attribute name="readonly">state != 'draft'</attribute>
                 </xpath>
-                
+
                 <xpath expr="//field[@name='wage']" position="attributes">
                     <attribute name="readonly">state != 'draft'</attribute>
                 </xpath>
