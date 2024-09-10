@@ -6,7 +6,7 @@
     'summary': 'Son ha Employee',
     'website': 'https://',
     'description': "Employee Son Ha",
-    'depends': ['hr', 'base'],
+    'depends': ['hr', 'base', 'hr_contract'],
     'data': [
         'security/sonha_employee_security.xml',
         'security/ir.model.access.csv',

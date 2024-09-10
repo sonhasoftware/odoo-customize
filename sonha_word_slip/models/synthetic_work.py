@@ -5,7 +5,7 @@ class SyntheticWork(models.Model):
     _name = 'synthetic.work'
 
     employee_id = fields.Many2one('hr.employee', string="Tên nhân viên")
-    employee_code = fields.Char("Mã nhân viên", related="employee_id.employee_code")
+    employee_code = fields.Char("Mã nhân viên")
     department_id = fields.Many2one('hr.department', string="Phòng ban")
 
     workday = fields.Float("Ngày công")

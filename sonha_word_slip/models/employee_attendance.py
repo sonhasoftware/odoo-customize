@@ -44,7 +44,7 @@ class EmployeeAttendance(models.Model):
                         'date': single_date,
                     })
 
-    @api.depends('date', 'employee_id', 'employee_id.shift')
+    @api.depends('date', 'employee_id')
     def _get_shift_employee(self):
         for r in self:
             shift = self.env['register.shift.rel'].sudo().search([('register_shift.employee_id', '=', r.employee_id.id),
@@ -161,7 +161,6 @@ class EmployeeAttendance(models.Model):
                 ('employee_id', '=', r.employee_id.id),
                 ('from_date', '<=', r.date),
                 ('to_date', '>=', r.date),
-                ('level', '=', 'full_day')
             ])
             work_leave = work_leave.filtered(lambda x: x.type.paid == True)
             public_holiday = self.env['resource.calendar.leaves'].sudo().search([])
