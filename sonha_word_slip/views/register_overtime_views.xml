@@ -6,13 +6,12 @@
         <field name="name">register.overtime.tree</field>
         <field name="model">register.overtime</field>
         <field name="arch" type="xml">
-            <tree string="Danh mục làm thêm cho nhân sự">
-                <field name="employee_id" widget="many2many_tags"/>
-                <field name="shift" />
+            <tree string="Đăng ký làm thêm">
                 <field name="start_time" widget="float_time"/>
                 <field name="end_time" widget="float_time"/>
                 <field name="start_date" />
                 <field name="end_date" />
+                <field name="employee_id"/>
             </tree>
         </field>
     </record>
@@ -22,16 +21,13 @@
         <field name="name">register.overtime.form</field>
         <field name="model">register.overtime</field>
         <field name="arch" type="xml">
-            <form string="Danh mục làm thêm cho nhân sự">
-                <group>
-                    <field name="employee_id" widget="many2many_tags"/>
-                    <field name="shift" />
-                </group>
+            <form string="Đăng ký làm thêm">
                 <group>
                     <field name="start_date" />
                     <field name="end_date" />
                     <field name="start_time" widget="float_time"/>
                     <field name="end_time" widget="float_time"/>
+                    <field name="employee_id"/>
                 </group>
             </form>
         </field>
@@ -39,7 +35,7 @@
 
     <!-- Action for Config Work -->
     <record id="action_register_overtime_calendar" model="ir.actions.act_window">
-        <field name="name">Danh mục làm thêm cho nhân sự</field>
+        <field name="name">Đăng ký làm thêm</field>
         <field name="res_model">register.overtime</field>
         <field name="view_mode">tree,form</field>
     </record>

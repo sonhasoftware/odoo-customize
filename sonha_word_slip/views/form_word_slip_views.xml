@@ -16,7 +16,10 @@
                             <tree string="Loai nghỉ">
                                 <field name="from_date"/>
                                 <field name="to_date"/>
-                                <field name="level"/>
+                                <field name="start_time"/>
+                                <field name="end_time"/>
+                                <field name="time_to"/>
+                                <field name="time_from"/>
                             </tree>
                         </field>
                         <field name="description"/>

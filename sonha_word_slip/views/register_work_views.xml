@@ -6,7 +6,7 @@
         <field name="name">register.work.tree</field>
         <field name="model">register.work</field>
         <field name="arch" type="xml">
-            <tree string="Lịch làm việc">
+            <tree string="Đăng ký ca">
                 <field name="employee_id" />
                 <field name="shift" />
                 <field name="start_date" />
@@ -20,14 +20,13 @@
         <field name="name">register.work.form</field>
         <field name="model">register.work</field>
         <field name="arch" type="xml">
-            <form string="Lịch làm việc">
+            <form string="Đăng ký ca">
                 <group>
-                    <field name="employee_id" />
-                    <field name="shift" />
-                </group>
-                <group>
-                    <field name="start_date" />
-                    <field name="end_date" />
+                    <field name="department_id"/>
+                    <field name="start_date"/>
+                    <field name="end_date"/>
+                    <field name="shift"/>
+                    <field name="employee_id" widget="many2many_tags" domain="[('department_id', '=', department_id)]"/>
                 </group>
             </form>
         </field>
@@ -35,7 +34,7 @@
 
     <!-- Action for Config Work -->
     <record id="action_register_work_calendar" model="ir.actions.act_window">
-        <field name="name">Lịch làm việc</field>
+        <field name="name">Đăng ký ca</field>
         <field name="res_model">register.work</field>
         <field name="view_mode">tree,form</field>
     </record>

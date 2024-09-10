@@ -42,6 +42,7 @@
                         <field name="effect_to"/>
                         <field name="using"/>
                         <field name="contract"/>
+                        <field name="company_id"/>
                     </group>
                     <field name="note"/>
                 </group>

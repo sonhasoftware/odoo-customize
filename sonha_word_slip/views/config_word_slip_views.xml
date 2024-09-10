@@ -7,7 +7,9 @@
             <tree string="Config Word Slips" editable="bottom">
                 <field name="name"/>
                 <field name="paid"/>
-                <field name="date"/>
+                <field name="date_and_time"/>
+                <field name="max_time"/>
+                <field name="company_id"/>
             </tree>
         </field>
     </record>

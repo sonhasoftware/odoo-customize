@@ -1,51 +1,77 @@
 <odoo>
-    <record id="action_hr_contract" model="ir.actions.act_window">
-        <field name="name">Hợp đồng</field>
-        <field name="res_model">hr.contract</field>
-        <field name="view_mode">tree,form</field>
-    </record>
+    <record id="view_hr_contract_form_custom" model="ir.ui.view">
+            <field name="name">hr.contract.form.custom</field>
+            <field name="model">hr.contract</field>
+            <field name="inherit_id" ref="hr_contract.hr_contract_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//header//field[@name='state' and @groups='!hr_contract.group_hr_contract_manager']" position="attributes">
+                    <attribute name="options">{}</attribute>
+                </xpath>
 
-    <!-- Tree View cho hợp đồng -->
-    <record id="view_hr_contract_tree" model="ir.ui.view">
-        <field name="name">hr.contract.tree</field>
-        <field name="model">hr.contract</field>
-        <field name="arch" type="xml">
-            <tree string="Hợp đồng">
-                <field name="employee_id"/>
-                <field name="name"/>
-                <field name="department_id"/>
-                <field name="company_id"/>
-                <field name="job_id"/>
-                <field name="date_start"/>
-                <field name="date_end"/>
-                <field name="contract_type_id"/>
-                <field name="resource_calendar_id"/>
-                <field name="state"/>
-            </tree>
-        </field>
-    </record>
+                <!-- Xóa thuộc tính clickable từ trường state cho nhóm hr_contract_manager -->
+                <xpath expr="//header//field[@name='state' and @groups='hr_contract.group_hr_contract_manager']" position="attributes">
+                    <attribute name="options">{}</attribute>
+                </xpath>
+                <xpath expr="//header" position="inside">
+                    <button name="action_confirm" type="object" string="Duyệt" class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_cancel" type="object" string="Hủy hợp đồng" class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="cancel_confirm" type="object" string="Hủy duyệt" class="oe_highlight" invisible="state != 'open'"/>
+                </xpath>
+                <xpath expr="//field[@name='name']" position="attributes">
+                    <attribute name="readonly">state != 'draft'</attribute>
+                </xpath>
 
-    <!-- Form View cho hợp đồng -->
-    <record id="view_hr_contract_form" model="ir.ui.view">
-        <field name="name">hr.contract.form</field>
-        <field name="model">hr.contract</field>
-        <field name="arch" type="xml">
-            <form string="Hợp đồng">
-                <sheet>
-                    <group>
-                        <field name="employee_id"/>
-                        <field name="name"/>
-                        <field name="department_id"/>
-                        <field name="company_id"/>
-                        <field name="job_id"/>
-                        <field name="date_start"/>
-                        <field name="date_end"/>
-                        <field name="contract_type_id"/>
-                        <field name="resource_calendar_id"/>
-                        <field name="state"/>
-                    </group>
-                </sheet>
-            </form>
-        </field>
-    </record>
+                <xpath expr="//field[@name='employee_id']" position="attributes">
+                    <attribute name="readonly">state != 'draft'</attribute>
+                </xpath>
+                <xpath expr="//field[@name='date_start']" position="attributes">
+                    <attribute name="readonly">state != 'draft'</attribute>
+                </xpath>
+                <xpath expr="//field[@name='date_end']" position="attributes">
+                    <attribute name="readonly">state != 'draft'</attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='resource_calendar_id' and @groups='!hr_contract.group_hr_contract_manager']" position="attributes">
+                    <attribute name="readonly">state != 'draft'</attribute>
+                </xpath>
+                <xpath expr="//field[@name='resource_calendar_id' and @groups='hr_contract.group_hr_contract_manager']" position="attributes">
+                    <attribute name="readonly">state != 'draft'</attribute>
+                </xpath>
+
+
+                <xpath expr="//field[@name='department_id' and @groups='!hr_contract.group_hr_contract_manager']" position="attributes">
+                    <attribute name="readonly">state != 'draft'</attribute>
+                </xpath>
+                <xpath expr="//field[@name='department_id' and @groups='hr_contract.group_hr_contract_manager']" position="attributes">
+                    <attribute name="readonly">state != 'draft'</attribute>
+                </xpath>
+
+
+                <xpath expr="//field[@name='structure_type_id' and @groups='!hr_contract.group_hr_contract_manager']" position="attributes">
+                    <attribute name="readonly">state != 'draft'</attribute>
+                </xpath>
+                <xpath expr="//field[@name='structure_type_id' and @groups='hr_contract.group_hr_contract_manager']" position="attributes">
+                    <attribute name="readonly">state != 'draft'</attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='job_id' and @groups='!hr_contract.group_hr_contract_manager']" position="attributes">
+                    <attribute name="readonly">state != 'draft'</attribute>
+                </xpath>
+                <xpath expr="//field[@name='job_id' and @groups='hr_contract.group_hr_contract_manager']" position="attributes">
+                    <attribute name="readonly">state != 'draft'</attribute>
+                </xpath>
+
+
+                <xpath expr="//field[@name='contract_type_id' and @groups='!hr_contract.group_hr_contract_manager']" position="attributes">
+                    <attribute name="readonly">state != 'draft'</attribute>
+                </xpath>
+                <xpath expr="//field[@name='contract_type_id' and @groups='hr_contract.group_hr_contract_manager']" position="attributes">
+                    <attribute name="readonly">state != 'draft'</attribute>
+                </xpath>
+                
+                <xpath expr="//field[@name='wage']" position="attributes">
+                    <attribute name="readonly">state != 'draft'</attribute>
+                </xpath>
+            </field>
+        </record>
 </odoo>
