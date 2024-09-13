@@ -49,8 +49,13 @@ class EmployeeAttendance(models.Model):
         for r in self:
             shift = self.env['register.shift.rel'].sudo().search([('register_shift.employee_id', '=', r.employee_id.id),
                                                                   ('date', '=', r.date)])
+            shift_re = self.env['register.work'].sudo().search([('start_date', '<=', r.date),
+                                                                ('end_date', '>=', r.date)])
+            shift_re = shift_re.filtered(lambda x: r.employee_id.id in x.employee_id.ids)
             if shift:
                 r.shift = shift.shift.id
+            elif shift_re:
+                r.shift = shift_re.shift.id
             elif r.employee_id.shift:
                 r.shift = r.employee_id.shift.id
             else:
@@ -60,17 +65,17 @@ class EmployeeAttendance(models.Model):
     def _get_time_in_out(self):
         for r in self:
             if r.shift:
-                time_ci = r.shift.start.time()
-                time_co = r.shift.end_shift .time()
+                time_ci = (r.shift.start + timedelta(hours=7)).time()
+                time_co = (r.shift.end_shift + timedelta(hours=7)).time()
                 date = r.date
                 check_time_ci = datetime.combine(date, time_ci)
                 check_time_co = datetime.combine(date, time_co)
                 if not r.shift.night:
-                    r.time_check_in = check_time_ci - timedelta(minutes=r.shift.earliest_out)
-                    r.time_check_out = check_time_co + timedelta(minutes=r.shift.latest_out)
+                    r.time_check_in = check_time_ci - timedelta(hours=7, minutes=r.shift.earliest)
+                    r.time_check_out = check_time_co + timedelta(hours=-7, minutes=r.shift.latest_out)
                 if r.shift.night:
-                    r.time_check_in = check_time_ci - timedelta(minutes=r.shift.earliest_out)
-                    check_out = check_time_co + timedelta(minutes=r.shift.latest_out)
+                    r.time_check_in = check_time_ci - timedelta(hours=7, minutes=r.shift.earliest)
+                    check_out = check_time_co + timedelta(hours=-7, minutes=r.shift.latest_out)
                     if (r.time_check_in + timedelta(hours=7)).date() == (check_out + timedelta(hours=7)).date():
                         r.time_check_out = check_out + timedelta(days=1)
                     else:
