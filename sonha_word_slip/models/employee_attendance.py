@@ -27,10 +27,10 @@ class EmployeeAttendance(models.Model):
     minutes_early = fields.Float("Số phút về sớm", compute="_get_minute_late_early")
 
     def update_attendance_data(self):
-        employees = self.env['hr.employee'].search([])
+        employees = self.env['hr.employee'].search([('id', '!=', 1)])
         current_date = datetime.now()
-        start_date = current_date.replace(day=1) + timedelta(hours=7)
-        end_date = (start_date + relativedelta(months=1)) - timedelta(days=1)
+        start_date = current_date.replace(day=1) + timedelta(hours=7) - relativedelta(months=1)
+        end_date = (start_date + relativedelta(months=2)) - timedelta(days=1)
 
         for employee in employees:
             for single_date in (start_date + timedelta(n) for n in range((end_date - start_date).days + 1)):
