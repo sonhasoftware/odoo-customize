@@ -4,6 +4,8 @@ from datetime import timedelta
 
 class ConfigShift(models.Model):
     _name = 'config.shift'
+    _order = "code"
+    _rec_name = 'code'
 
     code = fields.Char("Mã ca")
     name = fields.Char("Tên ca")

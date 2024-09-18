@@ -5,7 +5,7 @@
         <field name="model">config.shift</field>
         <field name="arch" type="xml">
             <tree string="Danh mục ca làm việc">
-                <field name="name"/>
+                <field name="code"/>
             </tree>
         </field>
     </record>
@@ -47,6 +47,16 @@
                     <field name="note"/>
                 </group>
             </form>
+        </field>
+    </record>
+
+    <record id="view_config_shift_search" model="ir.ui.view">
+        <field name="name">view.config.shift.search</field>
+        <field name="model">config.shift</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="code"/>
+            </search>
         </field>
     </record>
 
