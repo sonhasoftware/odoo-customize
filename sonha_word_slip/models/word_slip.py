@@ -25,6 +25,11 @@ class WordSlip(models.Model):
     type = fields.Many2one('config.word.slip', related='word_slip.type')
     duration = fields.Float("Ngày", compute="get_duration")
 
+    abc = fields.Selection([
+        ('first_half', 'Nửa ca đầu'),
+        ('second_half', 'Nửa ca sau'),
+    ], string='Ca kết thúc')
+
     @api.depends('start_time', 'end_time')
     def get_duration(self):
         for r in self:
