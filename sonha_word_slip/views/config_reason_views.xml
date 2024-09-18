@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_config_reason_form" model="ir.ui.view">
+        <field name="name">config.reason.form</field>
+        <field name="model">config.reason</field>
+        <field name="arch" type="xml">
+            <form string="Cấu hình lý do">
+                <group>
+                    <field name="name"/>
+                    <field name="type_leave"/>
+                    <field name="accept_require"/>
+                    <field name="count_work"/>
+                    <field name="fine"/>
+                    <field name="max_leave"/>
+                    <field name="business_fee"/>
+                </group>
+            </form>
+        </field>
+    </record>
+    <record id="view_config_reason_tree" model="ir.ui.view">
+        <field name="name">config.reason.tree</field>
+        <field name="model">config.reason</field>
+        <field name="arch" type="xml">
+            <tree string="Config Reasons">
+                <field name="name"/>
+                <field name="type_leave"/>
+                <field name="accept_require"/>
+                <field name="count_work"/>
+                <field name="fine"/>
+                <field name="max_leave"/>
+                <field name="business_fee"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="config_reason_action" model="ir.actions.act_window">
+        <field name="name">Config Reasons</field>
+        <field name="res_model">config.reason</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('view_config_reason_tree')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('view_config_reason_form')})]"/>
+    </record>
+</odoo>

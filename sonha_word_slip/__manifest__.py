@@ -19,6 +19,7 @@
         'views/register_overtime_views.xml',
         'views/employee_attendance_views.xml',
         'views/synthetic_work_views.xml',
+        'views/config_reason_views.xml',
         'wizard/timesheet_views.xml',
         'views/menu_views.xml',
         'data/cron_job.xml'
