@@ -16,6 +16,7 @@ class RegisterShift(models.Model):
 
     is_display = fields.Boolean("Hiển thị ngày", default=False, compute="get_show_display_date")
 
+    #Kiểm tra xem đăng ký đổi ca theo khoảng ngày hay không
     @api.depends('type_register')
     def get_show_display_date(self):
         for r in self:

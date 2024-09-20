@@ -26,6 +26,7 @@ class EmployeeAttendance(models.Model):
     minutes_late = fields.Float("Số phút đi muộn", compute="_get_minute_late_early")
     minutes_early = fields.Float("Số phút về sớm", compute="_get_minute_late_early")
 
+    # tạo ra bản ghi cho từng nhân viên trong các ngày của tháng
     def update_attendance_data(self):
         employees = self.env['hr.employee'].search([('id', '!=', 1)])
         current_date = datetime.now()
@@ -44,6 +45,7 @@ class EmployeeAttendance(models.Model):
                         'date': single_date,
                     })
 
+    #lấy thông tin ca của nhân viên để điền vào trường ca
     @api.depends('date', 'employee_id')
     def _get_shift_employee(self):
         for r in self:
@@ -61,6 +63,7 @@ class EmployeeAttendance(models.Model):
             else:
                 r.shift = None
 
+    #Lấy thông tin giờ phải check-in và giờ check-out của nhân viên
     @api.depends('shift')
     def _get_time_in_out(self):
         for r in self:
@@ -84,6 +87,7 @@ class EmployeeAttendance(models.Model):
                 r.time_check_in = None
                 r.time_check_out = None
 
+   #Lấy ra thông tin số giờ cần có mặt theo ca
     @api.depends('shift')
     def _get_duration(self):
         for r in self:
@@ -99,6 +103,7 @@ class EmployeeAttendance(models.Model):
             else:
                 r.duration = 0
 
+    #Lấy giờ mốc để tách giờ check-in và giờ check-out của nhân viên
     @api.depends('shift', 'duration', 'time_check_in', 'time_check_out')
     def _check_no_in_out(self):
         for r in self:
@@ -110,6 +115,7 @@ class EmployeeAttendance(models.Model):
                 r.check_no_in = None
                 r.check_no_out = None
 
+    #Lấy thông tin check-in và check-out của nhân viên
     @api.depends('employee_id', 'time_check_in', 'time_check_out', 'check_no_in', 'check_no_out')
     def _get_check_in_out(self):
         for r in self:
@@ -128,6 +134,7 @@ class EmployeeAttendance(models.Model):
             r.check_in = attendance_ci[0] if attendance_ci else None
             r.check_out = attendance_co[-1] if attendance_co else None
 
+    #Lấy thông tin xem nhân viên có check-in hay check-out hay không
     def _get_attendance(self):
         for r in self:
             if (not r.check_in and not r.check_out) or (r.check_in and r.check_out):
@@ -137,6 +144,7 @@ class EmployeeAttendance(models.Model):
             elif not r.check_out:
                 r.note = 'no_out'
 
+    #Lấy thông tin số phút nhân viên đi muộn hoặc về sớm
     def _get_minute_late_early(self):
         for r in self:
             if r.shift:
@@ -160,6 +168,7 @@ class EmployeeAttendance(models.Model):
                 r.minutes_late = 0
                 r.minutes_early = 0
 
+    #Lấy thông tin ngày công của nhân viên
     def _get_work_day(self):
         for r in self:
             work_leave = self.env['word.slip'].sudo().search([

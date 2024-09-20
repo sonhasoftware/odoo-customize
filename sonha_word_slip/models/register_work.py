@@ -12,6 +12,7 @@ class RegisterWork(models.Model):
     end_date = fields.Date("Đến ngày")
     department_id = fields.Many2one('hr.department', string="Phòng ban", required=True)
 
+    #Chỉ hiển thị các nhân viên trong phòng ban đã chọn
     @api.onchange('department_id')
     def _onchange_department_id(self):
         for r in self:

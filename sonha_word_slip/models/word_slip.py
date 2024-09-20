@@ -25,6 +25,7 @@ class WordSlip(models.Model):
     type = fields.Many2one('config.word.slip', related='word_slip.type')
     duration = fields.Float("Ngày", compute="get_duration")
 
+    #Lấy thông tin số ngày công mà nhân viên nghỉ
     @api.depends('start_time', 'end_time')
     def get_duration(self):
         for r in self:
