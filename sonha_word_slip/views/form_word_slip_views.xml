@@ -11,7 +11,6 @@
                 <sheet>
                     <group>
                         <field name="department"/>
-                        <field name="employee_id" domain="[('department_id', '=', department)]"/>
                         <field name="type"/>
                         <field name="word_slip_id">
                             <tree string="Loai nghỉ">
@@ -24,7 +23,7 @@
                                 <field name="reason"/>
                             </tree>
                         </field>
-                        <field name="description"/>
+                        <field name="employee_id" domain="[('department_id', '=', department)]"/>
                     </group>
                 </sheet>
                 <div class="oe_chatter">
