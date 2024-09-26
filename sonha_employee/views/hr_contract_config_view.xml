@@ -1,10 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <record id="view_config_contract_form" model="ir.ui.view">
+        <field name="name">config.contract.form</field>
+        <field name="model">hr.contract.type</field>
+        <field name="arch" type="xml">
+            <form string="Cấu hình loại hợp đồng">
+                <group>
+                    <field name="id"/>
+                    <field name="name"/>
+                    <field name="description"/>
+                </group>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
     <record id="view_config_contract_tree" model="ir.ui.view">
         <field name="name">config.contract.tree</field>
         <field name="model">hr.contract.type</field>
         <field name="arch" type="xml">
-            <tree string="Config Type Contract" editable="bottom">
+            <tree string="Config Type Contract">
                 <field name="id"/>
                 <field name="name"/>
                 <field name="description"/>
@@ -15,6 +34,8 @@
     <record id="config_contract_action" model="ir.actions.act_window">
         <field name="name">Cấu hình Loại hợp đồng</field>
         <field name="res_model">hr.contract.type</field>
-        <field name="view_mode">tree</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('view_config_contract_tree')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('view_config_contract_form')})]"/>
     </record>
 </odoo>

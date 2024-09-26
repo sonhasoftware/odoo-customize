@@ -50,13 +50,36 @@
         </field>
     </record>
 
-    <record id="view_config_shift_search" model="ir.ui.view">
-        <field name="name">view.config.shift.search</field>
+    <record id="view_config_shift_tree" model="ir.ui.view">
+        <field name="name">view.config.shift.tree</field>
         <field name="model">config.shift</field>
         <field name="arch" type="xml">
-            <search>
+            <tree>
+                <field name="name"/>
                 <field name="code"/>
-            </search>
+                <field name="earliest"/>
+                <field name="overtime_before_shift"/>
+                <field name="start"/>
+                <field name="late_entry_allowed"/>
+                <field name="latest"/>
+                <field name="rest"/>
+                <field name="from_rest"/>
+                <field name="minutes_rest"/>
+                <field name="to_rest"/>
+                <field name="earliest_out"/>
+                <field name="allow_early_exit"/>
+                <field name="end_shift"/>
+                <field name="overtime_after_shift"/>
+                <field name="latest_out"/>
+                <field name="night_shift"/>
+                <field name="night_shift_from"/>
+                <field name="night_shift_to"/>
+                <field name="effect_from"/>
+                <field name="effect_to"/>
+                <field name="using"/>
+                <field name="contract"/>
+                <field name="company_id"/>
+            </tree>
         </field>
     </record>
 

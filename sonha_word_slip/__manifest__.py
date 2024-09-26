@@ -20,10 +20,18 @@
         'views/employee_attendance_views.xml',
         'views/synthetic_work_views.xml',
         'views/config_reason_views.xml',
+        'views/button_copy.xml',
         'wizard/timesheet_views.xml',
+        'wizard/copy_views.xml',
         'views/menu_views.xml',
-        'data/cron_job.xml'
+        'data/cron_job.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'sonha_word_slip/static/src/js/btn_copy.js',
+            'sonha_word_slip/static/src/xml/btn_copy.xml',
+        ],
+    },
     'installable': True,
     'application': True,
     'license': 'LGPL-3',

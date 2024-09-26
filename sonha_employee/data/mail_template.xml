@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+   <data>
+       <record id="warning_mail_template" model="mail.template">
+           <field name="name">Warning mail</field>
+           <field name="model_id" ref="sonha_employee.model_hr_contract"/>
+           <field name="email_from">{{user.login}}</field>
+           <field name="email_to">{('hr@example.com')}</field>
+           <field name="subject">Cảnh báo hết hạn hợp đồng</field>
+           <field name="body_html" type="html">
+               <p>
+                   Kính gửi HR,<br></br>
+                   Dưới đây là danh sách những nhân viên sắp hết hạn:<br></br>
+               </p>
+           </field>
+       </record>
+   </data>
+</odoo>

@@ -3,16 +3,17 @@ from odoo import api, fields, models
 
 class RegisterShift(models.Model):
     _name = 'register.shift'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
 
-    employee_id = fields.Many2one('hr.employee', "Tên nhân viên")
+    employee_id = fields.Many2one('hr.employee', "Tên nhân viên", tracking=True)
     type_register = fields.Selection([
         ('fixed_date', 'Theo ngày cố định'),
         ('about_day', 'Theo khoảng ngày'),
-    ], string='Kiểu đăng ký')
-    from_date = fields.Date("Từ ngày")
-    to_date = fields.Date("Đến ngày")
-    register_rel = fields.One2many('register.shift.rel', 'register_shift', string="Chi tiết đăng ký ca")
-    description = fields.Text("Mô tả")
+    ], string='Kiểu đăng ký', tracking=True)
+    from_date = fields.Date("Từ ngày", tracking=True)
+    to_date = fields.Date("Đến ngày", tracking=True)
+    register_rel = fields.One2many('register.shift.rel', 'register_shift', string="Chi tiết đăng ký ca", tracking=True)
+    description = fields.Text("Mô tả", tracking=True)
 
     is_display = fields.Boolean("Hiển thị ngày", default=False, compute="get_show_display_date")
 

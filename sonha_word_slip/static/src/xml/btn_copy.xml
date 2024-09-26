@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+   <t t-name="button_copy.ListView.Buttons" t-inherit="web.ListView.Buttons">
+       <xpath expr="//div[hasclass('o_list_buttons')]" position="after">
+           <button type="button" class="btn btn-primary" t-on-click="OnTestClick">
+               Sao chép
+           </button>
+       </xpath>
+   </t>
+</templates>

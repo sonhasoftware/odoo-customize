@@ -21,13 +21,20 @@
         <field name="model">register.work</field>
         <field name="arch" type="xml">
             <form string="Đăng ký ca">
-                <group>
-                    <field name="department_id"/>
-                    <field name="start_date"/>
-                    <field name="end_date"/>
-                    <field name="shift"/>
-                    <field name="employee_id" widget="many2many_tags" domain="[('department_id', '=', department_id)]"/>
-                </group>
+                <sheet>
+                    <group>
+                        <field name="department_id"/>
+                        <field name="start_date"/>
+                        <field name="end_date"/>
+                        <field name="shift"/>
+                        <field name="employee_id" widget="many2many_tags" domain="[('department_id', '=', department_id)]"/>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
             </form>
         </field>
     </record>
