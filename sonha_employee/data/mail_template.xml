@@ -7,9 +7,6 @@
            <field name="email_from">{{user.login}}</field>
            <field name="email_to">{('hr@example.com')}</field>
            <field name="subject">Cảnh báo hết hạn hợp đồng</field>
-           <field name="body_html" type="html">
-               <p>Mail cảnh báo</p>
-           </field>
        </record>
    </data>
 </odoo>
