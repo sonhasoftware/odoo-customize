@@ -61,11 +61,10 @@ class HrContract(models.Model):
             for contract in list_contracts:
                 if contract.mail == False:
                     contract.mail = True
-                    expired_contract = str(contract.employee_id.name) + " - " + str(contract.employee_code) + " có hợp đồng " + str(contract.display_name) + " sắp hết hạn"
-                    list_expired_contract.append(expired_contract)
+                    expired_contract = str(contract.employee_id.name) + " - " + str(contract.employee_code) + " có hợp đồng " + str(contract.name) + " sắp hết hạn"
                 else:
-                    expired_contract = str(contract.employee_id.name) + " - " + str(contract.employee_code) + " có hợp đồng " + str(contract.display_name) + " sắp hết hạn (Đã gửi mail)"
-                    list_expired_contract.append(expired_contract)
+                    expired_contract = str(contract.employee_id.name) + " - " + str(contract.employee_code) + " có hợp đồng " + str(contract.name) + " sắp hết hạn (Đã gửi mail)"
+                list_expired_contract.append(expired_contract)
             body_mail = ', '.join(list_expired_contract)
             custom_body = "<p>Kính gửi HR,<br></br>Dưới đây là danh sách những nhân viên sắp hết hạn:<br></br></p>" + body_mail
             if body_mail:

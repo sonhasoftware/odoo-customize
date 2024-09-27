@@ -1,7 +1,7 @@
 <odoo>
     <data noupdate="1">
         <record id="ir_cron_action_to_send_warning_mail" model="ir.cron">
-            <field name="name">Action To Send Warning Mail</field>
+            <field name="name">Gửi mail cảnh báo</field>
             <field name="model_id" ref="model_hr_contract"/>
             <field name="state">code</field>
             <field name="code">model.action_cron_send_warning_mail_method()</field>

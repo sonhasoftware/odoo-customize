@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="view_copy_form" model="ir.ui.view">
-        <field name="name">copy.form</field>
-        <field name="model">copy</field>
+        <field name="name">copy.public.leaves.form</field>
+        <field name="model">copy.public.leaves</field>
         <field name="arch" type="xml">
             <form string="Sao chép">
                 <group>

@@ -10,7 +10,7 @@ export class CopyListController extends ListController {
    OnTestClick() {
        this.actionService.doAction({
           type: 'ir.actions.act_window',
-          res_model: 'copy',
+          res_model: 'copy.public.leaves',
           name:'Open Wizard',
           view_mode: 'form',
           view_type: 'form',

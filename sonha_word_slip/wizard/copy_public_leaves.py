@@ -2,8 +2,8 @@ from odoo import api, models, fields
 import datetime
 
 
-class Copy(models.TransientModel):
-    _name = 'copy'
+class CopyPublicLeaves(models.TransientModel):
+    _name = 'copy.public.leaves'
 
     year = fields.Integer(string="Năm")
 

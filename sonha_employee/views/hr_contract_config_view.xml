@@ -34,8 +34,6 @@
     <record id="config_contract_action" model="ir.actions.act_window">
         <field name="name">Cấu hình Loại hợp đồng</field>
         <field name="res_model">hr.contract.type</field>
-        <field name="view_ids" eval="[(5, 0, 0),
-                (0, 0, {'view_mode': 'tree', 'view_id': ref('view_config_contract_tree')}),
-                (0, 0, {'view_mode': 'form', 'view_id': ref('view_config_contract_form')})]"/>
+        <field name="view_mode">tree,form</field>
     </record>
 </odoo>

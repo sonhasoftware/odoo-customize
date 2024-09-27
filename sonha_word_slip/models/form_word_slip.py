@@ -14,19 +14,3 @@ class FormWordSlip(models.Model):
         ('draft', 'Nháp'),
         ('done', 'Đã duyệt'),
     ], string='Trạng thái', tracking=True)
-
-    @api.onchange('department')
-    def _onchange_department_id(self):
-        for r in self:
-            if r.department:
-                return {
-                    'domain': {
-                        'employee_id': [('department_id', '=', self.department.id)]
-                    }
-                }
-            else:
-                return {
-                    'domain': {
-                        'employee_id': []
-                    }
-                }
