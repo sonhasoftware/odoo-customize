@@ -22,6 +22,10 @@
         <field name="model">register.overtime</field>
         <field name="arch" type="xml">
             <form string="Đăng ký làm thêm">
+                <header>
+                    <button name="action_confirm" string="Duyệt" type="object" class="oe_highlight"/>
+                    <field name="status" widget="statusbar"/>
+                </header>
                 <group>
                     <field name="start_date" />
                     <field name="end_date" />

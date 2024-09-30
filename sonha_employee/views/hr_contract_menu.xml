@@ -15,6 +15,7 @@
               name="Cấu hình loại hợp đồng"
               parent="menu_hr_contract_root"
               action="config_contract_action"
+              groups="group_hr_employee"
               sequence="1"/>
 
 </odoo>

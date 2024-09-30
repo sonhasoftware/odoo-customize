@@ -8,18 +8,21 @@
             id="menu_config"
             name="Danh mục"
             parent="menu_word_slip_root"
+            groups="sonha_employee.group_hr_employee"
             sequence="98"/>
 
     <menuitem id="menu_config_word_slip"
               name="Danh mục đơn từ"
               parent="menu_config"
               action="config_word_slip_action"
+              groups="sonha_employee.group_hr_employee"
               sequence="1"/>
 
     <menuitem id="menu_config_shift"
               name="Danh mục ca làm việc"
               parent="menu_config"
               action="config_shift_action"
+              groups="sonha_employee.group_hr_employee"
               sequence="2"/>
 
     <menuitem id="menu_form_word"
@@ -66,6 +69,7 @@
               name="Chốt công"
               parent="menu_word_slip_root"
               action="action_timesheet"
+              groups="sonha_employee.group_hr_employee"
               sequence="5"/>
               
     <!-- Menu con để quản lý nghỉ lễ -->
@@ -79,6 +83,7 @@
               name="Dữ liệu chấm công (thô)"
               parent="menu_attendance"
               action="hr_zk_attendance.action_master_data_attendance"
+              groups="sonha_employee.group_hr_employee"
               sequence="0"/>
 
     <menuitem id="menu_employeee_attendance"

@@ -1,5 +1,15 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 
-access_hr_employee_user,hr.employee.user,model_hr_employee,,1,1,1,1
+access_hr_employee_user,hr.employee.user,model_hr_employee,group_user_employee,1,0,0,0
+access_hr_employee_dl,hr.employee.dl,model_hr_employee,group_dl_employee,1,0,0,0
+access_hr_employee_hr,hr.employee.hr,model_hr_employee,group_hr_employee,1,1,1,1
+access_hr_employee_manager,hr.employee.manager,model_hr_employee,group_manager_employee,1,0,0,0
 
-access_hr_res_user,hr.res.user,model_res_users,,1,1,1,1
+access_hr_contract_user,hr.contract.user,model_hr_contract,group_user_employee,1,0,0,0
+access_hr_contract_dl,hr.contract.dl,model_hr_contract,group_dl_employee,1,0,0,0
+access_hr_contract_hr,hr.contract.hr,model_hr_contract,group_hr_employee,1,1,1,1
+access_hr_contract_manager,hr.contract.manager,model_hr_contract,group_manager_employee,1,0,0,0
+
+access_hr_contract_type_hr,hr.contract.type.hr,model_hr_contract_type,group_hr_employee,1,0,0,0
+
+access_hr_res_user,hr.res.user,model_res_users,group_hr_employee,1,1,1,1
