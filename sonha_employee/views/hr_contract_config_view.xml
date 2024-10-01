@@ -8,6 +8,7 @@
                 <field name="id"/>
                 <field name="name"/>
                 <field name="description"/>
+                <field name="file"/>
             </tree>
         </field>
     </record>
