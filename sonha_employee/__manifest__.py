@@ -15,7 +15,8 @@
         'views/hr_contract_view.xml',
         'views/hr_contract_config_view.xml',
         'views/hr_contract_menu.xml',
-
+        'data/corn_job.xml',
+        'data/mail_template.xml',
     ],
     'assets': {
         'web.assets_backend': [

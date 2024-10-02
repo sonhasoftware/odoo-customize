@@ -8,3 +8,4 @@ from . import register_work
 from . import register_overtime
 from . import employee_attendance
 from . import synthetic_work
+from . import config_reason

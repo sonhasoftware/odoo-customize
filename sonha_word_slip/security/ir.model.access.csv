@@ -42,4 +42,8 @@ access_synthetic_work_manager,synthetic.work.manager,model_synthetic_work,sonha_
 
 access_word_slip,word.slip,model_word_slip,,1,1,1,1
 access_register_shift_rel,register.shift.rel,model_register_shift_rel,,1,1,1,1
+
 access_timesheet,timesheet,model_timesheet,sonha_employee.group_hr_employee,1,1,1,1
+access_copy_public_leaves,copy.public.leave,model_copy_public_leaves,,1,1,1,1
+
+access_config_reason,config.reason,model_config_reason,,1,1,1,1

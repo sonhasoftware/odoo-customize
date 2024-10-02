@@ -11,7 +11,7 @@
                 </header>
                 <sheet>
                     <group>
-                        <field name="employee_id"/>
+                        <field name="department"/>
                         <field name="type"/>
                         <field name="word_slip_id">
                             <tree string="Loai nghỉ">
@@ -21,11 +21,17 @@
                                 <field name="end_time"/>
                                 <field name="time_to"/>
                                 <field name="time_from"/>
+                                <field name="reason"/>
                             </tree>
                         </field>
-                        <field name="description"/>
+                        <field name="employee_id" domain="[('department_id', '=', department)]"/>
                     </group>
                 </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
             </form>
         </field>
     </record>
@@ -35,6 +41,7 @@
         <field name="model">form.word.slip</field>
         <field name="arch" type="xml">
             <tree string="Đơn từ">
+                <field name="department"/>
                 <field name="employee_id"/>
                 <field name="type"/>
             </tree>

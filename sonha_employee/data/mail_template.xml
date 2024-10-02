@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+   <data>
+       <record id="warning_mail_template" model="mail.template">
+           <field name="name">Mail cảnh báo</field>
+           <field name="model_id" ref="sonha_employee.model_hr_contract"/>
+           <field name="email_from">{{user.login}}</field>
+           <field name="email_to">{('hr@example.com')}</field>
+           <field name="subject">Cảnh báo hết hạn hợp đồng</field>
+       </record>
+   </data>
+</odoo>
