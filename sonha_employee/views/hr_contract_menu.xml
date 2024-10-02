@@ -16,12 +16,4 @@
               parent="menu_hr_contract_root"
               action="config_contract_action"
               sequence="1"/>
-
-    <!-- Action để mở danh sách hợp đồng -->
-    <!-- <record id="action_hr_contract" model="ir.actions.act_window">
-        <field name="name">Hợp đồng</field>
-        <field name="res_model">hr.contract</field>
-        <field name="view_mode">tree,form</field>
-        <field name="view_id" ref="view_hr_contract_tree"/>
-    </record> -->
 </odoo>

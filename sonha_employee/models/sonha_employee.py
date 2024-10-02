@@ -95,3 +95,48 @@ class SonHaEmployee(models.Model):
     #             r.list_employee = flattened_list
     #         else:
     #             r.list_employee = None
+    
+    
+
+class EmployeeRel(models.Model):
+    _name = 'employee.rel'
+    _description='Employee Rel'
+    
+    name = fields.Many2one('hr.employee', string="Tên nhân viên")
+    emp_code = fields.Char(string="Mã nhân viên", compute="get_info_employee", store= True)
+    job = fields.Many2one('hr.job',string="Chức vụ", compute="get_info_employee", store= True)
+    department = fields.Many2one('hr.department',string="Phòng ban", compute="get_info_employee", store= True)
+    amount_reward = fields.Float("Mức thưởng")
+    amount_discipline = fields.Float("Số tiền")
+    note = fields.Char(string="Ghi chú")
+    
+    person_reward = fields.Many2one('person.reward')
+    person_discipline = fields.Many2one('person.discipline')
+    
+    @api.depends('name')
+    def get_info_employee(self):
+        for r in self:
+            if r.name:
+                r.emp_code = r.name.employee_code if r.name.employee_code else None
+                r.job = r.name.department_id.id if r.name.department_id else None
+                r.department = r.name.job_id.id if r.name.job_id else None
+                
+class DepartmentRel(models.Model):
+    _name = 'department.rel'
+    _description='Department Rel'
+    
+    company_code = fields.Many2one('hr.department', compute="get_info_department", store= True, string="Công ty")
+    name_depart = fields.Many2one('hr.department', string="Tên phòng ban")
+    
+    unit_reward = fields.Many2one('unit.reward')
+    unit_discipline = fields.Many2one('unit.discipline')
+    
+    @api.depends('name_depart')
+    def get_info_department(self):
+        for r in self:
+            if r.name_depart:
+                r.company_code = r.name_depart.company_id.id if r.name_depart.company_id else None
+                
+    
+    
+    

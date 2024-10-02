@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<odoo>
+    <!-- Menu cha cho khen thưởng, kỷ luật -->
+    <menuitem id="menu_reward_discipline_root" name="Khen thưởng, Kỷ luật" parent="hr.menu_hr_root" sequence="40"/>
+
+    <!-- Menu để quản lý khen thưởng -->
+    <menuitem id="menu_reward"
+              name="Khen thưởng"
+              parent="menu_reward_discipline_root"
+              sequence="0"/>
+    <!-- Menu con để quản lý khen thưởng -->
+    <menuitem id="menu_reward_unit_C1"
+              name="Khen thưởng đơn vị"
+              parent="menu_reward"
+              action="action_reward_unit"
+              sequence="0"/>
+    <!-- Menu con để quản lý khen thưởng -->
+    <menuitem id="menu_reward_person_C1"
+              name="Khen thưởng cá nhân"
+              parent="menu_reward"
+              action="action_reward_person"
+              sequence="1"/>
+    <!-- Menu con để quản lý kỷ luật đơn vị -->
+    <menuitem id="menu_discipline"
+              name="Kỷ luật"
+              parent="menu_reward_discipline_root"
+              sequence="1"/>
+    <!-- Menu con để quản lý kỷ luật cá nhân -->
+    <menuitem id="menu_discipline_person"
+              name="Kỷ luật cá nhân"
+              parent="menu_discipline"
+              action="action_discipline_person"
+              sequence="1"/>
+    <!-- Menu con để quản lý kỷ luật đơn vị -->
+    <menuitem id="menu_reward_units"
+              name="Kỷ luật đơn vị"
+              parent="menu_discipline"
+              action="action_discipline_unit"
+              sequence="0"/>
+</odoo>

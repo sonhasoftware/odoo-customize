@@ -1,0 +1,77 @@
+<odoo>
+    <record id="action_discipline_unit" model="ir.actions.act_window">
+        <field name="name">Kỷ luật đơn vị</field>
+        <field name="res_model">unit.discipline</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Tree View cho Kỷ luật đơn vị -->
+    <record id="view_discipline_unit_tree" model="ir.ui.view">
+        <field name="name">hr.discipline.unit.tree</field>
+        <field name="model">unit.discipline</field>
+        <field name="arch" type="xml">
+            <tree string="Danh sách">
+                    <field name="object_discipline"/>
+                    <field name="unit"/>
+                    <field name="reason"/>
+                    <field name="date_decipline"/>
+                    <field name="desision_number"/>
+                    <field name="form_discipline"/>
+                    <field name="date_sign"/>
+                    <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Form View cho Kỷ luật đơn vị -->
+    <record id="view_discipline_unit_form" model="ir.ui.view">
+        <field name="name">hr.discipline.unit.form</field>
+        <field name="model">unit.discipline</field>
+        <field name="arch" type="xml">
+            <form string="Kỷ luật đơn vị">
+                <sheet>
+                    <group col="2" string="Thông tin đối tượng Kỷ luật">
+                        <group>
+                            <field name="object_discipline"/>
+                            <field name="report_to"/>
+                            <field name="reason" string="Lý do kỷ luật"/>
+                            <field name="date_decipline" string="Ngày vi phạm"/>
+                            <field name="note" string="Chú thích"/>
+                        </group>
+                        <group>
+                            <field name="unit">
+                                <tree editable="bottom">
+                                    <field name="company_code"/>
+                                    <field name="name_depart"/>
+                                </tree>
+                            </field>
+                        </group>
+                    </group>
+                    <group string="Phê duyệt">
+                        <group>
+                            <field name="desision_number"/>
+                            <field name="form_discipline"/>
+                            <field name="date_start"/>
+                            <field name="date_sign"/>
+                            <field name="amount"/>
+                        </group>
+                        <group>
+                            <field name="applicable_sanctions"/>
+                            <field name="date_end"/>
+                        </group>
+                        <group>
+                            <field name="state"/>
+                            <field name="option" widget='radio' options="{'horizontal': true}"/>
+                            <field name="file_desision" string="Đường dẫn file QĐ"/>
+                        </group>
+                        <group>
+                            <field name="note_1" string="Chú thích"/>
+                            <field name="sign_person" string="Người phê duyệt"/>
+                            <field name="title_person_sign" string="Chức vụ"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

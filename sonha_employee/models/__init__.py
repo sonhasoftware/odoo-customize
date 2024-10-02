@@ -2,3 +2,12 @@ from . import sonha_employee
 from . import sonha_user
 from . import hr_contract_inherit
 from . import hr_contract_type
+from . import unit_reward
+from . import person_reward
+from . import unit_discipline
+from . import person_discipline
+from . import form_reward_config
+from . import level_reward_config
+from . import state_reward_config
+from . import title_reward_config
+from . import object_reward_config

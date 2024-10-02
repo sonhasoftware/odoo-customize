@@ -41,7 +41,7 @@
 
     <!-- Menu Item -->
     <menuitem id="menu_hr_employee_custom"
-              name="Nhân viên (View Admin)"
+              name="Nhân viên (VA)"
               parent="hr.menu_hr_root"
               sequence="10"/>
 

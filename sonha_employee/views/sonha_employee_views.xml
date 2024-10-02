@@ -6,7 +6,7 @@
             <field name="model">hr.employee</field>
             <field name="inherit_id" ref="hr.view_employee_form"/>
             <field name="arch" type="xml">
-<!--                ẩn đi các field k cần dùng đến trên form-->
+<!--        ẩn đi các field k cần dùng đến trên form-->
                 <xpath expr="//field[@name='coach_id']" position="attributes">
                     <attribute name="invisible">True</attribute>
                 </xpath>
@@ -24,7 +24,7 @@
                     <attribute name="invisible">True</attribute>
                 </xpath>
 
-<!--                kế thừa thêm field vào page hr setting (page 3)-->
+<!--        kế thừa thêm field vào page hr setting (page 3)-->
                 <xpath expr="//page[@name='hr_settings']//field[@name='user_id']" position="after">
                     <field name="employee_code"/>
                     <field name="shift"/>
@@ -32,9 +32,9 @@
 
                 <xpath expr="//page[@name='hr_settings']//field[@name='pin']" position="after">
                     <field name="onboard"/>
-<!--    <field name="type_contract"/>-->
+<!--        <field name="type_contract"/>-->
                 </xpath>
-<!--    kế thừa thêm field vào page hr setting (page 2)-->
+<!--        kế thừa thêm field vào page hr setting (page 2)-->
                 <xpath expr="//page[@name='personal_information']//field[@name='private_phone']" position="after">
                     <field name="number_cccd"/>
                     <field name="date_cccd"/>
@@ -54,7 +54,7 @@
                     <field name="place_party_member"/>
                     <field name="fee_party_member"/>
                 </xpath>
-<!--    kế thừa thêm field vào page hr setting (page 1)-->
+<!--        kế thừa thêm field vào page hr setting (page 1)-->
                 <xpath expr="//page[@name='public']//field[@name='work_location_id']" position="after">
                     <field name="date_birthday"/>
                     <field name="place_birthday"/>
@@ -66,7 +66,7 @@
                     <field name="permanent_address"/>
                     <field name="current_residence"/>
                 </xpath>
-<!--    ẩn đi các field k cần dùng đến trên form-->
+<!--        ẩn đi các field k cần dùng đến trên form-->
                 <xpath expr="//field[@name='coach_id']" position="attributes">
                     <attribute name="invisible">True</attribute>
                 </xpath>

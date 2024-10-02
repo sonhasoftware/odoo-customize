@@ -1,0 +1,71 @@
+<odoo>
+    <record id="action_reward_unit" model="ir.actions.act_window">
+        <field name="name">Khen thưởng đơn vị</field>
+        <field name="res_model">unit.reward</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Tree View cho Khen thưởng đơn vị -->
+    <record id="view_reward_unit_tree" model="ir.ui.view">
+        <field name="name">hr.reward.unit.tree</field>
+        <field name="model">unit.reward</field>
+        <field name="arch" type="xml">
+            <tree string="Danh sách">
+                    <field name="object_reward"/>
+                    <field name="unit"/>
+                    <field name="title_reward"/>
+                    <field name="desision_number"/>
+                    <field name="sign_date"/>
+                    <field name="sign_person"/>
+                    <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Form View cho Khen thưởng đơn vị -->
+    <record id="view_reward_unit_form" model="ir.ui.view">
+        <field name="name">hr.reward.unit.form</field>
+        <field name="model">unit.reward</field>
+        <field name="arch" type="xml">
+            <form string="Khen thưởng đơn vị">
+                <sheet>
+                    <group col="2" string="Thông tin đối tượng khen thưởng">
+                        <group>
+                            <field name="object_reward"/>
+                            <field name="form_reward"/>
+                            <field name="level_reward"/>
+                            <field name="title_reward"/>
+                        </group>
+                        <group>
+                            <field name="unit">
+                                <tree editable="bottom">
+                                    <field name="company_code"/>
+                                    <field name="name_depart"/>
+                                </tree>
+                            </field>
+                        </group>
+                        <group>
+                            <field name="reason"/>
+                            <field name="amount"/>
+                            <field name="option" widget='radio' options="{'horizontal': true}"/>
+                            <field name="note"/>
+                        </group>
+                    </group>
+                    <group string="Phê duyệt">
+                        <group>
+                            <field name="desision_number"/>
+                            <field name="effective_date"/>
+                            <field name="sign_person"/>
+                            <field name="title_person_sign"/>
+                        </group>
+                        <group>
+                            <field name="state"/>
+                            <field name="sign_date"/>
+                            <field name="file_desision"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

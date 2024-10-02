@@ -1,0 +1,78 @@
+<odoo>
+    <record id="action_discipline_person" model="ir.actions.act_window">
+        <field name="name">Kỷ luật cá nhân</field>
+        <field name="res_model">person.discipline</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Tree View cho Khen thưởng cá nhân -->
+    <record id="view_discipline_person_tree" model="ir.ui.view">
+        <field name="name">hr.discipline.person.tree</field>
+        <field name="model">person.discipline</field>
+        <field name="arch" type="xml">
+            <tree string="Danh sách">
+                    <field name="object_discipline"/>
+                    <field name="person_discipline"/>
+                    <field name="date_discipline"/>
+                    <field name="discipline_number"/>
+                    <field name="form_discipline"/>
+                    <field name="sign_person"/>
+                    <field name="date_sign"/>
+                    <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Form View cho Kỷ luật cá nhân -->
+    <record id="view_discipline_person_form" model="ir.ui.view">
+        <field name="name">hr.discipline.person.form</field>
+        <field name="model">person.discipline</field>
+        <field name="arch" type="xml">
+            <form string="Kỷ luật cá nhân">
+                <sheet>
+                    <group col="1" string="Thông tin Kỷ luật">
+                        <group>
+                            <field name="object_discipline"/>
+                            <field name="report_to"/>
+                            <field name="date_discipline"/>
+                        </group>
+                        <group>
+                            <field name="person_discipline">
+                                <tree editable="bottom">
+                                    <field name="emp_code"/>
+                                    <field name="name"/>
+                                    <field name="job"/>
+                                    <field name="department"/>
+                                    <field name="amount_discipline"/>
+                                </tree>
+                            </field>
+                        </group>
+                        <group>
+                            <field name="reason"/>
+                            <field name="content"/>
+                        </group>
+                    </group>
+                    <group string="Phê duyệt" >
+                        <group>
+                            <field name="discipline_number"/>
+                            <field name="form_discipline"/>
+                            <field name="form_discipline_properties"/>
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                            <field name="sign_person"/>
+                            <field name="title_person_sign"/>
+                        </group>
+                        <group>
+                            <field name="state"/>
+                             <field name="amount"/>
+                            <field name="option" widget='radio' options="{'horizontal': true}"/>
+                            <field name="note"/>
+                            <field name="date_sign"/>
+                            <field name="file_desision"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>
