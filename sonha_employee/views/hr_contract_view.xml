@@ -16,6 +16,7 @@
                     <button name="action_confirm" type="object" string="Duyệt" class="oe_highlight" invisible="state != 'draft'"/>
                     <button name="action_cancel" type="object" string="Hủy hợp đồng" class="oe_highlight" invisible="state != 'draft'"/>
                     <button name="cancel_confirm" type="object" string="Hủy duyệt" class="oe_highlight" invisible="state != 'open'"/>
+                    <button name="export_contract" type="object" string="Xuất file" class="oe_highlight"/>
                 </xpath>
                 <xpath expr="//field[@name='name']" position="attributes">
                     <attribute name="readonly">state != 'draft'</attribute>

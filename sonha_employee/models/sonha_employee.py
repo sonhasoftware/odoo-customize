@@ -4,6 +4,7 @@ from odoo.exceptions import UserError, ValidationError
 
 class SonHaEmployee(models.Model):
     _inherit = 'hr.employee'
+    _rec_name = 'combination'
 
     list_employee = fields.Many2many('hr.employee', 'ir_employee_group_rel',
                                      'employee_group_rel', 'employee_rel',
@@ -74,24 +75,23 @@ class SonHaEmployee(models.Model):
     place_party_member = fields.Char("Nơi vào Đảng")
     fee_party_member = fields.Boolean("Đảng phí")
 
-# @api.onchange('list_employee')
-    # def _onchange_list_employee(self):
-    #     if self.list_employee:
-    #         return {'domain': {'kpi': [('id', 'in', self.list_employee.ids)]}}
-    #     else:
-    #         self.filter_list_employee()
-    #         return {'domain': {'kpi': []}}
-    #
-    # @api.onchange('list_employee')
-    # def filter_list_employee(self):
-    #     for r in self:
-    #         if len(r.lower_grade) > 0:
-    #             list_emp = []
-    #             for item in r.lower_grade:
-    #                 list_emp.append(item.id)
-    #                 list_emp.append(item.list_employee.ids)
-    #             flattened_list = [item for sublist in list_emp for item in
-    #                               (sublist if isinstance(sublist, list) else [sublist])]
-    #             r.list_employee = flattened_list
-    #         else:
-    #             r.list_employee = None
+    combination = fields.Char(string='Combination', compute='_compute_fields_combination')
+    work_ids = fields.One2many('work.process', 'employee_id', string="Quá trình công tác")
+
+    @api.depends('name', 'employee_code')
+    def _compute_fields_combination(self):
+        for r in self:
+            if r.name and r.employee_code:
+                r.combination = r.name + ' (' + r.employee_code + ')'
+            else:
+                r.combination = r.name
+
+
+class WorkProcess(models.Model):
+    _name = 'work.process'
+
+    date = fields.Char("Thời gian")
+    work = fields.Char("Quá trình")
+    job = fields.Char("Chức vụ")
+    company = fields.Char("Công ty")
+    employee_id = fields.Many2one('hr.employee')

@@ -10,3 +10,4 @@ class HrContractType(models.Model):
     name = fields.Char(string='Tên', required=True, tracking=True)
     country_id = fields.Many2one('res.country', string='Country')
     description = fields.Char(string='Mô tả', tracking=True)
+    file = fields.Binary("File")

@@ -1,4 +1,5 @@
 from odoo import api, fields, models
+from odoo.exceptions import UserError, ValidationError
 
 
 class RegisterShift(models.Model):
@@ -16,6 +17,10 @@ class RegisterShift(models.Model):
     description = fields.Text("Mô tả", tracking=True)
 
     is_display = fields.Boolean("Hiển thị ngày", default=False, compute="get_show_display_date")
+    status = fields.Selection([
+        ('draft', 'Nháp'),
+        ('done', 'Đã duyệt'),
+    ], string='Trạng thái')
 
     #Kiểm tra xem đăng ký đổi ca theo khoảng ngày hay không
     @api.depends('type_register')
@@ -25,4 +30,11 @@ class RegisterShift(models.Model):
                 r.is_display = True
             else:
                 r.is_display = False
+
+    def action_confirm(self):
+        for r in self:
+            if r.employee_id.parent_id.id == self.env.user.id:
+                r.status = 'done'
+            else:
+                raise ValidationError("Bạn không có quyền thực hiện hành động này")
 

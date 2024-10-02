@@ -5,6 +5,10 @@
         <field name="model">register.shift</field>
         <field name="arch" type="xml">
             <form string="Đơn đổi ca">
+                <header>
+                    <button name="action_confirm" string="Duyệt" type="object" class="oe_highlight"/>
+                    <field name="status" widget="statusbar"/>
+                </header>
                 <sheet>
                     <group>
                         <field name="type_register"/>

@@ -8,6 +8,7 @@
     'description': "Đơn từ Sơn Hà",
     'depends': ['base', 'hr', 'web'],
     'data': [
+        'security/security.xml',
         'security/ir.model.access.csv',
         'views/config_word_slip_views.xml',
         'views/word_slip_views.xml',

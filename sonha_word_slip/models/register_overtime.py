@@ -1,4 +1,5 @@
 from odoo import api, fields, models
+from odoo.exceptions import UserError, ValidationError
 
 
 class RegisterOvertime(models.Model):
@@ -10,3 +11,14 @@ class RegisterOvertime(models.Model):
     end_date = fields.Date("Đến ngày", tracking=True)
     start_time = fields.Float("Thời gian bắt đầu", tracking=True)
     end_time = fields.Float("Thời gian kết thúc", tracking=True)
+    status = fields.Selection([
+        ('draft', 'Nháp'),
+        ('done', 'Đã duyệt'),
+    ], string='Trạng thái', tracking=True)
+
+    def action_confirm(self):
+        for r in self:
+            if r.employee_id.parent_id.id == self.env.user.id:
+                r.status = 'done'
+            else:
+                raise ValidationError("Bạn không có quyền thực hiện hành động này")

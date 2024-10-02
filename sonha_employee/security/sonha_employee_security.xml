@@ -34,4 +34,35 @@
         <field name="name">Back up</field>
         <field name="category_id" ref="sonha_employee_cat_security"/>
     </record>
+
+
+    <record id="rule_employee_user" model="ir.rule">
+        <field name="name">Rule Employee User</field>
+        <field name="model_id" ref="model_hr_employee"/>
+        <field name="domain_force">[('user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_user_employee'))]"/>
+    </record>
+
+    <record id="rule_employee_user" model="ir.rule">
+        <field name="name">Rule Employee DL</field>
+        <field name="model_id" ref="model_hr_employee"/>
+        <field name="domain_force">['|', ('user_id', '=', user.id), ('id', 'child_of', [emp.id for emp in user.employee_ids])] </field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_dl_employee'))]"/>
+    </record>
+
+    <record id="rule_contract_user" model="ir.rule">
+        <field name="name">Rule contract User</field>
+        <field name="model_id" ref="model_hr_contract"/>
+        <field name="domain_force">[('employee_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_user_employee'))]"/>
+    </record>
+
+    <record id="rule_contract_user" model="ir.rule">
+        <field name="name">Rule contract DL</field>
+        <field name="model_id" ref="model_hr_contract"/>
+        <field name="domain_force">['|', ('employee_id.user_id', '=', user.id), ('employee_id', 'child_of', [emp.id for emp in user.employee_ids])] </field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_dl_employee'))]"/>
+    </record>
+
+
 </odoo>
