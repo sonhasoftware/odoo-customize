@@ -23,16 +23,16 @@
         <field name="arch" type="xml">
             <form string="Đăng ký làm thêm">
                 <header>
-                    <button name="action_confirm" string="Duyệt" type="object" class="oe_highlight"/>
+                    <button name="action_confirm" string="Duyệt" type="object" class="oe_highlight" invisible="status != 'draft'"/>
                     <field name="status" widget="statusbar"/>
                 </header>
                 <sheet>
                     <group>
-                        <field name="start_date" />
-                        <field name="end_date" />
-                        <field name="start_time" widget="float_time"/>
-                        <field name="end_time" widget="float_time"/>
-                        <field name="employee_id"/>
+                        <field name="start_date" readonly="status != 'draft'"/>
+                        <field name="end_date" readonly="status != 'draft'"/>
+                        <field name="start_time" widget="float_time" readonly="status != 'draft'"/>
+                        <field name="end_time" widget="float_time" readonly="status != 'draft'"/>
+                        <field name="employee_id" readonly="status != 'draft'"/>
                     </group>
                 </sheet>
                 <div class="oe_chatter">
