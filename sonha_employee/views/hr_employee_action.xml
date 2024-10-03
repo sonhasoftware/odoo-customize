@@ -43,35 +43,41 @@
     <menuitem id="menu_hr_employee_custom"
               name="Nhân viên (VA)"
               parent="hr.menu_hr_root"
+              groups="group_hr_employee"
               sequence="10"/>
 
     <menuitem id="menu_hr_employee_custom_all"
               name="Tất cả"
               parent="menu_hr_employee_custom"
               action="action_hr_employee_custom"
+              groups="group_hr_employee"
               sequence="0"/>
 
     <menuitem id="menu_hr_employee_custom_working"
               name="Đang làm việc"
               parent="menu_hr_employee_custom"
               action="action_hr_employee_custom_working"
+              groups="group_hr_employee"
               sequence="1"/>
 
     <menuitem id="menu_hr_employee_custom_working_maternity_leave"
               name="Nghỉ thai sản"
               parent="menu_hr_employee_custom"
               action="action_hr_employee_custom_maternity_leave"
+              groups="group_hr_employee"
               sequence="2"/>
 
     <menuitem id="menu_hr_employee_custom_working_quit_job"
               name="Nghỉ việc"
               parent="menu_hr_employee_custom"
               action="action_hr_employee_custom_quit_job"
+              groups="group_hr_employee"
               sequence="3"/>
 
     <menuitem id="menu_hr_employee_custom_working_trial"
               name="Thử việc"
               parent="menu_hr_employee_custom"
               action="action_hr_employee_custom_trial"
+              groups="group_hr_employee"
               sequence="4"/>
 </odoo>

@@ -4,10 +4,13 @@
         <field name="name">register.shift.form</field>
         <field name="model">register.shift</field>
         <field name="arch" type="xml">
-            <form string="Form Word Slip">
+            <form string="Đơn đổi ca">
+                <header>
+                    <button name="action_confirm" string="Duyệt" type="object" class="oe_highlight"/>
+                    <field name="status" widget="statusbar"/>
+                </header>
                 <sheet>
                     <group>
-                        <field name="employee_id"/>
                         <field name="type_register"/>
                         <field name="is_display" invisible="True"/>
                         <field name="from_date" invisible="is_display != True "/>
@@ -18,9 +21,15 @@
                                 <field name="shift"/>
                             </tree>
                         </field>
+                        <field name="employee_id"/>
                         <field name="description"/>
                     </group>
                 </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
             </form>
         </field>
     </record>
@@ -29,14 +38,14 @@
         <field name="name">register.shift.tree</field>
         <field name="model">register.shift</field>
         <field name="arch" type="xml">
-            <tree>
+            <tree string="Đơn đổi ca">
                 <field name="employee_id"/>
             </tree>
         </field>
     </record>
 
     <record id="action_register_shift" model="ir.actions.act_window">
-        <field name="name">Đăng ký ca</field>
+        <field name="name">Đơn đổi ca</field>
         <field name="res_model">register.shift</field>
         <field name="view_mode">tree,form</field>
     </record>

@@ -6,7 +6,7 @@
     'summary': 'Son ha Employee',
     'website': 'https://',
     'description': "Employee Son Ha",
-    'depends': ['hr', 'base'],
+    'depends': ['hr', 'base', 'hr_contract'],
     'data': [
         'security/sonha_employee_security.xml',
         'security/ir.model.access.csv',
@@ -27,6 +27,8 @@
         'views/discipline_person_view.xml',
         'views/reward_discipline_menu.xml',
 
+        'data/corn_job.xml',
+        'data/mail_template.xml',
     ],
     'assets': {
         'web.assets_backend': [

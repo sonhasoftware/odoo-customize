@@ -7,7 +7,7 @@
             <field name="state">code</field>
             <field name="code">model.update_attendance_data()</field>
             <field name="interval_number">1</field>
-            <field name="interval_type">hours</field>
+            <field name="interval_type">months</field>
             <field name="numbercall">-1</field>
             <field name="doall">True</field>
         </record>

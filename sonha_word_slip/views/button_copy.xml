@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+           <record id="view_quotation_tree_with_onboarding" model="ir.ui.view">
+       <field name="name">copy.view.tree.inherit</field>
+       <field name="model">resource.calendar.leaves</field>
+       <field name="inherit_id" ref="resource.resource_calendar_leave_tree"/>
+       <field name="arch" type="xml">
+           <xpath expr="//tree" position="attributes">
+               <attribute name="js_class">button_in_tree</attribute>
+           </xpath>
+       </field>
+   </record>
+</odoo>

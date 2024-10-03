@@ -18,7 +18,7 @@
                 <group>
                     <field name="from_date"/>
                     <field name="to_date"/>
-                    <field name="level"/>
+                    <field name="reason"/>
                 </group>
             </form>
         </field>

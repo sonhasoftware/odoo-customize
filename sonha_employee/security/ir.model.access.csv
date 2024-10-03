@@ -1,6 +1,9 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 
-access_hr_employee_user,hr.employee.user,model_hr_employee,,1,1,1,1
+access_hr_employee_user,hr.employee.user,model_hr_employee,group_user_employee,1,0,0,0
+access_hr_employee_dl,hr.employee.dl,model_hr_employee,group_dl_employee,1,0,0,0
+access_hr_employee_hr,hr.employee.hr,model_hr_employee,group_hr_employee,1,1,1,1
+access_hr_employee_manager,hr.employee.manager,model_hr_employee,group_manager_employee,1,0,0,0
 
 sonha_employee.access_unit_reward,access_unit_reward,sonha_employee.model_unit_reward,base.group_user,1,1,1,1
 sonha_employee.access_form_reward_config,access_form_reward_config,sonha_employee.model_form_reward_config,base.group_user,1,1,1,1
@@ -12,8 +15,16 @@ sonha_employee.access_person_reward,access_person_reward,sonha_employee.model_pe
 sonha_employee.access_unit_discipline,access_unit_discipline,sonha_employee.model_unit_discipline,base.group_user,1,1,1,1
 sonha_employee.access_person_discipline,access_person_discipline,sonha_employee.model_person_discipline,base.group_user,1,1,1,1
 
-access_hr_res_user,hr.res.user,model_res_users,,1,1,1,1
-
 
 access_employee_rel_user,employee.rel.user,model_employee_rel,,1,1,1,1
 sonha_employee.access_department_rel,access_department_rel,sonha_employee.model_department_rel,base.group_user,1,1,1,1
+access_hr_contract_user,hr.contract.user,model_hr_contract,group_user_employee,1,0,0,0
+access_hr_contract_dl,hr.contract.dl,model_hr_contract,group_dl_employee,1,0,0,0
+access_hr_contract_hr,hr.contract.hr,model_hr_contract,group_hr_employee,1,1,1,1
+access_hr_contract_manager,hr.contract.manager,model_hr_contract,group_manager_employee,1,0,0,0
+
+access_hr_contract_type_hr,hr.contract.type.hr,model_hr_contract_type,group_hr_employee,1,0,0,0
+
+access_hr_res_user,hr.res.user,model_res_users,group_hr_employee,1,1,1,1
+
+access_work_process,work.process,model_work_process,,1,1,1,1

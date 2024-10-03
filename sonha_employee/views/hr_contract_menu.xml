@@ -8,12 +8,14 @@
     <menuitem id="menu_hr_contract"
               name="Hợp đồng"
               parent="menu_hr_contract_root"
-              action="action_hr_contract"
+              action="hr_contract.action_hr_contract"
               sequence="0"/>
     <!-- Menu con để quản lý loại hợp đồng -->
     <menuitem id="menu_hr_contract_config"
               name="Cấu hình loại hợp đồng"
               parent="menu_hr_contract_root"
               action="config_contract_action"
+              groups="group_hr_employee"
               sequence="1"/>
+
 </odoo>

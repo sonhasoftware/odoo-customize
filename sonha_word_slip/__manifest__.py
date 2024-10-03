@@ -8,6 +8,7 @@
     'description': "Đơn từ Sơn Hà",
     'depends': ['base', 'hr', 'web'],
     'data': [
+        'security/security.xml',
         'security/ir.model.access.csv',
         'views/config_word_slip_views.xml',
         'views/word_slip_views.xml',
@@ -19,10 +20,19 @@
         'views/register_overtime_views.xml',
         'views/employee_attendance_views.xml',
         'views/synthetic_work_views.xml',
+        'views/config_reason_views.xml',
+        'views/button_copy.xml',
         'wizard/timesheet_views.xml',
+        'wizard/copy_public_leaves_views.xml',
         'views/menu_views.xml',
-        'data/cron_job.xml'
+        'data/cron_job.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'sonha_word_slip/static/src/js/btn_copy.js',
+            'sonha_word_slip/static/src/xml/btn_copy.xml',
+        ],
+    },
     'installable': True,
     'application': True,
     'license': 'LGPL-3',
