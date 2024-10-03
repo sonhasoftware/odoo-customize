@@ -75,6 +75,9 @@ class SonHaEmployee(models.Model):
     place_party_member = fields.Char("Nơi vào Đảng")
     fee_party_member = fields.Boolean("Đảng phí")
 
+    combination = fields.Char(string='Combination', compute='_compute_fields_combination')
+    work_ids = fields.One2many('work.process', 'employee_id', string="Quá trình công tác")
+
 # @api.onchange('list_employee')
     # def _onchange_list_employee(self):
     #     if self.list_employee:
@@ -96,6 +99,14 @@ class SonHaEmployee(models.Model):
     #             r.list_employee = flattened_list
     #         else:
     #             r.list_employee = None
+
+    @api.depends('name', 'employee_code')
+    def _compute_fields_combination(self):
+        for r in self:
+            if r.name and r.employee_code:
+                r.combination = r.name + ' (' + r.employee_code + ')'
+            else:
+                r.combination = r.name
     
     
 
@@ -137,20 +148,6 @@ class DepartmentRel(models.Model):
         for r in self:
             if r.name_depart:
                 r.company_code = r.name_depart.company_id.id if r.name_depart.company_id else None
-                
-    
-    
-    
-    combination = fields.Char(string='Combination', compute='_compute_fields_combination')
-    work_ids = fields.One2many('work.process', 'employee_id', string="Quá trình công tác")
-
-    @api.depends('name', 'employee_code')
-    def _compute_fields_combination(self):
-        for r in self:
-            if r.name and r.employee_code:
-                r.combination = r.name + ' (' + r.employee_code + ')'
-            else:
-                r.combination = r.name
 
 
 class WorkProcess(models.Model):
