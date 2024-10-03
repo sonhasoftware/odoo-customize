@@ -108,16 +108,15 @@ class SonHaEmployee(models.Model):
             else:
                 r.combination = r.name
     
-    
 
 class EmployeeRel(models.Model):
     _name = 'employee.rel'
-    _description='Employee Rel'
+    _description = 'Employee Rel'
     
     name = fields.Many2one('hr.employee', string="Tên nhân viên")
     emp_code = fields.Char(string="Mã nhân viên", compute="get_info_employee", store= True)
-    job = fields.Many2one('hr.job',string="Chức vụ", compute="get_info_employee", store= True)
-    department = fields.Many2one('hr.department',string="Phòng ban", compute="get_info_employee", store= True)
+    job = fields.Many2one('hr.job', string="Chức vụ", compute="get_info_employee", store= True)
+    department = fields.Many2one('hr.department', string="Phòng ban", compute="get_info_employee", store= True)
     amount_reward = fields.Float("Mức thưởng")
     amount_discipline = fields.Float("Số tiền")
     note = fields.Char(string="Ghi chú")
@@ -130,12 +129,13 @@ class EmployeeRel(models.Model):
         for r in self:
             if r.name:
                 r.emp_code = r.name.employee_code if r.name.employee_code else None
-                r.job = r.name.department_id.id if r.name.department_id else None
-                r.department = r.name.job_id.id if r.name.job_id else None
-                
+                r.department = r.name.department_id.id if r.name.department_id else None
+                r.job = r.name.job_id.id if r.name.job_id else None
+
+
 class DepartmentRel(models.Model):
     _name = 'department.rel'
-    _description='Department Rel'
+    _description = 'Department Rel'
     
     company_code = fields.Many2one('hr.department', compute="get_info_department", store= True, string="Công ty")
     name_depart = fields.Many2one('hr.department', string="Tên phòng ban")

@@ -2,7 +2,10 @@
 
 <odoo>
     <!-- Menu cha cho khen thưởng, kỷ luật -->
-    <menuitem id="menu_reward_discipline_root" name="Khen thưởng, Kỷ luật" parent="hr.menu_hr_root" sequence="40"/>
+    <menuitem id="menu_reward_discipline_root"
+              name="Khen thưởng, Kỷ luật"
+              parent="hr.menu_hr_root"
+              sequence="40"/>
 
     <!-- Menu để quản lý khen thưởng -->
     <menuitem id="menu_reward"
