@@ -15,12 +15,25 @@
         'views/hr_contract_view.xml',
         'views/hr_contract_config_view.xml',
         'views/hr_contract_menu.xml',
+        'views/form_config_view.xml',
+        'views/level_config_view.xml',
+        'views/object_config_view.xml',
+        'views/state_config_view.xml',
+        'views/title_config_view.xml',
+        'views/reward_discipline_config_menu.xml',
+        'views/reward_unit_view.xml',
+        'views/reward_person_view.xml',
+        'views/discipline_unit_view.xml',
+        'views/discipline_person_view.xml',
+        'views/reward_discipline_menu.xml',
+
         'data/corn_job.xml',
         'data/mail_template.xml',
     ],
     'assets': {
         'web.assets_backend': [
-            '/sonha_employee/static/src/template/menu_button_employee.xml'
+            '/sonha_employee/static/src/template/menu_button_employee.xml',
+            '/sonha_employee/static/src/css/custom_style.css'
         ]
     },
     'installable': True,

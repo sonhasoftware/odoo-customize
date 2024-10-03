@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_config_object_tree" model="ir.ui.view">
+        <field name="name">config.object.tree</field>
+        <field name="model">object.reward.config</field>
+        <field name="arch" type="xml">
+            <tree string="Config Object" editable="bottom">
+                <field name="id"/>
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="config_object_action" model="ir.actions.act_window">
+        <field name="name">Cấu hình Đối tượng khen thưởng, kỷ luật</field>
+        <field name="res_model">object.reward.config</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

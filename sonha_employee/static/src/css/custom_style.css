@@ -1,0 +1,8 @@
+/* custom_styles.css */
+.o_form_label {
+    text-align: left !important;
+}
+
+.o_field_float > label {
+    text-align: left !important;
+}
