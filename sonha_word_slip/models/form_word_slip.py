@@ -14,7 +14,7 @@ class FormWordSlip(models.Model):
     status = fields.Selection([
         ('draft', 'Nháp'),
         ('done', 'Đã duyệt'),
-    ], string='Trạng thái', tracking=True)
+    ], string='Trạng thái', default='draft', tracking=True)
 
     def action_confirm(self):
         for r in self:

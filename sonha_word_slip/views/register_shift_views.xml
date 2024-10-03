@@ -6,23 +6,23 @@
         <field name="arch" type="xml">
             <form string="Đơn đổi ca">
                 <header>
-                    <button name="action_confirm" string="Duyệt" type="object" class="oe_highlight"/>
+                    <button name="action_confirm" string="Duyệt" type="object" class="oe_highlight" invisible="status != 'draft'"/>
                     <field name="status" widget="statusbar"/>
                 </header>
                 <sheet>
                     <group>
-                        <field name="type_register"/>
+                        <field name="type_register" readonly="status != 'draft'"/>
                         <field name="is_display" invisible="True"/>
-                        <field name="from_date" invisible="is_display != True "/>
-                        <field name="to_date" invisible="is_display != True "/>
-                        <field name="register_rel">
+                        <field name="from_date" invisible="is_display != True " readonly="status != 'draft'"/>
+                        <field name="to_date" invisible="is_display != True " readonly="status != 'draft'"/>
+                        <field name="register_rel" readonly="status != 'draft'">
                             <tree editable="bottom">
                                 <field name="date"/>
                                 <field name="shift"/>
                             </tree>
                         </field>
-                        <field name="employee_id"/>
-                        <field name="description"/>
+                        <field name="employee_id" readonly="status != 'draft'"/>
+                        <field name="description" readonly="status != 'draft'"/>
                     </group>
                 </sheet>
                 <div class="oe_chatter">

@@ -20,7 +20,7 @@ class RegisterShift(models.Model):
     status = fields.Selection([
         ('draft', 'Nháp'),
         ('done', 'Đã duyệt'),
-    ], string='Trạng thái')
+    ], string='Trạng thái', default='draft', tracking=True)
 
     #Kiểm tra xem đăng ký đổi ca theo khoảng ngày hay không
     @api.depends('type_register')
