@@ -4,6 +4,8 @@ from datetime import timedelta
 
 class ConfigShift(models.Model):
     _name = 'config.shift'
+    _order = "code"
+    _rec_name = 'code'
 
     code = fields.Char("Mã ca")
     name = fields.Char("Tên ca")
@@ -29,9 +31,11 @@ class ConfigShift(models.Model):
     using = fields.Integer("Dùng")
     note = fields.Char("Ghi chú")
     contract = fields.Integer("Ca khoán")
+    company_id = fields.Many2one('res.company', string="Công ty")
 
     night = fields.Boolean("Check ca ngày/đêm", default=False, compute="check_shift_night")
 
+    #Kiểm tra xem ca có phải ca đêm hay không
     @api.depends('start', 'end_shift')
     def check_shift_night(self):
         for r in self:

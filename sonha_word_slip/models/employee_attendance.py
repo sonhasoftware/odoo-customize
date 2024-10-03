@@ -23,12 +23,15 @@ class EmployeeAttendance(models.Model):
                             string="Ghi chú",
                             compute="_get_attendance")
     work_day = fields.Float("Ngày công", compute="_get_work_day")
+    minutes_late = fields.Float("Số phút đi muộn", compute="_get_minute_late_early")
+    minutes_early = fields.Float("Số phút về sớm", compute="_get_minute_late_early")
 
+    # tạo ra bản ghi cho từng nhân viên trong các ngày của tháng
     def update_attendance_data(self):
-        employees = self.env['hr.employee'].search([])
+        employees = self.env['hr.employee'].search([('id', '!=', 1)])
         current_date = datetime.now()
-        start_date = current_date.replace(day=1) + timedelta(hours=7)
-        end_date = (start_date + relativedelta(months=1)) - timedelta(days=1)
+        start_date = current_date.replace(day=1) + timedelta(hours=7) - relativedelta(months=1)
+        end_date = (start_date + relativedelta(months=2)) - timedelta(days=1)
 
         for employee in employees:
             for single_date in (start_date + timedelta(n) for n in range((end_date - start_date).days + 1)):
@@ -42,33 +45,40 @@ class EmployeeAttendance(models.Model):
                         'date': single_date,
                     })
 
-    @api.depends('date', 'employee_id', 'employee_id.shift')
+    #lấy thông tin ca của nhân viên để điền vào trường ca
+    @api.depends('date', 'employee_id')
     def _get_shift_employee(self):
         for r in self:
             shift = self.env['register.shift.rel'].sudo().search([('register_shift.employee_id', '=', r.employee_id.id),
                                                                   ('date', '=', r.date)])
+            shift_re = self.env['register.work'].sudo().search([('start_date', '<=', r.date),
+                                                                ('end_date', '>=', r.date)])
+            shift_re = shift_re.filtered(lambda x: r.employee_id.id in x.employee_id.ids)
             if shift:
                 r.shift = shift.shift.id
+            elif shift_re:
+                r.shift = shift_re.shift.id
             elif r.employee_id.shift:
-                r.shift = r.employee_id.shift
+                r.shift = r.employee_id.shift.id
             else:
                 r.shift = None
 
+    #Lấy thông tin giờ phải check-in và giờ check-out của nhân viên
     @api.depends('shift')
     def _get_time_in_out(self):
         for r in self:
             if r.shift:
-                time_ci = r.shift.start.time()
-                time_co = r.shift.end_shift .time()
+                time_ci = (r.shift.start + timedelta(hours=7)).time()
+                time_co = (r.shift.end_shift + timedelta(hours=7)).time()
                 date = r.date
                 check_time_ci = datetime.combine(date, time_ci)
                 check_time_co = datetime.combine(date, time_co)
                 if not r.shift.night:
-                    r.time_check_in = check_time_ci - timedelta(minutes=r.shift.earliest_out)
-                    r.time_check_out = check_time_co + timedelta(minutes=r.shift.latest_out)
+                    r.time_check_in = check_time_ci - timedelta(hours=7, minutes=r.shift.earliest)
+                    r.time_check_out = check_time_co + timedelta(hours=-7, minutes=r.shift.latest_out)
                 if r.shift.night:
-                    r.time_check_in = check_time_ci - timedelta(minutes=r.shift.earliest_out)
-                    check_out = check_time_co + timedelta(minutes=r.shift.latest_out)
+                    r.time_check_in = check_time_ci - timedelta(hours=7, minutes=r.shift.earliest)
+                    check_out = check_time_co + timedelta(hours=-7, minutes=r.shift.latest_out)
                     if (r.time_check_in + timedelta(hours=7)).date() == (check_out + timedelta(hours=7)).date():
                         r.time_check_out = check_out + timedelta(days=1)
                     else:
@@ -77,6 +87,7 @@ class EmployeeAttendance(models.Model):
                 r.time_check_in = None
                 r.time_check_out = None
 
+   #Lấy ra thông tin số giờ cần có mặt theo ca
     @api.depends('shift')
     def _get_duration(self):
         for r in self:
@@ -92,6 +103,7 @@ class EmployeeAttendance(models.Model):
             else:
                 r.duration = 0
 
+    #Lấy giờ mốc để tách giờ check-in và giờ check-out của nhân viên
     @api.depends('shift', 'duration', 'time_check_in', 'time_check_out')
     def _check_no_in_out(self):
         for r in self:
@@ -103,6 +115,7 @@ class EmployeeAttendance(models.Model):
                 r.check_no_in = None
                 r.check_no_out = None
 
+    #Lấy thông tin check-in và check-out của nhân viên
     @api.depends('employee_id', 'time_check_in', 'time_check_out', 'check_no_in', 'check_no_out')
     def _get_check_in_out(self):
         for r in self:
@@ -121,6 +134,7 @@ class EmployeeAttendance(models.Model):
             r.check_in = attendance_ci[0] if attendance_ci else None
             r.check_out = attendance_co[-1] if attendance_co else None
 
+    #Lấy thông tin xem nhân viên có check-in hay check-out hay không
     def _get_attendance(self):
         for r in self:
             if (not r.check_in and not r.check_out) or (r.check_in and r.check_out):
@@ -130,5 +144,46 @@ class EmployeeAttendance(models.Model):
             elif not r.check_out:
                 r.note = 'no_out'
 
+    #Lấy thông tin số phút nhân viên đi muộn hoặc về sớm
+    def _get_minute_late_early(self):
+        for r in self:
+            if r.shift:
+                if r.check_in and (r.check_in + timedelta(hours=7)).time() > (r.shift.start + timedelta(hours=7)).time():
+                    check_in_time = datetime.combine(r.check_in.date(), r.check_in.time())
+                    shift_start_time = datetime.combine(r.check_in.date(), r.shift.start.time())
+
+                    minute_late = (check_in_time + timedelta(hours=7)) - (shift_start_time + timedelta(hours=7))
+                    r.minutes_late = minute_late.total_seconds() / 60
+                else:
+                    r.minutes_late = 0
+                if r.check_out and (r.check_out + timedelta(hours=7)).time() < (r.shift.end_shift + timedelta(hours=7)).time():
+                    check_out_time = datetime.combine(r.check_out.date(), r.check_out.time())
+                    shift_end_time = datetime.combine(r.check_out.date(), r.shift.end_shift.time())
+
+                    minute_early = (shift_end_time + timedelta(hours=7)) - (check_out_time + + timedelta(hours=7))
+                    r.minutes_early = minute_early.total_seconds() / 60
+                else:
+                    r.minutes_early = 0
+            else:
+                r.minutes_late = 0
+                r.minutes_early = 0
+
+    #Lấy thông tin ngày công của nhân viên
     def _get_work_day(self):
-        pass
+        for r in self:
+            work_leave = self.env['word.slip'].sudo().search([
+                ('employee_id', '=', r.employee_id.id),
+                ('from_date', '<=', r.date),
+                ('to_date', '>=', r.date),
+            ])
+            work_leave = work_leave.filtered(lambda x: x.type.paid == True)
+            public_holiday = self.env['resource.calendar.leaves'].sudo().search([])
+            public_holiday = public_holiday.filtered(lambda x: x.date_from.date() <= r.date <= x.date_to.date())
+            if public_holiday:
+                r.work_day = 1
+            elif work_leave:
+                r.work_day = 1
+            elif r.check_in or r.check_out:
+                r.work_day = 1
+            else:
+                r.work_day = 0

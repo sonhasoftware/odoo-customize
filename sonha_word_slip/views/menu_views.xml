@@ -8,72 +8,93 @@
             id="menu_config"
             name="Danh mục"
             parent="menu_word_slip_root"
+            groups="sonha_employee.group_hr_employee"
             sequence="98"/>
 
     <menuitem id="menu_config_word_slip"
               name="Danh mục đơn từ"
               parent="menu_config"
               action="config_word_slip_action"
+              groups="sonha_employee.group_hr_employee"
               sequence="1"/>
 
     <menuitem id="menu_config_shift"
               name="Danh mục ca làm việc"
               parent="menu_config"
               action="config_shift_action"
+              groups="sonha_employee.group_hr_employee"
               sequence="2"/>
+
+    <menuitem id="menu_form_word"
+              name="Đăng ký"
+              parent="menu_word_slip_root"
+              sequence="0"/>
+
+    <menuitem id="menu_attendance"
+              name="Công"
+              parent="menu_word_slip_root"
+              sequence="1"/>
 
     <menuitem id="menu_form_word_slip"
               name="Đơn đăng ký đơn từ"
-              parent="menu_word_slip_root"
+              parent="menu_form_word"
               action="action_form_word_slip"
               sequence="0"/>
 
     <menuitem id="menu_register_shift"
               name="Đơn đổi ca làm việc"
-              parent="menu_word_slip_root"
+              parent="menu_form_word"
               action="action_register_shift"
               sequence="1"/>
 
     <menuitem id="menu_register_work"
               name="Đăng ký ca làm việc"
-              parent="menu_word_slip_root"
+              parent="menu_form_word"
               action="action_register_work_calendar"
               sequence="2"/>
 
     <menuitem id="menu_register_overtime"
-              name="Danh mục làm thêm cho nhân sự"
-              parent="menu_word_slip_root"
+              name="Đăng ký làm thêm"
+              parent="menu_form_word"
               action="action_register_overtime_calendar"
               sequence="3"/>
 
     <menuitem id="menu_synthetic_work"
               name="Bảng công tổng hợp"
-              parent="menu_word_slip_root"
+              parent="menu_attendance"
               action="action_synthetic_work"
-              sequence="4"/>
+              sequence="2"/>
 
     <menuitem id="menu_timesheet"
               name="Chốt công"
               parent="menu_word_slip_root"
               action="action_timesheet"
+              groups="sonha_employee.group_hr_employee"
               sequence="5"/>
               
     <!-- Menu con để quản lý nghỉ lễ -->
     <menuitem id="menu_holiday_config"
               name="Cấu hình Nghỉ lễ"
-              parent="menu_word_slip_root"
+              parent="menu_config"
               action="hr_holidays.open_view_public_holiday"
-              sequence="6"/>
+              sequence="3"/>
 
     <menuitem id="menu_data_attendance"
               name="Dữ liệu chấm công (thô)"
-              parent="menu_word_slip_root"
+              parent="menu_attendance"
               action="hr_zk_attendance.action_master_data_attendance"
-              sequence="100"/>
+              groups="sonha_employee.group_hr_employee"
+              sequence="0"/>
 
     <menuitem id="menu_employeee_attendance"
               name="Bảng tính công chi tiết"
-              parent="menu_word_slip_root"
+              parent="menu_attendance"
               action="employee_attendance_action"
-              sequence="99"/>
+              sequence="1"/>
+
+    <menuitem id="menu_config_reason"
+              name="Cấu hình lý do"
+              parent="menu_config"
+              action="config_reason_action"
+              sequence="4"/>
 </odoo>

@@ -28,6 +28,18 @@
                 <xpath expr="//page[@name='hr_settings']//field[@name='user_id']" position="after">
                     <field name="employee_code"/>
                     <field name="shift"/>
+                    <field name="work_ids">
+                        <tree editable="bottom">
+                            <field name="date"/>
+                            <field name="work"/>
+                            <field name="job"/>
+                            <field name="company"/>
+                        </tree>
+                    </field>
+                </xpath>
+
+                <xpath expr="//page[@name='hr_settings']//field[@name='user_id']" position="after">
+
                 </xpath>
 
                 <xpath expr="//page[@name='hr_settings']//field[@name='pin']" position="after">

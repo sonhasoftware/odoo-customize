@@ -5,7 +5,7 @@ class SyntheticWork(models.Model):
     _name = 'synthetic.work'
 
     employee_id = fields.Many2one('hr.employee', string="Tên nhân viên")
-    employee_code = fields.Char("Mã nhân viên", related="employee_id.employee_code")
+    employee_code = fields.Char("Mã nhân viên")
     department_id = fields.Many2one('hr.department', string="Phòng ban")
 
     workday = fields.Float("Ngày công")
@@ -34,4 +34,7 @@ class SyntheticWork(models.Model):
     grandparents_leave = fields.Float("Nghỉ ông bà mất")
     vacation = fields.Float("Nghỉ mát")
     public_leave = fields.Float("Nghỉ lễ")
+
+    start_date = fields.Date("Từ ngày")
+    end_date = fields.Date("Đến ngày")
 

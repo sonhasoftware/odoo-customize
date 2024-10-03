@@ -4,7 +4,7 @@
         <field name="name">master.data.attendance.form</field>
         <field name="model">master.data.attendance</field>
         <field name="arch" type="xml">
-            <form string="Master Data Attendance">
+            <form string="Bảng chấm công thô">
                 <sheet>
                     <group>
                         <field name="employee_id"/>
@@ -19,7 +19,7 @@
         <field name="name">master.data.attendance.tree</field>
         <field name="model">master.data.attendance</field>
         <field name="arch" type="xml">
-            <tree string="Master Data Attendance">
+            <tree string="Bảng chấm công thô">
                 <field name="employee_id"/>
                 <field name="attendance_time"/>
             </tree>
@@ -27,7 +27,7 @@
     </record>
 
     <record id="action_master_data_attendance" model="ir.actions.act_window">
-        <field name="name">Master Data Attendance</field>
+        <field name="name">Bảng chấm công thô</field>
         <field name="res_model">master.data.attendance</field>
         <field name="view_mode">tree,form</field>
     </record>

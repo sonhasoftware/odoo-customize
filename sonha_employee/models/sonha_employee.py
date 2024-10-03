@@ -4,6 +4,7 @@ from odoo.exceptions import UserError, ValidationError
 
 class SonHaEmployee(models.Model):
     _inherit = 'hr.employee'
+    _rec_name = 'combination'
 
     list_employee = fields.Many2many('hr.employee', 'ir_employee_group_rel',
                                      'employee_group_rel', 'employee_rel',
@@ -140,3 +141,23 @@ class DepartmentRel(models.Model):
     
     
     
+    combination = fields.Char(string='Combination', compute='_compute_fields_combination')
+    work_ids = fields.One2many('work.process', 'employee_id', string="Quá trình công tác")
+
+    @api.depends('name', 'employee_code')
+    def _compute_fields_combination(self):
+        for r in self:
+            if r.name and r.employee_code:
+                r.combination = r.name + ' (' + r.employee_code + ')'
+            else:
+                r.combination = r.name
+
+
+class WorkProcess(models.Model):
+    _name = 'work.process'
+
+    date = fields.Char("Thời gian")
+    work = fields.Char("Quá trình")
+    job = fields.Char("Chức vụ")
+    company = fields.Char("Công ty")
+    employee_id = fields.Many2one('hr.employee')

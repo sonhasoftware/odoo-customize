@@ -2,4 +2,5 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_biometric_device_details,access.biometric.device.details,model_biometric_device_details,base.group_user,1,1,1,1
 access_daily_attendance,access.daily.attendance,model_daily_attendance,base.group_user,1,1,1,1
 access_zk_machine_attendance,access.zk.machine.attendance,model_zk_machine_attendance,base.group_user,1,1,1,1
-access_master_data_attendance,access_master_data_attendance,model_master_data_attendance,,1,0,0,1
+
+access_master_data_attendance,access_master_data_attendance,model_master_data_attendance,,1,0,0,0
