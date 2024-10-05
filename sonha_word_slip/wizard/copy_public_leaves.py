@@ -8,9 +8,10 @@ class CopyPublicLeaves(models.TransientModel):
     year = fields.Integer(string="Năm")
 
     def action_confirm(self):
-        list_holiday = self.env['resource.calendar.leaves'].sudo().search([])
+        ids = self._context.get('active_ids')
+        list_holiday = self.env['resource.calendar.leaves'].sudo().search([('id', 'in', ids)])
         for holiday in list_holiday:
-            if holiday.name.endswith(')') and '(' in holiday.name:
+            if holiday.name.endswith(')') and '(' in holiday.name and holiday.name[holiday.name.rfind('(') + 1: holiday.name.rfind('(') + 5].isdigit():
                 base_name = holiday.name[:holiday.name.rfind('(')]
             else:
                 base_name = holiday.name
