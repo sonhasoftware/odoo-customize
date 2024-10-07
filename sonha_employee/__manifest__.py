@@ -12,6 +12,7 @@
         'security/ir.model.access.csv',
         'views/sonha_employee_views.xml',
         'views/hr_employee_action.xml',
+        'views/hr_department_views.xml',
         'views/hr_contract_view.xml',
         'views/hr_contract_config_view.xml',
         'views/hr_contract_menu.xml',
