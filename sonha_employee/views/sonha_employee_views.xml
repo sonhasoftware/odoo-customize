@@ -30,10 +30,11 @@
                     <field name="shift"/>
                     <field name="work_ids">
                         <tree editable="bottom">
-                            <field name="date"/>
-                            <field name="work"/>
-                            <field name="job"/>
-                            <field name="company"/>
+                            <field name="start_date"/>
+                            <field name="job_id"/>
+                            <field name="number"/>
+                            <field name="type"/>
+                            <field name="note"/>
                         </tree>
                     </field>
                 </xpath>
