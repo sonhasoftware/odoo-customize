@@ -8,6 +8,8 @@ export class CopyListController extends ListController {
        super.setup();
    }
    OnTestClick() {
+       const selectedRecords = this.model.root.selection;
+       const selectedIds = selectedRecords.map(record => record.evalContextWithVirtualIds.id);
        this.actionService.doAction({
           type: 'ir.actions.act_window',
           res_model: 'copy.public.leaves',
@@ -16,6 +18,9 @@ export class CopyListController extends ListController {
           view_type: 'form',
           views: [[false, 'form']],
           target: 'new',
+          context: {
+            active_ids: selectedIds,
+          },
       });
    }
 }

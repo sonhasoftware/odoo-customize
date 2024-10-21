@@ -42,7 +42,7 @@ class HrContract(models.Model):
             else:
                 start = now.replace(day=15) + timedelta(hours=7)
                 end_date = start + relativedelta(months=1)
-            list_contracts = self.env['hr.contract'].sudo().search([('date_start', '>=', start),
+            list_contracts = self.env['hr.contract'].sudo().search([('date_end', '>=', start),
                                                                     ('date_end', '<=', end_date),
                                                                     ('state', '=', 'open')])
             list_expired_contract = []
