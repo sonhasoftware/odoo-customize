@@ -40,6 +40,8 @@ class SonHaEmployee(models.Model):
         ('trial', 'Thử việc')
     ], string='Trạng thái làm việc')
 
+    date_quit = fields.Date("Ngày nghỉ việc")
+
     # các field page hr setting
     onboard = fields.Date('Ngày vào công ty')
     # type_contract = fields.Many2one('hr.contract', string="Loại hợp đồng")

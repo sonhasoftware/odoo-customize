@@ -5,7 +5,7 @@ class SyntheticWork(models.Model):
     _name = 'synthetic.work'
 
     employee_id = fields.Many2one('hr.employee', string="Tên nhân viên")
-    employee_code = fields.Char("Mã nhân viên")
+    employee_code = fields.Char("Mã nhân viên", compute="_get_employee_code")
     department_id = fields.Many2one('hr.department', string="Phòng ban")
 
     workday = fields.Float("Ngày công")
@@ -37,4 +37,12 @@ class SyntheticWork(models.Model):
 
     start_date = fields.Date("Từ ngày")
     end_date = fields.Date("Đến ngày")
+
+    @api.depends('employee_id')
+    def _get_employee_code(self):
+        for r in self:
+            if r.employee_id.employee_code:
+                r.employee_code = r.employee_id.employee_code
+            else:
+                r.employee_code = None
 

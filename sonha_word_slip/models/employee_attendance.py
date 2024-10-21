@@ -8,6 +8,7 @@ class EmployeeAttendance(models.Model):
     _description = 'Employee Attendance'
 
     employee_id = fields.Many2one('hr.employee', string='Employee', required=True, store=True)
+    department_id = fields.Many2one('hr.department', string='Phòng ban', compute="_get_department_id")
     date = fields.Date(string='Attendance Date', required=True, store=True)
     check_in = fields.Datetime(string='Check In', compute="_get_check_in_out")
     check_out = fields.Datetime(string='Check Out', compute="_get_check_in_out")
@@ -25,6 +26,24 @@ class EmployeeAttendance(models.Model):
     work_day = fields.Float("Ngày công", compute="_get_work_day")
     minutes_late = fields.Float("Số phút đi muộn", compute="_get_minute_late_early")
     minutes_early = fields.Float("Số phút về sớm", compute="_get_minute_late_early")
+
+    month = fields.Integer("Tháng", compute="_get_month")
+
+    @api.depends('date')
+    def _get_month(self):
+        for r in self:
+            if r.date:
+                r.month = r.date.month
+            else:
+                r.month = None
+
+    @api.depends('employee_id')
+    def _get_department_id(self):
+        for r in self:
+            if r.employee_id.department_id:
+                r.department_id = r.employee_id.department_id.id
+            else:
+                r.department_id = None
 
     # tạo ra bản ghi cho từng nhân viên trong các ngày của tháng
     def update_attendance_data(self):
