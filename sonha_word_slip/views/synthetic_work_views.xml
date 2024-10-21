@@ -73,10 +73,22 @@
         </field>
     </record>
 
+    <record id="view_synthetic_work_search" model="ir.ui.view">
+        <field name="name">view.synthetic.work.search</field>
+        <field name="model">synthetic.work</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="employee_id"/>
+                <field name="department_id"/>
+            </search>
+        </field>
+    </record>
+
     <record id="action_synthetic_work" model="ir.actions.act_window">
         <field name="name">Bảng công tổng hợp</field>
         <field name="res_model">synthetic.work</field>
         <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_synthetic_work_search"/>
     </record>
 
 </odoo>
