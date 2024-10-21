@@ -8,7 +8,7 @@ class EmployeeAttendance(models.Model):
     _description = 'Employee Attendance'
 
     employee_id = fields.Many2one('hr.employee', string='Employee', required=True, store=True)
-    department_id = fields.Many2one('hr.department', string='Phòng ban', compute="_get_department_id")
+    department_id = fields.Many2one('hr.department', string='Phòng ban', compute="_get_department_id", store=True)
     date = fields.Date(string='Attendance Date', required=True, store=True)
     check_in = fields.Datetime(string='Check In', compute="_get_check_in_out")
     check_out = fields.Datetime(string='Check Out', compute="_get_check_in_out")
