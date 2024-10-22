@@ -4,7 +4,7 @@ import logging
 import pytz
 from odoo import fields, models, _
 from odoo.exceptions import UserError, ValidationError
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 _logger = logging.getLogger(__name__)
 try:
@@ -107,7 +107,7 @@ class BiometricDeviceDetails(models.Model):
                     # Thu thập dữ liệu chấm công theo nhân viên và ngày trong khoảng thời gian từ tháng 6 năm 2024 đến hiện tại
                     for each in attendances:
                         atten_time = each.timestamp
-                        if atten_time.year == 2024 and atten_time.month >= 6:
+                        if (atten_time.year == datetime.now().year) and (atten_time.month == datetime.now().month or atten_time.month == datetime.now().month - 1):
                             user_key = each.user_id
 
                             # Trừ 7 giờ từ thời gian chấm công
