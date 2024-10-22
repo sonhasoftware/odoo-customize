@@ -80,6 +80,9 @@
             <search>
                 <field name="employee_id"/>
                 <field name="department_id"/>
+                <group expand="0" string="Group By">
+                    <filter string="Phòng ban" name="department_id" context="{'group_by': 'department_id'}"/>
+                </group>
             </search>
         </field>
     </record>

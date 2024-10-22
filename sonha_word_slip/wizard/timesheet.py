@@ -13,8 +13,8 @@ class Timesheet(models.TransientModel):
     def action_confirm(self):
         if self.department:
             list_emp = self.env['hr.employee'].sudo().search([('department_id', '=', self.department.id)])
-        # if self.company:
-        #     list_emp = self.env['hr.employee'].sudo().search([('department_id', '=', self.department.id)])
+        if self.company:
+            list_emp = self.env['hr.employee'].sudo().search([('company_id', '=', self.company.id)])
         for emp in list_emp:
             date_work, number_minutes_late, number_minutes_early = self.working_day(emp, self.start_date, self.end_date)
             public_holiday, on_leave = self.get_holiday(emp, self.start_date, self.end_date)
