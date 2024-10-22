@@ -7,6 +7,7 @@
             <form string="Chốt công">
                 <group>
                     <field name="department"/>
+                    <field name="company"/>
                     <field name="start_date"/>
                     <field name="end_date"/>
                 </group>

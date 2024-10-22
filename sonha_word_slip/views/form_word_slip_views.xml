@@ -14,7 +14,7 @@
                         <field name="department" readonly="status != 'draft'"/>
                         <field name="type" readonly="status != 'draft'"/>
                         <field name="word_slip_id" readonly="status != 'draft'">
-                            <tree string="Loai nghỉ">
+                            <tree string="Loai nghỉ" editable="bottom">
                                 <field name="from_date"/>
                                 <field name="to_date"/>
                                 <field name="start_time"/>

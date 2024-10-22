@@ -3,7 +3,7 @@
         <field name="name">employee.attendance.list</field>
         <field name="model">employee.attendance</field>
         <field name="arch" type="xml">
-            <tree string="Chấm công chi tiết">
+            <tree string="Chấm công chi tiết" default_order="date desc">
                 <field name="employee_id"/>
                 <field name="department_id"/>
                 <field name="date"/>
