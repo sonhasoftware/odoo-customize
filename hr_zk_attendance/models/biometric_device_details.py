@@ -114,10 +114,10 @@ class BiometricDeviceDetails(models.Model):
                             atten_time_adjusted = atten_time - timedelta(hours=7)
 
                             # Tìm hoặc tạo nhân viên
-                            employee = hr_employee.search([('device_id_num', '=', user_key)])
+                            employee = hr_employee.sudo().search([('device_id_num', '=', user_key)])
 
                             # Kiểm tra xem dữ liệu chấm công đã tồn tại chưa
-                            existing_attendance = master_attendance.search([
+                            existing_attendance = master_attendance.sudo().search([
                                 ('employee_id', '=', employee.id),
                                 ('attendance_time', '=', fields.Datetime.to_string(atten_time_adjusted))
                             ])
