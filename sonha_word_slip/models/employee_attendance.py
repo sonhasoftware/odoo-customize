@@ -172,7 +172,7 @@ class EmployeeAttendance(models.Model):
                     shift_start_time = datetime.combine(r.check_in.date(), r.shift.start.time())
 
                     minute_late = (check_in_time + timedelta(hours=7)) - (shift_start_time + timedelta(hours=7))
-                    r.minutes_late = minute_late.total_seconds() / 60
+                    r.minutes_late = int(minute_late.total_seconds() / 60)
                 else:
                     r.minutes_late = 0
                 if r.check_out and (r.check_out + timedelta(hours=7)).time() < (r.shift.end_shift + timedelta(hours=7)).time():
@@ -180,7 +180,7 @@ class EmployeeAttendance(models.Model):
                     shift_end_time = datetime.combine(r.check_out.date(), r.shift.end_shift.time())
 
                     minute_early = (shift_end_time + timedelta(hours=7)) - (check_out_time + + timedelta(hours=7))
-                    r.minutes_early = minute_early.total_seconds() / 60
+                    r.minutes_early = int(minute_early.total_seconds() / 60)
                 else:
                     r.minutes_early = 0
             else:
