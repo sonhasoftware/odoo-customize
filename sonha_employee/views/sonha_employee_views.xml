@@ -133,6 +133,10 @@
                     <attribute name="invisible">True</attribute>
                 </xpath>
 
+                <xpath expr="//page[@name='hr_settings']//field[@name='onboard']" position="after">
+                    <field name="reception_date"/>
+                </xpath>
+
             </field>
         </record>
 
