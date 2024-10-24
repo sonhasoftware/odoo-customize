@@ -81,6 +81,7 @@ class SonHaEmployee(models.Model):
     work_ids = fields.One2many('work.process', 'employee_id', string="Quá trình công tác")
 
     birth_month = fields.Integer(string="Sinh nhật", compute='_compute_birth_month', store=True)
+    reception_date = fields.Date("Ngày tiếp nhận")
 
     @api.depends('date_birthday')
     def _compute_birth_month(self):
