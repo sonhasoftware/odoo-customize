@@ -31,9 +31,9 @@
                 <sheet>
                     <group col="1" string="Thông tin khen thưởng">
                         <group>
-                            <field name="object_reward"/>
+                            <field name="object_reward" domain="[('type', '=', 'person')]"/>
                             <field name="title_reward"/>
-                            <field name="form_reward"/>
+                            <field name="form_reward" domain="[('type', '=', 'reward')]"/>
                             <field name="level_reward"/>
                         </group>
                         <group>

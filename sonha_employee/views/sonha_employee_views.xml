@@ -34,16 +34,17 @@
                     <field name="marital_status" required = "1"/>
                     <field name="nation" required = "1"/>
                     <field name="religion" required = "1"/>
+                    <field name="tax_code"/>
                 </xpath>
                 <xpath expr="//field[@name='parent_id']" position="after">
                     <field name="hometown" required = "1"/>
                     <field name="permanent_address" required = "1"/>
                     <field name="device_id_num" required = "1"/>
-                    <field name="onboard" required = "1"/>
                     <field name="reception_date" required = "1"/>
                     <field name="number_cccd" required = "1"/>
                     <field name="date_cccd" required = "1"/>
                     <field name="place_of_issue" required = "1"/>
+                    <field name="culture_level"/>
                 </xpath>
 <!--        kế thừa thêm field vào page hr setting (page 3)-->
                 <xpath expr="//page[@name='hr_settings']//field[@name='user_id']" position="after">
@@ -62,15 +63,12 @@
                     </field>
                 </xpath>
 
-                <xpath expr="//page[@name='hr_settings']//field[@name='user_id']" position="after">
-
+                <xpath expr="//page[@name='hr_settings']//field[@name='pin']" position="after">
+                    <field name="onboard"/>
                 </xpath>
                 
 <!--        kế thừa thêm field vào page hr setting (page 2)-->
-                <xpath expr="//page[@name='personal_information']//field[@name='private_phone']" position="after">
-                    <field name="number_cccd"/>
-                    <field name="date_cccd"/>
-                    <field name="place_of_issue"/>
+                <xpath expr="//page[@name='personal_information']//field[@name='private_email']" position="after">
                     <field name="passport_number"/>
                     <field name="date_passport"/>
                     <field name="expiration_date_passport"/>
@@ -87,6 +85,9 @@
                     <field name="fee_party_member"/>
                 </xpath>
 <!--        ẩn đi các field k cần dùng đến trên form-->
+                <xpath expr="//page[@name='personal_information']//field[@name='private_phone']" position="attributes">
+                    <attribute name="invisible">True</attribute>
+                </xpath>
                 <xpath expr="//field[@name='coach_id']" position="attributes">
                     <attribute name="invisible">True</attribute>
                 </xpath>
