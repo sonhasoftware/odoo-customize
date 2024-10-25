@@ -41,12 +41,13 @@ class SonHaEmployee(models.Model):
     ], string='Trạng thái làm việc', tracking=True)
 
     date_quit = fields.Date("Ngày nghỉ việc", tracking=True)
+    reason_quit = fields.Char("Lý do nghỉ việc", tracking=True)
 
     # các field page hr setting
     onboard = fields.Date('Ngày vào công ty', tracking=True)
     # type_contract = fields.Many2one('hr.contract', string="Loại hợp đồng")
     employee_code = fields.Char("Mã nhân viên", tracking=True)
-    shift = fields.Many2one('config.shift', tracking=True)
+    shift = fields.Many2one('config.shift', string="Ca làm việc", tracking=True)
 
     # các field page infomation page 1
     date_birthday = fields.Date("Ngày sinh", tracking=True)
@@ -78,16 +79,18 @@ class SonHaEmployee(models.Model):
     fee_party_member = fields.Boolean("Đảng phí", tracking=True)
 
     combination = fields.Char(string='Combination', compute='_compute_fields_combination', tracking=True)
-    work_ids = fields.One2many('work.process', 'employee_id', string="Quá trình công tác", tracking=True)
+    work_ids = fields.One2many('work.process', 'employee_id', string="Quá trình công tác")
 
     birth_month = fields.Integer(string="Sinh nhật", compute='_compute_birth_month', store=True, tracking=True)
     reception_date = fields.Date("Ngày tiếp nhận", tracking=True)
 
-    @api.depends('date_birthday')
+    @api.depends('date_birthday', 'birthday')
     def _compute_birth_month(self):
         for rec in self:
             if rec.date_birthday:
                 rec.birth_month = rec.date_birthday.month
+            elif rec.birthday:
+                rec.birth_month = rec.birthday.month
             else:
                 rec.birth_month = False
 
@@ -98,6 +101,8 @@ class SonHaEmployee(models.Model):
                 r.combination = r.name + ' (' + r.employee_code + ')'
             else:
                 r.combination = r.name
+
+
 class EmployeeRel(models.Model):
     _name = 'employee.rel'
     _description = 'Employee Rel'
@@ -149,5 +154,12 @@ class WorkProcess(models.Model):
     number = fields.Char("Số quyết định")
     type = fields.Char("Loại quyết định")
     note = fields.Text("Ghi chú")
+
+    def create(self, vals):
+        res = super(WorkProcess, self).create(vals)
+        job_id = res.job_id.id
+        res.employee_id.job_id = job_id
+        return res
+
 
 

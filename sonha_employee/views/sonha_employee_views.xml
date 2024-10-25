@@ -49,6 +49,7 @@
                     <field name="shift"/>
                     <field name="status_employee"/>
                     <field name="date_quit" invisible="status_employee != 'quit_job'"/>
+                    <field name="reason_quit" invisible="status_employee != 'quit_job'"/>
                     <field name="work_ids">
                         <tree editable="bottom">
                             <field name="start_date"/>
