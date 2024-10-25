@@ -8,19 +8,19 @@ class SonHaEmployee(models.Model):
 
     list_employee = fields.Many2many('hr.employee', 'ir_employee_group_rel',
                                      'employee_group_rel', 'employee_rel',
-                                     string='List Staff')
+                                     string='List Staff', tracking=True)
 
     lower_grade = fields.Many2many('hr.employee', 'ir_lower_grade_id_rel',
                                    'lower_grade_id_rel', 'lower_grade_id',
-                                    string="Lower Grade")
+                                    string="Lower Grade", tracking=True)
 
     kpi = fields.Many2many('hr.employee', 'ir_kpi_id_rel',
                            'kpi_id_rel', 'kpi_id',
-                           string="Edit KPI")
+                           string="Edit KPI", tracking=True)
 
     department_ids = fields.Many2many('hr.department', 'ir_department_ids_rel',
                                       'department_ids_rel', 'department_ids',
-                                      string="Department")
+                                      string="Department", tracking=True)
 
     level = fields.Selection([
         ('N0', 'N0'),
@@ -29,59 +29,59 @@ class SonHaEmployee(models.Model):
         ('N3', 'N3'),
         ('N4', 'N4'),
         ('N5', 'N5'),
-    ], string='Level')
+    ], string='Level', tracking=True)
 
-    date = fields.Date('Ngày')
-    number = fields.Integer('Số')
+    date = fields.Date('Ngày', tracking=True)
+    number = fields.Integer('Số', tracking=True)
     status_employee = fields.Selection([
         ('working', "Đang làm việc"),
         ('maternity_leave', "Nghỉ thai sản"),
         ('quit_job', 'Nghỉ việc'),
         ('trial', 'Thử việc')
-    ], string='Trạng thái làm việc')
+    ], string='Trạng thái làm việc', tracking=True)
 
-    date_quit = fields.Date("Ngày nghỉ việc")
+    date_quit = fields.Date("Ngày nghỉ việc", tracking=True)
 
     # các field page hr setting
-    onboard = fields.Date('Ngày vào công ty')
+    onboard = fields.Date('Ngày vào công ty', tracking=True)
     # type_contract = fields.Many2one('hr.contract', string="Loại hợp đồng")
-    employee_code = fields.Char("Mã nhân viên")
-    shift = fields.Many2one('config.shift')
+    employee_code = fields.Char("Mã nhân viên", tracking=True)
+    shift = fields.Many2one('config.shift', tracking=True)
 
     # các field page infomation page 1
-    date_birthday = fields.Date("Ngày sinh")
-    place_birthday = fields.Char("Nơi sinh")
-    marital_status = fields.Char("Tình trạng hôn nhân")
+    date_birthday = fields.Date("Ngày sinh", tracking=True)
+    place_birthday = fields.Char("Nơi sinh", tracking=True)
+    marital_status = fields.Char("Tình trạng hôn nhân", tracking=True)
     nation = fields.Char("Dân tộc")
-    religion = fields.Char("Tôn giáo")
-    hometown = fields.Char("Quê quán")
-    permanent_address = fields.Char("Địa chỉ thường trú")
-    current_residence = fields.Char("Nơi ở hiện tại")
+    religion = fields.Char("Tôn giáo", tracking=True)
+    hometown = fields.Char("Quê quán", tracking=True)
+    permanent_address = fields.Char("Địa chỉ thường trú", tracking=True)
+    current_residence = fields.Char("Nơi ở hiện tại", tracking=True)
 
     # các field page private infomation page 2
-    number_cccd = fields.Char("Số CCCD")
-    date_cccd = fields.Date("Ngày cấp")
-    place_of_issue = fields.Char("Nơi cấp")
-    passport_number = fields.Char("Số hộ chiếu")
-    date_passport = fields.Date("Ngày hộ chiếu")
-    expiration_date_passport = fields.Date("Ngày hết hạn")
-    place_of_issue_passport = fields.Char("Nơi cấp hộ chiếu")
-    number_visa = fields.Char("Số visa")
-    date_visa = fields.Date("Ngày cấp(visa)")
-    expiration_date_visa = fields.Date("Ngày hết hạn(visa)")
-    place_of_issue_visa = fields.Char("Nơi cấp(visa)")
-    reunion_day = fields.Date("Ngày vào Đoàn")
-    place_reunion = fields.Char("Nơi vào(Đoàn)")
-    fee_reunion = fields.Boolean("Đoàn phí")
-    party_member_day = fields.Date("Ngày vào Đảng")
-    place_party_member = fields.Char("Nơi vào Đảng")
-    fee_party_member = fields.Boolean("Đảng phí")
+    number_cccd = fields.Char("Số CCCD", tracking=True)
+    date_cccd = fields.Date("Ngày cấp", tracking=True)
+    place_of_issue = fields.Char("Nơi cấp", tracking=True)
+    passport_number = fields.Char("Số hộ chiếu", tracking=True)
+    date_passport = fields.Date("Ngày hộ chiếu", tracking=True)
+    expiration_date_passport = fields.Date("Ngày hết hạn", tracking=True)
+    place_of_issue_passport = fields.Char("Nơi cấp hộ chiếu", tracking=True)
+    number_visa = fields.Char("Số visa", tracking=True)
+    date_visa = fields.Date("Ngày cấp(visa)", tracking=True)
+    expiration_date_visa = fields.Date("Ngày hết hạn(visa)", tracking=True)
+    place_of_issue_visa = fields.Char("Nơi cấp(visa)", tracking=True)
+    reunion_day = fields.Date("Ngày vào Đoàn", tracking=True)
+    place_reunion = fields.Char("Nơi vào(Đoàn)", tracking=True)
+    fee_reunion = fields.Boolean("Đoàn phí", tracking=True)
+    party_member_day = fields.Date("Ngày vào Đảng", tracking=True)
+    place_party_member = fields.Char("Nơi vào Đảng", tracking=True)
+    fee_party_member = fields.Boolean("Đảng phí", tracking=True)
 
-    combination = fields.Char(string='Combination', compute='_compute_fields_combination')
-    work_ids = fields.One2many('work.process', 'employee_id', string="Quá trình công tác")
+    combination = fields.Char(string='Combination', compute='_compute_fields_combination', tracking=True)
+    work_ids = fields.One2many('work.process', 'employee_id', string="Quá trình công tác", tracking=True)
 
-    birth_month = fields.Integer(string="Sinh nhật", compute='_compute_birth_month', store=True)
-    reception_date = fields.Date("Ngày tiếp nhận")
+    birth_month = fields.Integer(string="Sinh nhật", compute='_compute_birth_month', store=True, tracking=True)
+    reception_date = fields.Date("Ngày tiếp nhận", tracking=True)
 
     @api.depends('date_birthday')
     def _compute_birth_month(self):
@@ -98,8 +98,6 @@ class SonHaEmployee(models.Model):
                 r.combination = r.name + ' (' + r.employee_code + ')'
             else:
                 r.combination = r.name
-    
-
 class EmployeeRel(models.Model):
     _name = 'employee.rel'
     _description = 'Employee Rel'
