@@ -83,6 +83,8 @@ class SonHaEmployee(models.Model):
 
     birth_month = fields.Integer(string="Sinh nhật", compute='_compute_birth_month', store=True, tracking=True)
     reception_date = fields.Date("Ngày tiếp nhận", tracking=True)
+    culture_level = fields.Char("Trình độ văn hóa", tracking=True)
+    tax_code = fields.Char("Mã số thuế", tracking=True)
 
     @api.depends('date_birthday', 'birthday')
     def _compute_birth_month(self):

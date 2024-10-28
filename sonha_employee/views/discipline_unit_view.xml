@@ -32,7 +32,7 @@
                 <sheet>
                     <group col="2" string="Thông tin đối tượng Kỷ luật">
                         <group>
-                            <field name="object_discipline"/>
+                            <field name="object_discipline" domain="[('type', '=', 'unit')]"/>
                             <field name="report_to"/>
                             <field name="reason" string="Lý do kỷ luật"/>
                             <field name="date_decipline" string="Ngày vi phạm"/>
@@ -50,7 +50,7 @@
                     <group string="Phê duyệt">
                         <group>
                             <field name="desision_number"/>
-                            <field name="form_discipline"/>
+                            <field name="form_discipline" domain="[('type', '=', 'discipline')]"/>
                             <field name="date_start"/>
                             <field name="date_sign"/>
                             <field name="amount"/>
