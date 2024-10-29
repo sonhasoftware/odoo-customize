@@ -61,6 +61,11 @@
                             <field name="note"/>
                         </tree>
                     </field>
+                    <field name="resource_id" />
+                </xpath>
+
+                <xpath expr="//field[@name='resource_id']" position="attributes">
+                    <attribute name="required">0</attribute>
                 </xpath>
 
                 <xpath expr="//page[@name='hr_settings']//field[@name='pin']" position="after">
