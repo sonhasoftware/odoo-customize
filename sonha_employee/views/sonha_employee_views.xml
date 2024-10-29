@@ -39,7 +39,7 @@
                 <xpath expr="//field[@name='parent_id']" position="after">
                     <field name="hometown" required = "1"/>
                     <field name="permanent_address" required = "1"/>
-                    <field name="device_id_num" required = "1"/>
+                    <field name="onboard" required = "1"/>
                     <field name="reception_date"/>
                     <field name="number_cccd" required = "1"/>
                     <field name="date_cccd" required = "1"/>
@@ -66,10 +66,6 @@
 
                 <xpath expr="//field[@name='resource_id']" position="attributes">
                     <attribute name="required">0</attribute>
-                </xpath>
-
-                <xpath expr="//page[@name='hr_settings']//field[@name='pin']" position="after">
-                    <field name="onboard"/>
                 </xpath>
                 
 <!--        kế thừa thêm field vào page hr setting (page 2)-->

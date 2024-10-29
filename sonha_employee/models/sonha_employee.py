@@ -52,9 +52,15 @@ class SonHaEmployee(models.Model):
     # các field page infomation page 1
     date_birthday = fields.Date("Ngày sinh", tracking=True)
     place_birthday = fields.Char("Nơi sinh", tracking=True)
-    marital_status = fields.Char("Tình trạng hôn nhân", tracking=True)
+    marital_status = fields.Selection([
+        ('single', "Độc thân"),
+        ('married', "Đã kết hôn"),
+    ], string='Tình trạng hôn nhân', tracking=True)
     nation = fields.Char("Dân tộc")
-    religion = fields.Char("Tôn giáo", tracking=True)
+    religion = fields.Selection([
+        ('yes', "Có"),
+        ('no', "Không"),
+    ], string='Tôn giáo', tracking=True)
     hometown = fields.Char("Quê quán", tracking=True)
     permanent_address = fields.Char("Địa chỉ thường trú", tracking=True)
     current_residence = fields.Char("Nơi ở hiện tại", tracking=True)
