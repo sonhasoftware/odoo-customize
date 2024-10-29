@@ -104,6 +104,19 @@ class SonHaEmployee(models.Model):
             else:
                 r.combination = r.name
 
+    def create(self, vals):
+        val = {
+            'name': vals['name']
+        }
+        self.env['res.partner'].sudo().create(val)
+        resource_id = self.env['resource.resource'].sudo().create(val)
+        vals['emergency_contact'] = vals['name']
+        vals['resource_id'] = resource_id.id
+
+        res = super(SonHaEmployee, self).create(vals)
+
+        return res
+
 
 class EmployeeRel(models.Model):
     _name = 'employee.rel'
@@ -162,6 +175,12 @@ class WorkProcess(models.Model):
         job_id = res.job_id.id
         res.employee_id.job_id = job_id
         return res
+
+
+class Resources(models.Model):
+    _inherit = 'resource.resource'
+
+    name = fields.Char(required=False)
 
 
 
