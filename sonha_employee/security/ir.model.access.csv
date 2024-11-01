@@ -31,3 +31,5 @@ access_work_process,work.process,model_work_process,,1,1,1,1
 
 access_employee_import_wizard,employee.import.wizard,model_employee_import_wizard,,1,1,1,1
 
+access_create_user_wizard,create.user.wizard,model_create_user_wizard,,1,1,1,1
+
