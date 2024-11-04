@@ -15,6 +15,7 @@
     'external_dependencies': {
         'python': ['pyzk'], },
     'data': [
+        'security/security.xml',
         'security/ir.model.access.csv',
         'views/biometric_device_details_views.xml',
         'views/hr_employee_views.xml',
