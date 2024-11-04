@@ -7,13 +7,13 @@ class EmployeeAttendance(models.Model):
     _name = 'employee.attendance'
     _description = 'Employee Attendance'
 
-    employee_id = fields.Many2one('hr.employee', string='Employee', required=True, store=True)
+    employee_id = fields.Many2one('hr.employee', string='Nhân viên', required=True, store=True)
     department_id = fields.Many2one('hr.department', string='Phòng ban', compute="_get_department_id", store=True)
-    date = fields.Date(string='Attendance Date', required=True, store=True)
-    check_in = fields.Datetime(string='Check In', compute="_get_check_in_out")
-    check_out = fields.Datetime(string='Check Out', compute="_get_check_in_out")
+    date = fields.Date(string='Ngày', required=True, store=True)
+    check_in = fields.Datetime(string='Giờ vào', compute="_get_check_in_out")
+    check_out = fields.Datetime(string='Giờ ra', compute="_get_check_in_out")
     duration = fields.Float("Giờ công", compute="_get_duration")
-    shift = fields.Many2one('config.shift', compute="_get_shift_employee")
+    shift = fields.Many2one('config.shift', compute="_get_shift_employee", string="Ca làm việc")
     time_check_in = fields.Datetime("Thời gian phải vào", compute="_get_time_in_out")
     time_check_out = fields.Datetime("Thời gian phải ra", compute="_get_time_in_out")
     check_no_in = fields.Datetime("Check không có check_in", compute="_check_no_in_out")
