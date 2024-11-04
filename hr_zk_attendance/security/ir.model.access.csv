@@ -3,4 +3,7 @@ access_biometric_device_details,access.biometric.device.details,model_biometric_
 access_daily_attendance,access.daily.attendance,model_daily_attendance,base.group_user,1,1,1,1
 access_zk_machine_attendance,access.zk.machine.attendance,model_zk_machine_attendance,base.group_user,1,1,1,1
 
-access_master_data_attendance,access_master_data_attendance,model_master_data_attendance,,1,0,0,0
+access_master_data_attendance_user,master.data.attendance.user,model_master_data_attendance,sonha_employee.group_user_employee,1,0,0,0
+access_master_data_attendance_dl,master.data.attendance.dl,model_master_data_attendance,sonha_employee.group_dl_employee,1,0,0,0
+access_master_data_attendance_hr,master.data.attendance.hr,model_master_data_attendance,sonha_employee.group_hr_employee,1,0,0,0
+access_master_data_attendance_manager,master.data.attendance.manager,model_master_data_attendance,sonha_employee.group_manager_employee,1,0,0,0
