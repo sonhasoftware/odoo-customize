@@ -83,7 +83,6 @@
               name="Dữ liệu chấm công (thô)"
               parent="menu_attendance"
               action="hr_zk_attendance.action_master_data_attendance"
-              groups="sonha_employee.group_hr_employee"
               sequence="0"/>
 
     <menuitem id="menu_employeee_attendance"
