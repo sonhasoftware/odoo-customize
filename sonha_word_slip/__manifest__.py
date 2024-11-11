@@ -24,6 +24,7 @@
         'views/button_copy.xml',
         'wizard/timesheet_views.xml',
         'wizard/copy_public_leaves_views.xml',
+        'views/distribute_shift_views.xml',
         'views/menu_views.xml',
         'data/cron_job.xml',
     ],

@@ -1,4 +1,6 @@
+from dateutil.relativedelta import relativedelta
 from odoo import api, fields, models
+from datetime import datetime, time, timedelta
 
 
 class RegisterWork(models.Model):
@@ -29,3 +31,24 @@ class RegisterWork(models.Model):
                         'employee_id': []
                     }
                 }
+
+
+    def create(self, vals):
+        list_record = super(RegisterWork, self).create(vals)
+        for record in list_record:
+            self.create_distribute_shift(record)
+        return list_record
+
+    def create_distribute_shift(self, record):
+        for emp in record.employee_id:
+            temp_date = record.start_date
+            while temp_date <= record.end_date:
+                emp_id = emp.id
+                vals = {
+                    'employee_id': emp_id or '',
+                    'date': temp_date or '',
+                    'shift': record.shift.id or '',
+                }
+                self.env['distribute.shift'].create(vals)
+                temp_date = temp_date + timedelta(days=1)
+
