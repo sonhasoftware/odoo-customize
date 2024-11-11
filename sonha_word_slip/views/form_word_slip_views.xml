@@ -19,8 +19,8 @@
                                 <field name="to_date"/>
                                 <field name="start_time"/>
                                 <field name="end_time"/>
-                                <field name="time_to"/>
-                                <field name="time_from"/>
+                                <field name="time_to" widget="float_time"/>
+                                <field name="time_from" widget="float_time"/>
                                 <field name="reason"/>
                             </tree>
                         </field>
