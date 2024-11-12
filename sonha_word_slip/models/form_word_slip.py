@@ -7,8 +7,8 @@ class FormWordSlip(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
     department = fields.Many2one('hr.department', string="Phòng ban", required=True, tracking=True)
-    employee_id = fields.Many2one('hr.employee', string="Tên nhân viên", tracking=True)
-    type = fields.Many2one('config.word.slip', "Loại đơn", tracking=True)
+    employee_id = fields.Many2one('hr.employee', string="Tên nhân viên", tracking=True, required=True)
+    type = fields.Many2one('config.word.slip', "Loại đơn", tracking=True, required=True)
     word_slip_id = fields.One2many('word.slip', 'word_slip', string="Ngày", tracking=True)
     description = fields.Text("Lý do", tracking=True)
     status = fields.Selection([

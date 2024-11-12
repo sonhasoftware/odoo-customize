@@ -6,7 +6,7 @@ class RegisterShift(models.Model):
     _name = 'register.shift'
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
-    employee_id = fields.Many2one('hr.employee', "Tên nhân viên", tracking=True)
+    employee_id = fields.Many2one('hr.employee', "Tên nhân viên", tracking=True, required=True)
     type_register = fields.Selection([
         ('fixed_date', 'Theo ngày cố định'),
         ('about_day', 'Theo khoảng ngày'),
