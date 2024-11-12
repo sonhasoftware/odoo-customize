@@ -18,7 +18,7 @@ class FormWordSlip(models.Model):
 
     def action_confirm(self):
         for r in self:
-            if r.employee_id.parent_id.id == self.env.user.id:
+            if r.employee_id.parent_id.user_id.id == self.env.user.id:
                 r.status = 'done'
             else:
                 raise ValidationError("Bạn không có quyền thực hiện hành động này")
