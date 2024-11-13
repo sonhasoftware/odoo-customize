@@ -5,7 +5,7 @@ import datetime
 class PopupWizardReportMonth(models.TransientModel):
     _name = 'popup.wizard.report.month'
 
-    department_id = fields.Many2one('hr.department', required=True, domain=lambda self: [('id', 'in', self.env.user.employee_id.department_ids.ids)])
+    department_id = fields.Many2one('hr.department', required=True)
     month = fields.Selection([('one', 1),
                               ('two', 2),
                               ('three', 3),
