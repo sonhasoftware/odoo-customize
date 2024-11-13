@@ -5,7 +5,7 @@ import datetime
 class PopupWizardReport(models.TransientModel):
     _name = 'popup.wizard.report'
 
-    department_id = fields.Many2one('hr.department', required=True, domain=lambda self: [('id', 'in', self.env.user.employee_id.department_ids.ids)])
+    department_id = fields.Many2one('hr.department', required=True)
     year = fields.Integer('Năm', required=True, default=lambda self: datetime.date.today().year)
 
     def action_confirm(self):
