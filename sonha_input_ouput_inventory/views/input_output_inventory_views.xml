@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_input_buy_tree" model="ir.ui.view">
+        <field name="name">config.input.buy.tree</field>
+        <field name="model">input.output.inventory</field>
+        <field name="arch" type="xml">
+            <tree string="Bảng nhập mua" editable="bottom">
+                <field name="id_record"/>
+                <field name="date"/>
+                <field name="content"/>
+                <field name="status"/>
+                <field name="two_hundred_one"/>
+                <field name="three_hundred_four"/>
+                <field name="three_hundred_sixteen"/>
+                <field name="total"/>
+                <field name="enter_emp"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_output_sell_tree" model="ir.ui.view">
+        <field name="name">config.output.sell.tree</field>
+        <field name="model">input.output.inventory</field>
+        <field name="arch" type="xml">
+            <tree string="Bảng nhập mua" editable="bottom">
+                <field name="id_record"/>
+                <field name="date"/>
+                <field name="content"/>
+                <field name="status"/>
+                <field name="two_hundred_one"/>
+                <field name="three_hundred_four"/>
+                <field name="three_hundred_sixteen"/>
+                <field name="total"/>
+                <field name="enter_emp"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="input_buy_action" model="ir.actions.act_window">
+        <field name="name">Bảng nhập mua</field>
+        <field name="res_model">input.output.inventory</field>
+        <field name="view_mode">tree</field>
+        <field name="domain">[('content', '=', "Nhập mua")]</field>
+        <field name="context">{'default_content': 'Nhập mua'}</field>
+    </record>
+
+    <record id="output_sell_action" model="ir.actions.act_window">
+        <field name="name">Bảng xuất bán</field>
+        <field name="res_model">input.output.inventory</field>
+        <field name="view_mode">tree</field>
+        <field name="domain">[('content', '=', "Xuất bán")]</field>
+        <field name="context">{'default_content': 'Xuất bán'}</field>
+    </record>
+</odoo>

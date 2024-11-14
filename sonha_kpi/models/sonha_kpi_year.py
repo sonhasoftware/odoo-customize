@@ -161,34 +161,34 @@ class SonHaKPIYear(models.Model):
             r.quy_doi_monh_one = (r.ti_le_monh_one * 100) * 100 / (total * 100)
         if r.ti_le_monh_two:
             total = sum(key.mapped('ti_le_monh_two'))
-            r.quy_doi_monh_two = (r.ti_le_monh_two * 100) * 100 / (total * 100)
+            r.quy_doi_monh_one = (r.ti_le_monh_two * 100) * 100 / (total * 100)
         if r.ti_le_monh_three:
             total = sum(key.mapped('ti_le_monh_three'))
-            r.quy_doi_monh_three = (r.ti_le_monh_three * 100) * 100 / (total * 100)
+            r.quy_doi_monh_one = (r.ti_le_monh_three * 100) * 100 / (total * 100)
         if r.ti_le_monh_four:
             total = sum(key.mapped('ti_le_monh_four'))
-            r.quy_doi_monh_four = (r.ti_le_monh_four * 100) * 100 / (total * 100)
+            r.quy_doi_monh_one = (r.ti_le_monh_four * 100) * 100 / (total * 100)
         if r.ti_le_monh_five:
             total = sum(key.mapped('ti_le_monh_five'))
-            r.quy_doi_monh_five = (r.ti_le_monh_five * 100) * 100 / (total * 100)
+            r.quy_doi_monh_one = (r.ti_le_monh_five * 100) * 100 / (total * 100)
         if r.ti_le_monh_six:
             total = sum(key.mapped('ti_le_monh_six'))
-            r.quy_doi_monh_six = (r.ti_le_monh_six * 100) * 100 / (total * 100)
+            r.quy_doi_monh_one = (r.ti_le_monh_six * 100) * 100 / (total * 100)
         if r.ti_le_monh_seven:
             total = sum(key.mapped('ti_le_monh_seven'))
-            r.quy_doi_monh_seven = (r.ti_le_monh_seven * 100) * 100 / (total * 100)
+            r.quy_doi_monh_one = (r.ti_le_monh_seven * 100) * 100 / (total * 100)
         if r.ti_le_monh_eight:
             total = sum(key.mapped('ti_le_monh_eight'))
-            r.quy_doi_monh_eight = (r.ti_le_monh_eight * 100) * 100 / (total * 100)
+            r.quy_doi_monh_one = (r.ti_le_monh_eight * 100) * 100 / (total * 100)
         if r.ti_le_monh_nigh:
             total = sum(key.mapped('ti_le_monh_nigh'))
-            r.quy_doi_monh_nigh = (r.ti_le_monh_nigh * 100) * 100 / (total * 100)
+            r.quy_doi_monh_one = (r.ti_le_monh_nigh * 100) * 100 / (total * 100)
         if r.ti_le_monh_ten:
             total = sum(key.mapped('ti_le_monh_ten'))
-            r.quy_doi_monh_ten = (r.ti_le_monh_ten * 100) * 100 / (total * 100)
+            r.quy_doi_monh_one = (r.ti_le_monh_ten * 100) * 100 / (total * 100)
         if r.ti_le_monh_eleven:
             total = sum(key.mapped('ti_le_monh_eleven'))
-            r.quy_doi_monh_eleven = (r.ti_le_monh_eleven * 100) * 100 / (total * 100)
+            r.quy_doi_monh_one = (r.ti_le_monh_eleven * 100) * 100 / (total * 100)
         if r.ti_le_monh_twenty:
             total = sum(key.mapped('ti_le_monh_twenty'))
-            r.quy_doi_monh_twenty = (r.ti_le_monh_twenty * 100) * 100 / (total * 100)
+            r.quy_doi_monh_one = (r.ti_le_monh_twenty * 100) * 100 / (total * 100)

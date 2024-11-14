@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+
+access_config_status,access.config.status,model_config_status,,1,1,1,1
+access_input_output_inventory,access.input.output.inventory,model_input_output_inventory,,1,1,1,1

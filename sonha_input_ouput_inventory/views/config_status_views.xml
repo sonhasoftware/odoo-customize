@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_config_status_tree" model="ir.ui.view">
+        <field name="name">config.status.tree</field>
+        <field name="model">config.status</field>
+        <field name="arch" type="xml">
+            <tree string="Cấu hình trạng thái" editable="bottom">
+                <field name="user_status_name"/>
+                <field name="it_status_name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="config_status_action" model="ir.actions.act_window">
+        <field name="name">Cấu hình trạng thái</field>
+        <field name="res_model">config.status</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>
