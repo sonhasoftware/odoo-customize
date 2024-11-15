@@ -11,18 +11,18 @@
                 </header>
                 <sheet>
                     <group>
-                        <field name="type_register" readonly="status != 'draft'"/>
+                        <field name="type_register" readonly="status != 'draft'" required = "1"/>
                         <field name="is_display" invisible="True"/>
-                        <field name="from_date" invisible="is_display != True " readonly="status != 'draft'"/>
-                        <field name="to_date" invisible="is_display != True " readonly="status != 'draft'"/>
+                        <field name="from_date" invisible="is_display != True " readonly="status != 'draft'" required = "1"/>
+                        <field name="to_date" invisible="is_display != True " readonly="status != 'draft'" required = "1"/>
                         <field name="register_rel" readonly="status != 'draft'">
                             <tree editable="bottom">
                                 <field name="date"/>
                                 <field name="shift"/>
                             </tree>
                         </field>
-                        <field name="employee_id" readonly="status != 'draft'"/>
-                        <field name="description" readonly="status != 'draft'"/>
+                        <field name="employee_id" readonly="status != 'draft'" required = "1"/>
+                        <field name="description" readonly="status != 'draft'"  required = "1"/>
                     </group>
                 </sheet>
                 <div class="oe_chatter">

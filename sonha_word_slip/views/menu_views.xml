@@ -96,4 +96,10 @@
               parent="menu_config"
               action="config_reason_action"
               sequence="4"/>
+
+    <menuitem id="menu_distribute_shift"
+              name="Phân ca nhân viên"
+              parent="menu_word_slip_root"
+              action="distribute_shift_action"
+              sequence="10"/>
 </odoo>

@@ -24,10 +24,10 @@
                 <sheet>
                     <group>
                         <field name="department_id"/>
-                        <field name="start_date"/>
-                        <field name="end_date"/>
-                        <field name="shift"/>
-                        <field name="employee_id" widget="many2many_tags" domain="[('department_id', '=', department_id)]"/>
+                        <field name="start_date" required = "1"/>
+                        <field name="end_date" required = "1"/>
+                        <field name="shift" required = "1"/>
+                        <field name="employee_id" widget="many2many_tags" domain="[('department_id', '=', department_id)]" required = "1"/>
                     </group>
                 </sheet>
                 <div class="oe_chatter">

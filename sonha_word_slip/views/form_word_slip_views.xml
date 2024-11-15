@@ -12,7 +12,7 @@
                 <sheet>
                     <group>
                         <field name="department" readonly="status != 'draft'"/>
-                        <field name="type" readonly="status != 'draft'"/>
+                        <field name="type" readonly="status != 'draft'" required = "1"/>
                         <field name="word_slip_id" readonly="status != 'draft'">
                             <tree string="Loai nghỉ" editable="bottom">
                                 <field name="from_date"/>
@@ -24,7 +24,7 @@
                                 <field name="reason"/>
                             </tree>
                         </field>
-                        <field name="employee_id" domain="[('department_id', '=', department)]" readonly="status != 'draft'"/>
+                        <field name="employee_id" domain="[('department_id', '=', department)]" readonly="status != 'draft'" required = "1"/>
                     </group>
                 </sheet>
                 <div class="oe_chatter">

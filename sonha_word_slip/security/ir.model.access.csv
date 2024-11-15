@@ -47,3 +47,5 @@ access_timesheet,timesheet,model_timesheet,sonha_employee.group_hr_employee,1,1,
 access_copy_public_leaves,copy.public.leave,model_copy_public_leaves,,1,1,1,1
 
 access_config_reason,config.reason,model_config_reason,,1,1,1,1
+
+access_distribute_shift,distribute.shift,model_distribute_shift,,1,1,1,1

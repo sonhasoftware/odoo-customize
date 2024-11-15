@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <menuitem id="menu_input_output_inventory_root"
+              name="Nhập xuất tồn"
+              sequence="14"/>
+    <menuitem
+            id="menu_input_output_inventory"
+            name="Nhập xuất tồn"
+            parent="menu_input_output_inventory_root"
+            sequence="2"/>
+
+    <menuitem id="menu_input_buy"
+              name="Bảng nhập mua"
+              action="input_buy_action"
+              parent="menu_input_output_inventory"
+              sequence="1"/>
+    <menuitem id="menu_output_sell"
+              name="Bảng xuất bán"
+              action="output_sell_action"
+              parent="menu_input_output_inventory"
+              sequence="4"/>
+
+    <menuitem id="menu_config_status"
+              name="Cấu hình trạng thái"
+              action="config_status_action"
+              parent="menu_input_output_inventory_root"
+              sequence="4"/>
+</odoo>

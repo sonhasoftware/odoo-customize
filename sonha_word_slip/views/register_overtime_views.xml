@@ -28,11 +28,11 @@
                 </header>
                 <sheet>
                     <group>
-                        <field name="start_date" readonly="status != 'draft'"/>
-                        <field name="end_date" readonly="status != 'draft'"/>
-                        <field name="start_time" widget="float_time" readonly="status != 'draft'"/>
-                        <field name="end_time" widget="float_time" readonly="status != 'draft'"/>
-                        <field name="employee_id" readonly="status != 'draft'"/>
+                        <field name="start_date" readonly="status != 'draft'" required = "1"/>
+                        <field name="end_date" readonly="status != 'draft'" required = "1"/>
+                        <field name="start_time" widget="float_time" readonly="status != 'draft'" required = "1"/>
+                        <field name="end_time" widget="float_time" readonly="status != 'draft'" required = "1"/>
+                        <field name="employee_id" readonly="status != 'draft'" required = "1"/>
                     </group>
                 </sheet>
                 <div class="oe_chatter">
