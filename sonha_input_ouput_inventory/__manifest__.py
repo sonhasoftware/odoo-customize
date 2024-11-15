@@ -9,8 +9,10 @@
     'depends': ['hr', 'base'],
     'data': [
         'security/ir.model.access.csv',
+        'data/ir_cron_data.xml',
         'views/config_status_views.xml',
         'views/input_output_inventory_views.xml',
+        'views/inventory_views.xml',
         'views/menu_views.xml',
     ],
     'installable': True,
