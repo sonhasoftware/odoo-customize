@@ -1,0 +1,53 @@
+<odoo>
+    <record id="view_inventory_tree" model="ir.ui.view">
+        <field name="name">inventory.tree</field>
+        <field name="model">inventory</field>
+        <field name="arch" type="xml">
+            <tree string="Tồn Kho" create="false">
+                <field name="plant"/>
+                <field name="sloc_code"/>
+                <field name="sloc_name"/>
+                <field name="product_code"/>
+                <field name="product_name"/>
+                <field name="quantity"/>
+                <field name="unit"/>
+                <field name="batch"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Form View (Chi tiết) -->
+    <record id="view_inventory_form" model="ir.ui.view">
+        <field name="name">inventory.form</field>
+        <field name="model">inventory</field>
+        <field name="arch" type="xml">
+            <form string="Tồn Kho" create="false">
+                <sheet>
+                    <group>
+                        <field name="plant"/>
+                        <field name="sloc_code"/>
+                        <field name="sloc_name"/>
+                        <field name="product_code"/>
+                        <field name="product_name"/>
+                        <field name="quantity"/>
+                        <field name="unit"/>
+                        <field name="batch"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action để mở view -->
+    <record id="action_inventory" model="ir.actions.act_window">
+        <field name="name">Tổn Kho</field>
+        <field name="res_model">inventory</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Click vào đây để tạo bản ghi Customer Balance.
+            </p>
+        </field>
+    </record>
+
+</odoo>
