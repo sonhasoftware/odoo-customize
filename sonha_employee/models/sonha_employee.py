@@ -126,8 +126,11 @@ class SonHaEmployee(models.Model):
 
     @api.onchange('status_employee')
     def onchange_status_employee(self):
-        if self.status_employee == 'quit_job':
-            self.active = False
+        for s in self:
+            if s.status_employee == 'quit_job':
+                s.active = False;
+            else:
+                s.active = True;
 
 class EmployeeRel(models.Model):
     _name = 'employee.rel'
