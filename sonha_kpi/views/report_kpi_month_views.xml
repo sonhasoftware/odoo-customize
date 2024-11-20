@@ -56,12 +56,12 @@
                                 <td><field name="tq_matter_work" widget="percentage"/></td>
                             </tr>
                             <tr>
-                                <td>Chất lượng công việc thực hiện</td>
+                                <td>Chấp hành nội quy, quy chế, kỷ luật lao động</td>
                                 <td><field name="dv_comply_regulations" widget="percentage"/></td>
                                 <td><field name="tq_comply_regulations" widget="percentage"/></td>
                             </tr>
                             <tr>
-                                <td>Chất lượng công việc thực hiện</td>
+                                <td>Cải tiến, đề xuất, sáng kiến</td>
                                 <td><field name="dv_initiative" widget="percentage"/></td>
                                 <td><field name="tq_initiative" widget="percentage"/></td>
                             </tr>
