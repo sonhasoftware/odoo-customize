@@ -22,3 +22,8 @@ class FormWordSlip(models.Model):
                 r.status = 'done'
             else:
                 raise ValidationError("Bạn không có quyền thực hiện hành động này")
+
+    @api.constrains('word_slip_id')
+    def check_word_slip_id(self):
+        if not self.word_slip_id:
+            raise ValidationError(f"Hãy thêm chi tiết trong mục Ngày.")

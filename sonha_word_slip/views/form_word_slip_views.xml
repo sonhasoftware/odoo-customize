@@ -15,13 +15,13 @@
                         <field name="type" readonly="status != 'draft'" required = "1"/>
                         <field name="word_slip_id" readonly="status != 'draft'">
                             <tree string="Loai nghỉ" editable="bottom">
-                                <field name="from_date"/>
-                                <field name="to_date"/>
+                                <field name="from_date" required="1"/>
+                                <field name="to_date" required="1"/>
                                 <field name="start_time"/>
                                 <field name="end_time"/>
                                 <field name="time_to" widget="float_time"/>
                                 <field name="time_from" widget="float_time"/>
-                                <field name="reason"/>
+                                <field name="reason" required="1"/>
                             </tree>
                         </field>
                         <field name="employee_id" domain="[('department_id', '=', department)]" readonly="status != 'draft'" required = "1"/>
