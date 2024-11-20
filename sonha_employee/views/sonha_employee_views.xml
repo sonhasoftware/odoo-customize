@@ -6,7 +6,7 @@
             <field name="model">hr.employee</field>
             <field name="inherit_id" ref="hr.view_employee_form"/>
             <field name="arch" type="xml">
-<!--        ẩn đi các field k cần dùng đến trên form-->
+                <!--        ẩn đi các field k cần dùng đến trên form-->
                 <xpath expr="//field[@name='coach_id']" position="attributes">
                     <attribute name="invisible">True</attribute>
                 </xpath>
@@ -23,33 +23,33 @@
                 <xpath expr="//field[@name='work_phone']" position="attributes">
                     <attribute name="invisible">True</attribute>
                 </xpath>
-<!--        kế thừa thêm field vào form employee-->
+                <!--        kế thừa thêm field vào form employee-->
                 <xpath expr="//field[@name='mobile_phone']" position="before">
-                    <field name="employee_code" required = "1"/>
+                    <field name="employee_code" required="1"/>
                 </xpath>
                 <xpath expr="//field[@name='work_email']" position="after">
-                    <field name="date_birthday" required = "1"/>
+                    <field name="date_birthday" required="1"/>
                     <field name="place_birthday"/>
-                    <field name="gender" required = "1"/>
-                    <field name="marital_status" required = "1"/>
-                    <field name="nation" required = "1"/>
-                    <field name="religion" required = "1"/>
+                    <field name="gender" required="1"/>
+                    <field name="marital_status" required="1"/>
+                    <field name="nation" required="1"/>
+                    <field name="religion" required="1"/>
                     <field name="tax_code"/>
                 </xpath>
                 <xpath expr="//field[@name='parent_id']" position="after">
-                    <field name="hometown" required = "1"/>
-                    <field name="permanent_address" required = "1"/>
-                    <field name="onboard" required = "1"/>
+                    <field name="hometown" required="1"/>
+                    <field name="permanent_address" required="1"/>
+                    <field name="onboard" required="1"/>
                     <field name="reception_date"/>
-                    <field name="number_cccd" required = "1"/>
-                    <field name="date_cccd" required = "1"/>
-                    <field name="place_of_issue" required = "1"/>
+                    <field name="number_cccd" required="1"/>
+                    <field name="date_cccd" required="1"/>
+                    <field name="place_of_issue" required="1"/>
                     <field name="culture_level"/>
                 </xpath>
                 <xpath expr="//field[@name='resource_calendar_id']" position="after">
                     <field name="kpi" widget="many2many_tags"/>
                 </xpath>
-<!--        kế thừa thêm field vào page hr setting (page 3)-->
+                <!--        kế thừa thêm field vào page hr setting (page 3)-->
                 <xpath expr="//page[@name='hr_settings']//field[@name='user_id']" position="after">
                     <field name="shift"/>
                     <field name="status_employee"/>
@@ -64,14 +64,14 @@
                             <field name="note"/>
                         </tree>
                     </field>
-                    <field name="resource_id" />
+                    <field name="resource_id"/>
                 </xpath>
 
                 <xpath expr="//field[@name='resource_id']" position="attributes">
                     <attribute name="required">0</attribute>
                 </xpath>
-                
-<!--        kế thừa thêm field vào page hr setting (page 2)-->
+
+                <!--        kế thừa thêm field vào page hr setting (page 2)-->
                 <xpath expr="//page[@name='personal_information']//field[@name='private_email']" position="after">
                     <field name="passport_number"/>
                     <field name="date_passport"/>
@@ -88,7 +88,7 @@
                     <field name="place_party_member"/>
                     <field name="fee_party_member"/>
                 </xpath>
-<!--        ẩn đi các field k cần dùng đến trên form-->
+                <!--        ẩn đi các field k cần dùng đến trên form-->
                 <xpath expr="//page[@name='personal_information']//field[@name='private_phone']" position="attributes">
                     <attribute name="invisible">True</attribute>
                 </xpath>
@@ -146,9 +146,9 @@
                 <xpath expr="//field[@name='department_id']" position="attributes">
                     <attribute name="required">True</attribute>
                 </xpath>
-<!--                <xpath expr="//field[@name='job_id']" position="attributes">-->
-<!--                    <attribute name="required">True</attribute>-->
-<!--                </xpath>-->
+                <!--                <xpath expr="//field[@name='job_id']" position="attributes">-->
+                <!--                    <attribute name="required">True</attribute>-->
+                <!--                </xpath>-->
                 <xpath expr="//field[@name='company_id']" position="attributes">
                     <attribute name="required">True</attribute>
                 </xpath>
@@ -163,10 +163,18 @@
             <field name="model">hr.employee</field>
             <field name="inherit_id" ref="hr.view_employee_tree"/>
             <field name="arch" type="xml">
-                <xpath expr="//field[@name='work_phone']" position="attributes">
-                    <attribute name="invisible">1</attribute>
+                <xpath expr="//field[@name='work_phone']" position="replace"></xpath>
+                <xpath expr="//field[@name='work_email']" position="replace"></xpath>
+                <xpath expr="//field[@name='activity_ids']" position="replace"></xpath>
+                <xpath expr="//field[@name='activity_date_deadline']" position="replace"></xpath>
+
+                <xpath expr="//field[@name='name']" position="after">
+                    <field name="device_id_num"/>
                 </xpath>
-                <xpath expr="//tree/field[@name='name']" position="after">
+                <xpath expr="//field[@name='department_id']" position="before">
+                    <field name="mobile_phone"/>
+                </xpath>
+                <xpath expr="//tree/field[@name='name']" position="before">
                     <field name="employee_code"/>
                 </xpath>
             </field>
