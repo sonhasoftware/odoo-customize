@@ -26,4 +26,4 @@ class FormWordSlip(models.Model):
     @api.constrains('word_slip_id')
     def check_word_slip_id(self):
         if not self.word_slip_id:
-            raise ValidationError(f"Hãy thêm chi tiết trong mục Ngày.")
+            raise ValidationError(f"Đơn từ của bạn chưa chọn thời gian")
