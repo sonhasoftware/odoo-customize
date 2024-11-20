@@ -1,0 +1,12 @@
+<odoo>
+    <data>
+        <record id="template_year_action" model="ir.actions.report">
+            <field name="name">Đánh giá kết quả năm</field>
+            <field name="model">sonha.kpi.year</field>
+            <field name="report_type">qweb-html</field>
+            <field name="report_name">sonha_kpi.report_template_year</field>
+            <field name="report_file">sonha_kpi.report_template_year</field>
+            <field name="print_report_name">Report Year</field>
+        </record>
+    </data>
+</odoo>

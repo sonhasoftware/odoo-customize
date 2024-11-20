@@ -19,10 +19,11 @@
                                         <field name="start_date"/>
                                         <field name="end_date"/>
                                         <field name="kpi_year" widget="percentage"/>
-                                        <field name="dvdg_kpi" widget="percentage"/>
-                                        <field name="dvdg_status"/>
-                                        <field name="ctqdg_kpi" widget="percentage"/>
-                                        <field name="ctqdg_status"/>
+                                        <field name="total_percentage_month" widget="percentage"/>
+<!--                                        <field name="dvdg_kpi" widget="percentage"/>-->
+<!--                                        <field name="dvdg_status"/>-->
+<!--                                        <field name="ctqdg_kpi" widget="percentage"/>-->
+<!--                                        <field name="ctqdg_status"/>-->
                                         <field name="ti_le_monh_one" widget="percentage"/>
                                         <field name="ti_le_monh_two" widget="percentage"/>
                                         <field name="ti_le_monh_three" widget="percentage"/>

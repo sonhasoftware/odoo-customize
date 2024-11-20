@@ -77,6 +77,7 @@ class SonHaKPIYear(models.Model):
     th_kl_cv_monh_twenty = fields.Float("Tháng 12")
 
     sonha_kpi = fields.Many2one('company.sonha.kpi')
+    total_percentage_month = fields.Float(string="Tổng phần trăm tháng", readonly=True)
 
     @api.constrains('ti_le_monh_one', 'ti_le_monh_two', 'ti_le_monh_three', 'ti_le_monh_four',
                     'ti_le_monh_five', 'ti_le_monh_six', 'ti_le_monh_seven', 'ti_le_monh_eight',
@@ -139,6 +140,7 @@ class SonHaKPIYear(models.Model):
             self.filter_date_year(r)
             self.filter_conversion_data(r)
             self.validate_kpi_year(r)
+            self.is_missing_field(r)
         return record
 
     def validate_kpi_year(self, record):
@@ -192,3 +194,60 @@ class SonHaKPIYear(models.Model):
         if r.ti_le_monh_twenty:
             total = sum(key.mapped('ti_le_monh_twenty'))
             r.quy_doi_monh_one = (r.ti_le_monh_twenty * 100) * 100 / (total * 100)
+
+    def get_dvdg_status_label(self):
+        return dict(self._fields['dvdg_status'].selection).get(self.dvdg_status)
+
+    def get_ctqdg_status_label(self):
+        return dict(self._fields['ctqdg_status'].selection).get(self.ctqdg_status)
+
+    def is_missing_field(self, record):
+        date = record.start_date.month
+        missing_fields = []
+        if date == 1:
+            if not record.ti_le_monh_one:
+                missing_fields.append("Tháng 1")
+        elif date == 2:
+            if not record.ti_le_monh_two:
+                missing_fields.append("Tháng 2")
+        elif date == 3:
+            if not record.ti_le_monh_three:
+                missing_fields.append("Tháng 3")
+        elif date == 4:
+            if not record.ti_le_monh_four:
+                missing_fields.append("Tháng 4")
+        elif date == 5:
+            if not record.ti_le_monh_five:
+                missing_fields.append("Tháng 5")
+        elif date == 6:
+            if not record.ti_le_monh_six:
+                missing_fields.append("Tháng 6")
+        elif date == 7:
+            if not record.ti_le_monh_seven:
+                missing_fields.append("Tháng 7")
+        elif date == 8:
+            if not record.ti_le_monh_eight:
+                missing_fields.append("Tháng 8")
+        elif date == 9:
+            if not record.ti_le_monh_nigh:
+                missing_fields.append("Tháng 9")
+        elif date == 10:
+            if not record.ti_le_monh_ten:
+                missing_fields.append("Tháng 10")
+        elif date == 11:
+            if not record.ti_le_monh_eleven:
+                missing_fields.append("Tháng 11")
+        elif date == 12:
+            if not record.ti_le_monh_twenty:
+                missing_fields.append("Tháng 12")
+        if missing_fields:
+            warning_message = f"Trường: {', '.join(missing_fields)} bị thiếu dữ liệu."
+            self.env['bus.bus']._sendone(
+                (self._cr.dbname, 'res.partner', self.env.user.partner_id.id),
+                'simple_notification',
+                {
+                    'title': "Cảnh báo!",
+                    'message': warning_message,
+                    'sticky': False,
+                }
+            )

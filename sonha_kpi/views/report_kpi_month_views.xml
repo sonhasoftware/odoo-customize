@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="report_kpi_month_form_custom" model="ir.ui.view">
+        <field name="name">report.kpi.month.form.custom</field>
+        <field name="model">report.kpi.month</field>
+        <field name="arch" type="xml">
+            <form string="Báo cáo kpi tháng">
+                <xpath expr="//form" position="inside">
+                        <style>
+                            button {
+                                margin-bottom: 5px;
+                            }
+                            table, th, td {
+                                border: 1px solid black;
+                                border-collapse: collapse;
+                            }
+                        </style>
+                    </xpath>
+                <div>
+                    <button name="action_confirm" string="Duyệt" type="object" class="oe_highlight"/>
+                </div>
+                <div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th rowspan="2">NỘI DUNG CÔNG VIỆC Đã giao ở mục tiêu/ KPIs cả năm</th>
+                                <th rowspan="2">NỘI DUNG CÔNG VIỆC CỤ THỂ<br/>(Tối đa 8 và tối thiểu 3 mục tiêu)</th>
+                                <th colspan="2">THỜI GIAN THỰC HIỆN</th>
+                                <th rowspan="2">TIÊU CHÍ ĐÁNH GIÁ RÚT GỌN</th>
+                                <th rowspan="2">KẾT QUẢ HOÀN THÀNH ĐƠN VỊ ĐÁNH GIÁ</th>
+                                <th rowspan="2">MÔ TẢ CHI TIẾT CÔNG VIỆC</th>
+                                <th rowspan="2">KẾT QUẢ HOÀN THÀNH CẤP THAM QUYỀN ĐÁNH GIÁ</th>
+                                <th rowspan="2">NHẬN XÉT CỦA CẤP CÓ THAM QUYỀN</th>
+                            </tr>
+                            <tr>
+                                <th>Bắt đầu</th>
+                                <th>Hoàn thành</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td rowspan="4"><field name="kpi_year_id"/></td>
+                                <td rowspan="4"><field name="small_items_each_month"/></td>
+                                <td rowspan="4"><field name="start_date"/></td>
+                                <td rowspan="4"><field name="end_date"/></td>
+                                <td>Khối lượng công việc thực hiện</td>
+                                <td><field name="dv_amount_work" widget="percentage"/></td>
+                                <td rowspan="4"><field name="dv_description"/></td>
+                                <td><field name="tq_amount_work" widget="percentage"/></td>
+                                <td rowspan="4"><field name="tq_description"/></td>
+                                <td rowspan="4"><field name="sonha_kpi"/></td>
+                            </tr>
+                            <tr>
+                                <td>Chất lượng công việc thực hiện</td>
+                                <td><field name="dv_matter_work" widget="percentage"/></td>
+                                <td><field name="tq_matter_work" widget="percentage"/></td>
+                            </tr>
+                            <tr>
+                                <td>Chất lượng công việc thực hiện</td>
+                                <td><field name="dv_comply_regulations" widget="percentage"/></td>
+                                <td><field name="tq_comply_regulations" widget="percentage"/></td>
+                            </tr>
+                            <tr>
+                                <td>Chất lượng công việc thực hiện</td>
+                                <td><field name="dv_initiative" widget="percentage"/></td>
+                                <td><field name="tq_initiative" widget="percentage"/></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="report_kpi_month_tree" model="ir.ui.view">
+        <field name="name">report.kpi.month.tree</field>
+        <field name="model">report.kpi.month</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="kpi_year_id"/>
+                <field name="small_items_each_month"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_report_kpi_month" model="ir.actions.act_window">
+        <field name="name">Báo cáo kpi tháng</field>
+        <field name="res_model">report.kpi.month</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_report_kpi_month"
+                  parent="menu_sonha_kpi"
+                  action="action_report_kpi_month"
+                  sequence="19"/>
+</odoo>
