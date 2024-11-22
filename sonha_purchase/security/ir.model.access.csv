@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+
+access_purchase_request,purchase.request,model_purchase_request,,1,1,1,1
+
+access_external_db_connector,external.db.connector,model_external_db_connector,,1,1,1,1
+
+access_x_type_budget,x.type.budget,model_x_type_budget,,1,1,1,1

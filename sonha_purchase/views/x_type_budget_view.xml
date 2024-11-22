@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="sonha_x_type_budget_tree_view" model="ir.ui.view">
+        <field name="name">sonha.x.type.budget.view</field>
+        <field name="model">x.type.budget</field>
+        <field name="arch" type="xml">
+            <tree editable="left">
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_sonha_x_type_budget_view" model="ir.actions.act_window">
+        <field name="name">Loại ngân sách</field>
+        <field name="res_model">x.type.budget</field>
+        <field name="view_mode">tree</field>
+        <field name="context">{}</field>
+    </record>
+</odoo>

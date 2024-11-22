@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<odoo>
+    <menuitem id="menu_sonha_purchases_root"
+              name="Mua hàng"
+              sequence="1"/>
+
+    <menuitem id="menu_purchases_view"
+              name="Đơn hàng"
+              parent="menu_sonha_purchases_root"
+              sequence="1"/>
+
+    <menuitem id="menu_products"
+              name="Products"
+              parent="menu_sonha_purchases_root"
+              sequence="2"/>
+
+    <menuitem id="menu_budget"
+              name="Ngân sách"
+              parent="menu_sonha_purchases_root"
+              sequence="3"/>
+
+    <menuitem id="menu_supplier"
+              name="Nhà cung cấp"
+              parent="menu_sonha_purchases_root"
+              sequence="4"/>
+
+    <menuitem id="menu_infrequent_price_approval"
+              name="Duyệt giá hàng không thường xuyên"
+              parent="menu_sonha_purchases_root"
+              sequence="5"/>
+
+    <menuitem id="menu_reporting"
+              name="Báo cáo"
+              parent="menu_sonha_purchases_root"
+              sequence="6"/>
+
+    <menuitem id="menu_configuration"
+              name="Cấu hình"
+              parent="menu_sonha_purchases_root"
+              sequence="7"/>
+
+    <!--Menu đơn hàng-->
+    <menuitem id="menu_purchase_request_view"
+              name="Đề nghị đặt hàng (PR)"
+              parent="menu_purchases_view"
+              action="action_sonha_purchase_request"
+              sequence="1"/>
+
+    <!--Menu cấu hình-->
+    <menuitem id="menu_x_type_budget_view"
+              name="Loại ngân sách"
+              parent="menu_configuration"
+              action="action_sonha_x_type_budget_view"
+              sequence="6"/>
+</odoo>
