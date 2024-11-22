@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+<!--    kéo dữ liệu PR-->
     <record id="ir_cron_action_get_data_purchase_request" model="ir.cron">
         <field name="name">Lấy dữ liệu về Purchase Request</field>
         <field name="model_id" ref="model_purchase_request"/>
@@ -10,7 +11,7 @@
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
     </record>
-
+<!--kéo dữ liệu loại ngân sách-->
     <record id="ir_cron_action_get_data_x_type_budget" model="ir.cron">
         <field name="name">Lấy dữ liệu về x_type_budget</field>
         <field name="model_id" ref="model_x_type_budget"/>
@@ -21,12 +22,23 @@
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
     </record>
-
+<!--kéo dữ liệu quản lý MCH-->
     <record id="ir_cron_action_get_data_x_mch_list" model="ir.cron">
         <field name="name">Lấy dữ liệu về x_mch_list</field>
         <field name="model_id" ref="model_x_mch_list"/>
         <field name="state">code</field>
         <field name="code">model.sync_x_mch_list_data()</field>
+        <field name="user_id" ref="base.user_root"/>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="numbercall">-1</field>
+    </record>
+<!--    kéo dữ liệu Vai trờ phê duyệt-->
+    <record id="ir_cron_action_get_data_x_hr_validate_person" model="ir.cron">
+        <field name="name">Lấy dữ liệu về Vai trò phê duyệt</field>
+        <field name="model_id" ref="model_x_hr_validate_person"/>
+        <field name="state">code</field>
+        <field name="code">model.sync_x_hr_validate_person_data()</field>
         <field name="user_id" ref="base.user_root"/>
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>

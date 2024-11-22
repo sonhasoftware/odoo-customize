@@ -59,4 +59,10 @@
               parent="menu_configuration"
               action="action_x_mch_list_view"
               sequence="2"/>
+
+    <menuitem id="menu_x_hr_validate_person_view"
+              name="Vai trò phê duyệt"
+              parent="menu_configuration"
+              action="action_x_hr_validate_person_view"
+              sequence="3"/>
 </odoo>

@@ -18,9 +18,10 @@
         <field name="name">sonha.x.mch.list.form.view</field>
         <field name="model">x.mch.list</field>
         <field name="arch" type="xml">
-            <form string="BTP">
+            <form>
                 <sheet>
                     <group>
+                        <field name="name"/>
                         <group>
                             <field name="x_mch_code"/>
                             <field name="x_matgr_des60"/>
