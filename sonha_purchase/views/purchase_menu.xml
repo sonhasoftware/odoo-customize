@@ -53,4 +53,10 @@
               parent="menu_configuration"
               action="action_sonha_x_type_budget_view"
               sequence="6"/>
+
+    <menuitem id="menu_x_mch_list_view"
+              name="Quản lý MCH"
+              parent="menu_configuration"
+              action="action_x_mch_list_view"
+              sequence="2"/>
 </odoo>

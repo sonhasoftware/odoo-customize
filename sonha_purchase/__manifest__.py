@@ -11,6 +11,7 @@
         'security/ir.model.access.csv',
         'data/ir_cron_data.xml',
         'views/x_type_budget_view.xml',
+        'views/x_mch_list_view.xml',
         'views/purchase_request_view.xml',
         'views/purchase_menu.xml'
     ],

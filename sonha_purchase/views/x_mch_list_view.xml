@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="sonha_x_mch_list_tree_view" model="ir.ui.view">
+        <field name="name">sonha.x.mch.list.tree.view</field>
+        <field name="model">x.mch.list</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="x_mch_code"/>
+                <field name="name"/>
+                <field name="x_parent_id"/>
+                <field name="x_user_id"/>
+                <field name="x_buy_group"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="sonha_x_mch_list_form_view" model="ir.ui.view">
+        <field name="name">sonha.x.mch.list.form.view</field>
+        <field name="model">x.mch.list</field>
+        <field name="arch" type="xml">
+            <form string="BTP">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="x_mch_code"/>
+                            <field name="x_matgr_des60"/>
+                            <field name="x_parent_id"/>
+                        </group>
+                        <group>
+                            <field name="x_user_id"/>
+                            <field name="x_buy_group"/>
+                            <field name="target_dio"/>
+                            <field name="leadtime"/>
+                        </group>
+                    </group>
+                    <group>
+                        <!--mch con-->
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_x_mch_list_view" model="ir.actions.act_window">
+        <field name="name">Quản lý MCH</field>
+        <field name="res_model">x.mch.list</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{}</field>
+    </record>
+</odoo>
