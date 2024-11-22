@@ -55,49 +55,56 @@ class SonHaKPIMonth(models.Model):
             res['sonha_kpi'] = sonha_kpi_id
         return res
 
-    # def write(self, vals):
-    #     res = super(SonHaKPIMonth, self).write(vals)
-    #     for r in self:
-    #         self.write_result_month(r)
-    #     return res
+    def write(self, vals):
+        res = super(SonHaKPIMonth, self).write(vals)
+        for r in self:
+            self.write_result_month(r)
+        return res
 
     def create(self, vals):
         list_record = super(SonHaKPIMonth, self).create(vals)
         for record in list_record:
             record.department_id = record.kpi_year_id.department_id.id
             record.year = record.kpi_year_id.year
-            dvg_kpi = round(record.kpi_year_id.kpi_year * (
+            record.kpi_year_id.dvdg_kpi = round(record.kpi_year_id.kpi_year * (
                         record.dv_amount_work * 50 + record.dv_matter_work * 30 + record.dv_comply_regulations * 10 + record.dv_initiative * 10) / 100, 3)
-            record.kpi_year_id.dvdg_kpi = dvg_kpi
-            record.kpi_year_id.total_percentage_month = dvg_kpi/record.kpi_year_id.kpi_year if record.kpi_year_id.kpi_year else 0
+            record.kpi_year_id.total_percentage_month = record.kpi_year_id.dvdg_kpi / record.kpi_year_id.kpi_year if record.kpi_year_id.kpi_year else 0
             record.kpi_year_id.ctqdg_kpi = round(record.kpi_year_id.kpi_year * (
                         record.tq_amount_work * 50 + record.tq_matter_work * 30 + record.tq_comply_regulations * 10 + record.tq_initiative * 10) / 100, 3)
             self.create_result_month(record)
             self.create_report_month(record)
         return list_record
 
-    # def write_result_month(self, record):
-    #     kpi_month_result = self.env['sonha.kpi.result.month'].sudo().search([('kpi_month', '=', record.id)])
-    #     number_density = self.calculating_density(record)
-    #     vals = {
-    #         'department_id': record.department_id.id or '',
-    #         'year': record.year or '',
-    #         'name': record.kpi_year_id.id or '',
-    #         'content_detail': record.small_items_each_month or '',
-    #         'start_date': str(record.start_date) or '',
-    #         'end_date': str(record.end_date) or '',
-    #         'ti_trong': number_density / 100 or '',
-    #         'sonha_kpi': record.sonha_kpi.id or '',
-    #         'kq_hoan_thanh_amount_work': record.dv_amount_work or '',
-    #         'kq_hoan_thanh_matter_work': record.dv_matter_work or '',
-    #         'kq_hoan_thanh_comply_regulations': record.dv_comply_regulations or '',
-    #         'kq_hoan_thanh_initiative': record.dv_initiative or '',
-    #         'kq_hoan_thanh_tq_amount_work': record.tq_amount_work or '',
-    #         'kq_hoan_thanh_tq_matter_work': record.tq_matter_work or '',
-    #         'kq_hoan_thanh_tq_comply_regulations': record.tq_comply_regulations or '',
-    #         'kq_hoan_thanh_tq_initiative': record.tq_initiative or '',
-    #     }
-    #     kpi_month_result.write(vals)
+    def write_result_month(self, record):
+        kpi_month_result = self.env['sonha.kpi.result.month'].sudo().search([('kpi_month', '=', record.id)])
+        number_density = self.calculating_density(record)
+        vals = {
+            'department_id': record.department_id.id or '',
+            'year': record.year or '',
+            'name': record.kpi_year_id.id or '',
+            'content_detail': record.small_items_each_month or '',
+            'start_date': str(record.start_date) or '',
+            'end_date': str(record.end_date) or '',
+            'ti_trong': number_density / 100 or '',
+            'sonha_kpi': record.sonha_kpi.id or '',
+            'kq_hoan_thanh_amount_work': record.dv_amount_work or '',
+            'kq_hoan_thanh_matter_work': record.dv_matter_work or '',
+            'kq_hoan_thanh_comply_regulations': record.dv_comply_regulations or '',
+            'kq_hoan_thanh_initiative': record.dv_initiative or '',
+            'kq_hoan_thanh_tq_amount_work': record.tq_amount_work or '',
+            'kq_hoan_thanh_tq_matter_work': record.tq_matter_work or '',
+            'kq_hoan_thanh_tq_comply_regulations': record.tq_comply_regulations or '',
+            'kq_hoan_thanh_tq_initiative': record.tq_initiative or '',
+        }
+        kpi_month_result.write(vals)
+        kpi_month_result.filter_data_dvdg(kpi_month_result)
+        kpi_month_result.filter_data_dvtq(kpi_month_result)
+        kpi_month_result.kpi_month.kpi_year_id.dvdg_kpi = round(kpi_month_result.kpi_month.kpi_year_id.kpi_year * (
+                    kpi_month_result.kpi_month.dv_amount_work * 50 + kpi_month_result.kpi_month.dv_matter_work * 30 + kpi_month_result.kpi_month.dv_comply_regulations * 10 + kpi_month_result.kpi_month.dv_initiative * 10) / 100, 3)
+        kpi_month_result.kpi_month.kpi_year_id.total_percentage_month = kpi_month_result.kpi_month.kpi_year_id.dvdg_kpi / kpi_month_result.kpi_month.kpi_year_id.kpi_year if kpi_month_result.kpi_month.kpi_year_id.kpi_year else 0
+        kpi_month_result.kpi_month.kpi_year_id.ctqdg_kpi = round(kpi_month_result.kpi_month.kpi_year_id.kpi_year * (
+                    kpi_month_result.kpi_month.tq_amount_work * 50 + kpi_month_result.kpi_month.tq_matter_work * 30 + kpi_month_result.kpi_month.tq_comply_regulations * 10 + kpi_month_result.kpi_month.tq_initiative * 10) / 100, 3)
+
 
     def create_result_month(self, record):
         number_density = self.calculating_density(record)
