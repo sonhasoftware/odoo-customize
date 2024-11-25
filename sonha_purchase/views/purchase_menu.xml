@@ -48,12 +48,6 @@
               sequence="1"/>
 
     <!--Menu cấu hình-->
-    <menuitem id="menu_x_type_budget_view"
-              name="Loại ngân sách"
-              parent="menu_configuration"
-              action="action_sonha_x_type_budget_view"
-              sequence="6"/>
-
     <menuitem id="menu_x_mch_list_view"
               name="Quản lý MCH"
               parent="menu_configuration"
@@ -65,4 +59,16 @@
               parent="menu_configuration"
               action="action_x_hr_validate_person_view"
               sequence="3"/>
+
+    <menuitem id="menu_x_hr_validate_procedure_view"
+              name="Quy trình phê duyệt"
+              parent="menu_configuration"
+              action="action_x_hr_validate_procedure_view"
+              sequence="4"/>
+
+    <menuitem id="menu_x_type_budget_view"
+              name="Loại ngân sách"
+              parent="menu_configuration"
+              action="action_sonha_x_type_budget_view"
+              sequence="6"/>
 </odoo>

@@ -44,4 +44,15 @@
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
     </record>
+<!--    kéo dữ liệu Quy trình phê duyệt-->
+    <record id="ir_cron_action_get_data_x_hr_validate_procedure" model="ir.cron">
+        <field name="name">Lấy dữ liệu về Quy trình phê duyệt</field>
+        <field name="model_id" ref="model_x_hr_validate_procedure"/>
+        <field name="state">code</field>
+        <field name="code">model.sync_x_hr_validate_procedure_data()</field>
+        <field name="user_id" ref="base.user_root"/>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="numbercall">-1</field>
+    </record>
 </odoo>
