@@ -8,3 +8,4 @@ from . import x_type_po
 from . import uom_uom
 from . import uom_category
 from . import x_hr_validate_rule
+from . import x_price_approval_line

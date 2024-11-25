@@ -95,4 +95,10 @@
               parent="menu_configuration"
               action="action_x_hr_validate_rule_view"
               sequence="9"/>
+
+    <menuitem id="menu_x_price_approval_line"
+              name="Chi tiết yêu cầu duyệt giá"
+              parent="menu_configuration"
+              action="action_x_price_approval_line_view"
+              sequence="10"/>
 </odoo>
