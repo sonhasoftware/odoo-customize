@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+<!--    phần comment là phần cần hoàn thành-->
     <record id="sonha_x_hr_validate_person_tree_view" model="ir.ui.view">
         <field name="name">sonha.x.hr.validate.person.tree.view</field>
         <field name="model">x.hr.validate.person</field>

@@ -89,4 +89,10 @@
               parent="menu_configuration"
               action="action_uom_category_custom_view"
               sequence="8"/>
+
+    <menuitem id="menu_x_hr_validate_rule"
+              name="Quy tắc phê duyệt"
+              parent="menu_configuration"
+              action="action_x_hr_validate_rule_view"
+              sequence="9"/>
 </odoo>

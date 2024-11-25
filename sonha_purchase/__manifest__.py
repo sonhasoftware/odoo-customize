@@ -15,6 +15,7 @@
         'views/x_hr_validate_person_view.xml',
         'views/x_hr_validate_procedure_view.xml',
         'views/x_type_po_view.xml',
+        'views/x_hr_validate_rule_view.xml',
         'views/uom_category_view.xml',
         'views/uom_uom_view.xml',
         'views/purchase_request_view.xml',
