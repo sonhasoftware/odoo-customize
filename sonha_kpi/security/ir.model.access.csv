@@ -39,3 +39,9 @@ access_popup_wizard_report,popup.wizard.report,model_popup_wizard_report,,1,1,1,
 access_report_kpi_report,report.kpi,model_report_kpi,,1,1,1,1
 
 access_popup_wizard_report_month,popup.wizard.report.month,model_popup_wizard_report_month,,1,1,1,1
+
+access_popup_wizard_report_year,popup.wizard.report.year,model_popup_wizard_report_year,,1,1,1,1
+
+access_mail_to,report.mail.to,model_report_mail_to,,1,1,1,1
+
+access_report_kpi_month,report.kpi.month,model_report_kpi_month,,1,1,1,1
