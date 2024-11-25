@@ -66,6 +66,12 @@
               action="action_x_hr_validate_procedure_view"
               sequence="4"/>
 
+    <menuitem id="menu_x_type_po_view"
+              name="Loại đơn mua"
+              parent="menu_configuration"
+              action="action_x_type_po_view"
+              sequence="5"/>
+
     <menuitem id="menu_x_type_budget_view"
               name="Loại ngân sách"
               parent="menu_configuration"

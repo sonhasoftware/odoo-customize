@@ -11,3 +11,5 @@ access_x_mch_list,x.mch.list,model_x_mch_list,,1,1,1,1
 access_x_hr_validate_person,x.hr.validate.person,model_x_hr_validate_person,,1,1,1,1
 
 access_x_hr_validate_procedure,x.hr.validate.procedure,model_x_hr_validate_procedure,,1,1,1,1
+
+access_x_type_po,x.type.po,model_x_type_po,,1,1,1,1
