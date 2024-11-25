@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="sonha_uom_uom_custom_tree_view" model="ir.ui.view">
+        <field name="name">sonha.uom.uom.custom.tree.view</field>
+        <field name="model">uom.uom.custom</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+<!--                thiếu trường category_id-->
+                <field name="uom_type"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="sonha_uom_uom_custom_form_view" model="ir.ui.view">
+        <field name="name">sonha.uom.uom.custom.form.view</field>
+        <field name="model">uom.uom.custom</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="sap_key"/>
+<!--                        trường category_id cần thiết nhưng chưa được tham chiếu-->
+<!--                        <field name="category_id"/>-->
+                        <field name="uom_type"/>
+                        <field name="factor"/>
+                    </group>
+                    <group>
+                        <field name="active"/>
+                        <field name="rounding"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_uom_uom_custom_view" model="ir.actions.act_window">
+        <field name="name">Đơn vị tính</field>
+        <field name="res_model">uom.uom.custom</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>
