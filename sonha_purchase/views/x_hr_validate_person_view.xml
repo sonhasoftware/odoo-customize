@@ -19,6 +19,7 @@
                     <h1>
                         <field name="name" readonly="1"/>
                     </h1>
+<!--                    đang xây dụng phần comment-->
 <!--                    <notebook>-->
 <!--                        <page string="Người dùng">-->
 <!--                            <field name="users">-->
@@ -40,6 +41,5 @@
         <field name="name">Vai trò phê duyệt</field>
         <field name="res_model">x.hr.validate.person</field>
         <field name="view_mode">tree,form</field>
-        <field name="context">{}</field>
     </record>
 </odoo>

@@ -31,6 +31,5 @@
         <field name="name">Quy trình phê duyệt</field>
         <field name="res_model">x.hr.validate.procedure</field>
         <field name="view_mode">tree,form</field>
-        <field name="context">{}</field>
     </record>
 </odoo>

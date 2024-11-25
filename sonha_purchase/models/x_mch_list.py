@@ -3,7 +3,6 @@ from odoo import models, fields, _
 class XMCHList(models.Model):
     _name = "x.mch.list"
 
-    id = fields.Integer(string="ID")
     parent_level = fields.Integer(string="Cấp MCH")
     parent_path = fields.Integer(string="Parent Path", index=True )
     name = fields.Char(string="Tên MCH")
@@ -20,7 +19,6 @@ class XMCHList(models.Model):
         connector = self.env['external.db.connector'].sudo()
         query = """
             SELECT 
-                id,
                 parent_level,
                 parent_path,
                 name,
