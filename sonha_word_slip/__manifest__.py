@@ -22,6 +22,7 @@
         'views/synthetic_work_views.xml',
         'views/config_reason_views.xml',
         'views/button_copy.xml',
+        'views/config_approval_views.xml',
         'wizard/timesheet_views.xml',
         'wizard/copy_public_leaves_views.xml',
         'views/distribute_shift_views.xml',

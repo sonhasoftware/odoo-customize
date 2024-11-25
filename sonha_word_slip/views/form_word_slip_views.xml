@@ -6,11 +6,17 @@
         <field name="arch" type="xml">
             <form string="Đơn từ">
                 <header>
-                    <button name="action_confirm" string="Duyệt" type="object" class="oe_highlight" invisible="status != 'draft'"/>
-                    <field name="status" widget="statusbar"/>
+                    <field name="button_confirm" invisible="1"/>
+                    <field name="button_done" invisible="1"/>
+                    <button name="action_confirm" string="Xác nhận" type="object" class="oe_highlight" invisible="button_confirm != True"/>
+                    <button name="action_approval" string="Duyệt" type="object" class="oe_highlight" invisible="button_done != True"/>
+                    <field name="check_level" invisible="1"/>
+                    <field name="status_lv1" widget="statusbar" invisible="check_level == True"/>
+                    <field name="status_lv2" widget="statusbar" invisible="check_level != True"/>
                 </header>
                 <sheet>
                     <group>
+                        <field name="status" invisible="1"/>
                         <field name="department" readonly="status != 'draft'"/>
                         <field name="type" readonly="status != 'draft'" required = "1"/>
                         <field name="word_slip_id" readonly="status != 'draft'">
@@ -44,6 +50,7 @@
                 <field name="department"/>
                 <field name="employee_id"/>
                 <field name="type"/>
+                 <field name="status"/>
             </tree>
         </field>
     </record>

@@ -67,6 +67,11 @@
                 <xpath expr="//field[@name='resource_id']" position="attributes">
                     <attribute name="required">0</attribute>
                 </xpath>
+
+                <xpath expr="//page[@name='hr_settings']//field[@name='pin']" position="before">
+                    <field name="level"/>
+                    <field name="employee_approval"/>
+                </xpath>
                 
 <!--        kế thừa thêm field vào page hr setting (page 2)-->
                 <xpath expr="//page[@name='personal_information']//field[@name='private_email']" position="after">

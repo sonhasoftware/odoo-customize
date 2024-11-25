@@ -32,6 +32,8 @@ class SonHaEmployee(models.Model):
         ('N5', 'N5'),
     ], string='Level', tracking=True)
 
+    employee_approval = fields.Many2one('hr.employee', string="Người duyệt")
+
     date = fields.Date('Ngày', tracking=True)
     number = fields.Integer('Số', tracking=True)
     status_employee = fields.Selection([
