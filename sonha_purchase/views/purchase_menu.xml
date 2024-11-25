@@ -83,4 +83,10 @@
               parent="menu_configuration"
               action="action_uom_uom_custom_view"
               sequence="7"/>
+
+    <menuitem id="menu_uom_category_view"
+              name="Nhóm đơn vị"
+              parent="menu_configuration"
+              action="action_uom_category_custom_view"
+              sequence="8"/>
 </odoo>
