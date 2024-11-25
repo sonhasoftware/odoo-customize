@@ -7,5 +7,7 @@ from . import sonha_kpi_year
 from . import sonha_kpi_month
 from . import sonha_kpi_result_month
 from . import sonha_report_kpi
+from . import report_mail_to
+from . import report_kpi_month
 
 

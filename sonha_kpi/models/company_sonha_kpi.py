@@ -21,3 +21,8 @@ class CompanySonHaKPI(models.Model):
         for r in self:
             if r.year and r.year < now.date().year:
                 raise ValidationError('Năm không được bé hơn năm hiện tại!')
+
+    def unlink(self):
+        for r in self:
+            self.env['sonha.kpi.result.month'].search([('sonha_kpi', '=', r.id)]).unlink()
+        return super(CompanySonHaKPI, self).unlink()

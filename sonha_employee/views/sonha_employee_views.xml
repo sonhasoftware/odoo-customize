@@ -46,9 +46,6 @@
                     <field name="place_of_issue" required = "1"/>
                     <field name="culture_level"/>
                 </xpath>
-                <xpath expr="//field[@name='resource_calendar_id']" position="after">
-                    <field name="kpi" widget="many2many_tags"/>
-                </xpath>
 <!--        kế thừa thêm field vào page hr setting (page 3)-->
                 <xpath expr="//page[@name='hr_settings']//field[@name='user_id']" position="after">
                     <field name="shift"/>

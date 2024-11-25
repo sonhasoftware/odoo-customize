@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="report_mail_to_view_form" model="ir.ui.view">
+            <field name="name">report.mail.to.form.view</field>
+            <field name="model">report.mail.to</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <field name="module"/>
+                        <field name="department_id"/>
+                    </group>
+                    <group>
+                        <field name="receive_emp" domain="[('department_id', '=', department_id)]"/>
+                        <field name="cc_to" widget="many2many_tags"/>
+                    </group>
+                </form>
+            </field>
+        </record>
+
+        <record id="report_mail_to_view_tree" model="ir.ui.view">
+            <field name="name">report.mail.to.tree.view</field>
+            <field name="model">report.mail.to</field>
+            <field name="arch" type="xml">
+                <tree editable="bottom">
+                    <field name="module"/>
+                    <field name="department_id"/>
+                    <field name="receive_emp"/>
+                    <field name="cc_to" widget="many2many_tags"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="report_mail_to_action" model="ir.actions.act_window">
+            <field name="name">Người nhận mail</field>
+            <field name="res_model">report.mail.to</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <menuitem id="menu_report_mail_to"
+                  parent="menu_sonha_kpi"
+                  action="report_mail_to_action"
+                  sequence="15"/>
+    </data>
+</odoo>

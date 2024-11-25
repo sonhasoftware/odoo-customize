@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="report_template_year">
+        <t t-call="web.html_container">
+            <div class="page">
+                <style>
+                    th, td {
+                        border: 1px solid #000;
+                        text-align: center;
+                        vertical-align: middle;
+                    }
+                    th {
+                        background-color: #CCFFFF;
+                    }
+                </style>
+                <t t-if="docs">
+                <table>
+                    <thead>
+                        <tr>
+                            <th rowspan="2">NỘI DUNG CÔNG VIỆC Đã giao ở mục tiêu/ KPIs cả năm</th>
+                            <th colspan="2">THỜI GIAN THỰC HIỆN</th>
+                            <th rowspan="2">ĐƠN VỊ DG KPI ĐẾN HIỆN TẠI</th>
+                            <th rowspan="2">TRẠNG THÁI DV ĐÁNH GIÁ</th>
+                            <th rowspan="2">CẤP THẨM QUYỀN DG KPI ĐẾN HIỆN TẠI</th>
+                            <th rowspan="2">TRẠNG THÁI CẤP THẨM QUYỀN DG</th>
+                        </tr>
+                        <tr>
+                            <th>Bắt đầu</th>
+                            <th>Hoàn thành</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="docs" t-as="doc">
+                            <tr>
+                                <td style="font-weight: bold;"><t t-esc="doc.name"/></td>
+                                <td><t t-esc="doc.start_date"/></td>
+                                <td><t t-esc="doc.end_date"/></td>
+                                <td><t t-esc="doc.dvdg_kpi * 100"/>%</td>
+                                <td><t t-esc="doc.get_dvdg_status_label()"/></td>
+                                <td><t t-esc="doc.ctqdg_kpi * 100"/>%</td>
+                                <td><t t-esc="doc.get_ctqdg_status_label()"/></td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+                </t>
+                <t t-else="">
+                    <h1>Không có dữ liệu để hiển thị</h1>
+                </t>
+            </div>
+        </t>
+    </template>
+</odoo>
