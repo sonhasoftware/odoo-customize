@@ -46,7 +46,7 @@
         <field name="name">form.word.slip.tree</field>
         <field name="model">form.word.slip</field>
         <field name="arch" type="xml">
-            <tree string="Đơn từ">
+            <tree string="Đơn từ" default_order="create_date desc">
                 <field name="department"/>
                 <field name="employee_id"/>
                 <field name="type"/>
