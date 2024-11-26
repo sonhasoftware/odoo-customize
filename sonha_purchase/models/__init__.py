@@ -12,3 +12,4 @@ from . import x_price_approval_line
 from . import x_price_approval_frequent_line
 from . import x_material_type
 from . import x_cost_center
+from . import x_cost_account

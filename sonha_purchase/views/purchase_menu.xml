@@ -119,4 +119,10 @@
               parent="menu_configuration"
               action="action_x_cost_center_view"
               sequence="13"/>
+
+    <menuitem id="menu_x_cost_account"
+              name="Tài khoản chi phí"
+              parent="menu_configuration"
+              action="action_x_cost_account_view"
+              sequence="14"/>
 </odoo>
