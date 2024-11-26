@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="sonha_x_material_type_tree_view" model="ir.ui.view">
+        <field name="name">sonha.x.material.type.tree.view</field>
+        <field name="model">x.material.type</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_x_material_type_view" model="ir.actions.act_window">
+        <field name="name">Phân loại sản phẩm</field>
+        <field name="res_model">x.material.type</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

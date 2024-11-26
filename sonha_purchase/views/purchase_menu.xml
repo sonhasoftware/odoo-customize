@@ -107,4 +107,10 @@
               parent="menu_configuration"
               action="action_x_price_approval_frequent_line_view"
               sequence="11"/>
+
+    <menuitem id="menu_x_material_type"
+              name="Phân loại sản phẩm"
+              parent="menu_configuration"
+              action="action_x_material_type_view"
+              sequence="12"/>
 </odoo>
