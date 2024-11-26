@@ -5,7 +5,7 @@ from odoo.exceptions import UserError, ValidationError
 class SonHaEmployee(models.Model):
     _inherit = 'hr.employee'
     _rec_name = 'combination'
-    _order = 'department_id ASC'
+    _order = 'department_id, employee_code ASC'
 
     list_employee = fields.Many2many('hr.employee', 'ir_employee_group_rel',
                                      'employee_group_rel', 'employee_rel',
