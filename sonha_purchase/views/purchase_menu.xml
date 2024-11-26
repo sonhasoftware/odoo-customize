@@ -28,6 +28,7 @@
     <menuitem id="menu_infrequent_price_approval"
               name="Duyệt giá hàng không thường xuyên"
               parent="menu_sonha_purchases_root"
+              action="action_x_price_approval_view"
               sequence="5"/>
 
     <menuitem id="menu_reporting"

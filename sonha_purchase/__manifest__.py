@@ -15,6 +15,7 @@
         'views/x_hr_validate_person_view.xml',
         'views/x_hr_validate_procedure_view.xml',
         'views/x_hr_validate_rule_view.xml',
+        'views/x_price_approval_view.xml',
         'views/x_price_approval_line.xml',
         'views/x_price_approval_frequent_line_view.xml',
         'views/x_material_type_view.xml',
