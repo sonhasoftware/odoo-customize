@@ -137,4 +137,10 @@
               parent="menu_configuration"
               action="action_internal_order_code_view"
               sequence="16"/>
+
+    <menuitem id="menu_asset_code"
+              name="Mã tài sản"
+              parent="menu_configuration"
+              action="action_asset_code_view"
+              sequence="16"/>
 </odoo>

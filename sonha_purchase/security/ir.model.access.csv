@@ -33,3 +33,5 @@ access_x_cost_account,x.cost.account,model_x_cost_account,,1,1,1,1
 access_product_category_custom,product.category.custom,model_product_category_custom,,1,1,1,1
 
 access_internal_order_code,internal.order.code,model_internal_order_code,,1,1,1,1
+
+access_asset_code,asset.code,model_asset_code,,1,1,1,1
