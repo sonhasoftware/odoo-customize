@@ -26,6 +26,7 @@
         'views/asset_code_view.xml',
         'views/sub_asset_code_view.xml',
         'views/x_pr_type_config_view.xml',
+        'views/x_po_type_config_view.xml',
         'views/uom_category_view.xml',
         'views/uom_uom_view.xml',
         'views/purchase_request_view.xml',

@@ -155,4 +155,10 @@
               parent="menu_configuration"
               action="action_x_pr_type_config_view"
               sequence="18"/>
+
+    <menuitem id="menu_x_po_type_config"
+              name="Cài đặt loại PO"
+              parent="menu_configuration"
+              action="action_x_po_type_config_view"
+              sequence="19"/>
 </odoo>
