@@ -101,4 +101,10 @@
               parent="menu_configuration"
               action="action_x_price_approval_line_view"
               sequence="10"/>
+
+    <menuitem id="menu_x_price_approval_frequent_line"
+              name="Chi tiết duyệt giá (Line PP)"
+              parent="menu_configuration"
+              action="action_x_price_approval_frequent_line_view"
+              sequence="11"/>
 </odoo>

@@ -40,7 +40,6 @@ class XMCHList(models.Model):
         if data:
             for r in data:
                 records_to_create.append({
-                    'id': r.get('id'),
                     'parent_level': r.get('parent_level'),
                     'parent_path': r.get('parent_path'),
                     'name': r.get('name'),
