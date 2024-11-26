@@ -125,4 +125,10 @@
               parent="menu_configuration"
               action="action_x_cost_account_view"
               sequence="14"/>
+
+    <menuitem id="menu_product_category"
+              name="Product Categories"
+              parent="menu_configuration"
+              action="action_product_category_view"
+              sequence="15"/>
 </odoo>
