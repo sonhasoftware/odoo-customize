@@ -21,3 +21,4 @@ from . import x_pr_type_config
 from . import x_po_type_config
 from . import x_price_approval
 from . import x_purchase_budget
+from . import product_product_custom

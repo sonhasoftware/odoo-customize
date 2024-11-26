@@ -49,6 +49,13 @@
               action="action_sonha_purchase_request"
               sequence="1"/>
 
+    <!--Menu Products-->
+    <menuitem id="menu_pproduct_product_custom"
+              name="Sản phẩm"
+              parent="menu_products"
+              action="action_product_product_custom_view"
+              sequence="1"/>
+
     <!--Menu cấu hình-->
     <menuitem id="menu_x_mch_list_view"
               name="Quản lý MCH"

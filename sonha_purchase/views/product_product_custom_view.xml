@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="sonha_product_product_custom_tree_view" model="ir.ui.view">
+        <field name="name">sonha.product.product.custom.tree.view</field>
+        <field name="model">product.product.custom</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="default_code"/>
+                <!--các trường khác-->
+            </tree>
+        </field>
+    </record>
+
+    <record id="sonha_product_product_custom_form_view" model="ir.ui.view">
+        <field name="name">sonha.product.product.custom.form.view</field>
+        <field name="model">product.product.custom</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <field name="default_code"/>
+                    <!--các trường khác-->
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_product_product_custom_view" model="ir.actions.act_window">
+        <field name="name">Sản phẩm</field>
+        <field name="res_model">product.product.custom</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>
