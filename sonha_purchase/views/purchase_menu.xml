@@ -18,6 +18,7 @@
     <menuitem id="menu_budget"
               name="Ngân sách"
               parent="menu_sonha_purchases_root"
+              action="action_x_purchase_budget_view"
               sequence="3"/>
 
     <menuitem id="menu_supplier"

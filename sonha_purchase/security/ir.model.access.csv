@@ -43,3 +43,5 @@ access_x_pr_type_config,x.pr.type.config,model_x_pr_type_config,,1,1,1,1
 access_x_po_type_config,x.po.type.config,model_x_po_type_config,,1,1,1,1
 
 access_x_price_approval,x.price.approval,model_x_price_approval,,1,1,1,1
+
+access_x_purchase_budget,x.purchase.budget,model_x_purchase_budget,,1,1,1,1
