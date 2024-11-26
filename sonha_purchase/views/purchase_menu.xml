@@ -149,4 +149,10 @@
               parent="menu_configuration"
               action="action_sub_asset_code_view"
               sequence="17"/>
+
+    <menuitem id="menu_x_pr_type_config"
+              name="Cài đặt loại PR"
+              parent="menu_configuration"
+              action="action_x_pr_type_config_view"
+              sequence="18"/>
 </odoo>
