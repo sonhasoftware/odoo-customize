@@ -55,9 +55,23 @@
         </field>
     </record>
 
+    <record id="view_form_word_slip_search" model="ir.ui.view">
+        <field name="name">form.word.slip.search</field>
+        <field name="model">form.word.slip</field>
+        <field name="arch" type="xml">
+            <search string="Search Phân Ca">
+                <field name="employee_id" string="Nhân viên"/>
+                <field name="department" string="Phòng ban"/>
+                <filter string="Trạng thái: Nháp" name="state_draft" domain="[('status', '=', 'draft')]" />
+            </search>
+        </field>
+    </record>
+
     <record id="action_form_word_slip" model="ir.actions.act_window">
         <field name="name">Đơn từ</field>
         <field name="res_model">form.word.slip</field>
         <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_form_word_slip_search"/>
+        <field name="context">{'search_default_state_draft': 1}</field>
     </record>
 </odoo>

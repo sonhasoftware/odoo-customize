@@ -87,7 +87,7 @@ class SonHaEmployee(models.Model):
     place_party_member = fields.Char("Nơi vào Đảng", tracking=True)
     fee_party_member = fields.Boolean("Đảng phí", tracking=True)
 
-    combination = fields.Char(string='Combination', compute='_compute_fields_combination', tracking=True)
+    combination = fields.Char(string='Combination', compute='_compute_fields_combination', tracking=True, store=True)
     work_ids = fields.One2many('work.process', 'employee_id', string="Quá trình công tác")
 
     birth_month = fields.Integer(string="Sinh nhật", compute='_compute_birth_month', store=True, tracking=True)

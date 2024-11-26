@@ -4,7 +4,7 @@
         <field name="name">distribute.shift.tree</field>
         <field name="model">distribute.shift</field>
         <field name="arch" type="xml">
-            <tree string="Phân ca">
+            <tree string="Phân ca" default_order="date desc">
                 <field name="employee_id"/>
                 <field name="date"/>
                 <field name="shift"/>
@@ -12,9 +12,20 @@
         </field>
     </record>
 
+    <record id="view_distribute_shift_search" model="ir.ui.view">
+        <field name="name">distribute.shift.search</field>
+        <field name="model">distribute.shift</field>
+        <field name="arch" type="xml">
+            <search string="Search Phân Ca">
+                <field name="employee_id" string="Nhân viên"/>
+            </search>
+        </field>
+    </record>
+
     <record id="distribute_shift_action" model="ir.actions.act_window">
         <field name="name">Phân ca</field>
         <field name="res_model">distribute.shift</field>
         <field name="view_mode">tree</field>
+        <field name="search_view_id" ref="view_distribute_shift_search"/>
     </record>
 </odoo>
