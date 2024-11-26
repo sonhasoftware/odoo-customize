@@ -14,3 +14,4 @@ from . import x_material_type
 from . import x_cost_center
 from . import x_cost_account
 from . import product_category
+from . import internal_order_code

@@ -31,3 +31,5 @@ access_x_cost_center,x.cost.center,model_x_cost_center,,1,1,1,1
 access_x_cost_account,x.cost.account,model_x_cost_account,,1,1,1,1
 
 access_product_category_custom,product.category.custom,model_product_category_custom,,1,1,1,1
+
+access_internal_order_code,internal.order.code,model_internal_order_code,,1,1,1,1

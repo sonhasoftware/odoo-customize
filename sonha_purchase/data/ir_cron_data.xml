@@ -165,4 +165,15 @@
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
     </record>
+<!--    kéo dữ liệu về Mã lệnh IO-->
+    <record id="ir_cron_action_get_data_internal_order_code" model="ir.cron">
+        <field name="name">Lấy dữ liệu về Mã lệnh IO</field>
+        <field name="model_id" ref="model_internal_order_code"/>
+        <field name="state">code</field>
+        <field name="code">model.sync_internal_order_code_data()</field>
+        <field name="user_id" ref="base.user_root"/>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="numbercall">-1</field>
+    </record>
 </odoo>

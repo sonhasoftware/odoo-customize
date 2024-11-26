@@ -31,7 +31,7 @@ class XCostAccount(models.Model):
         if data:
             for r in data:
                 records_to_create.append({
-                    'code' : r.get('name'),
+                    'code' : r.get('code'),
                     # 'cost_center_id' : r.get('cost_center_id'),
                     # 'io_code_id' : r.get('io_code_id'),
                     'name' : r.get('name'),

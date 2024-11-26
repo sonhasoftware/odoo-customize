@@ -131,4 +131,10 @@
               parent="menu_configuration"
               action="action_product_category_view"
               sequence="15"/>
+
+    <menuitem id="menu_internal_order_code"
+              name="Mã lệnh IO"
+              parent="menu_configuration"
+              action="action_internal_order_code_view"
+              sequence="16"/>
 </odoo>
