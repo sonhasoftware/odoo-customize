@@ -143,4 +143,10 @@
               parent="menu_configuration"
               action="action_asset_code_view"
               sequence="16"/>
+
+    <menuitem id="menu_sub_asset_code"
+              name="Mã tài sản con"
+              parent="menu_configuration"
+              action="action_sub_asset_code_view"
+              sequence="17"/>
 </odoo>
