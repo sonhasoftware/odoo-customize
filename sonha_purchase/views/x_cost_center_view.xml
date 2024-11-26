@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="sonha_x_cost_center_tree_view" model="ir.ui.view">
+        <field name="name">sonha.x.cost.center.tree.view</field>
+        <field name="model">x.cost.center</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="code"/>
+<!--                trường company_id cần thiết nhưng chưa được liên kết model-->
+<!--                <field name="company_id"/>-->
+                <field name="name"/>
+                <field name="descript"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_x_cost_center_view" model="ir.actions.act_window">
+        <field name="name">Trung tâm chi phí</field>
+        <field name="res_model">x.cost.center</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

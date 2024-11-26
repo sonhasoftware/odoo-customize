@@ -11,3 +11,4 @@ from . import x_hr_validate_rule
 from . import x_price_approval_line
 from . import x_price_approval_frequent_line
 from . import x_material_type
+from . import x_cost_center

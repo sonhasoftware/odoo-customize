@@ -19,6 +19,7 @@
         'views/x_price_approval_frequent_line_view.xml',
         'views/x_material_type_view.xml',
         'views/x_type_po_view.xml',
+        'views/x_cost_center_view.xml',
         'views/uom_category_view.xml',
         'views/uom_uom_view.xml',
         'views/purchase_request_view.xml',

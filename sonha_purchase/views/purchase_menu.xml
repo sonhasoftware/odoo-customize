@@ -113,4 +113,10 @@
               parent="menu_configuration"
               action="action_x_material_type_view"
               sequence="12"/>
+
+    <menuitem id="menu_x_cost_center"
+              name="Trung tâm chi phí"
+              parent="menu_configuration"
+              action="action_x_cost_center_view"
+              sequence="13"/>
 </odoo>

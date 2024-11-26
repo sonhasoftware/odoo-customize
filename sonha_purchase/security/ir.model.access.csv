@@ -25,3 +25,5 @@ access_x_price_approval_line,x.price.approval.line,model_x_price_approval_line,,
 access_x_price_approval_frequent_line,x.price.approval.frequent.line,model_x_price_approval_frequent_line,,1,1,1,1
 
 access_x_material_type,x.material.type,model_x_material_type,,1,1,1,1
+
+access_x_cost_center,x.cost.center,model_x_cost_center,,1,1,1,1
