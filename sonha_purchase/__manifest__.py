@@ -24,6 +24,7 @@
         'views/x_cost_center_view.xml',
         'views/x_cost_account_view.xml',
         'views/product_category_view.xml',
+        'views/x_product_level_view.xml',
         'views/product_product_custom_view.xml',
         'views/internal_order_code_view.xml',
         'views/asset_code_view.xml',

@@ -47,3 +47,5 @@ access_x_price_approval,x.price.approval,model_x_price_approval,,1,1,1,1
 access_x_purchase_budget,x.purchase.budget,model_x_purchase_budget,,1,1,1,1
 
 access_product_product_custom,product.product.custom,model_product_product_custom,,1,1,1,1
+
+access_x_product_level,x.product.level,model_x_product_level,,1,1,1,1

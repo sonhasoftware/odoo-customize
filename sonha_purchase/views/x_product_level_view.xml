@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="sonha_x_product_level_tree_view" model="ir.ui.view">
+        <field name="name">sonha.x.product.level.tree.view</field>
+        <field name="model">x.product.level</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="x_level_number"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_x_product_level_view" model="ir.actions.act_window">
+        <field name="name">Cấp độ sản phẩm</field>
+        <field name="res_model">x.product.level</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

@@ -50,11 +50,17 @@
               sequence="1"/>
 
     <!--Menu Products-->
-    <menuitem id="menu_pproduct_product_custom"
+    <menuitem id="menu_product_product_custom"
               name="Sản phẩm"
               parent="menu_products"
               action="action_product_product_custom_view"
               sequence="1"/>
+
+    <menuitem id="menu_x_product_level"
+              name="Cấp độ sản phẩm"
+              parent="menu_products"
+              action="action_x_product_level_view"
+              sequence="3"/>
 
     <!--Menu cấu hình-->
     <menuitem id="menu_x_mch_list_view"
