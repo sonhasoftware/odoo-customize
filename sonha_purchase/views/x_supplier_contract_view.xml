@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="sonha_x_supplier_contract_tree_view" model="ir.ui.view">
+        <field name="name">sonha.x.supplier.contract.tree.view</field>
+        <field name="model">x.supplier.contract</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+<!--                trường x_supplier_id cần thiết-->
+<!--                <field name="x_supplier_id"/>-->
+                <field name="x_contract_type"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="sonha_x_supplier_contract_form_view" model="ir.ui.view">
+        <field name="name">sonha.x.supplier.contract.form.view</field>
+        <field name="model">x.supplier.contract</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <field name="name"/>
+<!--                    còn nhiều trường khác-->
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_x_supplier_contract_view" model="ir.actions.act_window">
+        <field name="name">Hợp đồng NCC (Contract)</field>
+        <field name="res_model">x.supplier.contract</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

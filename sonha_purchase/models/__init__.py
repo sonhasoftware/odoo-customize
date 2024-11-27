@@ -25,3 +25,4 @@ from . import product_product_custom
 from . import x_product_level
 from . import x_product_hierarchy
 from . import res_partner
+from . import x_supplier_contract

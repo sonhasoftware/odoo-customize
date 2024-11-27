@@ -50,6 +50,12 @@
               action="action_sonha_purchase_request"
               sequence="1"/>
 
+    <menuitem id="menu_x_supplier_contract"
+              name="Hợp đồng NCC (Contract)"
+              parent="menu_purchases_view"
+              action="action_x_supplier_contract_view"
+              sequence="7"/>
+
     <!--Menu Products-->
     <menuitem id="menu_product_product_custom"
               name="Sản phẩm"
