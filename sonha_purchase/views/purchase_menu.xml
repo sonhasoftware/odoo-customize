@@ -24,6 +24,7 @@
     <menuitem id="menu_supplier"
               name="Nhà cung cấp"
               parent="menu_sonha_purchases_root"
+              action="action_res_partner_custom_view"
               sequence="4"/>
 
     <menuitem id="menu_infrequent_price_approval"

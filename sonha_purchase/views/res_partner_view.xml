@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="sonha_res_partner_custom_kanban_view" model="ir.ui.view">
+        <field name="name">sonha.res.partner.custom.kanban.view</field>
+        <field name="model">res.partner.custom</field>
+        <field name="arch" type="xml">
+            <kanban>
+                <templates>
+                <t t-name="kanban-box">
+                    <div class="oe_kanban_global_click o_kanban_record">
+                        <div class="o_kanban_primary_bottom">
+                            <strong><field name="name"/></strong>
+                        </div>
+                        <div>
+<!--                            <span><field name="country_id"/></span>-->
+                        </div>
+                        <div>
+                            <a t-if="record.email.raw" t-att-href="'mailto:' + record.email.raw">
+                                <field name="email"/>
+                            </a>
+                        </div>
+                    </div>
+                </t>
+            </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="sonha_res_partner_custom_tree_view" model="ir.ui.view">
+        <field name="name">sonha.res.partner.custom.tree.view</field>
+        <field name="model">res.partner.custom</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="x_partner_ref"/>
+                <field name="phone"/>
+                <field name="email"/>
+<!--                các trường khác-->
+            </tree>
+        </field>
+    </record>
+
+    <record id="sonha_res_partner_custom_form_view" model="ir.ui.view">
+        <field name="name">sonha.res.partner.custom.form.view</field>
+        <field name="model">res.partner.custom</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <field name="x_partner_ref"/>
+<!--                    các trường khác-->
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_res_partner_custom_view" model="ir.actions.act_window">
+        <field name="name">Nhà cung cấp</field>
+        <field name="res_model">res.partner.custom</field>
+        <field name="view_mode">kanban,tree,form</field>
+    </record>
+</odoo>

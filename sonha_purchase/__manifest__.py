@@ -27,6 +27,7 @@
         'views/x_product_hierarchy_view.xml',
         'views/x_product_level_view.xml',
         'views/product_product_custom_view.xml',
+        'views/res_partner_view.xml',
         'views/internal_order_code_view.xml',
         'views/asset_code_view.xml',
         'views/sub_asset_code_view.xml',
