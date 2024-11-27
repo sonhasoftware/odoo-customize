@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="sonha_x_product_hierarchy_tree_view" model="ir.ui.view">
+        <field name="name">sonha.x.product.hierarchy.tree.view</field>
+        <field name="model">x.product.hierarchy</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="x_product_hierarchy"/>
+                <field name="x_description"/>
+<!--                trường x_level_num chưa được liên kết với model-->
+<!--                <field name="x_level_number"/>-->
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_x_product_hierarchy_view" model="ir.actions.act_window">
+        <field name="name">Quản lý PRH</field>
+        <field name="res_model">x.product.hierarchy</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

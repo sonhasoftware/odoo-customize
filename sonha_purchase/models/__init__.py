@@ -23,3 +23,4 @@ from . import x_price_approval
 from . import x_purchase_budget
 from . import product_product_custom
 from . import x_product_level
+from . import x_product_hierarchy

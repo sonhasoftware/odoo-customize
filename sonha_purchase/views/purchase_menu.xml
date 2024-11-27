@@ -62,6 +62,12 @@
               action="action_x_product_level_view"
               sequence="3"/>
 
+    <menuitem id="menu_x_product_hierarchy"
+              name="Quản lý PRH"
+              parent="menu_products"
+              action="action_x_product_hierarchy_view"
+              sequence="4"/>
+
     <!--Menu cấu hình-->
     <menuitem id="menu_x_mch_list_view"
               name="Quản lý MCH"
