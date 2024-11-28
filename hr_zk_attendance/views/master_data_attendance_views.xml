@@ -26,9 +26,20 @@
         </field>
     </record>
 
+    <record id="view_master_data_attendance_search" model="ir.ui.view">
+        <field name="name">master.data.attendance.search</field>
+        <field name="model">master.data.attendance</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="employee_id" string="Nhân viên"/>
+            </search>
+        </field>
+    </record>
+
     <record id="action_master_data_attendance" model="ir.actions.act_window">
         <field name="name">Bảng chấm công thô</field>
         <field name="res_model">master.data.attendance</field>
         <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_master_data_attendance_search"/>
     </record>
 </odoo>

@@ -70,4 +70,18 @@
          <field name="domain_force">['|', ('employee_id.user_id', '=', user.id), ('employee_id', 'child_of', [emp.id for emp in user.employee_ids])] </field>
         <field name="groups" eval="[(4, ref('sonha_employee.group_dl_employee'))]"/>
     </record>
+
+    <record id="rule_user_distribute_shift" model="ir.rule">
+        <field name="name">Rule user distribute shift</field>
+        <field name="model_id" ref="model_distribute_shift"/>
+        <field name="domain_force">[('employee_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_user_employee'))]"/>
+    </record>
+
+    <record id="rule_dl_distribute_shift" model="ir.rule">
+        <field name="name">Rule DL distribute shift</field>
+        <field name="model_id" ref="model_distribute_shift"/>
+         <field name="domain_force">['|', ('employee_id.user_id', '=', user.id), ('employee_id', 'child_of', [emp.id for emp in user.employee_ids])] </field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_dl_employee'))]"/>
+    </record>
 </odoo>
