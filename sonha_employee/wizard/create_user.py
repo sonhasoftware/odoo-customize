@@ -13,13 +13,13 @@ class CreateUserWizard(models.TransientModel):
             if not employee.user_id and employee.employee_code:  # Kiểm tra nếu nhân viên chưa có user
                 user_vals = {
                     'name': employee.name,
-                    'login': employee.employee_code,  # Đặt login là mã nhân viên
-                    'password': employee.employee_code,  # Đặt password là mã nhân viên
-                    'email': employee.work_email or '',  # Email nếu có
-                    'employee_ids': [(4, employee.id)],  # Liên kết với nhân viên
-                    'groups_id': [(6, 0, [self.env.ref('base.group_user').id])],  # Quyền của user bình thường
+                    'login': employee.work_email if employee.work_email != 'nan' else employee.employee_code,
+                    'password': employee.employee_code,
+                    'email': employee.work_email or '',
+                    'employee_ids': [(4, employee.id)],
+                    'groups_id': [(6, 0, [self.env.ref('base.group_user').id])],
                 }
-                users_to_create.append(user_vals)  # Thêm vào danh sách người dùng mới
+                users_to_create.append(user_vals)
 
         # Tạo tất cả người dùng trong một lần
         if users_to_create:
@@ -28,8 +28,8 @@ class CreateUserWizard(models.TransientModel):
         # Cập nhật liên kết giữa nhân viên và người dùng
         for employee in list_employees:
             if not employee.user_id and employee.employee_code:
-                employee.user_id = self.env['res.users'].sudo().search([('login', '=', employee.employee_code)],
-                                                                       limit=1)
+                employee.user_id = self.env['res.users'].sudo().search(['|', ('login', '=', employee.employee_code),
+                                                                        ('login', '=', employee.work_email)], limit=1)
 
         return {
             'type': 'ir.actions.act_window_close'
