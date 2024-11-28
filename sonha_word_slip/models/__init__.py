@@ -10,3 +10,4 @@ from . import employee_attendance
 from . import synthetic_work
 from . import config_reason
 from . import distribute_shift
+from . import config_approve

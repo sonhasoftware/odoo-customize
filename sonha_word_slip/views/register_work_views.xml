@@ -6,8 +6,8 @@
         <field name="name">register.work.tree</field>
         <field name="model">register.work</field>
         <field name="arch" type="xml">
-            <tree string="Đăng ký ca">
-                <field name="employee_id" />
+            <tree string="Đăng ký ca" default_order="create_date desc">
+                <field name="employee_id" widget="many2many_tags"/>
                 <field name="shift" />
                 <field name="start_date" />
                 <field name="end_date" />

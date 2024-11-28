@@ -56,4 +56,10 @@ access_copy_public_leaves,copy.public.leave,model_copy_public_leaves,,1,1,1,1
 
 access_config_reason,config.reason,model_config_reason,,1,1,1,1
 
-access_distribute_shift,distribute.shift,model_distribute_shift,,1,1,1,1
+access_distribute_shift,distribute.shift,model_distribute_shift,,1,0,0,0
+
+access_config_approve,config.approve,model_config_approve,sonha_employee.group_hr_employee,1,1,1,1
+
+access_approval_workflow_step,approval.workflow.step,model_approval_workflow_step,,1,1,1,1
+
+access_approval_state,approval.state,model_approval_state,,1,1,1,1
