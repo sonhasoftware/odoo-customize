@@ -30,14 +30,14 @@ class PurchaseRequest(models.Model):
         string="Loại yêu cầu"
     )
     currency_id = fields.Many2one('res.currency',string="Đơn vị tiề tệ")
-    # x_type_budget_id = fields.Many2one('x.type.budget',string="Loại ngân sách",required=True)
+    # x_type_budget_id = fields.Many2one('x.type.budget',string="Loại ngân sách",)
     filename_authentication = fields.Char(string="Tên file")
     x_budget_plan = fields.Selection(
         selection = [
             ('in_plan','Trong kế hoạch'),
             ('out_plan','Ngoài kế hoạch')
         ],
-        string="Ngân sách theo", required=True
+        string="Ngân sách theo", 
     )
     x_date_pr_receive = fields.Date(string="Ngày muốn nhận hàng")
     x_approve_date = fields.Datetime(string="Ngày thông qua")
@@ -72,7 +72,7 @@ class PurchaseRequest(models.Model):
     x_begin = fields.Boolean(string="Sử dụng đầu kỳ")
     # x_hr_validate_procedure = fields.Many2one('x.hr.validate.procedure',string="Quy trình phê duyệt")
     last_approve_uid = fields.Many2one('res.users',string="Người phê duyệt cuối", readonly=True)
-    x_descript = fields.Char(string="Diễn giải",required=True)
+    x_descript = fields.Char(string="Diễn giải",)
     # x_branch_id = fields.Many2one('x.branch',string="Chi nhánh")
     action_approve_uid = fields.Many2one('res.users',string="Người gửi duyệt")
     action_approve_date = fields.Datetime(string="Ngày gửi duyệt")
@@ -83,7 +83,7 @@ class PurchaseRequest(models.Model):
             ('ZIO','YCMH Internal Order'),
             ('ZAS','YCMH Tài sản/Máy móc thiết bị')
         ],
-        string="Loại yêu cầu mua hàng", required=True
+        string="Loại yêu cầu mua hàng", 
     )
     sap_pr_name = fields.Char(string="Mã PR SAP", readonly=True)
     synch_sap = fields.Boolean(string="Đã đồng bộ SAP", readonly=True)
@@ -98,6 +98,7 @@ class PurchaseRequest(models.Model):
         records_to_create = []
 
         if data:
+            self.search([]).sudo().unlink()
             for r in data:
                 records_to_create.append({
                     'name': r.get('name'),

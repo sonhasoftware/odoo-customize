@@ -38,6 +38,7 @@ class XMCHList(models.Model):
         records_to_create = []
 
         if data:
+            self.search([]).sudo().unlink()
             for r in data:
                 records_to_create.append({
                     'parent_level': r.get('parent_level'),

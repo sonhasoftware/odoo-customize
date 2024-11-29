@@ -13,6 +13,7 @@ class XProductLevel(models.Model):
         records_to_create = []
 
         if data:
+            self.search([]).sudo().unlink()
             for r in data:
                 records_to_create.append({
                     'x_level_number': r.get('x_level_number'),

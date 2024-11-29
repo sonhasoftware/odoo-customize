@@ -94,6 +94,7 @@ class XPriceApprovalFrequentLine(models.Model):
         records_to_create = []
 
         if data:
+            self.search([]).sudo().unlink()
             for r in data:
                 records_to_create.append({
                     # 'x_pp_frequent_id': r.get('x_pp_frequent_id'),

@@ -11,7 +11,7 @@ class XPriceApprovalLine(models.Model):
     # x_product_uom_id = fields.Many2one('uom.uom.custom',string="Đơn vị tính")
     # x_supplier_selected_id = fields.Many2one('res.partner',string="NCC được chọn")
     x_ord_qty = fields.Float(string="Số lượng yêu cầu")
-    # x_currency_id = fields.Many2one('res.currence',string="Tiền tệ")
+    # x_currency_id = fields.Many2one('res.currency',string="Tiền tệ")
     # x_supplier_price = fields.Monetary(string="Đơn giá", currency_field='x_currency_id')
     x_total = fields.Float(string="Tổng")
     # x_currency2_id = fields.Many2one('res.currency',string="X Currency2")
@@ -24,6 +24,7 @@ class XPriceApprovalLine(models.Model):
         records_to_create = []
 
         if data:
+            self.search([]).sudo().unlink()
             for r in data:
                 records_to_create.append({
                     'x_ord_qty': r.get('x_ord_qty'),

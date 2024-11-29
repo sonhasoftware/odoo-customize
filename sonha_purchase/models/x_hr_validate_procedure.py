@@ -17,6 +17,7 @@ class XHrValidateProcedure(models.Model):
         records_to_create = []
 
         if data:
+            self.search([]).sudo().unlink()
             for r in data:
                 records_to_create.append({
                     'name': r.get('name'),

@@ -32,7 +32,6 @@ class DatabaseConnector(models.Model):
         cursor = connection.cursor()
         try:
             cursor.execute(query, params)
-            # result = cursor.fetchall()
             columns = [desc[0] for desc in cursor.description]
             result = [dict(zip(columns, row)) for row in cursor.fetchall()]
             connection.commit()
