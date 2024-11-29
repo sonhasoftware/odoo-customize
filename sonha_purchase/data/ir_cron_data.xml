@@ -10,6 +10,7 @@
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
+        <field name="nextcall">2024-11-29 00:00:00</field>
     </record>
 <!--kéo dữ liệu loại ngân sách-->
     <record id="ir_cron_action_get_data_x_type_budget" model="ir.cron">
@@ -21,6 +22,7 @@
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
+        <field name="nextcall">2024-11-29 00:00:00</field>
     </record>
 <!--kéo dữ liệu quản lý MCH-->
     <record id="ir_cron_action_get_data_x_mch_list" model="ir.cron">
@@ -32,6 +34,7 @@
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
+        <field name="nextcall">2024-11-29 00:00:00</field>
     </record>
 <!--    kéo dữ liệu Vai trờ phê duyệt-->
     <record id="ir_cron_action_get_data_x_hr_validate_person" model="ir.cron">
@@ -43,6 +46,7 @@
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
+        <field name="nextcall">2024-11-29 00:00:00</field>
     </record>
 <!--    kéo dữ liệu Quy trình phê duyệt-->
     <record id="ir_cron_action_get_data_x_hr_validate_procedure" model="ir.cron">
@@ -54,6 +58,7 @@
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
+        <field name="nextcall">2024-11-29 00:00:00</field>
     </record>
 <!--    kéo dữ liệu loại đơn mua-->
     <record id="ir_cron_action_get_data_x_type_po" model="ir.cron">
@@ -65,6 +70,7 @@
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
+        <field name="nextcall">2024-11-29 00:00:00</field>
     </record>
 <!--    kéo dữ liệu Đơn vị tính-->
     <record id="ir_cron_action_get_data_uom_uom" model="ir.cron">
@@ -76,6 +82,7 @@
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
+        <field name="nextcall">2024-11-29 00:00:00</field>
     </record>
 <!--    kéo dữ liệu nhóm đơn vị-->
     <record id="ir_cron_action_get_data_uom_category" model="ir.cron">
@@ -87,6 +94,7 @@
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
+        <field name="nextcall">2024-11-29 00:00:00</field>
     </record>
 <!--    kéo dữ liệu về quy tắc phê duyệt-->
     <record id="ir_cron_action_get_data_x_hr_validate_rule" model="ir.cron">
@@ -98,6 +106,7 @@
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
+        <field name="nextcall">2024-11-29 00:00:00</field>
     </record>
 <!--    kéo dữ liệu về chi tiêt yêu cầu duyệt giá-->
     <record id="ir_cron_action_get_data_x_price_approval_line" model="ir.cron">
@@ -109,6 +118,7 @@
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
+        <field name="nextcall">2024-11-29 00:00:00</field>
     </record>
 <!--    kéo dữ liệu về Chi tiết duyệt giá-->
     <record id="ir_cron_action_get_data_x_price_approval_frequent_line" model="ir.cron">
@@ -120,6 +130,7 @@
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
+        <field name="nextcall">2024-11-29 00:00:00</field>
     </record>
 <!--    kéo dữ liệu vêf Phân loại sản phẩm-->
     <record id="ir_cron_action_get_data_x_material_type" model="ir.cron">
@@ -131,6 +142,7 @@
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
+        <field name="nextcall">2024-11-29 00:00:00</field>
     </record>
 <!--    kéo dữ liệu về Trung tâm chi phí-->
     <record id="ir_cron_action_get_data_x_cost_center" model="ir.cron">
@@ -142,6 +154,7 @@
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
+        <field name="nextcall">2024-11-29 00:00:00</field>
     </record>
 <!--    kéo dữ liệu về Tài khoản chi phí-->
     <record id="ir_cron_action_get_data_x_cost_account" model="ir.cron">
@@ -153,6 +166,7 @@
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
+        <field name="nextcall">2024-11-29 00:00:00</field>
     </record>
 <!--    kéo dữ liệu về Product category-->
     <record id="ir_cron_action_get_data_product_category" model="ir.cron">
@@ -164,6 +178,7 @@
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
+        <field name="nextcall">2024-11-29 00:00:00</field>
     </record>
 <!--    kéo dữ liệu về Mã lệnh IO-->
     <record id="ir_cron_action_get_data_internal_order_code" model="ir.cron">
@@ -175,6 +190,7 @@
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
+        <field name="nextcall">2024-11-29 00:00:00</field>
     </record>
 <!--    kéo dữ liệu về Mã tài sản-->
     <record id="ir_cron_action_get_data_asset_code" model="ir.cron">
@@ -186,6 +202,7 @@
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
+        <field name="nextcall">2024-11-29 00:00:00</field>
     </record>
 <!--    kéo dữ liệu về mã tài sản con-->
     <record id="ir_cron_action_get_data_sub_asset_code" model="ir.cron">
@@ -197,6 +214,7 @@
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
+        <field name="nextcall">2024-11-29 00:00:00</field>
     </record>
 <!--    kéo dữ liệu về Cài đặt loại PR-->
     <record id="ir_cron_action_get_data_x_pr_type_config" model="ir.cron">
@@ -208,6 +226,7 @@
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
+        <field name="nextcall">2024-11-29 00:00:00</field>
     </record>
 <!--    kéo dữ liệu về Cài đặt loại PO-->
     <record id="ir_cron_action_get_data_x_po_type_config" model="ir.cron">
@@ -219,6 +238,7 @@
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
+        <field name="nextcall">2024-11-29 00:00:00</field>
     </record>
 <!--    kéo dữ liệu về Duyệt giá hàng không thường xuyên-->
     <record id="ir_cron_action_get_data_x_price_approval" model="ir.cron">
@@ -230,6 +250,7 @@
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
+        <field name="nextcall">2024-11-29 00:00:00</field>
     </record>
     <!--kéo dữ liệu ngân sách-->
     <record id="ir_cron_action_get_data_x_purchase_budget" model="ir.cron">
@@ -241,6 +262,7 @@
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
+        <field name="nextcall">2024-11-29 00:00:00</field>
     </record>
 <!--    kéo dữ liệu về Sản phẩm-->
     <record id="ir_cron_action_get_data_product_product" model="ir.cron">
@@ -252,6 +274,7 @@
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
+        <field name="nextcall">2024-11-29 00:00:00</field>
     </record>
     <!--    kéo dữ liệu về Cấp độ sản phẩm-->
     <record id="ir_cron_action_get_data_x_product_level" model="ir.cron">
@@ -263,6 +286,7 @@
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
+        <field name="nextcall">2024-11-29 00:00:00</field>
     </record>
     <!--    kéo dữ liệu về Quản lý PRH-->
     <record id="ir_cron_action_get_data_x_product_hierarchy" model="ir.cron">
@@ -274,6 +298,7 @@
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
+        <field name="nextcall">2024-11-29 00:00:00</field>
     </record>
     <!--    kéo dữ liệu về Nhà cung cấp-->
     <record id="ir_cron_action_get_data_res_partner_custom" model="ir.cron">
@@ -285,6 +310,7 @@
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
+        <field name="nextcall">2024-11-29 00:00:00</field>
     </record>
     <!--    kéo dữ liệu về Hợp đồng NCC (Contract)-->
     <record id="ir_cron_action_get_data_x_supplier_contract" model="ir.cron">
@@ -296,5 +322,6 @@
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
+        <field name="nextcall">2024-11-29 00:00:00</field>
     </record>
 </odoo>
