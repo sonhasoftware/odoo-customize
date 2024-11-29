@@ -21,7 +21,7 @@ class FormWordSlip(models.Model):
     employee_approval = fields.Many2one('hr.employee', string="Người duyệt")
     status_lv2 = fields.Selection([
         ('draft', 'Nháp'),
-        ('confirm', 'Xác nhận'),
+        ('confirm', 'Chờ duyệt'),
         ('done', 'Đã duyệt'),
         ('cancel', 'Hủy'),
     ], string='Trạng thái', default='draft', tracking=True)
@@ -30,7 +30,7 @@ class FormWordSlip(models.Model):
         ('done', 'Đã duyệt'),
         ('cancel', 'Hủy'),
     ], string='Trạng thái', default='draft', tracking=True)
-    check_level = fields.Boolean("Check trạng thái theo cấp độ")
+    check_level = fields.Boolean("Check trạng thái theo cấp độ", default=False)
     button_confirm = fields.Boolean("Check button xác nhận", compute="get_button_confirm")
     button_done = fields.Boolean("Check button duyệt", compute="get_button_done")
 
@@ -74,31 +74,35 @@ class FormWordSlip(models.Model):
 
     def create(self, vals):
         rec = super(FormWordSlip, self).create(vals)
-        duration_day = self.get_duration_day(rec)
-        rec.day_duration = duration_day
-        if duration_day <= 3:
-            rec.check_level = False
-        else:
-            rec.check_level = True
+
+        # Tính số ngày và thiết lập `day_duration`
+        rec.day_duration = self.get_duration_day(rec)
+
+        # Kiểm tra người phê duyệt trực tiếp từ nhân viên
         if rec.employee_id.employee_approval:
             rec.employee_approval = rec.employee_id.employee_approval.id
         else:
-            if duration_day <= 3:
-                status = self.env['approval.workflow.step'].sudo().search(
-                    [('workflow_id.department_id', '=', rec.department.id),
-                     ('leave', '=', rec.type.id),
-                     ('condition', '=', '<=3')])
+            # Điều kiện tìm kiếm bước phê duyệt
+            condition = '<=3' if rec.day_duration <= 3 else '>3'
+            status = self.env['approval.workflow.step'].sudo().search([
+                ('workflow_id.department_id', '=', rec.department.id),
+                ('leave', '=', rec.type.id),
+                ('condition', '=', condition)
+            ])
+
+            # Xử lý logic dựa trên cấp phê duyệt
+            if status:
+                if status.level <= 1:
+                    rec.employee_confirm = None
+                    rec.employee_approval = rec.employee_id.parent_id.id
+                else:
+                    rec.check_level = True
+                    rec.employee_confirm = rec.employee_id.parent_id.id
+                    rec.employee_approval = rec.employee_id.parent_id.parent_id.id
             else:
-                status = self.env['approval.workflow.step'].sudo().search(
-                    [('workflow_id.department_id', '=', rec.department.id),
-                     ('leave', '=', rec.type.id),
-                     ('condition', '=', '>3')])
-            if status.level <= 1:
-                rec.employee_confirm = None
+                # Trường hợp không có bước phê duyệt
                 rec.employee_approval = rec.employee_id.parent_id.id
-            else:
-                rec.employee_confirm = rec.employee_id.parent_id.id
-                rec.employee_approval = rec.employee_id.parent_id.parent_id.id
+
         return rec
 
     def get_duration_day(self, rec):
