@@ -98,7 +98,7 @@ class FormWordSlip(models.Model):
                 rec.employee_approval = rec.employee_id.parent_id.id
             else:
                 rec.employee_confirm = rec.employee_id.parent_id.id
-                rec.employee_approval = rec.employee_id.department_id.parent_id.manager_id.id
+                rec.employee_approval = rec.employee_id.parent_id.parent_id.id
         return rec
 
     def get_duration_day(self, rec):
