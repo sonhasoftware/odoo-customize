@@ -16,7 +16,7 @@ class ApprovalWorkflowStep(models.Model):
     workflow_id = fields.Many2one('config.approve', string="Luồng duyệt")
     leave = fields.Many2one('config.word.slip', string="Kiểu nghỉ")
     condition = fields.Char(string="Điều kiện phê duyệt", help="Điều kiện áp dụng cho bước này")
-    level = fields.Integer("Cấp bậc")
+    level = fields.Integer("Số bước duyệt")
 
     state_ids = fields.Many2many('approval.state', 'workflow_state_rel', 'workflow_id', 'state_id',
                                  string="Các trạng thái phê duyệt")
