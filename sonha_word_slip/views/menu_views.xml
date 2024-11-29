@@ -25,6 +25,12 @@
               groups="sonha_employee.group_hr_employee"
               sequence="2"/>
 
+    <menuitem id="menu_config_approve"
+              name="Cấu hình phê duyệt"
+              parent="menu_config"
+              action="action_config_approve"
+              sequence="10"/>
+
     <menuitem id="menu_form_word"
               name="Đăng ký"
               parent="menu_word_slip_root"

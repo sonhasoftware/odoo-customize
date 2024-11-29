@@ -5,7 +5,7 @@ from odoo.exceptions import UserError, ValidationError
 class SonHaEmployee(models.Model):
     _inherit = 'hr.employee'
     _rec_name = 'combination'
-    _order = 'department_id ASC'
+    _order = 'department_id, employee_code ASC'
 
     list_employee = fields.Many2many('hr.employee', 'ir_employee_group_rel',
                                      'employee_group_rel', 'employee_rel',
@@ -31,6 +31,8 @@ class SonHaEmployee(models.Model):
         ('N4', 'N4'),
         ('N5', 'N5'),
     ], string='Level', tracking=True)
+
+    employee_approval = fields.Many2one('hr.employee', string="Người duyệt")
 
     date = fields.Date('Ngày', tracking=True)
     number = fields.Integer('Số', tracking=True)
@@ -85,7 +87,7 @@ class SonHaEmployee(models.Model):
     place_party_member = fields.Char("Nơi vào Đảng", tracking=True)
     fee_party_member = fields.Boolean("Đảng phí", tracking=True)
 
-    combination = fields.Char(string='Combination', compute='_compute_fields_combination', tracking=True)
+    combination = fields.Char(string='Combination', compute='_compute_fields_combination', tracking=True, store=True)
     work_ids = fields.One2many('work.process', 'employee_id', string="Quá trình công tác")
 
     birth_month = fields.Integer(string="Sinh nhật", compute='_compute_birth_month', store=True, tracking=True)
@@ -143,16 +145,16 @@ class SonHaEmployee(models.Model):
             if conflicting_employee_code:
                 raise ValidationError(f"Đã tồn tại nhân viên có mã nhân viên là {record.employee_code}")
 
-    @api.constrains('device_id_num')
-    def check_device_id_num(self):
-        for record in self:
-            if record.device_id_num:
-                conflicting_device_id_num = self.search([
-                    ('device_id_num', '=', record.device_id_num),
-                    ('id', '!=', record.id),
-                ], limit =1)
-                if conflicting_device_id_num:
-                    raise ValidationError(f"Đã tồn tại mã chấm công là {record.device_id_num}")
+    # @api.constrains('device_id_num')
+    # def check_device_id_num(self):
+    #     for record in self:
+    #         if record.device_id_num:
+    #             conflicting_device_id_num = self.search([
+    #                 ('device_id_num', '=', record.device_id_num),
+    #                 ('id', '!=', record.id),
+    #             ], limit=1)
+    #             if conflicting_device_id_num.device_id_num:
+    #                 raise ValidationError(f"Đã tồn tại mã chấm công là {record.device_id_num}")
 
 class EmployeeRel(models.Model):
     _name = 'employee.rel'
