@@ -25,7 +25,7 @@ class XHrValidateProcedure(models.Model):
                     # 'x_validate_license_type': r.get('x_validate_license_type'),
                     'model_name': r.get('model_name'),
                     'x_domain': r.get('x_domain'),
-                    # 'x_extend_title': r.get('x_extend_title')
+                    'x_extend_title': r.get('x_extend_title')
                 })
 
         if records_to_create:
