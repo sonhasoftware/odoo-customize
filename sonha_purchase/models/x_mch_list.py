@@ -4,7 +4,7 @@ class XMCHList(models.Model):
     _name = "x.mch.list"
 
     parent_level = fields.Integer(string="Cấp MCH")
-    parent_path = fields.Integer(string="Parent Path", index=True )
+    parent_path = fields.Char(string="Parent Path", index=True )
     name = fields.Char(string="Tên MCH")
     x_mch_code = fields.Char(string="MÃ MCH")
     x_parent_id = fields.Many2one('x.mch.list',string="MCH cha")
@@ -44,10 +44,8 @@ class XMCHList(models.Model):
             for r in data:
                 records_to_create.append({
                     'parent_level': r.get('parent_level'),
-                    'parent_path': r.get('parent_path'),
                     'name': r.get('name'),
                     'x_mch_code': r.get('x_mch_code'),
-                    # 'x_parent_id': r.get('x_parent_id'),
                     'x_user_id': r.get('x_user_id'),
                     'x_buy_group': r.get('x_buy_group'),
                     'target_dio': r.get('target_dio'),
@@ -65,3 +63,15 @@ class XMCHList(models.Model):
                             SET id = %s 
                             WHERE id = %s
                         """.format(self._table), (r.get('id'), record.id))
+            for record, r in zip(created_records, data):
+                self.env.cr.execute("""
+                            UPDATE {}
+                            SET x_parent_id = %s
+                            WHERE id = %s
+                        """.format(self._table), (r.get('x_parent_id'), r.get('id')))
+            for record, r in zip(created_records, data):
+                self.env.cr.execute("""
+                            UPDATE {}
+                            SET parent_path = %s
+                            WHERE id = %s
+                        """.format(self._table), (r.get('parent_path'), r.get('id')))
