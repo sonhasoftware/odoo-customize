@@ -4,7 +4,6 @@ class XPRTypeConfig(models.Model):
     _name = 'x.pr.type.config'
 
     name = fields.Char(string="Loại PR")
-    # id_convert = fields.Integer(string="ID Convert")
 
     def sync_x_pr_type_config_data(self):
         connector = self.env['external.db.connector'].sudo()
@@ -19,7 +18,6 @@ class XPRTypeConfig(models.Model):
             for r in data:
                 records_to_create.append({
                     'name': r.get('name'),
-                    # 'id_convert': r.get('id')
                 })
 
         if records_to_create:
