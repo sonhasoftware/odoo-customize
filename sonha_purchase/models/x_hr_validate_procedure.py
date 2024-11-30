@@ -11,13 +11,14 @@ class XHrValidateProcedure(models.Model):
 
     def sync_x_hr_validate_procedure_data(self):
         connector = self.env['external.db.connector'].sudo()
-        query = "SELECT name,x_validate_license_type,model_name,x_domain,x_extend_title FROM x_hr_validate_procedure"
+        query = "SELECT id,name,x_validate_license_type,model_name,x_domain,x_extend_title FROM x_hr_validate_procedure"
 
         data = connector.execute_query(query)
         records_to_create = []
 
         if data:
             self.search([]).sudo().unlink()
+            self.with_context(active_test=False).sudo().search([]).unlink()
             for r in data:
                 records_to_create.append({
                     'name': r.get('name'),
@@ -28,4 +29,11 @@ class XHrValidateProcedure(models.Model):
                 })
 
         if records_to_create:
-            self.sudo().create(records_to_create)
+            created_records = self.sudo().create(records_to_create)
+
+            for record, r in zip(created_records, data):
+                self.env.cr.execute("""
+                            UPDATE {} 
+                            SET id = %s 
+                            WHERE id = %s
+                        """.format(self._table), (r.get('id'), record.id))

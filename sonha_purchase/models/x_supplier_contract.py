@@ -51,6 +51,7 @@ class XSupplierContract(models.Model):
         connector = self.env['external.db.connector'].sudo()
         query = """
             SELECT 
+                id,
                 name,
                 x_supplier_id,
                 x_date_from,
@@ -82,6 +83,7 @@ class XSupplierContract(models.Model):
 
         if data:
             self.search([]).sudo().unlink()
+            self.with_context(active_test=False).sudo().search([]).unlink()
             for r in data:
                 records_to_create.append({
                     'name' : r.get('name'),
@@ -109,4 +111,11 @@ class XSupplierContract(models.Model):
                 })
 
         if records_to_create:
-            self.sudo().create(records_to_create)
+            created_records = self.sudo().create(records_to_create)
+
+            for record, r in zip(created_records, data):
+                self.env.cr.execute("""
+                            UPDATE {} 
+                            SET id = %s 
+                            WHERE id = %s
+                        """.format(self._table), (r.get('id'), record.id))
