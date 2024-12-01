@@ -1,12 +1,11 @@
 from odoo import models,fields,_
 
-# các trường cmt là cần thiết nhưng có thể chưa liên kết model
 class XProductHierarchy(models.Model):
     _name = 'x.product.hierarchy'
 
     x_product_hierarchy = fields.Char(string="Mã PRH")
     x_description = fields.Char(string="Mô tả")
-    # x_level_number = fields.Many2one('x.product.level',string="Cấp độ")
+    x_level_number = fields.Many2one('x.product.level',string="Cấp độ")
 
     def sync_x_product_hierarchy_data(self):
         connector = self.env['external.db.connector'].sudo()
@@ -30,7 +29,7 @@ class XProductHierarchy(models.Model):
                 records_to_create.append({
                     'x_product_hierarchy' : r.get('x_product_hierarchy'),
                     'x_description' : r.get('x_description'),
-                    # 'x_level_number' : r.get('x_level_number'),
+                    'x_level_number' : r.get('x_level_number'),
                 })
 
         if records_to_create:
