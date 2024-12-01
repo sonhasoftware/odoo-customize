@@ -5,8 +5,8 @@ class XCostAccount(models.Model):
     _name = 'x.cost.account'
 
     code = fields.Char(string="Số tài khoản")
-    # cost_center_id = fields.Many2one('x.cost.center',string="Trung tâm chịu chi phí")
-    # io_code_id = fields.Many2one('internal.order.code',string="Mã lệnh IO")
+    cost_center_id = fields.Many2one('x.cost.center',string="Trung tâm chịu chi phí")
+    io_code_id = fields.Many2one('internal.order.code',string="Mã lệnh IO")
     name = fields.Char(string="Tài khoản")
     descript = fields.Char(string="Mô tả")
     # company_id = fields.Many2one('res.company',string="Công ty")
@@ -35,8 +35,8 @@ class XCostAccount(models.Model):
             for r in data:
                 records_to_create.append({
                     'code' : r.get('code'),
-                    # 'cost_center_id' : r.get('cost_center_id'),
-                    # 'io_code_id' : r.get('io_code_id'),
+                    'cost_center_id' : r.get('cost_center_id'),
+                    'io_code_id' : r.get('io_code_id'),
                     'name' : r.get('name'),
                     'descript' : r.get('descript'),
                     # 'company_id' : r.get('company_id')
