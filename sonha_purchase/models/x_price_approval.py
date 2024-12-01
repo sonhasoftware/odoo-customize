@@ -39,7 +39,7 @@ class XPriceApproval(models.Model):
         ],
         string="Leadtime Approve PP"
     )
-    # x_hr_procedure_id = fields.Many2one('x.hr.validate.procedure',string="Quy trình phê duyệt")
+    x_hr_procedure_id = fields.Many2one('x.hr.validate.procedure',string="Quy trình phê duyệt")
     # x_sum = fields.Monetary(string="Tổng")
 
     def sync_x_price_approval_data(self):
@@ -87,7 +87,7 @@ class XPriceApproval(models.Model):
                     'x_time_approve' : r.get('x_time_approve'),
                     'x_leadtime_cre_pp' : r.get('x_leadtime_cre_pp'),
                     'x_leadtime_approve_pp' : r.get('x_leadtime_approve_pp'),
-                    # 'x_hr_procedure_id' : r.get('x_hr_procedure_id'),
+                    'x_hr_procedure_id' : r.get('x_hr_procedure_id'),
                     # 'x_sum' : r.get('x_sum'),
                 })
 
