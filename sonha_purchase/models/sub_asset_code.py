@@ -5,7 +5,7 @@ class SubAssetCode(models.Model):
     _name = 'sub.asset.code'
 
     name = fields.Char(string="")
-    # asset_code = fields.Many2one('asset.code',string="Mã tài sản cha")
+    asset_code = fields.Many2one('asset.code',string="Mã tài sản cha")
     # company_id = fields.Many2one('res.company',string="Công ty")
     descript = fields.Char(string="Mô tả")
 
@@ -31,7 +31,7 @@ class SubAssetCode(models.Model):
             for r in data:
                 records_to_create.append({
                     'name' : r.get('name'),
-                    # 'asset_code' : r.get('asset_code'),
+                    'asset_code' : r.get('asset_code'),
                     # 'company_id' : r.get('company_id'),
                     'descript' : r.get('descript'),
                 })
