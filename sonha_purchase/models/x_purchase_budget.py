@@ -23,7 +23,7 @@ class XPurchaseBudget(models.Model):
     # user_id = fields.Many2one('res.users',string="Người đề nghị")
     # x_department_id = fields.Many2one('hr.department',string="Phòng/Ban")
     # company_id = fields.Many2one('res.company',string="Công ty")
-    # x_type_id = fields.Many2one('x.type.budget',string="Loại ngân sách")
+    x_type_id = fields.Many2one('x.type.budget',string="Loại ngân sách")
     x_date_from = fields.Date(string="Từ ngày")
     x_date_to = fields.Date(string="Đến ngày")
     # x_amount = fields.Monetary(string="Ngân sách")
@@ -64,8 +64,8 @@ class XPurchaseBudget(models.Model):
                     'state' : r.get('state'),
                     # 'user_id' : r.get('user_id'),
                     # 'x_department_id' : r.get('x_department_id'),
-                    # # 'company_id' : r.get('company_id'),
-                    # 'x_type_id' : r.get('x_type_id'),
+                    # 'company_id' : r.get('company_id'),
+                    'x_type_id' : r.get('x_type_id'),
                     'x_date_from' : r.get('x_date_from'),
                     'x_date_to' : r.get('x_date_to'),
                     # 'x_amount' : r.get('x_amount'),
