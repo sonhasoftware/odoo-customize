@@ -6,12 +6,13 @@
         <field name="name">register.overtime.tree</field>
         <field name="model">register.overtime</field>
         <field name="arch" type="xml">
-            <tree string="Đăng ký làm thêm">
-                <field name="start_time" widget="float_time"/>
-                <field name="end_time" widget="float_time"/>
+            <tree string="Đăng ký làm thêm" default_order="create_date desc">
+                <field name="employee_id"/>
                 <field name="start_date" />
                 <field name="end_date" />
-                <field name="employee_id"/>
+                <field name="start_time" widget="float_time"/>
+                <field name="end_time" widget="float_time"/>
+                <field name="status"/>
             </tree>
         </field>
     </record>

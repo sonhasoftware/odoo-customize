@@ -29,6 +29,7 @@
         'views/reward_discipline_menu.xml',
         'wizard/employee_import_wizard_views.xml',
         'wizard/create_user_wizard_view.xml',
+        'wizard/import_manager_views.xml',
 
         'data/corn_job.xml',
         'data/mail_template.xml',

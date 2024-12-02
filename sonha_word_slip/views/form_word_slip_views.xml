@@ -6,11 +6,17 @@
         <field name="arch" type="xml">
             <form string="Đơn từ">
                 <header>
-                    <button name="action_confirm" string="Duyệt" type="object" class="oe_highlight" invisible="status != 'draft'"/>
-                    <field name="status" widget="statusbar"/>
+                    <field name="button_confirm" invisible="1"/>
+                    <field name="button_done" invisible="1"/>
+                    <button name="action_confirm" string="Duyệt" type="object" class="oe_highlight" invisible="button_confirm != True"/>
+                    <button name="action_approval" string="Duyệt" type="object" class="oe_highlight" invisible="button_done != True"/>
+                    <field name="check_level" invisible="1"/>
+                    <field name="status_lv1" widget="statusbar" invisible="check_level == True"/>
+                    <field name="status_lv2" widget="statusbar" invisible="check_level != True"/>
                 </header>
                 <sheet>
                     <group>
+                        <field name="status" invisible="1"/>
                         <field name="department" readonly="status != 'draft'"/>
                         <field name="type" readonly="status != 'draft'" required = "1"/>
                         <field name="word_slip_id" readonly="status != 'draft'">
@@ -40,11 +46,24 @@
         <field name="name">form.word.slip.tree</field>
         <field name="model">form.word.slip</field>
         <field name="arch" type="xml">
-            <tree string="Đơn từ">
+            <tree string="Đơn từ" default_order="create_date desc">
                 <field name="department"/>
                 <field name="employee_id"/>
                 <field name="type"/>
+                 <field name="status"/>
             </tree>
+        </field>
+    </record>
+
+    <record id="view_form_word_slip_search" model="ir.ui.view">
+        <field name="name">form.word.slip.search</field>
+        <field name="model">form.word.slip</field>
+        <field name="arch" type="xml">
+            <search string="Search Phân Ca">
+                <field name="employee_id" string="Nhân viên"/>
+                <field name="department" string="Phòng ban"/>
+                <filter string="Trạng thái: Nháp" name="state_draft" domain="[('status', '=', 'draft')]" />
+            </search>
         </field>
     </record>
 
@@ -52,5 +71,7 @@
         <field name="name">Đơn từ</field>
         <field name="res_model">form.word.slip</field>
         <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_form_word_slip_search"/>
+        <field name="context">{'search_default_state_draft': 1}</field>
     </record>
 </odoo>
