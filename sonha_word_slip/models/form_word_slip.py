@@ -94,6 +94,8 @@ class FormWordSlip(models.Model):
         # Tính số ngày và thiết lập `day_duration`
         rec.day_duration = self.get_duration_day(rec)
 
+        if rec.day_duration >= 3:
+            rec.check_level = True
         # Kiểm tra người phê duyệt trực tiếp từ nhân viên
         if rec.employee_id.employee_approval:
             rec.employee_approval = rec.employee_id.employee_approval.id
