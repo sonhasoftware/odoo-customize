@@ -99,7 +99,7 @@ class FormWordSlip(models.Model):
             rec.employee_approval = rec.employee_id.employee_approval.id
         else:
             # Điều kiện tìm kiếm bước phê duyệt
-            condition = '<=3' if rec.day_duration <= 3 else '>3'
+            condition = '<3' if rec.day_duration <= 3 else '>=3'
             status = self.env['approval.workflow.step'].sudo().search([
                 ('workflow_id.department_id', '=', rec.department.id),
                 ('leave', '=', rec.type.id),
