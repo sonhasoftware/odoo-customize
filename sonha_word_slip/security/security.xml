@@ -3,7 +3,7 @@
     <record id="rule_user_form_word_slip" model="ir.rule">
         <field name="name">Rule user form word slip</field>
         <field name="model_id" ref="model_form_word_slip"/>
-        <field name="domain_force">[('employee_id.user_id', '=', user.id)]</field>
+        <field name="domain_force">['|', ('employee_id.user_id', '=', user.id), ('create_uid', '=', user.id)]</field>
         <field name="groups" eval="[(4, ref('sonha_employee.group_user_employee'))]"/>
     </record>
 
