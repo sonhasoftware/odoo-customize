@@ -70,6 +70,7 @@ class FormWordSlip(models.Model):
         for r in self:
             if r.employee_confirm.user_id.id == self.env.user.id:
                 r.status_lv2 = 'confirm'
+                r.button_confirm = False
             else:
                 raise ValidationError("Bạn không có quyền thực hiện hành động này")
 
@@ -79,12 +80,14 @@ class FormWordSlip(models.Model):
                 if r.employee_approval.user_id.id == self.env.user.id:
                     r.status_lv1 = 'done'
                     r.status = 'done'
+                    r.button_done = False
                 else:
                     raise ValidationError("Bạn không có quyền thực hiện hành động này")
             else:
                 if r.employee_approval.user_id.id == self.env.user.id:
                     r.status_lv2 = 'done'
                     r.status = 'done'
+                    r.button_done = False
                 else:
                     raise ValidationError("Bạn không có quyền thực hiện hành động này")
 
