@@ -10,7 +10,15 @@
     <record id="rule_dl_form_word_slip" model="ir.rule">
         <field name="name">Rule DL form word slip</field>
         <field name="model_id" ref="model_form_word_slip"/>
-         <field name="domain_force">['|', ('employee_id.user_id', '=', user.id), ('employee_id', 'child_of', [emp.id for emp in user.employee_ids])] </field>
+         <field name="domain_force">
+             [
+                '|', '|', '|',
+                ('employee_id.user_id', '=', user.id),
+                ('employee_id', 'child_of', [emp.id for emp in user.employee_ids]),
+                ('employee_confirm.user_id', '=', user.id),
+                ('employee_approval.user_id', '=', user.id)
+             ]
+         </field>
         <field name="groups" eval="[(4, ref('sonha_employee.group_dl_employee'))]"/>
     </record>
 
