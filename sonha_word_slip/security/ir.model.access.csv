@@ -42,10 +42,10 @@ access_employee_attendance_hr,employee.attendance.hr,model_employee_attendance,s
 access_employee_attendance_manager,employee.attendance.manager,model_employee_attendance,sonha_employee.group_manager_employee,1,0,0,0
 access_employee_attendance_back_up,employee.attendance.back.up,model_employee_attendance,sonha_employee.group_back_up_employee,1,1,1,1
 
-access_synthetic_work_user,synthetic.work.user,model_synthetic_work,sonha_employee.group_user_employee,1,0,0,0
-access_synthetic_work_dl,synthetic.work.dl,model_synthetic_work,sonha_employee.group_dl_employee,1,0,0,0
-access_synthetic_work_hr,synthetic.work.hr,model_synthetic_work,sonha_employee.group_hr_employee,1,0,0,0
-access_synthetic_work_manager,synthetic.work.manager,model_synthetic_work,sonha_employee.group_manager_employee,1,0,0,0
+access_synthetic_work_user,synthetic.work.user,model_synthetic_work,sonha_employee.group_user_employee,1,1,1,0
+access_synthetic_work_dl,synthetic.work.dl,model_synthetic_work,sonha_employee.group_dl_employee,1,1,1,0
+access_synthetic_work_hr,synthetic.work.hr,model_synthetic_work,sonha_employee.group_hr_employee,1,1,1,0
+access_synthetic_work_manager,synthetic.work.manager,model_synthetic_work,sonha_employee.group_manager_employee,1,1,1,0
 access_synthetic_work_back_up,synthetic.work.back.up,model_synthetic_work,sonha_employee.group_back_up_employee,1,1,1,1
 
 access_word_slip,word.slip,model_word_slip,,1,1,1,1
@@ -56,7 +56,7 @@ access_copy_public_leaves,copy.public.leave,model_copy_public_leaves,,1,1,1,1
 
 access_config_reason,config.reason,model_config_reason,,1,1,1,1
 
-access_distribute_shift,distribute.shift,model_distribute_shift,,1,0,0,0
+access_distribute_shift,distribute.shift,model_distribute_shift,,1,1,1,0
 
 access_config_approve,config.approve,model_config_approve,sonha_employee.group_hr_employee,1,1,1,1
 
