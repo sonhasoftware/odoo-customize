@@ -19,7 +19,7 @@
         <field name="name">master.data.attendance.tree</field>
         <field name="model">master.data.attendance</field>
         <field name="arch" type="xml">
-            <tree string="Bảng chấm công thô" default_order="attendance_time desc">
+            <tree string="Bảng chấm công thô" default_order="employee_id, attendance_time desc">
                 <field name="employee_id"/>
                 <field name="attendance_time"/>
             </tree>
