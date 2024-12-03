@@ -97,7 +97,7 @@ class FormWordSlip(models.Model):
         # Tính số ngày và thiết lập `day_duration`
         rec.day_duration = self.get_duration_day(rec)
 
-        condition = '<3' if rec.day_duration <= 3 else '>=3'
+        condition = '<3' if rec.day_duration < 3 else '>=3'
         status = self.env['approval.workflow.step'].sudo().search([
             ('workflow_id.department_id', '=', rec.department.id),
             ('leave', '=', rec.type.id),
