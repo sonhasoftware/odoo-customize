@@ -33,6 +33,7 @@
         <field name="arch" type="xml">
             <search>
                 <field name="employee_id" string="Nhân viên"/>
+                <field name="department_id" string="Phòng ban"/>
             </search>
         </field>
     </record>
