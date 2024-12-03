@@ -6,7 +6,7 @@ class MasterDataAttendance(models.Model):
     _description = 'Master Data Attendance'
 
     employee_id = fields.Many2one('hr.employee', string='Nhân viên', required=True)
-    department_id = fields.Many2one('hr.department', string="Phòng ban", compute="fill_department")
+    department_id = fields.Many2one('hr.department', string="Phòng ban", compute="fill_department", store=True)
     attendance_time = fields.Datetime(string='Thời gian', required=True)
 
     @api.depends('employee_id')
