@@ -12,4 +12,4 @@ class MasterDataAttendance(models.Model):
     @api.depends('employee_id')
     def fill_department(self):
         for r in self:
-            r.department_id = r.employee.department_id.id if r.employee.department_id.id else None
+            r.department_id = r.employee_id.department_id.id if r.employee_id.department_id.id else None
