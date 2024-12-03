@@ -70,6 +70,7 @@ class FormWordSlip(models.Model):
         for r in self:
             if r.employee_confirm.user_id.id == self.env.user.id:
                 r.status_lv2 = 'confirm'
+                r.button_confirm = False
             else:
                 raise ValidationError("Bạn không có quyền thực hiện hành động này")
 
@@ -79,12 +80,14 @@ class FormWordSlip(models.Model):
                 if r.employee_approval.user_id.id == self.env.user.id:
                     r.status_lv1 = 'done'
                     r.status = 'done'
+                    r.button_done = False
                 else:
                     raise ValidationError("Bạn không có quyền thực hiện hành động này")
             else:
                 if r.employee_approval.user_id.id == self.env.user.id:
                     r.status_lv2 = 'done'
                     r.status = 'done'
+                    r.button_done = False
                 else:
                     raise ValidationError("Bạn không có quyền thực hiện hành động này")
 
@@ -94,31 +97,29 @@ class FormWordSlip(models.Model):
         # Tính số ngày và thiết lập `day_duration`
         rec.day_duration = self.get_duration_day(rec)
 
-        # Kiểm tra người phê duyệt trực tiếp từ nhân viên
-        if rec.employee_id.employee_approval:
-            rec.employee_approval = rec.employee_id.employee_approval.id
-        else:
-            # Điều kiện tìm kiếm bước phê duyệt
-            condition = '<=3' if rec.day_duration <= 3 else '>3'
-            status = self.env['approval.workflow.step'].sudo().search([
-                ('workflow_id.department_id', '=', rec.department.id),
-                ('leave', '=', rec.type.id),
-                ('condition', '=', condition)
-            ])
+        condition = '<3' if rec.day_duration < 3 else '>=3'
+        status = self.env['approval.workflow.step'].sudo().search([
+            ('workflow_id.department_id', '=', rec.department.id),
+            ('leave', '=', rec.type.id),
+            ('condition', '=', condition)
+        ])
 
-            # Xử lý logic dựa trên cấp phê duyệt
-            if status:
-                if status.level <= 1:
-                    rec.employee_confirm = None
-                    rec.employee_approval = rec.employee_id.parent_id.id
-                else:
-                    rec.check_level = True
-                    rec.employee_confirm = rec.employee_id.parent_id.id
-                    rec.employee_approval = rec.employee_id.parent_id.parent_id.id
+        # Xử lý logic dựa trên cấp phê duyệt
+        if status:
+            if status.level <= 1:
+                rec.employee_confirm = None
+                rec.employee_approval = rec.employee_id.employee_approval.id if rec.employee_id.employee_approval else rec.employee_id.parent_id.id
             else:
-                # Trường hợp không có bước phê duyệt
-                rec.employee_approval = rec.employee_id.parent_id.id
-
+                rec.check_level = True
+                if rec.employee_id.employee_approval:
+                    rec.employee_confirm = rec.employee_id.employee_approval.id
+                    rec.employee_approval = rec.employee_id.parent_id.id if rec.employee_id.parent_id else rec.employee_id.department_id.manager_id.id
+                else:
+                    rec.employee_confirm = rec.employee_id.parent_id.id
+                    rec.employee_approval = rec.employee_id.parent_id.parent_id.id if rec.employee_id.parent_id.parent_id else rec.employee_id.department_id.parent_id.manager_id.id
+        else:
+            # Trường hợp không có bước phê duyệt
+            rec.employee_approval = rec.employee_id.employee_approval.id if rec.employee_id.employee_approval else rec.employee_id.parent_id.id
         return rec
 
     def get_duration_day(self, rec):
