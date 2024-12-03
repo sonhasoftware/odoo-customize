@@ -6,6 +6,7 @@
         <field name="arch" type="xml">
             <tree string="Phân ca" default_order="date desc">
                 <field name="employee_id"/>
+                <field name="department_id"/>
                 <field name="date"/>
                 <field name="shift"/>
             </tree>

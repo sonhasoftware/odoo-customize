@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="sonha_x_price_approval_line_tree_view" model="ir.ui.view">
+        <field name="name">sonha.x.price.approval.line.tree.view</field>
+        <field name="model">x.price.approval.line</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="x_ord_qty"/>
+                <field name="x_total"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_x_price_approval_line_view" model="ir.actions.act_window">
+        <field name="name">Chi tiết yêu cầu duyệt giá</field>
+        <field name="res_model">x.price.approval.line</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

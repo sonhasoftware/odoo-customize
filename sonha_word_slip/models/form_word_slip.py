@@ -74,6 +74,10 @@ class FormWordSlip(models.Model):
             else:
                 raise ValidationError("Bạn không có quyền thực hiện hành động này")
 
+    @api.constrains('word_slip_id')
+    def check_word_slip_id(self):
+        if not self.word_slip_id:
+            raise ValidationError(f"Đơn từ của bạn chưa chọn thời gian")
     def action_approval(self):
         for r in self:
             if r.check_level != True:

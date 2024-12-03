@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="sonha_x_hr_validate_rule_tree_view" model="ir.ui.view">
+        <field name="name">sonha.x.hr.validate.rule.tree.view</field>
+        <field name="model">x.hr.validate.rule</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="x_sequence"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_x_hr_validate_rule_view" model="ir.actions.act_window">
+        <field name="name">Quy tắc phê duyệt</field>
+        <field name="res_model">x.hr.validate.rule</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

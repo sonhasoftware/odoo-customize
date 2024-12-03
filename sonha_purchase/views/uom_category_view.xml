@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="sonha_uom_category_custom_tree_view" model="ir.ui.view">
+        <field name="name">sonha.uom.category.custom.tree.view</field>
+        <field name="model">uom.category.custom</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_uom_category_custom_view" model="ir.actions.act_window">
+        <field name="name">Nhóm đơn vị</field>
+        <field name="res_model">uom.category.custom</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

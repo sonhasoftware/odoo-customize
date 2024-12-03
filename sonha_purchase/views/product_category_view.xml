@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="sonha_product_category_tree_view" model="ir.ui.view">
+        <field name="name">sonha.product.category.tree.view</field>
+        <field name="model">product.category.custom</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="sonha_product_category_form_view" model="ir.ui.view">
+        <field name="name">sonha.product.category.form.view</field>
+        <field name="model">product.category.custom</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <field name="name"/>
+<!--                    parent_id chưa được liên kết với model-->
+<!--                    <field name="parent_id"/>-->
+                    <group string="Logistics">
+<!--                        removal_strategy_id chưa được liên kết với model-->
+<!--                        <field name="removal_strategy_id"/>-->
+                        <field name="packaging_reserve_method"/>
+                    </group>
+                    <group string="Inventory Valuation">
+<!--                        các trường cần được khai báo nhưng không lưu trong DB-->
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_product_category_view" model="ir.actions.act_window">
+        <field name="name">Product Categories</field>
+        <field name="res_model">product.category.custom</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

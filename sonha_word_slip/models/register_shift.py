@@ -38,3 +38,7 @@ class RegisterShift(models.Model):
             else:
                 raise ValidationError("Bạn không có quyền thực hiện hành động này")
 
+    @api.constrains('register_rel')
+    def check_register_rel(self):
+        if not self.register_rel:
+            raise ValidationError("Đơn của bạn chưa chọn ca làm việc")
