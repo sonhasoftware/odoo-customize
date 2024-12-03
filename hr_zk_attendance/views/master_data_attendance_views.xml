@@ -21,6 +21,7 @@
         <field name="arch" type="xml">
             <tree string="Bảng chấm công thô" default_order="employee_id, attendance_time desc">
                 <field name="employee_id"/>
+                <field name="department_id"/>
                 <field name="attendance_time"/>
             </tree>
         </field>

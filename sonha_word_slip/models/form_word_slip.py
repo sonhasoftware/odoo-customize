@@ -53,18 +53,20 @@ class FormWordSlip(models.Model):
     @api.depends('employee_confirm')
     def get_button_confirm(self):
         for r in self:
-            if r.employee_confirm and r.employee_confirm.user_id.id == self.env.user.id:
+            if r.employee_confirm and r.employee_confirm.user_id.id == self.env.user.id and r.status_lv2 == 'draft':
                 r.button_confirm = True
             else:
                 r.button_confirm = False
 
-    @api.depends('employee_approval')
+    @api.depends('employee_approval', 'check_level')
     def get_button_done(self):
-        for r in self:
-            if r.employee_approval and r.employee_approval.user_id.id == self.env.user.id:
-                r.button_done = True
-            else:
-                r.button_done = False
+        for record in self:
+            record.button_done = False
+            if record.employee_approval and record.employee_approval.user_id.id == self.env.user.id:
+                if record.check_level and record.status_lv2 == 'confirm':
+                    record.button_done = True
+                elif not record.check_level and record.status_lv1 == 'draft':
+                    record.button_done = True
 
     def action_confirm(self):
         for r in self:
@@ -97,7 +99,7 @@ class FormWordSlip(models.Model):
         # Tính số ngày và thiết lập `day_duration`
         rec.day_duration = self.get_duration_day(rec)
 
-        condition = '<3' if rec.day_duration < 3 else '>=3'
+        condition = '<=3' if rec.day_duration <= 3 else '>3'
         status = self.env['approval.workflow.step'].sudo().search([
             ('workflow_id.department_id', '=', rec.department.id),
             ('leave', '=', rec.type.id),
