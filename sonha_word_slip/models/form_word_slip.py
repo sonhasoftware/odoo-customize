@@ -102,7 +102,6 @@ class FormWordSlip(models.Model):
         condition = '<=3' if rec.day_duration <= 3 else '>3'
         status = self.env['approval.workflow.step'].sudo().search([
             ('workflow_id.department_id', '=', rec.department.id),
-            ('leave', '=', rec.type.id),
             ('condition', '=', condition)
         ])
 
