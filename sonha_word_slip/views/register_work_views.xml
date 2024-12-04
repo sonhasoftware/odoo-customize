@@ -23,11 +23,11 @@
             <form string="Đăng ký ca">
                 <sheet>
                     <group>
-                        <field name="department_id"/>
+                        <field name="department_id" options="{'no_create': True, 'no_open': True}"/>
                         <field name="start_date" required = "1"/>
                         <field name="end_date" required = "1"/>
-                        <field name="shift" required = "1"/>
-                        <field name="employee_id" widget="many2many_tags" domain="[('department_id', '=', department_id)]" required = "1"/>
+                        <field name="shift" required = "1" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="employee_id" widget="many2many_tags" domain="[('department_id', '=', department_id)]" required = "1" options="{'no_create': True, 'no_open': True}"/>
                     </group>
                 </sheet>
                 <div class="oe_chatter">
