@@ -36,13 +36,13 @@ class FormWordSlip(models.Model):
     employee_confirm = fields.Many2one('hr.employee', string="Người xác nhận")
     employee_approval = fields.Many2one('hr.employee', string="Người duyệt")
     status_lv2 = fields.Selection([
-        ('draft', 'Nháp'),
+        ('draft', 'Chờ duyệt'),
         ('confirm', 'Chờ duyệt'),
         ('done', 'Đã duyệt'),
         ('cancel', 'Hủy'),
     ], string='Trạng thái', default='draft', tracking=True)
     status_lv1 = fields.Selection([
-        ('draft', 'Nháp'),
+        ('draft', 'Chờ duyệt'),
         ('done', 'Đã duyệt'),
         ('cancel', 'Hủy'),
     ], string='Trạng thái', default='draft', tracking=True)
