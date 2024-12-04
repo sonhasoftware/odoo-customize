@@ -159,11 +159,21 @@ class EmployeeAttendance(models.Model):
             if in_out and in_out.time_to:
                 hour_in = int(round(in_out.time_to)) - 7
                 ci = datetime.combine(r.date, time(hour_in, 0, 0))
-                r.check_in = ci if not r.check_in or r.check_in.time() > ci.time() else None
+                if not r.check_in or r.check_in.time() > ci.time():
+                    r.check_in = ci
+                elif r.check_in.time() > ci.time():
+                    r.check_in = ci
+                elif r.check_in.time() < ci.time():
+                    r.check_in = r.check_in
             if in_out and in_out.time_from:
                 hour_out = int(round(in_out.time_from)) - 7
                 co = datetime.combine(r.date, time(hour_out, 0, 0))
-                r.check_out = co if not r.check_out or r.check_out.time() < co.time() else None
+                if not r.check_out:
+                    r.check_out = co
+                elif r.check_out.time() < co.time():
+                    r.check_out = co
+                elif r.check_out.time() > co.time():
+                    r.check_out = r.check_out
 
     #Lấy thông tin xem nhân viên có check-in hay check-out hay không
     def _get_attendance(self):
