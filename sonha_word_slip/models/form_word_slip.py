@@ -36,19 +36,35 @@ class FormWordSlip(models.Model):
     employee_confirm = fields.Many2one('hr.employee', string="Người xác nhận")
     employee_approval = fields.Many2one('hr.employee', string="Người duyệt")
     status_lv2 = fields.Selection([
-        ('draft', 'Nháp'),
+        ('draft', 'Chờ duyệt'),
         ('confirm', 'Chờ duyệt'),
         ('done', 'Đã duyệt'),
         ('cancel', 'Hủy'),
     ], string='Trạng thái', default='draft', tracking=True)
     status_lv1 = fields.Selection([
-        ('draft', 'Nháp'),
+        ('draft', 'Chờ duyệt'),
         ('done', 'Đã duyệt'),
         ('cancel', 'Hủy'),
     ], string='Trạng thái', default='draft', tracking=True)
     check_level = fields.Boolean("Check trạng thái theo cấp độ", default=False)
     button_confirm = fields.Boolean("Check button xác nhận", compute="get_button_confirm")
     button_done = fields.Boolean("Check button duyệt", compute="get_button_done")
+    complete_approval_lv = fields.Boolean("Hoàn duyệt", compute="get_complete_approval")
+
+    @api.depends('employee_confirm', 'employee_approval', 'status')
+    def get_complete_approval(self):
+        for r in self:
+            r.complete_approval_lv = False
+            if (r.employee_confirm.user_id.id == self.env.user.id or r.employee_approval.user_id.id == self.env.user.id) and r.status == 'done':
+                r.complete_approval_lv = True
+
+    def complete_approval(self):
+        for r in self:
+            if r.check_level != True:
+                r.status_lv1 = 'draft'
+            else:
+                r.status_lv2 = 'draft'
+            r.status = 'draft'
 
     @api.depends('employee_confirm')
     def get_button_confirm(self):
@@ -117,12 +133,15 @@ class FormWordSlip(models.Model):
                 rec.employee_approval = rec.employee_id.employee_approval.id if rec.employee_id.employee_approval else rec.employee_id.parent_id.id
             else:
                 rec.check_level = True
-                if rec.employee_id.employee_approval:
-                    rec.employee_confirm = rec.employee_id.employee_approval.id
-                    rec.employee_approval = rec.employee_id.parent_id.id if rec.employee_id.parent_id else rec.employee_id.department_id.manager_id.id
-                else:
+                if rec.employee_id.employee_approval and rec.employee_id.parent_id:
+                    rec.employee_confirm = rec.employee_id.parent_id.id
+                    rec.employee_approval = rec.employee_id.employee_approval.id
+                elif not rec.employee_id.employee_approval and rec.employee_id.parent_id:
                     rec.employee_confirm = rec.employee_id.parent_id.id
                     rec.employee_approval = rec.employee_id.parent_id.parent_id.id if rec.employee_id.parent_id.parent_id else rec.employee_id.department_id.parent_id.manager_id.id
+                elif rec.employee_id.employee_approval and not rec.employee_id.parent_id:
+                    rec.employee_confirm = rec.employee_id.employee_approval.id
+                    rec.employee_approval = rec.employee_id.employee_approval.parent_id.id if rec.employee_id.employee_approval.parent_id else None
         else:
             # Trường hợp không có bước phê duyệt
             rec.employee_approval = rec.employee_id.employee_approval.id if rec.employee_id.employee_approval else rec.employee_id.parent_id.id

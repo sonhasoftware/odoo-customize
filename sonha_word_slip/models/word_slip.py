@@ -32,7 +32,7 @@ class WordSlip(models.Model):
         for r in self:
             r.duration = 0
 
-            if r.word_slip.type.date_and_time == 'date':
+            if r.type.date_and_time == 'date':
                 if r.start_time and r.end_time:
                     if r.start_time == r.end_time:
                         r.duration = 0.5

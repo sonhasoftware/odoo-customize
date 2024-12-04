@@ -156,10 +156,14 @@ class EmployeeAttendance(models.Model):
             in_out = self.env['word.slip'].sudo().search([('employee_id', '=', r.employee_id.id),
                                                           ('from_date', '<=', r.date),
                                                           ('to_date', '>=', r.date)], limit=1)
-            if in_out and in_out.time_to == 8:
-                r.check_in = datetime.combine(r.date, time(1, 0, 0))
-            if in_out and in_out.time_from == 17:
-                r.check_out = datetime.combine(r.date, time(10, 0, 0))
+            if in_out and in_out.time_to:
+                hour_in = in_out.time_to - 7
+                ci = datetime.combine(r.date, time(hour_in, 0, 0))
+                r.check_in = ci if r.check_in.time() > ci.time() or not r.check_in else None
+            if in_out and in_out.time_from:
+                hour_out = in_out.time_from - 7
+                co = datetime.combine(r.date, time(hour_out, 0, 0))
+                r.check_out = co if r.check_out.time() < co.time() or not r.check_out else None
 
     #Lấy thông tin xem nhân viên có check-in hay check-out hay không
     def _get_attendance(self):

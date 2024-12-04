@@ -13,6 +13,8 @@
                     <field name="check_level" invisible="1"/>
                     <field name="status_lv1" widget="statusbar" invisible="check_level == True"/>
                     <field name="status_lv2" widget="statusbar" invisible="check_level != True"/>
+                    <field name="complete_approval_lv" invisible="1"/>
+                    <button name="complete_approval" string="Hoàn duyệt" type="object" class="oe_highlight" invisible="complete_approval_lv != True"/>
                 </header>
                 <sheet>
                     <group>
