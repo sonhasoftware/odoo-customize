@@ -155,7 +155,7 @@ class EmployeeAttendance(models.Model):
 
             in_out = self.env['word.slip'].sudo().search([('employee_id', '=', r.employee_id.id),
                                                           ('from_date', '<=', r.date),
-                                                          ('to_date', '>=', r.date)])
+                                                          ('to_date', '>=', r.date)], limit=1)
             if in_out and in_out.time_to == 8:
                 r.check_in = datetime.combine(r.date, time(1, 0, 0))
             if in_out and in_out.time_from == 17:
