@@ -49,6 +49,22 @@ class FormWordSlip(models.Model):
     check_level = fields.Boolean("Check trạng thái theo cấp độ", default=False)
     button_confirm = fields.Boolean("Check button xác nhận", compute="get_button_confirm")
     button_done = fields.Boolean("Check button duyệt", compute="get_button_done")
+    complete_approval_lv = fields.Boolean("Hoàn duyệt", compute="get_complete_approval")
+
+    @api.depends('employee_confirm', 'employee_approval', 'status')
+    def get_complete_approval(self):
+        for r in self:
+            r.complete_approval_lv = False
+            if (r.employee_confirm.user_id.id == self.env.user.id or r.employee_approval.user_id.id == self.env.user.id) and r.status == 'done':
+                r.complete_approval_lv = True
+
+    def complete_approval(self):
+        for r in self:
+            if r.check_level != True:
+                r.status_lv1 = 'draft'
+            else:
+                r.status_lv2 = 'draft'
+            r.status = 'draft'
 
     @api.depends('employee_confirm')
     def get_button_confirm(self):
