@@ -117,12 +117,15 @@ class FormWordSlip(models.Model):
                 rec.employee_approval = rec.employee_id.employee_approval.id if rec.employee_id.employee_approval else rec.employee_id.parent_id.id
             else:
                 rec.check_level = True
-                if rec.employee_id.employee_approval:
-                    rec.employee_confirm = rec.employee_id.employee_approval.id
-                    rec.employee_approval = rec.employee_id.parent_id.id if rec.employee_id.parent_id else rec.employee_id.department_id.manager_id.id
-                else:
+                if rec.employee_id.employee_approval and rec.employee_id.parent_id:
+                    rec.employee_confirm = rec.employee_id.parent_id.id
+                    rec.employee_approval = rec.employee_id.employee_approval.id
+                elif not rec.employee_id.employee_approval and rec.employee_id.parent_id:
                     rec.employee_confirm = rec.employee_id.parent_id.id
                     rec.employee_approval = rec.employee_id.parent_id.parent_id.id if rec.employee_id.parent_id.parent_id else rec.employee_id.department_id.parent_id.manager_id.id
+                elif rec.employee_id.employee_approval and not rec.employee_id.parent_id:
+                    rec.employee_confirm = rec.employee_id.employee_approval.id
+                    rec.employee_approval = rec.employee_id.employee_approval.parent_id.id if rec.employee_id.employee_approval.parent_id else None
         else:
             # Trường hợp không có bước phê duyệt
             rec.employee_approval = rec.employee_id.employee_approval.id if rec.employee_id.employee_approval else rec.employee_id.parent_id.id
