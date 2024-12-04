@@ -30,12 +30,11 @@ class WordSlip(models.Model):
     @api.depends('start_time', 'end_time')
     def get_duration(self):
         for r in self:
-            if r.start_time and r.end_time:
-                if r.start_time == r.end_time:
-                    r.duration = 0.5
-                elif r.start_time == 'first_half' and r.end_time == 'second_half':
-                    r.duration = 1
-                else:
-                    r.duration = 0
-            else:
-                r.duration = 0
+            r.duration = 0
+
+            if r.word_slip.type.date_and_time == 'date':
+                if r.start_time and r.end_time:
+                    if r.start_time == r.end_time:
+                        r.duration = 0.5
+                    elif r.start_time == 'first_half' and r.end_time == 'second_half':
+                        r.duration = 1
