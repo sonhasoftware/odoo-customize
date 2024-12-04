@@ -157,11 +157,11 @@ class EmployeeAttendance(models.Model):
                                                           ('from_date', '<=', r.date),
                                                           ('to_date', '>=', r.date)], limit=1)
             if in_out and in_out.time_to:
-                hour_in = in_out.time_to - 7
+                hour_in = int(round(in_out.time_to)) - 7
                 ci = datetime.combine(r.date, time(hour_in, 0, 0))
                 r.check_in = ci if r.check_in.time() > ci.time() or not r.check_in else None
             if in_out and in_out.time_from:
-                hour_out = in_out.time_from - 7
+                hour_out = int(round(in_out.time_from)) - 7
                 co = datetime.combine(r.date, time(hour_out, 0, 0))
                 r.check_out = co if r.check_out.time() < co.time() or not r.check_out else None
 
