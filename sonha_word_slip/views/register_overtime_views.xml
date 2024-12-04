@@ -33,7 +33,7 @@
                         <field name="end_date" readonly="status != 'draft'" required = "1"/>
                         <field name="start_time" widget="float_time" readonly="status != 'draft'" required = "1"/>
                         <field name="end_time" widget="float_time" readonly="status != 'draft'" required = "1"/>
-                        <field name="employee_id" readonly="status != 'draft'" required = "1"/>
+                        <field name="employee_id" readonly="status != 'draft'" required = "1" options="{'no_create': True, 'no_open': True}"/>
                     </group>
                 </sheet>
                 <div class="oe_chatter">
