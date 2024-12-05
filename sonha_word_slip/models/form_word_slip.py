@@ -115,7 +115,8 @@ class FormWordSlip(models.Model):
         # Tính số ngày và thiết lập `day_duration`
         rec.day_duration = self.get_duration_day(rec)
 
-        department_spec = self.env['hr.department'].sudo().search([('name', '=', "SHI-Bộ phận xe VPTĐ")])
+        department_spec = self.env['hr.department'].sudo().search([('name', '=', "SHI-Bộ phận xe VPTĐ"),
+                                                                   ('id', '=', rec.department.id)])
         if department_spec:
             rec.check_level = True
             if rec.employee_id.employee_approval and rec.employee_id.parent_id:
