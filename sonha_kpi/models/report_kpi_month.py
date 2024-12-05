@@ -25,6 +25,3 @@ class ReportKpiMonth(models.Model):
     tq_description = fields.Text("Nhận xét chung của cấp có thẩm quyền")
     sonha_kpi = fields.Many2one('company.sonha.kpi')
 
-
-    def action_confirm(self):
-        pass
