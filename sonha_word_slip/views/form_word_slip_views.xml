@@ -64,7 +64,7 @@
             <search string="Search Phân Ca">
                 <field name="employee_id" string="Nhân viên"/>
                 <field name="department" string="Phòng ban"/>
-                <filter string="Trạng thái: Nháp" name="state_draft" domain="[('status', '=', 'draft')]" />
+                <filter string="Trạng thái: Chờ duyệt" name="state_draft" domain="[('status', '=', 'draft')]" />
             </search>
         </field>
     </record>
