@@ -116,3 +116,32 @@ class DataChart(http.Controller):
         if data_result_amount:
             result_amount = (sum(data_result_amount) / len(data_result_amount)) * 100
         return result_amount
+
+    @http.route('/kpi/form', type='http', auth='public', website=True)
+    def kpi_form(self, **kwargs):
+        department_id = kwargs.get('department_id')
+        month = kwargs.get('month')
+        year = kwargs.get('year')
+        kpi_records = request.env['report.kpi.month'].search([('department_id.id', '=', department_id),
+                                                             ('year', '=', year)])
+        if month:
+            kpi_records = kpi_records.filtered(lambda x: x.start_date.month == month)
+        return request.render('sonha_kpi.report_kpi_month_rel_template', {
+            'kpi_records': kpi_records
+        })
+
+    # @http.route('/kpi/update_ajax', type='json', auth='none')
+    # def update_kpi_ajax(self, **kwargs):
+    #     kpi_id = int(kwargs.get('kpi_id', 0))
+    #     field_name = kwargs.get('field_name')
+    #     field_value = kwargs.get('field_value')
+    #
+    #     kpi_record = request.env['sonha.kpi.month'].browse(kpi_id)
+    #     if kpi_record and field_name:
+    #         try:
+    #             kpi_record.sudo().write({field_name: field_value})
+    #             return {'status': 'success', 'message': 'Cập nhật thành công'}
+    #         except Exception as e:
+    #             return {'status': 'error', 'message': str(e)}
+    #     return {'status': 'error', 'message': 'Không tìm thấy bản ghi hoặc thông tin không hợp lệ'}
+
