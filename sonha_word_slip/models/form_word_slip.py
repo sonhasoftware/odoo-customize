@@ -50,6 +50,16 @@ class FormWordSlip(models.Model):
     button_confirm = fields.Boolean("Check button xác nhận", compute="get_button_confirm")
     button_done = fields.Boolean("Check button duyệt", compute="get_button_done")
     complete_approval_lv = fields.Boolean("Hoàn duyệt", compute="get_complete_approval")
+    code = fields.Char("Mã đơn", compute="get_code_slip", required=False, readonly=True)
+
+    @api.depends('employee_id', 'type')
+    def get_code_slip(self):
+        for r in self:
+            if r.type and r.employee_id:
+                short_code = ''.join(word[0].upper() for word in r.type.name.split())
+                r.code = "SSP-" + short_code + "-" + str(r.id)
+            else:
+                r.code = ""
 
     @api.depends('employee_confirm', 'employee_approval', 'status')
     def get_complete_approval(self):
@@ -173,4 +183,9 @@ class FormWordSlip(models.Model):
         else:
             day_duration = 0
         return day_duration
+
+    @api.constrains('word_slip_id')
+    def check_word_slip_id(self):
+        if not self.word_slip_id:
+            raise ValidationError(f"Đơn từ của bạn chưa chọn thời gian")
 
