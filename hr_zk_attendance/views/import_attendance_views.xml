@@ -1,0 +1,29 @@
+<odoo>
+    <record id="view_import_attendance" model="ir.ui.view">
+        <field name="name">import.attendance.form</field>
+        <field name="model">import.attendance</field>
+        <field name="arch" type="xml">
+            <form string="Import Employees">
+                <group>
+                    <field name="file" filename="file_name"/>
+                </group>
+                <footer>
+                    <button string="Import" type="object" name="import_employees" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_import_attendance" model="ir.actions.act_window">
+        <field name="name">Import Employees</field>
+        <field name="res_model">import.attendance</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_import_attendance"
+              action="action_import_attendance"
+              parent="biometric_device_details_menu"
+              sequence="21"/>
+</odoo>
