@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import math
 
 from odoo import models, fields, api
@@ -24,7 +24,7 @@ class ImportAttendance(models.Model):
                 if employee and parsed_time:
                     self.env['master.data.attendance'].sudo().create({
                         'employee_id': employee.id,
-                        'attendance_time': parsed_time or '',
+                        'attendance_time': parsed_time - timedelta(hours=7),
                     })
         return {'type': 'ir.actions.act_window_close'}
 
