@@ -170,12 +170,21 @@ class EmployeeAttendance(models.Model):
                 elif r.check_in.time() < ci.time():
                     r.check_in = r.check_in
             if in_out and in_out.time_from:
+                # Kiểm tra giá trị đầu vào
+                if not (isinstance(in_out.time_from, (int, float)) and in_out.time_from >= 0):
+                    raise ValueError(f"Invalid time_from value: {in_out.time_from}")
+
+                # Tính toán giờ và phút
                 hour = int(in_out.time_from) - 7
                 minute = int((in_out.time_from % 1) * 60)
-                if hour == 0:
-                    co = datetime.combine(r.date, time(0, 0, 0))
-                else:
-                    co = datetime.combine(r.date, time(hour, minute, 0))
+
+                # Giới hạn giá trị 'hour' trong phạm vi hợp lệ
+                hour = max(0, min(hour, 23))
+
+                # Tạo datetime cho check-out
+                co = datetime.combine(r.date, time(hour, minute, 0))
+
+                # Gán giá trị check-out
                 if not r.check_out:
                     r.check_out = co
                 elif r.check_out.time() < co.time():
