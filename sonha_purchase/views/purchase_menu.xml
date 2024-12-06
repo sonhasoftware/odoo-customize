@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<odoo>
+    <menuitem id="menu_sonha_purchases_root"
+              name="Mua hàng"
+              sequence="1"/>
+
+    <menuitem id="menu_purchases_view"
+              name="Đơn hàng"
+              parent="menu_sonha_purchases_root"
+              sequence="1"/>
+
+    <menuitem id="menu_products"
+              name="Products"
+              parent="menu_sonha_purchases_root"
+              sequence="2"/>
+
+    <menuitem id="menu_budget"
+              name="Ngân sách"
+              parent="menu_sonha_purchases_root"
+              action="action_x_purchase_budget_view"
+              sequence="3"/>
+
+    <menuitem id="menu_supplier"
+              name="Nhà cung cấp"
+              parent="menu_sonha_purchases_root"
+              action="action_res_partner_custom_view"
+              sequence="4"/>
+
+    <menuitem id="menu_infrequent_price_approval"
+              name="Duyệt giá hàng không thường xuyên"
+              parent="menu_sonha_purchases_root"
+              action="action_x_price_approval_view"
+              sequence="5"/>
+
+    <menuitem id="menu_reporting"
+              name="Báo cáo"
+              parent="menu_sonha_purchases_root"
+              sequence="6"/>
+
+    <menuitem id="menu_configuration"
+              name="Cấu hình"
+              parent="menu_sonha_purchases_root"
+              sequence="7"/>
+
+    <!--Menu đơn hàng-->
+    <menuitem id="menu_purchase_request_view"
+              name="Đề nghị đặt hàng (PR)"
+              parent="menu_purchases_view"
+              action="action_sonha_purchase_request"
+              sequence="1"/>
+
+    <menuitem id="menu_x_supplier_contract"
+              name="Hợp đồng NCC (Contract)"
+              parent="menu_purchases_view"
+              action="action_x_supplier_contract_view"
+              sequence="7"/>
+
+    <!--Menu Products-->
+    <menuitem id="menu_product_product_custom"
+              name="Sản phẩm"
+              parent="menu_products"
+              action="action_product_product_custom_view"
+              sequence="1"/>
+
+    <menuitem id="menu_x_product_level"
+              name="Cấp độ sản phẩm"
+              parent="menu_products"
+              action="action_x_product_level_view"
+              sequence="3"/>
+
+    <menuitem id="menu_x_product_hierarchy"
+              name="Quản lý PRH"
+              parent="menu_products"
+              action="action_x_product_hierarchy_view"
+              sequence="4"/>
+
+    <!--Menu cấu hình-->
+    <menuitem id="menu_x_mch_list_view"
+              name="Quản lý MCH"
+              parent="menu_configuration"
+              action="action_x_mch_list_view"
+              sequence="2"/>
+
+    <menuitem id="menu_x_hr_validate_person_view"
+              name="Vai trò phê duyệt"
+              parent="menu_configuration"
+              action="action_x_hr_validate_person_view"
+              sequence="3"/>
+
+    <menuitem id="menu_x_hr_validate_procedure_view"
+              name="Quy trình phê duyệt"
+              parent="menu_configuration"
+              action="action_x_hr_validate_procedure_view"
+              sequence="4"/>
+
+    <menuitem id="menu_x_type_po_view"
+              name="Loại đơn mua"
+              parent="menu_configuration"
+              action="action_x_type_po_view"
+              sequence="5"/>
+
+    <menuitem id="menu_x_type_budget_view"
+              name="Loại ngân sách"
+              parent="menu_configuration"
+              action="action_sonha_x_type_budget_view"
+              sequence="6"/>
+
+    <menuitem id="menu_uom_uom_custom_view"
+              name="Đơn vị tính"
+              parent="menu_configuration"
+              action="action_uom_uom_custom_view"
+              sequence="7"/>
+
+    <menuitem id="menu_uom_category_view"
+              name="Nhóm đơn vị"
+              parent="menu_configuration"
+              action="action_uom_category_custom_view"
+              sequence="8"/>
+
+    <menuitem id="menu_x_hr_validate_rule"
+              name="Quy tắc phê duyệt"
+              parent="menu_configuration"
+              action="action_x_hr_validate_rule_view"
+              sequence="9"/>
+
+    <menuitem id="menu_x_price_approval_line"
+              name="Chi tiết yêu cầu duyệt giá"
+              parent="menu_configuration"
+              action="action_x_price_approval_line_view"
+              sequence="10"/>
+
+    <menuitem id="menu_x_price_approval_frequent_line"
+              name="Chi tiết duyệt giá (Line PP)"
+              parent="menu_configuration"
+              action="action_x_price_approval_frequent_line_view"
+              sequence="11"/>
+
+    <menuitem id="menu_x_material_type"
+              name="Phân loại sản phẩm"
+              parent="menu_configuration"
+              action="action_x_material_type_view"
+              sequence="12"/>
+
+    <menuitem id="menu_x_cost_center"
+              name="Trung tâm chi phí"
+              parent="menu_configuration"
+              action="action_x_cost_center_view"
+              sequence="13"/>
+
+    <menuitem id="menu_x_cost_account"
+              name="Tài khoản chi phí"
+              parent="menu_configuration"
+              action="action_x_cost_account_view"
+              sequence="14"/>
+
+    <menuitem id="menu_product_category"
+              name="Product Categories"
+              parent="menu_configuration"
+              action="action_product_category_view"
+              sequence="15"/>
+
+    <menuitem id="menu_internal_order_code"
+              name="Mã lệnh IO"
+              parent="menu_configuration"
+              action="action_internal_order_code_view"
+              sequence="16"/>
+
+    <menuitem id="menu_asset_code"
+              name="Mã tài sản"
+              parent="menu_configuration"
+              action="action_asset_code_view"
+              sequence="16"/>
+
+    <menuitem id="menu_sub_asset_code"
+              name="Mã tài sản con"
+              parent="menu_configuration"
+              action="action_sub_asset_code_view"
+              sequence="17"/>
+
+    <menuitem id="menu_x_pr_type_config"
+              name="Cài đặt loại PR"
+              parent="menu_configuration"
+              action="action_x_pr_type_config_view"
+              sequence="18"/>
+
+    <menuitem id="menu_x_po_type_config"
+              name="Cài đặt loại PO"
+              parent="menu_configuration"
+              action="action_x_po_type_config_view"
+              sequence="19"/>
+</odoo>

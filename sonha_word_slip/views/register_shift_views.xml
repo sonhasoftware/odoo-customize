@@ -17,8 +17,8 @@
                         <field name="to_date" invisible="is_display != True " readonly="status != 'draft'" required = "1"/>
                         <field name="register_rel" readonly="status != 'draft'">
                             <tree editable="bottom">
-                                <field name="date"/>
-                                <field name="shift"/>
+                                <field name="date" required="1"/>
+                                <field name="shift" required="1"/>
                             </tree>
                         </field>
                         <field name="employee_id" readonly="status != 'draft'" required = "1"/>

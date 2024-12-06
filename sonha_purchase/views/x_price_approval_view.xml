@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="sonha_x_price_approval_tree_view" model="ir.ui.view">
+        <field name="name">sonha.x.price.approval.tree.view</field>
+        <field name="model">x.price.approval</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+<!--                còn nhiều trường khác-->
+            </tree>
+        </field>
+    </record>
+
+    <record id="sonha_x_price_approval_form_view" model="ir.ui.view">
+        <field name="name">sonha.x.price.approval.form.view</field>
+        <field name="model">x.price.approval</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <field name="name"/>
+<!--                    còn nhiều trường khác-->
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_x_price_approval_view" model="ir.actions.act_window">
+        <field name="name">Duyệt giá hàng không thường xuyên</field>
+        <field name="res_model">x.price.approval</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

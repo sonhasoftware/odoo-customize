@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="sonha_x_cost_account_tree_view" model="ir.ui.view">
+        <field name="name">sonha.x.cost.account.tree.view</field>
+        <field name="model">x.cost.account</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="descript"/>
+<!--                trường company_id cần thiết nhưng chưa có model liên kết-->
+<!--                <field name="company_id"/>-->
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_x_cost_account_view" model="ir.actions.act_window">
+        <field name="name">Tài khoản chi phí</field>
+        <field name="res_model">x.cost.account</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>
