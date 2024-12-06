@@ -159,10 +159,10 @@ class EmployeeAttendance(models.Model):
             if in_out and in_out.time_to:
                 hour = int(in_out.time_to) - 7
                 minute = int((in_out.time_to % 1) * 60)
-                if hour == 0:
-                    ci = datetime.combine(r.date, time(0, 0, 0))
-                else:
+                if 0 <= hour <= 23:
                     ci = datetime.combine(r.date, time(hour, minute, 0))
+                else:
+                    ci = datetime.combine(r.date, time(0, 0, 0))
                 if not r.check_in or r.check_in.time() > ci.time():
                     r.check_in = ci
                 elif r.check_in.time() > ci.time():
