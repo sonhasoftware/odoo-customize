@@ -18,6 +18,7 @@ class Timesheet(models.TransientModel):
         for emp in list_emp:
             date_work, number_minutes_late, number_minutes_early = self.working_day(emp, self.start_date, self.end_date)
             public_holiday, on_leave = self.get_holiday(emp, self.start_date, self.end_date)
+            hours_reinforcement = self.get_hours_reinforcement(emp, self.start_date, self.end_date)
             vals = {
                 'employee_id': emp.id,
                 'department_id': emp.department_id.id,
@@ -31,6 +32,8 @@ class Timesheet(models.TransientModel):
                 'paid_leave': 0,
                 'number_minutes_late': number_minutes_late,
                 'number_minutes_early': number_minutes_early,
+
+                'hours_reinforcement': hours_reinforcement,
 
                 'on_leave': on_leave,
                 'compensatory_leave': 0,
@@ -78,6 +81,21 @@ class Timesheet(models.TransientModel):
             on_leave = sum(leave.mapped('duration'))
         return public_holiday, on_leave
 
-
-
-
+    def get_hours_reinforcement(self, emp, start, end):
+        hours_reinforcement = 0
+        ot = self.env['register.overtime'].sudo().search([('employee_id', '=', emp.id),
+                                                          ('start_date', '<=', end),
+                                                          ('end_date', '>=', start)])
+        if ot:
+            for r in ot:
+                if r.start_date == r.end_date:
+                    total = r.end_time - r.start_time
+                    hours_reinforcement += total
+                else:
+                    start_date = fields.Date.from_string(r.start_date)
+                    end_date = fields.Date.from_string(r.end_date)
+                    day_duration = (end_date - start_date).days + 1
+                    time_duration = r.end_time - r.start_time
+                    total = time_duration * day_duration
+                    hours_reinforcement += total
+        return hours_reinforcement
