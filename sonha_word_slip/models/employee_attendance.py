@@ -42,7 +42,7 @@ class EmployeeAttendance(models.Model):
             ('red', 'Red'),
             ('green', 'Green'),
         ],
-        string="Màu", compute="_compute_color", default=None
+        string="Màu", compute="_compute_color"
     )
 
     @api.depends('date')
@@ -283,13 +283,11 @@ class EmployeeAttendance(models.Model):
     def _compute_color(self):
         for r in self:
             weekday = r.date.weekday()
-            if weekday == 6 or (weekday == 5 and r.date.isocalendar()[1] % 2 == 1):
+            week_number = r.date.isocalendar()[1]
+
+            if weekday == 6 or (weekday == 5 and week_number % 2 == 1):
                 r.color = None
+            elif not (r.check_in and r.check_out) or r.minutes_late != 0 or r.minutes_early != 0:
+                r.color = 'red'
             else:
-                if r.check_in and r.check_out:
-                    if r.minutes_late > 0.5 or r.minutes_early > 0.5:
-                        r.color = 'red'
-                    else:
-                        r.color = 'green'
-                else:
-                    r.color = 'red'
+                r.color = 'green'
