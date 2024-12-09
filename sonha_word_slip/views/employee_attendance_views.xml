@@ -6,6 +6,7 @@
             <tree string="Chấm công chi tiết" default_order="employee_id, date desc">
                 <field name="employee_id"/>
                 <field name="department_id"/>
+                <field name="weekday"/>
                 <field name="date"/>
                 <field name="check_in"/>
                 <field name="check_out"/>

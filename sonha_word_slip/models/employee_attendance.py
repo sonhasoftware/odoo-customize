@@ -10,6 +10,15 @@ class EmployeeAttendance(models.Model):
     employee_id = fields.Many2one('hr.employee', string='Nhân viên', required=True, store=True)
     department_id = fields.Many2one('hr.department', string='Phòng ban', compute="_get_department_id", store=True)
     date = fields.Date(string='Ngày', required=True, store=True)
+    weekday = fields.Selection([
+        ('0', 'Thứ hai'),
+        ('1', 'Thứ ba'),
+        ('2', 'Thứ tư'),
+        ('3', 'Thứ năm'),
+        ('4', 'Thứ sáu'),
+        ('5', 'Thứ bảy'),
+        ('6', 'Chủ nhật')
+    ], string="Thứ", compute="_compute_weekday", store=True)
     check_in = fields.Datetime(string='Giờ vào', compute="_get_check_in_out")
     check_out = fields.Datetime(string='Giờ ra', compute="_get_check_in_out")
     duration = fields.Float("Giờ công", compute="_get_duration")
@@ -251,3 +260,13 @@ class EmployeeAttendance(models.Model):
                 r.work_day = 0.5
             else:
                 r.work_day = 0
+
+    # tính thứ cho ngày
+    @api.depends('date')
+    def _compute_weekday(self):
+        for r in self:
+            if r.date:
+                weekday = r.date.weekday()
+                r.weekday = str(weekday)
+            else:
+                r.weekday = None
