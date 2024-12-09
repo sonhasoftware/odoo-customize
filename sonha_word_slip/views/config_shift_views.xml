@@ -51,6 +51,7 @@
                         <field name="from_rest"/>
                         <field name="minutes_rest"/>
                         <field name="to_rest"/>
+                        <field name="is_office_hour"/>
                     </group>
                     <group>
                         <field name="earliest_out"/>
