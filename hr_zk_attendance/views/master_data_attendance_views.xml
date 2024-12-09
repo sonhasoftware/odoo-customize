@@ -19,8 +19,9 @@
         <field name="name">master.data.attendance.tree</field>
         <field name="model">master.data.attendance</field>
         <field name="arch" type="xml">
-            <tree string="Bảng chấm công thô" default_order="attendance_time desc">
+            <tree string="Bảng chấm công thô" default_order="employee_id, attendance_time desc">
                 <field name="employee_id"/>
+                <field name="department_id"/>
                 <field name="attendance_time"/>
             </tree>
         </field>
@@ -32,6 +33,7 @@
         <field name="arch" type="xml">
             <search>
                 <field name="employee_id" string="Nhân viên"/>
+                <field name="department_id" string="Phòng ban"/>
             </search>
         </field>
     </record>

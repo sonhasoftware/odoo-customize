@@ -13,12 +13,15 @@
                     <field name="check_level" invisible="1"/>
                     <field name="status_lv1" widget="statusbar" invisible="check_level == True"/>
                     <field name="status_lv2" widget="statusbar" invisible="check_level != True"/>
+                    <field name="complete_approval_lv" invisible="1"/>
+                    <button name="complete_approval" string="Hoàn duyệt" type="object" class="oe_highlight" invisible="complete_approval_lv != True"/>
                 </header>
                 <sheet>
                     <group>
+                        <field name="code"/>
                         <field name="status" invisible="1"/>
-                        <field name="department" readonly="status != 'draft'"/>
-                        <field name="type" readonly="status != 'draft'" required = "1"/>
+                        <field name="department" readonly="status != 'draft'" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="type" readonly="status != 'draft'" required = "1" options="{'no_create': True, 'no_open': True}"/>
                         <field name="word_slip_id" readonly="status != 'draft'">
                             <tree string="Loai nghỉ" editable="bottom">
                                 <field name="from_date" required="1"/>
@@ -30,7 +33,7 @@
                                 <field name="reason" required="1"/>
                             </tree>
                         </field>
-                        <field name="employee_id" domain="[('department_id', '=', department)]" readonly="status != 'draft'" required = "1"/>
+                        <field name="employee_id" domain="[('department_id', '=', department)]" readonly="status != 'draft'" required = "1" options="{'no_create': True, 'no_open': True}"/>
                     </group>
                 </sheet>
                 <div class="oe_chatter">
@@ -47,6 +50,7 @@
         <field name="model">form.word.slip</field>
         <field name="arch" type="xml">
             <tree string="Đơn từ" default_order="create_date desc">
+                <field name="code"/>
                 <field name="department"/>
                 <field name="employee_id"/>
                 <field name="type"/>
@@ -62,7 +66,7 @@
             <search string="Search Phân Ca">
                 <field name="employee_id" string="Nhân viên"/>
                 <field name="department" string="Phòng ban"/>
-                <filter string="Trạng thái: Nháp" name="state_draft" domain="[('status', '=', 'draft')]" />
+                <filter string="Trạng thái: Chờ duyệt" name="state_draft" domain="[('status', '=', 'draft')]" />
             </search>
         </field>
     </record>

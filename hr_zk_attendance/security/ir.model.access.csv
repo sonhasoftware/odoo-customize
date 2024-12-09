@@ -7,3 +7,6 @@ access_master_data_attendance_user,master.data.attendance.user,model_master_data
 access_master_data_attendance_dl,master.data.attendance.dl,model_master_data_attendance,sonha_employee.group_dl_employee,1,0,0,0
 access_master_data_attendance_hr,master.data.attendance.hr,model_master_data_attendance,sonha_employee.group_hr_employee,1,0,0,0
 access_master_data_attendance_manager,master.data.attendance.manager,model_master_data_attendance,sonha_employee.group_manager_employee,1,0,0,0
+access_master_data_attendance_back_up,master.data.attendance.back.up,model_master_data_attendance,sonha_employee.group_back_up_employee,1,1,1,1
+
+access_import_attendance,import.attendance,model_import_attendance,,1,1,1,1

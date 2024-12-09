@@ -27,15 +27,24 @@ class WordSlip(models.Model):
     reason = fields.Text(string="Lý do")
 
     #Lấy thông tin số ngày công mà nhân viên nghỉ
-    @api.depends('start_time', 'end_time')
+    @api.depends('start_time', 'end_time', 'from_date', 'to_date')
     def get_duration(self):
         for r in self:
-            if r.start_time and r.end_time:
-                if r.start_time == r.end_time:
-                    r.duration = 0.5
-                elif r.start_time == 'first_half' and r.end_time == 'second_half':
-                    r.duration = 1
-                else:
-                    r.duration = 0
+            r.duration = 0
+            if r.from_date == r.to_date:
+                if r.type.date_and_time == 'date':
+                    if r.start_time and r.end_time:
+                        if r.start_time == r.end_time:
+                            r.duration = 0.5
+                        elif r.start_time == 'first_half' and r.end_time == 'second_half':
+                            r.duration = 1
             else:
-                r.duration = 0
+                start_date = fields.Date.from_string(r.from_date)
+                end_date = fields.Date.from_string(r.to_date)
+                day_duration = (end_date - start_date).days + 1
+                if r.type.date_and_time == 'date':
+                    if r.start_time and r.end_time:
+                        if r.start_time == r.end_time:
+                            r.duration = 0.5 * day_duration
+                        elif r.start_time == 'first_half' and r.end_time == 'second_half':
+                            r.duration = 1 * day_duration

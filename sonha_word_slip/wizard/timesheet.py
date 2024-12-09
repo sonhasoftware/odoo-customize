@@ -17,7 +17,8 @@ class Timesheet(models.TransientModel):
             list_emp = self.env['hr.employee'].sudo().search([('company_id', '=', self.company.id)])
         for emp in list_emp:
             date_work, number_minutes_late, number_minutes_early = self.working_day(emp, self.start_date, self.end_date)
-            public_holiday, on_leave = self.get_holiday(emp, self.start_date, self.end_date)
+            public_holiday, on_leave, on_compensatory = self.get_holiday(emp, self.start_date, self.end_date)
+            hours_reinforcement = self.get_hours_reinforcement(emp, self.start_date, self.end_date)
             vals = {
                 'employee_id': emp.id,
                 'department_id': emp.department_id.id,
@@ -32,8 +33,10 @@ class Timesheet(models.TransientModel):
                 'number_minutes_late': number_minutes_late,
                 'number_minutes_early': number_minutes_early,
 
+                'hours_reinforcement': hours_reinforcement,
+
                 'on_leave': on_leave,
-                'compensatory_leave': 0,
+                'compensatory_leave': on_compensatory,
                 'filial_leave': 0,
                 'grandparents_leave': 0,
                 'vacation': 0,
@@ -67,17 +70,38 @@ class Timesheet(models.TransientModel):
     def get_holiday(self, emp, start, end):
         public_holiday = 0
         on_leave = 0
+        on_compensatory = 0
         public_leave = self.env['resource.calendar.leaves'].sudo().search([])
-        leave = self.env['word.slip'].sudo().search([('employee_id', '=', emp.id),
-                                                     ('from_date', '<=', end),
-                                                     ('to_date', '>=', start)])
+        word_sip = self.env['word.slip'].sudo().search([('employee_id', '=', emp.id),
+                                                        ('from_date', '<=', end),
+                                                        ('to_date', '>=', start)])
+        leave = word_sip.filtered(lambda x: x.word_slip.type.name == "Nghỉ phép")
+        compensatory = word_sip.filtered(lambda x: x.word_slip.type.name == "nghỉ bù")
+
         if public_leave:
             public_leave = public_leave.filtered(lambda x: x.date_from.date() <= end and x.date_to.date() >= start)
             public_holiday = len(public_leave)
         if leave:
             on_leave = sum(leave.mapped('duration'))
-        return public_holiday, on_leave
+        if compensatory:
+            on_compensatory = sum(compensatory.mapped('duration'))
+        return public_holiday, on_leave, on_compensatory
 
-
-
-
+    def get_hours_reinforcement(self, emp, start, end):
+        hours_reinforcement = 0
+        ot = self.env['register.overtime'].sudo().search([('employee_id', '=', emp.id),
+                                                          ('start_date', '<=', end),
+                                                          ('end_date', '>=', start)])
+        if ot:
+            for r in ot:
+                if r.start_date == r.end_date:
+                    total = r.end_time - r.start_time
+                    hours_reinforcement += total
+                else:
+                    start_date = fields.Date.from_string(r.start_date)
+                    end_date = fields.Date.from_string(r.end_date)
+                    day_duration = (end_date - start_date).days + 1
+                    time_duration = r.end_time - r.start_time
+                    total = time_duration * day_duration
+                    hours_reinforcement += total
+        return hours_reinforcement

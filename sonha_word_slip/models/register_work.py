@@ -32,11 +32,10 @@ class RegisterWork(models.Model):
                     }
                 }
 
-
     def create(self, vals):
         list_record = super(RegisterWork, self).create(vals)
         for record in list_record:
-            self.create_distribute_shift(record)
+            self.sudo().create_distribute_shift(record)
         return list_record
 
     def create_distribute_shift(self, record):
@@ -49,6 +48,6 @@ class RegisterWork(models.Model):
                     'date': temp_date or '',
                     'shift': record.shift.id or '',
                 }
-                self.env['distribute.shift'].create(vals)
+                self.env['distribute.shift'].sudo().create(vals)
                 temp_date = temp_date + timedelta(days=1)
 

@@ -22,6 +22,7 @@
         'views/daily_attendance_views.xml',
         'views/biometric_device_attendance_menus.xml',
         'views/master_data_attendance_views.xml',
+        'views/import_attendance_views.xml',
     ],
     'images': ['static/description/banner.png'],
     'license': 'AGPL-3',
