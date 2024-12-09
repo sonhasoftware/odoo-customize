@@ -3,7 +3,9 @@
         <field name="name">employee.attendance.list</field>
         <field name="model">employee.attendance</field>
         <field name="arch" type="xml">
-            <tree string="Chấm công chi tiết" default_order="employee_id, date desc">
+            <tree string="Chấm công chi tiết" default_order="employee_id, date desc"
+                  decoration-danger="color == 'red'"
+                  decoration-success="color == 'green'">
                 <field name="employee_id"/>
                 <field name="department_id"/>
                 <field name="weekday"/>
@@ -16,6 +18,7 @@
                 <field name="minutes_early"/>
                 <field name="work_day"/>
                 <field name="month" column_invisible="True"/>
+                <field name="color" column_invisible="True"/>
             </tree>
         </field>
     </record>

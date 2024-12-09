@@ -38,6 +38,13 @@ class EmployeeAttendance(models.Model):
 
     month = fields.Integer("Tháng", compute="_get_month")
 
+    color = fields.Selection([
+            ('red', 'Red'),
+            ('green', 'Green'),
+        ],
+        string="Màu", compute="_compute_color", default=None
+    )
+
     @api.depends('date')
     def _get_month(self):
         for r in self:
@@ -270,3 +277,19 @@ class EmployeeAttendance(models.Model):
                 r.weekday = str(weekday)
             else:
                 r.weekday = None
+
+    # tính màu cho danh sách
+    @api.depends('date','check_in','check_out', 'minutes_late', 'minutes_early')
+    def _compute_color(self):
+        for r in self:
+            weekday = r.date.weekday()
+            if weekday == 6 or (weekday == 5 and r.date.isocalendar()[1] % 2 == 1):
+                r.color = None
+            else:
+                if r.check_in and r.check_out:
+                    if r.minutes_late > 0.5 or r.minutes_early > 0.5:
+                        r.color = 'red'
+                    else:
+                        r.color = 'green'
+                else:
+                    r.color = 'red'
