@@ -8,8 +8,8 @@
                 <group>
                     <field name="department"/>
                     <field name="company"/>
-                    <field name="start_date"/>
-                    <field name="end_date"/>
+                    <field name="month"/>
+                    <field name="year"/>
                 </group>
                 <group>
                     <button name="action_confirm" string="Chốt công" type="object" class="btn-primary"/>

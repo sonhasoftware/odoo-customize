@@ -36,7 +36,62 @@ class EmployeeAttendance(models.Model):
     minutes_late = fields.Float("Số phút đi muộn", compute="_get_minute_late_early")
     minutes_early = fields.Float("Số phút về sớm", compute="_get_minute_late_early")
 
-    month = fields.Integer("Tháng", compute="_get_month")
+    month = fields.Integer("Tháng", compute="_get_month_year")
+    year = fields.Integer("Năm", compute="_get_month_year")
+    over_time = fields.Float("Giờ làm thêm", compute="get_hours_reinforcement")
+    leave = fields.Float("Nghỉ phép", compute="_get_time_off")
+    compensatory = fields.Float("Nghỉ bù", compute="_get_time_off")
+    public_leave = fields.Float("Nghỉ lễ", cumpute="_get_time_off")
+
+    @api.depends('employee_id', 'date')
+    def _get_time_off(self):
+        for r in self:
+            on_leave = 0
+            on_compensatory = 0
+
+            # Lấy danh sách word slips liên quan
+            word_slips = self.env['word.slip'].sudo().search([
+                ('employee_id', '=', r.employee_id.id),
+                ('from_date', '<=', r.date),
+                ('to_date', '>=', r.date)
+            ])
+
+            for slip in word_slips:
+                type_name = slip.word_slip.type.name.lower()  # Đưa về chữ thường để tránh lỗi so sánh
+                if type_name == "nghỉ phép":
+                    if slip.start_time == slip.end_time:
+                        on_leave = 0.5
+                    elif slip.start_time == 'first_half' and slip.end_time == 'second_half':
+                        on_leave = 1
+                elif type_name == "nghỉ bù":
+                    if slip.start_time == slip.end_time:
+                        on_compensatory = 0.5
+                    elif slip.start_time == 'first_half' and slip.end_time == 'second_half':
+                        on_compensatory = 1
+
+            # Gán giá trị vào bản ghi
+            r.leave = on_leave
+            r.compensatory = on_compensatory
+
+            public_leave = self.env['resource.calendar.leaves'].sudo().search([])
+            public_leave = public_leave.filtered(
+                lambda x: x.date_from.date() <= r.date <= x.date_to.date())
+            if public_leave:
+                r.public_leave = 1
+            else:
+                r.public_leave = 0
+
+    @api.depends('employee_id', 'date')
+    def get_hours_reinforcement(self):
+        for record in self:
+            overtime = 0
+            ot = self.env['register.overtime'].sudo().search([('employee_id', '=', record.employee_id.id),
+                                                              ('start_date', '<=', record.date),
+                                                              ('end_date', '>=', record.date)])
+            if ot:
+                for r in ot:
+                    overtime += r.end_time - r.start_time
+            record.over_time = overtime
 
     color = fields.Selection([
             ('red', 'Red'),
@@ -46,12 +101,15 @@ class EmployeeAttendance(models.Model):
     )
 
     @api.depends('date')
-    def _get_month(self):
+    def _get_month_year(self):
         for r in self:
             if r.date:
                 r.month = r.date.month
+                r.year = r.date.year
             else:
                 r.month = None
+                r.year = None
+
 
     @api.depends('employee_id')
     def _get_department_id(self):
@@ -247,19 +305,19 @@ class EmployeeAttendance(models.Model):
     #Lấy thông tin ngày công của nhân viên
     def _get_work_day(self):
         for r in self:
-            work_leave = self.env['word.slip'].sudo().search([
-                ('employee_id', '=', r.employee_id.id),
-                ('from_date', '<=', r.date),
-                ('to_date', '>=', r.date),
-            ])
-            work_leave = work_leave.filtered(lambda x: x.type.paid == True)
-            public_holiday = self.env['resource.calendar.leaves'].sudo().search([])
-            public_holiday = public_holiday.filtered(lambda x: x.date_from.date() <= r.date <= x.date_to.date())
-            if public_holiday:
-                r.work_day = 1
-            elif work_leave:
-                r.work_day = 1
-            elif r.check_in and r.check_out:
+            # work_leave = self.env['word.slip'].sudo().search([
+            #     ('employee_id', '=', r.employee_id.id),
+            #     ('from_date', '<=', r.date),
+            #     ('to_date', '>=', r.date),
+            # ])
+            # work_leave = work_leave.filtered(lambda x: x.type.paid == True)
+            # public_holiday = self.env['resource.calendar.leaves'].sudo().search([])
+            # public_holiday = public_holiday.filtered(lambda x: x.date_from.date() <= r.date <= x.date_to.date())
+            # if public_holiday:
+            #     r.work_day = 1
+            # elif work_leave:
+            #     r.work_day = 1
+            if r.check_in and r.check_out:
                 r.work_day = 1
             elif r.check_in and not r.check_out:
                 r.work_day = 0.5
