@@ -22,6 +22,18 @@
         </field>
     </record>
 
+    <record id="view_department_form_inherit" model="ir.ui.view">
+        <field name="name">hr.department.form.inherit</field>
+        <field name="model">hr.department</field>
+        <field name="inherit_id" ref="hr.view_department_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='color']" position="after">
+                <field name="send_mail" string="Gửi mail"/>
+            </xpath>
+        </field>
+    </record>
+
+
     <record id="hr.hr_department_kanban_action" model="ir.actions.act_window">
         <field name="context">{'search_default_group_parent_id': 1}</field>
         <field name="view_mode">hierarchy,tree,form</field>

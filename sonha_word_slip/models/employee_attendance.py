@@ -10,6 +10,15 @@ class EmployeeAttendance(models.Model):
     employee_id = fields.Many2one('hr.employee', string='Nhân viên', required=True, store=True)
     department_id = fields.Many2one('hr.department', string='Phòng ban', compute="_get_department_id", store=True)
     date = fields.Date(string='Ngày', required=True, store=True)
+    weekday = fields.Selection([
+        ('0', 'Thứ hai'),
+        ('1', 'Thứ ba'),
+        ('2', 'Thứ tư'),
+        ('3', 'Thứ năm'),
+        ('4', 'Thứ sáu'),
+        ('5', 'Thứ bảy'),
+        ('6', 'Chủ nhật')
+    ], string="Thứ", compute="_compute_weekday", store=True)
     check_in = fields.Datetime(string='Giờ vào', compute="_get_check_in_out")
     check_out = fields.Datetime(string='Giờ ra', compute="_get_check_in_out")
     duration = fields.Float("Giờ công", compute="_get_duration")
@@ -28,6 +37,13 @@ class EmployeeAttendance(models.Model):
     minutes_early = fields.Float("Số phút về sớm", compute="_get_minute_late_early")
 
     month = fields.Integer("Tháng", compute="_get_month")
+
+    color = fields.Selection([
+            ('red', 'Red'),
+            ('green', 'Green'),
+        ],
+        string="Màu", compute="_compute_color"
+    )
 
     @api.depends('date')
     def _get_month(self):
@@ -251,3 +267,27 @@ class EmployeeAttendance(models.Model):
                 r.work_day = 0.5
             else:
                 r.work_day = 0
+
+    # tính thứ cho ngày
+    @api.depends('date')
+    def _compute_weekday(self):
+        for r in self:
+            if r.date:
+                weekday = r.date.weekday()
+                r.weekday = str(weekday)
+            else:
+                r.weekday = None
+
+    # tính màu cho danh sách
+    @api.depends('date','check_in','check_out', 'minutes_late', 'minutes_early')
+    def _compute_color(self):
+        for r in self:
+            weekday = r.date.weekday()
+            week_number = r.date.isocalendar()[1]
+
+            if weekday == 6 or (weekday == 5 and week_number % 2 == 1):
+                r.color = None
+            elif not (r.check_in and r.check_out) or r.minutes_late != 0 or r.minutes_early != 0:
+                r.color = 'red'
+            else:
+                r.color = 'green'
