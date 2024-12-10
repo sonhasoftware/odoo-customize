@@ -116,3 +116,40 @@ class DataChart(http.Controller):
         if data_result_amount:
             result_amount = (sum(data_result_amount) / len(data_result_amount)) * 100
         return result_amount
+
+    @http.route('/kpi/form', type='http', auth='public', website=True)
+    def kpi_form(self, **kwargs):
+        department_id = kwargs.get('department_id')
+        month = kwargs.get('month')
+        year = kwargs.get('year')
+        kpi_records = request.env['report.kpi.month'].search([('department_id.id', '=', department_id),
+                                                             ('year', '=', year)])
+        if month:
+            kpi_records = kpi_records.filtered(lambda x: x.start_date.month == month)
+        return request.render('sonha_kpi.report_kpi_month_rel_template', {
+            'kpi_records': kpi_records
+        })
+
+    @http.route('/kpi/update_ajax', type='json', auth='none', methods=['POST'], csrf=False)
+    def update_kpi_ajax(self, **kwargs):
+        data = request.httprequest.get_json()
+        for item in data["kpi_data"]:
+            kpi_id = item["kpi_id"]
+            field_name = item["field_name"]
+            field_value = item["field_value"]
+            if(str(field_value).isdigit()):
+                a = float(field_value)
+                field_value = a / 100
+            kpi_record = request.env['sonha.kpi.month'].sudo().search([('id', '=', kpi_id)])
+            if kpi_record and field_name:
+                kpi_record.sudo().write({field_name: field_value})
+            kpi_report = request.env['report.kpi.month'].sudo().search([('small_items_each_month.id', '=', kpi_id)])
+            if kpi_report.status == 'draft':
+                kpi_report.sudo().write({'status': 'approved'})
+            #     try:
+            #         kpi_record.sudo().write({field_name: field_value})
+            #         return {'status': 'success', 'message': 'Cập nhật thành công'}
+            #     except Exception as e:
+            #         return {'status': 'error', 'message': str(e)}
+            # return {'status': 'error', 'message': 'Không tìm thấy bản ghi hoặc thông tin không hợp lệ'}
+
