@@ -1,6 +1,6 @@
 from dateutil.relativedelta import relativedelta
 from odoo import api, fields, models
-from datetime import datetime, time, timedelta
+from datetime import datetime, time, timedelta, date
 
 
 class EmployeeAttendance(models.Model):
@@ -281,13 +281,17 @@ class EmployeeAttendance(models.Model):
     # tính màu cho danh sách
     @api.depends('date','check_in','check_out', 'minutes_late', 'minutes_early')
     def _compute_color(self):
+        today = date.today()
         for r in self:
-            weekday = r.date.weekday()
-            week_number = r.date.isocalendar()[1]
+            r.color = None
+            
+            if r.date and r.date <= today:
+                weekday = r.date.weekday()
+                week_number = r.date.isocalendar()[1]
 
-            if weekday == 6 or (weekday == 5 and week_number % 2 == 1):
-                r.color = None
-            elif not (r.check_in and r.check_out) or r.minutes_late != 0 or r.minutes_early != 0:
-                r.color = 'red'
-            else:
-                r.color = 'green'
+                if weekday == 6 or (weekday == 5 and week_number % 2 == 1):
+                    r.color = None
+                elif not (r.check_in and r.check_out) or r.minutes_late != 0 or r.minutes_early != 0:
+                    r.color = 'red'
+                else:
+                    r.color = 'green'
