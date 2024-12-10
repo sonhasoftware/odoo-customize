@@ -11,3 +11,4 @@ from . import level_reward_config
 from . import state_reward_config
 from . import title_reward_config
 from . import object_reward_config
+from . import hr_department

@@ -32,6 +32,7 @@ class ConfigShift(models.Model):
     note = fields.Char("Ghi chú")
     contract = fields.Integer("Ca khoán")
     company_id = fields.Many2one('res.company', string="Công ty")
+    is_office_hour = fields.Boolean(string="Hành chính")
 
     night = fields.Boolean("Check ca ngày/đêm", default=False, compute="check_shift_night")
 
