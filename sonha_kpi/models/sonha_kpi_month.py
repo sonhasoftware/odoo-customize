@@ -175,6 +175,7 @@ class SonHaKPIMonth(models.Model):
     def unlink(self):
         for r in self:
             self.env['sonha.kpi.result.month'].search([('kpi_month', '=', r.id)]).unlink()
+            self.env['report.kpi.month'].search([('sonha_kpi', '=', r.id)]).sudo().unlink()
         return super(SonHaKPIMonth, self).unlink()
 
     def create_report_month(self, record):
@@ -190,6 +191,7 @@ class SonHaKPIMonth(models.Model):
             'dv_matter_work': record.dv_matter_work or '',
             'dv_comply_regulations': record.dv_comply_regulations or '',
             'dv_initiative': record.dv_initiative or '',
-            'dv_description': record.dv_description or ''
+            'dv_description': record.dv_description or '',
+            'status': 'draft'
         }
         self.env['report.kpi.month'].sudo().create(vals)

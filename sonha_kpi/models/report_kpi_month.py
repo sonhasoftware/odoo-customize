@@ -24,4 +24,5 @@ class ReportKpiMonth(models.Model):
     tq_initiative = fields.Float("Cải tiến, đề xuất, sáng kiến", default=0)
     tq_description = fields.Text("Nhận xét chung của cấp có thẩm quyền")
     sonha_kpi = fields.Many2one('company.sonha.kpi')
-
+    status = fields.Selection([('draft', 'Nháp'),
+                               ('approved', 'Đã Duyệt')], string="Trạng thái", default='draft')
