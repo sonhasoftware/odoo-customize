@@ -8,6 +8,8 @@
                 <header>
                     <field name="button_confirm" invisible="1"/>
                     <field name="button_done" invisible="1"/>
+                    <field name="check_sent" invisible="1"/>
+                    <button name="action_sent" string="Gửi duyệt" type="object" class="oe_highlight" invisible="check_sent != True"/>
                     <button name="action_confirm" string="Duyệt" type="object" class="oe_highlight" invisible="button_confirm != True"/>
                     <button name="action_approval" string="Duyệt" type="object" class="oe_highlight" invisible="button_done != True"/>
                     <field name="check_level" invisible="1"/>
@@ -20,9 +22,9 @@
                     <group>
                         <field name="code"/>
                         <field name="status" invisible="1"/>
-                        <field name="department" readonly="status != 'draft'" options="{'no_create': True, 'no_open': True}"/>
-                        <field name="type" readonly="status != 'draft'" required = "1" options="{'no_create': True, 'no_open': True}"/>
-                        <field name="word_slip_id" readonly="status != 'draft'">
+                        <field name="department" readonly="status != 'sent'" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="type" readonly="status != 'sent'" required = "1" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="word_slip_id" readonly="status != 'sent'">
                             <tree string="Loai nghỉ" editable="bottom">
                                 <field name="from_date"/>
                                 <field name="to_date"/>
@@ -33,7 +35,7 @@
                                 <field name="reason"/>
                             </tree>
                         </field>
-                        <field name="employee_id" domain="[('department_id', '=', department)]" readonly="status != 'draft'" required = "1" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="employee_id" domain="[('department_id', '=', department)]" readonly="status != 'sent'" required = "1" options="{'no_create': True, 'no_open': True}"/>
                     </group>
                 </sheet>
                 <div class="oe_chatter">
@@ -66,10 +68,22 @@
             <search string="Search Phân Ca">
                 <field name="employee_id" string="Nhân viên"/>
                 <field name="department" string="Phòng ban"/>
-                <filter string="Trạng thái: Chờ duyệt" name="state_draft" domain="[('status', '=', 'draft')]" />
+                <filter string="Trạng thái: Chờ duyệt" name="state_draft" domain="[('status', 'in', ['draft', 'sent'])]" />
             </search>
         </field>
     </record>
+
+    <record id="action_custom_mark_as_done" model="ir.actions.server">
+        <field name="name">Duyệt nhiều</field>
+        <field name="model_id" ref="model_form_word_slip"/>
+        <field name="binding_model_id" ref="model_form_word_slip"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+            action = records.multi_approval()
+        </field>
+    </record>
+
 
     <record id="action_form_word_slip" model="ir.actions.act_window">
         <field name="name">Đơn từ</field>
