@@ -192,4 +192,4 @@ class SonHaKPIMonth(models.Model):
             'dv_initiative': record.dv_initiative or '',
             'dv_description': record.dv_description or ''
         }
-        self.env['report.kpi.month'].create(vals)
+        self.env['report.kpi.month'].sudo().create(vals)
