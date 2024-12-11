@@ -28,29 +28,74 @@ class FormWordSlip(models.Model):
     word_slip_id = fields.One2many('word.slip', 'word_slip', string="Ngày", tracking=True)
     description = fields.Text("Lý do", tracking=True)
     status = fields.Selection([
+        ('sent', 'Nháp'),
         ('draft', 'Chờ duyệt'),
         ('done', 'Đã duyệt'),
-    ], string='Trạng thái', default='draft')
+    ], string='Trạng thái', default='sent')
     state_ids = fields.Many2many('approval.state', 'form_word_slip_rel', 'form_word_slip', 'states_id', string="Trạng thái")
     day_duration = fields.Float("Khoảng cách ngày")
     employee_confirm = fields.Many2one('hr.employee', string="Người xác nhận")
     employee_approval = fields.Many2one('hr.employee', string="Người duyệt")
     status_lv2 = fields.Selection([
+        ('sent', 'Nháp'),
         ('draft', 'Chờ duyệt'),
         ('confirm', 'Chờ duyệt'),
         ('done', 'Đã duyệt'),
         ('cancel', 'Hủy'),
-    ], string='Trạng thái', default='draft', tracking=True)
+    ], string='Trạng thái', default='sent', tracking=True)
     status_lv1 = fields.Selection([
+        ('sent', 'Nháp'),
         ('draft', 'Chờ duyệt'),
         ('done', 'Đã duyệt'),
         ('cancel', 'Hủy'),
-    ], string='Trạng thái', default='draft', tracking=True)
+    ], string='Trạng thái', default='sent', tracking=True)
     check_level = fields.Boolean("Check trạng thái theo cấp độ", default=False)
     button_confirm = fields.Boolean("Check button xác nhận", compute="get_button_confirm")
     button_done = fields.Boolean("Check button duyệt", compute="get_button_done")
     complete_approval_lv = fields.Boolean("Hoàn duyệt", compute="get_complete_approval")
     code = fields.Char("Mã đơn", compute="get_code_slip", required=False, readonly=True)
+    check_sent = fields.Boolean("Check gửi duyệt", default=False, compute="_get_button_sent")
+    record_url = fields.Char(string="Record URL", compute="_compute_record_url")
+
+    @api.depends('employee_id')
+    def _compute_record_url(self):
+        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+        menu_id = self.env.ref('sonha_word_slip.menu_form_word_slip').id
+        action_id = self.env.ref('sonha_word_slip.action_form_word_slip').id
+
+        for record in self:
+            record.record_url = (
+                f"{base_url}/web#id={record.id}"
+                f"&model=form.word.slip"
+                f"&view_type=form"
+                f"&menu_id={menu_id}"
+                f"&action={action_id}"
+            )
+
+    @api.depends('employee_id', 'status')
+    def _get_button_sent(self):
+        for r in self:
+            if (r.employee_id.user_id.id == self.env.user.id or r.create_uid.id == self.env.user.id) and r.status == 'sent':
+                r.check_sent = True
+            else:
+                r.check_sent = False
+
+    def multi_approval(self):
+        for r in self:
+            r.status = 'done'
+            r.status_lv1 = 'done'
+            r.status_lv2 = 'done'
+
+    def action_sent(self):
+        for r in self:
+            r.status = 'draft'
+            r.status_lv1 = 'draft'
+            r.status_lv2 = 'draft'
+            if r.check_level != True:
+                template = self.env.ref('sonha_word_slip.template_sent_mail_manager_slip')
+            else:
+                template = self.env.ref('sonha_word_slip.template_sent_mail_manager_slip_lv2')
+            template.send_mail(r.id, force_send=True)
 
     @api.depends('employee_id', 'type')
     def get_code_slip(self):
@@ -99,6 +144,8 @@ class FormWordSlip(models.Model):
             if r.employee_confirm.user_id.id == self.env.user.id:
                 r.status_lv2 = 'confirm'
                 r.button_confirm = False
+                template = self.env.ref('sonha_word_slip.template_sent_mail_manager_slip')
+                template.send_mail(r.id, force_send=True)
             else:
                 raise ValidationError("Bạn không có quyền thực hiện hành động này")
 

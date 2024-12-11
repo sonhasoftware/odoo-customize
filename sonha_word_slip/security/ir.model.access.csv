@@ -12,9 +12,9 @@ access_config_shift_hr,config.shift.hr,model_config_shift,sonha_employee.group_h
 access_config_shift_manager,config.shift.manager,model_config_shift,sonha_employee.group_manager_employee,1,1,1,0
 access_config_shift_back_up,config.shift.back.up,model_config_shift,sonha_employee.group_back_up_employee,1,1,1,1
 
-access_form_word_slip_user,form.word.slip.user,model_form_word_slip,sonha_employee.group_user_employee,1,1,1,0
-access_form_word_slip_dl,form.word.slip.dl,model_form_word_slip,sonha_employee.group_dl_employee,1,1,1,0
-access_form_word_slip_hr,form.word.slip.hr,model_form_word_slip,sonha_employee.group_hr_employee,1,1,1,0
+access_form_word_slip_user,form.word.slip.user,model_form_word_slip,sonha_employee.group_user_employee,1,1,1,1
+access_form_word_slip_dl,form.word.slip.dl,model_form_word_slip,sonha_employee.group_dl_employee,1,1,1,1
+access_form_word_slip_hr,form.word.slip.hr,model_form_word_slip,sonha_employee.group_hr_employee,1,1,1,1
 access_form_word_slip_manager,form.word.slip.manager,model_form_word_slip,sonha_employee.group_manager_employee,1,1,1,0
 access_form_word_slip_back_up,form.word.slip.back.up,model_form_word_slip,sonha_employee.group_back_up_employee,1,1,1,1
 

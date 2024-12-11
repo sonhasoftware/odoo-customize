@@ -11,5 +11,16 @@
             <field name="numbercall">-1</field>
             <field name="doall">True</field>
         </record>
+
+        <record id="ir_cron_calculate_synthetic" model="ir.cron">
+            <field name="name">Bảng công tổng hợp</field>
+            <field name="model_id" ref="model_synthetic_work"/>
+            <field name="state">code</field>
+            <field name="code">model.create_synthetic()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">months</field>
+            <field name="numbercall">-1</field>
+            <field name="doall">True</field>
+        </record>
     </data>
 </odoo>
