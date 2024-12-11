@@ -9,7 +9,7 @@ class SyntheticWork(models.Model):
 
     employee_id = fields.Many2one('hr.employee', string="Tên nhân viên")
     employee_code = fields.Char("Mã nhân viên", compute="_get_employee_code")
-    department_id = fields.Many2one('hr.department', string="Phòng ban", compute="_get_department", store=True)
+    department_id = fields.Many2one('hr.department', string="Phòng ban", store=True)
 
     workday = fields.Float("Ngày công")
     hours_reinforcement = fields.Float("Giờ tăng cường", compute="get_date_work")
@@ -45,14 +45,6 @@ class SyntheticWork(models.Model):
     year = fields.Integer("Năm", compute="get_this_month")
 
     key = fields.Boolean("Khóa công", default=False)
-
-    @api.depends('employee_id')
-    def _get_department(self):
-        for r in self:
-            if r.employee_id.department_id:
-                r.department_id = r.employee_id.department_id.id
-            else:
-                r.department_id = None
 
     @api.depends('employee_id', 'month')
     def get_date_work(self):
@@ -111,6 +103,7 @@ class SyntheticWork(models.Model):
             if not synthetic:
                 self.env['synthetic.work'].create({
                     'employee_id': employee.id,
+                    'department_id': employee.department_id.id,
                     'start_date': str(start_date),
                     'end_date': str(end_date),
                 })
