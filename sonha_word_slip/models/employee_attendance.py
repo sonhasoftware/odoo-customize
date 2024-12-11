@@ -36,7 +36,7 @@ class EmployeeAttendance(models.Model):
     minutes_late = fields.Float("Số phút đi muộn", compute="_get_minute_late_early")
     minutes_early = fields.Float("Số phút về sớm", compute="_get_minute_late_early")
 
-    month = fields.Integer("Tháng", compute="_get_month_year")
+    month = fields.Integer("Tháng", compute="_get_month_year", store=True)
     year = fields.Integer("Năm", compute="_get_month_year")
     over_time = fields.Float("Giờ làm thêm", compute="get_hours_reinforcement")
     leave = fields.Float("Nghỉ phép", compute="_get_time_off")
