@@ -342,14 +342,25 @@ class EmployeeAttendance(models.Model):
         today = date.today()
         for r in self:
             r.color = None
-            
+
             if r.date and r.date <= today:
                 weekday = r.date.weekday()
                 week_number = r.date.isocalendar()[1]
 
                 if weekday == 6 or (weekday == 5 and week_number % 2 == 1):
                     r.color = None
-                elif not (r.check_in and r.check_out) or r.minutes_late != 0 or r.minutes_early != 0:
+                    continue
+
+                total_leave = r.leave + r.compensatory + r.public_leave
+
+                if not r.check_in and not r.check_out:
+                    r.color = 'green' if total_leave >= 1 else 'red'
+                    continue
+
+                if not r.check_in or not r.check_out:
                     r.color = 'red'
-                else:
+                    continue
+
+                if r.minutes_late == 0 and r.minutes_early == 0:
                     r.color = 'green'
+                    continue
