@@ -351,16 +351,23 @@ class EmployeeAttendance(models.Model):
                     r.color = None
                     continue
 
-                total_leave = r.leave + r.compensatory + r.public_leave
+                on_leave = 0
+                word_slips = self.env['word.slip'].sudo().search([
+                    ('employee_id', '=', r.employee_id.id),
+                    ('from_date', '<=', r.date),
+                    ('to_date', '>=', r.date)
+                ])
+                word_slips = word_slips.filtered(lambda x: x.type.date_and_time == "date")
+                if word_slips:
+                    for slip in word_slips:
+                        if slip.start_time == slip.end_time:
+                            on_leave += 0.5
+                        elif slip.start_time == 'first_half' and slip.end_time == 'second_half':
+                            on_leave += 1
 
-                if not r.check_in and not r.check_out:
-                    r.color = 'green' if total_leave >= 1 else 'red'
-                    continue
+                tong_cong = on_leave + r.public_leave + r.work_day
 
-                if not r.check_in or not r.check_out:
-                    r.color = 'red'
-                    continue
-
-                if r.minutes_late == 0 and r.minutes_early == 0:
+                if tong_cong >= 1 and r.minutes_late == 0 and r.minutes_early == 0:
                     r.color = 'green'
-                    continue
+                else:
+                    r.color = 'red'
