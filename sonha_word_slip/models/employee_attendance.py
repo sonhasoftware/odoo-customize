@@ -1,6 +1,6 @@
 from dateutil.relativedelta import relativedelta
 from odoo import api, fields, models
-from datetime import datetime, time, timedelta
+from datetime import datetime, time, timedelta, date
 
 
 class EmployeeAttendance(models.Model):
@@ -339,13 +339,35 @@ class EmployeeAttendance(models.Model):
     # tính màu cho danh sách
     @api.depends('date','check_in','check_out', 'minutes_late', 'minutes_early')
     def _compute_color(self):
+        today = date.today()
         for r in self:
-            weekday = r.date.weekday()
-            week_number = r.date.isocalendar()[1]
+            r.color = None
 
-            if weekday == 6 or (weekday == 5 and week_number % 2 == 1):
-                r.color = None
-            elif not (r.check_in and r.check_out) or r.minutes_late != 0 or r.minutes_early != 0:
-                r.color = 'red'
-            else:
-                r.color = 'green'
+            if r.date and r.date <= today:
+                weekday = r.date.weekday()
+                week_number = r.date.isocalendar()[1]
+
+                if weekday == 6 or (weekday == 5 and week_number % 2 == 1):
+                    r.color = None
+                    continue
+
+                on_leave = 0
+                word_slips = self.env['word.slip'].sudo().search([
+                    ('employee_id', '=', r.employee_id.id),
+                    ('from_date', '<=', r.date),
+                    ('to_date', '>=', r.date)
+                ])
+                word_slips = word_slips.filtered(lambda x: x.type.date_and_time == "date")
+                if word_slips:
+                    for slip in word_slips:
+                        if slip.start_time == slip.end_time:
+                            on_leave += 0.5
+                        elif slip.start_time == 'first_half' and slip.end_time == 'second_half':
+                            on_leave += 1
+
+                tong_cong = on_leave + r.public_leave + r.work_day
+
+                if tong_cong >= 1 and r.minutes_late == 0 and r.minutes_early == 0:
+                    r.color = 'green'
+                else:
+                    r.color = 'red'
