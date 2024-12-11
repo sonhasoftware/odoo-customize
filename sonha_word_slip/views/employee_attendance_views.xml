@@ -17,6 +17,9 @@
                 <field name="minutes_late"/>
                 <field name="minutes_early"/>
                 <field name="work_day"/>
+                <field name="over_time"/>
+                <field name="leave"/>
+                <field name="compensatory"/>
                 <field name="month" column_invisible="True"/>
                 <field name="color" column_invisible="True"/>
             </tree>

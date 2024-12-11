@@ -6,7 +6,7 @@
     'summary': 'Đơn từ Sơn Hà',
     'website': 'https://',
     'description': "Đơn từ Sơn Hà",
-    'depends': ['base', 'hr', 'web'],
+    'depends': ['base', 'hr', 'web', 'resource', 'hr_holidays'],
     'data': [
         'security/security.xml',
         'security/ir.model.access.csv',
@@ -28,6 +28,7 @@
         'wizard/copy_public_leaves_views.xml',
         'views/menu_views.xml',
         'data/cron_job.xml',
+        'data/template_mail.xml',
     ],
     'assets': {
         'web.assets_backend': [
