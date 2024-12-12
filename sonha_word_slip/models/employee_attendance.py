@@ -1,8 +1,6 @@
 from dateutil.relativedelta import relativedelta
 from odoo import api, fields, models
 from datetime import datetime, time, timedelta, date
-import logging
-_logger = logging.getLogger(__name__)
 
 
 class EmployeeAttendance(models.Model):
@@ -150,25 +148,12 @@ class EmployeeAttendance(models.Model):
                                                                 ('end_date', '>=', r.date)])
             shift_re = shift_re.filtered(lambda x: r.employee_id.id in x.employee_id.ids)
             if shift:
-                _logger.info(f"Shift: {shift}")
-                if shift.shift:
-                    r.shift = shift.shift.id
-                    _logger.info(f"Assigned shift: {shift.shift.id}")
+                r.shift = shift.shift.id
             elif shift_re:
-                _logger.info(f"Shift Re: {shift_re}")
-                if shift_re[0] and shift_re[0].shift:
-                    r.shift = shift_re[0].shift.id
-                    _logger.info(f"Assigned shift_re: {shift_re[0].shift.id}")
-            elif r.employee_id:
-                _logger.info(f"Employee: {r.employee_id}")
-                if r.employee_id.shift:
-                    r.shift = r.employee_id.shift.id
-                    _logger.info(f"Assigned employee_id.shift: {r.employee_id.shift.id}")
-                else:
-                    _logger.warning("Employee ID has no shift.")
-                    r.shift = None
+                r.shift = shift_re[0].shift.id
+            # elif r.employee_id and r.employee_id.shift.id:
+            #     r.shift = r.employee_id.shift.id
             else:
-                _logger.warning("No valid shift found.")
                 r.shift = None
 
     #Lấy thông tin giờ phải check-in và giờ check-out của nhân viên
