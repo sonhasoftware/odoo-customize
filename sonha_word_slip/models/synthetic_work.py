@@ -50,8 +50,8 @@ class SyntheticWork(models.Model):
     def get_date_work(self):
         for r in self:
             work = self.env['employee.attendance'].sudo().search([('employee_id', '=', r.employee_id.id),
-                                                                  ('month', '=', r.month),
-                                                                  ('year', '=', r.year)])
+                                                                  ('date', '>=', r.start_date),
+                                                                  ('date', '<=', r.end_date)])
             if work:
                 r.date_work = sum(work.mapped('work_day'))
                 r.on_leave = sum(work.mapped('leave'))
@@ -92,20 +92,20 @@ class SyntheticWork(models.Model):
             else:
                 r.employee_code = None
 
-    # def create_synthetic(self):
-    #     employees = self.env['hr.employee'].search([('id', '!=', 1)])
-    #     current_date = datetime.now()
-    #     start_date = current_date.replace(day=1) + timedelta(hours=7)
-    #     end_date = (start_date + relativedelta(months=1)) - timedelta(days=1)
-    #     for employee in employees:
-    #         synthetic = self.env['synthetic.work'].sudo().search([('month', '=', current_date.month),
-    #                                                               ('year', '=', current_date.year),
-    #                                                               ('employee_id', '=', employee.id)])
-    #         if not synthetic:
-    #             self.env['synthetic.work'].create({
-    #                 'employee_id': employee.id,
-    #                 'department_id': employee.department_id.id,
-    #                 'start_date': str(start_date),
-    #                 'end_date': str(end_date),
-    #             })
+    def create_synthetic(self):
+        employees = self.env['hr.employee'].search([('id', '!=', 1)])
+        current_date = datetime.now()
+        start_date = current_date.replace(day=1) + timedelta(hours=7)
+        end_date = (start_date + relativedelta(months=1)) - timedelta(days=1)
+        for employee in employees:
+            synthetic = self.env['synthetic.work'].sudo().search([('month', '=', current_date.month),
+                                                                  ('year', '=', current_date.year),
+                                                                  ('employee_id', '=', employee.id)])
+            if not synthetic:
+                self.env['synthetic.work'].create({
+                    'employee_id': employee.id,
+                    'department_id': employee.department_id.id,
+                    'start_date': str(start_date),
+                    'end_date': str(end_date),
+                })
 
