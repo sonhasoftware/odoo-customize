@@ -241,7 +241,7 @@ class EmployeeAttendance(models.Model):
                             ci = datetime.combine(r.date, time(0, 0, 0))
                         if not r.check_in and r.time_check_in and r.check_no_in and r.time_check_in.time() <= ci.time() <= r.check_no_in.time():
                             r.check_in = ci
-                        elif r.check_in.time() > ci.time() and r.time_check_in and r.check_no_in and r.time_check_in.time() <= ci.time() <= r.check_no_in.time():
+                        elif r.check_in and r.check_in.time() > ci.time() and r.time_check_in and r.check_no_in and r.time_check_in.time() <= ci.time() <= r.check_no_in.time():
                             r.check_in = ci
                         elif r.check_in and r.check_in.time() < ci.time():
                             r.check_in = r.check_in
@@ -265,7 +265,7 @@ class EmployeeAttendance(models.Model):
                         # Gán giá trị check-out
                         if not r.check_out and r.check_no_out and r.time_check_out and r.check_no_out.time() <= co.time() <= r.time_check_out.time():
                             r.check_out = co
-                        elif r.check_out.time() < co.time() and r.check_no_out and r.time_check_out and r.check_no_out.time() <= co.time() <= r.time_check_out.time():
+                        elif r.check_out and r.check_out.time() < co.time() and r.check_no_out and r.time_check_out and r.check_no_out.time() <= co.time() <= r.time_check_out.time():
                             r.check_out = co
                         elif r.check_out and r.check_out.time() > co.time():
                             r.check_out = r.check_out
