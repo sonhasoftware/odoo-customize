@@ -32,16 +32,16 @@ class EmployeeAttendance(models.Model):
                              ('no_out', "Không có check out")],
                             string="Ghi chú",
                             compute="_get_attendance")
-    work_day = fields.Float("Ngày công", compute="_get_work_day")
-    minutes_late = fields.Float("Số phút đi muộn", compute="_get_minute_late_early")
-    minutes_early = fields.Float("Số phút về sớm", compute="_get_minute_late_early")
+    work_day = fields.Float("Ngày công", compute="_get_work_day", store=True)
+    minutes_late = fields.Float("Số phút đi muộn", compute="_get_minute_late_early", store=True)
+    minutes_early = fields.Float("Số phút về sớm", compute="_get_minute_late_early", store=True)
 
     month = fields.Integer("Tháng", compute="_get_month_year", store=True)
     year = fields.Integer("Năm", compute="_get_month_year")
-    over_time = fields.Float("Giờ làm thêm", compute="get_hours_reinforcement")
-    leave = fields.Float("Nghỉ phép", compute="_get_time_off")
-    compensatory = fields.Float("Nghỉ bù", compute="_get_time_off")
-    public_leave = fields.Float("Nghỉ lễ", cumpute="_get_time_off")
+    over_time = fields.Float("Giờ làm thêm", compute="get_hours_reinforcement", store=True)
+    leave = fields.Float("Nghỉ phép", compute="_get_time_off", store=True)
+    compensatory = fields.Float("Nghỉ bù", compute="_get_time_off", store=True)
+    public_leave = fields.Float("Nghỉ lễ", cumpute="_get_time_off", store=True)
 
     @api.depends('employee_id', 'date')
     def _get_time_off(self):
@@ -239,12 +239,14 @@ class EmployeeAttendance(models.Model):
                             ci = datetime.combine(r.date, time(hour, minute, 0))
                         else:
                             ci = datetime.combine(r.date, time(0, 0, 0))
-                        if not r.check_in or r.check_in.time() > ci.time():
+                        if not r.check_in and r.time_check_in.time() <= ci.time() <= r.check_no_in.time():
                             r.check_in = ci
-                        elif r.check_in.time() > ci.time():
+                        elif r.check_in.time() > ci.time() and r.time_check_in.time() <= ci.time() <= r.check_no_in.time():
                             r.check_in = ci
                         elif r.check_in.time() < ci.time():
                             r.check_in = r.check_in
+                        else:
+                            r.check_in = None
                     if in_out and in_out.time_from:
                         # Kiểm tra giá trị đầu vào
                         if not (isinstance(in_out.time_from, (int, float)) and in_out.time_from >= 0):
@@ -261,12 +263,14 @@ class EmployeeAttendance(models.Model):
                         co = datetime.combine(r.date, time(hour, minute, 0))
 
                         # Gán giá trị check-out
-                        if not r.check_out:
+                        if not r.check_out and r.check_no_out.time() <= co.time() <= r.time_check_out.time():
                             r.check_out = co
-                        elif r.check_out.time() < co.time():
+                        elif r.check_out.time() < co.time() and r.check_no_out.time() <= co.time() <= r.time_check_out.time():
                             r.check_out = co
                         elif r.check_out.time() > co.time():
                             r.check_out = r.check_out
+                        else:
+                            r.check_out = None
 
     #Lấy thông tin xem nhân viên có check-in hay check-out hay không
     def _get_attendance(self):
