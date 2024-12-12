@@ -151,7 +151,7 @@ class EmployeeAttendance(models.Model):
                 r.shift = shift.shift.id
             elif shift_re:
                 r.shift = shift_re[0].shift.id
-            elif r.employee_id.shift:
+            elif r.employee_id and r.employee_id.shift:
                 r.shift = r.employee_id.shift.id
             else:
                 r.shift = None
