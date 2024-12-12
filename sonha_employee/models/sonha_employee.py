@@ -50,7 +50,7 @@ class SonHaEmployee(models.Model):
     onboard = fields.Date('Ngày vào công ty', tracking=True)
     # type_contract = fields.Many2one('hr.contract', string="Loại hợp đồng")
     employee_code = fields.Char("Mã nhân viên", tracking=True)
-    shift = fields.Many2one('config.shift', string="Ca làm việc", required = True, tracking=True)
+    shift = fields.Many2one('config.shift', string="Ca làm việc", tracking=True)
 
     # các field page infomation page 1
     date_birthday = fields.Date("Ngày sinh", tracking=True)
