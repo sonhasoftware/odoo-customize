@@ -32,7 +32,7 @@ class EmployeeAttendance(models.Model):
                              ('no_out', "Không có check out")],
                             string="Ghi chú",
                             compute="_get_attendance")
-    work_day = fields.Float("Ngày công", compute="_get_work_day", store=True)
+    work_day = fields.Float("Ngày công", compute="_get_work_day")
     minutes_late = fields.Float("Số phút đi muộn", compute="_get_minute_late_early")
     minutes_early = fields.Float("Số phút về sớm", compute="_get_minute_late_early")
 
