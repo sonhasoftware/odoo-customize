@@ -1,7 +1,7 @@
 from dateutil.relativedelta import relativedelta
 
 from odoo import api, fields, models
-from datetime import datetime, time, timedelta
+from datetime import datetime, time, timedelta, date
 
 
 class SyntheticWork(models.Model):
@@ -46,28 +46,28 @@ class SyntheticWork(models.Model):
 
     key = fields.Boolean("Khóa công", default=False)
 
-    @api.depends('employee_id', 'month')
-    def get_date_work(self):
-        for r in self:
-            work = self.env['employee.attendance'].sudo().search([('employee_id', '=', r.employee_id.id),
-                                                                  ('date', '>=', r.start_date),
-                                                                  ('date', '<=', r.end_date)])
-            if work:
-                r.date_work = sum(work.mapped('work_day'))
-                r.on_leave = sum(work.mapped('leave'))
-                r.compensatory_leave = sum(work.mapped('compensatory'))
-                r.hours_reinforcement = sum(work.mapped('over_time'))
-                r.number_minutes_late = sum(work.mapped('minutes_late'))
-                r.number_minutes_early = sum(work.mapped('minutes_early'))
-                r.public_leave = sum(work.mapped('public_leave'))
-            else:
-                r.date_work = 0
-                r.on_leave = 0
-                r.compensatory_leave = 0
-                r.hours_reinforcement = 0
-                r.number_minutes_late = 0
-                r.number_minutes_early = 0
-                r.public_leave = 0
+    # @api.depends('employee_id', 'month')
+    # def get_date_work(self):
+    #     for r in self:
+    #         work = self.env['employee.attendance'].sudo().search([('employee_id', '=', r.employee_id.id),
+    #                                                               ('date', '>=', r.start_date),
+    #                                                               ('date', '<=', r.end_date)])
+    #         if work:
+    #             r.date_work = sum(work.mapped('work_day'))
+    #             r.on_leave = sum(work.mapped('leave'))
+    #             r.compensatory_leave = sum(work.mapped('compensatory'))
+    #             r.hours_reinforcement = sum(work.mapped('over_time'))
+    #             r.number_minutes_late = sum(work.mapped('minutes_late'))
+    #             r.number_minutes_early = sum(work.mapped('minutes_early'))
+    #             r.public_leave = sum(work.mapped('public_leave'))
+    #         else:
+    #             r.date_work = 0
+    #             r.on_leave = 0
+    #             r.compensatory_leave = 0
+    #             r.hours_reinforcement = 0
+    #             r.number_minutes_late = 0
+    #             r.number_minutes_early = 0
+    #             r.public_leave = 0
 
     @api.depends('on_leave', 'compensatory_leave', 'public_leave')
     def get_leave(self):
@@ -94,12 +94,11 @@ class SyntheticWork(models.Model):
 
     def create_synthetic(self):
         employees = self.env['hr.employee'].search([('id', '!=', 1)])
-        current_date = datetime.now()
-        start_date = current_date.replace(day=1) + timedelta(hours=7)
+        current_date = date.today()
+        start_date = current_date.replace(day=1)
         end_date = (start_date + relativedelta(months=1)) - timedelta(days=1)
         for employee in employees:
-            synthetic = self.env['synthetic.work'].sudo().search([('month', '=', current_date.month),
-                                                                  ('year', '=', current_date.year),
+            synthetic = self.env['synthetic.work'].sudo().search([('start_date', '=', start_date),
                                                                   ('employee_id', '=', employee.id)])
             if not synthetic:
                 self.env['synthetic.work'].create({
