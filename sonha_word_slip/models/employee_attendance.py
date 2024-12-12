@@ -212,65 +212,70 @@ class EmployeeAttendance(models.Model):
     @api.depends('employee_id', 'time_check_in', 'time_check_out', 'check_no_in', 'check_no_out')
     def _get_check_in_out(self):
         for r in self:
-            attendance_times = self.env['master.data.attendance'].sudo().search_read(
-                [('attendance_time', '>=', r.time_check_in),
-                 ('attendance_time', '<=', r.time_check_out),
-                 ('employee_id', '=', r.employee_id.id)],
-                ['attendance_time'],
-                order='attendance_time ASC'
-            )
+            if r.time_check_in and r.time_check_out:
+                attendance_times = self.env['master.data.attendance'].sudo().search_read(
+                    [('attendance_time', '>=', r.time_check_in),
+                     ('attendance_time', '<=', r.time_check_out),
+                     ('employee_id', '=', r.employee_id.id)],
+                    ['attendance_time'],
+                    order='attendance_time ASC'
+                )
 
-            # Phân tách attendance_times thành check_in và check_out
-            attendance_ci = [a['attendance_time'] for a in attendance_times if a['attendance_time'] <= r.check_no_in]
-            attendance_co = [a['attendance_time'] for a in attendance_times if a['attendance_time'] >= r.check_no_out]
+                # Phân tách attendance_times thành check_in và check_out
+                attendance_ci = [a['attendance_time'] for a in attendance_times if a['attendance_time'] <= r.check_no_in]
+                attendance_co = [a['attendance_time'] for a in attendance_times if a['attendance_time'] >= r.check_no_out]
 
-            r.check_in = attendance_ci[0] if attendance_ci else None
-            r.check_out = attendance_co[-1] if attendance_co else None
+                r.check_in = attendance_ci[0] if attendance_ci else None
+                r.check_out = attendance_co[-1] if attendance_co else None
 
-            in_outs = self.env['word.slip'].sudo().search([('employee_id', '=', r.employee_id.id),
-                                                          ('from_date', '<=', r.date),
-                                                          ('to_date', '>=', r.date)])
-            if in_outs:
-                for in_out in in_outs:
-                    if in_out and in_out.time_to:
-                        hour = int(in_out.time_to) - 7
-                        minute = int((in_out.time_to % 1) * 60)
-                        if 0 <= hour <= 23:
-                            ci = datetime.combine(r.date, time(hour, minute, 0))
-                        else:
-                            ci = datetime.combine(r.date, time(0, 0, 0))
-                        if not r.check_in and r.time_check_in.time() <= ci.time() <= r.check_no_in.time():
-                            r.check_in = ci
-                        elif r.check_in.time() > ci.time() and r.time_check_in.time() <= ci.time() <= r.check_no_in.time():
-                            r.check_in = ci
-                        elif r.check_in.time() < ci.time():
-                            r.check_in = r.check_in
-                        else:
-                            r.check_in = None
-                    if in_out and in_out.time_from:
-                        # Kiểm tra giá trị đầu vào
-                        if not (isinstance(in_out.time_from, (int, float)) and in_out.time_from >= 0):
-                            raise ValueError(f"Invalid time_from value: {in_out.time_from}")
+                in_outs = self.env['word.slip'].sudo().search([('employee_id', '=', r.employee_id.id),
+                                                              ('from_date', '<=', r.date),
+                                                              ('to_date', '>=', r.date)])
+                if in_outs:
+                    for in_out in in_outs:
+                        if in_out and in_out.time_to:
+                            hour = int(in_out.time_to) - 7
+                            minute = int((in_out.time_to % 1) * 60)
+                            if 0 <= hour <= 23:
+                                ci = datetime.combine(r.date, time(hour, minute, 0))
+                            else:
+                                ci = datetime.combine(r.date, time(0, 0, 0))
+                            if not r.check_in and r.time_check_in.time() <= ci.time() <= r.check_no_in.time():
+                                r.check_in = ci
+                            elif r.check_in.time() > ci.time() and r.time_check_in.time() <= ci.time() <= r.check_no_in.time():
+                                r.check_in = ci
+                            elif r.check_in.time() < ci.time():
+                                r.check_in = r.check_in
+                            else:
+                                r.check_in = None
+                        if in_out and in_out.time_from:
+                            # Kiểm tra giá trị đầu vào
+                            if not (isinstance(in_out.time_from, (int, float)) and in_out.time_from >= 0):
+                                raise ValueError(f"Invalid time_from value: {in_out.time_from}")
 
-                        # Tính toán giờ và phút
-                        hour = int(in_out.time_from) - 7
-                        minute = int((in_out.time_from % 1) * 60)
+                            # Tính toán giờ và phút
+                            hour = int(in_out.time_from) - 7
+                            minute = int((in_out.time_from % 1) * 60)
 
-                        # Giới hạn giá trị 'hour' trong phạm vi hợp lệ
-                        hour = max(0, min(hour, 23))
+                            # Giới hạn giá trị 'hour' trong phạm vi hợp lệ
+                            hour = max(0, min(hour, 23))
 
-                        # Tạo datetime cho check-out
-                        co = datetime.combine(r.date, time(hour, minute, 0))
+                            # Tạo datetime cho check-out
+                            co = datetime.combine(r.date, time(hour, minute, 0))
 
-                        # Gán giá trị check-out
-                        if not r.check_out and r.check_no_out.time() <= co.time() <= r.time_check_out.time():
-                            r.check_out = co
-                        elif r.check_out.time() < co.time() and r.check_no_out.time() <= co.time() <= r.time_check_out.time():
-                            r.check_out = co
-                        elif r.check_out.time() > co.time():
-                            r.check_out = r.check_out
-                        else:
-                            r.check_out = None
+                            # Gán giá trị check-out
+                            if not r.check_out and r.check_no_out.time() <= co.time() <= r.time_check_out.time():
+                                r.check_out = co
+                            elif r.check_out.time() < co.time() and r.check_no_out.time() <= co.time() <= r.time_check_out.time():
+                                r.check_out = co
+                            elif r.check_out.time() > co.time():
+                                r.check_out = r.check_out
+                            else:
+                                r.check_out = None
+
+            else:
+                r.check_in = None
+                r.check_out = None
 
     #Lấy thông tin xem nhân viên có check-in hay check-out hay không
     def _get_attendance(self):
