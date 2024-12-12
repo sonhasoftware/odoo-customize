@@ -46,28 +46,49 @@ class SyntheticWork(models.Model):
 
     key = fields.Boolean("Khóa công", default=False)
 
-    # @api.depends('employee_id', 'month')
-    # def get_date_work(self):
-    #     for r in self:
-    #         work = self.env['employee.attendance'].sudo().search([('employee_id', '=', r.employee_id.id),
-    #                                                               ('date', '>=', r.start_date),
-    #                                                               ('date', '<=', r.end_date)])
-    #         if work:
-    #             r.date_work = sum(work.mapped('work_day'))
-    #             r.on_leave = sum(work.mapped('leave'))
-    #             r.compensatory_leave = sum(work.mapped('compensatory'))
-    #             r.hours_reinforcement = sum(work.mapped('over_time'))
-    #             r.number_minutes_late = sum(work.mapped('minutes_late'))
-    #             r.number_minutes_early = sum(work.mapped('minutes_early'))
-    #             r.public_leave = sum(work.mapped('public_leave'))
-    #         else:
-    #             r.date_work = 0
-    #             r.on_leave = 0
-    #             r.compensatory_leave = 0
-    #             r.hours_reinforcement = 0
-    #             r.number_minutes_late = 0
-    #             r.number_minutes_early = 0
-    #             r.public_leave = 0
+    @api.depends('employee_id', 'month')
+    def get_date_work(self):
+        for r in self:
+            if r.employee_id and r.start_date and r.end_date:
+                # Sử dụng read_group để tính toán tổng số dữ liệu trực tiếp
+                grouped_data = self.env['employee.attendance'].sudo().read_group(
+                    domain=[
+                        ('employee_id', '=', r.employee_id.id),
+                        ('date', '>=', r.start_date),
+                        ('date', '<=', r.end_date)
+                    ],
+                    fields=['work_day:sum', 'leave:sum', 'compensatory:sum',
+                            'over_time:sum', 'minutes_late:sum',
+                            'minutes_early:sum', 'public_leave:sum'],
+                    groupby=[]
+                )
+                if grouped_data:
+                    data = grouped_data[0]
+                    r.date_work = data.get('work_day', 0)
+                    r.on_leave = data.get('leave', 0)
+                    r.compensatory_leave = data.get('compensatory', 0)
+                    r.hours_reinforcement = data.get('over_time', 0)
+                    r.number_minutes_late = data.get('minutes_late', 0)
+                    r.number_minutes_early = data.get('minutes_early', 0)
+                    r.public_leave = data.get('public_leave', 0)
+                else:
+                    # Gán mặc định khi không có dữ liệu
+                    r.date_work = 0
+                    r.on_leave = 0
+                    r.compensatory_leave = 0
+                    r.hours_reinforcement = 0
+                    r.number_minutes_late = 0
+                    r.number_minutes_early = 0
+                    r.public_leave = 0
+            else:
+                # Gán mặc định khi thiếu thông tin cần thiết
+                r.date_work = 0
+                r.on_leave = 0
+                r.compensatory_leave = 0
+                r.hours_reinforcement = 0
+                r.number_minutes_late = 0
+                r.number_minutes_early = 0
+                r.public_leave = 0
 
     @api.depends('on_leave', 'compensatory_leave', 'public_leave')
     def get_leave(self):
