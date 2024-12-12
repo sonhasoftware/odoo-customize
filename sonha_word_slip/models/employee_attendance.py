@@ -239,11 +239,11 @@ class EmployeeAttendance(models.Model):
                             ci = datetime.combine(r.date, time(hour, minute, 0))
                         else:
                             ci = datetime.combine(r.date, time(0, 0, 0))
-                        if not r.check_in and r.time_check_in.time() <= ci.time() <= r.check_no_in.time():
+                        if not r.check_in and r.time_check_in and r.check_no_in and r.time_check_in.time() <= ci.time() <= r.check_no_in.time():
                             r.check_in = ci
-                        elif r.check_in.time() > ci.time() and r.time_check_in.time() <= ci.time() <= r.check_no_in.time():
+                        elif r.check_in.time() > ci.time() and r.time_check_in and r.check_no_in and r.time_check_in.time() <= ci.time() <= r.check_no_in.time():
                             r.check_in = ci
-                        elif r.check_in.time() < ci.time():
+                        elif r.check_in and r.check_in.time() < ci.time():
                             r.check_in = r.check_in
                         else:
                             r.check_in = None
@@ -263,11 +263,11 @@ class EmployeeAttendance(models.Model):
                         co = datetime.combine(r.date, time(hour, minute, 0))
 
                         # Gán giá trị check-out
-                        if not r.check_out and r.check_no_out.time() <= co.time() <= r.time_check_out.time():
+                        if not r.check_out and r.check_no_out and r.time_check_out and r.check_no_out.time() <= co.time() <= r.time_check_out.time():
                             r.check_out = co
-                        elif r.check_out.time() < co.time() and r.check_no_out.time() <= co.time() <= r.time_check_out.time():
+                        elif r.check_out.time() < co.time() and r.check_no_out and r.time_check_out and r.check_no_out.time() <= co.time() <= r.time_check_out.time():
                             r.check_out = co
-                        elif r.check_out.time() > co.time():
+                        elif r.check_out and r.check_out.time() > co.time():
                             r.check_out = r.check_out
                         else:
                             r.check_out = None
