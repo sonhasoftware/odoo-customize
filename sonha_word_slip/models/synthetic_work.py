@@ -47,7 +47,11 @@ class SyntheticWork(models.Model):
     key = fields.Boolean("Khóa công", default=False)
 
     def get_date_work(self):
-        for r in self:
+        current_date = date.today()
+        list_record = self.env['synthetic.work'].sudo().search(['|',
+                                                                ('month', '=', current_date.month),
+                                                                ('month', '=', current_date.month - 1)])
+        for r in list_record:
             work = self.env['employee.attendance'].sudo().search_read(
                 domain=[
                     ('employee_id', '=', r.employee_id.id),
