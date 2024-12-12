@@ -33,15 +33,15 @@ class EmployeeAttendance(models.Model):
                             string="Ghi chú",
                             compute="_get_attendance")
     work_day = fields.Float("Ngày công", compute="_get_work_day", store=True)
-    minutes_late = fields.Float("Số phút đi muộn", compute="_get_minute_late_early", store=True)
-    minutes_early = fields.Float("Số phút về sớm", compute="_get_minute_late_early", store=True)
+    minutes_late = fields.Float("Số phút đi muộn", compute="_get_minute_late_early")
+    minutes_early = fields.Float("Số phút về sớm", compute="_get_minute_late_early")
 
     month = fields.Integer("Tháng", compute="_get_month_year", store=True)
     year = fields.Integer("Năm", compute="_get_month_year")
-    over_time = fields.Float("Giờ làm thêm", compute="get_hours_reinforcement", store=True)
-    leave = fields.Float("Nghỉ phép", compute="_get_time_off", store=True)
-    compensatory = fields.Float("Nghỉ bù", compute="_get_time_off", store=True)
-    public_leave = fields.Float("Nghỉ lễ", cumpute="_get_time_off", store=True)
+    over_time = fields.Float("Giờ làm thêm", compute="get_hours_reinforcement")
+    leave = fields.Float("Nghỉ phép", compute="_get_time_off")
+    compensatory = fields.Float("Nghỉ bù", compute="_get_time_off")
+    public_leave = fields.Float("Nghỉ lễ", cumpute="_get_time_off")
 
     @api.depends('employee_id', 'date')
     def _get_time_off(self):

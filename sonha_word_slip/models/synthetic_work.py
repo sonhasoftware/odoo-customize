@@ -49,39 +49,24 @@ class SyntheticWork(models.Model):
     @api.depends('employee_id', 'month')
     def get_date_work(self):
         for r in self:
-            if r.employee_id and r.start_date and r.end_date:
-                # Sử dụng read_group để tính toán tổng số dữ liệu trực tiếp
-                grouped_data = self.env['employee.attendance'].sudo().read_group(
-                    domain=[
-                        ('employee_id', '=', r.employee_id.id),
-                        ('date', '>=', r.start_date),
-                        ('date', '<=', r.end_date)
-                    ],
-                    fields=['work_day:sum', 'leave:sum', 'compensatory:sum',
-                            'over_time:sum', 'minutes_late:sum',
-                            'minutes_early:sum', 'public_leave:sum'],
-                    groupby=[]
-                )
-                if grouped_data:
-                    data = grouped_data[0]
-                    r.date_work = data.get('work_day', 0)
-                    r.on_leave = data.get('leave', 0)
-                    r.compensatory_leave = data.get('compensatory', 0)
-                    r.hours_reinforcement = data.get('over_time', 0)
-                    r.number_minutes_late = data.get('minutes_late', 0)
-                    r.number_minutes_early = data.get('minutes_early', 0)
-                    r.public_leave = data.get('public_leave', 0)
-                else:
-                    # Gán mặc định khi không có dữ liệu
-                    r.date_work = 0
-                    r.on_leave = 0
-                    r.compensatory_leave = 0
-                    r.hours_reinforcement = 0
-                    r.number_minutes_late = 0
-                    r.number_minutes_early = 0
-                    r.public_leave = 0
+            work = self.env['employee.attendance'].sudo().search_read(
+                domain=[
+                    ('employee_id', '=', r.employee_id.id),
+                    ('date', '>=', r.start_date),
+                    ('date', '<=', r.end_date)
+                ],
+                fields=['work_day', 'leave', 'compensatory', 'over_time', 'minutes_late', 'minutes_early',
+                        'public_leave']
+            )
+            if work:
+                r.date_work = sum([record['work_day'] for record in work])
+                r.on_leave = sum([record['leave'] for record in work])
+                r.compensatory_leave = sum([record['compensatory'] for record in work])
+                r.hours_reinforcement = sum([record['over_time'] for record in work])
+                r.number_minutes_late = sum([record['minutes_late'] for record in work])
+                r.number_minutes_early = sum([record['minutes_early'] for record in work])
+                r.public_leave = sum([record['public_leave'] for record in work])
             else:
-                # Gán mặc định khi thiếu thông tin cần thiết
                 r.date_work = 0
                 r.on_leave = 0
                 r.compensatory_leave = 0
