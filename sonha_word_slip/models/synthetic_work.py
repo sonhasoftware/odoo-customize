@@ -48,64 +48,31 @@ class SyntheticWork(models.Model):
 
     def get_date_work(self):
         current_date = date.today()
-        # Lấy tất cả các bản ghi cần xử lý
         list_record = self.env['synthetic.work'].sudo().search(['|',
                                                                 ('month', '=', current_date.month),
                                                                 ('month', '=', current_date.month - 1)])
-        if not list_record:
-            return
-
-        # Lấy tất cả employee_id và khoảng thời gian cần xử lý
-        employee_ids = list_record.mapped('employee_id.id')
-        start_end_dates = {(record.employee_id.id, record.start_date, record.end_date): record for record in
-                           list_record}
-
-        # Truy vấn toàn bộ dữ liệu attendance liên quan
-        attendance_data = self.env['employee.attendance'].sudo().search_read(
-            domain=[
-                ('employee_id', 'in', employee_ids),
-                ('date', '>=', min(list_record.mapped('start_date'))),
-                ('date', '<=', max(list_record.mapped('end_date')))
-            ],
-            fields=['employee_id', 'date', 'work_day', 'leave', 'compensatory', 'over_time',
-                    'minutes_late', 'minutes_early', 'public_leave']
-        )
-
-        # Xử lý dữ liệu attendance
-        grouped_data = {}
-        for record in attendance_data:
-            key = (record['employee_id'][0], record['date'])
-            if key not in grouped_data:
-                grouped_data[key] = {
-                    'work_day': 0,
-                    'leave': 0,
-                    'compensatory': 0,
-                    'over_time': 0,
-                    'minutes_late': 0,
-                    'minutes_early': 0,
-                    'public_leave': 0
-                }
-            grouped_data[key]['work_day'] += record['work_day']
-            grouped_data[key]['leave'] += record['leave']
-            grouped_data[key]['compensatory'] += record['compensatory']
-            grouped_data[key]['over_time'] += record['over_time']
-            grouped_data[key]['minutes_late'] += record['minutes_late']
-            grouped_data[key]['minutes_early'] += record['minutes_early']
-            grouped_data[key]['public_leave'] += record['public_leave']
-
-        # Gán giá trị cho từng bản ghi synthetic.work
-        for (employee_id, start_date, end_date), synthetic_work in start_end_dates.items():
-            relevant_data = [v for (eid, date), v in grouped_data.items() if
-                             eid == employee_id and start_date <= date <= end_date]
-
-            synthetic_work.date_work = sum([d['work_day'] for d in relevant_data]) if relevant_data else 0
-            synthetic_work.on_leave = sum([d['leave'] for d in relevant_data]) if relevant_data else 0
-            synthetic_work.compensatory_leave = sum([d['compensatory'] for d in relevant_data]) if relevant_data else 0
-            synthetic_work.hours_reinforcement = sum([d['over_time'] for d in relevant_data]) if relevant_data else 0
-            synthetic_work.number_minutes_late = sum([d['minutes_late'] for d in relevant_data]) if relevant_data else 0
-            synthetic_work.number_minutes_early = sum(
-                [d['minutes_early'] for d in relevant_data]) if relevant_data else 0
-            synthetic_work.public_leave = sum([d['public_leave'] for d in relevant_data]) if relevant_data else 0
+        for r in list_record:
+            work = self.env['employee.attendance'].sudo().search([
+                ('employee_id', '=', r.employee_id.id),
+                ('date', '>=', r.start_date),
+                ('date', '<=', r.end_date)
+                ])
+            if work:
+                r.date_work = sum(work.mapped('work_day'))
+                r.on_leave = sum(work.mapped('leave'))
+                r.compensatory_leave = sum(work.mapped('compensatory'))
+                r.hours_reinforcement = sum(work.mapped('over_time'))
+                r.number_minutes_late = sum(work.mapped('minutes_late'))
+                r.number_minutes_early = sum(work.mapped('minutes_early'))
+                r.public_leave = sum(work.mapped('public_leave'))
+            else:
+                r.date_work = 0
+                r.on_leave = 0
+                r.compensatory_leave = 0
+                r.hours_reinforcement = 0
+                r.number_minutes_late = 0
+                r.number_minutes_early = 0
+                r.public_leave = 0
 
     @api.depends('on_leave', 'compensatory_leave', 'public_leave')
     def get_leave(self):
