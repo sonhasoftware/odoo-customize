@@ -307,6 +307,7 @@ class EmployeeAttendance(models.Model):
                 r.minutes_early = 0
 
     #Lấy thông tin ngày công của nhân viên
+    @api.depends('check_in', 'check_out')
     def _get_work_day(self):
         for r in self:
             # work_leave = self.env['word.slip'].sudo().search([
