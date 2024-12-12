@@ -51,28 +51,47 @@ class SyntheticWork(models.Model):
         list_record = self.env['synthetic.work'].sudo().search(['|',
                                                                 ('month', '=', current_date.month),
                                                                 ('month', '=', current_date.month - 1)])
-        for r in list_record:
-            work = self.env['employee.attendance'].sudo().search([
-                ('employee_id', '=', r.employee_id.id),
-                ('date', '>=', r.start_date),
-                ('date', '<=', r.end_date)
-                ])
-            if work:
-                r.date_work = sum(work.mapped('work_day'))
-                r.on_leave = sum(work.mapped('leave'))
-                r.compensatory_leave = sum(work.mapped('compensatory'))
-                r.hours_reinforcement = sum(work.mapped('over_time'))
-                r.number_minutes_late = sum(work.mapped('minutes_late'))
-                r.number_minutes_early = sum(work.mapped('minutes_early'))
-                r.public_leave = sum(work.mapped('public_leave'))
-            else:
-                r.date_work = 0
-                r.on_leave = 0
-                r.compensatory_leave = 0
-                r.hours_reinforcement = 0
-                r.number_minutes_late = 0
-                r.number_minutes_early = 0
-                r.public_leave = 0
+
+        if not list_record:
+            return
+
+        # Lấy tất cả các employee_id và khoảng thời gian
+        employee_ids = list_record.mapped('employee_id.id')
+        start_dates = {record.employee_id.id: record.start_date for record in list_record}
+        end_dates = {record.employee_id.id: record.end_date for record in list_record}
+
+        # Truy vấn dữ liệu tổng hợp với SQL
+        query = """
+            SELECT
+                employee_id,
+                SUM(work_day) AS total_work_day,
+                SUM(leave) AS total_leave,
+                SUM(compensatory) AS total_compensatory,
+                SUM(over_time) AS total_over_time,
+                SUM(minutes_late) AS total_minutes_late,
+                SUM(minutes_early) AS total_minutes_early,
+                SUM(public_leave) AS total_public_leave
+            FROM employee_attendance
+            WHERE employee_id IN %s AND date >= %s AND date <= %s
+            GROUP BY employee_id
+        """
+        params = (tuple(employee_ids), min(start_dates.values()), max(end_dates.values()))
+        self.env.cr.execute(query, params)
+        results = self.env.cr.fetchall()
+
+        # Tạo dictionary để tra cứu nhanh
+        aggregated_data = {res[0]: res[1:] for res in results}
+
+        # Gán giá trị lại cho các bản ghi synthetic.work
+        for record in list_record:
+            data = aggregated_data.get(record.employee_id.id, [0] * 7)
+            record.date_work = data[0]
+            record.on_leave = data[1]
+            record.compensatory_leave = data[2]
+            record.hours_reinforcement = data[3]
+            record.number_minutes_late = data[4]
+            record.number_minutes_early = data[5]
+            record.public_leave = data[6]
 
     @api.depends('on_leave', 'compensatory_leave', 'public_leave')
     def get_leave(self):
