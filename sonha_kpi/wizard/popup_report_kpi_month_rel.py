@@ -17,7 +17,7 @@ class PopupWizardReportKpiMonthRel(models.TransientModel):
                               ('nine', 9),
                               ('ten', 10),
                               ('eleven', 11),
-                              ('twelve', 12), ], string="Tháng")
+                              ('twelve', 12), ], string="Tháng", required=True)
     year = fields.Integer('Năm', required=True, default=lambda self: datetime.date.today().year)
 
     def action_confirm(self):

@@ -1,4 +1,5 @@
 from odoo import api, fields, models, _
+from datetime import datetime, timedelta
 
 
 class ReportKpiMonth(models.Model):
@@ -25,4 +26,24 @@ class ReportKpiMonth(models.Model):
     tq_description = fields.Text("Nhận xét chung của cấp có thẩm quyền")
     sonha_kpi = fields.Many2one('company.sonha.kpi')
     status = fields.Selection([('draft', 'Nháp'),
-                               ('approved', 'Đã Duyệt')], string="Trạng thái", default='draft')
+                               ('waiting', 'Chờ duyệt'),
+                               ('approved', 'Đã duyệt')], string="Trạng thái", default='draft')
+
+    mail_turn = fields.Integer(string="số lần gửi mail", default="0")
+    url_data_mail = fields.Char(string="url kpi form")
+    first_mail_date = fields.Date(string="Ngày gửi mail lần 1")
+
+    def resend_kpi_report_mail(self):
+        now = datetime.now().date()
+        list_resend_mail = self.env['report.kpi.month'].sudo().search([('status', '=', 'waiting')])
+        duplicate_department = set()
+        for rc in list_resend_mail:
+            if (rc.mail_turn == 1 and now == (rc.first_mail_date + timedelta(days=2))) or (rc.mail_turn == 2 and now == (rc.first_mail_date + timedelta(days=4))):
+                if rc.department_id.id not in duplicate_department:
+                    mail_to = self.env['report.mail.to'].sudo().search([('department_id.id', '=', rc.department_id.id)]).receive_emp.work_email
+                    if mail_to:
+                        template = self.env.ref('sonha_kpi.report_kpi_mail_template').sudo()
+                        template.email_to = mail_to
+                        template.sudo().send_mail(rc.id, force_send=True)
+                        rc.mail_turn = rc.mail_turn + 1
+                        duplicate_department.add(rc.department_id.id)

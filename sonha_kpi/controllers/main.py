@@ -1,5 +1,6 @@
 from odoo import http
 from odoo.http import request
+from datetime import datetime
 
 import json
 
@@ -120,7 +121,7 @@ class DataChart(http.Controller):
     @http.route('/kpi/form', type='http', auth='public', website=True)
     def kpi_form(self, **kwargs):
         department_id = kwargs.get('department_id')
-        month = kwargs.get('month')
+        month = int(kwargs.get('month')) if kwargs.get('month') else None
         year = kwargs.get('year')
         kpi_records = request.env['report.kpi.month'].search([('department_id.id', '=', department_id),
                                                              ('year', '=', year)])
@@ -138,18 +139,38 @@ class DataChart(http.Controller):
             field_name = item["field_name"]
             field_value = item["field_value"]
             if(str(field_value).isdigit()):
-                a = float(field_value)
-                field_value = a / 100
+                convert_field = float(field_value)
+                field_value = convert_field / 100
             kpi_record = request.env['sonha.kpi.month'].sudo().search([('id', '=', kpi_id)])
             if kpi_record and field_name:
                 kpi_record.sudo().write({field_name: field_value})
             kpi_report = request.env['report.kpi.month'].sudo().search([('small_items_each_month.id', '=', kpi_id)])
-            if kpi_report.status == 'draft':
+            if kpi_report.status == 'waiting':
                 kpi_report.sudo().write({'status': 'approved'})
-            #     try:
-            #         kpi_record.sudo().write({field_name: field_value})
-            #         return {'status': 'success', 'message': 'Cập nhật thành công'}
-            #     except Exception as e:
-            #         return {'status': 'error', 'message': str(e)}
-            # return {'status': 'error', 'message': 'Không tìm thấy bản ghi hoặc thông tin không hợp lệ'}
+
+    @http.route('/kpi/hr_approved', type='json', auth='none', csrf=False)
+    def hr_approved(self):
+        data = request.httprequest.get_json()
+        for item in data["approve_data"]:
+            department_id = item["department_id"]
+            date = item["date"]
+            month = datetime.strptime(date, '%Y-%m-%d').month
+            year = datetime.strptime(date, '%Y-%m-%d').year
+            mail_url = f"http://localhost:8069/kpi/form?department_id={department_id}&month={month}&year={year}"
+            now = datetime.now().date()
+        kpi_records = request.env['report.kpi.month'].sudo().search([('department_id.id', '=', department_id),
+                                                                    ('year', '=', year)])
+        if month:
+            kpi_records = kpi_records.filtered(lambda x: x.start_date.month == month)
+        for record in kpi_records:
+            record.sudo().write({'url_data_mail': mail_url,
+                                 'mail_turn': '1',
+                                 'status': 'waiting',
+                                 'first_mail_date': now})
+        mail_to = request.env['report.mail.to'].sudo().search([('department_id.id', '=', kpi_records[0].department_id.id)]).receive_emp.work_email
+        if mail_to:
+            template_id = request.env.ref('sonha_kpi.report_kpi_mail_template').sudo()
+            if template_id:
+                template_id.email_to = mail_to
+                template_id.sudo().send_mail(kpi_records[0].id, force_send=True)
 

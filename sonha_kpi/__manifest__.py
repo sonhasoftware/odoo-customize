@@ -30,6 +30,8 @@
         'wizard/popup_report_year_views.xml',
         'wizard/popup_report_kpi_month_rel_views.xml',
         'views/dashboard_action.xml',
+        'data/mail_template.xml',
+        'data/cron_job.xml',
     ],
     'assets': {
         'web.assets_backend': [

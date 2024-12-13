@@ -5,9 +5,15 @@
             <div class="container">
                 <h2>Báo cáo cấp trên kpi theo tháng</h2>
                 <div class="form-header">
-                     <button class="btn btn-primary" id="change-status-button" t-if="kpi_records and kpi_records[0].status == 'draft'">
+                     <button class="btn btn-primary" id="hr-approve" t-if="kpi_records and kpi_records[0].status == 'draft'">
                          Duyệt
                      </button>
+                     <button class="btn btn-primary" id="manager-approve" t-if="kpi_records and kpi_records[0].status == 'waiting'">
+                         Duyệt
+                     </button>
+                    <h5 class="status">
+                        Trạng thái: <t t-esc="kpi_records[0].status"/>
+                    </h5>
                 </div>
                 <table class="table table-bordered">
                     <thead>
@@ -29,9 +35,10 @@
                     <tbody>
                         <t t-foreach="kpi_records" t-as="kpi">
                             <tr>
+                                <td class="kpi-department" rowspan="4"><t t-esc="kpi.department_id.id"/></td>
                                 <td rowspan="4"><t t-esc="kpi.kpi_year_id.name"/></td>
                                 <td rowspan="4"><t t-esc="kpi.small_items_each_month.small_items_each_month"/></td>
-                                <td rowspan="4"><t t-esc="kpi.start_date"/></td>
+                                <td rowspan="4" class="start-date"><t t-esc="kpi.start_date"/></td>
                                 <td rowspan="4"><t t-esc="kpi.end_date"/></td>
                                 <td>Khối lượng công việc thực hiện</td>
                                 <td><t t-esc="kpi.dv_amount_work * 100"/>%</td>
@@ -60,10 +67,9 @@
             </div>
             <script>
                 document.addEventListener('DOMContentLoaded', function () {
-                    const inputs = document.querySelectorAll('.kpi-input');
-                    const changeStatusButton = document.getElementById('change-status-button');
-                    if (changeStatusButton){
-                        changeStatusButton.addEventListener('click', function () {
+                    const managerApproveButton = document.getElementById('manager-approve');
+                    if (managerApproveButton){
+                        managerApproveButton.addEventListener('click', function () {
                             const inputs = document.querySelectorAll('.kpi-input');
                             const kpiData = [];
                             inputs.forEach(input => {
@@ -87,6 +93,33 @@
                                 body: JSON.stringify({kpi_data: kpiData}),
                             })
                             .then(response => response.json())
+                            .then(data => {
+                                location.reload();
+                            });
+                        });
+                    }
+                    const hrApproveButton = document.getElementById('hr-approve');
+                    if(hrApproveButton){
+                        hrApproveButton.addEventListener('click', function () {
+                            console.log('Nút hr duyệt được bấm!');
+                            const approveData = [];
+                            const departmentId = document.querySelector('.kpi-department').innerHTML;
+                            const startDate = document.querySelector('.start-date').innerHTML;
+                            console.log(departmentId);
+                            console.log(startDate);
+                            approveData.push({
+                                department_id: departmentId,
+                                date: startDate,
+                            });
+                            console.log('Dữ liệu JSON gửi đi:', JSON.stringify({approve_data: approveData}));
+                            fetch('/kpi/hr_approved', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({approve_data: approveData}),
+                            })
+                            .then(response => response.json())
                         });
                     }
                 });
@@ -94,6 +127,13 @@
             <style>
                 .custom{
                     display: flex;
+                }
+                .kpi-department{
+                    display: none;
+                }
+                .form-header{
+                    display: flex;
+                    justify-content: space-between;
                 }
             </style>
         </t>
