@@ -355,17 +355,13 @@ class EmployeeAttendance(models.Model):
                 weekday = r.date.weekday()
                 week_number = r.date.isocalendar()[1]
 
-                if weekday == 6 or (weekday == 5 and week_number % 2 == 1):
-                    r.color = None
-                    continue
-
                 on_leave = 0
                 word_slips = self.env['word.slip'].sudo().search([
                     ('employee_id', '=', r.employee_id.id),
                     ('from_date', '<=', r.date),
-                    ('to_date', '>=', r.date)
+                    ('to_date', '>=', r.date),
+                    ('type.date_and_time', '=', 'date')
                 ])
-                word_slips = word_slips.filtered(lambda x: x.type.date_and_time == "date")
                 if word_slips:
                     for slip in word_slips:
                         if slip.start_time == slip.end_time:
@@ -379,3 +375,11 @@ class EmployeeAttendance(models.Model):
                     r.color = 'green'
                 else:
                     r.color = 'red'
+
+                if (((weekday == 6) or ((weekday == 5) and (week_number % 2 == 1))) and
+                        tong_cong == 0 and
+                        r.minutes_late == 0 and
+                        r.minutes_early == 0
+                ):
+                    r.color = None
+                    continue
