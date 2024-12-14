@@ -365,31 +365,36 @@ class EmployeeAttendance(models.Model):
         for r in self:
             r.color = None
 
-            if r.date and r.date <= today:
-                weekday = r.date.weekday()
-                week_number = r.date.isocalendar()[1]
+            if not r.date or r.date > today:
+                continue
 
-                if weekday == 6 or (weekday == 5 and week_number % 2 == 1):
+            weekday = r.date.weekday()
+            week_number = r.date.isocalendar()[1]
+
+            # Tính toán số ngày nghỉ (on_leave)
+            word_slips = self.env['word.slip'].sudo().search([
+                ('employee_id', '=', r.employee_id.id),
+                ('from_date', '<=', r.date),
+                ('to_date', '>=', r.date),
+                ('type.date_and_time', '=', 'date')
+            ])
+            on_leave = sum(
+                0.5 if slip.start_time == slip.end_time else 1
+                for slip in word_slips
+                if slip.start_time == 'first_half' and slip.end_time == 'second_half'
+                or slip.start_time != slip.end_time
+            )
+
+            # Tổng số công (tong_cong)
+            tong_cong = on_leave + r.public_leave + r.work_day
+
+            # Xác định màu sắc
+            if tong_cong >= 1 and r.minutes_late == 0 and r.minutes_early == 0:
+                r.color = 'green'
+            else:
+                r.color = 'red'
+
+            # Xử lý điều kiện đặc biệt cho cuối tuần
+            if weekday == 6 or (weekday == 5 and week_number % 2 == 1):
+                if tong_cong == 0 and r.minutes_late == 0 and r.minutes_early == 0:
                     r.color = None
-                    continue
-
-                on_leave = 0
-                word_slips = self.env['word.slip'].sudo().search([
-                    ('employee_id', '=', r.employee_id.id),
-                    ('from_date', '<=', r.date),
-                    ('to_date', '>=', r.date)
-                ])
-                word_slips = word_slips.filtered(lambda x: x.type.date_and_time == "date")
-                if word_slips:
-                    for slip in word_slips:
-                        if slip.start_time == slip.end_time:
-                            on_leave += 0.5
-                        elif slip.start_time == 'first_half' and slip.end_time == 'second_half':
-                            on_leave += 1
-
-                tong_cong = on_leave + r.public_leave + r.work_day
-
-                if tong_cong >= 1 and r.minutes_late == 0 and r.minutes_early == 0:
-                    r.color = 'green'
-                else:
-                    r.color = 'red'
