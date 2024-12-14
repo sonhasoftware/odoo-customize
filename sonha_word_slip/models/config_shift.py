@@ -36,6 +36,9 @@ class ConfigShift(models.Model):
 
     night = fields.Boolean("Check ca ngày/đêm", default=False, compute="check_shift_night")
 
+    c2k3 = fields.Boolean("Ca 2 kíp 3")
+    c3k4 = fields.Boolean("Ca 3 kíp 4")
+
     #Kiểm tra xem ca có phải ca đêm hay không
     @api.depends('start', 'end_shift')
     def check_shift_night(self):
