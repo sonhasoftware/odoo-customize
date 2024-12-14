@@ -82,9 +82,11 @@
             <search>
                 <field name="employee_id"/>
                 <field name="department_id"/>
+                <field name="month"/>
                 <group expand="0" string="Group By">
                     <filter string="Phòng ban" name="department_id" context="{'group_by': 'department_id'}"/>
                 </group>
+                <filter string="Tháng hiện tại" name="current_month" domain="[('month', '=', context_today().month)]" />
             </search>
         </field>
     </record>
@@ -94,6 +96,7 @@
         <field name="res_model">synthetic.work</field>
         <field name="view_mode">tree,form</field>
         <field name="search_view_id" ref="view_synthetic_work_search"/>
+        <field name="context">{'search_default_current_month': 1}</field>
     </record>
 
 </odoo>
