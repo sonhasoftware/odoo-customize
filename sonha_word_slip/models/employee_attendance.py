@@ -176,8 +176,7 @@ class EmployeeAttendance(models.Model):
             # Gán shift nếu tìm thấy
             if shift:
                 r.shift = shift.shift.id
-            elif r.employee_id.shift:
-                r.shift = r.employee_id.shift.id
+
 
     #Lấy thông tin giờ phải check-in và giờ check-out của nhân viên
     @api.depends('shift')
