@@ -227,6 +227,9 @@ class EmployeeAttendance(models.Model):
             r.check_in = attendance_ci[0] if attendance_ci else None
             r.check_out = attendance_co[-1] if attendance_co else None
 
+            check_in = attendance_ci[0] if attendance_ci else None
+            check_out = attendance_co[-1] if attendance_co else None
+
             in_outs = self.env['word.slip'].sudo().search([('employee_id', '=', r.employee_id.id),
                                                           ('from_date', '<=', r.date),
                                                           ('to_date', '>=', r.date)])
@@ -239,12 +242,12 @@ class EmployeeAttendance(models.Model):
                             ci = datetime.combine(r.date, time(hour, minute, 0))
                         else:
                             ci = datetime.combine(r.date, time(0, 0, 0))
-                        if not r.check_in and r.time_check_in and r.check_no_in and r.time_check_in <= ci <= r.check_no_in:
+                        if not check_in and r.time_check_in and r.check_no_in and r.time_check_in <= ci <= r.check_no_in:
                             r.check_in = ci
-                        elif r.check_in and r.check_in.time() > ci.time() and r.time_check_in and r.check_no_in and r.time_check_in <= ci <= r.check_no_in:
+                        elif check_in and check_in > ci and r.time_check_in and r.check_no_in and r.time_check_in <= ci <= r.check_no_in:
                             r.check_in = ci
-                        elif r.check_in and r.check_in.time() < ci.time():
-                            r.check_in = r.check_in
+                        elif check_in and check_in < ci:
+                            r.check_in = check_in
                         else:
                             r.check_in = None
                     if in_out and in_out.time_from:
@@ -263,12 +266,12 @@ class EmployeeAttendance(models.Model):
                         co = datetime.combine(r.date, time(hour, minute, 0))
 
                         # Gán giá trị check-out
-                        if not r.check_out and r.check_no_out and r.time_check_out and r.check_no_out <= co <= r.time_check_out:
+                        if not check_out and r.check_no_out and r.time_check_out and r.check_no_out <= co <= r.time_check_out:
                             r.check_out = co
-                        elif r.check_out and r.check_out.time() < co.time() and r.check_no_out and r.time_check_out and r.check_no_out <= co <= r.time_check_out:
+                        elif check_out and check_out < co and r.check_no_out and r.time_check_out and r.check_no_out <= co <= r.time_check_out:
                             r.check_out = co
-                        elif r.check_out and r.check_out.time() > co.time():
-                            r.check_out = r.check_out
+                        elif check_out and check_out > co.time():
+                            r.check_out = check_out
                         else:
                             r.check_out = None
 
