@@ -270,7 +270,7 @@ class EmployeeAttendance(models.Model):
                             r.check_out = co
                         elif check_out and check_out < co and r.check_no_out and r.time_check_out and r.check_no_out <= co <= r.time_check_out:
                             r.check_out = co
-                        elif check_out and check_out > co.time():
+                        elif check_out and check_out > co:
                             r.check_out = check_out
                         else:
                             r.check_out = None
