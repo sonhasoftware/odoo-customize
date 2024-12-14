@@ -19,31 +19,31 @@ class EmployeeAttendance(models.Model):
         ('5', 'Thứ bảy'),
         ('6', 'Chủ nhật')
     ], string="Thứ", compute="_compute_weekday", store=True)
-    check_in = fields.Datetime(string='Giờ vào', compute="_get_check_in_out", store=True)
-    check_out = fields.Datetime(string='Giờ ra', compute="_get_check_in_out", store=True)
-    duration = fields.Float("Giờ công", compute="_get_duration", store=True)
-    shift = fields.Many2one('config.shift', compute="_get_shift_employee", string="Ca làm việc", store=True)
-    time_check_in = fields.Datetime("Thời gian phải vào", compute="_get_time_in_out", store=True)
-    time_check_out = fields.Datetime("Thời gian phải ra", compute="_get_time_in_out", store=True)
-    check_no_in = fields.Datetime("Check không có check_in", compute="_check_no_in_out", store=True)
-    check_no_out = fields.Datetime("Check không có check_out", compute="_check_no_in_out", store=True)
+    check_in = fields.Datetime(string='Giờ vào', compute="_get_check_in_out")
+    check_out = fields.Datetime(string='Giờ ra', compute="_get_check_in_out")
+    duration = fields.Float("Giờ công", compute="_get_duration")
+    shift = fields.Many2one('config.shift', compute="_get_shift_employee", string="Ca làm việc")
+    time_check_in = fields.Datetime("Thời gian phải vào", compute="_get_time_in_out")
+    time_check_out = fields.Datetime("Thời gian phải ra", compute="_get_time_in_out")
+    check_no_in = fields.Datetime("Check không có check_in", compute="_check_no_in_out")
+    check_no_out = fields.Datetime("Check không có check_out", compute="_check_no_in_out")
 
     note = fields.Selection([('no_in', "Không có check in"),
                              ('no_out', "Không có check out")],
                             string="Ghi chú",
-                            compute="_get_attendance", store=True)
-    work_day = fields.Float("Ngày công", compute="_get_work_day", store=True)
-    minutes_late = fields.Float("Số phút đi muộn", compute="_get_minute_late_early", store=True)
-    minutes_early = fields.Float("Số phút về sớm", compute="_get_minute_late_early", store=True)
+                            compute="_get_attendance")
+    work_day = fields.Float("Ngày công", compute="_get_work_day")
+    minutes_late = fields.Float("Số phút đi muộn", compute="_get_minute_late_early")
+    minutes_early = fields.Float("Số phút về sớm", compute="_get_minute_late_early")
 
     month = fields.Integer("Tháng", compute="_get_month_year", store=True)
-    year = fields.Integer("Năm", compute="_get_month_year", store=True)
-    over_time = fields.Float("Giờ làm thêm", compute="get_hours_reinforcement", store=True)
-    leave = fields.Float("Nghỉ phép", compute="_get_time_off", store=True)
-    compensatory = fields.Float("Nghỉ bù", compute="_get_time_off", store=True)
-    public_leave = fields.Float("Nghỉ lễ", cumpute="_get_time_off", store=True)
-    c2k3 = fields.Float("Ca 2 kíp 3", compute="get_shift", store=True)
-    c3k4 = fields.Float("Ca 3 kíp 4", compute="get_shift", store=True)
+    year = fields.Integer("Năm", compute="_get_month_year")
+    over_time = fields.Float("Giờ làm thêm", compute="get_hours_reinforcement")
+    leave = fields.Float("Nghỉ phép", compute="_get_time_off")
+    compensatory = fields.Float("Nghỉ bù", compute="_get_time_off")
+    public_leave = fields.Float("Nghỉ lễ", cumpute="_get_time_off")
+    c2k3 = fields.Float("Ca 2 kíp 3", compute="get_shift")
+    c3k4 = fields.Float("Ca 3 kíp 4", compute="get_shift")
 
     @api.depends('shift')
     def get_shift(self):
@@ -149,7 +149,7 @@ class EmployeeAttendance(models.Model):
                     })
 
     #lấy thông tin ca của nhân viên để điền vào trường ca
-    @api.depends('employee_id', 'date')
+    @api.depends('date', 'employee_id')
     def _get_shift_employee(self):
         for r in self:
             r.shift = None  # Gán mặc định để tránh lỗi nếu không tìm thấy
@@ -176,7 +176,8 @@ class EmployeeAttendance(models.Model):
             # Gán shift nếu tìm thấy
             if shift:
                 r.shift = shift.shift.id
-
+            elif r.employee_id.shift:
+                r.shift = r.employee_id.shift.id
 
     #Lấy thông tin giờ phải check-in và giờ check-out của nhân viên
     @api.depends('shift')
