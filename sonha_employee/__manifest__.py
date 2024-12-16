@@ -26,6 +26,7 @@
         'views/reward_person_view.xml',
         'views/discipline_unit_view.xml',
         'views/discipline_person_view.xml',
+        'views/res_company_view.xml',
         'views/reward_discipline_menu.xml',
         'wizard/employee_import_wizard_views.xml',
         'wizard/create_user_wizard_view.xml',
