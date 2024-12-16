@@ -130,7 +130,7 @@ class SonHaEmployee(models.Model):
         if not company_id.company_code:
             res.employee_code = '_' + str(company_id.max_number)
         else:
-            res.employee_code = company_id.company_code + '_' + str(company_id.max_number)
+            res.employee_code = company_id.company_code + str(company_id.max_number)
 
         return res
 
