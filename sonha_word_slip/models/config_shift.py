@@ -5,7 +5,7 @@ from datetime import timedelta
 class ConfigShift(models.Model):
     _name = 'config.shift'
     _order = "code"
-    _rec_name = 'code'
+    _rec_name = 'name_code_shift'
 
     code = fields.Char("Mã ca")
     name = fields.Char("Tên ca")
@@ -47,3 +47,13 @@ class ConfigShift(models.Model):
                 r.night = True
             else:
                 r.night = False
+
+    name_code_shift = fields.Char(string="Tên và mã ca",compute="_compute_name_code_shift",tracking=True,store=True)
+
+    @api.depends('name','code')
+    def _compute_name_code_shift(self):
+        for r in self:
+            if r.name and r.code:
+                r.name_code_shift = r.name + ' (' + r.code + ')'
+            else:
+                r.name_code_shift = r.name

@@ -169,6 +169,42 @@ class FormWordSlip(models.Model):
     def create(self, vals):
         rec = super(FormWordSlip, self).create(vals)
 
+        form_type = rec.type.date_and_time
+        employee_id = rec.employee_id.id
+        records = self.env['word.slip'].search([
+            ('employee_id', '=', employee_id),
+            ('type.date_and_time', '=', form_type),
+        ])
+
+        if form_type == 'date':
+            for line in rec.word_slip_id:
+                for r in records:
+                    if r.id == line.id:
+                        continue
+
+                    if r.from_date > line.to_date or r.to_date < line.from_date:
+                        continue
+
+                    if r.start_time != r.end_time:
+                        raise ValidationError("Khoảng thời gian bạn chọn bị trùng với khoảng thời gian trong đơn khác.")
+                    else:
+                        if r.start_time == line.start_time:
+                            raise ValidationError("Khoảng thời gian bạn chọn bị trùng với khoảng thời gian trong đơn khác.")
+        else:
+            for line in rec.word_slip_id:
+                for r in records:
+                    if r.id == line.id:
+                        continue
+
+                    if r.from_date > line.to_date or r.to_date < line.from_date:
+                        continue
+
+                    if r.time_to > line.time_from or r.time_from < line.time_to:
+                        continue
+                    else:
+                        raise ValidationError("Khoảng thời gian bạn chọn bị trùng với khoảng thời gian trong đơn khác.")
+
+
         # Tính số ngày và thiết lập `day_duration`
         rec.day_duration = self.get_duration_day(rec)
 
