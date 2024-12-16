@@ -55,5 +55,9 @@ class ConfigShift(models.Model):
         for r in self:
             if r.name and r.code:
                 r.name_code_shift = r.name + ' (' + r.code + ')'
-            else:
+            elif r.name:
                 r.name_code_shift = r.name
+            elif r.code:
+                r.name_code_shift = r.code
+            else:
+                r.name_code_shift = None
