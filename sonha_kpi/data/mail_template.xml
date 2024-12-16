@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+   <data>
+       <record id="report_kpi_mail_template" model="mail.template">
+           <field name="name">Mail báo cáo kpi tháng</field>
+           <field name="model_id" ref="sonha_kpi.model_report_kpi_month"/>
+           <field name="email_from">admin@example.com</field>
+           <field name="email_to">${context.get('email_to')}</field>
+           <field name="subject">Báo cáo kết quả kpi tháng</field>
+           <field name="body_html" type="html">
+               <p>
+                   Anh/chị vui lòng đánh giá KPI phòng ban <t t-out="object.department_id.name"/> qua Link sau:
+                   <br/>
+                   <a t-att-href="object.url_data_mail" target="_blank">Link đánh giá</a>
+               </p>
+           </field>
+       </record>
+   </data>
+</odoo>

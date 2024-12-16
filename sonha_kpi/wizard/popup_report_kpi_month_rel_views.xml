@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="view_popup_wizard_report_kpi_month_rel_form" model="ir.ui.view">
+            <field name="name">popup.wizard.report.kpi.month.rel.form</field>
+            <field name="model">popup.wizard.report.kpi.month.rel</field>
+            <field name="arch" type="xml">
+                <form string="Dữ liệu kết quả tháng">
+                    <group>
+                        <field name="department_id"/>
+                        <field name="month"/>
+                        <field name="year"/>
+                    </group>
+                    <footer>
+                        <button name="action_confirm" string="Xác nhận" type="object" class="btn-primary"/>
+                        hoặc
+                        <button string="Hủy bỏ" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_popup_wizard_report_kpi_month_rel" model="ir.actions.act_window">
+            <field name="name">Popup Wizard Report Kpi Month Rel</field>
+            <field name="res_model">popup.wizard.report.kpi.month.rel</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+        <record id="menu_popup_wizard_report_kpi_month_rel" model="ir.ui.menu">
+            <field name="name">Báo cáo cấp trên kpi theo tháng</field>
+            <field name="action" ref="action_popup_wizard_report_kpi_month_rel"/>
+            <field name="parent_id" ref="sonha_kpi.menu_sonha_kpi"/>
+            <field name="sequence" type="int">20</field>
+        </record>
+
+    </data>
+</odoo>

@@ -14,11 +14,11 @@
         'views/report_template_month.xml',
         'views/action_template_year.xml',
         'views/report_template_year.xml',
+        'views/report_kpi_month_rel_template.xml',
         'security/security.xml',
         'security/ir.model.access.csv',
         'views/sonha_kpi_views.xml',
         'views/report_mail_to_views.xml',
-        'views/report_kpi_month_views.xml',
         'views/config_column_views.xml',
         'views/config_recipe_views.xml',
         'views/company_sonha_kpi_views.xml',
@@ -28,7 +28,10 @@
         'wizard/popup_report_kpi_views.xml',
         'wizard/popup_report_month_views.xml',
         'wizard/popup_report_year_views.xml',
+        'wizard/popup_report_kpi_month_rel_views.xml',
         'views/dashboard_action.xml',
+        'data/mail_template.xml',
+        'data/cron_job.xml',
     ],
     'assets': {
         'web.assets_backend': [

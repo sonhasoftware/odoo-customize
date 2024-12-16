@@ -24,5 +24,6 @@ class CompanySonHaKPI(models.Model):
 
     def unlink(self):
         for r in self:
-            self.env['sonha.kpi.result.month'].search([('sonha_kpi', '=', r.id)]).unlink()
+            self.env['sonha.kpi.result.month'].search([('sonha_kpi', '=', r.id)]).sudo().unlink()
+            self.env['report.kpi.month'].search([('sonha_kpi', '=', r.id)]).sudo().unlink()
         return super(CompanySonHaKPI, self).unlink()
