@@ -128,7 +128,7 @@ class SonHaEmployee(models.Model):
         company_id = self.env['res.company'].sudo().search([('id', '=', res.company_id.id)])
         company_id.max_number += 1
         if not company_id.company_code:
-            res.employee_code = '_' + str(company_id.max_number)
+            res.employee_code = str(company_id.max_number)
         else:
             res.employee_code = company_id.company_code + str(company_id.max_number)
 
