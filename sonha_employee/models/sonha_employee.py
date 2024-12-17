@@ -134,25 +134,6 @@ class SonHaEmployee(models.Model):
 
         return res
 
-    # def write(self, vals):
-    #     res = super(SonHaEmployee, self).write(vals)
-    #
-    #     if 'company_id' in vals:
-    #         company_id = self.env['res.company'].sudo().browse(vals['company_id'])
-    #
-    #         number = 0
-    #         if self.employee_code:
-    #             match = re.match(r"([^\d]*)(\d+)", self.employee_code)
-    #             if match:
-    #                 number = int(match.group(2))
-    #
-    #         if company_id.company_code:
-    #             self.employee_code = company_id.company_code + str(number)
-    #         else:
-    #             self.employee_code = str(number )
-    #
-    #     return res
-
     @api.onchange('status_employee')
     def onchange_status_employee(self):
         for s in self:
