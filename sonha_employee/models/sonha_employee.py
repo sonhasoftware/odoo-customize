@@ -1,5 +1,6 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
+import re
 
 
 class SonHaEmployee(models.Model):
@@ -49,7 +50,7 @@ class SonHaEmployee(models.Model):
     # các field page hr setting
     onboard = fields.Date('Ngày vào công ty', tracking=True)
     # type_contract = fields.Many2one('hr.contract', string="Loại hợp đồng")
-    employee_code = fields.Char("Mã nhân viên", tracking=True)
+    employee_code = fields.Char("Mã nhân viên", readonly=True, tracking=True)
     shift = fields.Many2one('config.shift', string="Ca làm việc", tracking=True)
 
     # các field page infomation page 1
@@ -124,6 +125,13 @@ class SonHaEmployee(models.Model):
 
         res = super(SonHaEmployee, self).create(vals)
 
+        company_id = self.env['res.company'].sudo().search([('id', '=', res.company_id.id)])
+        company_id.max_number += 1
+        if not company_id.company_code:
+            res.employee_code = str(company_id.max_number)
+        else:
+            res.employee_code = company_id.company_code + str(company_id.max_number)
+
         return res
 
     @api.onchange('status_employee')
@@ -155,6 +163,27 @@ class SonHaEmployee(models.Model):
     #             ], limit=1)
     #             if conflicting_device_id_num.device_id_num:
     #                 raise ValidationError(f"Đã tồn tại mã chấm công là {record.device_id_num}")
+
+class ResCompany(models.Model):
+    _inherit = 'res.company'
+
+    max_number = fields.Integer(string="Mã lớn nhất", compute="_compute_max_number",required=True)
+    company_code = fields.Char(string="Mã công ty", required=True)
+
+    def _compute_max_number(self):
+        for r in self:
+            employee_codes = self.env['hr.employee'].sudo().search([('company_id.id', '=', r.id)])
+            max_number = 0
+            for employee in employee_codes:
+                if employee.employee_code:
+                    match = re.search(r'_(\d+)$', employee.employee_code)
+                    number = -1
+                    if match:
+                        number = int(match.group(1))
+                        max_number = max(max_number, number)
+
+            r.max_number = max_number
+
 
 class EmployeeRel(models.Model):
     _name = 'employee.rel'
