@@ -41,7 +41,7 @@ class SyntheticWork(models.Model):
     start_date = fields.Date("Từ ngày")
     end_date = fields.Date("Đến ngày")
 
-    month = fields.Integer("Tháng", compute="get_this_month")
+    month = fields.Integer("Tháng", compute="get_this_month", store=True)
     year = fields.Integer("Năm", compute="get_this_month")
 
     key = fields.Boolean("Khóa công", default=False)

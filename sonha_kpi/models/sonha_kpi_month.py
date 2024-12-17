@@ -12,7 +12,7 @@ class SonHaKPIMonth(models.Model):
     small_items_each_month = fields.Text("Nội dung CV KPI của tháng")
     kpi_year_id = fields.Many2one('sonha.kpi.year', string="Hạng mục lớn",
                                   domain="[('sonha_kpi', '=', sonha_kpi)]")
-    employee_id = fields.Many2many('hr.employee', string="NS thực hiện", readonly=False)
+    employee_id = fields.Many2many('hr.employee', string="NS thực hiện", readonly=False, default=lambda self: self._get_current_user())
     start_date = fields.Date('Ngày bắt đầu', required=True)
     end_date = fields.Date("Ngày hoàn thành", required=True)
 
@@ -175,6 +175,7 @@ class SonHaKPIMonth(models.Model):
     def unlink(self):
         for r in self:
             self.env['sonha.kpi.result.month'].search([('kpi_month', '=', r.id)]).unlink()
+            self.env['report.kpi.month'].search([('sonha_kpi', '=', r.id)]).sudo().unlink()
         return super(SonHaKPIMonth, self).unlink()
 
     def create_report_month(self, record):
@@ -190,6 +191,13 @@ class SonHaKPIMonth(models.Model):
             'dv_matter_work': record.dv_matter_work or '',
             'dv_comply_regulations': record.dv_comply_regulations or '',
             'dv_initiative': record.dv_initiative or '',
-            'dv_description': record.dv_description or ''
+            'dv_description': record.dv_description or '',
+            'status': 'draft'
         }
-        self.env['report.kpi.month'].create(vals)
+        self.env['report.kpi.month'].sudo().create(vals)
+
+    def _get_current_user(self):
+        employee = self.env['hr.employee'].search([('user_id', '=', self.env.user.id)])
+        if employee:
+            return [employee.id]
+        return []
