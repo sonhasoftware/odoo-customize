@@ -378,12 +378,13 @@ class EmployeeAttendance(models.Model):
                 ('to_date', '>=', r.date),
                 ('type.date_and_time', '=', 'date')
             ])
-            on_leave = sum(
-                0.5 if slip.start_time == slip.end_time else 1
-                for slip in word_slips
-                if slip.start_time == 'first_half' and slip.end_time == 'second_half'
-                or slip.start_time != slip.end_time
-            )
+            on_leave = 0
+            if word_slips:
+                for slip in word_slips:
+                    if slip.start_time == slip.end_time:
+                        on_leave += 0.5
+                    elif slip.start_time == 'first_half' and slip.end_time == 'second_half':
+                        on_leave += 1
 
             # Tổng số công (tong_cong)
             tong_cong = on_leave + r.public_leave + r.work_day

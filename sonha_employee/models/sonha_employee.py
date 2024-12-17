@@ -177,10 +177,9 @@ class ResCompany(models.Model):
             max_number = 0
             for employee in employee_codes:
                 if employee.employee_code:
-                    match = re.search(r'_(\d+)$', employee.employee_code)
-                    number = -1
+                    match = re.search(r'(\d+)$', employee.employee_code)
                     if match:
-                        number = int(match.group(1))
+                        number = int(match.group())
                         max_number = max(max_number, number)
 
             r.max_number = max_number
