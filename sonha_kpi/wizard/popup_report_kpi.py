@@ -39,7 +39,7 @@ class PopupWizardReport(models.TransientModel):
                     'department_id': self.department_id.id,
                     'year': self.year,
                     'month': month + '/' + str(self.year),
-                    'workload': round(sum(data_filter.mapped('quy_doi_dv_amount_work'), 2)) if data_filter else 0,
+                    'workload': round(sum(data_filter.mapped('quy_doi_dv_amount_work')), 2) if data_filter else 0,
                     'quality': str(round(sum(data_filter.mapped('quy_doi_dv_matter_work')), 2)) if data_filter else '',
                     'discipline': str(round(sum(data_filter.mapped('quy_doi_dv_comply_regulations')), 2)) if data_filter else '',
                     'improvement': str(round(sum(data_filter.mapped('quy_doi_dv_initiative')), 2)) if data_filter else '',

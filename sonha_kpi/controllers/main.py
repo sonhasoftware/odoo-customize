@@ -156,7 +156,8 @@ class DataChart(http.Controller):
             date = item["date"]
             month = datetime.strptime(date, '%Y-%m-%d').month
             year = datetime.strptime(date, '%Y-%m-%d').year
-            mail_url = f"http://localhost:8069/kpi/form?department_id={department_id}&month={month}&year={year}"
+            base_url = request.env['ir.config_parameter'].sudo().get_param('web.base.url')
+            mail_url = f"{base_url}/kpi/form?department_id={department_id}&month={month}&year={year}"
             now = datetime.now().date()
         kpi_records = request.env['report.kpi.month'].sudo().search([('department_id.id', '=', department_id),
                                                                     ('year', '=', year)])

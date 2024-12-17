@@ -7,4 +7,4 @@ class HrEmployee(models.Model):
     _inherit = 'hr.employee'
 
     device_id_num = fields.Char(string='Mã chấm công',
-                                help="Give the biometric device id")
+                                help="Give the biometric device id", required=True)
