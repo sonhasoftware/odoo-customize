@@ -97,6 +97,14 @@ class SonHaEmployee(models.Model):
     tax_code = fields.Char("Mã số thuế", tracking=True)
     check_account = fields.Boolean('check_account', compute="check_account_user")
 
+    @api.depends('user_id')
+    def check_account_user(self):
+        for r in self:
+            if r.user_id:
+                r.check_account = True
+            else:
+                r.check_account = False
+
     def create_user(self):
         for r in self:
             user_vals = {
@@ -198,15 +206,6 @@ class ResCompany(models.Model):
                         max_number = max(max_number, number)
 
             r.max_number = max_number
-
-
-    @api.depends('user_id')
-    def check_account_user(self):
-        for r in self:
-            if r.user_id:
-                r.check_account = True
-            else:
-                r.check_account = False
 
 
 class EmployeeRel(models.Model):
