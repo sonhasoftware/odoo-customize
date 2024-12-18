@@ -37,6 +37,7 @@ class SyntheticWork(models.Model):
     grandparents_leave = fields.Float("Nghỉ ông bà mất")
     vacation = fields.Float("Nghỉ mát")
     public_leave = fields.Float("Nghỉ lễ", compute="get_date_work")
+    total_work = fields.Float("Tổng công", compute="get_total_work")
 
     start_date = fields.Date("Từ ngày")
     end_date = fields.Date("Đến ngày")
@@ -49,34 +50,46 @@ class SyntheticWork(models.Model):
     @api.depends('employee_id', 'month')
     def get_date_work(self):
         for r in self:
-            work = self.env['employee.attendance'].sudo().search([('employee_id', '=', r.employee_id.id),
-                                                                  ('date', '>=', r.start_date),
-                                                                  ('date', '<=', r.end_date)])
-            if work:
-                r.date_work = sum(work.mapped('work_day'))
-                r.on_leave = sum(work.mapped('leave'))
-                r.compensatory_leave = sum(work.mapped('compensatory'))
-                r.hours_reinforcement = sum(work.mapped('over_time'))
-                r.number_minutes_late = sum(work.mapped('minutes_late'))
-                r.number_minutes_early = sum(work.mapped('minutes_early'))
-                r.public_leave = sum(work.mapped('public_leave'))
-                r.shift_two_crew_three = sum(work.mapped('c2k3'))
-                r.shift_three_crew_four = sum(work.mapped('c3k4'))
-            else:
-                r.date_work = 0
-                r.on_leave = 0
-                r.compensatory_leave = 0
-                r.hours_reinforcement = 0
-                r.number_minutes_late = 0
-                r.number_minutes_early = 0
-                r.public_leave = 0
-                r.shift_two_crew_three = 0
-                r.shift_three_crew_four = 0
+            query = """
+                SELECT 
+                    COALESCE(SUM(work_day), 0) AS date_work,
+                    COALESCE(SUM(leave), 0) AS on_leave,
+                    COALESCE(SUM(compensatory), 0) AS compensatory_leave,
+                    COALESCE(SUM(over_time), 0) AS hours_reinforcement,
+                    COALESCE(SUM(minutes_late), 0) AS number_minutes_late,
+                    COALESCE(SUM(minutes_early), 0) AS number_minutes_early,
+                    COALESCE(SUM(public_leave), 0) AS public_leave,
+                    COALESCE(SUM(c2k3), 0) AS shift_two_crew_three,
+                    COALESCE(SUM(c3k4), 0) AS shift_three_crew_four
+                FROM employee_attendance_store
+                WHERE employee_id = %s
+                  AND date >= %s
+                  AND date <= %s
+            """
+
+            self.env.cr.execute(query, (r.employee_id.id, r.start_date, r.end_date))
+            result = self.env.cr.dictfetchone()
+
+            # Gán các giá trị từ kết quả truy vấn
+            r.date_work = result['date_work']
+            r.on_leave = result['on_leave']
+            r.compensatory_leave = result['compensatory_leave']
+            r.hours_reinforcement = result['hours_reinforcement']
+            r.number_minutes_late = result['number_minutes_late']
+            r.number_minutes_early = result['number_minutes_early']
+            r.public_leave = result['public_leave']
+            r.shift_two_crew_three = result['shift_two_crew_three']
+            r.shift_three_crew_four = result['shift_three_crew_four']
 
     @api.depends('on_leave', 'compensatory_leave', 'public_leave')
     def get_leave(self):
         for r in self:
             r.paid_leave = r.on_leave + r.compensatory_leave + r.public_leave
+
+    @api.depends('date_work', 'paid_leave')
+    def get_total_work(self):
+        for r in self:
+            r.total_work = r.date_work + r.paid_leave
 
     @api.depends('start_date')
     def get_this_month(self):

@@ -85,7 +85,7 @@ class SonHaKPIYear(models.Model):
     def _check_month_values(self):
         for r in self:
             sum_month = r.ti_le_monh_one + r.ti_le_monh_two + r.ti_le_monh_three + r.ti_le_monh_four + r.ti_le_monh_five + r.ti_le_monh_six + r.ti_le_monh_seven + r.ti_le_monh_eight + r.ti_le_monh_nigh + r.ti_le_monh_ten + r.ti_le_monh_eleven + r.ti_le_monh_twenty
-            if sum_month > r.kpi_year or not r.kpi_year:
+            if sum_month > r.kpi_year + 1 or not r.kpi_year:
                 raise ValidationError("Tổng % các tháng lớn hơn KPI dự kiến cả năm")
             else:
                 pass
@@ -202,52 +202,57 @@ class SonHaKPIYear(models.Model):
         return dict(self._fields['ctqdg_status'].selection).get(self.ctqdg_status)
 
     def is_missing_field(self, record):
-        date = record.start_date.month
+        start_date = record.start_date.month
+        end_date = record.end_date.month
+        list_date = set()
+        while start_date <= end_date:
+            list_date.add(start_date)
+            start_date = start_date + 1
         missing_fields = []
-        if date == 1:
+        if 1 in list_date:
             if not record.ti_le_monh_one:
                 missing_fields.append("Tháng 1")
-        elif date == 2:
+        if 2 in list_date:
             if not record.ti_le_monh_two:
                 missing_fields.append("Tháng 2")
-        elif date == 3:
+        if 3 in list_date:
             if not record.ti_le_monh_three:
                 missing_fields.append("Tháng 3")
-        elif date == 4:
+        if 4 in list_date:
             if not record.ti_le_monh_four:
                 missing_fields.append("Tháng 4")
-        elif date == 5:
+        if 5 in list_date:
             if not record.ti_le_monh_five:
                 missing_fields.append("Tháng 5")
-        elif date == 6:
+        if 6 in list_date:
             if not record.ti_le_monh_six:
                 missing_fields.append("Tháng 6")
-        elif date == 7:
+        if 7 in list_date:
             if not record.ti_le_monh_seven:
                 missing_fields.append("Tháng 7")
-        elif date == 8:
+        if 8 in list_date:
             if not record.ti_le_monh_eight:
                 missing_fields.append("Tháng 8")
-        elif date == 9:
+        if 9 in list_date:
             if not record.ti_le_monh_nigh:
                 missing_fields.append("Tháng 9")
-        elif date == 10:
+        if 10 in list_date:
             if not record.ti_le_monh_ten:
                 missing_fields.append("Tháng 10")
-        elif date == 11:
+        if 11 in list_date:
             if not record.ti_le_monh_eleven:
                 missing_fields.append("Tháng 11")
-        elif date == 12:
+        if 12 in list_date:
             if not record.ti_le_monh_twenty:
                 missing_fields.append("Tháng 12")
         if missing_fields:
-            warning_message = f"Trường: {', '.join(missing_fields)} bị thiếu dữ liệu."
+            warning_message = f"Các trường: {', '.join(missing_fields)} bị thiếu dữ liệu."
             self.env['bus.bus']._sendone(
                 (self._cr.dbname, 'res.partner', self.env.user.partner_id.id),
                 'simple_notification',
                 {
                     'title': "Cảnh báo!",
                     'message': warning_message,
-                    'sticky': False,
+                    'sticky': True,
                 }
             )
