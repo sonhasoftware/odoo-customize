@@ -243,15 +243,17 @@ class EmployeeAttendance(models.Model):
     @api.depends('employee_id', 'time_check_in', 'time_check_out', 'check_no_in', 'check_no_out')
     def _get_check_in_out(self):
         def calculate_time(input_time, date, default_time):
-            """Tính toán và trả về datetime từ giờ/phút, hoặc trả về giá trị mặc định."""
             if not isinstance(input_time, (int, float)) or input_time < 0:
                 raise ValueError(f"Invalid time value: {input_time}")
-            hour = max(0, min(int(input_time) - 7, 23))  # Giới hạn giờ trong phạm vi 0-23
+
+            hour = int(input_time)
             minute = int((input_time % 1) * 60)
-            return datetime.combine(date, time(hour, minute, 0)) if 0 <= hour <= 23 else default_time
+            if 0 <= hour < 24:
+                return datetime.combine(date, time(hour, minute, 0))
+            else:
+                return default_time
 
         for r in self:
-            # Kiểm tra và gán giá trị mặc định cho check_in, check_out
             r.check_in, r.check_out = None, None
             if not r.time_check_in or not r.time_check_out or not r.employee_id:
                 continue
@@ -285,6 +287,7 @@ class EmployeeAttendance(models.Model):
             for in_out in in_outs:
                 if in_out and in_out.time_to:
                     ci = calculate_time(in_out.time_to, r.date, datetime.combine(r.date, time(0, 0, 0)))
+                    ci = ci - relativedelta(hours=7)
 
                     if not check_in and r.time_check_in and r.check_no_in and r.time_check_in <= ci <= r.check_no_in:
                         r.check_in = ci
@@ -293,6 +296,7 @@ class EmployeeAttendance(models.Model):
 
                 if in_out and in_out.time_from:
                     co = calculate_time(in_out.time_from, r.date, datetime.combine(r.date, time(0, 0, 0)))
+                    co = co - relativedelta(hours=7)
 
                     if not check_out and r.check_no_out and r.time_check_out and r.check_no_out <= co <= r.time_check_out:
                         r.check_out = co

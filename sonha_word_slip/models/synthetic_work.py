@@ -37,6 +37,7 @@ class SyntheticWork(models.Model):
     grandparents_leave = fields.Float("Nghỉ ông bà mất")
     vacation = fields.Float("Nghỉ mát")
     public_leave = fields.Float("Nghỉ lễ", compute="get_date_work")
+    total_work = fields.Float("Tổng công", compute="get_total_work")
 
     start_date = fields.Date("Từ ngày")
     end_date = fields.Date("Đến ngày")
@@ -84,6 +85,11 @@ class SyntheticWork(models.Model):
     def get_leave(self):
         for r in self:
             r.paid_leave = r.on_leave + r.compensatory_leave + r.public_leave
+
+    @api.depends('date_work', 'paid_leave')
+    def get_total_work(self):
+        for r in self:
+            r.total_work = r.date_work + r.paid_leave
 
     @api.depends('start_date')
     def get_this_month(self):
