@@ -63,3 +63,5 @@ access_config_approve,config.approve,model_config_approve,sonha_employee.group_h
 access_approval_workflow_step,approval.workflow.step,model_approval_workflow_step,,1,1,1,1
 
 access_approval_state,approval.state,model_approval_state,,1,1,1,1
+
+access_employee_attendance_store,employee.attendance.store,model_employee_attendance_store,,1,1,1,1

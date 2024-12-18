@@ -11,3 +11,4 @@ from . import synthetic_work
 from . import config_reason
 from . import distribute_shift
 from . import config_approve
+from . import store_employee_attendance

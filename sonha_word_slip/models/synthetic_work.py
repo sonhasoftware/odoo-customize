@@ -60,6 +60,8 @@ class SyntheticWork(models.Model):
                 r.number_minutes_late = sum(work.mapped('minutes_late'))
                 r.number_minutes_early = sum(work.mapped('minutes_early'))
                 r.public_leave = sum(work.mapped('public_leave'))
+                r.shift_two_crew_three = sum(work.mapped('c2k3'))
+                r.shift_three_crew_four = sum(work.mapped('c3k4'))
             else:
                 r.date_work = 0
                 r.on_leave = 0
@@ -68,6 +70,8 @@ class SyntheticWork(models.Model):
                 r.number_minutes_late = 0
                 r.number_minutes_early = 0
                 r.public_leave = 0
+                r.shift_two_crew_three = 0
+                r.shift_three_crew_four = 0
 
     @api.depends('on_leave', 'compensatory_leave', 'public_leave')
     def get_leave(self):

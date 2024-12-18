@@ -22,5 +22,17 @@
             <field name="numbercall">-1</field>
             <field name="doall">True</field>
         </record>
+
+
+        <record id="ir_cron_copy_attendance" model="ir.cron">
+            <field name="name">Sao chép dữ liệu</field>
+            <field name="model_id" ref="model_employee_attendance_store"/>
+            <field name="state">code</field>
+            <field name="code">model.copy_to_stored_model()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="doall">True</field>
+        </record>
     </data>
 </odoo>
