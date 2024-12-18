@@ -6,6 +6,11 @@
             <field name="model">hr.employee</field>
             <field name="inherit_id" ref="hr.view_employee_form"/>
             <field name="arch" type="xml">
+<!--        thêm nút tạo user vào form-->
+                <xpath expr="//header" position="inside">
+                    <button name="create_user" type="object" string="Tạo account user" class="btn-primary" invisible="check_account != False"/>
+                    <field name="check_account" invisible="1"/>
+                </xpath>
 <!--        ẩn đi các field k cần dùng đến trên form-->
                 <xpath expr="//field[@name='coach_id']" position="attributes">
                     <attribute name="invisible">True</attribute>

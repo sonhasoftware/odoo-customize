@@ -95,6 +95,7 @@ class SonHaEmployee(models.Model):
     reception_date = fields.Date("Ngày tiếp nhận", tracking=True)
     culture_level = fields.Char("Trình độ văn hóa", tracking=True)
     tax_code = fields.Char("Mã số thuế", tracking=True)
+    check_account = fields.Boolean('check_account', compute="check_account_user")
 
     @api.depends('date_birthday', 'birthday')
     def _compute_birth_month(self):
@@ -184,6 +185,28 @@ class ResCompany(models.Model):
 
             r.max_number = max_number
 
+
+    @api.depends('user_id')
+    def check_account_user(self):
+        for r in self:
+            if r.user_id:
+                r.check_account = True
+            else:
+                r.check_account = False
+
+    def create_user(self):
+        for r in self:
+            user_vals = {
+                'name': r.name,
+                'login': r.work_email if r.work_email != 'nan' else r.employee_code,
+                'password': "123456",
+                'email': r.work_email or '',
+                'employee_ids': [(4, r.id)],
+                'groups_id': [(6, 0, [self.env.ref('base.group_user').id])],
+            }
+            self.env['res.users'].sudo().create(user_vals)
+            r.user_id = self.env['res.users'].sudo().search(['|', ('login', '=', r.employee_code),
+                                                            ('login', '=', r.work_email)], limit=1)
 
 class EmployeeRel(models.Model):
     _name = 'employee.rel'
