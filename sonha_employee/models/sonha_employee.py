@@ -193,7 +193,7 @@ class ResCompany(models.Model):
 
     max_number = fields.Integer(string="Mã lớn nhất", compute="_compute_max_number",required=True)
     zero_count = fields.Integer(string="Số số 0", compute="_compute_max_number",required=True)
-    company_code = fields.Char(string="Mã công ty", required=True)
+    company_code = fields.Char(string="Mã công ty")
 
     def _compute_max_number(self):
         for r in self:
