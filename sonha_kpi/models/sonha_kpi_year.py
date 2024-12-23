@@ -24,18 +24,18 @@ class SonHaKPIYear(models.Model):
                                     string="Trạng thái cấp thẩm quyền ĐG",
                                     compute="compute_filter_status_authorization", store=True, readonly=True)
 
-    ti_le_monh_one = fields.Float("T 1")
-    ti_le_monh_two = fields.Float("T 2")
-    ti_le_monh_three = fields.Float("T 3")
-    ti_le_monh_four = fields.Float("T 4")
-    ti_le_monh_five = fields.Float("T 5")
-    ti_le_monh_six = fields.Float("T 6")
-    ti_le_monh_seven = fields.Float("T 7")
-    ti_le_monh_eight = fields.Float("T 8")
-    ti_le_monh_nigh = fields.Float("T 9")
-    ti_le_monh_ten = fields.Float("T 10")
-    ti_le_monh_eleven = fields.Float("T 11")
-    ti_le_monh_twenty = fields.Float("T 12")
+    ti_le_monh_one = fields.Float("T1")
+    ti_le_monh_two = fields.Float("T2")
+    ti_le_monh_three = fields.Float("T3")
+    ti_le_monh_four = fields.Float("T4")
+    ti_le_monh_five = fields.Float("T5")
+    ti_le_monh_six = fields.Float("T6")
+    ti_le_monh_seven = fields.Float("T7")
+    ti_le_monh_eight = fields.Float("T8")
+    ti_le_monh_nigh = fields.Float("T9")
+    ti_le_monh_ten = fields.Float("T10")
+    ti_le_monh_eleven = fields.Float("T11")
+    ti_le_monh_twenty = fields.Float("T12")
 
     quy_doi_monh_one = fields.Float("Tháng 1")
     quy_doi_monh_two = fields.Float("Tháng 2")
@@ -85,7 +85,7 @@ class SonHaKPIYear(models.Model):
     def _check_month_values(self):
         for r in self:
             sum_month = r.ti_le_monh_one + r.ti_le_monh_two + r.ti_le_monh_three + r.ti_le_monh_four + r.ti_le_monh_five + r.ti_le_monh_six + r.ti_le_monh_seven + r.ti_le_monh_eight + r.ti_le_monh_nigh + r.ti_le_monh_ten + r.ti_le_monh_eleven + r.ti_le_monh_twenty
-            if sum_month > r.kpi_year + 1 or not r.kpi_year:
+            if sum_month > r.kpi_year + 0.000001 or not r.kpi_year:
                 raise ValidationError("Tổng % các tháng lớn hơn KPI dự kiến cả năm")
             else:
                 pass

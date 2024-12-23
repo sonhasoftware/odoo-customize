@@ -1,6 +1,7 @@
 from odoo import api, fields, models, _
 import pandas as pd
 from odoo.exceptions import UserError, ValidationError
+from dateutil.relativedelta import relativedelta
 
 
 class SonHaKPIMonth(models.Model):
@@ -14,8 +15,20 @@ class SonHaKPIMonth(models.Model):
                                   domain="[('sonha_kpi', '=', sonha_kpi)]")
     employee_id = fields.Many2many('hr.employee', string="NS thực hiện", readonly=False,
                                    default=lambda self: self._get_current_user())
-    start_date = fields.Date('Ngày bắt đầu', required=True)
-    end_date = fields.Date("Ngày hoàn thành", required=True)
+    month = fields.Selection([('one', 1),
+                              ('two', 2),
+                              ('three', 3),
+                              ('four', 4),
+                              ('five', 5),
+                              ('six', 6),
+                              ('seven', 7),
+                              ('eight', 8),
+                              ('nine', 9),
+                              ('ten', 10),
+                              ('eleven', 11),
+                              ('twelve', 12), ], string="Tháng", required=True)
+    start_date = fields.Date('Ngày bắt đầu', compute="get_month")
+    end_date = fields.Date("Ngày hoàn thành")
 
     dv_amount_work = fields.Float("khối lượng CVTH", default=0)
     dv_matter_work = fields.Float("Chất lượng CVTH", default=0)
@@ -283,6 +296,50 @@ class SonHaKPIMonth(models.Model):
                             duplicate_month.add(kpi_month.start_date.month)
             kpi_year.sudo().write({'dvdg_kpi': dvdg_kpi,
                                    'ctqdg_kpi': ctqdg_kpi})
+
+    @api.depends('month')
+    def get_month(self):
+        for r in self:
+            if r.month == 'one':
+                r.start_date = f'{r.sonha_kpi.year}-1-1'
+                r.end_date = r.start_date + relativedelta(months=1, days=-1)
+            elif r.month == 'two':
+                r.start_date = f'{r.sonha_kpi.year}-2-1'
+                r.end_date = r.start_date + relativedelta(months=1, days=-1)
+            elif r.month == 'three':
+                r.start_date = f'{r.sonha_kpi.year}-3-1'
+                r.end_date = r.start_date + relativedelta(months=1, days=-1)
+            elif r.month == 'four':
+                r.start_date = f'{r.sonha_kpi.year}-4-1'
+                r.end_date = r.start_date + relativedelta(months=1, days=-1)
+            elif r.month == 'five':
+                r.start_date = f'{r.sonha_kpi.year}-5-1'
+                r.end_date = r.start_date + relativedelta(months=1, days=-1)
+            elif r.month == 'six':
+                r.start_date = f'{r.sonha_kpi.year}-6-1'
+                r.end_date = r.start_date + relativedelta(months=1, days=-1)
+            elif r.month == 'seven':
+                r.start_date = f'{r.sonha_kpi.year}-7-1'
+                r.end_date = r.start_date + relativedelta(months=1, days=-1)
+            elif r.month == 'eight':
+                r.start_date = f'{r.sonha_kpi.year}-8-1'
+                r.end_date = r.start_date + relativedelta(months=1, days=-1)
+            elif r.month == 'nine':
+                r.start_date = f'{r.sonha_kpi.year}-9-1'
+                r.end_date = r.start_date + relativedelta(months=1, days=-1)
+            elif r.month == 'ten':
+                r.start_date = f'{r.sonha_kpi.year}-10-1'
+                r.end_date = r.start_date + relativedelta(months=1, days=-1)
+            elif r.month == 'eleven':
+                r.start_date = f'{r.sonha_kpi.year}-11-1'
+                r.end_date = r.start_date + relativedelta(months=1, days=-1)
+            elif r.month == 'twelve':
+                r.start_date = f'{r.sonha_kpi.year}-12-1'
+                r.end_date = r.start_date + relativedelta(months=1, days=-1)
+            else:
+                r.start_date = ''
+                r.end_date = ''
+
 
 
 
