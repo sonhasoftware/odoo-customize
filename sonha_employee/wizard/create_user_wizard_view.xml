@@ -4,6 +4,9 @@
         <field name="model">create.user.wizard</field>
         <field name="arch" type="xml">
             <form string="Create User Accounts">
+                 <group>
+                    <field name="company_id"/>
+                </group>
                 <sheet>
                     <button string="Create Users" type="object" name="create_user_accounts" class="btn-primary"/>
                     <button string="Cancel" class="btn-secondary" special="cancel"/>
