@@ -24,18 +24,18 @@ class SonHaKPIYear(models.Model):
                                     string="Trạng thái cấp thẩm quyền ĐG",
                                     compute="compute_filter_status_authorization", store=True, readonly=True)
 
-    ti_le_monh_one = fields.Float("Tháng 1")
-    ti_le_monh_two = fields.Float("Tháng 2")
-    ti_le_monh_three = fields.Float("Tháng 3")
-    ti_le_monh_four = fields.Float("Tháng 4")
-    ti_le_monh_five = fields.Float("Tháng 5")
-    ti_le_monh_six = fields.Float("Tháng 6")
-    ti_le_monh_seven = fields.Float("Tháng 7")
-    ti_le_monh_eight = fields.Float("Tháng 8")
-    ti_le_monh_nigh = fields.Float("Tháng 9")
-    ti_le_monh_ten = fields.Float("Tháng 10")
-    ti_le_monh_eleven = fields.Float("Tháng 11")
-    ti_le_monh_twenty = fields.Float("Tháng 12")
+    ti_le_monh_one = fields.Float("T 1")
+    ti_le_monh_two = fields.Float("T 2")
+    ti_le_monh_three = fields.Float("T 3")
+    ti_le_monh_four = fields.Float("T 4")
+    ti_le_monh_five = fields.Float("T 5")
+    ti_le_monh_six = fields.Float("T 6")
+    ti_le_monh_seven = fields.Float("T 7")
+    ti_le_monh_eight = fields.Float("T 8")
+    ti_le_monh_nigh = fields.Float("T 9")
+    ti_le_monh_ten = fields.Float("T 10")
+    ti_le_monh_eleven = fields.Float("T 11")
+    ti_le_monh_twenty = fields.Float("T 12")
 
     quy_doi_monh_one = fields.Float("Tháng 1")
     quy_doi_monh_two = fields.Float("Tháng 2")
@@ -119,7 +119,7 @@ class SonHaKPIYear(models.Model):
         for r in self:
             if not r.dvdg_kpi:
                 r.dvdg_status = 'draft'
-            elif r.dvdg_kpi < r.kpi_year:
+            elif r.dvdg_kpi / 100 < r.kpi_year:
                 r.dvdg_status = 'in_progres'
             else:
                 r.dvdg_status = 'done'
@@ -129,7 +129,7 @@ class SonHaKPIYear(models.Model):
         for r in self:
             if not r.ctqdg_kpi:
                 r.ctqdg_status = 'draft'
-            elif r.ctqdg_kpi < r.kpi_year:
+            elif r.ctqdg_kpi / 100 < r.kpi_year:
                 r.ctqdg_status = 'in_progres'
             else:
                 r.ctqdg_status = 'done'
