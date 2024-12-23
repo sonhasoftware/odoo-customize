@@ -5,6 +5,8 @@ class CreateUserWizard(models.TransientModel):
     _name = 'create.user.wizard'
     _description = 'Create User Accounts Wizard'
 
+    company_id = fields.Many2one('res.company', string="Công ty")
+
     def create_user_accounts(self):
         BATCH_SIZE = 100  # Số lượng user tạo mỗi lần
         employee_obj = self.env['hr.employee'].sudo()
@@ -13,6 +15,7 @@ class CreateUserWizard(models.TransientModel):
         # Lấy tất cả nhân viên cần tạo user
         list_employees = employee_obj.search(['|', ('work_email', '!=', 'nan'),
                                               ('employee_code', '!=', False)])
+        list_employees = list_employees.filtered(lambda x: x.company_id.id == self.company_id.id)
 
         users_to_create = []  # Danh sách thông tin user cần tạo
         for employee in list_employees:
