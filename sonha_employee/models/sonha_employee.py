@@ -148,12 +148,12 @@ class SonHaEmployee(models.Model):
 
         res = super(SonHaEmployee, self).create(vals)
 
-        company_id = self.env['res.company'].sudo().search([('id', '=', res.company_id.id)])
-        company_id.max_number += 1
-        if not company_id.company_code:
-            res.employee_code = '0' * company_id.zero_count + str(company_id.max_number)
-        else:
-            res.employee_code = company_id.company_code + '0' * company_id.zero_count + str(company_id.max_number)
+        # company_id = self.env['res.company'].sudo().search([('id', '=', res.company_id.id)])
+        # company_id.max_number += 1
+        # if not company_id.company_code:
+        #     res.employee_code = '0' * company_id.zero_count + str(company_id.max_number)
+        # else:
+        #     res.employee_code = company_id.company_code + '0' * company_id.zero_count + str(company_id.max_number)
 
         return res
 
