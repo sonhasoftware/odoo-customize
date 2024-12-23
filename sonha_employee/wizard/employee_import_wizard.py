@@ -22,6 +22,8 @@ class EmployeeImportWizard(models.TransientModel):
             for index, row in df.iterrows():
                 if row['Phòng ban']:
                     department_id = self.env['hr.department'].search([('name', '=', row['Phòng ban'])], limit=1)
+                    if not department_id:
+                        department = self.env['hr.department'].sudo().create({'name': row['Phòng ban']})
                 if row['Chức vụ']:
                     job_id = self.env['hr.job'].search([('name', '=', row['Chức vụ'])], limit=1)
                     if not job_id:
@@ -70,7 +72,7 @@ class EmployeeImportWizard(models.TransientModel):
                     'name': row['Họ tên'] or '',
                     'mobile_phone': row['Di động'] or '',
                     'work_email': row['email'] or '',
-                    'department_id': department_id.id if department_id else None,
+                    'department_id': department_id.id if department_id else department.id,
                     'job_id': job_id.id if job_id else job.id,
                     'date_birthday': date_birthday,
                     'gender': gender or '',
