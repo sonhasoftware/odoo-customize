@@ -148,12 +148,12 @@ class SonHaEmployee(models.Model):
 
         res = super(SonHaEmployee, self).create(vals)
 
-        company_id = self.env['res.company'].sudo().search([('id', '=', res.company_id.id)])
-        company_id.max_number += 1
-        if not company_id.company_code:
-            res.employee_code = str(company_id.max_number)
-        else:
-            res.employee_code = company_id.company_code + str(company_id.max_number)
+        # company_id = self.env['res.company'].sudo().search([('id', '=', res.company_id.id)])
+        # company_id.max_number += 1
+        # if not company_id.company_code:
+        #     res.employee_code = '0' * company_id.zero_count + str(company_id.max_number)
+        # else:
+        #     res.employee_code = company_id.company_code + '0' * company_id.zero_count + str(company_id.max_number)
 
         return res
 
@@ -192,19 +192,26 @@ class ResCompany(models.Model):
     _inherit = 'res.company'
 
     max_number = fields.Integer(string="Mã lớn nhất", compute="_compute_max_number",required=True)
+    zero_count = fields.Integer(string="Số số 0", compute="_compute_max_number",required=True)
     company_code = fields.Char(string="Mã công ty", required=True)
 
     def _compute_max_number(self):
         for r in self:
             employee_codes = self.env['hr.employee'].sudo().search([('company_id.id', '=', r.id)])
             max_number = 0
+            max_str = ''
             for employee in employee_codes:
                 if employee.employee_code:
                     match = re.search(r'(\d+)$', employee.employee_code)
                     if match:
-                        number = int(match.group())
-                        max_number = max(max_number, number)
+                        number_str = match.group()
+                        number = int(number_str)
 
+                        if max_number <  number:
+                            max_number = number
+                            max_str = number_str
+
+            r.zero_count = len(max_str) - len(max_str.lstrip('0')) if max_str else 0
             r.max_number = max_number
 
 

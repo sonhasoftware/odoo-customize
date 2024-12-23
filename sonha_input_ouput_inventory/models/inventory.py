@@ -29,10 +29,10 @@ class Inventory(models.Model):
             # Kiểm tra phản hồi của API
             if response.status_code == 200:
                 data = response.json().get('d', {}).get('results', [])
-                self.search([('plant', '=', '2201')]).unlink()
+                self.sudo().search([('plant', '=', '2201')]).unlink()
                 # Duyệt qua từng bản ghi và tạo trong bảng Odoo
                 for record in data:
-                    self.create({
+                    self.sudo().create({
                         'plant': record.get('WERKS'),
                         'sloc_code': record.get('LGORT'),
                         'sloc_name': record.get('LGOBE'),
@@ -65,10 +65,10 @@ class Inventory(models.Model):
             # Kiểm tra phản hồi của API
             if response.status_code == 200:
                 data = response.json().get('d', {}).get('results', [])
-                self.search([('plant', '=', '2202')]).unlink()
+                self.sudo().search([('plant', '=', '2202')]).unlink()
                 # Duyệt qua từng bản ghi và tạo trong bảng Odoo
                 for record in data:
-                    self.create({
+                    self.sudo().create({
                         'plant': record.get('WERKS'),
                         'sloc_code': record.get('LGORT'),
                         'sloc_name': record.get('LGOBE'),

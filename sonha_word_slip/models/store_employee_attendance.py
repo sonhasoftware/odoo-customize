@@ -53,14 +53,14 @@ class EmployeeAttendanceStore(models.Model):
         ])
         for record in list_attendances:
             # Kiểm tra xem bản ghi đã tồn tại trong bảng employee.attendance.store chưa
-            existing_record = self.search([
+            existing_record = self.sudo().search([
                 ('employee_id', '=', record.employee_id.id),
                 ('date', '=', record.date)
             ], limit=1)
 
             if existing_record:
                 # Nếu bản ghi đã tồn tại thì cập nhật dữ liệu
-                existing_record.write({
+                existing_record.sudo().write({
                     'department_id': record.department_id.id,
                     'weekday': record.weekday,
                     'check_in': record.check_in,
@@ -86,7 +86,7 @@ class EmployeeAttendanceStore(models.Model):
                 })
             else:
                 # Nếu chưa tồn tại thì tạo mới bản ghi
-                self.create({
+                self.sudo().create({
                     'employee_id': record.employee_id.id,
                     'department_id': record.department_id.id,
                     'date': record.date,
