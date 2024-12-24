@@ -11,9 +11,9 @@
                      <button class="btn btn-primary" id="manager-approve" t-if="kpi_records and kpi_records[0].status == 'waiting'">
                          Duyệt
                      </button>
-<!--                    <h5 class="status">-->
-<!--                        Trạng thái: <t t-esc="kpi_records[0].status"/>-->
-<!--                    </h5>-->
+                    <h5 class="status">
+                        Trạng thái: <t t-esc="kpi_records[0].status"/>
+                    </h5>
                 </div>
                 <table class="table table-bordered">
                     <thead>
