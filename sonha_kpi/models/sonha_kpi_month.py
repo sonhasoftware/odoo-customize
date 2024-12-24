@@ -8,7 +8,7 @@ class SonHaKPIMonth(models.Model):
     _name = 'sonha.kpi.month'
     _rec_name = 'small_items_each_month'
 
-    department_id = fields.Many2one('hr.department')
+    department_id = fields.Many2one('hr.department', string="Phòng ban")
     year = fields.Integer('Năm')
     small_items_each_month = fields.Text("Nội dung CV KPI của tháng")
     kpi_year_id = fields.Many2one('sonha.kpi.year', string="Hạng mục lớn",
@@ -73,6 +73,7 @@ class SonHaKPIMonth(models.Model):
         res = super(SonHaKPIMonth, self).write(vals)
         for r in self:
             self.write_result_month(r)
+            self.write_report_month(r)
         self.re_calculating_density_all(self[0])
         self.calculating_dvdgkpi_tqdgkpi(self[0])
         return res
@@ -109,14 +110,14 @@ class SonHaKPIMonth(models.Model):
             'kq_hoan_thanh_tq_comply_regulations': record.tq_comply_regulations or '',
             'kq_hoan_thanh_tq_initiative': record.tq_initiative or '',
         }
-        kpi_month_result.write(vals)
+        kpi_month_result.sudo().write(vals)
         kpi_month_result.filter_data_dvdg(kpi_month_result)
         kpi_month_result.filter_data_dvtq(kpi_month_result)
 
     def create_result_month(self, record):
         number_density = round(self.calculating_density(record), 2)
         vals = {
-            'department_id': record.department_id.id or '',
+            'department_id': record.sonha_kpi.department_id.id or '',
             'year': record.year or '',
             'name': record.kpi_year_id.id or '',
             'content_detail': record.small_items_each_month or '',
@@ -134,7 +135,7 @@ class SonHaKPIMonth(models.Model):
             'kq_hoan_thanh_tq_initiative': record.tq_initiative or '',
             'kpi_month': record.id
         }
-        record = self.env['sonha.kpi.result.month'].create(vals)
+        record = self.env['sonha.kpi.result.month'].sudo().create(vals)
         record.filter_data_dvdg(record)
         record.filter_data_dvtq(record)
 
@@ -195,7 +196,7 @@ class SonHaKPIMonth(models.Model):
 
     def create_report_month(self, record):
         vals = {
-            'department_id': record.department_id.id or '',
+            'department_id': record.sonha_kpi.department_id.id or '',
             'year': record.year or '',
             'small_items_each_month': record.id or '',
             'kpi_year_id': record.kpi_year_id.id or '',
@@ -210,6 +211,24 @@ class SonHaKPIMonth(models.Model):
             'status': 'draft'
         }
         self.env['report.kpi.month'].sudo().create(vals)
+
+    def write_report_month(self, record):
+        kpi_month_report = self.env['report.kpi.month'].sudo().search([('small_items_each_month', '=', record.id)])
+        vals = {
+            'department_id': record.sonha_kpi.department_id.id or '',
+            'year': record.year or '',
+            'small_items_each_month': record.id or '',
+            'kpi_year_id': record.kpi_year_id.id or '',
+            'start_date': str(record.start_date) or '',
+            'end_date': str(record.end_date) or '',
+            'sonha_kpi': record.sonha_kpi.id or '',
+            'dv_amount_work': record.dv_amount_work or '',
+            'dv_matter_work': record.dv_matter_work or '',
+            'dv_comply_regulations': record.dv_comply_regulations or '',
+            'dv_initiative': record.dv_initiative or '',
+            'dv_description': record.dv_description or ''
+        }
+        kpi_month_report.sudo().write(vals)
 
     def _get_current_user(self):
         employee = self.env['hr.employee'].search([('user_id', '=', self.env.user.id)])
