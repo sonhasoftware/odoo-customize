@@ -74,7 +74,6 @@ class SonHaKPIMonth(models.Model):
         for r in self:
             self.write_result_month(r)
         self.calculating_dvdgkpi_tqdgkpi(self[0])
-        self.re_calculating_density_all(self[0])
         return res
 
     def create(self, vals):
@@ -84,7 +83,6 @@ class SonHaKPIMonth(models.Model):
             record.year = record.kpi_year_id.year
             self.create_result_month(record)
             self.create_report_month(record)
-            self.re_calculating_density(record)
         self.calculating_dvdgkpi_tqdgkpi(list_record[0])
         return list_record
 
@@ -110,6 +108,7 @@ class SonHaKPIMonth(models.Model):
             'kq_hoan_thanh_tq_initiative': record.tq_initiative or '',
         }
         kpi_month_result.write(vals)
+        self.re_calculating_density_all(record)
         kpi_month_result.filter_data_dvdg(kpi_month_result)
         kpi_month_result.filter_data_dvtq(kpi_month_result)
 
@@ -135,6 +134,7 @@ class SonHaKPIMonth(models.Model):
             'kpi_month': record.id
         }
         record = self.env['sonha.kpi.result.month'].create(vals)
+        self.re_calculating_density(record)
         record.filter_data_dvdg(record)
         record.filter_data_dvtq(record)
 
