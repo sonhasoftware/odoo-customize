@@ -43,23 +43,23 @@
                                 <td>Khối lượng công việc thực hiện</td>
                                 <td><t t-esc="kpi.dv_amount_work * 100"/>%</td>
                                 <td rowspan="4"><t t-esc="kpi.dv_description"/></td>
-                                <td class="custom"><input type="number" class="form-control kpi-input" t-att-data-id="kpi.id" data-field="tq_amount_work" t-att-value="kpi.tq_amount_work"/>%</td>
-                                <td rowspan="4"><input type="text" class="form-control kpi-input" t-att-data-id="kpi.id" data-field="tq_description" t-att-value="kpi.tq_description"/></td>
+                                <td class="custom"><input type="number" t-if="kpi_records and kpi_records[0].status == 'waiting'" class="form-control kpi-input" t-att-data-id="kpi.id" data-field="tq_amount_work" t-att-value="kpi.tq_amount_work"/>%</td>
+                                <td rowspan="4"><input type="text" t-if="kpi_records and kpi_records[0].status == 'waiting'" class="form-control kpi-input" t-att-data-id="kpi.id" data-field="tq_description" t-att-value="kpi.tq_description"/></td>
                             </tr>
                             <tr>
                                 <td>Chất lượng công việc thực hiện</td>
                                 <td><t t-esc="kpi.dv_matter_work * 100"/>%</td>
-                                <td class="custom"><input type="number" class="form-control kpi-input" t-att-data-id="kpi.id" data-field="tq_matter_work" t-att-value="kpi.tq_matter_work"/>%</td>
+                                <td class="custom"><input type="number" t-if="kpi_records and kpi_records[0].status == 'waiting'" class="form-control kpi-input" t-att-data-id="kpi.id" data-field="tq_matter_work" t-att-value="kpi.tq_matter_work"/>%</td>
                             </tr>
                             <tr>
                                 <td>Chấp hành nội quy, quy chế, kỷ luật lao động</td>
                                 <td><t t-esc="kpi.dv_comply_regulations * 100"/>%</td>
-                                <td class="custom"><input type="number" class="form-control kpi-input" t-att-data-id="kpi.id" data-field="tq_comply_regulations" t-att-value="kpi.tq_comply_regulations"/>%</td>
+                                <td class="custom"><input type="number" t-if="kpi_records and kpi_records[0].status == 'waiting'" class="form-control kpi-input" t-att-data-id="kpi.id" data-field="tq_comply_regulations" t-att-value="kpi.tq_comply_regulations"/>%</td>
                             </tr>
                             <tr>
                                 <td>Cải tiến, đề xuất, sáng kiến</td>
                                 <td><t t-esc="kpi.dv_initiative * 100"/>%</td>
-                                <td class="custom"><input type="number" class="form-control kpi-input" t-att-data-id="kpi.id" data-field="tq_initiative" t-att-value="kpi.tq_initiative"/>%</td>
+                                <td class="custom"><input type="number" t-if="kpi_records and kpi_records[0].status == 'waiting'" class="form-control kpi-input" t-att-data-id="kpi.id" data-field="tq_initiative" t-att-value="kpi.tq_initiative"/>%</td>
                             </tr>
                         </t>
                     </tbody>

@@ -1,6 +1,7 @@
 from odoo import api, fields, models, _
 import pandas as pd
 from odoo.exceptions import UserError, ValidationError
+from dateutil.relativedelta import relativedelta
 
 
 class SonHaKPIMonth(models.Model):
@@ -12,9 +13,22 @@ class SonHaKPIMonth(models.Model):
     small_items_each_month = fields.Text("Nội dung CV KPI của tháng")
     kpi_year_id = fields.Many2one('sonha.kpi.year', string="Hạng mục lớn",
                                   domain="[('sonha_kpi', '=', sonha_kpi)]")
-    employee_id = fields.Many2many('hr.employee', string="NS thực hiện", readonly=False, default=lambda self: self._get_current_user())
-    start_date = fields.Date('Ngày bắt đầu', required=True)
-    end_date = fields.Date("Ngày hoàn thành", required=True)
+    employee_id = fields.Many2many('hr.employee', string="NS thực hiện", readonly=False,
+                                   default=lambda self: self._get_current_user())
+    month = fields.Selection([('one', 1),
+                              ('two', 2),
+                              ('three', 3),
+                              ('four', 4),
+                              ('five', 5),
+                              ('six', 6),
+                              ('seven', 7),
+                              ('eight', 8),
+                              ('nine', 9),
+                              ('ten', 10),
+                              ('eleven', 11),
+                              ('twelve', 12), ], string="Tháng", required=True)
+    start_date = fields.Date('Ngày bắt đầu', compute="get_month")
+    end_date = fields.Date("Ngày hoàn thành")
 
     dv_amount_work = fields.Float("khối lượng CVTH", default=0)
     dv_matter_work = fields.Float("Chất lượng CVTH", default=0)
@@ -59,6 +73,8 @@ class SonHaKPIMonth(models.Model):
         res = super(SonHaKPIMonth, self).write(vals)
         for r in self:
             self.write_result_month(r)
+        self.calculating_dvdgkpi_tqdgkpi(self[0])
+        self.re_calculating_density_all(self[0])
         return res
 
     def create(self, vals):
@@ -66,18 +82,15 @@ class SonHaKPIMonth(models.Model):
         for record in list_record:
             record.department_id = record.kpi_year_id.department_id.id
             record.year = record.kpi_year_id.year
-            record.kpi_year_id.dvdg_kpi = round(record.kpi_year_id.kpi_year * (
-                        record.dv_amount_work * 50 + record.dv_matter_work * 30 + record.dv_comply_regulations * 10 + record.dv_initiative * 10) / 100, 3)
-            record.kpi_year_id.total_percentage_month = record.kpi_year_id.dvdg_kpi / record.kpi_year_id.kpi_year if record.kpi_year_id.kpi_year else 0
-            record.kpi_year_id.ctqdg_kpi = round(record.kpi_year_id.kpi_year * (
-                        record.tq_amount_work * 50 + record.tq_matter_work * 30 + record.tq_comply_regulations * 10 + record.tq_initiative * 10) / 100, 3)
             self.create_result_month(record)
             self.create_report_month(record)
+            self.re_calculating_density(record)
+        self.calculating_dvdgkpi_tqdgkpi(list_record[0])
         return list_record
 
     def write_result_month(self, record):
         kpi_month_result = self.env['sonha.kpi.result.month'].sudo().search([('kpi_month', '=', record.id)])
-        number_density = self.calculating_density(record)
+        number_density = round(self.calculating_density(record), 2)
         vals = {
             'department_id': record.department_id.id or '',
             'year': record.year or '',
@@ -99,15 +112,9 @@ class SonHaKPIMonth(models.Model):
         kpi_month_result.write(vals)
         kpi_month_result.filter_data_dvdg(kpi_month_result)
         kpi_month_result.filter_data_dvtq(kpi_month_result)
-        kpi_month_result.kpi_month.kpi_year_id.dvdg_kpi = round(kpi_month_result.kpi_month.kpi_year_id.kpi_year * (
-                    kpi_month_result.kpi_month.dv_amount_work * 50 + kpi_month_result.kpi_month.dv_matter_work * 30 + kpi_month_result.kpi_month.dv_comply_regulations * 10 + kpi_month_result.kpi_month.dv_initiative * 10) / 100, 3)
-        kpi_month_result.kpi_month.kpi_year_id.total_percentage_month = kpi_month_result.kpi_month.kpi_year_id.dvdg_kpi / kpi_month_result.kpi_month.kpi_year_id.kpi_year if kpi_month_result.kpi_month.kpi_year_id.kpi_year else 0
-        kpi_month_result.kpi_month.kpi_year_id.ctqdg_kpi = round(kpi_month_result.kpi_month.kpi_year_id.kpi_year * (
-                    kpi_month_result.kpi_month.tq_amount_work * 50 + kpi_month_result.kpi_month.tq_matter_work * 30 + kpi_month_result.kpi_month.tq_comply_regulations * 10 + kpi_month_result.kpi_month.tq_initiative * 10) / 100, 3)
-
 
     def create_result_month(self, record):
-        number_density = self.calculating_density(record)
+        number_density = round(self.calculating_density(record), 2)
         vals = {
             'department_id': record.department_id.id or '',
             'year': record.year or '',
@@ -131,51 +138,59 @@ class SonHaKPIMonth(models.Model):
         record.filter_data_dvdg(record)
         record.filter_data_dvtq(record)
 
+    # Sửa để chỉ những kpi năm nào đã có bản ghi công việc nhỏ mới ảnh hưởng đến tỉ trọng
     def calculating_density(self, r):
         number = 0
-        key = self.env['sonha.kpi.year'].search([('year', '=', r.year), ('sonha_kpi', '=', r.sonha_kpi.id)])
-        if r.start_date.month == 1:
-            total = sum(key.mapped('ti_le_monh_one'))
-            number = (r.kpi_year_id.ti_le_monh_one * 100) * 100 / (total * 100) if total != 0 else 0
-        elif r.start_date.month == 2:
-            total = sum(key.mapped('ti_le_monh_two'))
-            number = (r.kpi_year_id.ti_le_monh_two * 100) * 100 / (total * 100) if total != 0 else 0
-        elif r.start_date.month == 3:
-            total = sum(key.mapped('ti_le_monh_three'))
-            number = (r.kpi_year_id.ti_le_monh_three * 100) * 100 / (total * 100) if total != 0 else 0
-        elif r.start_date.month == 4:
-            total = sum(key.mapped('ti_le_monh_four'))
-            number = (r.kpi_year_id.ti_le_monh_four * 100) * 100 / (total * 100) if total != 0 else 0
-        elif r.start_date.month == 5:
-            total = sum(key.mapped('ti_le_monh_five'))
-            number = (r.kpi_year_id.ti_le_monh_five * 100) * 100 / (total * 100) if total != 0 else 0
-        elif r.start_date.month == 6:
-            total = sum(key.mapped('ti_le_monh_six'))
-            number = (r.kpi_year_id.ti_le_monh_six * 100) * 100 / (total * 100) if total != 0 else 0
-        elif r.start_date.month == 7:
-            total = sum(key.mapped('ti_le_monh_seven'))
-            number = (r.kpi_year_id.ti_le_monh_seven * 100) * 100 / (total * 100) if total != 0 else 0
-        elif r.start_date.month == 8:
-            total = sum(key.mapped('ti_le_monh_eight'))
-            number = (r.kpi_year_id.ti_le_monh_eight * 100) * 100 / (total * 100) if total != 0 else 0
-        elif r.start_date.month == 9:
-            total = sum(key.mapped('ti_le_monh_nigh'))
-            number = (r.kpi_year_id.ti_le_monh_nigh * 100) * 100 / (total * 100) if total != 0 else 0
-        elif r.start_date.month == 10:
-            total = sum(key.mapped('ti_le_monh_ten'))
-            number = (r.kpi_year_id.ti_le_monh_ten * 100) * 100 / (total * 100) if total != 0 else 0
-        elif r.start_date.month == 11:
-            total = sum(key.mapped('ti_le_monh_eleven'))
-            number = (r.kpi_year_id.ti_le_monh_eleven * 100) * 100 / (total * 100) if total != 0 else 0
-        elif r.start_date.month == 12:
-            total = sum(key.mapped('ti_le_monh_twenty'))
-            number = (r.kpi_year_id.ti_le_monh_twenty * 100) * 100 / (total * 100) if total != 0 else 0
-        return number
+        month_record = self.env['sonha.kpi.month'].sudo().search([('sonha_kpi', '=', r.sonha_kpi.id)])
+        if month_record:
+            exist_month = month_record.filtered(lambda x: x.start_date.month == r.start_date.month)
+            if exist_month:
+                exist_year = exist_month.mapped('kpi_year_id.id')
+                key = self.env['sonha.kpi.year'].search([('year', '=', r.year),
+                                                         ('sonha_kpi', '=', r.sonha_kpi.id),
+                                                         ('id', 'in', exist_year)])
+                if r.start_date.month == 1:
+                    total = sum(key.mapped('ti_le_monh_one'))
+                    number = (r.kpi_year_id.ti_le_monh_one * 100) * 100 / (total * 100) if total != 0 else 0
+                elif r.start_date.month == 2:
+                    total = sum(key.mapped('ti_le_monh_two'))
+                    number = (r.kpi_year_id.ti_le_monh_two * 100) * 100 / (total * 100) if total != 0 else 0
+                elif r.start_date.month == 3:
+                    total = sum(key.mapped('ti_le_monh_three'))
+                    number = (r.kpi_year_id.ti_le_monh_three * 100) * 100 / (total * 100) if total != 0 else 0
+                elif r.start_date.month == 4:
+                    total = sum(key.mapped('ti_le_monh_four'))
+                    number = (r.kpi_year_id.ti_le_monh_four * 100) * 100 / (total * 100) if total != 0 else 0
+                elif r.start_date.month == 5:
+                    total = sum(key.mapped('ti_le_monh_five'))
+                    number = (r.kpi_year_id.ti_le_monh_five * 100) * 100 / (total * 100) if total != 0 else 0
+                elif r.start_date.month == 6:
+                    total = sum(key.mapped('ti_le_monh_six'))
+                    number = (r.kpi_year_id.ti_le_monh_six * 100) * 100 / (total * 100) if total != 0 else 0
+                elif r.start_date.month == 7:
+                    total = sum(key.mapped('ti_le_monh_seven'))
+                    number = (r.kpi_year_id.ti_le_monh_seven * 100) * 100 / (total * 100) if total != 0 else 0
+                elif r.start_date.month == 8:
+                    total = sum(key.mapped('ti_le_monh_eight'))
+                    number = (r.kpi_year_id.ti_le_monh_eight * 100) * 100 / (total * 100) if total != 0 else 0
+                elif r.start_date.month == 9:
+                    total = sum(key.mapped('ti_le_monh_nigh'))
+                    number = (r.kpi_year_id.ti_le_monh_nigh * 100) * 100 / (total * 100) if total != 0 else 0
+                elif r.start_date.month == 10:
+                    total = sum(key.mapped('ti_le_monh_ten'))
+                    number = (r.kpi_year_id.ti_le_monh_ten * 100) * 100 / (total * 100) if total != 0 else 0
+                elif r.start_date.month == 11:
+                    total = sum(key.mapped('ti_le_monh_eleven'))
+                    number = (r.kpi_year_id.ti_le_monh_eleven * 100) * 100 / (total * 100) if total != 0 else 0
+                elif r.start_date.month == 12:
+                    total = sum(key.mapped('ti_le_monh_twenty'))
+                    number = (r.kpi_year_id.ti_le_monh_twenty * 100) * 100 / (total * 100) if total != 0 else 0
+                return number
 
     def unlink(self):
         for r in self:
             self.env['sonha.kpi.result.month'].search([('kpi_month', '=', r.id)]).unlink()
-            self.env['report.kpi.month'].search([('sonha_kpi', '=', r.id)]).sudo().unlink()
+            self.env['report.kpi.month'].search([('small_items_each_month', '=', r.id)]).sudo().unlink()
         return super(SonHaKPIMonth, self).unlink()
 
     def create_report_month(self, record):
@@ -201,3 +216,130 @@ class SonHaKPIMonth(models.Model):
         if employee:
             return [employee.id]
         return []
+
+    # Tính lại tỉ trọng khi thêm
+    def re_calculating_density(self, record):
+        exist_month = self.env['sonha.kpi.month'].sudo().search([('sonha_kpi', '=', record.sonha_kpi.id)])
+        if exist_month:
+            records = exist_month.filtered(lambda x: x.start_date.month == record.start_date.month)
+            if records:
+                for r in records:
+                    desnsity = round(r.calculating_density(r), 2) / 100
+                    kpi_year_records = records.filtered(lambda x: x.kpi_year_id.id == r.kpi_year_id.id)
+                    if kpi_year_records:
+                        kpi_year_count = len(kpi_year_records)
+                        month_record = self.env['sonha.kpi.result.month'].sudo().search([('kpi_month', '=', r.id)])
+                        desnsity = desnsity / kpi_year_count
+                        month_record.sudo().write({'ti_trong': desnsity})
+
+    # Tính lại tỉ trọng khi sửa, vì sửa thời gian kpi tháng sang tháng khác cần tính lại tỉ trọng tháng cũ nên em cho tính lại tất cả
+    def re_calculating_density_all(self, record):
+        exist_month = self.env['sonha.kpi.month'].sudo().search([('sonha_kpi', '=', record.sonha_kpi.id)])
+        for month in exist_month:
+            self.re_calculating_density(month)
+
+    # Tính đơn vị, thẩm quyền đánh giá kpi đến hiện tại
+    def calculating_dvdgkpi_tqdgkpi(self, record):
+        kpi_years = self.env['sonha.kpi.year'].sudo().search([('sonha_kpi', '=', record.sonha_kpi.id)])
+        for kpi_year in kpi_years:
+            dvdg_kpi = 0
+            ctqdg_kpi = 0
+            duplicate_month = set()
+            kpi_months = self.env['sonha.kpi.month'].sudo().search([('kpi_year_id', '=', kpi_year.id)])
+            if kpi_months:
+                for kpi_month in kpi_months:
+                    if kpi_month.start_date.month not in duplicate_month:
+                        work_month = kpi_months.filtered(lambda x: x.start_date.month == kpi_month.start_date.month)
+                        if work_month:
+                            dv_amount_work = sum(work_month.mapped('dv_amount_work')) / len(work_month.mapped('dv_amount_work'))
+                            tq_amount_work = sum(work_month.mapped('tq_amount_work')) / len(work_month.mapped('dv_amount_work'))
+                            if kpi_month.start_date.month == 1:
+                                total_work_month = kpi_year.ti_le_monh_one * dv_amount_work
+                                total_tq_work_month = kpi_year.ti_le_monh_one * tq_amount_work
+                            elif kpi_month.start_date.month == 2:
+                                total_work_month = kpi_year.ti_le_monh_two * dv_amount_work
+                                total_tq_work_month = kpi_year.ti_le_monh_two * tq_amount_work
+                            elif kpi_month.start_date.month == 3:
+                                total_work_month = kpi_year.ti_le_monh_three * dv_amount_work
+                                total_tq_work_month = kpi_year.ti_le_monh_three * tq_amount_work
+                            elif kpi_month.start_date.month == 4:
+                                total_work_month = kpi_year.ti_le_monh_four * dv_amount_work
+                                total_tq_work_month = kpi_year.ti_le_monh_four * tq_amount_work
+                            elif kpi_month.start_date.month == 5:
+                                total_work_month = kpi_year.ti_le_monh_five * dv_amount_work
+                                total_tq_work_month = kpi_year.ti_le_monh_five * tq_amount_work
+                            elif kpi_month.start_date.month == 6:
+                                total_work_month = kpi_year.ti_le_monh_six * dv_amount_work
+                                total_tq_work_month = kpi_year.ti_le_monh_six * tq_amount_work
+                            elif kpi_month.start_date.month == 7:
+                                total_work_month = kpi_year.ti_le_monh_seven * dv_amount_work
+                                total_tq_work_month = kpi_year.ti_le_monh_seven * tq_amount_work
+                            elif kpi_month.start_date.month == 8:
+                                total_work_month = kpi_year.ti_le_monh_eight * dv_amount_work
+                                total_tq_work_month = kpi_year.ti_le_monh_eight * tq_amount_work
+                            elif kpi_month.start_date.month == 9:
+                                total_work_month = kpi_year.ti_le_monh_nigh * dv_amount_work
+                                total_tq_work_month = kpi_year.ti_le_monh_nigh * tq_amount_work
+                            elif kpi_month.start_date.month == 10:
+                                total_work_month = kpi_year.ti_le_monh_ten * dv_amount_work
+                                total_tq_work_month = kpi_year.ti_le_monh_ten * tq_amount_work
+                            elif kpi_month.start_date.month == 11:
+                                total_work_month = kpi_year.ti_le_monh_eleven * dv_amount_work
+                                total_tq_work_month = kpi_year.ti_le_monh_eleven * tq_amount_work
+                            elif kpi_month.start_date.month == 12:
+                                total_work_month = kpi_year.ti_le_monh_twenty * dv_amount_work
+                                total_tq_work_month = kpi_year.ti_le_monh_twenty * tq_amount_work
+                            total_work_month = round(total_work_month * 100, 1)
+                            total_tq_work_month = round(total_tq_work_month * 100, 1)
+                            dvdg_kpi = dvdg_kpi + total_work_month
+                            ctqdg_kpi = ctqdg_kpi + total_tq_work_month
+                            duplicate_month.add(kpi_month.start_date.month)
+            kpi_year.sudo().write({'dvdg_kpi': dvdg_kpi,
+                                   'ctqdg_kpi': ctqdg_kpi})
+
+    @api.depends('month')
+    def get_month(self):
+        for r in self:
+            if r.month == 'one':
+                r.start_date = f'{r.sonha_kpi.year}-1-1'
+                r.end_date = r.start_date + relativedelta(months=1, days=-1)
+            elif r.month == 'two':
+                r.start_date = f'{r.sonha_kpi.year}-2-1'
+                r.end_date = r.start_date + relativedelta(months=1, days=-1)
+            elif r.month == 'three':
+                r.start_date = f'{r.sonha_kpi.year}-3-1'
+                r.end_date = r.start_date + relativedelta(months=1, days=-1)
+            elif r.month == 'four':
+                r.start_date = f'{r.sonha_kpi.year}-4-1'
+                r.end_date = r.start_date + relativedelta(months=1, days=-1)
+            elif r.month == 'five':
+                r.start_date = f'{r.sonha_kpi.year}-5-1'
+                r.end_date = r.start_date + relativedelta(months=1, days=-1)
+            elif r.month == 'six':
+                r.start_date = f'{r.sonha_kpi.year}-6-1'
+                r.end_date = r.start_date + relativedelta(months=1, days=-1)
+            elif r.month == 'seven':
+                r.start_date = f'{r.sonha_kpi.year}-7-1'
+                r.end_date = r.start_date + relativedelta(months=1, days=-1)
+            elif r.month == 'eight':
+                r.start_date = f'{r.sonha_kpi.year}-8-1'
+                r.end_date = r.start_date + relativedelta(months=1, days=-1)
+            elif r.month == 'nine':
+                r.start_date = f'{r.sonha_kpi.year}-9-1'
+                r.end_date = r.start_date + relativedelta(months=1, days=-1)
+            elif r.month == 'ten':
+                r.start_date = f'{r.sonha_kpi.year}-10-1'
+                r.end_date = r.start_date + relativedelta(months=1, days=-1)
+            elif r.month == 'eleven':
+                r.start_date = f'{r.sonha_kpi.year}-11-1'
+                r.end_date = r.start_date + relativedelta(months=1, days=-1)
+            elif r.month == 'twelve':
+                r.start_date = f'{r.sonha_kpi.year}-12-1'
+                r.end_date = r.start_date + relativedelta(months=1, days=-1)
+            else:
+                r.start_date = ''
+                r.end_date = ''
+
+
+
+
