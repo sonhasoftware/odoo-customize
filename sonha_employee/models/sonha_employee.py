@@ -176,16 +176,16 @@ class SonHaEmployee(models.Model):
             if conflicting_employee_code:
                 raise ValidationError(f"Đã tồn tại nhân viên có mã nhân viên là {record.employee_code}")
 
-    @api.constrains('device_id_num')
-    def check_device_id_num(self):
-        for record in self:
-            if record.device_id_num:
-                conflicting_device_id_num = self.search([
-                    ('device_id_num', '=', record.device_id_num),
-                    ('id', '!=', record.id),
-                ], limit=1)
-                if conflicting_device_id_num:
-                    raise ValidationError(f"Đã tồn tại mã chấm công là {record.device_id_num}")
+    # @api.constrains('device_id_num')
+    # def check_device_id_num(self):
+    #     for record in self:
+    #         if record.device_id_num:
+    #             conflicting_device_id_num = self.search([
+    #                 ('device_id_num', '=', record.device_id_num),
+    #                 ('id', '!=', record.id),
+    #             ], limit=1)
+    #             if conflicting_device_id_num:
+    #                 raise ValidationError(f"Đã tồn tại mã chấm công là {record.device_id_num}")
 
 
 class ResCompany(models.Model):

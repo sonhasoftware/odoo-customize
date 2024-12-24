@@ -9,15 +9,25 @@
         <field name="body_html" type="html">
             <div style="margin: 0px; padding: 0px;">
                 <p style="margin: 0px; padding: 0px; font-size: 13px;">
-                    Dear <t t-out="object.employee_approval.name or ''"/>
+                    Dear anh/chị <t t-out="object.employee_approval.name or ''"/>
                     <br/>
-                    Đơn từ mã số <t t-out="object.code"/> đang đợi anh/chị phê duyệt
+                    Có 1 đơn đang chờ anh/chị phê duyệt với thông tin dưới đây:
+                    <br/>
+                    - Mã số đơn: <t t-out="object.code"/>
+                    <br/>
+                    - Người làm đơn: <t t-out="object.employee_id.name"/>
+                    <br/>
+                    - Loại đơn: <t t-out="object.type.name"/>
+                    <br/>
+                    - Gửi lúc: <t t-out="object.write_date"/>
                     <br/>
                     Vui lòng vào Link sau để duyệt đơn từ.
                     <br/>
                     <a t-att-href="object.record_url" target="_blank">Link đơn từ</a>
                     <br/>
-                    Best regards,
+                    Đây là mail được gửi tự động từ hệ thống, anh/chị vui lòng không phản hồi thông tin tại mail này!
+                    <br/>
+                    Trận trọng cảm ơn!
                 </p>
             </div>
         </field>
@@ -34,13 +44,23 @@
                 <p style="margin: 0px; padding: 0px; font-size: 13px;">
                     Dear <t t-out="object.employee_confirm.name or ''"/>
                     <br/>
-                    Đơn từ mã số <t t-out="object.code"/> đang đợi anh/chị phê duyệt
+                    Có 1 đơn đang chờ anh/chị phê duyệt với thông tin dưới đây:
+                    <br/>
+                    - Mã số đơn: <t t-out="object.code"/>
+                    <br/>
+                    - Người làm đơn: <t t-out="object.employee_id.name"/>
+                    <br/>
+                    - Loại đơn: <t t-out="object.type.name"/>
+                    <br/>
+                    - Gửi lúc: <t t-out="object.write_date"/>
                     <br/>
                     Vui lòng vào Link sau để duyệt đơn từ.
                     <br/>
                     <a t-att-href="object.record_url" target="_blank">Link đơn từ</a>
                     <br/>
-                    Best regards,
+                    Đây là mail được gửi tự động từ hệ thống, anh/chị vui lòng không phản hồi thông tin tại mail này!
+                    <br/>,
+                    Trận trọng cảm ơn!
                 </p>
             </div>
         </field>

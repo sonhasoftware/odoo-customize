@@ -120,16 +120,20 @@ class DataChart(http.Controller):
 
     @http.route('/kpi/form', type='http', auth='public', website=True)
     def kpi_form(self, **kwargs):
-        department_id = kwargs.get('department_id')
+        department_id = int(kwargs.get('department_id')) if kwargs.get('department_id') else None
         month = int(kwargs.get('month')) if kwargs.get('month') else None
-        year = kwargs.get('year')
-        kpi_records = request.env['report.kpi.month'].search([('department_id.id', '=', department_id),
+        year = int(kwargs.get('year')) if kwargs.get('year') else None
+        kpi_records = request.env['report.kpi.month'].sudo().search([('department_id', '=', department_id),
                                                              ('year', '=', year)])
         if month:
             kpi_records = kpi_records.filtered(lambda x: x.start_date.month == month)
-        return request.render('sonha_kpi.report_kpi_month_rel_template', {
-            'kpi_records': kpi_records
-        })
+        if kpi_records:
+            return request.render('sonha_kpi.report_kpi_month_rel_template', {
+                'kpi_records': kpi_records
+            })
+        else:
+            return "Chưa có dữ liệu đánh giá!"
+
 
     @http.route('/kpi/update_ajax', type='json', auth='none', methods=['POST'], csrf=False)
     def update_kpi_ajax(self, **kwargs):
@@ -159,7 +163,7 @@ class DataChart(http.Controller):
             base_url = request.env['ir.config_parameter'].sudo().get_param('web.base.url')
             mail_url = f"{base_url}/kpi/form?department_id={department_id}&month={month}&year={year}"
             now = datetime.now().date()
-        kpi_records = request.env['report.kpi.month'].sudo().search([('department_id.id', '=', department_id),
+        kpi_records = request.env['report.kpi.month'].sudo().search([('department_id', '=', department_id),
                                                                     ('year', '=', year)])
         if month:
             kpi_records = kpi_records.filtered(lambda x: x.start_date.month == month)
