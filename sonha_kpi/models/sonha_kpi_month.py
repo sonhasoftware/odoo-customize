@@ -48,7 +48,7 @@ class SonHaKPIMonth(models.Model):
     @api.constrains('start_date', 'end_date')
     def validate_start_end_date(self):
         for r in self:
-            if r.kpi_year_id.start_date <= r.start_date <= r.kpi_year_id.end_date and r.kpi_year_id.start_date <= r.end_date <= r.kpi_year_id.end_date:
+            if r.start_date and r.end_date and r.kpi_year_id.start_date <= r.start_date <= r.kpi_year_id.end_date and r.kpi_year_id.start_date <= r.end_date <= r.kpi_year_id.end_date:
                 pass
             else:
                 raise ValidationError("Dữ liệu tháng phải thuộc trong khoảng dữ liệu của năm")
