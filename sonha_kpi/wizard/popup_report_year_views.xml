@@ -20,14 +20,14 @@
         </record>
 
         <record id="action_popup_wizard_report_year" model="ir.actions.act_window">
-            <field name="name">Báo cáo kết quả KPI của năm</field>
+            <field name="name">Báo cáo Khối lương KPI thực hiện đến hiện tại</field>
             <field name="res_model">popup.wizard.report.year</field>
             <field name="view_mode">form</field>
             <field name="target">new</field>
         </record>
 
         <record id="menu_popup_wizard_report_year" model="ir.ui.menu">
-            <field name="name">Báo cáo đánh giá kết quả năm</field>
+            <field name="name">Báo cáo KPI thực hiện đến hiện tại</field>
             <field name="action" ref="action_popup_wizard_report_year"/>
             <field name="parent_id" ref="sonha_kpi.menu_sonha_kpi_report"/>
             <field name="sequence" type="int">210</field>

@@ -5,7 +5,7 @@ from odoo.exceptions import UserError, ValidationError
 class SonHaKPIResultMonth(models.Model):
     _name = 'sonha.kpi.result.month'
 
-    department_id = fields.Many2one('hr.department')
+    department_id = fields.Many2one('hr.department', string="Phòng ban")
     year = fields.Integer('Năm')
     name = fields.Many2one('sonha.kpi.year', string="Nội dung CV KPI cả năm")
     content_detail = fields.Text("Nội dung CV cụ thể")

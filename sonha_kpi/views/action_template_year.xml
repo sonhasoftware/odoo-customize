@@ -1,7 +1,7 @@
 <odoo>
     <data>
         <record id="template_year_action" model="ir.actions.report">
-            <field name="name">Đánh giá kết quả năm</field>
+            <field name="name">Kết quả đánh giá KPI đến hiện tại</field>
             <field name="model">sonha.kpi.year</field>
             <field name="report_type">qweb-html</field>
             <field name="report_name">sonha_kpi.report_template_year</field>

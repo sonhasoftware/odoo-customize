@@ -1,5 +1,6 @@
 from odoo import models, fields
 import datetime
+from odoo.exceptions import UserError, ValidationError
 
 
 class PopupWizardReportYear(models.TransientModel):
@@ -11,4 +12,7 @@ class PopupWizardReportYear(models.TransientModel):
     def action_confirm(self):
         docs = self.env['sonha.kpi.year'].sudo().search([('year', '=', self.year),
                                                         ('department_id', '=', self.department_id.id)])
-        return self.env.ref('sonha_kpi.template_year_action').report_action(docs)
+        if docs:
+            return self.env.ref('sonha_kpi.template_year_action').report_action(docs)
+        else:
+            raise ValidationError("Chưa có dữ liệu đánh giá năm của phòng/ban " + self.department_id.name)

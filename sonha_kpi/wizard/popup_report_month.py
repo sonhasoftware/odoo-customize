@@ -6,7 +6,7 @@ from odoo.exceptions import UserError, ValidationError
 class PopupWizardReportMonth(models.TransientModel):
     _name = 'popup.wizard.report.month'
 
-    department_id = fields.Many2one('hr.department', required=True)
+    department_id = fields.Many2one('hr.department', string="Phòng ban", required=True)
     month = fields.Selection([('one', 1),
                               ('two', 2),
                               ('three', 3),
