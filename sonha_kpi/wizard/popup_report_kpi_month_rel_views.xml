@@ -21,14 +21,14 @@
         </record>
 
         <record id="action_popup_wizard_report_kpi_month_rel" model="ir.actions.act_window">
-            <field name="name">Báo cáo kpi cấp trên theo tháng</field>
+            <field name="name">Duyệt KPI</field>
             <field name="res_model">popup.wizard.report.kpi.month.rel</field>
             <field name="view_mode">form</field>
             <field name="target">new</field>
         </record>
 
         <record id="menu_popup_wizard_report_kpi_month_rel" model="ir.ui.menu">
-            <field name="name">Báo cáo cấp trên kpi theo tháng</field>
+            <field name="name">Duyệt KPI</field>
             <field name="action" ref="action_popup_wizard_report_kpi_month_rel"/>
             <field name="parent_id" ref="sonha_kpi.menu_sonha_kpi"/>
             <field name="sequence" type="int">20</field>
