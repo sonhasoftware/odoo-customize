@@ -92,7 +92,7 @@ class SonHaKPIMonth(models.Model):
         kpi_month_result = self.env['sonha.kpi.result.month'].sudo().search([('kpi_month', '=', record.id)])
         number_density = round(self.calculating_density(record), 2)
         vals = {
-            'department_id': record.department_id.id or '',
+            'department_id': record.sonha_kpi.department_id.id or '',
             'year': record.year or '',
             'name': record.kpi_year_id.id or '',
             'content_detail': record.small_items_each_month or '',
