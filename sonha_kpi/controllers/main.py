@@ -157,15 +157,13 @@ class DataChart(http.Controller):
     def hr_approved(self):
         data = request.httprequest.get_json()
         for item in data["approve_data"]:
-            department_id = item["department_id"]
+            department_id = int(item["department_id"])
             date = item["date"]
             month = datetime.strptime(date, '%Y-%m-%d').month
-            year = datetime.strptime(date, '%Y-%m-%d').year
+            year = int(datetime.strptime(date, '%Y-%m-%d').year)
             base_url = request.env['ir.config_parameter'].sudo().get_param('web.base.url')
             mail_url = f"{base_url}/kpi/form?department_id={department_id}&month={month}&year={year}"
             now = datetime.now().date()
-            department_id = int(department_id)
-            year = int(year)
         kpi_records = request.env['report.kpi.month'].sudo().search([('department_id', '=', department_id),
                                                                     ('year', '=', year)])
         if month:
