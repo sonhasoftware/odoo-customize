@@ -261,3 +261,5 @@ class SonHaKPIYear(models.Model):
         for r in self:
             if r.dvdg_kpi and r.kpi_year:
                 r.total_percentage_year = (r.dvdg_kpi / 100) / r.kpi_year
+            else:
+                r.total_percentage_year = 0
