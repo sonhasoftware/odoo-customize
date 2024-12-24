@@ -5,7 +5,7 @@ from odoo.exceptions import UserError, ValidationError
 class SonHaKPIResultMonth(models.Model):
     _name = 'sonha.kpi.result.month'
 
-    department_id = fields.Many2one('hr.department')
+    department_id = fields.Many2one('hr.department', compute="get_department")
     year = fields.Integer('Năm')
     name = fields.Many2one('sonha.kpi.year', string="Nội dung CV KPI cả năm")
     content_detail = fields.Text("Nội dung CV cụ thể")
@@ -53,6 +53,14 @@ class SonHaKPIResultMonth(models.Model):
 
     note = fields.Text("Nhận xét cấp thẩm quyền")
     sonha_kpi = fields.Many2one('company.sonha.kpi')
+
+    @api.depends('sonha_kpi')
+    def get_department(self):
+        for r in self:
+            if r.sonha_kpi and r.sonha_kpi.department_id:
+                r.department_id = r.sonha_kpi.department_id.id
+            else:
+                r.department_id = None
 
     def filter_data_dvtq(self, r):
         if r.diem_chuan_amount_work and r.kq_hoan_thanh_tq_amount_work:
