@@ -63,13 +63,13 @@
                                         <field name="dv_initiative" widget="percentage"/>
                                         <field name="dv_description"/>
 
-                                        <field name="tq_amount_work" widget="percentage"/>
-                                        <field name="tq_matter_work" widget="percentage"/>
-                                        <field name="tq_comply_regulations" widget="percentage"/>
-                                        <field name="tq_initiative" widget="percentage"/>
-                                        <field name="status_tq"/>
-                                        <field name="tq_description"/>
-                                        <field name="sonha_kpi" invisible="1"/>
+<!--                                        <field name="tq_amount_work" widget="percentage"/>-->
+<!--                                        <field name="tq_matter_work" widget="percentage"/>-->
+<!--                                        <field name="tq_comply_regulations" widget="percentage"/>-->
+<!--                                        <field name="tq_initiative" widget="percentage"/>-->
+<!--                                        <field name="status_tq"/>-->
+<!--                                        <field name="tq_description"/>-->
+                                        <field name="sonha_kpi" widget="hidden"/>
                                     </tree>
                                     <form string="KPI Year">
                                         <group>
