@@ -47,7 +47,7 @@
                                 <td rowspan="4"><t t-esc="doc.start_date"/></td>
                                 <td rowspan="4"><t t-esc="doc.end_date"/></td>
                                 <td>Khối lượng công việc thực hiện</td>
-                                <td rowspan="4"><t t-esc="doc.ti_trong * 100"/>%</td>
+                                <td rowspan="4"><t t-esc="round(doc.ti_trong * 100, 2)"/>%</td>
                                 <td><t t-esc="doc.diem_chuan_amount_work"/></td>
                                 <td rowspan="4"><t t-esc="doc.description"/></td>
 
