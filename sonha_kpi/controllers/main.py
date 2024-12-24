@@ -163,6 +163,8 @@ class DataChart(http.Controller):
             base_url = request.env['ir.config_parameter'].sudo().get_param('web.base.url')
             mail_url = f"{base_url}/kpi/form?department_id={department_id}&month={month}&year={year}"
             now = datetime.now().date()
+            department_id = int(department_id)
+            year = int(year)
         kpi_records = request.env['report.kpi.month'].sudo().search([('department_id', '=', department_id),
                                                                     ('year', '=', year)])
         if month:
