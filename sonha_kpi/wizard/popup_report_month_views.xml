@@ -21,7 +21,7 @@
         </record>
 
         <record id="action_popup_wizard_report_month" model="ir.actions.act_window">
-            <field name="name">Popup Wizard Report Month</field>
+            <field name="name">Báo cáo kết quả KPI của tháng</field>
             <field name="res_model">popup.wizard.report.month</field>
             <field name="view_mode">form</field>
             <field name="target">new</field>

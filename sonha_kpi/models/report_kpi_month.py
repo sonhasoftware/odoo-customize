@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 class ReportKpiMonth(models.Model):
     _name = 'report.kpi.month'
 
-    department_id = fields.Many2one('hr.department', compute="get_department")
+    department_id = fields.Many2one('hr.department', string="Phòng ban")
     year = fields.Integer('Năm')
     small_items_each_month = fields.Many2one('sonha.kpi.month', string="Nội dung CV KPI của tháng")
     kpi_year_id = fields.Many2one('sonha.kpi.year', string="Hạng mục lớn",
@@ -32,15 +32,6 @@ class ReportKpiMonth(models.Model):
     mail_turn = fields.Integer(string="số lần gửi mail", default="0")
     url_data_mail = fields.Char(string="url kpi form")
     first_mail_date = fields.Date(string="Ngày gửi mail lần 1")
-
-    @api.depends('sonha_kpi')
-    def get_department(self):
-        for r in self:
-            if r.sonha_kpi and r.sonha_kpi.department_id:
-                r.department_id = r.sonha_kpi.department_id.id
-            else:
-                r.department_id = None
-
 
     def resend_kpi_report_mail(self):
         now = datetime.now().date()

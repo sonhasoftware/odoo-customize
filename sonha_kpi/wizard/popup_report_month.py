@@ -1,11 +1,12 @@
 from odoo import models, fields
 import datetime
+from odoo.exceptions import UserError, ValidationError
 
 
 class PopupWizardReportMonth(models.TransientModel):
     _name = 'popup.wizard.report.month'
 
-    department_id = fields.Many2one('hr.department', required=True)
+    department_id = fields.Many2one('hr.department', string="Phòng ban", required=True)
     month = fields.Selection([('one', 1),
                               ('two', 2),
                               ('three', 3),
@@ -26,7 +27,10 @@ class PopupWizardReportMonth(models.TransientModel):
                                                                  ('department_id', '=', self.department_id.id)])
         if month:
             docs = docs.filtered(lambda x: x.start_date.month == month)
-        return self.env.ref('sonha_kpi.template_month_action').report_action(docs)
+        if docs:
+            return self.env.ref('sonha_kpi.template_month_action').report_action(docs)
+        else:
+            raise ValidationError("Chưa có dữ liệu đánh giá tháng " + str(month) + " của phòng/ban " + self.department_id.name)
 
     def get_month(self):
         if self.month == 'one':

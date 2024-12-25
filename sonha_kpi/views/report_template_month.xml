@@ -47,14 +47,14 @@
                                 <td rowspan="4"><t t-esc="doc.start_date"/></td>
                                 <td rowspan="4"><t t-esc="doc.end_date"/></td>
                                 <td>Khối lượng công việc thực hiện</td>
-                                <td rowspan="4"><t t-esc="doc.ti_trong * 100"/>%</td>
+                                <td rowspan="4"><t t-esc="round(doc.ti_trong * 100, 2)"/>%</td>
                                 <td><t t-esc="doc.diem_chuan_amount_work"/></td>
-                                <td rowspan="4"><t t-esc="doc.description"/></td>
+                                <td rowspan="4"><t t-esc="doc.dv_description"/></td>
 
-                                <td><t t-esc="doc.kq_hoan_thanh_amount_work * 100"/>%</td>
+                                <td><t t-esc="round(doc.kq_hoan_thanh_amount_work * 100, 2)"/>%</td>
                                 <td><t t-esc="doc.diem_dat_dv_amount_work"/></td>
                                 <td><t t-esc="doc.quy_doi_dv_amount_work"/></td>
-                                <td><t t-esc="doc.kq_hoan_thanh_tq_amount_work * 100"/>%</td>
+                                <td><t t-esc="round(doc.kq_hoan_thanh_tq_amount_work * 100, 2)"/>%</td>
                                 <td><t t-esc="doc.diem_dat_tq_amount_work"/></td>
                                 <td><t t-esc="doc.quy_doi_tq_amount_work"/></td>
                                 <td rowspan="4"><t t-esc="doc.note"/></td>
@@ -62,30 +62,30 @@
                             <tr>
                                 <td>Chất lượng công việc thực hiện</td>
                                 <td><t t-esc="doc.diem_chuan_matter_work"/></td>
-                                <td><t t-esc="doc.kq_hoan_thanh_matter_work * 100"/>%</td>
+                                <td><t t-esc="round(doc.kq_hoan_thanh_matter_work * 100, 2)"/>%</td>
                                 <td><t t-esc="doc.diem_dat_dv_matter_work"/></td>
                                 <td><t t-esc="doc.quy_doi_dv_matter_work"/></td>
-                                <td><t t-esc="doc.kq_hoan_thanh_tq_matter_work * 100"/>%</td>
+                                <td><t t-esc="round(doc.kq_hoan_thanh_tq_matter_work * 100, 2)"/>%</td>
                                 <td><t t-esc="doc.diem_dat_tq_matter_work"/></td>
                                 <td><t t-esc="doc.quy_doi_tq_matter_work"/></td>
                             </tr>
                             <tr>
                                 <td>Chấp hành nội quy, quy chế, kỷ luật lao động</td>
                                 <td><t t-esc="doc.diem_chuan_comply_regulations"/></td>
-                                <td><t t-esc="doc.kq_hoan_thanh_comply_regulations * 100"/>%</td>
+                                <td><t t-esc="round(doc.kq_hoan_thanh_comply_regulations * 100, 2)"/>%</td>
                                 <td><t t-esc="doc.diem_dat_dv_comply_regulations"/></td>
                                 <td><t t-esc="doc.quy_doi_dv_comply_regulations"/></td>
-                                <td><t t-esc="doc.kq_hoan_thanh_tq_comply_regulations * 100"/>%</td>
+                                <td><t t-esc="round(doc.kq_hoan_thanh_tq_comply_regulations * 100, 2)"/>%</td>
                                 <td><t t-esc="doc.diem_dat_tq_comply_regulations"/></td>
                                 <td><t t-esc="doc.quy_doi_tq_comply_regulations"/></td>
                             </tr>
                             <tr>
                                 <td>Cải tiến, đề xuất, sáng kiến</td>
                                 <td><t t-esc="doc.diem_chuan_initiative"/></td>
-                                <td><t t-esc="doc.kq_hoan_thanh_initiative * 100"/>%</td>
+                                <td><t t-esc="round(doc.kq_hoan_thanh_initiative * 100, 2)"/>%</td>
                                 <td><t t-esc="doc.diem_dat_dv_initiative"/></td>
                                 <td><t t-esc="doc.quy_doi_dv_initiative"/></td>
-                                <td><t t-esc="doc.kq_hoan_thanh_tq_initiative * 100"/>%</td>
+                                <td><t t-esc="round(doc.kq_hoan_thanh_tq_initiative * 100, 2)"/>%</td>
                                 <td><t t-esc="doc.diem_dat_tq_initiative"/></td>
                                 <td><t t-esc="doc.quy_doi_tq_initiative"/></td>
                             </tr>

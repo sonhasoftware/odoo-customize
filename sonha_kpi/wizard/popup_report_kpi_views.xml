@@ -20,7 +20,7 @@
         </record>
 
         <record id="action_popup_wizard_report" model="ir.actions.act_window">
-            <field name="name">Popup Wizard Report</field>
+            <field name="name">Báo cáo chi tiết theo năm</field>
             <field name="res_model">popup.wizard.report</field>
             <field name="view_mode">form</field>
             <field name="target">new</field>

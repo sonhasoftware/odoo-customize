@@ -39,3 +39,15 @@ td.o_data_cell.cursor-pointer.o_field_cell.o_list_text {
 .mk_apps_sidebar_panel {
     display: none !important;
 }
+
+td.o_data_cell.cursor-pointer.o_field_cell.o_list_text {
+    text-align: justify;
+}
+
+td.o_data_cell.cursor-pointer.o_field_cell.o_list_char {
+    text-align: justify;
+}
+
+.o_field_one2many .o_list_view .o_data_row td.o_field_cell[name="sonha_kpi"] {
+    display: none !important;
+}

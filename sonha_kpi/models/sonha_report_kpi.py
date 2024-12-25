@@ -5,7 +5,7 @@ class ReportKPI(models.Model):
     _name = 'report.kpi'
     _description = 'KPI Report'
 
-    department_id = fields.Many2one('hr.department')
+    department_id = fields.Many2one('hr.department', string="Phòng ban")
     year = fields.Integer('Năm')
     stt = fields.Char(string='STT')
     month = fields.Char(string='Tháng')

@@ -5,7 +5,7 @@ from odoo.exceptions import UserError, ValidationError
 class SonHaKPIYear(models.Model):
     _name = 'sonha.kpi.year'
 
-    department_id = fields.Many2one('hr.department')
+    department_id = fields.Many2one('hr.department', string="Phòng ban")
     year = fields.Integer('Năm')
     name = fields.Char("Hạng mục lớn")
     start_date = fields.Date('Bắt đầu')
@@ -24,18 +24,18 @@ class SonHaKPIYear(models.Model):
                                     string="Trạng thái cấp thẩm quyền ĐG",
                                     compute="compute_filter_status_authorization", store=True, readonly=True)
 
-    ti_le_monh_one = fields.Float("Tháng 1")
-    ti_le_monh_two = fields.Float("Tháng 2")
-    ti_le_monh_three = fields.Float("Tháng 3")
-    ti_le_monh_four = fields.Float("Tháng 4")
-    ti_le_monh_five = fields.Float("Tháng 5")
-    ti_le_monh_six = fields.Float("Tháng 6")
-    ti_le_monh_seven = fields.Float("Tháng 7")
-    ti_le_monh_eight = fields.Float("Tháng 8")
-    ti_le_monh_nigh = fields.Float("Tháng 9")
-    ti_le_monh_ten = fields.Float("Tháng 10")
-    ti_le_monh_eleven = fields.Float("Tháng 11")
-    ti_le_monh_twenty = fields.Float("Tháng 12")
+    ti_le_monh_one = fields.Float("T1")
+    ti_le_monh_two = fields.Float("T2")
+    ti_le_monh_three = fields.Float("T3")
+    ti_le_monh_four = fields.Float("T4")
+    ti_le_monh_five = fields.Float("T5")
+    ti_le_monh_six = fields.Float("T6")
+    ti_le_monh_seven = fields.Float("T7")
+    ti_le_monh_eight = fields.Float("T8")
+    ti_le_monh_nigh = fields.Float("T9")
+    ti_le_monh_ten = fields.Float("T10")
+    ti_le_monh_eleven = fields.Float("T11")
+    ti_le_monh_twenty = fields.Float("T12")
 
     quy_doi_monh_one = fields.Float("Tháng 1")
     quy_doi_monh_two = fields.Float("Tháng 2")
@@ -77,7 +77,7 @@ class SonHaKPIYear(models.Model):
     th_kl_cv_monh_twenty = fields.Float("Tháng 12")
 
     sonha_kpi = fields.Many2one('company.sonha.kpi')
-    total_percentage_month = fields.Float(string="Tổng phần trăm tháng", readonly=True)
+    total_percentage_year = fields.Float(string="Tổng phần trăm năm", compute="fillter_total_percentage_year")
 
     @api.constrains('ti_le_monh_one', 'ti_le_monh_two', 'ti_le_monh_three', 'ti_le_monh_four',
                     'ti_le_monh_five', 'ti_le_monh_six', 'ti_le_monh_seven', 'ti_le_monh_eight',
@@ -85,7 +85,7 @@ class SonHaKPIYear(models.Model):
     def _check_month_values(self):
         for r in self:
             sum_month = r.ti_le_monh_one + r.ti_le_monh_two + r.ti_le_monh_three + r.ti_le_monh_four + r.ti_le_monh_five + r.ti_le_monh_six + r.ti_le_monh_seven + r.ti_le_monh_eight + r.ti_le_monh_nigh + r.ti_le_monh_ten + r.ti_le_monh_eleven + r.ti_le_monh_twenty
-            if sum_month > r.kpi_year + 1 or not r.kpi_year:
+            if sum_month > r.kpi_year + 0.000001 or not r.kpi_year:
                 raise ValidationError("Tổng % các tháng lớn hơn KPI dự kiến cả năm")
             else:
                 pass
@@ -119,7 +119,7 @@ class SonHaKPIYear(models.Model):
         for r in self:
             if not r.dvdg_kpi:
                 r.dvdg_status = 'draft'
-            elif r.dvdg_kpi < r.kpi_year:
+            elif r.dvdg_kpi / 100 < r.kpi_year:
                 r.dvdg_status = 'in_progres'
             else:
                 r.dvdg_status = 'done'
@@ -129,7 +129,7 @@ class SonHaKPIYear(models.Model):
         for r in self:
             if not r.ctqdg_kpi:
                 r.ctqdg_status = 'draft'
-            elif r.ctqdg_kpi < r.kpi_year:
+            elif r.ctqdg_kpi / 100 < r.kpi_year:
                 r.ctqdg_status = 'in_progres'
             else:
                 r.ctqdg_status = 'done'
@@ -256,3 +256,10 @@ class SonHaKPIYear(models.Model):
                     'sticky': True,
                 }
             )
+
+    def fillter_total_percentage_year(self):
+        for r in self:
+            if r.dvdg_kpi and r.kpi_year:
+                r.total_percentage_year = (r.dvdg_kpi / 100) / r.kpi_year
+            else:
+                r.total_percentage_year = 0
