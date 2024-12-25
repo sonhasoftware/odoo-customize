@@ -166,14 +166,14 @@ class FormWordSlip(models.Model):
                 else:
                     raise ValidationError("Bạn không có quyền thực hiện hành động này")
 
-    # def create(self, vals):
-    #     rec = super(FormWordSlip, self).create(vals)
-    #
-    #     form_type = rec.type.date_and_time
-    #     records = self.env['word.slip'].search([
-    #         ('employee_id', '=', rec.employee_id.id),
-    #         ('type.date_and_time', '=', form_type),
-    #     ])
+    def create(self, vals):
+        rec = super(FormWordSlip, self).create(vals)
+
+        # form_type = rec.type.date_and_time
+        # records = self.env['word.slip'].search([
+        #     ('employee_id', '=', rec.employee_id.id),
+        #     ('type.date_and_time', '=', form_type),
+        # ])
 
         # if form_type == 'date':
         #     for line in rec.word_slip_id:
