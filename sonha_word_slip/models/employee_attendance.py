@@ -268,8 +268,8 @@ class EmployeeAttendance(models.Model):
             )
 
             # Tách dữ liệu check_in và check_out
-            attendance_ci = [a['attendance_time'] for a in attendance_times if a['attendance_time'] <= r.check_no_in]
-            attendance_co = [a['attendance_time'] for a in attendance_times if a['attendance_time'] >= r.check_no_out]
+            attendance_ci = [a['attendance_time'] for a in attendance_times if a['attendance_time'] and r.check_no_in and a['attendance_time'] <= r.check_no_in]
+            attendance_co = [a['attendance_time'] for a in attendance_times if a['attendance_time'] and r.check_no_out and a['attendance_time'] >= r.check_no_out]
 
             check_in = attendance_ci[0] if attendance_ci else None
             check_out = attendance_co[-1] if attendance_co else None
