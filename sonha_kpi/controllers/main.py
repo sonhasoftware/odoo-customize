@@ -189,11 +189,11 @@ class DataChart(http.Controller):
             field_name = item["field_name"]
             kpi_record = request.env['sonha.kpi.month'].sudo().search([('id', '=', kpi_id)])
             if kpi_record and field_name:
-                if kpi_record.start_date <= now <= kpi_record.start_date + relativedelta(months=2, days=-1):
-                    kpi_record.sudo().write({field_name: 0})
-                    result_month_record = request.env['sonha.kpi.result.month'].sudo().search([('kpi_month', '=', kpi_id)])
-                    if result_month_record:
-                        result_month_record.filter_data_dvtq(result_month_record)
-                        kpi_report = request.env['report.kpi.month'].sudo().search([('small_items_each_month.id', '=', kpi_id)])
-                        if kpi_report.status == 'approved' and kpi_report:
-                            kpi_report.sudo().write({'status': 'waiting'})
+                # if kpi_record.start_date <= now <= kpi_record.start_date + relativedelta(months=2, days=-1):
+                kpi_record.sudo().write({field_name: 0})
+                result_month_record = request.env['sonha.kpi.result.month'].sudo().search([('kpi_month', '=', kpi_id)])
+                if result_month_record:
+                    result_month_record.filter_data_dvtq(result_month_record)
+                    kpi_report = request.env['report.kpi.month'].sudo().search([('small_items_each_month.id', '=', kpi_id)])
+                    if kpi_report.status == 'approved' and kpi_report:
+                        kpi_report.sudo().write({'status': 'waiting'})
