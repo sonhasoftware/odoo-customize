@@ -59,18 +59,30 @@ class SonHaKPIResultMonth(models.Model):
             diem_dat_tq_amount_work = r.diem_chuan_amount_work * r.kq_hoan_thanh_tq_amount_work
             r.diem_dat_tq_amount_work = round(diem_dat_tq_amount_work, 2)
             r.quy_doi_tq_amount_work = round(diem_dat_tq_amount_work * r.ti_trong, 2)
+        elif r.diem_chuan_amount_work and not r.kq_hoan_thanh_tq_amount_work:
+            r.diem_dat_tq_amount_work = 0
+            r.quy_doi_tq_amount_work = 0
         if r.diem_chuan_matter_work and r.kq_hoan_thanh_tq_matter_work:
             diem_dat_tq_matter_work = r.diem_chuan_matter_work * r.kq_hoan_thanh_tq_matter_work
             r.diem_dat_tq_matter_work = round(diem_dat_tq_matter_work, 2)
             r.quy_doi_tq_matter_work = round(diem_dat_tq_matter_work * r.ti_trong, 2)
+        elif r.diem_chuan_matter_work and not r.kq_hoan_thanh_tq_matter_work:
+            r.diem_dat_tq_matter_work = 0
+            r.quy_doi_tq_matter_work = 0
         if r.diem_chuan_comply_regulations and r.kq_hoan_thanh_tq_comply_regulations:
             diem_dat_tq_comply_regulations = r.diem_chuan_comply_regulations * r.kq_hoan_thanh_tq_comply_regulations
             r.diem_dat_tq_comply_regulations = round(diem_dat_tq_comply_regulations, 2)
             r.quy_doi_tq_comply_regulations = round(diem_dat_tq_comply_regulations * r.ti_trong, 2)
+        elif r.diem_chuan_comply_regulations and not r.kq_hoan_thanh_tq_comply_regulations:
+            r.diem_dat_tq_comply_regulations = 0
+            r.quy_doi_tq_comply_regulations = 0
         if r.diem_chuan_initiative and r.kq_hoan_thanh_tq_initiative:
             diem_dat_tq_initiative = r.diem_chuan_initiative * r.kq_hoan_thanh_tq_initiative
             r.diem_dat_tq_initiative = round(diem_dat_tq_initiative, 2)
             r.quy_doi_tq_initiative = round(diem_dat_tq_initiative * r.ti_trong, 2)
+        elif r.diem_chuan_initiative and not r.kq_hoan_thanh_tq_initiative:
+            r.diem_dat_tq_initiative = 0
+            r.quy_doi_tq_initiative = 0
 
     def filter_data_dvdg(self, r):
         if r.diem_chuan_amount_work and r.kq_hoan_thanh_amount_work:

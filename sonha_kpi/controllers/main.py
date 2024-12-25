@@ -1,6 +1,7 @@
 from odoo import http
 from odoo.http import request
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 import json
 
@@ -124,7 +125,7 @@ class DataChart(http.Controller):
         month = int(kwargs.get('month')) if kwargs.get('month') else None
         year = int(kwargs.get('year')) if kwargs.get('year') else None
         kpi_records = request.env['report.kpi.month'].sudo().search([('department_id', '=', department_id),
-                                                             ('year', '=', year)])
+                                                                     ('year', '=', year)])
         if month:
             kpi_records = kpi_records.filtered(lambda x: x.start_date.month == month)
         if kpi_records:
@@ -139,7 +140,7 @@ class DataChart(http.Controller):
     def update_kpi_ajax(self, **kwargs):
         data = request.httprequest.get_json()
         for item in data["kpi_data"]:
-            kpi_id = item["kpi_id"]
+            kpi_id = int(item["kpi_id"])
             field_name = item["field_name"]
             field_value = item["field_value"]
             if(str(field_value).isdigit()):
@@ -156,15 +157,13 @@ class DataChart(http.Controller):
     def hr_approved(self):
         data = request.httprequest.get_json()
         for item in data["approve_data"]:
-            department_id = item["department_id"]
+            department_id = int(item["department_id"])
             date = item["date"]
             month = datetime.strptime(date, '%Y-%m-%d').month
-            year = datetime.strptime(date, '%Y-%m-%d').year
+            year = int(datetime.strptime(date, '%Y-%m-%d').year)
             base_url = request.env['ir.config_parameter'].sudo().get_param('web.base.url')
             mail_url = f"{base_url}/kpi/form?department_id={department_id}&month={month}&year={year}"
             now = datetime.now().date()
-            department_id = int(department_id)
-            year = int(year)
         kpi_records = request.env['report.kpi.month'].sudo().search([('department_id', '=', department_id),
                                                                     ('year', '=', year)])
         if month:
@@ -181,3 +180,20 @@ class DataChart(http.Controller):
                 template_id.email_to = mail_to
                 template_id.sudo().send_mail(kpi_records[0].id, force_send=True)
 
+    @http.route('/kpi/cancel_kpi_approval', type='json', auth='none', csrf=False)
+    def update_cancel_apptoval(self):
+        data = request.httprequest.get_json()
+        now = datetime.now().date()
+        for item in data["cancel_data"]:
+            kpi_id = int(item["kpi_id"])
+            field_name = item["field_name"]
+            kpi_record = request.env['sonha.kpi.month'].sudo().search([('id', '=', kpi_id)])
+            if kpi_record and field_name:
+                if kpi_record.start_date <= now <= kpi_record.start_date + relativedelta(months=2, days=-1):
+                    kpi_record.sudo().write({field_name: 0})
+                    result_month_record = request.env['sonha.kpi.result.month'].sudo().search([('kpi_month', '=', kpi_id)])
+                    if result_month_record:
+                        result_month_record.filter_data_dvtq(result_month_record)
+                        kpi_report = request.env['report.kpi.month'].sudo().search([('small_items_each_month.id', '=', kpi_id)])
+                        if kpi_report.status == 'approved' and kpi_report:
+                            kpi_report.sudo().write({'status': 'waiting'})
