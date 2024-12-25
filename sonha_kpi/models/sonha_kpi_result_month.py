@@ -51,8 +51,26 @@ class SonHaKPIResultMonth(models.Model):
     quy_doi_tq_comply_regulations = fields.Float("Điểm quy đổi theo tỉ trọng ĐVTQ (Chấp hành nội quy, quy chế)", compute="filter_data_dvtq", store=True)
     quy_doi_tq_initiative = fields.Float("Điểm quy đổi theo tỉ trọng ĐVTQ (Cải tiến, đề xuất, sáng kiến)", compute="filter_data_dvtq", store=True)
 
-    note = fields.Text("Nhận xét cấp thẩm quyền")
+    dv_description = fields.Text("Mô tả chi tiết công việc", compute="get_dv_description")
+
+    note = fields.Text("Nhận xét cấp thẩm quyền", compute="get_tq_description")
     sonha_kpi = fields.Many2one('company.sonha.kpi')
+
+    @api.depends('kpi_month')
+    def get_dv_description(self):
+        for r in self:
+            if r.kpi_month and r.kpi_month.dv_description:
+                r.dv_description = r.kpi_month.dv_description
+            else:
+                r.dv_description = ''
+
+    @api.depends('kpi_month')
+    def get_tq_description(self):
+        for r in self:
+            if r.kpi_month and r.kpi_month.tq_description:
+                r.note = r.kpi_month.tq_description
+            else:
+                r.note = ''
 
     def filter_data_dvtq(self, r):
         if r.diem_chuan_amount_work and r.kq_hoan_thanh_tq_amount_work:

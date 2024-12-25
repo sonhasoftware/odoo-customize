@@ -49,7 +49,7 @@
                                 <td>Khối lượng công việc thực hiện</td>
                                 <td rowspan="4"><t t-esc="round(doc.ti_trong * 100, 2)"/>%</td>
                                 <td><t t-esc="doc.diem_chuan_amount_work"/></td>
-                                <td rowspan="4"><t t-esc="doc.description"/></td>
+                                <td rowspan="4"><t t-esc="doc.dv_description"/></td>
 
                                 <td><t t-esc="doc.kq_hoan_thanh_amount_work * 100"/>%</td>
                                 <td><t t-esc="doc.diem_dat_dv_amount_work"/></td>
