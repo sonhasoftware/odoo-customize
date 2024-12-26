@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="plan_kpi_year_form_view" model="ir.ui.view">
+            <field name="name">plan.kpi.year.form.view</field>
+            <field name="model">company.sonha.kpi</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <button name="action_sent" string="Gửi duyệt" type="object" class="oe_highlight"/>
+                        <button name="action_approval" string="Duyệt" type="object" class="oe_highlight"/>
+                        <field name="status" widget="statusbar"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <field name="department_id"/>
+                            <field name="year" widget="char"/>
+                        </group>
+                        <notebook>
+                            <page string="KPI năm">
+                                <group>
+                                    <field name="plan_kpi_year" string=" ">
+                                        <tree editable="bottom">
+                                            <field name="name"/>
+                                            <field name="start_date"/>
+                                            <field name="end_date"/>
+                                            <field name="kpi_year" widget="percentage"/>
+                                            <field name="ti_le_monh_one" widget="percentage"/>
+                                            <field name="ti_le_monh_two" widget="percentage"/>
+                                            <field name="ti_le_monh_three" widget="percentage"/>
+                                            <field name="ti_le_monh_four" widget="percentage"/>
+                                            <field name="ti_le_monh_five" widget="percentage"/>
+                                            <field name="ti_le_monh_six" widget="percentage"/>
+                                            <field name="ti_le_monh_seven" widget="percentage"/>
+                                            <field name="ti_le_monh_eight" widget="percentage"/>
+                                            <field name="ti_le_monh_nigh" widget="percentage"/>
+                                            <field name="ti_le_monh_ten" widget="percentage"/>
+                                            <field name="ti_le_monh_eleven" widget="percentage"/>
+                                            <field name="ti_le_monh_twenty" widget="percentage"/>
+                                        </tree>
+                                    </field>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="plan_kpi_year_tree_view" model="ir.ui.view">
+            <field name="name">plan.kpi.year.tree.view</field>
+            <field name="model">company.sonha.kpi</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="department_id"/>
+                    <field name="year" widget="char"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_plan_kpi_year" model="ir.actions.act_window">
+            <field name="name">Kế hoạch KPI phòng ban</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">company.sonha.kpi</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('plan_kpi_year_tree_view')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('plan_kpi_year_form_view')})]"/>
+        </record>
+
+        <menuitem id="menu_plan_kpi"
+                  name="Kế hoạch KPI"
+                  parent="sonha_kpi.menu_sonha_kpi"
+                  sequence="1"/>
+
+        <menuitem id="menu_plan_kpi_year"
+                  name="Kế hoạch KPI năm"
+                  parent="sonha_kpi.menu_plan_kpi"
+                  action="action_plan_kpi_year"
+                  sequence="1"/>
+    </data>
+</odoo>
