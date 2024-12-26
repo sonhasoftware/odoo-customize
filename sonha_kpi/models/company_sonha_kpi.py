@@ -7,6 +7,7 @@ from odoo.exceptions import UserError, ValidationError
 
 class CompanySonHaKPI(models.Model):
     _name = 'company.sonha.kpi'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
 
     department_id = fields.Many2one('hr.department', string="Phòng ban")
     year = fields.Integer('Năm', default=lambda self: datetime.date.today().year)
