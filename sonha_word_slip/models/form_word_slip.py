@@ -271,3 +271,13 @@ class FormWordSlip(models.Model):
         if not self.word_slip_id:
             raise ValidationError(f"Đơn từ của bạn chưa chọn thời gian")
 
+    @api.constrains('employee_id')
+    def check_word_slip_id(self):
+        for r in self:
+            total_duration = 0
+            if r.word_slip_id and r.type.name.lower() == "nghỉ bù":
+                for slip in r.word_slip_id:
+                    total_duration += slip.duration * 8
+            if r.employee_id.total_compensatory < total_duration:
+                raise ValidationError("Bạn không còn thời gian nghỉ bù")
+
