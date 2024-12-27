@@ -1,4 +1,5 @@
 from odoo import api, fields, models
+from odoo.exceptions import UserError, ValidationError
 
 
 class WordSlip(models.Model):
@@ -48,3 +49,38 @@ class WordSlip(models.Model):
                             r.duration = 0.5 * day_duration
                         elif r.start_time == 'first_half' and r.end_time == 'second_half':
                             r.duration = 1 * day_duration
+
+    @api.constrains('from_date', 'to_date', 'employee_id')
+    def _check_date_overlap(self):
+        for record in self:
+            if record.from_date > record.to_date:
+                raise ValidationError("Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc.")
+
+            # Tìm các bản ghi khác của cùng một nhân viên
+            overlapping_slips = self.env['word.slip'].search([
+                ('id', '!=', record.id),  # Loại trừ chính bản ghi hiện tại
+                ('employee_id', '=', record.employee_id.id),
+                ('from_date', '<=', record.to_date),
+                ('to_date', '>=', record.from_date),
+            ])
+
+            if overlapping_slips:
+                if record.type.date_and_time == 'date':
+                    for slip in overlapping_slips:
+                        if record.start_time == 'second_half' and record.end_time == 'first_half':
+                            raise ValidationError("Ca bắt đầu không thể sau ca kết thúc.")
+
+                        if overlapping_slips.type.date_and_time == 'date':
+                            if slip.start_time != slip.end_time or record.start_time != record.end_time:
+                                raise ValidationError("Bạn bị trùng ca với đơn khác của bạn.")
+                            else:
+                                if slip.start_time == record.start_time:
+                                    raise ValidationError("Bạn bị trùng ca với đơn khác của bạn.")
+                else:
+                    for slip in overlapping_slips:
+                        if record.time_to > record.time_from:
+                            raise ValidationError("Thời gian bắt đầu phải trước thời gian kết thúc.")
+
+                        if overlapping_slips.type.date_and_time == 'time':
+                            if not (record.time_to >= slip.time_from or record.time_from <= slip.time_to):
+                                raise ValidationError("Bạn bị trùng khoảng thời gian với đơn khác của bạn.")
