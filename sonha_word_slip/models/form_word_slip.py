@@ -166,6 +166,9 @@ class FormWordSlip(models.Model):
                 else:
                     raise ValidationError("Bạn không có quyền thực hiện hành động này")
 
+    def create(self, vals):
+        rec = super(FormWordSlip, self).create(vals)
+
         # Tính số ngày và thiết lập `day_duration`
         rec.day_duration = self.get_duration_day(rec)
 
