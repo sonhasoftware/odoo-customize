@@ -34,6 +34,7 @@ class CompanySonHaKPI(models.Model):
             self.env['sonha.kpi.result.month'].search([('sonha_kpi', '=', r.id)]).sudo().unlink()
             self.env['report.kpi.month'].search([('sonha_kpi', '=', r.id)]).sudo().unlink()
             self.env['sonha.kpi.year'].search([('sonha_kpi', '=', r.id)]).sudo().unlink()
+            self.env['plan.kpi.year'].search([('sonha_kpi', '=', r.id)]).sudo().unlink()
         return super(CompanySonHaKPI, self).unlink()
 
     def action_sent(self):
@@ -46,9 +47,8 @@ class CompanySonHaKPI(models.Model):
     def action_approval(self):
         for r in self:
             if r.plan_kpi_year:
+                self.env['sonha.kpi.year'].search([('sonha_kpi', '=', r.id)]).sudo().unlink()
                 for kpi in r.plan_kpi_year:
-                    a = kpi
-                    model = self.env['sonha.kpi.year'].sudo()
                     self.env['sonha.kpi.year'].sudo().create({
                         'name': kpi.name,
                         'start_date': kpi.start_date,
@@ -71,4 +71,8 @@ class CompanySonHaKPI(models.Model):
             else:
                 raise ValidationError("Chưa có dữ liệu kế hoạch KPI năm")
             r.status = 'done'
+
+    def action_back(self):
+        for r in self:
+            r.status = 'draft'
 
