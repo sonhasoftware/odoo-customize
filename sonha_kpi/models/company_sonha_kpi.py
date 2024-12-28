@@ -11,11 +11,13 @@ class CompanySonHaKPI(models.Model):
 
     department_id = fields.Many2one('hr.department', string="Phòng ban")
     year = fields.Integer('Năm', default=lambda self: datetime.date.today().year)
+    month = fields.Integer('Tháng')
 
     kpi_year = fields.One2many('sonha.kpi.year', 'sonha_kpi')
     kpi_month = fields.One2many('sonha.kpi.month', 'sonha_kpi')
     kpi_result_month = fields.One2many('sonha.kpi.result.month', 'sonha_kpi')
     plan_kpi_year = fields.One2many('plan.kpi.year', 'sonha_kpi')
+    plan_kpi_month = fields.One2many('plan.kpi.month', 'sonha_kpi')
 
     status = fields.Selection([('draft', 'Nháp'),
                                ('waiting', 'Chờ duyệt'),

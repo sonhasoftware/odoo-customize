@@ -31,6 +31,7 @@
         'wizard/popup_report_kpi_month_rel_views.xml',
         'views/dashboard_action.xml',
         'views/plan_kpi_year_views.xml',
+        'views/plan_kpi_month_views.xml',
         'data/mail_template.xml',
         'data/cron_job.xml',
     ],
