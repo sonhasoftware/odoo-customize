@@ -417,7 +417,7 @@ class DataChart(http.Controller):
         return json.dumps({'status': 'success', 'redirect_url': url})
 
     @http.route('/kpi_next_month/approve_kpi_month', type='json', auth='none', csrf=False)
-    def approve_next_month(self):
+    def approve_kpi_next_month(self):
         data = request.httprequest.get_json()
         for item in data["kpi_data"]:
             kpi_year = item["kpi_year"]
