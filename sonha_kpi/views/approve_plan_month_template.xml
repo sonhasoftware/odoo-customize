@@ -3,7 +3,7 @@
     <template id="approve_plan_month_template" name="KPI Month Form">
         <t t-call="web.html_container">
             <div class="container">
-                <h2>Đánh giá KPI theo tháng</h2>
+                <h2>Duyệt kế hoạch KPI tháng</h2>
                 <div class="form-header">
                      <button t-if="kpi_records[0].sonha_kpi.status == 'draft'" class="btn btn-primary" id="approve">
                          Duyệt
