@@ -433,6 +433,7 @@ class DataChart(http.Controller):
             if company_kpi:
                 for kpi in company_kpi:
                     kpi.sudo().write({'status': 'done'})
+            request.env['sonha.kpi.year'].sudo().search([('sonha_kpi', '=', sonha_kpi)]).sudo().unlink()
             request.env['sonha.kpi.year'].sudo().create({
                 'department_id': department_id,
                 'year': year,
