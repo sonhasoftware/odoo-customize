@@ -6,6 +6,7 @@ class RegisterOvertime(models.Model):
     _name = 'register.overtime'
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
+    department_id = fields.Many2one('hr.department', string="Phòng ban", required=True, tracking=True)
     employee_id = fields.Many2one('hr.employee', string="Tên nhân viên", tracking=True, required=True)
     start_date = fields.Date("Từ ngày", tracking=True, required=True)
     end_date = fields.Date("Đến ngày", tracking=True, required=True)

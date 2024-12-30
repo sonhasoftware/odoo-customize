@@ -7,19 +7,20 @@
             <field name="arch" type="xml">
                 <form>
                     <header>
-                        <button name="action_sent" string="Gửi duyệt" type="object" class="oe_highlight"/>
-                        <button name="action_approval" string="Duyệt" type="object" class="oe_highlight"/>
+                        <button name="action_sent" string="Gửi duyệt" type="object" class="oe_highlight" invisible="status != 'draft'"/>
+                        <button name="action_approval" string="Duyệt" type="object" class="oe_highlight" invisible="status != 'waiting'"/>
+                        <button name="action_back" string="Hoàn duyệt" type="object" class="oe_highlight" invisible="status != 'done'"/>
                         <field name="status" widget="statusbar"/>
                     </header>
                     <sheet>
                         <group>
-                            <field name="department_id"/>
-                            <field name="year" widget="char"/>
+                            <field name="department_id" readonly="status != 'draft'"/>
+                            <field name="year" widget="char" readonly="status != 'draft'"/>
                         </group>
                         <notebook>
                             <page string="KPI năm">
                                 <group>
-                                    <field name="plan_kpi_year" string=" ">
+                                    <field name="plan_kpi_year" string=" " readonly="status != 'draft'">
                                         <tree editable="bottom">
                                             <field name="name"/>
                                             <field name="start_date"/>
