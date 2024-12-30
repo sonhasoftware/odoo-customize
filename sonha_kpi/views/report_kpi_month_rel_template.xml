@@ -132,22 +132,19 @@
                     if(hrApproveButton){
                         hrApproveButton.addEventListener('click', function () {
                             console.log('Nút hr duyệt được bấm!');
-                            const approveData = [];
                             const departmentId = document.querySelector('.kpi-department').innerHTML;
                             const startDate = document.querySelector('.start-date').innerHTML;
                             console.log(departmentId);
                             console.log(startDate);
-                            approveData.push({
-                                department_id: departmentId,
-                                date: startDate,
-                            });
-                            console.log('Dữ liệu JSON gửi đi:', JSON.stringify({approve_data: approveData}));
+                            console.log('Dữ liệu JSON gửi đi:', JSON.stringify({department_id: departmentId,
+                                                                                date: startDate}));
                             fetch('/kpi/hr_approved', {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
                                 },
-                                body: JSON.stringify({approve_data: approveData}),
+                                body: JSON.stringify({department_id: departmentId,
+                                                      date: startDate}),
                             })
                             .then(response => response.json())
                             .then(data => {
@@ -159,20 +156,17 @@
                     if(cancelApprovalButton){
                         cancelApprovalButton.addEventListener('click', function () {
                             console.log('Nút hoàn duyệt được bấm!');
-                            const cancelData = [];
                             const departmentId = document.querySelector('.kpi-department').innerHTML;
                             const startDate = document.querySelector('.start-date').innerHTML;
-                            cancelData.push({
-                                department_id: departmentId,
-                                date: startDate,
-                            });
-                            console.log('Dữ liệu JSON gửi đi:', JSON.stringify({cancel_data: cancelData}));
+                            console.log('Dữ liệu JSON gửi đi:', JSON.stringify({department_id: departmentId,
+                                                                                date: startDate}));
                             fetch('/kpi/cancel_kpi_approval', {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
                                 },
-                                body: JSON.stringify({cancel_data: cancelData}),
+                                body: JSON.stringify({department_id: departmentId,
+                                                      date: startDate}),
                             })
                             .then(response => response.json())
                             .then(data => {

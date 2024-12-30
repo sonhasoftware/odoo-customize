@@ -338,14 +338,13 @@ class DataChart(http.Controller):
     @http.route('/kpi/hr_approved', type='json', auth='none', csrf=False)
     def hr_approved(self):
         data = request.httprequest.get_json()
-        for item in data["approve_data"]:
-            department_id = int(item["department_id"])
-            date = item["date"]
-            month = datetime.strptime(date, '%Y-%m-%d').month
-            year = int(datetime.strptime(date, '%Y-%m-%d').year)
-            base_url = request.env['ir.config_parameter'].sudo().get_param('web.base.url')
-            mail_url = f"{base_url}/kpi/form?department_id={department_id}&month={month}&year={year}"
-            now = datetime.now().date()
+        department_id = int(data["department_id"])
+        date = data["date"]
+        month = datetime.strptime(date, '%Y-%m-%d').month
+        year = int(datetime.strptime(date, '%Y-%m-%d').year)
+        base_url = request.env['ir.config_parameter'].sudo().get_param('web.base.url')
+        mail_url = f"{base_url}/kpi/form?department_id={department_id}&month={month}&year={year}"
+        now = datetime.now().date()
         kpi_records = request.env['report.kpi.month'].sudo().search([('department_id', '=', department_id),
                                                                     ('year', '=', year)])
         if month:
@@ -366,19 +365,18 @@ class DataChart(http.Controller):
     def update_cancel_approval(self):
         data = request.httprequest.get_json()
         now = datetime.now().date()
-        for item in data["cancel_data"]:
-            department_id = int(item["department_id"])
-            date = item["date"]
-            month = datetime.strptime(date, '%Y-%m-%d').month
-            year = int(datetime.strptime(date, '%Y-%m-%d').year)
-            kpi_report = request.env['report.kpi.month'].sudo().search([('department_id', '=', department_id),
-                                                                        ('year', '=', year)])
-            if month:
-                kpi_report = kpi_report.filtered(lambda x: x.start_date.month == month)
-            if kpi_report:
-                for r in kpi_report:
-                    if r.status == 'approved':
-                        r.sudo().write({'status': 'waiting'})
+        department_id = int(data["department_id"])
+        date = data["date"]
+        month = datetime.strptime(date, '%Y-%m-%d').month
+        year = int(datetime.strptime(date, '%Y-%m-%d').year)
+        kpi_report = request.env['report.kpi.month'].sudo().search([('department_id', '=', department_id),
+                                                                    ('year', '=', year)])
+        if month:
+            kpi_report = kpi_report.filtered(lambda x: x.start_date.month == month)
+        if kpi_report:
+            for r in kpi_report:
+                if r.status == 'approved':
+                    r.sudo().write({'status': 'waiting'})
 
     @http.route('/kpi_next_month/approve', type='http', auth='public', website=True)
     def kpi_next_month_approve(self, **kwargs):
@@ -448,12 +446,11 @@ class DataChart(http.Controller):
     @http.route('/kpi_next_month/cancel_approve_kpi_month', type='json', auth='none', csrf=False)
     def cancel_approve_next_month(self):
         data = request.httprequest.get_json()
-        for item in data["kpi_data"]:
-            date = item["date"]
-            sonha_kpi = item["sonha_kpi"]
-            month = datetime.strptime(date, '%d/%m/%Y').month
-            company_kpi = request.env['company.sonha.kpi'].sudo().search([('id', '=', sonha_kpi)])
-            if company_kpi:
-                for kpi in company_kpi:
-                    kpi.sudo().write({'status': 'draft'})
-            request.env['sonha.kpi.year'].sudo().search([('sonha_kpi', '=', sonha_kpi)]).sudo().unlink()
+        date = data["date"]
+        sonha_kpi = data["sonha_kpi"]
+        month = datetime.strptime(date, '%d/%m/%Y').month
+        company_kpi = request.env['company.sonha.kpi'].sudo().search([('id', '=', sonha_kpi)])
+        if company_kpi:
+            for kpi in company_kpi:
+                kpi.sudo().write({'status': 'draft'})
+        request.env['sonha.kpi.year'].sudo().search([('sonha_kpi', '=', sonha_kpi)]).sudo().unlink()

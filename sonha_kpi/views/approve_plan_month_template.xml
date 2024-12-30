@@ -87,13 +87,15 @@
                                 date: Date,
                                 sonha_kpi: sonhaKpi,
                             });
-                            console.log('Dữ liệu JSON gửi đi:', JSON.stringify({kpi_data: kpiData}));
+                            console.log('Dữ liệu JSON gửi đi:', JSON.stringify({sonha_kpi: sonhaKpi,
+                                                                                date: Date}));
                             fetch('/kpi_next_month/cancel_approve_kpi_month', {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
                                 },
-                                body: JSON.stringify({kpi_data: kpiData}),
+                                body: JSON.stringify({sonha_kpi: sonhaKpi,
+                                                      date: Date}),
                             })
                             .then(response => response.json())
                             .then(data => {

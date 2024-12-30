@@ -64,8 +64,6 @@ class PlanKPIYear(models.Model):
 
     def filter_department_year(self, record):
         if record.sonha_kpi:
-            a = record.sonha_kpi.year if record.sonha_kpi.year else ''
-            b = record.sonha_kpi.department_id.id if record.sonha_kpi.department_id else ''
             record.year = record.sonha_kpi.year if record.sonha_kpi.year else ''
             record.department_id = record.sonha_kpi.department_id.id if record.sonha_kpi.department_id else ''
 
