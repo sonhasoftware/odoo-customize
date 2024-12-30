@@ -452,6 +452,5 @@ class DataChart(http.Controller):
         month = datetime.strptime(date, '%d/%m/%Y').month
         company_kpi = request.env['company.sonha.kpi'].sudo().search([('id', '=', sonha_kpi)])
         if company_kpi:
-            for kpi in company_kpi:
-                kpi.sudo().write({'status': 'draft'})
-        request.env['sonha.kpi.year'].sudo().search([('sonha_kpi', '=', sonha_kpi)]).sudo().unlink()
+            company_kpi[0].sudo().write({'status': 'draft'})
+        # request.env['sonha.kpi.year'].sudo().search([('sonha_kpi', '=', sonha_kpi)]).sudo().unlink()
