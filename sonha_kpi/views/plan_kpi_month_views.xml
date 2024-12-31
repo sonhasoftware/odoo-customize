@@ -6,6 +6,12 @@
             <field name="model">company.sonha.kpi</field>
             <field name="arch" type="xml">
                 <form>
+                    <header>
+                        <button name="action_month_sent" string="Gửi duyệt" type="object" class="oe_highlight" invisible="status_month != 'draft'"/>
+                        <button name="action_month_approval" string="Duyệt" type="object" class="oe_highlight" invisible="status_month != 'waiting'"/>
+                        <button name="action_month_back" string="Hoàn duyệt" type="object" class="oe_highlight" invisible="status_month != 'done'"/>
+                        <field name="status_month" widget="statusbar"/>
+                    </header>
                     <sheet>
                         <group>
                             <field name="department_id"/>
@@ -15,7 +21,7 @@
                         <notebook>
                             <page string="KPI tháng">
                                 <group>
-                                    <field name="plan_kpi_month" string=" ">
+                                    <field name="plan_kpi_month" string=" " readonly="status_month != 'draft'">
                                         <tree editable="bottom">
                                             <field name="kpi_year"/>
                                             <field name="kpi_month"/>

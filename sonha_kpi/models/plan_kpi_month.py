@@ -6,8 +6,6 @@ class PlanKPIMonth(models.Model):
     _name = 'plan.kpi.month'
 
     kpi_year = fields.Many2one('sonha.kpi.year', string="Hạng mục lớn", domain="[('sonha_kpi', '=', sonha_kpi)]")
-
-    #kpi_year = fields.Many2one('sonha.kpi.year', "Hạng mục lớn")
     month = fields.Integer("Tháng")
     kpi_month = fields.Char("Hạng mục nhỏ")
     start_date = fields.Date('Ngày bắt đầu', require=True)
