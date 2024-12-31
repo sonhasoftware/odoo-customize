@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="approve_plan_month_template" name="KPI Month Form">
+        <t t-call="web.html_container">
+            <div class="container">
+                <h2>Duyệt kế hoạch KPI tháng</h2>
+                <div class="form-header">
+                     <button t-if="kpi_records[0].sonha_kpi.status == 'draft'" class="btn btn-primary" id="approve">
+                         Duyệt
+                     </button>
+                    <button t-if="kpi_records[0].sonha_kpi.status == 'done'" class="btn btn-primary" id="cancel-approve">
+                         Hủy duyệt
+                     </button>
+                    <h5 class="status">
+                        Trạng thái: <t t-esc="kpi_records[0].sonha_kpi.status"/>
+                    </h5>
+                </div>
+                <div class="time">
+                    <h6>
+                        Thời gian thực hiện: <span class="start-date"><t t-esc="converted_start_date"/></span> - <span class="end-date"><t t-esc="converted_end_date"/></span>
+                    </h6>
+                </div>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>NỘI DUNG CÔNG VIỆC CẢ NĂM</th>
+                            <th>NỘI DUNG CÔNG VIỆC CỤ THỂ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="kpi_records" t-as="kpi">
+                            <tr class="data">
+                                <td class="kpi-year"><t t-esc="kpi.name"/></td>
+                                <td class="kpi-month"><t t-esc="kpi.kpi_year"/></td>
+                                <td class="hidden sonha-kpi"><t t-esc="kpi.sonha_kpi.id"/></td>
+                                <td class="hidden sonha-kpi"><t t-esc="kpi.sonha_kpi.id"/></td>
+                                <td class="hidden department"><t t-esc="kpi.department_id.id"/></td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+            </div>
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const approveButton = document.getElementById('approve');
+                    if (approveButton){
+                        approveButton.addEventListener('click', function () {
+                            const startDate = document.querySelector('.start-date').innerHTML;
+                            const endDate = document.querySelector('.end-date').innerHTML;
+                            const datas = document.querySelectorAll('.data');
+                            const kpiData = [];
+                            datas.forEach(data => {
+                                const kpiYear = data.querySelector('.kpi-year').innerHTML;
+                                const kpiMonth = data.querySelector('.kpi-month').innerHTML;
+                                const sonhaKpi = data.querySelector('.sonha-kpi').innerHTML;
+                                const departmentId = data.querySelector('.department').innerHTML;
+                                kpiData.push({
+                                    kpi_year: kpiYear,
+                                    kpi_month: kpiMonth,
+                                    start_date: startDate,
+                                    end_date: endDate,
+                                    sonha_kpi: sonhaKpi,
+                                    department_id: departmentId,
+                                });
+                            });
+                            console.log('Dữ liệu JSON gửi đi:', JSON.stringify({kpi_data: kpiData}));
+                            fetch('/kpi_next_month/approve_kpi_month', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({kpi_data: kpiData}),
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                location.reload();
+                            });
+                        });
+                    }
+                    const cancelApproveButton = document.getElementById('cancel-approve');
+                    if (cancelApproveButton){
+                        cancelApproveButton.addEventListener('click', function () {
+                            const Date = document.querySelector('.start-date').innerHTML;
+                            const sonhaKpi = document.querySelector('.sonha-kpi').innerHTML;
+                            const kpiData = [];
+                            kpiData.push({
+                                date: Date,
+                                sonha_kpi: sonhaKpi,
+                            });
+                            console.log('Dữ liệu JSON gửi đi:', JSON.stringify({sonha_kpi: sonhaKpi,
+                                                                                date: Date}));
+                            fetch('/kpi_next_month/cancel_approve_kpi_month', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({sonha_kpi: sonhaKpi,
+                                                      date: Date}),
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                location.reload();
+                            });
+                        });
+                    }
+                });
+            </script>
+            <style>
+                .form-header{
+                    display: flex;
+                    justify-content: space-between;
+                }
+                .hidden{
+                    display: none;
+                }
+            </style>
+        </t>
+    </template>
+</odoo>
