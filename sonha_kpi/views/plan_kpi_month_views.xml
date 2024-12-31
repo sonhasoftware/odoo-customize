@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="plan_kpi_month_form_view" model="ir.ui.view">
+            <field name="name">plan.kpi.month.form.view</field>
+            <field name="model">company.sonha.kpi</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <button name="action_month_sent" string="Gửi duyệt" type="object" class="oe_highlight" invisible="status_month != 'draft'"/>
+                        <button name="action_month_approval" string="Duyệt" type="object" class="oe_highlight" invisible="status_month != 'waiting'"/>
+                        <button name="action_month_back" string="Hoàn duyệt" type="object" class="oe_highlight" invisible="status_month != 'done'"/>
+                        <field name="status_month" widget="statusbar"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <field name="department_id"/>
+                            <field name="year" widget="char"/>
+                            <field name="month"/>
+                        </group>
+                        <notebook>
+                            <page string="KPI tháng">
+                                <group>
+                                    <field name="plan_kpi_month" string=" " readonly="status_month != 'draft'">
+                                        <tree editable="bottom">
+                                            <field name="kpi_year"/>
+                                            <field name="kpi_month"/>
+                                            <field name="start_date"/>
+                                            <field name="end_date"/>
+                                            <field name="sonha_kpi"/>
+                                        </tree>
+                                    </field>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <record id="plan_kpi_month_tree_view" model="ir.ui.view">
+            <field name="name">plan.kpi.month.tree.view</field>
+            <field name="model">company.sonha.kpi</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="department_id"/>
+                    <field name="year" widget="char"/>
+                    <field name="month" />
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_plan_kpi_month" model="ir.actions.act_window">
+            <field name="name">Kế hoạch KPI phòng ban</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">company.sonha.kpi</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('plan_kpi_month_tree_view')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('plan_kpi_month_form_view')})]"/>
+        </record>
+
+        <menuitem id="menu_plan_kpi_month"
+                  name="Kế hoạch KPI tháng"
+                  parent="sonha_kpi.menu_plan_kpi"
+                  action="action_plan_kpi_month"
+                  sequence="2"/>
+    </data>
+</odoo>
