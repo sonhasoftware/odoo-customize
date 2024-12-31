@@ -15,6 +15,7 @@
         'views/action_template_year.xml',
         'views/report_template_year.xml',
         'views/report_kpi_month_rel_template.xml',
+        'views/approve_plan_month_template.xml',
         'security/security.xml',
         'security/ir.model.access.csv',
         'views/sonha_kpi_views.xml',
