@@ -10,4 +10,7 @@ from . import sonha_report_kpi
 from . import report_mail_to
 from . import report_kpi_month
 
+from . import plan_kpi_year
+from . import plan_kpi_month
+from . import parent_plan_kpi_year
 

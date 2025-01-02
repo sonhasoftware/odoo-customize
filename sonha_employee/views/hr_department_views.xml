@@ -29,6 +29,7 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='color']" position="after">
                 <field name="send_mail" string="Gửi mail"/>
+                <field name="shift" string="Ca làm việc"/>
             </xpath>
         </field>
     </record>

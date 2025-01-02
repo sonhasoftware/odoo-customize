@@ -1,6 +1,7 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
 import re
+import math
 
 
 class SonHaEmployee(models.Model):
@@ -51,7 +52,7 @@ class SonHaEmployee(models.Model):
     onboard = fields.Date('Ngày vào công ty', tracking=True)
     # type_contract = fields.Many2one('hr.contract', string="Loại hợp đồng")
     employee_code = fields.Char("Mã nhân viên", readonly=True, tracking=True)
-    shift = fields.Many2one('config.shift', string="Ca làm việc", tracking=True)
+    shift = fields.Many2one('config.shift', string="Ca làm việc", tracking=True, readonly=False)
 
     # các field page infomation page 1
     date_birthday = fields.Date("Ngày sinh", tracking=True)
@@ -96,6 +97,38 @@ class SonHaEmployee(models.Model):
     culture_level = fields.Char("Trình độ văn hóa", tracking=True)
     tax_code = fields.Char("Mã số thuế", tracking=True)
     check_account = fields.Boolean('check_account', compute="check_account_user")
+
+    total_compensatory = fields.Float("Thời gian nghỉ bù còn lại", compute="get_compensatory")
+
+    compensatory = fields.Float("Nghỉ bù", default=0)
+
+    @api.onchange('department_id')
+    def get_shift_department(self):
+        for r in self:
+            if r.shift:
+                break
+            elif r.department_id and r.department_id.shift:
+                r.shift = r.department_id.shift.id
+            else:
+                r.shift = None
+
+    def get_compensatory(self):
+        for r in self:
+            r.total_compensatory = 0
+            data = self.env['employee.attendance'].sudo().search([('employee_id', '=', r.id)])
+            if data:
+                over_time = data.mapped('over_time')
+                data_compensatory = data.filtered(lambda x: x.compensatory > 0)
+                leave_compensatory = 0
+                if data_compensatory:
+                    for rec in data_compensatory:
+                        if rec.compensatory == 0.5:
+                            so = ((math.ceil(rec.duration) * 60) - rec.shift.minutes_rest) / 60 if rec.duration else 0
+                            leave_compensatory += so / 2
+                        elif rec.compensatory == 1:
+                            so = ((math.ceil(rec.duration) * 60) - rec.shift.minutes_rest) if rec.duration else 0
+                            leave_compensatory += so / 60
+                r.total_compensatory = r.compensatory + sum(over_time) - leave_compensatory
 
     @api.depends('user_id')
     def check_account_user(self):

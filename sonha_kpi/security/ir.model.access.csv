@@ -47,3 +47,7 @@ access_mail_to,report.mail.to,model_report_mail_to,,1,1,1,1
 access_report_kpi_month,report.kpi.month,model_report_kpi_month,,1,1,1,1
 
 access_popup_wizard_report_kpi_month_rel,popup.wizard.report.kpi.month,model_popup_wizard_report_kpi_month_rel,,1,1,1,1
+
+access_plan_kpi_year,plan.kpi.year,model_plan_kpi_year,,1,1,1,1
+
+access_plan_kpi_month,plan.kpi.month,model_plan_kpi_month,,1,1,1,1

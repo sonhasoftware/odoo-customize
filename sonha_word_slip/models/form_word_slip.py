@@ -56,6 +56,15 @@ class FormWordSlip(models.Model):
     code = fields.Char("Mã đơn", compute="get_code_slip", required=False, readonly=True)
     check_sent = fields.Boolean("Check gửi duyệt", default=False, compute="_get_button_sent")
     record_url = fields.Char(string="Record URL", compute="_compute_record_url")
+    check_invisible_type = fields.Boolean("Check ẩn hiện", default=False)
+
+    @api.onchange('type')
+    def get_check_invisible_type(self):
+        for r in self:
+            if r.type.date_and_time == 'date':
+                r.check_invisible_type = False
+            else:
+                r.check_invisible_type = True
 
     @api.depends('employee_id')
     def _compute_record_url(self):
@@ -270,4 +279,14 @@ class FormWordSlip(models.Model):
     def check_word_slip_id(self):
         if not self.word_slip_id:
             raise ValidationError(f"Đơn từ của bạn chưa chọn thời gian")
+
+    @api.constrains('employee_id')
+    def check_word_slip_id(self):
+        for r in self:
+            total_duration = 0
+            if r.word_slip_id and r.type.name.lower() == "nghỉ bù":
+                for slip in r.word_slip_id:
+                    total_duration += slip.duration * 8
+            if r.employee_id.total_compensatory < total_duration:
+                raise ValidationError("Bạn không còn thời gian nghỉ bù")
 
