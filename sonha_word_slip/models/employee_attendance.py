@@ -314,6 +314,9 @@ class EmployeeAttendance(models.Model):
             elif not r.check_out:
                 r.note = 'no_out'
 
+            if r.leave > 0 or r.compensatory > 0:
+                r.note = None
+
     #Lấy thông tin số phút nhân viên đi muộn hoặc về sớm
     def _get_minute_late_early(self):
         for r in self:
@@ -339,13 +342,21 @@ class EmployeeAttendance(models.Model):
                     minute_early = (datetime.combine(check_out_time.date(),
                                                      shift_end_time.time()) - check_out_time).total_seconds() / 60
                     r.minutes_early = int(minute_early)
+            if r.leave > 0 or r.compensatory > 0:
+                r.minutes_early = 0
+                r.minutes_late = 0
 
     #Lấy thông tin ngày công của nhân viên
     @api.depends('check_in', 'check_out')
     def _get_work_day(self):
         for r in self:
             if r.check_in and r.check_out:
-                r.work_day = 1
+                if r.compensatory > 0:
+                    r.work_day = 1 - r.compensatory
+                elif r.leave > 0:
+                    r.work_day = 1 - r.leave
+                else:
+                    r.work_day = 1
             elif r.check_in and not r.check_out:
                 r.work_day = 0.5
             elif not r.check_in and r.check_out:
