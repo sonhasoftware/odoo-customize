@@ -1,0 +1,30 @@
+<odoo>
+    <record id="view_update_security_user" model="ir.ui.view">
+        <field name="name">update.security.user.form</field>
+        <field name="model">update.security.user</field>
+        <field name="arch" type="xml">
+            <form string="Create User Accounts">
+                 <group>
+                    <field name="company_id"/>
+                </group>
+                <sheet>
+                    <button string="Update security" type="object" name="update_user_accounts" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_update_security_user" model="ir.actions.act_window">
+        <field name="name">Update Security User</field>
+        <field name="res_model">update.security.user</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_update_security"
+              name="Phân quyền cho user"
+              parent="hr.menu_hr_root"
+              action="action_update_security_user"
+              sequence="43"/>
+</odoo>
