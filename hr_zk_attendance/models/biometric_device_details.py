@@ -107,7 +107,12 @@ class BiometricDeviceDetails(models.Model):
                     # Thu thập dữ liệu chấm công theo nhân viên và ngày trong khoảng thời gian từ tháng 6 năm 2024 đến hiện tại
                     for each in attendances:
                         atten_time = each.timestamp
-                        if (atten_time.year == datetime.now().year) and (atten_time.month == datetime.now().month or atten_time.month == datetime.now().month - 1):
+                        current_date = datetime.now()
+                        current_year = current_date.year
+                        current_month = current_date.month
+                        if (atten_time.year == current_year and atten_time.month == current_month) or \
+                                (atten_time.year == current_year and atten_time.month == current_month - 1) or \
+                                (current_month == 1 and atten_time.year == current_year - 1 and atten_time.month == 12):
                             user_key = each.user_id
 
                             # Trừ 7 giờ từ thời gian chấm công
