@@ -59,6 +59,7 @@
                 <field name="employee_id"/>
                 <field name="department_id"/>
                 <field name="month"/>
+                <field name="total_work"/>
                 <field name="date_work"/>
                 <field name="apprenticeship"/>
                 <field name="probationary_period"/>

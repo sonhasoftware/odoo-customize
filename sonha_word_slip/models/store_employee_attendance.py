@@ -52,63 +52,45 @@ class EmployeeAttendanceStore(models.Model):
             ('date', '<=', today)
         ])
         for record in list_attendances:
-            # Kiểm tra xem bản ghi đã tồn tại trong bảng employee.attendance.store chưa
             existing_record = self.sudo().search([
                 ('employee_id', '=', record.employee_id.id),
                 ('date', '=', record.date)
             ], limit=1)
 
+            # Chuẩn bị dữ liệu
+            vals = {
+                'department_id': record.department_id.id,
+                'weekday': record.weekday,
+                'check_in': record.check_in,
+                'check_out': record.check_out,
+                'duration': record.duration,
+                'shift': record.shift.id if record.shift else False,
+                'time_check_in': record.time_check_in,
+                'time_check_out': record.time_check_out,
+                'check_no_in': record.check_no_in,
+                'check_no_out': record.check_no_out,
+                'note': record.note,
+                'work_day': record.work_day,
+                'minutes_late': record.minutes_late,
+                'minutes_early': record.minutes_early,
+                'month': record.month,
+                'year': record.year,
+                'over_time': record.over_time,
+                'leave': record.leave,
+                'compensatory': record.compensatory,
+                'public_leave': record.public_leave,
+                'c2k3': record.c2k3,
+                'c3k4': record.c3k4,
+            }
+
             if existing_record:
-                # Nếu bản ghi đã tồn tại thì cập nhật dữ liệu
-                existing_record.sudo().write({
-                    'department_id': record.department_id.id,
-                    'weekday': record.weekday,
-                    'check_in': record.check_in,
-                    'check_out': record.check_out,
-                    'duration': record.duration,
-                    'shift': record.shift.id if record.shift else False,
-                    'time_check_in': record.time_check_in,
-                    'time_check_out': record.time_check_out,
-                    'check_no_in': record.check_no_in,
-                    'check_no_out': record.check_no_out,
-                    'note': record.note,
-                    'work_day': record.work_day,
-                    'minutes_late': record.minutes_late,
-                    'minutes_early': record.minutes_early,
-                    'month': record.month,
-                    'year': record.year,
-                    'over_time': record.over_time,
-                    'leave': record.leave,
-                    'compensatory': record.compensatory,
-                    'public_leave': record.public_leave,
-                    'c2k3': record.c2k3,
-                    'c3k4': record.c3k4,
-                })
+                # Cập nhật từng trường để đảm bảo lưu dữ liệu
+                for field, value in vals.items():
+                    existing_record.sudo().write({field: value})
             else:
-                # Nếu chưa tồn tại thì tạo mới bản ghi
-                self.sudo().create({
+                # Tạo mới nếu không tồn tại
+                vals.update({
                     'employee_id': record.employee_id.id,
-                    'department_id': record.department_id.id,
                     'date': record.date,
-                    'weekday': record.weekday,
-                    'check_in': record.check_in,
-                    'check_out': record.check_out,
-                    'duration': record.duration,
-                    'shift': record.shift.id if record.shift else False,
-                    'time_check_in': record.time_check_in,
-                    'time_check_out': record.time_check_out,
-                    'check_no_in': record.check_no_in,
-                    'check_no_out': record.check_no_out,
-                    'note': record.note,
-                    'work_day': record.work_day,
-                    'minutes_late': record.minutes_late,
-                    'minutes_early': record.minutes_early,
-                    'month': record.month,
-                    'year': record.year,
-                    'over_time': record.over_time,
-                    'leave': record.leave,
-                    'compensatory': record.compensatory,
-                    'public_leave': record.public_leave,
-                    'c2k3': record.c2k3,
-                    'c3k4': record.c3k4,
                 })
+                self.sudo().create(vals)
