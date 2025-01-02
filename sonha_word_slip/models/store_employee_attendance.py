@@ -7,9 +7,9 @@ class EmployeeAttendanceStore(models.Model):
     _name = 'employee.attendance.store'
     _description = 'Employee Attendance Stored Data'
 
-    employee_id = fields.Many2one('hr.employee', string='Nhân viên', required=True, store=True)
-    department_id = fields.Many2one('hr.department', string='Phòng ban', store=True)
-    date = fields.Date(string='Ngày', required=True, store=True)
+    employee_id = fields.Many2one('hr.employee', string='Nhân viên', required=True)
+    department_id = fields.Many2one('hr.department', string='Phòng ban')
+    date = fields.Date(string='Ngày', required=True)
     weekday = fields.Selection([
         ('0', 'Thứ hai'),
         ('1', 'Thứ ba'),
@@ -18,31 +18,31 @@ class EmployeeAttendanceStore(models.Model):
         ('4', 'Thứ sáu'),
         ('5', 'Thứ bảy'),
         ('6', 'Chủ nhật')
-    ], string="Thứ", store=True)
-    check_in = fields.Datetime(string='Giờ vào', store=True)
-    check_out = fields.Datetime(string='Giờ ra', store=True)
-    duration = fields.Float("Giờ công", store=True)
-    shift = fields.Many2one('config.shift', string="Ca làm việc", store=True)
-    time_check_in = fields.Datetime("Thời gian phải vào", store=True)
-    time_check_out = fields.Datetime("Thời gian phải ra", store=True)
-    check_no_in = fields.Datetime("Check không có check_in", store=True)
-    check_no_out = fields.Datetime("Check không có check_out", store=True)
+    ], string="Thứ")
+    check_in = fields.Datetime(string='Giờ vào')
+    check_out = fields.Datetime(string='Giờ ra')
+    duration = fields.Float("Giờ công")
+    shift = fields.Many2one('config.shift', string="Ca làm việc")
+    time_check_in = fields.Datetime("Thời gian phải vào")
+    time_check_out = fields.Datetime("Thời gian phải ra")
+    check_no_in = fields.Datetime("Check không có check_in")
+    check_no_out = fields.Datetime("Check không có check_out")
 
     note = fields.Selection([('no_in', "Không có check in"),
                              ('no_out', "Không có check out")],
-                            string="Ghi chú", store=True)
-    work_day = fields.Float("Ngày công", store=True)
-    minutes_late = fields.Float("Số phút đi muộn", store=True)
-    minutes_early = fields.Float("Số phút về sớm", store=True)
+                            string="Ghi chú")
+    work_day = fields.Float("Ngày công")
+    minutes_late = fields.Float("Số phút đi muộn")
+    minutes_early = fields.Float("Số phút về sớm")
 
-    month = fields.Integer("Tháng", store=True)
-    year = fields.Integer("Năm", store=True)
-    over_time = fields.Float("Giờ làm thêm", store=True)
-    leave = fields.Float("Nghỉ phép", store=True)
-    compensatory = fields.Float("Nghỉ bù", store=True)
-    public_leave = fields.Float("Nghỉ lễ", store=True)
-    c2k3 = fields.Float("Ca 2 kíp 3", store=True)
-    c3k4 = fields.Float("Ca 3 kíp 4", store=True)
+    month = fields.Integer("Tháng")
+    year = fields.Integer("Năm")
+    over_time = fields.Float("Giờ làm thêm")
+    leave = fields.Float("Nghỉ phép")
+    compensatory = fields.Float("Nghỉ bù")
+    public_leave = fields.Float("Nghỉ lễ")
+    c2k3 = fields.Float("Ca 2 kíp 3")
+    c3k4 = fields.Float("Ca 3 kíp 4")
 
     def copy_to_stored_model(self):
         today = date.today()
