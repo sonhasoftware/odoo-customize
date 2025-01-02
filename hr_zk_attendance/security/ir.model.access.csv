@@ -10,3 +10,5 @@ access_master_data_attendance_manager,master.data.attendance.manager,model_maste
 access_master_data_attendance_back_up,master.data.attendance.back.up,model_master_data_attendance,sonha_employee.group_back_up_employee,1,1,1,1
 
 access_import_attendance,import.attendance,model_import_attendance,,1,1,1,1
+
+access_data_attendance,data.attendance,model_data_attendance,,1,1,1,1

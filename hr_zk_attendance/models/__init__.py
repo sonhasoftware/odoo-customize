@@ -5,3 +5,4 @@ from . import daily_attendance
 from . import hr_employee
 from . import master_data_attendance
 from . import import_attendance
+from . import data_attendance

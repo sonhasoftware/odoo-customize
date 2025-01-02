@@ -26,6 +26,7 @@ class PlanKPIYear(models.Model):
     ti_le_monh_twenty = fields.Float("T12")
 
     sonha_kpi = fields.Many2one('company.sonha.kpi')
+    plan_kpi_year = fields.Many2one('parent.kpi.year')
 
     @api.constrains('ti_le_monh_one', 'ti_le_monh_two', 'ti_le_monh_three', 'ti_le_monh_four',
                     'ti_le_monh_five', 'ti_le_monh_six', 'ti_le_monh_seven', 'ti_le_monh_eight',
