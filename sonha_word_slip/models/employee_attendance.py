@@ -281,7 +281,8 @@ class EmployeeAttendance(models.Model):
             in_outs = self.env['word.slip'].sudo().search([
                 ('employee_id', '=', r.employee_id.id),
                 ('from_date', '<=', r.date),
-                ('to_date', '>=', r.date)
+                ('to_date', '>=', r.date),
+                ('type.date_and_time', '=', 'time')
             ])
 
             for in_out in in_outs:
