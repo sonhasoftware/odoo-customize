@@ -112,7 +112,7 @@ class EmployeeAttendance(models.Model):
                                                               ('end_date', '>=', record.date)])
             if ot:
                 for r in ot:
-                    overtime += r.end_time - r.start_time
+                    overtime += abs(r.end_time - r.start_time)
             record.over_time = overtime
 
     color = fields.Selection([
