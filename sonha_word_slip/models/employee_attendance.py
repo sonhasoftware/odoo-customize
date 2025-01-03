@@ -112,7 +112,7 @@ class EmployeeAttendance(models.Model):
                                                               ('end_date', '>=', record.date)])
             if ot:
                 for r in ot:
-                    if r.start_date != r.end_date:
+                    if r.start_date != r.end_date and r.start_time > r.end_time:
                         if r.start_date == record.date:
                             overtime += abs(24 - r.start_time)
                         elif r.end_date == record.date:
