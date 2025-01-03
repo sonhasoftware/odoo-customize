@@ -5,14 +5,14 @@
             <div class="container">
                 <h2>Duyệt kế hoạch KPI tháng</h2>
                 <div class="form-header">
-                     <button t-if="kpi_records[0].sonha_kpi.status == 'draft'" class="btn btn-primary" id="approve">
+                     <button t-if="kpi_records[0].plan_kpi_month.status != 'done'" class="btn btn-primary" id="approve">
                          Duyệt
                      </button>
-                    <button t-if="kpi_records[0].sonha_kpi.status == 'done'" class="btn btn-primary" id="cancel-approve">
+                    <button t-if="kpi_records[0].plan_kpi_month.status == 'done'" class="btn btn-primary" id="cancel-approve">
                          Hủy duyệt
                      </button>
                     <h5 class="status">
-                        Trạng thái: <t t-esc="kpi_records[0].sonha_kpi.status"/>
+                        Trạng thái: <t t-esc="kpi_records[0].plan_kpi_month.status"/>
                     </h5>
                 </div>
                 <div class="time">
@@ -30,11 +30,13 @@
                     <tbody>
                         <t t-foreach="kpi_records" t-as="kpi">
                             <tr class="data">
-                                <td class="kpi-year"><t t-esc="kpi.name"/></td>
-                                <td class="kpi-month"><t t-esc="kpi.kpi_year"/></td>
+                                <td><t t-esc="kpi.kpi_year.name"/></td>
+                                <td class="kpi-month"><t t-esc="kpi.kpi_month"/></td>
                                 <td class="hidden sonha-kpi"><t t-esc="kpi.sonha_kpi.id"/></td>
-                                <td class="hidden sonha-kpi"><t t-esc="kpi.sonha_kpi.id"/></td>
+                                <td class="hidden kpi-year"><t t-esc="kpi.kpi_year.id"/></td>
+                                <td class="hidden kpi-status"><t t-esc="kpi.plan_kpi_month.status"/></td>
                                 <td class="hidden department"><t t-esc="kpi.department_id.id"/></td>
+                                <td class="hidden parent-kpi-month"><t t-esc="kpi.plan_kpi_month.id"/></td>
                             </tr>
                         </t>
                     </tbody>
@@ -53,15 +55,21 @@
                                 const kpiYear = data.querySelector('.kpi-year').innerHTML;
                                 const kpiMonth = data.querySelector('.kpi-month').innerHTML;
                                 const sonhaKpi = data.querySelector('.sonha-kpi').innerHTML;
+                                const status = data.querySelector('.kpi-status').innerHTML;
                                 const departmentId = data.querySelector('.department').innerHTML;
-                                kpiData.push({
+                                const parentKpiMonth = data.querySelector('.parent-kpi-month').innerHTML;
+                                console.log('trang thai:', status);
+                                if (status != 'done'){
+                                    kpiData.push({
                                     kpi_year: kpiYear,
                                     kpi_month: kpiMonth,
                                     start_date: startDate,
                                     end_date: endDate,
                                     sonha_kpi: sonhaKpi,
                                     department_id: departmentId,
+                                    parent_kpi_month: parentKpiMonth,
                                 });
+                                }
                             });
                             console.log('Dữ liệu JSON gửi đi:', JSON.stringify({kpi_data: kpiData}));
                             fetch('/kpi_next_month/approve_kpi_month', {
@@ -83,10 +91,6 @@
                             const Date = document.querySelector('.start-date').innerHTML;
                             const sonhaKpi = document.querySelector('.sonha-kpi').innerHTML;
                             const kpiData = [];
-                            kpiData.push({
-                                date: Date,
-                                sonha_kpi: sonhaKpi,
-                            });
                             console.log('Dữ liệu JSON gửi đi:', JSON.stringify({sonha_kpi: sonhaKpi,
                                                                                 date: Date}));
                             fetch('/kpi_next_month/cancel_approve_kpi_month', {

@@ -13,4 +13,5 @@ from . import report_kpi_month
 from . import plan_kpi_year
 from . import plan_kpi_month
 from . import parent_plan_kpi_year
+from . import parent_plan_kpi_month
 
