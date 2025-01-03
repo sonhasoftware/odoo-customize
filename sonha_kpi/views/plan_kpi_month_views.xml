@@ -14,9 +14,9 @@
                     </header>
                     <sheet>
                         <group>
-                            <field name="department_id"/>
-                            <field name="year" widget="char"/>
-                            <field name="month"/>
+                            <field name="department_id" readonly="status != 'draft'"/>
+                            <field name="year" widget="char" readonly="status != 'draft'"/>
+                            <field name="month" readonly="status != 'draft'"/>
                         </group>
                         <notebook>
                             <page string="KPI tháng">

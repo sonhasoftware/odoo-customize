@@ -86,6 +86,7 @@ class ParentKPIMonth(models.Model):
             for r in plan_kpi_month:
                 r.filter_department_year(r)
                 r.validate_start_end_date(r)
+                r.validate_create_write(r)
 
     def unlink(self):
         for r in self:
