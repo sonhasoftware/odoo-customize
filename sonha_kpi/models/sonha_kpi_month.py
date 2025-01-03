@@ -44,6 +44,7 @@ class SonHaKPIMonth(models.Model):
                                   ('done', 'Đã đánh giá')], default='draft', compute="get_status_appraisal")
     tq_description = fields.Text("Nhận xét chung của cấp có thẩm quyền")
     sonha_kpi = fields.Many2one('company.sonha.kpi')
+    parent_kpi_month = fields.Many2one('parent.kpi.month')
 
     @api.constrains('start_date', 'end_date')
     def validate_start_end_date(self):
