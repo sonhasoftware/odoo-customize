@@ -3,7 +3,7 @@
     <data>
         <record id="plan_kpi_year_form_view" model="ir.ui.view">
             <field name="name">plan.kpi.year.form.view</field>
-            <field name="model">company.sonha.kpi</field>
+            <field name="model">parent.kpi.year</field>
             <field name="arch" type="xml">
                 <form>
                     <header>
@@ -55,7 +55,7 @@
 
         <record id="plan_kpi_year_tree_view" model="ir.ui.view">
             <field name="name">plan.kpi.year.tree.view</field>
-            <field name="model">company.sonha.kpi</field>
+            <field name="model">parent.kpi.year</field>
             <field name="arch" type="xml">
                 <tree>
                     <field name="department_id"/>
@@ -67,7 +67,7 @@
         <record id="action_plan_kpi_year" model="ir.actions.act_window">
             <field name="name">Kế hoạch KPI phòng ban</field>
             <field name="type">ir.actions.act_window</field>
-            <field name="res_model">company.sonha.kpi</field>
+            <field name="res_model">parent.kpi.year</field>
             <field name="view_ids" eval="[(5, 0, 0),
                 (0, 0, {'view_mode': 'tree', 'view_id': ref('plan_kpi_year_tree_view')}),
                 (0, 0, {'view_mode': 'form', 'view_id': ref('plan_kpi_year_form_view')})]"/>

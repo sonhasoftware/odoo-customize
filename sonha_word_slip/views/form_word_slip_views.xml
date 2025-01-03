@@ -24,12 +24,20 @@
                         <field name="status" invisible="1"/>
                         <field name="department" readonly="status != 'sent'" options="{'no_create': True, 'no_open': True}"/>
                         <field name="type" readonly="status != 'sent'" required = "1" options="{'no_create': True, 'no_open': True}"/>
-                        <field name="word_slip_id" readonly="status != 'sent'">
+                        <field name="check_invisible_type" invisible="1"/>
+                        <field name="word_slip_id" readonly="status != 'sent'" invisible="check_invisible_type == True">
                             <tree string="Loai nghỉ" editable="bottom">
                                 <field name="from_date"/>
                                 <field name="to_date"/>
                                 <field name="start_time"/>
                                 <field name="end_time"/>
+                                <field name="reason"/>
+                            </tree>
+                        </field>
+                        <field name="word_slip_id" readonly="status != 'sent'" invisible="check_invisible_type != True">
+                            <tree string="Loai nghỉ" editable="bottom">
+                                <field name="from_date"/>
+                                <field name="to_date"/>
                                 <field name="time_to" widget="float_time"/>
                                 <field name="time_from" widget="float_time"/>
                                 <field name="reason"/>

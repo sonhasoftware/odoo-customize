@@ -44,6 +44,7 @@ class SonHaKPIMonth(models.Model):
                                   ('done', 'Đã đánh giá')], default='draft', compute="get_status_appraisal")
     tq_description = fields.Text("Nhận xét chung của cấp có thẩm quyền")
     sonha_kpi = fields.Many2one('company.sonha.kpi')
+    parent_kpi_month = fields.Many2one('parent.kpi.month')
 
     @api.constrains('start_date', 'end_date')
     def validate_start_end_date(self):
@@ -310,8 +311,8 @@ class SonHaKPIMonth(models.Model):
                             elif kpi_month.start_date.month == 12:
                                 total_work_month = kpi_year.ti_le_monh_twenty * dv_amount_work
                                 total_tq_work_month = kpi_year.ti_le_monh_twenty * tq_amount_work
-                            total_work_month = round(total_work_month * 100, 1)
-                            total_tq_work_month = round(total_tq_work_month * 100, 1)
+                            total_work_month = round(total_work_month * 100, 2)
+                            total_tq_work_month = round(total_tq_work_month * 100, 2)
                             dvdg_kpi = dvdg_kpi + total_work_month
                             ctqdg_kpi = ctqdg_kpi + total_tq_work_month
                             duplicate_month.add(kpi_month.start_date.month)

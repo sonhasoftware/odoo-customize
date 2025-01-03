@@ -82,9 +82,21 @@ class EmployeeAttendance(models.Model):
             for slip in word_slips:
                 type_name = slip.word_slip.type.name.lower()  # Chuyển về chữ thường
                 if type_name == "nghỉ phép":
-                    r.leave = 0.5 if slip.start_time == slip.end_time else 1
+                    if slip.start_time and slip.end_time:
+                        if slip.start_time != slip.end_time:
+                            r.leave = 1
+                        else:
+                            r.leave = 0.5
+                    else:
+                        r.leave = 0
                 elif type_name == "nghỉ bù":
-                    r.compensatory = 0.5 if slip.start_time == slip.end_time else 1
+                    if slip.start_time and slip.end_time:
+                        if slip.start_time != slip.end_time:
+                            r.compensatory = 1
+                        else:
+                            r.compensatory = 0.5
+                    else:
+                        r.compensatory = 0
 
             # Kiểm tra public leave
             if all_public_leaves.filtered(
@@ -100,7 +112,13 @@ class EmployeeAttendance(models.Model):
                                                               ('end_date', '>=', record.date)])
             if ot:
                 for r in ot:
-                    overtime += r.end_time - r.start_time
+                    if r.start_date != r.end_date and r.start_time > r.end_time:
+                        if r.start_date == record.date:
+                            overtime += abs(24 - r.start_time)
+                        elif r.end_date == record.date:
+                            overtime += abs(r.end_time)
+                    else:
+                        overtime += abs(r.end_time - r.start_time)
             record.over_time = overtime
 
     color = fields.Selection([
@@ -281,7 +299,8 @@ class EmployeeAttendance(models.Model):
             in_outs = self.env['word.slip'].sudo().search([
                 ('employee_id', '=', r.employee_id.id),
                 ('from_date', '<=', r.date),
-                ('to_date', '>=', r.date)
+                ('to_date', '>=', r.date),
+                ('type.date_and_time', '=', 'time')
             ])
 
             for in_out in in_outs:
@@ -313,6 +332,9 @@ class EmployeeAttendance(models.Model):
             elif not r.check_out:
                 r.note = 'no_out'
 
+            if r.leave > 0 or r.compensatory > 0:
+                r.note = None
+
     #Lấy thông tin số phút nhân viên đi muộn hoặc về sớm
     def _get_minute_late_early(self):
         for r in self:
@@ -338,19 +360,33 @@ class EmployeeAttendance(models.Model):
                     minute_early = (datetime.combine(check_out_time.date(),
                                                      shift_end_time.time()) - check_out_time).total_seconds() / 60
                     r.minutes_early = int(minute_early)
+            if r.leave > 0 or r.compensatory > 0:
+                r.minutes_early = 0
+                r.minutes_late = 0
 
     #Lấy thông tin ngày công của nhân viên
-    @api.depends('check_in', 'check_out')
+    @api.depends('check_in', 'check_out', 'shift')
     def _get_work_day(self):
         for r in self:
-            if r.check_in and r.check_out:
-                r.work_day = 1
-            elif r.check_in and not r.check_out:
-                r.work_day = 0.5
-            elif not r.check_in and r.check_out:
-                r.work_day = 0.5
+            if r.shift.half_shift == True:
+                if r.check_in and r.check_out:
+                    r.work_day = 0.5
+                else:
+                    r.work_day = 0
             else:
-                r.work_day = 0
+                if r.check_in and r.check_out:
+                    if r.compensatory > 0:
+                        r.work_day = 1 - r.compensatory
+                    elif r.leave > 0:
+                        r.work_day = 1 - r.leave
+                    else:
+                        r.work_day = 1
+                elif r.check_in and not r.check_out:
+                    r.work_day = 0.5
+                elif not r.check_in and r.check_out:
+                    r.work_day = 0.5
+                else:
+                    r.work_day = 0
 
     # tính thứ cho ngày
     @api.depends('date')

@@ -8,61 +8,88 @@
                      <button class="btn btn-primary" id="hr-approve" t-if="kpi_records and kpi_records[0].status == 'draft'">
                          Duyệt
                      </button>
-                     <button class="btn btn-primary" id="manager-approve" t-if="kpi_records and kpi_records[0].status == 'waiting'">
+                    <div class="process-waiting" t-if="kpi_records and kpi_records[0].status == 'waiting'">
+                        <button class="btn btn-primary" id="manager-approve">
                          Duyệt
-                     </button>
-                    <button class="btn btn-primary" id="cancel-approval" t-if="kpi_records and kpi_records[0].status == 'approved'">
-                         Hủy duyệt
-                     </button>
+                        </button>
+                        <button class="btn btn-primary" id="manager-save">
+                         Lưu
+                        </button>
+                    </div>
+                    <div class="process-approved" t-if="kpi_records and kpi_records[0].status == 'approved'">
+                        <button class="btn btn-primary" id="cancel-approval">
+                            Hủy duyệt
+                        </button>
+                        <button class="btn btn-primary" id="approve-next-month">
+                            Duyệt kế hoạch tháng sau
+                        </button>
+                    </div>
                     <h5 class="status">
                         Trạng thái: <t t-esc="kpi_records[0].status"/>
                     </h5>
                 </div>
+                <div class="time-and-classification">
+                    <h6>
+                        Thời gian thực hiện: <t t-esc="converted_start_date"/> - <t t-esc="converted_end_date"/>
+                    </h6>
+                    <h6>
+                        Xếp loại đơn vị đánh giá: <t t-if="dv_classification" t-esc="dv_classification"/>
+                        <br/>
+                        Xếp loại thẩm quyền đánh giá: <t t-if="tq_classification" t-esc="tq_classification"/>
+                    </h6>
+                </div>
                 <table class="table table-bordered">
                     <thead>
                         <tr>
-                            <th rowspan="2">NỘI DUNG CÔNG VIỆC Đã giao ở mục tiêu/ KPIs cả năm</th>
-                            <th rowspan="2">NỘI DUNG CÔNG VIỆC CỤ THỂ<br/>(Tối đa 8 và tối thiểu 3 mục tiêu)</th>
-                            <th colspan="2">THỜI GIAN THỰC HIỆN</th>
-                            <th rowspan="2">TIÊU CHÍ ĐÁNH GIÁ RÚT GỌN</th>
-                            <th rowspan="2">KẾT QUẢ HOÀN THÀNH ĐƠN VỊ ĐÁNH GIÁ</th>
-                            <th rowspan="2">MÔ TẢ CHI TIẾT CÔNG VIỆC</th>
-                            <th rowspan="2">KẾT QUẢ HOÀN THÀNH CẤP THAM QUYỀN ĐÁNH GIÁ</th>
-                            <th rowspan="2">NHẬN XÉT CỦA CẤP CÓ THAM QUYỀN</th>
-                        </tr>
-                        <tr>
-                            <th>Bắt đầu</th>
-                            <th>Hoàn thành</th>
+                            <th>ND CÔNG VIỆC THÁNG</th>
+                            <th>TIÊU CHÍ</th>
+                            <th>KẾT QUẢ ĐƠN VỊ</th>
+                            <th>MÔ TẢ CHI TIẾT</th>
+                            <th>% PHÊ DUYỆT</th>
+                            <th>NHẬN XÉT ĐÁNH GIÁ</th>
                         </tr>
                     </thead>
                     <tbody>
                         <t t-foreach="kpi_records" t-as="kpi">
                             <tr>
                                 <td class="kpi-department" rowspan="4"><t t-esc="kpi.department_id.id"/></td>
-                                <td rowspan="4"><t t-esc="kpi.kpi_year_id.name"/></td>
                                 <td rowspan="4"><t t-esc="kpi.small_items_each_month.small_items_each_month"/></td>
                                 <td rowspan="4" class="start-date"><t t-esc="kpi.start_date"/></td>
-                                <td rowspan="4"><t t-esc="kpi.end_date"/></td>
                                 <td>Khối lượng công việc thực hiện</td>
                                 <td><t t-esc="kpi.dv_amount_work * 100"/>%</td>
                                 <td rowspan="4"><t t-esc="kpi.dv_description"/></td>
-                                <td class="custom"><input type="number" t-if="kpi_records and kpi_records[0].status != 'draft'" class="form-control kpi-input" t-att-data-id="kpi.small_items_each_month.id" data-field="tq_amount_work" t-att-value="kpi.tq_amount_work"/>%</td>
-                                <td rowspan="4"><input type="text" t-if="kpi_records and kpi_records[0].status != 'draft'" class="form-control kpi-input" t-att-data-id="kpi.small_items_each_month.id" data-field="tq_description" t-att-value="kpi.tq_description"/></td>
+                                <td class="custom">
+                                    <input type="number" t-if="kpi_records and kpi_records[0].status == 'waiting'" class="form-control kpi-input" t-att-data-id="kpi.small_items_each_month.id" data-field="tq_amount_work" t-att-value="kpi.tq_amount_work"/>
+                                    <t t-if="kpi_records and kpi_records[0].status == 'approved'" t-esc="kpi.tq_amount_work"/>%
+                                </td>
+                                <td rowspan="4">
+                                    <input type="text" t-if="kpi_records and kpi_records[0].status == 'waiting'" class="form-control kpi-input" t-att-data-id="kpi.small_items_each_month.id" data-field="tq_description" t-att-value="kpi.tq_description"/>
+                                    <t t-if="kpi_records and kpi_records[0].status == 'approved'" t-esc="kpi.tq_description"/>
+                                </td>
                             </tr>
                             <tr>
                                 <td>Chất lượng công việc thực hiện</td>
                                 <td><t t-esc="kpi.dv_matter_work * 100"/>%</td>
-                                <td class="custom"><input type="number" t-if="kpi_records and kpi_records[0].status != 'draft'" class="form-control kpi-input" t-att-data-id="kpi.small_items_each_month.id" data-field="tq_matter_work" t-att-value="kpi.tq_matter_work"/>%</td>
+                                <td class="custom">
+                                    <input type="number" t-if="kpi_records and kpi_records[0].status == 'waiting'" class="form-control kpi-input" t-att-data-id="kpi.small_items_each_month.id" data-field="tq_matter_work" t-att-value="kpi.tq_matter_work"/>
+                                    <t t-if="kpi_records and kpi_records[0].status == 'approved'" t-esc="kpi.tq_matter_work"/>%
+                                </td>
                             </tr>
                             <tr>
                                 <td>Chấp hành nội quy, quy chế, kỷ luật lao động</td>
                                 <td><t t-esc="kpi.dv_comply_regulations * 100"/>%</td>
-                                <td class="custom"><input type="number" t-if="kpi_records and kpi_records[0].status != 'draft'" class="form-control kpi-input" t-att-data-id="kpi.small_items_each_month.id" data-field="tq_comply_regulations" t-att-value="kpi.tq_comply_regulations"/>%</td>
+                                <td class="custom">
+                                    <input type="number" t-if="kpi_records and kpi_records[0].status == 'waiting'" class="form-control kpi-input" t-att-data-id="kpi.small_items_each_month.id" data-field="tq_comply_regulations" t-att-value="kpi.tq_comply_regulations"/>
+                                    <t t-if="kpi_records and kpi_records[0].status == 'approved'" t-esc="kpi.tq_comply_regulations"/>%
+                                </td>
                             </tr>
                             <tr>
                                 <td>Cải tiến, đề xuất, sáng kiến</td>
                                 <td><t t-esc="kpi.dv_initiative * 100"/>%</td>
-                                <td class="custom"><input type="number" t-if="kpi_records and kpi_records[0].status != 'draft'" class="form-control kpi-input" t-att-data-id="kpi.small_items_each_month.id" data-field="tq_initiative" t-att-value="kpi.tq_initiative"/>%</td>
+                                <td class="custom">
+                                    <input type="number" t-if="kpi_records and kpi_records[0].status == 'waiting'" class="form-control kpi-input" t-att-data-id="kpi.small_items_each_month.id" data-field="tq_initiative" t-att-value="kpi.tq_initiative"/>
+                                    <t t-if="kpi_records and kpi_records[0].status == 'approved'" t-esc="kpi.tq_initiative"/>%
+                                </td>
                             </tr>
                         </t>
                     </tbody>
@@ -70,9 +97,9 @@
             </div>
             <script>
                 document.addEventListener('DOMContentLoaded', function () {
-                    const managerApproveButton = document.getElementById('manager-approve');
-                    if (managerApproveButton){
-                        managerApproveButton.addEventListener('click', function () {
+                    const managerSaveButton = document.getElementById('manager-save');
+                    if (managerSaveButton){
+                        managerSaveButton.addEventListener('click', function () {
                             const inputs = document.querySelectorAll('.kpi-input');
                             const kpiData = [];
                             inputs.forEach(input => {
@@ -105,17 +132,69 @@
                     if(hrApproveButton){
                         hrApproveButton.addEventListener('click', function () {
                             console.log('Nút hr duyệt được bấm!');
-                            const approveData = [];
                             const departmentId = document.querySelector('.kpi-department').innerHTML;
                             const startDate = document.querySelector('.start-date').innerHTML;
                             console.log(departmentId);
                             console.log(startDate);
-                            approveData.push({
-                                department_id: departmentId,
-                                date: startDate,
+                            console.log('Dữ liệu JSON gửi đi:', JSON.stringify({department_id: departmentId,
+                                                                                date: startDate}));
+                            fetch('/kpi/hr_approved', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({department_id: departmentId,
+                                                      date: startDate}),
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                location.reload();
+                            });
+                        });
+                    }
+                    const cancelApprovalButton = document.getElementById('cancel-approval');
+                    if(cancelApprovalButton){
+                        cancelApprovalButton.addEventListener('click', function () {
+                            console.log('Nút hoàn duyệt được bấm!');
+                            const departmentId = document.querySelector('.kpi-department').innerHTML;
+                            const startDate = document.querySelector('.start-date').innerHTML;
+                            console.log('Dữ liệu JSON gửi đi:', JSON.stringify({department_id: departmentId,
+                                                                                date: startDate}));
+                            fetch('/kpi/cancel_kpi_approval', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({department_id: departmentId,
+                                                      date: startDate}),
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                location.reload();
+                            });
+                        });
+                    }
+                    const managerApproveButton = document.getElementById('manager-approve');
+                    if(managerApproveButton){
+                        managerApproveButton.addEventListener('click', function () {
+                            console.log('Nút duyệt được bấm!');
+                            const approveData = [];
+                            const inputs = document.querySelectorAll('.kpi-input');
+                            inputs.forEach(input => {
+                                const kpiId = input.dataset.id;
+                                const fieldName = input.dataset.field;
+                                const fieldValue = input.value;
+                                console.log(kpiId);
+                                if (fieldValue){
+                                    approveData.push({
+                                        kpi_id: kpiId,
+                                        field_name: fieldName,
+                                        field_value: fieldValue,
+                                    });
+                                }
                             });
                             console.log('Dữ liệu JSON gửi đi:', JSON.stringify({approve_data: approveData}));
-                            fetch('/kpi/hr_approved', {
+                            fetch('/kpi/kpi_approve', {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -128,33 +207,30 @@
                             });
                         });
                     }
-                    const cancelApprovalButton = document.getElementById('cancel-approval');
-                    if(cancelApprovalButton){
-                        cancelApprovalButton.addEventListener('click', function () {
-                            console.log('Nút hoàn duyệt được bấm!');
-                            const cancelData = [];
-                            const inputs = document.querySelectorAll('.kpi-input');
-                            inputs.forEach(input => {
-                                const kpiId = input.dataset.id;
-                                const fieldName = input.dataset.field;
-                                console.log(kpiId);
-                                console.log(fieldName);
-                                cancelData.push({
-                                    kpi_id: kpiId,
-                                    field_name: fieldName,
-                                });
+                    const approveNextMonthButton = document.getElementById('approve-next-month');
+                    if(approveNextMonthButton){
+                        approveNextMonthButton.addEventListener('click', function () {
+                            console.log('Nút duyệt kpi tháng sau được bấm!');
+                            const nextMonthData = [];
+                            const departmentId = document.querySelector('.kpi-department').innerHTML;
+                            const startDate = document.querySelector('.start-date').innerHTML;
+                            nextMonthData.push({
+                                department_id: departmentId,
+                                date: startDate,
                             });
-                            console.log('Dữ liệu JSON gửi đi:', JSON.stringify({cancel_data: cancelData}));
-                            fetch('/kpi/cancel_kpi_approval', {
+                            console.log('Dữ liệu JSON gửi đi:', JSON.stringify({next_month: nextMonthData}));
+                            fetch('/kpi/approve_next_month', {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
                                 },
-                                body: JSON.stringify({cancel_data: cancelData}),
+                                body: JSON.stringify({next_month: nextMonthData}),
                             })
                             .then(response => response.json())
                             .then(data => {
-                                location.reload();
+                                if (data.status === 'success') {
+                                    window.location.href = data.redirect_url;
+                                }
                             });
                         });
                     }
@@ -167,9 +243,22 @@
                 .kpi-department{
                     display: none;
                 }
+                .start-date{
+                    display: none;
+                }
                 .form-header{
                     display: flex;
                     justify-content: space-between;
+                }
+                .time-and-classification{
+                    display: flex;
+                    justify-content: space-between;
+                }
+                .process-waiting{
+                    display: flex;
+                }
+                .process-waiting button{
+                    margin: 5px;
                 }
             </style>
         </t>

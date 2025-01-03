@@ -59,7 +59,10 @@
                 <field name="employee_id"/>
                 <field name="department_id"/>
                 <field name="month"/>
+                <field name="total_work"/>
                 <field name="date_work"/>
+                <field name="hours_reinforcement"/>
+                <field name="apprenticeship"/>
                 <field name="apprenticeship"/>
                 <field name="probationary_period"/>
                 <field name="ot_one_hundred"/>
@@ -68,9 +71,13 @@
                 <field name="paid_leave"/>
                 <field name="number_minutes_late"/>
                 <field name="number_minutes_early"/>
+                <field name="shift_two_crew_three"/>
+                <field name="shift_three_crew_four"/>
                 <field name="on_leave"/>
                 <field name="compensatory_leave"/>
                 <field name="filial_leave"/>
+                <field name="grandparents_leave"/>
+                <field name="vacation"/>
                 <field name="public_leave"/>
             </tree>
         </field>

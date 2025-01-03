@@ -26,6 +26,7 @@ class PlanKPIYear(models.Model):
     ti_le_monh_twenty = fields.Float("T12")
 
     sonha_kpi = fields.Many2one('company.sonha.kpi')
+    plan_kpi_year = fields.Many2one('parent.kpi.year')
 
     @api.constrains('ti_le_monh_one', 'ti_le_monh_two', 'ti_le_monh_three', 'ti_le_monh_four',
                     'ti_le_monh_five', 'ti_le_monh_six', 'ti_le_monh_seven', 'ti_le_monh_eight',
@@ -61,3 +62,14 @@ class PlanKPIYear(models.Model):
                                                         ('sonha_kpi', '=', r.sonha_kpi.id)])
             if sum(kh_kpi.mapped('kpi_year')) > 1:
                 raise ValidationError("KPI kế hoạch cả năm không được vượt quá 100%")
+
+    def filter_department_year(self, record):
+        if record.plan_kpi_year:
+            record.year = record.plan_kpi_year.year if record.plan_kpi_year.year else ''
+            record.department_id = record.plan_kpi_year.department_id.id if record.plan_kpi_year.department_id else ''
+
+    def create(self, vals):
+        record = super(PlanKPIYear, self).create(vals)
+        for r in record:
+            self.filter_department_year(r)
+        return record

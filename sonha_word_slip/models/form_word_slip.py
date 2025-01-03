@@ -56,6 +56,15 @@ class FormWordSlip(models.Model):
     code = fields.Char("Mã đơn", compute="get_code_slip", required=False, readonly=True)
     check_sent = fields.Boolean("Check gửi duyệt", default=False, compute="_get_button_sent")
     record_url = fields.Char(string="Record URL", compute="_compute_record_url")
+    check_invisible_type = fields.Boolean("Check ẩn hiện", default=False)
+
+    @api.onchange('type')
+    def get_check_invisible_type(self):
+        for r in self:
+            if r.type.date_and_time == 'date':
+                r.check_invisible_type = False
+            else:
+                r.check_invisible_type = True
 
     @api.depends('employee_id')
     def _compute_record_url(self):
@@ -279,7 +288,7 @@ class FormWordSlip(models.Model):
 
     def get_duration_day(self, rec):
         word_slip = self.env['word.slip'].sudo().search([('word_slip', '=', rec.id)], limit=1)
-        if word_slip:
+        if word_slip and word_slip.from_date and word_slip.to_date:
             start_date = fields.Date.from_string(word_slip.from_date)
             end_date = fields.Date.from_string(word_slip.to_date)
             day_duration = (end_date - start_date).days + 1

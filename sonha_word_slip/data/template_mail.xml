@@ -19,7 +19,7 @@
                     <br/>
                     - Loại đơn: <t t-out="object.type.name"/>
                     <br/>
-                    - Gửi lúc: <t t-out="object.write_date"/>
+                    - Gửi lúc: <t t-out="object.write_date.strftime('%d-%m-%Y %H:%M:%S')"/>
                     <br/>
                     Vui lòng vào Link sau để duyệt đơn từ.
                     <br/>
@@ -27,7 +27,7 @@
                     <br/>
                     Đây là mail được gửi tự động từ hệ thống, anh/chị vui lòng không phản hồi thông tin tại mail này!
                     <br/>
-                    Trận trọng cảm ơn!
+                    Trân trọng cảm ơn!
                 </p>
             </div>
         </field>
@@ -52,7 +52,7 @@
                     <br/>
                     - Loại đơn: <t t-out="object.type.name"/>
                     <br/>
-                    - Gửi lúc: <t t-out="object.write_date"/>
+                    - Gửi lúc: <t t-out="object.write_date.strftime('%d-%m-%Y %H:%M:%S')"/>
                     <br/>
                     Vui lòng vào Link sau để duyệt đơn từ.
                     <br/>
@@ -60,7 +60,7 @@
                     <br/>
                     Đây là mail được gửi tự động từ hệ thống, anh/chị vui lòng không phản hồi thông tin tại mail này!
                     <br/>,
-                    Trận trọng cảm ơn!
+                    Trân trọng cảm ơn!
                 </p>
             </div>
         </field>

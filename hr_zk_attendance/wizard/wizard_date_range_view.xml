@@ -1,0 +1,32 @@
+<odoo>
+    <record id="view_wizard_date_range_form" model="ir.ui.view">
+        <field name="name">wizard.date.range.form</field>
+        <field name="model">wizard.date.range</field>
+        <field name="arch" type="xml">
+            <form string="Chọn Khoảng Thời Gian">
+                <group>
+                    <field name="company_id"/>
+                    <field name="start_date"/>
+                    <field name="end_date"/>
+                </group>
+                <footer>
+                    <button string="Áp dụng" type="object" name="action_apply" class="btn-primary"/>
+                    <button string="Hủy" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_wizard_date_range" model="ir.actions.act_window">
+        <field name="name">Chọn Khoảng Thời Gian</field>
+        <field name="res_model">wizard.date.range</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="wizard_date_range_menu"
+              name="Chốt công theo ngày"
+              action="action_wizard_date_range"
+              parent="biometric_device_details_menu"
+              sequence="22"/>
+</odoo>
