@@ -232,7 +232,7 @@ class SonHaKPIMonth(models.Model):
         kpi_month_report.sudo().write(vals)
 
     def _get_current_user(self):
-        employee = self.env['hr.employee'].search([('user_id', '=', self.env.user.id)])
+        employee = self.env['hr.employee'].search([('user_id', '=', self.env.user.id)], limit=1)
         if employee:
             return [employee.id]
         return []
