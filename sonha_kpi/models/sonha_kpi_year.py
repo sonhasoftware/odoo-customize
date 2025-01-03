@@ -78,6 +78,7 @@ class SonHaKPIYear(models.Model):
 
     sonha_kpi = fields.Many2one('company.sonha.kpi')
     total_percentage_year = fields.Float(string="Tổng phần trăm năm", compute="fillter_total_percentage_year")
+    parent_kpi_year = fields.Many2one('parent.kpi.year')
 
     @api.constrains('ti_le_monh_one', 'ti_le_monh_two', 'ti_le_monh_three', 'ti_le_monh_four',
                     'ti_le_monh_five', 'ti_le_monh_six', 'ti_le_monh_seven', 'ti_le_monh_eight',
