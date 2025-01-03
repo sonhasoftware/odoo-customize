@@ -311,8 +311,8 @@ class SonHaKPIMonth(models.Model):
                             elif kpi_month.start_date.month == 12:
                                 total_work_month = kpi_year.ti_le_monh_twenty * dv_amount_work
                                 total_tq_work_month = kpi_year.ti_le_monh_twenty * tq_amount_work
-                            total_work_month = round(total_work_month * 100, 1)
-                            total_tq_work_month = round(total_tq_work_month * 100, 1)
+                            total_work_month = round(total_work_month * 100, 2)
+                            total_tq_work_month = round(total_tq_work_month * 100, 2)
                             dvdg_kpi = dvdg_kpi + total_work_month
                             ctqdg_kpi = ctqdg_kpi + total_tq_work_month
                             duplicate_month.add(kpi_month.start_date.month)
