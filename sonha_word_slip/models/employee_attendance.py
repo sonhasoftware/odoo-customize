@@ -118,7 +118,7 @@ class EmployeeAttendance(models.Model):
                         elif r.end_date == record.date:
                             overtime += abs(r.start_time)
                     else:
-                        overtime += abs(r.end_date - r.start_time)
+                        overtime += abs(r.end_time - r.start_time)
             record.over_time = overtime
 
     color = fields.Selection([
