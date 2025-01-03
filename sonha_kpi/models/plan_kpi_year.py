@@ -64,9 +64,9 @@ class PlanKPIYear(models.Model):
                 raise ValidationError("KPI kế hoạch cả năm không được vượt quá 100%")
 
     def filter_department_year(self, record):
-        if record.sonha_kpi:
-            record.year = record.sonha_kpi.year if record.sonha_kpi.year else ''
-            record.department_id = record.sonha_kpi.department_id.id if record.sonha_kpi.department_id else ''
+        if record.plan_kpi_year:
+            record.year = record.plan_kpi_year.year if record.plan_kpi_year.year else ''
+            record.department_id = record.plan_kpi_year.department_id.id if record.plan_kpi_year.department_id else ''
 
     def create(self, vals):
         record = super(PlanKPIYear, self).create(vals)

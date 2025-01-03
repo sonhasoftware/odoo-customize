@@ -383,10 +383,10 @@ class DataChart(http.Controller):
         department_id = int(kwargs.get('department_id')) if kwargs.get('department_id') else None
         month = int(kwargs.get('month')) if kwargs.get('month') else None
         year = int(kwargs.get('year')) if kwargs.get('year') else None
-        kpi_records = request.env['company.sonha.kpi'].sudo().search([('department_id', '=', department_id),
-                                                                      ('year', '=', year)])
+        kpi_records = request.env['parent.kpi.month'].sudo().search([('department_id', '=', department_id),
+                                                                     ('year', '=', year)])
         if month:
-            kpi_records = kpi_records.plan_kpi_year.filtered(lambda x: x.start_date.month == month)
+            kpi_records = kpi_records.plan_kpi_month.filtered(lambda x: x.start_date.month == month)
         if kpi_records:
             start_date = datetime.strptime(str(kpi_records[0].start_date), '%Y-%m-%d')
             end_date = datetime.strptime(str(kpi_records[0].end_date), '%Y-%m-%d')
@@ -418,30 +418,31 @@ class DataChart(http.Controller):
     def approve_kpi_next_month(self):
         data = request.httprequest.get_json()
         for item in data["kpi_data"]:
-            kpi_year = item["kpi_year"]
+            kpi_year = int(item["kpi_year"])
             kpi_month = item["kpi_month"]
             start_date = item["start_date"]
             end_date = item["end_date"]
-            sonha_kpi = item["sonha_kpi"]
-            department_id = item["department_id"]
+            sonha_kpi = int(item["sonha_kpi"])
+            department_id = int(item["department_id"])
+            parent_kpi_month = int(item["parent_kpi_month"])
             start_date_time = datetime.strptime(start_date, '%d/%m/%Y')
             end_date_time = datetime.strptime(end_date, '%d/%m/%Y')
             start_date = start_date_time.strftime('%Y-%m-%d')
             end_date = end_date_time.strftime('%Y-%m-%d')
             year = start_date_time.year
-            company_kpi = request.env['company.sonha.kpi'].sudo().search([('id', '=', sonha_kpi)])
-            if company_kpi:
-                for kpi in company_kpi:
+            parent_plan_kpi = request.env['parent.kpi.month'].sudo().search([('id', '=', parent_kpi_month)])
+            if parent_plan_kpi:
+                for kpi in parent_plan_kpi:
                     kpi.sudo().write({'status': 'done'})
-            request.env['sonha.kpi.year'].sudo().search([('sonha_kpi', '=', sonha_kpi)]).sudo().unlink()
-            request.env['sonha.kpi.year'].sudo().create({
+            request.env['sonha.kpi.month'].sudo().create({
                 'department_id': department_id,
                 'year': year,
-                'name': kpi_year,
+                'kpi_year_id': kpi_year,
                 'start_date': f'{start_date}',
                 'end_date': f'{end_date}',
-                'kpi_year': f'{kpi_month}',
-                'sonha_kpi': sonha_kpi
+                'small_items_each_month': kpi_month,
+                'sonha_kpi': sonha_kpi,
+                'parent_kpi_month': parent_kpi_month
             })
 
     @http.route('/kpi_next_month/cancel_approve_kpi_month', type='json', auth='none', csrf=False)
@@ -450,7 +451,14 @@ class DataChart(http.Controller):
         date = data["date"]
         sonha_kpi = data["sonha_kpi"]
         month = datetime.strptime(date, '%d/%m/%Y').month
-        company_kpi = request.env['company.sonha.kpi'].sudo().search([('id', '=', sonha_kpi)])
-        if company_kpi:
-            company_kpi[0].sudo().write({'status': 'draft'})
-        # request.env['sonha.kpi.year'].sudo().search([('sonha_kpi', '=', sonha_kpi)]).sudo().unlink()
+        company_kpi = request.env['sonha.kpi.month'].sudo().search([('sonha_kpi', '=', sonha_kpi)])
+        if month:
+            company_kpi_month = company_kpi.filtered(lambda x: x.start_date.month == month)
+        if company_kpi_month:
+            company_kpi_month.sudo().unlink()
+        parent_kpi_month = request.env['parent.kpi.month'].sudo().search([('sonha_kpi', '=', sonha_kpi)])
+        if parent_kpi_month:
+            for kpi in parent_kpi_month:
+                if kpi.status == 'done':
+                    kpi.sudo().write({'status': 'draft'})
+        request.env['sonha.kpi.month'].sudo().search([('sonha_kpi', '=', sonha_kpi)])
