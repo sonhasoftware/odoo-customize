@@ -23,6 +23,13 @@ class PlanKPIMonth(models.Model):
             else:
                 raise ValidationError("Dữ liệu tháng phải thuộc trong khoảng dữ liệu của năm")
 
+    def validate_create_write(self, record):
+        if record.kpi_year:
+            if record.kpi_year.sonha_kpi.department_id == record.plan_kpi_month.department_id:
+                pass
+            else:
+                raise ValidationError("Hạng mục phải thuộc kế hoạch của năm!")
+
     @api.depends('plan_kpi_month')
     def get_sonha_kpi(self):
         for r in self:
@@ -35,8 +42,11 @@ class PlanKPIMonth(models.Model):
         if record.plan_kpi_month:
             record.year = record.plan_kpi_month.year if record.plan_kpi_month.year else ''
             record.department_id = record.plan_kpi_month.department_id.id if record.plan_kpi_month.department_id else ''
-            record.start_date = f'{record.plan_kpi_month.year}-{record.plan_kpi_month.month}-1' if record.plan_kpi_month.month and record.plan_kpi_month.year else ''
-            record.end_date = record.start_date + relativedelta(months=1, days=-1)
+            if 0 < record.plan_kpi_month.month < 13:
+                record.start_date = f'{record.plan_kpi_month.year}-{record.plan_kpi_month.month}-1' if record.plan_kpi_month.month and record.plan_kpi_month.year else ''
+                record.end_date = record.start_date + relativedelta(months=1, days=-1)
+            else:
+                raise ValidationError("Dữ liệu tháng phải là một tháng hợp lệ trong năm!")
 
     def create(self, vals):
         record = super(PlanKPIMonth, self).create(vals)
