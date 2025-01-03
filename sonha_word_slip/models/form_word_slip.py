@@ -175,43 +175,64 @@ class FormWordSlip(models.Model):
                 else:
                     raise ValidationError("Bạn không có quyền thực hiện hành động này")
 
+    # hàm check validate
+    def validate_record_overlap(self, record, word_slips, form_type):
+        if form_type == 'date':
+            # so sánh loại đơn tính theo ngày
+            if not (record.start_time and record.end_time):
+                raise ValidationError("Bạn chưa hoàn thành việc chọn ca.")
+
+            if record.start_time == 'second_half' and record.end_time == 'first_half':
+                raise ValidationError("Ca bắt đầu không thể đặt sau ca kết thúc.")
+
+            for r in word_slips:
+                #nếu trùng ngày mà 1 trong 2 đơn nghỉ cả ngày thì thông báo lỗi
+                if r.start_time != r.end_time or record.start_time != record.end_time:
+                    raise ValidationError("Khoảng thời gian bạn chọn bị trùng với khoảng thời gian trong đơn khác.")
+                # nếu không nghỉ cả ngày thì so sánh ca
+                elif r.start_time == record.start_time:
+                    raise ValidationError("Khoảng thời gian bạn chọn bị trùng với khoảng thời gian trong đơn khác.")
+        else:  # form_type == 'time'
+            # so sánh loại đơn tính theo giờ
+            if not (0 <= record.time_to <= 24.0 and 0 <= record.time_from <= 24.0):
+                raise ValidationError("Hãy nhập thời gian trong khoảng 0-24h")
+
+            if record.time_to > record.time_from:
+                raise ValidationError("Thời gian bắt đầu phải đặt trước thời gian kết thúc.")
+
+            # lọc các bản ghi tìm được theo thời gian bắt đầu và thời gian kết thúc
+            overlapping = word_slips.filtered(
+                lambda r: not (r.time_to >= record.time_from or r.time_from <= record.time_to)
+            )
+            if overlapping:
+                raise ValidationError("Khoảng thời gian bạn chọn bị trùng với khoảng thời gian trong đơn khác.")
+
+    # hàm lấy dữ liệu và gọi hàm check validate
+    def process_word_slip_validation(self, rec):
+        # lấy type của form
+        form_type = rec.type.date_and_time
+        for record in rec.word_slip_id:
+            if not (record.from_date and record.to_date):
+                raise ValidationError("Bạn chưa hoàn thành việc chọn ngày bắt đầu và ngày kết thúc")
+            if record.from_date > record.to_date:
+                raise ValidationError("Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc.")
+
+            # tìm kiếm các bản ghi theo các điều kiện
+            word_slips = self.env['word.slip'].search([
+                ('employee_id', '=', rec.employee_id.id),
+                ('type.date_and_time', '=', form_type),
+                ('id', '!=', record.id),
+                ('from_date', '<=', record.to_date),
+                ('to_date', '>=', record.from_date),
+            ])
+            # gọi hàm check validate
+            self.validate_record_overlap(record, word_slips, form_type)
+
     def create(self, vals):
         rec = super(FormWordSlip, self).create(vals)
 
-        # form_type = rec.type.date_and_time
-        # records = self.env['word.slip'].search([
-        #     ('employee_id', '=', rec.employee_id.id),
-        #     ('type.date_and_time', '=', form_type),
-        # ])
-
-        # if form_type == 'date':
-        #     for line in rec.word_slip_id:
-        #         for r in records:
-        #             if r.id == line.id:
-        #                 continue
-        #
-        #             if r.from_date > line.to_date or r.to_date < line.from_date:
-        #                 continue
-        #
-        #             if r.start_time != r.end_time or line.start_time != line.end_time:
-        #                 raise ValidationError("Khoảng thời gian bạn chọn bị trùng với khoảng thời gian trong đơn khác.")
-        #             else:
-        #                 if r.start_time == line.start_time:
-        #                     raise ValidationError("Khoảng thời gian bạn chọn bị trùng với khoảng thời gian trong đơn khác.")
-        # else:
-        #     for line in rec.word_slip_id:
-        #         for r in records:
-        #             if r.id == line.id:
-        #                 continue
-        #
-        #             if r.from_date > line.to_date or r.to_date < line.from_date:
-        #                 continue
-        #
-        #             if r.time_to >= line.time_from or r.time_from <= line.time_to:
-        #                 continue
-        #             else:
-        #                 raise ValidationError("Khoảng thời gian bạn chọn bị trùng với khoảng thời gian trong đơn khác.")
-
+        # check validate khi tạo bản ghi mới
+        self.process_word_slip_validation(rec)
 
         # Tính số ngày và thiết lập `day_duration`
         rec.day_duration = self.get_duration_day(rec)
@@ -290,3 +311,10 @@ class FormWordSlip(models.Model):
             if r.employee_id.total_compensatory < total_duration:
                 raise ValidationError("Bạn không còn thời gian nghỉ bù")
 
+    def write(self, vals):
+        res = super(FormWordSlip, self).write(vals)
+        if 'word_slip_id' in vals:
+            for record in self:
+                # check validate
+                self.process_word_slip_validation(record)
+        return res
