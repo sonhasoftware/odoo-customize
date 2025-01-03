@@ -23,3 +23,7 @@ class RegisterOvertime(models.Model):
                 r.status = 'done'
             else:
                 raise ValidationError("Bạn không có quyền thực hiện hành động này")
+
+    def multi_approval(self):
+        for r in self:
+            r.status = 'done'
