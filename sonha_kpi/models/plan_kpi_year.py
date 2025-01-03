@@ -68,8 +68,9 @@ class PlanKPIYear(models.Model):
         for r in self:
             start_year = r.start_date.year
             end_year = r.end_date.year
-            if r.plan_kpi_year != start_year or r.plan_kpi_year != end_year:
-                raise ValidationError("KPI kế hoạch năm không được nằm ngoài năm đã chọn")
+            if r.plan_kpi_year.year != start_year or r.plan_kpi_year.year != end_year:
+                raise ValidationError("KPI kế hoạch năm nằm ngoài năm đã chọn")
+            
     def filter_department_year(self, record):
         if record.plan_kpi_year:
             record.year = record.plan_kpi_year.year if record.plan_kpi_year.year else ''
