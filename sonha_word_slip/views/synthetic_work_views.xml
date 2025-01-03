@@ -61,6 +61,7 @@
                 <field name="month"/>
                 <field name="total_work"/>
                 <field name="date_work"/>
+                <field name="hours_reinforcement"/>
                 <field name="apprenticeship"/>
                 <field name="probationary_period"/>
                 <field name="ot_one_hundred"/>
