@@ -82,9 +82,21 @@ class EmployeeAttendance(models.Model):
             for slip in word_slips:
                 type_name = slip.word_slip.type.name.lower()  # Chuyển về chữ thường
                 if type_name == "nghỉ phép":
-                    r.leave = 0.5 if slip.start_time == slip.end_time else 1
+                    if slip.start_time and slip.end_time:
+                        if slip.start_time == slip.end_time:
+                            r.leave = 1
+                        else:
+                            r.leave = 0.5
+                    else:
+                        r.leave = 0
                 elif type_name == "nghỉ bù":
-                    r.compensatory = 0.5 if slip.start_time == slip.end_time else 1
+                    if slip.start_time and slip.end_time:
+                        if slip.start_time == slip.end_time:
+                            r.compensatory = 1
+                        else:
+                            r.compensatory = 0.5
+                    else:
+                        r.compensatory = 0
 
             # Kiểm tra public leave
             if all_public_leaves.filtered(
