@@ -59,7 +59,7 @@
                                 const departmentId = data.querySelector('.department').innerHTML;
                                 const parentKpiMonth = data.querySelector('.parent-kpi-month').innerHTML;
                                 console.log('trang thai:', status);
-                                if (status == 'draft'){
+                                if (status != 'done'){
                                     kpiData.push({
                                     kpi_year: kpiYear,
                                     kpi_month: kpiMonth,
