@@ -365,22 +365,28 @@ class EmployeeAttendance(models.Model):
                 r.minutes_late = 0
 
     #Lấy thông tin ngày công của nhân viên
-    @api.depends('check_in', 'check_out')
+    @api.depends('check_in', 'check_out', 'shift')
     def _get_work_day(self):
         for r in self:
-            if r.check_in and r.check_out:
-                if r.compensatory > 0:
-                    r.work_day = 1 - r.compensatory
-                elif r.leave > 0:
-                    r.work_day = 1 - r.leave
+            if r.shift.half_shift == True:
+                if r.check_in and r.check_out:
+                    r.work_day = 0.5
                 else:
-                    r.work_day = 1
-            elif r.check_in and not r.check_out:
-                r.work_day = 0.5
-            elif not r.check_in and r.check_out:
-                r.work_day = 0.5
+                    r.work_day = 0
             else:
-                r.work_day = 0
+                if r.check_in and r.check_out:
+                    if r.compensatory > 0:
+                        r.work_day = 1 - r.compensatory
+                    elif r.leave > 0:
+                        r.work_day = 1 - r.leave
+                    else:
+                        r.work_day = 1
+                elif r.check_in and not r.check_out:
+                    r.work_day = 0.5
+                elif not r.check_in and r.check_out:
+                    r.work_day = 0.5
+                else:
+                    r.work_day = 0
 
     # tính thứ cho ngày
     @api.depends('date')

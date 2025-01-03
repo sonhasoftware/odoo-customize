@@ -267,7 +267,7 @@ class FormWordSlip(models.Model):
 
     def get_duration_day(self, rec):
         word_slip = self.env['word.slip'].sudo().search([('word_slip', '=', rec.id)], limit=1)
-        if word_slip:
+        if word_slip and word_slip.from_date and word_slip.to_date:
             start_date = fields.Date.from_string(word_slip.from_date)
             end_date = fields.Date.from_string(word_slip.to_date)
             day_duration = (end_date - start_date).days + 1
