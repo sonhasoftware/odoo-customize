@@ -41,7 +41,7 @@ class WordSlip(models.Model):
             else:
                 start_date = fields.Date.from_string(r.from_date)
                 end_date = fields.Date.from_string(r.to_date)
-                day_duration = (end_date - start_date).days + 1
+                day_duration = (end_date - start_date).days + 1 if start_date and end_date else 0
                 if r.type.date_and_time == 'date':
                     if r.start_time and r.end_time:
                         if r.start_time == r.end_time:

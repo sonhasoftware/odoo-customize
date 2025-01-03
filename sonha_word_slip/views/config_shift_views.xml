@@ -68,6 +68,7 @@
                         <field name="effect_to"/>
                         <field name="using"/>
                         <field name="contract"/>
+                        <field name="half_shift"/>
                         <field name="company_id"/>
                     </group>
                     <field name="note"/>
