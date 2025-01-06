@@ -102,6 +102,13 @@
         <field name="groups" eval="[(4, ref('sonha_employee.group_dl_employee'))]"/>
     </record>
 
+    <record id="rule_hr_synthetic_work" model="ir.rule">
+        <field name="name">Rule HR synthetic work</field>
+        <field name="model_id" ref="model_synthetic_work"/>
+         <field name="domain_force">[(1, '=', 1)] </field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_hr_employee'))]"/>
+    </record>
+
     <record id="rule_user_distribute_shift" model="ir.rule">
         <field name="name">Rule user distribute shift</field>
         <field name="model_id" ref="model_distribute_shift"/>
