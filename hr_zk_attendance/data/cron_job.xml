@@ -1,0 +1,15 @@
+<odoo>
+    <data>
+        <!-- Scheduled Action for updating attendance -->
+        <record id="ir_cron_clone_attendance_bnh" model="ir.cron">
+            <field name="name">Lấy dữ liệu BNH</field>
+            <field name="model_id" ref="model_data_attendance"/>
+            <field name="state">code</field>
+            <field name="code">model.clone_attendance_data()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="doall">True</field>
+        </record>
+    </data>
+</odoo>
