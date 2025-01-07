@@ -45,10 +45,13 @@ class ParentKPIMonth(models.Model):
 
     def action_month_sent(self):
         for r in self:
-            if r.create_uid.id == self.env.user.id and r.status == 'draft':
-                r.status = 'waiting'
+            if r.plan_kpi_month:
+                if r.create_uid.id == self.env.user.id and r.status == 'draft':
+                    r.status = 'waiting'
+                else:
+                    raise ValidationError("Bạn không có quyền gửi duyệt đến cấp lãnh đạo")
             else:
-                raise ValidationError("Bạn không có quyền gửi duyệt đến cấp lãnh đạo")
+                raise ValidationError("Chưa có dữ liệu kế hoạch KPI tháng")
 
     def action_month_approval(self):
         for r in self:
