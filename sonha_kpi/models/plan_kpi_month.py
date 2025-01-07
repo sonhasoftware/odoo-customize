@@ -8,11 +8,11 @@ class PlanKPIMonth(models.Model):
 
     department_id = fields.Many2one('hr.department', string="Phòng ban")
     year = fields.Integer('Năm')
-    kpi_year = fields.Many2one('sonha.kpi.year', string="Hạng mục lớn", domain="[('sonha_kpi', '=', sonha_kpi)]", require=True)
+    kpi_year = fields.Many2one('sonha.kpi.year', string="Hạng mục lớn", domain="[('sonha_kpi', '=', sonha_kpi)]")
     month = fields.Integer("Tháng")
     kpi_month = fields.Char("Hạng mục nhỏ")
-    start_date = fields.Date('Ngày bắt đầu', require=True)
-    end_date = fields.Date(string="Ngày hoàn thành", require=True)
+    start_date = fields.Date('Ngày bắt đầu')
+    end_date = fields.Date(string="Ngày hoàn thành")
 
     sonha_kpi = fields.Many2one('company.sonha.kpi', compute="get_sonha_kpi")
     plan_kpi_month = fields.Many2one('parent.kpi.month')

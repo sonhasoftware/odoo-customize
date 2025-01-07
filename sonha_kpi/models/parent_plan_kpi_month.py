@@ -9,7 +9,7 @@ class ParentKPIMonth(models.Model):
     _name = 'parent.kpi.month'
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
-    department_id = fields.Many2one('hr.department', string="Phòng ban")
+    department_id = fields.Many2one('hr.department', string="Phòng ban", required=True)
     year = fields.Integer('Năm', default=lambda self: datetime.date.today().year)
     month = fields.Integer('Tháng')
     status = fields.Selection([('draft', 'Nháp'),
