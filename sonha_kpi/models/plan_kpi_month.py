@@ -22,7 +22,7 @@ class PlanKPIMonth(models.Model):
             raise ValidationError("Phải chọn hạng mục lớn")
 
     def validate_year(self, record):
-        if not record.year or record.year <= 0:
+        if not record.plan_kpi_month.year or record.plan_kpi_month.year <= 0:
             raise ValidationError("Dữ liệu năm phải là một năm hợp lệ")
 
     def validate_start_end_date(self, record):
