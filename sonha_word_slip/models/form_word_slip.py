@@ -97,14 +97,17 @@ class FormWordSlip(models.Model):
 
     def action_sent(self):
         for r in self:
-            r.status = 'draft'
-            r.status_lv1 = 'draft'
-            r.status_lv2 = 'draft'
-            if r.check_level != True:
-                template = self.env.ref('sonha_word_slip.template_sent_mail_manager_slip')
+            if not r.word_slip_id:
+                raise ValidationError("Bạn không có dữ liệu ngày!")
             else:
-                template = self.env.ref('sonha_word_slip.template_sent_mail_manager_slip_lv2')
-            template.send_mail(r.id, force_send=True)
+                r.status = 'draft'
+                r.status_lv1 = 'draft'
+                r.status_lv2 = 'draft'
+                if r.check_level != True:
+                    template = self.env.ref('sonha_word_slip.template_sent_mail_manager_slip')
+                else:
+                    template = self.env.ref('sonha_word_slip.template_sent_mail_manager_slip_lv2')
+                template.send_mail(r.id, force_send=True)
 
     @api.depends('employee_id', 'type')
     def get_code_slip(self):
