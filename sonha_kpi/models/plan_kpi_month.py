@@ -8,7 +8,7 @@ class PlanKPIMonth(models.Model):
 
     department_id = fields.Many2one('hr.department', string="Phòng ban")
     year = fields.Integer('Năm')
-    kpi_year = fields.Many2one('sonha.kpi.year', string="Hạng mục lớn", domain="[('sonha_kpi', '=', sonha_kpi)]")
+    kpi_year = fields.Many2one('sonha.kpi.year', string="Hạng mục lớn", domain="[('sonha_kpi', '=', sonha_kpi)]", require=True)
     month = fields.Integer("Tháng")
     kpi_month = fields.Char("Hạng mục nhỏ")
     start_date = fields.Date('Ngày bắt đầu', require=True)
@@ -17,11 +17,23 @@ class PlanKPIMonth(models.Model):
     sonha_kpi = fields.Many2one('company.sonha.kpi', compute="get_sonha_kpi")
     plan_kpi_month = fields.Many2one('parent.kpi.month')
 
+    def validate_kpi_year(self, record):
+        if not record.kpi_year:
+            raise ValidationError("Phải chọn hạng mục lớn")
+
     def validate_start_end_date(self, record):
-            if record.start_date and record.end_date and record.kpi_year.start_date <= record.start_date <= record.kpi_year.end_date and record.kpi_year.start_date <= record.end_date <= record.kpi_year.end_date:
-                pass
-            else:
-                raise ValidationError("Dữ liệu tháng phải thuộc trong khoảng dữ liệu của năm")
+        if record.start_date and record.end_date and record.kpi_year.start_date <= record.start_date <= record.kpi_year.end_date and record.kpi_year.start_date <= record.end_date <= record.kpi_year.end_date:
+            pass
+        else:
+            self.env['bus.bus']._sendone(
+                (self._cr.dbname, 'res.partner', self.env.user.partner_id.id),
+                'simple_notification',
+                {
+                    'title': "Cảnh báo!",
+                    'message': "Dữ liệu tháng nằm ngoài khoảng dữ liệu của năm!",
+                    'sticky': False,
+                }
+            )
 
     def validate_create_write(self, record):
         if record.kpi_year:
@@ -52,5 +64,6 @@ class PlanKPIMonth(models.Model):
         record = super(PlanKPIMonth, self).create(vals)
         for r in record:
             self.filter_department_year(r)
+            self.validate_kpi_year(r)
             self.validate_start_end_date(r)
         return record

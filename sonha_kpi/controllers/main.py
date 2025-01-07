@@ -449,16 +449,16 @@ class DataChart(http.Controller):
     def cancel_approve_next_month(self):
         data = request.httprequest.get_json()
         date = data["date"]
-        sonha_kpi = data["sonha_kpi"]
+        sonha_kpi = int(data["sonha_kpi"])
+        parent_plan_month = int(data["parent_plan_month"])
         month = datetime.strptime(date, '%d/%m/%Y').month
         company_kpi = request.env['sonha.kpi.month'].sudo().search([('sonha_kpi', '=', sonha_kpi)])
         if month:
             company_kpi_month = company_kpi.filtered(lambda x: x.start_date.month == month)
         if company_kpi_month:
             company_kpi_month.sudo().unlink()
-        parent_kpi_month = request.env['parent.kpi.month'].sudo().search([('sonha_kpi', '=', sonha_kpi)])
+        parent_kpi_month = request.env['parent.kpi.month'].sudo().search([('id', '=', parent_plan_month)])
         if parent_kpi_month:
             for kpi in parent_kpi_month:
                 if kpi.status == 'done':
                     kpi.sudo().write({'status': 'draft'})
-        request.env['sonha.kpi.month'].sudo().search([('sonha_kpi', '=', sonha_kpi)])

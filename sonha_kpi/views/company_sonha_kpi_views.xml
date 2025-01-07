@@ -155,10 +155,25 @@
                 (0, 0, {'view_mode': 'form', 'view_id': ref('company_sonha_kpi_form_view')})]"/>
         </record>
 
-        <menuitem id="menu_company_sonha_kpi"
-                  name="Quản lý KPI phòng ban"
+        <menuitem id="menu_manage_company_sonha_kpi"
+                  name="Đơn vị tự đánh giá KPI"
                   parent="sonha_kpi.menu_sonha_kpi"
+                  sequence="2"/>
+
+        <menuitem id="menu_company_sonha_kpi"
+                  name="KPI tổng hợp"
+                  parent="sonha_kpi.menu_manage_company_sonha_kpi"
                   action="action_company_sonha_kpi"
                   sequence="1"/>
+
+        <menuitem id="menu_company_year_sonha_kpi"
+                  name="KPI Năm"
+                  parent="sonha_kpi.menu_manage_company_sonha_kpi"
+                  sequence="2"/>
+
+        <menuitem id="menu_company_month_sonha_kpi"
+                  name="KPI Tháng"
+                  parent="sonha_kpi.menu_manage_company_sonha_kpi"
+                  sequence="3"/>
     </data>
 </odoo>

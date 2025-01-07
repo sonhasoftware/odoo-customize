@@ -47,3 +47,6 @@ class ReportKpiMonth(models.Model):
                         template.sudo().send_mail(rc.id, force_send=True)
                         rc.mail_turn = rc.mail_turn + 1
                         duplicate_department.add(rc.department_id.id)
+
+    def get_status_label(self):
+        return dict(self._fields['status'].selection).get(self.status)

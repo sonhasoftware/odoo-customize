@@ -40,6 +40,6 @@
         <menuitem id="menu_report_mail_to"
                   parent="menu_sonha_kpi"
                   action="report_mail_to_action"
-                  sequence="15"/>
+                  sequence="6"/>
     </data>
 </odoo>

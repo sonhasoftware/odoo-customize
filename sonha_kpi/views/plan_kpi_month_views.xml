@@ -23,10 +23,10 @@
                                 <group>
                                     <field name="plan_kpi_month" string=" " readonly="status != 'draft'">
                                         <tree editable="bottom">
-                                            <field name="kpi_year"/>
+                                            <field name="kpi_year" options="{'no_create': True, 'no_open': True}"/>
                                             <field name="kpi_month"/>
-                                            <field name="start_date"/>
-                                            <field name="end_date"/>
+<!--                                            <field name="start_date"/>-->
+<!--                                            <field name="end_date"/>-->
                                             <field name="sonha_kpi"/>
                                         </tree>
                                     </field>
@@ -50,13 +50,14 @@
                 <tree>
                     <field name="department_id"/>
                     <field name="year" widget="char"/>
-                    <field name="month" />
+                    <field name="month"/>
+                    <field name="status"/>
                 </tree>
             </field>
         </record>
 
         <record id="action_plan_kpi_month" model="ir.actions.act_window">
-            <field name="name">Kế hoạch KPI phòng ban</field>
+            <field name="name">Kế hoạch KPI tháng phòng ban</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">parent.kpi.month</field>
             <field name="view_ids" eval="[(5, 0, 0),
@@ -65,7 +66,7 @@
         </record>
 
         <menuitem id="menu_plan_kpi_month"
-                  name="Kế hoạch KPI tháng"
+                  name="KPI Tháng"
                   parent="sonha_kpi.menu_plan_kpi"
                   action="action_plan_kpi_month"
                   sequence="2"/>

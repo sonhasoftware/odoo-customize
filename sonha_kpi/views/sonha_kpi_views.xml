@@ -59,7 +59,7 @@
         <menuitem id="menu_sonha_kpi_report"
                   name="Báo cáo"
                   parent="menu_sonha_kpi"
-                  sequence="2"/>
+                  sequence="4"/>
 
 <!--        <menuitem id="menu_sonha_kpi_kpi"-->
 <!--                  name="S"-->

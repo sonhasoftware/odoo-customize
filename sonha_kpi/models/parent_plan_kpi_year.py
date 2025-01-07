@@ -77,11 +77,19 @@ class ParentKPIYear(models.Model):
 
     def action_back(self):
         for r in self:
-            r.status = 'draft'
-            self.env['sonha.kpi.year'].search([('parent_kpi_year', '=', r.id)]).sudo().unlink()
+            records = self.env['plan.kpi.month'].sudo().search([('department_id', '=', r.department_id.id),
+                                                                  ('year', '=', r.year)])
+            if records:
+                raise ValidationError("Không được phép hoàn duyệt khi có KPI tháng!")
+            else:
+                r.status = 'draft'
+                self.env['sonha.kpi.year'].sudo().search([('parent_kpi_year', '=', r.id)]).sudo().unlink()
 
     def unlink(self):
         for r in self:
-            self.env['plan.kpi.year'].search([('plan_kpi_year', '=', r.id)]).sudo().unlink()
-        return super(ParentKPIYear, self).unlink()
+            if r.status == 'done':
+                raise ValidationError("Không được phép xóa khi đã duyệt")
+            else:
+                self.env['plan.kpi.year'].search([('plan_kpi_year', '=', r.id)]).sudo().unlink()
+                return super(ParentKPIYear, self).unlink()
 
