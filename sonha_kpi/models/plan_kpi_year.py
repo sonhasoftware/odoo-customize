@@ -28,6 +28,12 @@ class PlanKPIYear(models.Model):
     sonha_kpi = fields.Many2one('company.sonha.kpi')
     plan_kpi_year = fields.Many2one('parent.kpi.year')
 
+    @api.constrains('plan_kpi_year')
+    def validate_parent_plan_kpi_month(self):
+        for r in self:
+            if not r.plan_kpi_year.year or r.plan_kpi_year.year <= 0:
+                raise ValidationError("Dữ liệu năm phải là một năm hợp lệ")
+
     @api.constrains('ti_le_monh_one', 'ti_le_monh_two', 'ti_le_monh_three', 'ti_le_monh_four',
                     'ti_le_monh_five', 'ti_le_monh_six', 'ti_le_monh_seven', 'ti_le_monh_eight',
                     'ti_le_monh_nigh', 'ti_le_monh_ten', 'ti_le_monh_eleven', 'ti_le_monh_twenty')
