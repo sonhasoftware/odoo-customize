@@ -91,5 +91,5 @@ class ParentKPIYear(models.Model):
                 raise ValidationError("Không được phép xóa khi đã duyệt")
             else:
                 self.env['plan.kpi.year'].search([('plan_kpi_year', '=', r.id)]).sudo().unlink()
-                return super(ParentKPIYear, self).unlink()
+        return super(ParentKPIYear, self).unlink()
 
