@@ -75,7 +75,8 @@ class EmployeeAttendance(models.Model):
             word_slips = self.env['word.slip'].sudo().search([
                 ('employee_id', '=', r.employee_id.id),
                 ('from_date', '<=', r.date),
-                ('to_date', '>=', r.date)
+                ('to_date', '>=', r.date),
+                ('word_slip.status', '=', 'done')
             ])
 
             # Xử lý word.slip
@@ -109,7 +110,8 @@ class EmployeeAttendance(models.Model):
             overtime = 0
             ot = self.env['register.overtime'].sudo().search([('employee_id', '=', record.employee_id.id),
                                                               ('start_date', '<=', record.date),
-                                                              ('end_date', '>=', record.date)])
+                                                              ('end_date', '>=', record.date),
+                                                              ('status', '=', 'done')])
             if ot:
                 for r in ot:
                     if r.start_date != r.end_date and r.start_time > r.end_time:
@@ -300,7 +302,8 @@ class EmployeeAttendance(models.Model):
                 ('employee_id', '=', r.employee_id.id),
                 ('from_date', '<=', r.date),
                 ('to_date', '>=', r.date),
-                ('type.date_and_time', '=', 'time')
+                ('type.date_and_time', '=', 'time'),
+                ('word_slip.status', '=', 'done')
             ])
 
             for in_out in in_outs:
@@ -416,7 +419,8 @@ class EmployeeAttendance(models.Model):
                 ('employee_id', '=', r.employee_id.id),
                 ('from_date', '<=', r.date),
                 ('to_date', '>=', r.date),
-                ('type.date_and_time', '=', 'date')
+                ('type.date_and_time', '=', 'date'),
+                ('word_slip.status', '=', 'done')
             ])
             on_leave = 0
             if word_slips:
