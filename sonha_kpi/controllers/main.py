@@ -331,9 +331,8 @@ class DataChart(http.Controller):
             if kpi_record and field_name:
                 kpi_record.sudo().write({field_name: field_value})
                 kpi_report_month.sudo().write({field_name: view_field_value})
-            kpi_report = request.env['report.kpi.month'].sudo().search([('small_items_each_month.id', '=', kpi_id)])
-            if kpi_report.status == 'waiting':
-                kpi_report.sudo().write({'status': 'approved'})
+            if kpi_report_month.status == 'waiting':
+                kpi_report_month.sudo().write({'status': 'approved'})
 
     @http.route('/kpi/hr_approved', type='json', auth='none', csrf=False)
     def hr_approved(self):
