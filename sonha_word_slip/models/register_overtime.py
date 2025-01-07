@@ -34,3 +34,6 @@ class RegisterOvertime(models.Model):
                 raise ValidationError("chỉ được xóa bản ghi ở trạng thái nháp")
         return super(RegisterOvertime, self).unlink()
 
+    def action_back_confirm(self):
+        for r in self:
+            r.status = 'draft'
