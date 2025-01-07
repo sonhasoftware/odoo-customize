@@ -21,6 +21,10 @@ class PlanKPIMonth(models.Model):
         if not record.kpi_year:
             raise ValidationError("Phải chọn hạng mục lớn")
 
+    def validate_year(self, record):
+        if not record.year or record.year <= 0:
+            raise ValidationError("Dữ liệu năm phải là một năm hợp lệ")
+
     def validate_start_end_date(self, record):
         if record.start_date and record.end_date and record.kpi_year.start_date <= record.start_date <= record.kpi_year.end_date and record.kpi_year.start_date <= record.end_date <= record.kpi_year.end_date:
             pass
@@ -63,6 +67,7 @@ class PlanKPIMonth(models.Model):
     def create(self, vals):
         record = super(PlanKPIMonth, self).create(vals)
         for r in record:
+            self.validate_year(r)
             self.filter_department_year(r)
             self.validate_kpi_year(r)
             self.validate_start_end_date(r)
