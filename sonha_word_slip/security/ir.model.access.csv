@@ -30,9 +30,9 @@ access_register_work_hr,register.work.hr,model_register_work,sonha_employee.grou
 access_register_work_manager,register.work.manager,model_register_work,sonha_employee.group_manager_employee,1,1,1,0
 access_register_work_back_up,register.work.back.up,model_register_work,sonha_employee.group_back_up_employee,1,1,1,1
 
-access_register_overtime_user,register.overtime.user,model_register_overtime,sonha_employee.group_user_employee,1,1,1,0
-access_register_overtime_dl,register.overtime.dl,model_register_overtime,sonha_employee.group_dl_employee,1,1,1,0
-access_register_overtime_hr,register.overtime.hr,model_register_overtime,sonha_employee.group_hr_employee,1,1,1,0
+access_register_overtime_user,register.overtime.user,model_register_overtime,sonha_employee.group_user_employee,1,1,1,1
+access_register_overtime_dl,register.overtime.dl,model_register_overtime,sonha_employee.group_dl_employee,1,1,1,1
+access_register_overtime_hr,register.overtime.hr,model_register_overtime,sonha_employee.group_hr_employee,1,1,1,1
 access_register_overtime_manager,register.overtime.manager,model_register_overtime,sonha_employee.group_manager_employee,1,1,1,0
 access_register_overtime_back_up,register.overtime.back.up,model_register_overtime,sonha_employee.group_back_up_employee,1,1,1,1
 

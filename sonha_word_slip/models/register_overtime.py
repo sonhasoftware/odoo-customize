@@ -27,3 +27,10 @@ class RegisterOvertime(models.Model):
     def multi_approval(self):
         for r in self:
             r.status = 'done'
+
+    def unlink(self):
+        for r in self:
+            if r.status != 'draft':
+                raise ValidationError("chỉ được xóa bản ghi ở trạng thái nháp")
+        return super(RegisterOvertime, self).unlink()
+
