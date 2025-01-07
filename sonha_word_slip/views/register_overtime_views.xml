@@ -25,11 +25,12 @@
             <form string="Đăng ký làm thêm">
                 <header>
                     <button name="action_confirm" string="Duyệt" type="object" class="oe_highlight" invisible="status != 'draft'"/>
+                    <button name="action_back_confirm" string="Hoàn duyệt" type="object" class="oe_highlight" invisible="status != 'done'" groups="sonha_employee.group_dl_employee"/>
                     <field name="status" widget="statusbar"/>
                 </header>
                 <sheet>
                     <group>
-                        <field name="department_id" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="department_id" options="{'no_create': True, 'no_open': True}" readonly="status != 'draft'"/>
                         <field name="start_date" readonly="status != 'draft'" required = "1"/>
                         <field name="end_date" readonly="status != 'draft'" required = "1"/>
                         <field name="start_time" widget="float_time" readonly="status != 'draft'" required = "1"/>
