@@ -1,5 +1,6 @@
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
+from datetime import datetime, time, timedelta, date
 
 
 class FormWordSlip(models.Model):
@@ -215,6 +216,12 @@ class FormWordSlip(models.Model):
         # lấy type của form
         form_type = rec.type.date_and_time
         for record in rec.word_slip_id:
+            day = self.env['res.company'].sudo().search([('id', '=', record.employee_id.company_id.id)], limit=1)
+            if day.slip != 0:
+                now = date.today()
+                date_valid = now - timedelta(days=day.slip)
+                if record.from_date < date_valid or record.to_date < date_valid:
+                    raise ValidationError("Bạn không thể đăng ký đơn từ cho ngày quá khứ")
             if not (record.from_date and record.to_date):
                 raise ValidationError("Bạn chưa hoàn thành việc chọn ngày bắt đầu và ngày kết thúc")
             if record.from_date > record.to_date:
@@ -299,11 +306,6 @@ class FormWordSlip(models.Model):
             day_duration = 0
         return day_duration
 
-    @api.constrains('word_slip_id')
-    def check_word_slip_id(self):
-        if not self.word_slip_id:
-            raise ValidationError(f"Đơn từ của bạn chưa chọn thời gian")
-
     @api.constrains('employee_id')
     def check_word_slip_id(self):
         for r in self:
@@ -313,6 +315,16 @@ class FormWordSlip(models.Model):
                     total_duration += slip.duration * 8
             if r.employee_id.total_compensatory < total_duration:
                 raise ValidationError("Bạn không còn thời gian nghỉ bù")
+
+    @api.constrains('type', 'word_slip_id')
+    def check_type(self):
+        for r in self:
+            if r.word_slip_id and r.type.max_time != 0:
+                total_hours = 0
+                for slip in r.word_slip_id:
+                    total_hours += slip.time_from - slip.time_to
+                if total_hours > r.type.max_time:
+                    raise ValidationError("Loại đơn " + str(r.type.name) + " chỉ được phép tạo tối đa " + str(r.type.max_time) + " giờ")
 
     def write(self, vals):
         res = super(FormWordSlip, self).write(vals)

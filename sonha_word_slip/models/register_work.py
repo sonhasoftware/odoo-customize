@@ -1,6 +1,7 @@
 from dateutil.relativedelta import relativedelta
 from odoo import api, fields, models
-from datetime import datetime, time, timedelta
+from datetime import datetime, time, timedelta, date
+from odoo.exceptions import UserError, ValidationError
 
 
 class RegisterWork(models.Model):
@@ -50,4 +51,15 @@ class RegisterWork(models.Model):
                 }
                 self.env['distribute.shift'].sudo().create(vals)
                 temp_date = temp_date + timedelta(days=1)
+
+    @api.constrains('start_date', 'end_date')
+    def _check_validity(self):
+        for r in self:
+            day = self.env['res.company'].sudo().search([('id', '=', r.employee_id.company_id.id)], limit=1)
+            if r.employee_id and day and day.shift != 0:
+                now = date.today()
+                date_valid = now - timedelta(days=day.shift)
+                if r.start_date < date_valid or r.end_date < date_valid:
+                    raise ValidationError("Bạn không thể đăng ký ca cho ngày quá khứ")
+
 
