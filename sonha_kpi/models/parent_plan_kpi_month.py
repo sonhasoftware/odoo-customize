@@ -97,7 +97,7 @@ class ParentKPIMonth(models.Model):
                 raise ValidationError("Không được phép xóa khi đã duyệt")
             else:
                 self.env['plan.kpi.month'].search([('plan_kpi_month', '=', r.id)]).sudo().unlink()
-                return super(ParentKPIMonth, self).unlink()
+        return super(ParentKPIMonth, self).unlink()
 
     def get_status_label(self):
         return dict(self._fields['status'].selection).get(self.status)
