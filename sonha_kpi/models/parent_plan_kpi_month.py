@@ -84,6 +84,7 @@ class ParentKPIMonth(models.Model):
         plan_kpi_month = self.env['plan.kpi.month'].sudo().search([('plan_kpi_month', '=', record.id)])
         if plan_kpi_month:
             for r in plan_kpi_month:
+                r.validate_year(r)
                 r.filter_department_year(r)
                 r.validate_create_write(r)
 
