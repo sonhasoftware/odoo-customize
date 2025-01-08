@@ -9,6 +9,10 @@
                 <div>
                     <label for="company_code"/>
                     <field name="company_code" string="Mã công ty"/>
+                    <label for="slip"/>
+                    <field name="slip" string="Đơn từ"/>
+                    <label for="shift"/>
+                    <field name="shift" string="Ca"/>
                 </div>
             </xpath>
         </field>

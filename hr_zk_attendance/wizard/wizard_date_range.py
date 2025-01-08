@@ -22,7 +22,6 @@ class WizardDateRange(models.TransientModel):
                 ('date', '=', record.date)
             ], limit=1)
             vals = {
-                'department_id': record.department_id.id,
                 'weekday': record.weekday,
                 'check_in': record.check_in,
                 'check_out': record.check_out,
@@ -49,11 +48,12 @@ class WizardDateRange(models.TransientModel):
             if existing_record:
                 # Cập nhật từng trường để đảm bảo lưu dữ liệu
                 for field, value in vals.items():
-                    existing_record.sudo().write({field: value})
+                    existing_record.sudo().write(vals)
             else:
                 # Tạo mới nếu không tồn tại
                 vals.update({
                     'employee_id': record.employee_id.id,
                     'date': record.date,
+                    'department_id': record.department_id.id,
                 })
                 model.sudo().create(vals)

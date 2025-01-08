@@ -40,6 +40,13 @@
         <field name="groups" eval="[(4, ref('sonha_employee.group_dl_employee'))]"/>
     </record>
 
+    <record id="rule_hr_form_word_slip" model="ir.rule">
+        <field name="name">Rule HR form word slip</field>
+        <field name="model_id" ref="model_form_word_slip"/>
+        <field name="domain_force">['|', ('employee_id.company_id', '=', user.company_id.id), ('employee_id.company_id', 'in', user.company_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_hr_employee'))]"/>
+    </record>
+
     <record id="rule_user_register_shift" model="ir.rule">
         <field name="name">Rule user register shift</field>
         <field name="model_id" ref="model_register_shift"/>
@@ -53,6 +60,14 @@
          <field name="domain_force">['|', ('employee_id.user_id', '=', user.id), ('employee_id', 'child_of', [emp.id for emp in user.employee_ids])] </field>
         <field name="groups" eval="[(4, ref('sonha_employee.group_dl_employee'))]"/>
     </record>
+
+    <record id="rule_hr_register_shift" model="ir.rule">
+        <field name="name">Rule HR register shift</field>
+        <field name="model_id" ref="model_register_shift"/>
+        <field name="domain_force">['|', ('employee_id.company_id', '=', user.company_id.id), ('employee_id.company_id', 'in', user.company_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_hr_employee'))]"/>
+    </record>
+
 
     <record id="rule_user_register_overtime" model="ir.rule">
         <field name="name">Rule user register overtime</field>
@@ -73,6 +88,13 @@
         <field name="groups" eval="[(4, ref('sonha_employee.group_dl_employee'))]"/>
     </record>
 
+    <record id="rule_hr_register_overtime" model="ir.rule">
+        <field name="name">Rule HR register overtime</field>
+        <field name="model_id" ref="model_register_overtime"/>
+        <field name="domain_force">['|', ('employee_id.company_id', '=', user.company_id.id), ('employee_id.company_id', 'in', user.company_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_hr_employee'))]"/>
+    </record>
+
 
     <record id="rule_user_employee_attendance" model="ir.rule">
         <field name="name">Rule user employee attendance</field>
@@ -88,6 +110,17 @@
         <field name="groups" eval="[(4, ref('sonha_employee.group_dl_employee'))]"/>
     </record>
 
+    <record id="rule_hr_employee_attendance" model="ir.rule">
+        <field name="name">Rule HR employee attendance</field>
+        <field name="model_id" ref="model_employee_attendance"/>
+        <field name="domain_force">['|', ('employee_id.company_id', '=', user.company_id.id), ('employee_id.company_id', 'in', user.company_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_hr_employee'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
     <record id="rule_user_synthetic_work" model="ir.rule">
         <field name="name">Rule user synthetic_work</field>
         <field name="model_id" ref="model_synthetic_work"/>
@@ -100,6 +133,17 @@
         <field name="model_id" ref="model_synthetic_work"/>
          <field name="domain_force">['|', ('employee_id.user_id', '=', user.id), ('employee_id', 'child_of', [emp.id for emp in user.employee_ids])] </field>
         <field name="groups" eval="[(4, ref('sonha_employee.group_dl_employee'))]"/>
+    </record>
+
+    <record id="rule_hr_synthetic_work" model="ir.rule">
+        <field name="name">Rule HR synthetic work</field>
+        <field name="model_id" ref="model_synthetic_work"/>
+        <field name="domain_force">['|', ('employee_id.company_id', '=', user.company_id.id), ('employee_id.company_id', 'in', user.company_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_hr_employee'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
     </record>
 
     <record id="rule_user_distribute_shift" model="ir.rule">

@@ -28,10 +28,10 @@
         </record>
 
         <record id="menu_popup_wizard_report_kpi_month_rel" model="ir.ui.menu">
-            <field name="name">Duyệt KPI</field>
+            <field name="name">Lãnh đạo đánh giá KPI</field>
             <field name="action" ref="action_popup_wizard_report_kpi_month_rel"/>
             <field name="parent_id" ref="sonha_kpi.menu_sonha_kpi"/>
-            <field name="sequence" type="int">20</field>
+            <field name="sequence" type="int">3</field>
         </record>
 
     </data>

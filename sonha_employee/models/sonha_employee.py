@@ -227,6 +227,8 @@ class ResCompany(models.Model):
     max_number = fields.Integer(string="Mã lớn nhất", compute="_compute_max_number",required=True)
     zero_count = fields.Integer(string="Số số 0", compute="_compute_max_number",required=True)
     company_code = fields.Char(string="Mã công ty")
+    slip = fields.Integer("Đơn từ", default=0)
+    shift = fields.Integer("Ca", default=0)
 
     def _compute_max_number(self):
         for r in self:
@@ -240,7 +242,7 @@ class ResCompany(models.Model):
                         number_str = match.group()
                         number = int(number_str)
 
-                        if max_number <  number:
+                        if max_number < number:
                             max_number = number
                             max_str = number_str
 

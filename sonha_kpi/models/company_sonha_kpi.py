@@ -19,16 +19,6 @@ class CompanySonHaKPI(models.Model):
     plan_kpi_year = fields.One2many('plan.kpi.year', 'sonha_kpi')
     plan_kpi_month = fields.One2many('plan.kpi.month', 'sonha_kpi')
 
-    status = fields.Selection([('draft', 'Nháp'),
-                               ('waiting', 'Chờ duyệt'),
-                               ('done', 'Đã duyệt')],
-                              string='Trạng thái', default='draft')
-
-    status_month = fields.Selection([('draft', 'Nháp'),
-                               ('waiting', 'Chờ duyệt'),
-                               ('done', 'Đã duyệt')],
-                              string='Trạng thái', default='draft')
-
     @api.constrains('year')
     def validate_year(self):
         now = datetime.datetime.now()

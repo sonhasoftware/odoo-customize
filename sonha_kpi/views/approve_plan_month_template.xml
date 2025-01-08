@@ -12,12 +12,12 @@
                          Hủy duyệt
                      </button>
                     <h5 class="status">
-                        Trạng thái: <t t-esc="kpi_records[0].plan_kpi_month.status"/>
+                        Trạng thái: <t t-esc="kpi_records[0].plan_kpi_month.get_status_label()"/>
                     </h5>
                 </div>
-                <div class="time">
+                <div>
                     <h6>
-                        Thời gian thực hiện: <span class="start-date"><t t-esc="converted_start_date"/></span> - <span class="end-date"><t t-esc="converted_end_date"/></span>
+                        <span class="time">Thời gian thực hiện: <span class="start-date"><t t-esc="converted_start_date"/></span> - <span class="end-date"><t t-esc="converted_end_date"/></span></span>
                     </h6>
                 </div>
                 <table class="table table-bordered">
@@ -90,6 +90,7 @@
                         cancelApproveButton.addEventListener('click', function () {
                             const Date = document.querySelector('.start-date').innerHTML;
                             const sonhaKpi = document.querySelector('.sonha-kpi').innerHTML;
+                            const parentPlanMonth = document.querySelector('.parent-kpi-month').innerHTML;
                             const kpiData = [];
                             console.log('Dữ liệu JSON gửi đi:', JSON.stringify({sonha_kpi: sonhaKpi,
                                                                                 date: Date}));
@@ -99,7 +100,8 @@
                                     'Content-Type': 'application/json',
                                 },
                                 body: JSON.stringify({sonha_kpi: sonhaKpi,
-                                                      date: Date}),
+                                                      date: Date,
+                                                      parent_plan_month: parentPlanMonth}),
                             })
                             .then(response => response.json())
                             .then(data => {
@@ -116,6 +118,15 @@
                 }
                 .hidden{
                     display: none;
+                }
+                thead{
+                    background-color: #CCFFFF;
+                }
+                .time{
+                    background-color: #FFFF66;
+                }
+                .status{
+                    background-color: #66FF66;
                 }
             </style>
         </t>

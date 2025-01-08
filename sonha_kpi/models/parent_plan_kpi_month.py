@@ -9,7 +9,7 @@ class ParentKPIMonth(models.Model):
     _name = 'parent.kpi.month'
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
-    department_id = fields.Many2one('hr.department', string="Phòng ban")
+    department_id = fields.Many2one('hr.department', string="Phòng ban", required=True)
     year = fields.Integer('Năm', default=lambda self: datetime.date.today().year)
     month = fields.Integer('Tháng')
     status = fields.Selection([('draft', 'Nháp'),
@@ -45,10 +45,13 @@ class ParentKPIMonth(models.Model):
 
     def action_month_sent(self):
         for r in self:
-            if r.create_uid.id == self.env.user.id and r.status == 'draft':
-                r.status = 'waiting'
+            if r.plan_kpi_month:
+                if r.create_uid.id == self.env.user.id and r.status == 'draft':
+                    r.status = 'waiting'
+                else:
+                    raise ValidationError("Bạn không có quyền gửi duyệt đến cấp lãnh đạo")
             else:
-                raise ValidationError("Bạn không có quyền gửi duyệt đến cấp lãnh đạo")
+                raise ValidationError("Chưa có dữ liệu kế hoạch KPI tháng")
 
     def action_month_approval(self):
         for r in self:
@@ -65,9 +68,9 @@ class ParentKPIMonth(models.Model):
                             'sonha_kpi': kpi.id,
                             'parent_kpi_month': r.id,
                         })
-                else:
-                    raise ValidationError("Chưa có dữ liệu kế hoạch KPI năm")
-                r.status = 'done'
+            else:
+                raise ValidationError("Chưa có dữ liệu kế hoạch KPI tháng")
+            r.status = 'done'
 
     def action_month_back(self):
         for r in self:
@@ -84,11 +87,17 @@ class ParentKPIMonth(models.Model):
         plan_kpi_month = self.env['plan.kpi.month'].sudo().search([('plan_kpi_month', '=', record.id)])
         if plan_kpi_month:
             for r in plan_kpi_month:
+                r.validate_year(r)
                 r.filter_department_year(r)
-                r.validate_start_end_date(r)
                 r.validate_create_write(r)
 
     def unlink(self):
         for r in self:
-            self.env['plan.kpi.month'].search([('plan_kpi_month', '=', r.id)]).sudo().unlink()
+            if r.status == 'done':
+                raise ValidationError("Không được phép xóa khi đã duyệt")
+            else:
+                self.env['plan.kpi.month'].search([('plan_kpi_month', '=', r.id)]).sudo().unlink()
         return super(ParentKPIMonth, self).unlink()
+
+    def get_status_label(self):
+        return dict(self._fields['status'].selection).get(self.status)

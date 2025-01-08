@@ -75,7 +75,8 @@ class EmployeeAttendance(models.Model):
             word_slips = self.env['word.slip'].sudo().search([
                 ('employee_id', '=', r.employee_id.id),
                 ('from_date', '<=', r.date),
-                ('to_date', '>=', r.date)
+                ('to_date', '>=', r.date),
+                ('word_slip.status', '=', 'done')
             ])
 
             # Xử lý word.slip
@@ -109,7 +110,8 @@ class EmployeeAttendance(models.Model):
             overtime = 0
             ot = self.env['register.overtime'].sudo().search([('employee_id', '=', record.employee_id.id),
                                                               ('start_date', '<=', record.date),
-                                                              ('end_date', '>=', record.date)])
+                                                              ('end_date', '>=', record.date),
+                                                              ('status', '=', 'done')])
             if ot:
                 for r in ot:
                     if r.start_date != r.end_date and r.start_time > r.end_time:
@@ -225,6 +227,17 @@ class EmployeeAttendance(models.Model):
                 # Nếu ngày của check-in và check-out giống nhau, điều chỉnh thời gian check-out qua ngày hôm sau
                 if (time_check_in + timedelta(hours=7)).date() == (time_check_out + timedelta(hours=7)).date():
                     time_check_out += timedelta(days=1)
+            overtime = self.env['register.overtime'].sudo().search([('employee_id', '=', r.employee_id.id),
+                                                                    ('start_date', '<=', r.date),
+                                                                    ('end_date', '>=', r.date)])
+            if overtime:
+                for ot in overtime:
+                    start = int(ot.start_time)
+                    end = int(ot.end_time)
+                    if end == r.shift.start.hour + 7:
+                        time_check_in = time_check_in - timedelta(hours=end - start)
+                    if start == r.shift.end_shift.hour + 7:
+                        time_check_out = time_check_out + timedelta(hours=end - start)
 
             # Gán kết quả
             r.time_check_in = time_check_in
@@ -300,7 +313,8 @@ class EmployeeAttendance(models.Model):
                 ('employee_id', '=', r.employee_id.id),
                 ('from_date', '<=', r.date),
                 ('to_date', '>=', r.date),
-                ('type.date_and_time', '=', 'time')
+                ('type.date_and_time', '=', 'time'),
+                ('word_slip.status', '=', 'done')
             ])
 
             for in_out in in_outs:
@@ -416,7 +430,8 @@ class EmployeeAttendance(models.Model):
                 ('employee_id', '=', r.employee_id.id),
                 ('from_date', '<=', r.date),
                 ('to_date', '>=', r.date),
-                ('type.date_and_time', '=', 'date')
+                ('type.date_and_time', '=', 'date'),
+                ('word_slip.status', '=', 'done')
             ])
             on_leave = 0
             if word_slips:
