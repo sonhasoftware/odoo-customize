@@ -10,5 +10,5 @@
               name="Biểu đồ"
               parent="menu_sonha_kpi"
               action="action_owl_greet_dashboard"
-              sequence="200"/>
+              sequence="5"/>
 </odoo>
