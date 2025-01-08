@@ -227,6 +227,17 @@ class EmployeeAttendance(models.Model):
                 # Nếu ngày của check-in và check-out giống nhau, điều chỉnh thời gian check-out qua ngày hôm sau
                 if (time_check_in + timedelta(hours=7)).date() == (time_check_out + timedelta(hours=7)).date():
                     time_check_out += timedelta(days=1)
+            overtime = self.env['register.overtime'].sudo().search([('employee_id', '=', r.employee_id.id),
+                                                                    ('start_date', '<=', r.date),
+                                                                    ('end_date', '>=', r.date)])
+            if overtime:
+                for ot in overtime:
+                    start = int(ot.start_time)
+                    end = int(ot.end_time)
+                    if end == r.shift.start.hour + 7:
+                        time_check_in = time_check_in - timedelta(hours=end - start)
+                    if start == r.shift.end_shift.hour + 7:
+                        time_check_out = time_check_out + timedelta(hours=end - start)
 
             # Gán kết quả
             r.time_check_in = time_check_in

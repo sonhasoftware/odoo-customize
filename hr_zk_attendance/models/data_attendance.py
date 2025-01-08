@@ -22,7 +22,7 @@ class DataAttendance(models.Model):
                 # Kiểm tra xem bản ghi đã tồn tại trong master.data.attendance chưa
                 existing_record = master_attendance_model.sudo().search([
                     ('employee_id', '=', employee.id),
-                    ('attendance_time', '=', record.date_time)
+                    ('attendance_time', '=', record.date_time - timedelta(hours=7))
                 ], limit=1)
 
                 if not existing_record:
