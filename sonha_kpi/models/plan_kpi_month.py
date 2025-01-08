@@ -41,7 +41,7 @@ class PlanKPIMonth(models.Model):
 
     def validate_create_write(self, record):
         if record.kpi_year:
-            if record.kpi_year.sonha_kpi.department_id == record.plan_kpi_month.department_id:
+            if record.kpi_year.sonha_kpi.department_id == record.plan_kpi_month.department_id and record.kpi_year.sonha_kpi.year == record.plan_kpi_month.year:
                 pass
             else:
                 raise ValidationError("Hạng mục phải thuộc kế hoạch của năm!")

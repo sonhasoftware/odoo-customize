@@ -21,6 +21,13 @@ class ParentKPIYear(models.Model):
     plan_kpi_year = fields.One2many('plan.kpi.year', 'plan_kpi_year')
     sonha_kpi = fields.Many2one('company.sonha.kpi')
 
+    @api.constrains('plan_kpi_year', 'year')
+    def validate_year(self):
+        for r in self:
+            for record in r.plan_kpi_year:
+                if r.year != record.start_date.year or r.year != record.end_date.year:
+                    raise ValidationError("KPI kế hoạch năm nằm ngoài năm đã chọn")
+
     @api.constrains('department_id', 'year', 'id')
     def validate_parent_plan_kpi_month(self):
         for r in self:
