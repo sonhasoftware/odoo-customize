@@ -320,11 +320,10 @@ class FormWordSlip(models.Model):
     def check_type(self):
         for r in self:
             if r.word_slip_id and r.type.max_time != 0:
-                total_hours = 0
                 for slip in r.word_slip_id:
-                    total_hours += slip.time_from - slip.time_to
-                if total_hours > r.type.max_time:
-                    raise ValidationError("Loại đơn " + str(r.type.name) + " chỉ được phép tạo tối đa " + str(r.type.max_time) + " giờ")
+                    total_hours = slip.time_from - slip.time_to
+                    if total_hours > r.type.max_time:
+                        raise ValidationError("Loại đơn " + str(r.type.name) + " chỉ được phép tạo tối đa " + str(r.type.max_time) + " giờ")
 
     def write(self, vals):
         res = super(FormWordSlip, self).write(vals)
