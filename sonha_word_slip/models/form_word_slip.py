@@ -115,7 +115,7 @@ class FormWordSlip(models.Model):
         for r in self:
             if r.type and r.employee_id:
                 short_code = ''.join(word[0].upper() for word in r.type.name.split())
-                r.code = "SSP-" + short_code + "-" + str(r.id)
+                r.code = r.employee_id.company_id.company_code + "-" + short_code + "-" + str(r.id)
             else:
                 r.code = ""
 

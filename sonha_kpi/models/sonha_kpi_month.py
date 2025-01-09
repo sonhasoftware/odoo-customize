@@ -52,7 +52,15 @@ class SonHaKPIMonth(models.Model):
             if r.start_date and r.end_date and r.kpi_year_id.start_date <= r.start_date <= r.kpi_year_id.end_date and r.kpi_year_id.start_date <= r.end_date <= r.kpi_year_id.end_date:
                 pass
             else:
-                raise ValidationError("Dữ liệu tháng phải thuộc trong khoảng dữ liệu của năm")
+                self.env['bus.bus']._sendone(
+                    (self._cr.dbname, 'res.partner', self.env.user.partner_id.id),
+                    'simple_notification',
+                    {
+                        'title': "Cảnh báo!",
+                        'message': "Dữ liệu tháng nằm ngoài khoảng dữ liệu của năm!",
+                        'sticky': False,
+                    }
+                )
 
     @api.depends('tq_amount_work', 'tq_matter_work', 'tq_comply_regulations', 'status_tq')
     def get_status_appraisal(self):

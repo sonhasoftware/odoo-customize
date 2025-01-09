@@ -60,12 +60,13 @@
                 <tree>
                     <field name="department_id"/>
                     <field name="year" widget="char"/>
+                    <field name="status"/>
                 </tree>
             </field>
         </record>
 
         <record id="action_plan_kpi_year" model="ir.actions.act_window">
-            <field name="name">Kế hoạch KPI phòng ban</field>
+            <field name="name">Kế hoạch KPI năm phòng ban</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">parent.kpi.year</field>
             <field name="view_ids" eval="[(5, 0, 0),
@@ -74,12 +75,12 @@
         </record>
 
         <menuitem id="menu_plan_kpi"
-                  name="Kế hoạch KPI"
+                  name="Đăng ký KPI"
                   parent="sonha_kpi.menu_sonha_kpi"
                   sequence="1"/>
 
         <menuitem id="menu_plan_kpi_year"
-                  name="Kế hoạch KPI năm"
+                  name="KPI Năm"
                   parent="sonha_kpi.menu_plan_kpi"
                   action="action_plan_kpi_year"
                   sequence="1"/>

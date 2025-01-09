@@ -24,18 +24,18 @@
                             Duyệt kế hoạch tháng sau
                         </button>
                     </div>
-                    <h5 class="status">
-                        Trạng thái: <t t-esc="kpi_records[0].status"/>
+                    <h5 class="status tq-class">
+                        Trạng thái: <t t-esc="kpi_records[0].get_status_label()"/>
                     </h5>
                 </div>
                 <div class="time-and-classification">
                     <h6>
-                        Thời gian thực hiện: <t t-esc="converted_start_date"/> - <t t-esc="converted_end_date"/>
+                        <span class="time">Thời gian thực hiện: <t t-esc="converted_start_date"/> - <t t-esc="converted_end_date"/></span>
                     </h6>
                     <h6>
-                        Xếp loại đơn vị đánh giá: <t t-if="dv_classification" t-esc="dv_classification"/>
+                        <span class="dv-class">Xếp loại đơn vị đánh giá: <t t-if="dv_classification" t-esc="dv_classification"/></span>
                         <br/>
-                        Xếp loại thẩm quyền đánh giá: <t t-if="tq_classification" t-esc="tq_classification"/>
+                        <span class="tq-class">Xếp loại thẩm quyền đánh giá: <t t-if="tq_classification" t-esc="tq_classification"/></span>
                     </h6>
                 </div>
                 <table class="table table-bordered">
@@ -45,8 +45,8 @@
                             <th>TIÊU CHÍ</th>
                             <th>KẾT QUẢ ĐƠN VỊ</th>
                             <th>MÔ TẢ CHI TIẾT</th>
-                            <th>% PHÊ DUYỆT</th>
-                            <th>NHẬN XÉT ĐÁNH GIÁ</th>
+                            <th class="tq-class">% PHÊ DUYỆT</th>
+                            <th class="tq-class">NHẬN XÉT ĐÁNH GIÁ</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -259,6 +259,21 @@
                 }
                 .process-waiting button{
                     margin: 5px;
+                }
+                thead{
+                    background-color: #CCFFFF;
+                }
+                .time{
+                    background-color: #FFFF66;
+                }
+                .dv-class{
+                    background-color: #FFCC99;
+                }
+                .tq-class{
+                    background-color: #66FF66;
+                }
+                thead .tq-class{
+                    background-color: #66FF66;
                 }
             </style>
         </t>

@@ -9,7 +9,7 @@ class ParentKPIYear(models.Model):
     _name = 'parent.kpi.year'
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
-    department_id = fields.Many2one('hr.department', string="Phòng ban")
+    department_id = fields.Many2one('hr.department', string="Phòng ban", required=True)
     year = fields.Integer('Năm', default=lambda self: datetime.date.today().year)
     month = fields.Integer('Tháng')
 
@@ -70,18 +70,29 @@ class ParentKPIYear(models.Model):
 
     def action_sent(self):
         for r in self:
-            if r.create_uid.id == self.env.user.id and r.status == 'draft':
-                r.status = 'waiting'
+            if r.plan_kpi_year:
+                if r.create_uid.id == self.env.user.id and r.status == 'draft':
+                    r.status = 'waiting'
+                else:
+                    raise ValidationError("Bạn không có quyền gửi duyệt đến cấp lãnh đạo")
             else:
-                raise ValidationError("Bạn không có quyền gửi duyệt đến cấp lãnh đạo")
+                raise ValidationError("Chưa có dữ liệu kế hoạch KPI năm")
 
     def action_back(self):
         for r in self:
-            r.status = 'draft'
-            self.env['sonha.kpi.year'].search([('parent_kpi_year', '=', r.id)]).sudo().unlink()
+            records = self.env['plan.kpi.month'].sudo().search([('department_id', '=', r.department_id.id),
+                                                                  ('year', '=', r.year)])
+            if records:
+                raise ValidationError("Không được phép hoàn duyệt khi có KPI tháng!")
+            else:
+                r.status = 'draft'
+                self.env['sonha.kpi.year'].sudo().search([('parent_kpi_year', '=', r.id)]).sudo().unlink()
 
     def unlink(self):
         for r in self:
-            self.env['plan.kpi.year'].search([('plan_kpi_year', '=', r.id)]).sudo().unlink()
+            if r.status == 'done':
+                raise ValidationError("Không được phép xóa khi đã duyệt")
+            else:
+                self.env['plan.kpi.year'].search([('plan_kpi_year', '=', r.id)]).sudo().unlink()
         return super(ParentKPIYear, self).unlink()
 
