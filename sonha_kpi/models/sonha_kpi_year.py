@@ -247,7 +247,7 @@ class SonHaKPIYear(models.Model):
             if not record.ti_le_monh_twenty:
                 missing_fields.append("Tháng 12")
         if missing_fields:
-            warning_message = f"Các trường: {', '.join(missing_fields)} bị thiếu dữ liệu."
+            warning_message = f"Các trường, của hạng mục {record.name}: {', '.join(missing_fields)}, bị thiếu dữ liệu."
             self.env['bus.bus']._sendone(
                 (self._cr.dbname, 'res.partner', self.env.user.partner_id.id),
                 'simple_notification',

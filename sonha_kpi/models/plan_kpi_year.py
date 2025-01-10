@@ -41,7 +41,7 @@ class PlanKPIYear(models.Model):
         for r in self:
             sum_month = r.ti_le_monh_one + r.ti_le_monh_two + r.ti_le_monh_three + r.ti_le_monh_four + r.ti_le_monh_five + r.ti_le_monh_six + r.ti_le_monh_seven + r.ti_le_monh_eight + r.ti_le_monh_nigh + r.ti_le_monh_ten + r.ti_le_monh_eleven + r.ti_le_monh_twenty
             if sum_month > r.kpi_year + 0.000001 or not r.kpi_year:
-                raise ValidationError("Tổng % các tháng lớn hơn KPI dự kiến cả năm")
+                raise ValidationError(f"Tổng % các tháng của hạng mục {r.name} lớn hơn KPI dự kiến cả năm")
             else:
                 pass
             if r.start_date and r.end_date:
