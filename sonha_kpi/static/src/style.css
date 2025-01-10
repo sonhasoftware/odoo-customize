@@ -51,3 +51,19 @@ td.o_data_cell.cursor-pointer.o_field_cell.o_list_char {
 .o_field_one2many .o_list_view .o_data_row td.o_field_cell[name="sonha_kpi"] {
     display: none !important;
 }
+
+div.kpi-module div div table thead tr th {
+    border: 1px solid;
+}
+
+div.kpi-module div div table tbody tr.o_data_row td {
+    border: 1px solid;
+}
+
+div.kpi-module div div table tbody tr:not([class]) {
+    display: none;
+}
+
+div.kpi-module div div table tbody tr td.o_data_cell.cursor-pointer {
+    border: 1px solid;
+}
