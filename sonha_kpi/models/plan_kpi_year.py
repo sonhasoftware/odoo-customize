@@ -41,7 +41,7 @@ class PlanKPIYear(models.Model):
         for r in self:
             sum_month = r.ti_le_monh_one + r.ti_le_monh_two + r.ti_le_monh_three + r.ti_le_monh_four + r.ti_le_monh_five + r.ti_le_monh_six + r.ti_le_monh_seven + r.ti_le_monh_eight + r.ti_le_monh_nigh + r.ti_le_monh_ten + r.ti_le_monh_eleven + r.ti_le_monh_twenty
             if sum_month > r.kpi_year + 0.000001 or not r.kpi_year:
-                raise ValidationError("Tổng % các tháng lớn hơn KPI dự kiến cả năm")
+                raise ValidationError(f"Tổng % các tháng của hạng mục {r.name} lớn hơn KPI dự kiến cả năm")
             else:
                 pass
             if r.start_date and r.end_date:
@@ -68,14 +68,6 @@ class PlanKPIYear(models.Model):
                                                         ('sonha_kpi', '=', r.sonha_kpi.id)])
             if sum(kh_kpi.mapped('kpi_year')) > 1:
                 raise ValidationError("KPI kế hoạch cả năm không được vượt quá 100%")
-
-    @api.constrains('plan_kpi_year')
-    def validate_year_kpi(self):
-        for r in self:
-            start_year = r.start_date.year
-            end_year = r.end_date.year
-            if r.plan_kpi_year.year != start_year or r.plan_kpi_year.year != end_year:
-                raise ValidationError("KPI kế hoạch năm nằm ngoài năm đã chọn")
             
     def filter_department_year(self, record):
         if record.plan_kpi_year:

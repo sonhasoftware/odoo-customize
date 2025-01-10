@@ -20,6 +20,14 @@ class ParentKPIMonth(models.Model):
     plan_kpi_month = fields.One2many('plan.kpi.month', 'plan_kpi_month')
     sonha_kpi = fields.Many2one('company.sonha.kpi', compute="filter_sonha_kpi")
 
+    @api.constrains('year')
+    def validate_year(self):
+        now = datetime.datetime.now()
+        for r in self:
+            if r.year and r.year < now.date().year:
+                raise ValidationError('Năm không được bé hơn năm hiện tại!')
+
+
     @api.constrains('month', 'department_id', 'year', 'id')
     def validate_parent_plan_kpi_month(self):
         for r in self:
@@ -93,8 +101,8 @@ class ParentKPIMonth(models.Model):
 
     def unlink(self):
         for r in self:
-            if r.status == 'done':
-                raise ValidationError("Không được phép xóa khi đã duyệt")
+            if r.status != 'draft':
+                raise ValidationError("Chỉ được xóa khi trạng thái là nháp!")
             else:
                 self.env['plan.kpi.month'].search([('plan_kpi_month', '=', r.id)]).sudo().unlink()
         return super(ParentKPIMonth, self).unlink()

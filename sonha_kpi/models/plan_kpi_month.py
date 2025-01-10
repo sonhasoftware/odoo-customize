@@ -34,14 +34,14 @@ class PlanKPIMonth(models.Model):
                 'simple_notification',
                 {
                     'title': "Cảnh báo!",
-                    'message': "Dữ liệu tháng nằm ngoài khoảng dữ liệu của năm!",
+                    'message': f"Dữ liệu tháng của hạng mục nhỏ {record.kpi_month} nằm ngoài khoảng dữ liệu của năm!",
                     'sticky': False,
                 }
             )
 
     def validate_create_write(self, record):
         if record.kpi_year:
-            if record.kpi_year.sonha_kpi.department_id == record.plan_kpi_month.department_id:
+            if record.kpi_year.sonha_kpi.department_id == record.plan_kpi_month.department_id and record.kpi_year.sonha_kpi.year == record.plan_kpi_month.year:
                 pass
             else:
                 raise ValidationError("Hạng mục phải thuộc kế hoạch của năm!")
