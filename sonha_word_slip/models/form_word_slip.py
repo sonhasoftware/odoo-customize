@@ -115,7 +115,7 @@ class FormWordSlip(models.Model):
         for r in self:
             if r.type and r.employee_id:
                 short_code = ''.join(word[0].upper() for word in r.type.name.split())
-                r.code = "SSP-" + short_code + "-" + str(r.id)
+                r.code = r.employee_id.company_id.company_code + "-" + short_code + "-" + str(r.id)
             else:
                 r.code = ""
 
@@ -320,11 +320,10 @@ class FormWordSlip(models.Model):
     def check_type(self):
         for r in self:
             if r.word_slip_id and r.type.max_time != 0:
-                total_hours = 0
                 for slip in r.word_slip_id:
-                    total_hours += slip.time_from - slip.time_to
-                if total_hours > r.type.max_time:
-                    raise ValidationError("Loại đơn " + str(r.type.name) + " chỉ được phép tạo tối đa " + str(r.type.max_time) + " giờ")
+                    total_hours = slip.time_from - slip.time_to
+                    if total_hours > r.type.max_time:
+                        raise ValidationError("Loại đơn " + str(r.type.name) + " chỉ được phép tạo tối đa " + str(r.type.max_time) + " giờ")
 
     def write(self, vals):
         res = super(FormWordSlip, self).write(vals)
