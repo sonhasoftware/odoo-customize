@@ -4,6 +4,11 @@
         <t t-call="web.html_container">
             <div class="container">
                 <h2>Duyệt kế hoạch KPI tháng</h2>
+                <div>
+                    <h6 class="implement-time">
+                        <span class="time">(<span class="start-date"><t t-esc="converted_start_date"/></span> - <span class="end-date"><t t-esc="converted_end_date"/></span>)</span>
+                    </h6>
+                </div>
                 <div class="form-header">
                      <button t-if="kpi_records[0].plan_kpi_month.status != 'done'" class="btn btn-primary" id="approve">
                          Duyệt
@@ -14,11 +19,6 @@
                     <h5 class="status">
                         Trạng thái: <t t-esc="kpi_records[0].plan_kpi_month.get_status_label()"/>
                     </h5>
-                </div>
-                <div>
-                    <h6>
-                        <span class="time">Thời gian thực hiện: <span class="start-date"><t t-esc="converted_start_date"/></span> - <span class="end-date"><t t-esc="converted_end_date"/></span></span>
-                    </h6>
                 </div>
                 <table class="table table-bordered">
                     <thead>
@@ -115,18 +115,33 @@
                 .form-header{
                     display: flex;
                     justify-content: space-between;
+                    margin-bottom: 1rem;
                 }
                 .hidden{
                     display: none;
                 }
-                thead{
+                h2{
+                    margin-bottom: 0px;
+                    text-align: center;
+                }
+                h6.implement-time{
+                    text-align: center;
+                    font-style: italic !important;
+                    margin-bottom: 3%;
+                }
+                h5.status {
+                    margin-top: 0.8rem;
+                    margin-bottom: 0rem !important;
+                }
+                thead {
                     background-color: #CCFFFF;
+                    position: sticky;
+                    top: 0;
+                    z-index: 10;
+                    text-align: center;
                 }
-                .time{
-                    background-color: #FFFF66;
-                }
-                .status{
-                    background-color: #66FF66;
+                body.container.vsc-initialized {
+                    font-family: "Arial";
                 }
             </style>
         </t>

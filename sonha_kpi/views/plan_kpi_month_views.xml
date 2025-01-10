@@ -47,7 +47,7 @@
             <field name="name">plan.kpi.month.tree.view</field>
             <field name="model">parent.kpi.month</field>
             <field name="arch" type="xml">
-                <tree>
+                <tree class="kpi-module">
                     <field name="department_id"/>
                     <field name="year" widget="char"/>
                     <field name="month"/>
@@ -57,7 +57,7 @@
         </record>
 
         <record id="action_plan_kpi_month" model="ir.actions.act_window">
-            <field name="name">Kế hoạch KPI tháng phòng ban</field>
+            <field name="name">Đăng ký KPI tháng</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">parent.kpi.month</field>
             <field name="view_ids" eval="[(5, 0, 0),

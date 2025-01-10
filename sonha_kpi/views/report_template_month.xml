@@ -8,16 +8,29 @@
                         border: 1px solid #000;
                         text-align: center;
                         vertical-align: middle;
+                        padding:5px;
+                        min-width: 50px;
+                        max-width: 500px;
                     }
                     th {
                         background-color: #CCFFFF;
+                    }
+                    body {
+                        font-family: "Arial";
+                    }
+                    thead {
+                        position: sticky;
+                        top: 0;
+                    }
+                    td.left {
+                        text-align: left;
                     }
                 </style>
                 <t t-if="docs">
                 <table>
                     <thead>
                         <tr>
-                            <th rowspan="2">NỘI DUNG CÔNG VIỆC Đã giao ở mục tiêu/ KPIs cả năm</th>
+                            <th rowspan="2">NỘI DUNG CÔNG VIỆC <br/>(Đã giao ở mục tiêu/ KPIs cả năm)</th>
                             <th rowspan="2">NỘI DUNG CÔNG VIỆC CỤ THỂ<br/>(Tối đa 8 và tối thiểu 3 mục tiêu)</th>
                             <th colspan="2">THỜI GIAN THỰC HIỆN</th>
                             <th rowspan="2">TIÊU CHÍ ĐÁNH GIÁ RÚT GỌN</th>
@@ -42,11 +55,11 @@
                     <tbody>
                         <t t-foreach="docs" t-as="doc">
                             <tr>
-                                <td rowspan="4" style="font-weight: bold;"><t t-esc="doc.name.name"/></td>
-                                <td rowspan="4"><t t-esc="doc.content_detail"/></td>
+                                <td rowspan="4" style="font-weight: bold;" class="left"><t t-esc="doc.name.name"/></td>
+                                <td rowspan="4" class="left"><t t-esc="doc.content_detail"/></td>
                                 <td rowspan="4"><t t-esc="doc.start_date"/></td>
                                 <td rowspan="4"><t t-esc="doc.end_date"/></td>
-                                <td>Khối lượng công việc thực hiện</td>
+                                <td class="left">Khối lượng công việc thực hiện</td>
                                 <td rowspan="4"><t t-esc="round(doc.ti_trong * 100, 2)"/>%</td>
                                 <td><t t-esc="doc.diem_chuan_amount_work"/></td>
                                 <td rowspan="4"><t t-esc="doc.dv_description"/></td>
@@ -60,7 +73,7 @@
                                 <td rowspan="4"><t t-esc="doc.note"/></td>
                             </tr>
                             <tr>
-                                <td>Chất lượng công việc thực hiện</td>
+                                <td class="left">Chất lượng công việc thực hiện</td>
                                 <td><t t-esc="doc.diem_chuan_matter_work"/></td>
                                 <td><t t-esc="round(doc.kq_hoan_thanh_matter_work * 100, 2)"/>%</td>
                                 <td><t t-esc="doc.diem_dat_dv_matter_work"/></td>
@@ -70,7 +83,7 @@
                                 <td><t t-esc="doc.quy_doi_tq_matter_work"/></td>
                             </tr>
                             <tr>
-                                <td>Chấp hành nội quy, quy chế, kỷ luật lao động</td>
+                                <td class="left">Chấp hành nội quy, quy chế, kỷ luật lao động</td>
                                 <td><t t-esc="doc.diem_chuan_comply_regulations"/></td>
                                 <td><t t-esc="round(doc.kq_hoan_thanh_comply_regulations * 100, 2)"/>%</td>
                                 <td><t t-esc="doc.diem_dat_dv_comply_regulations"/></td>
@@ -80,7 +93,7 @@
                                 <td><t t-esc="doc.quy_doi_tq_comply_regulations"/></td>
                             </tr>
                             <tr>
-                                <td>Cải tiến, đề xuất, sáng kiến</td>
+                                <td class="left">Cải tiến, đề xuất, sáng kiến</td>
                                 <td><t t-esc="doc.diem_chuan_initiative"/></td>
                                 <td><t t-esc="round(doc.kq_hoan_thanh_initiative * 100, 2)"/>%</td>
                                 <td><t t-esc="doc.diem_dat_dv_initiative"/></td>

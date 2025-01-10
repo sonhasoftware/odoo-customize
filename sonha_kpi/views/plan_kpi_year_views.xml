@@ -43,12 +43,12 @@
                                 </group>
                             </page>
                         </notebook>
+                        <div class="oe_chatter">
+                            <field name="message_follower_ids"/>
+                            <field name="activity_ids"/>
+                            <field name="message_ids"/>
+                        </div>
                     </sheet>
-                    <div class="oe_chatter">
-                        <field name="message_follower_ids"/>
-                        <field name="activity_ids"/>
-                        <field name="message_ids"/>
-                    </div>
                 </form>
             </field>
         </record>
@@ -57,7 +57,7 @@
             <field name="name">plan.kpi.year.tree.view</field>
             <field name="model">parent.kpi.year</field>
             <field name="arch" type="xml">
-                <tree>
+                <tree class="kpi-module">
                     <field name="department_id"/>
                     <field name="year" widget="char"/>
                     <field name="status"/>
@@ -66,7 +66,7 @@
         </record>
 
         <record id="action_plan_kpi_year" model="ir.actions.act_window">
-            <field name="name">Kế hoạch KPI năm phòng ban</field>
+            <field name="name">Đăng ký KPI Năm</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">parent.kpi.year</field>
             <field name="view_ids" eval="[(5, 0, 0),
