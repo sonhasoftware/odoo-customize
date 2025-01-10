@@ -77,7 +77,7 @@ th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigg
 }
 
 th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.o_percentage_cell.opacity-trigger-hover[data-name="kpi_year"]{
-    width: 15% !important;
+    width: 10% !important;
 }
 
 th.align-middle.cursor-default.opacity-trigger-hover {
