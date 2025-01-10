@@ -70,7 +70,6 @@ div.kpi-module div div table tbody tr td.o_data_cell.cursor-pointer {
 
 th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="name"]{
     width: 25% !important;
-    min-width: 25% !important;
 }
 
 th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="end_date"]{
