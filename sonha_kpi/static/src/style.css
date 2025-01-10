@@ -80,6 +80,6 @@ th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number
     width: 15% !important;
 }
 
-th.align-middle.cursor-default.opacity-trigger-hover {
+th.align-middle.cursor-default.opacity-trigger-hover[data-name="sonha_kpi"] {
     width: 0% !important;
 }
