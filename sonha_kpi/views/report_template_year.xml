@@ -8,21 +8,36 @@
                         border: 1px solid #000;
                         text-align: center;
                         vertical-align: middle;
+                        padding: 5px;
                     }
                     th {
                         background-color: #CCFFFF;
+                        padding: 5px;
+                    }
+                    td.left {
+                        text-align: left;
+                    }
+                    body {
+                        font-family: "Arial" !important;
+                    }
+                    thead{
+                        position: sticky;
+                        top: 0;
+                    }
+                    td.time {
+                        width: 100px;
                     }
                 </style>
                 <t t-if="docs">
                 <table>
                     <thead>
                         <tr>
-                            <th rowspan="2">NỘI DUNG CÔNG VIỆC Đã giao ở mục tiêu/ KPIs cả năm</th>
+                            <th rowspan="2">NỘI DUNG CÔNG VIỆC <br/>(Đã giao ở mục tiêu/ KPIs cả năm)</th>
                             <th colspan="2">THỜI GIAN THỰC HIỆN</th>
-                            <th rowspan="2">ĐƠN VỊ DG KPI ĐẾN HIỆN TẠI</th>
-                            <th rowspan="2">TRẠNG THÁI DV ĐÁNH GIÁ</th>
-                            <th rowspan="2">CẤP THẨM QUYỀN DG KPI ĐẾN HIỆN TẠI</th>
-                            <th rowspan="2">TRẠNG THÁI CẤP THẨM QUYỀN DG</th>
+                            <th rowspan="2">ĐƠN VỊ ĐG KPI ĐẾN HIỆN TẠI</th>
+                            <th rowspan="2">TRẠNG THÁI ĐV ĐÁNH GIÁ</th>
+                            <th rowspan="2">CẤP THẨM QUYỀN ĐG KPI ĐẾN HIỆN TẠI</th>
+                            <th rowspan="2">TRẠNG THÁI CẤP THẨM QUYỀN ĐG</th>
                         </tr>
                         <tr>
                             <th>Bắt đầu</th>
@@ -32,13 +47,13 @@
                     <tbody>
                         <t t-foreach="docs" t-as="doc">
                             <tr>
-                                <td style="font-weight: bold;"><t t-esc="doc.name"/></td>
-                                <td><t t-esc="doc.start_date"/></td>
-                                <td><t t-esc="doc.end_date"/></td>
+                                <td style="font-weight: bold;" class="left"><t t-esc="doc.name"/></td>
+                                <td class="time"><t t-esc="doc.start_date"/></td>
+                                <td class="time"><t t-esc="doc.end_date"/></td>
                                 <td><t t-esc="round(doc.dvdg_kpi, 1)"/>%</td>
-                                <td><t t-esc="doc.get_dvdg_status_label()"/></td>
+                                <td class="left"><t t-esc="doc.get_dvdg_status_label()"/></td>
                                 <td><t t-esc="round(doc.ctqdg_kpi, 1)"/>%</td>
-                                <td><t t-esc="doc.get_ctqdg_status_label()"/></td>
+                                <td class="left"><t t-esc="doc.get_ctqdg_status_label()"/></td>
                             </tr>
                         </t>
                     </tbody>

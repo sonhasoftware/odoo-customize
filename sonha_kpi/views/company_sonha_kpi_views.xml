@@ -139,7 +139,7 @@
             <field name="name">company.sonha.kpi.tree.view</field>
             <field name="model">company.sonha.kpi</field>
             <field name="arch" type="xml">
-                <tree>
+                <tree class="kpi-module">
                     <field name="department_id"/>
                     <field name="year" widget="char"/>
                 </tree>

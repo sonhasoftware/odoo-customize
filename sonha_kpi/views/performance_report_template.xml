@@ -27,12 +27,22 @@
                     td.column {
                         background-color: coral;
                     }
+                    body {
+                        font-family: "Arial";
+                    }
+                    thead{
+                        position: sticky;
+                        top: 0;
+                    }
+                    th.empty {
+                        background-color: white !important;
+                    }
                 </style>
                 <t t-if="docs">
                 <table class="table table-sm table-hover">
                     <thead>
                         <tr>
-                            <th></th>
+                            <th class="empty"></th>
                             <th colspan="12" style="text-align: center;" class="title">Đơn vị đánh giá</th>
                             <th colspan="12" style="text-align: center;" class="title">Cấp thẩm quyền đánh giá</th>
                         </tr>

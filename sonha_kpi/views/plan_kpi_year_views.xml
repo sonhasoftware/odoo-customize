@@ -57,7 +57,7 @@
             <field name="name">plan.kpi.year.tree.view</field>
             <field name="model">parent.kpi.year</field>
             <field name="arch" type="xml">
-                <tree>
+                <tree class="kpi-module">
                     <field name="department_id"/>
                     <field name="year" widget="char"/>
                     <field name="status"/>

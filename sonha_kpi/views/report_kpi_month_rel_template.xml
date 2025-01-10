@@ -4,6 +4,16 @@
         <t t-call="web.html_container">
             <div class="container">
                 <h2>Đánh giá KPI theo tháng</h2>
+                <div class="time-and-classification">
+                    <h6 class="implemented-time">
+                        <span class="time">(<t t-esc="converted_start_date"/> - <t t-esc="converted_end_date"/>)</span>
+                    </h6>
+                    <h6 class="classification">
+                        <span class="dv-class">Xếp loại đơn vị đánh giá: <t t-if="dv_classification" t-esc="dv_classification"/></span>
+                        <br/>
+                        <span class="tq-class">Xếp loại thẩm quyền đánh giá: <t t-if="tq_classification" t-esc="tq_classification"/></span>
+                    </h6>
+                </div>
                 <div class="form-header">
                      <button class="btn btn-primary" id="hr-approve" t-if="kpi_records and kpi_records[0].status == 'draft'">
                          Duyệt
@@ -28,24 +38,14 @@
                         Trạng thái: <t t-esc="kpi_records[0].get_status_label()"/>
                     </h5>
                 </div>
-                <div class="time-and-classification">
-                    <h6>
-                        <span class="time">Thời gian thực hiện: <t t-esc="converted_start_date"/> - <t t-esc="converted_end_date"/></span>
-                    </h6>
-                    <h6>
-                        <span class="dv-class">Xếp loại đơn vị đánh giá: <t t-if="dv_classification" t-esc="dv_classification"/></span>
-                        <br/>
-                        <span class="tq-class">Xếp loại thẩm quyền đánh giá: <t t-if="tq_classification" t-esc="tq_classification"/></span>
-                    </h6>
-                </div>
                 <table class="table table-bordered">
                     <thead>
                         <tr>
                             <th>ND CÔNG VIỆC THÁNG</th>
                             <th>TIÊU CHÍ</th>
-                            <th>KẾT QUẢ ĐƠN VỊ</th>
+                            <th class="unit-result">KẾT QUẢ ĐƠN VỊ</th>
                             <th>MÔ TẢ CHI TIẾT</th>
-                            <th class="tq-class">% PHÊ DUYỆT</th>
+                            <th class="tq-class approve-percent">% PHÊ DUYỆT</th>
                             <th class="tq-class">NHẬN XÉT ĐÁNH GIÁ</th>
                         </tr>
                     </thead>
@@ -53,42 +53,42 @@
                         <t t-foreach="kpi_records" t-as="kpi">
                             <tr>
                                 <td class="kpi-department" rowspan="4"><t t-esc="kpi.department_id.id"/></td>
-                                <td rowspan="4"><t t-esc="kpi.small_items_each_month.small_items_each_month"/></td>
+                                <td rowspan="4" class="work-volume"><t t-esc="kpi.small_items_each_month.small_items_each_month"/></td>
                                 <td rowspan="4" class="start-date"><t t-esc="kpi.start_date"/></td>
                                 <td>Khối lượng công việc thực hiện</td>
-                                <td><t t-esc="kpi.dv_amount_work * 100"/>%</td>
+                                <td class="result"><t t-esc="kpi.dv_amount_work * 100"/> %</td>
                                 <td rowspan="4"><t t-esc="kpi.dv_description"/></td>
                                 <td class="custom">
                                     <input type="number" t-if="kpi_records and kpi_records[0].status == 'waiting'" class="form-control kpi-input" t-att-data-id="kpi.small_items_each_month.id" data-field="tq_amount_work" t-att-value="kpi.tq_amount_work"/>
-                                    <t t-if="kpi_records and kpi_records[0].status == 'approved'" t-esc="kpi.tq_amount_work"/>%
+                                    <t t-if="kpi_records and kpi_records[0].status == 'approved'" t-esc="kpi.tq_amount_work"/> %
                                 </td>
-                                <td rowspan="4">
-                                    <input type="text" t-if="kpi_records and kpi_records[0].status == 'waiting'" class="form-control kpi-input" t-att-data-id="kpi.small_items_each_month.id" data-field="tq_description" t-att-value="kpi.tq_description"/>
+                                <td rowspan="4" class="review">
+                                    <textarea type="text" t-if="kpi_records and kpi_records[0].status == 'waiting'" class="form-control kpi-input" t-att-data-id="kpi.small_items_each_month.id" data-field="tq_description" t-att-value="kpi.tq_description"/>
                                     <t t-if="kpi_records and kpi_records[0].status == 'approved'" t-esc="kpi.tq_description"/>
                                 </td>
                             </tr>
                             <tr>
                                 <td>Chất lượng công việc thực hiện</td>
-                                <td><t t-esc="kpi.dv_matter_work * 100"/>%</td>
+                                <td class="result"><t t-esc="kpi.dv_matter_work * 100"/> %</td>
                                 <td class="custom">
                                     <input type="number" t-if="kpi_records and kpi_records[0].status == 'waiting'" class="form-control kpi-input" t-att-data-id="kpi.small_items_each_month.id" data-field="tq_matter_work" t-att-value="kpi.tq_matter_work"/>
-                                    <t t-if="kpi_records and kpi_records[0].status == 'approved'" t-esc="kpi.tq_matter_work"/>%
+                                    <t t-if="kpi_records and kpi_records[0].status == 'approved'" t-esc="kpi.tq_matter_work"/> %
                                 </td>
                             </tr>
                             <tr>
                                 <td>Chấp hành nội quy, quy chế, kỷ luật lao động</td>
-                                <td><t t-esc="kpi.dv_comply_regulations * 100"/>%</td>
+                                <td class="result"><t t-esc="kpi.dv_comply_regulations * 100"/> %</td>
                                 <td class="custom">
                                     <input type="number" t-if="kpi_records and kpi_records[0].status == 'waiting'" class="form-control kpi-input" t-att-data-id="kpi.small_items_each_month.id" data-field="tq_comply_regulations" t-att-value="kpi.tq_comply_regulations"/>
-                                    <t t-if="kpi_records and kpi_records[0].status == 'approved'" t-esc="kpi.tq_comply_regulations"/>%
+                                    <t t-if="kpi_records and kpi_records[0].status == 'approved'" t-esc="kpi.tq_comply_regulations"/> %
                                 </td>
                             </tr>
                             <tr>
                                 <td>Cải tiến, đề xuất, sáng kiến</td>
-                                <td><t t-esc="kpi.dv_initiative * 100"/>%</td>
+                                <td class="result"><t t-esc="kpi.dv_initiative * 100"/> %</td>
                                 <td class="custom">
                                     <input type="number" t-if="kpi_records and kpi_records[0].status == 'waiting'" class="form-control kpi-input" t-att-data-id="kpi.small_items_each_month.id" data-field="tq_initiative" t-att-value="kpi.tq_initiative"/>
-                                    <t t-if="kpi_records and kpi_records[0].status == 'approved'" t-esc="kpi.tq_initiative"/>%
+                                    <t t-if="kpi_records and kpi_records[0].status == 'approved'" t-esc="kpi.tq_initiative"/> %
                                 </td>
                             </tr>
                         </t>
@@ -237,9 +237,6 @@
                 });
             </script>
             <style>
-                .custom{
-                    display: flex;
-                }
                 .kpi-department{
                     display: none;
                 }
@@ -249,31 +246,94 @@
                 .form-header{
                     display: flex;
                     justify-content: space-between;
-                }
-                .time-and-classification{
-                    display: flex;
-                    justify-content: space-between;
+                    margin-bottom: 0.5rem;
                 }
                 .process-waiting{
                     display: flex;
+                    width: 20%;
                 }
                 .process-waiting button{
                     margin: 5px;
+                    flex: 1;
+                    text-align: center;
                 }
                 thead{
                     background-color: #CCFFFF;
-                }
-                .time{
-                    background-color: #FFFF66;
-                }
-                .dv-class{
-                    background-color: #FFCC99;
-                }
-                .tq-class{
-                    background-color: #66FF66;
+                    text-align: center;
+                    position: sticky;
+                    top: 0;
+                    z-index: 10;
                 }
                 thead .tq-class{
                     background-color: #66FF66;
+                }
+
+                h2 {
+                    text-align: center !important;
+                    margin-bottom: 0rem ;
+                }
+                h6.classification{
+                    text-align: right;
+                    margin-bottom: 0;
+                }
+                h6.implemented-time{
+                    text-align:center;
+                    font-style: italic !important;
+                }
+                h5.status.tq-class {
+                    margin-top: 0.2rem;
+                    text-align: right;
+                    margin-bottom: 0.2rem;
+                }
+                span.tq-class {
+                    font-size: 20px;
+                }
+                span.dv-class {
+                    font-size: 20px;
+                }
+                td.custom {
+                    display: flex;
+                    gap: 5px;
+                    justify-content: center;
+                    align-items: center;
+                    padding: 5%;
+                    height: 65px
+                }
+                td.result {
+                    text-align: center;
+                    vertical-align: middle !important;
+                }
+                input.form-control.kpi-input {
+                    text-align: center;
+                    width: 80%;
+                    height: 80%;
+                    box-sizing: border-box;
+                }
+                td.work-volume {
+                    vertical-align: middle !important;
+                }
+                td.review {
+                    vertical-align: middle !important;
+                }
+                table.table td {
+                    vertical-align: middle;
+                }
+                body.container.vsc-initialized {
+                    font-family: "Arial";
+                }
+                textarea.form-control.kpi-input {
+                    text-align: left;
+                    word-wrap: break-word;
+                    white-space: pre-wrap;
+                    overflow-wrap: break-word;
+                    width: 100%;
+                    height: auto;
+                }
+                th.unit-result {
+                    width: 150px;
+                }
+                th.approve-percent {
+                    width: 130px;
                 }
             </style>
         </t>
