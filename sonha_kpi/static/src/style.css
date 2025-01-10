@@ -67,3 +67,16 @@ div.kpi-module div div table tbody tr:not([class]) {
 div.kpi-module div div table tbody tr td.o_data_cell.cursor-pointer {
     border: 1px solid;
 }
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="name"]{
+    width: 25% !important;
+    min-width: 25% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="end_date"]{
+    width: 10% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.o_percentage_cell.opacity-trigger-hover[data-name="kpi_year"]{
+    width: 15% !important;
+}
