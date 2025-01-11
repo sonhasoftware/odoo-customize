@@ -22,7 +22,7 @@
             <field name="name">report.mail.to.tree.view</field>
             <field name="model">report.mail.to</field>
             <field name="arch" type="xml">
-                <tree editable="bottom">
+                <tree editable="bottom" class="kpi-module">
                     <field name="module"/>
                     <field name="department_id"/>
                     <field name="receive_emp"/>

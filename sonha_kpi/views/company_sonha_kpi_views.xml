@@ -139,7 +139,7 @@
             <field name="name">company.sonha.kpi.tree.view</field>
             <field name="model">company.sonha.kpi</field>
             <field name="arch" type="xml">
-                <tree>
+                <tree class="kpi-module">
                     <field name="department_id"/>
                     <field name="year" widget="char"/>
                 </tree>
@@ -147,7 +147,7 @@
         </record>
 
         <record id="action_company_sonha_kpi" model="ir.actions.act_window">
-            <field name="name">Quản lý KPI phòng ban</field>
+            <field name="name">Đơn vị tự đánh giá KPI</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">company.sonha.kpi</field>
             <field name="view_ids" eval="[(5, 0, 0),
@@ -169,11 +169,13 @@
         <menuitem id="menu_company_year_sonha_kpi"
                   name="KPI Năm"
                   parent="sonha_kpi.menu_manage_company_sonha_kpi"
+                  action="action_company_sonha_kpi"
                   sequence="2"/>
 
         <menuitem id="menu_company_month_sonha_kpi"
                   name="KPI Tháng"
                   parent="sonha_kpi.menu_manage_company_sonha_kpi"
+                  action="action_company_sonha_kpi"
                   sequence="3"/>
     </data>
 </odoo>
