@@ -142,7 +142,7 @@ class SonHaEmployee(models.Model):
         for r in self:
             user_vals = {
                 'name': r.name,
-                'login': r.work_email if r.work_email != 'nan' or not r.work_email else r.employee_code,
+                'login': r.work_email if r.work_email != 'nan' and r.work_email else r.employee_code,
                 'password': "123456",
                 'email': r.work_email or '',
                 'employee_ids': [(4, r.id)],
