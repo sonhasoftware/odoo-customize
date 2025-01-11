@@ -138,3 +138,7 @@ td.o_data_cell.cursor-pointer.o_field_cell[name="end_date"] {
 th.align-middle.cursor-default.o_list_number_th.o_percentage_cell.opacity-trigger-hover[data-name="total_percentage_year"] {
     width: 15% !important;
 }
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_hidden_cell.opacity-trigger-hover[data-name="sonha_kpi"] {
+    width: 5% !important;
+}

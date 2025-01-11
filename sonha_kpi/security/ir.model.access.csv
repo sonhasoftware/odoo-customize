@@ -28,9 +28,9 @@ access_company_sonha_kpi_ceo,company.sonha.kpi.ceo,model_company_sonha_kpi,sonha
 access_company_sonha_kpi_hr,company.sonha.kpi.hr,model_company_sonha_kpi,sonha_employee.group_hr_employee,1,1,1,0
 
 
-access_sonha_kpi_year,sonha.kpi.year,model_sonha_kpi_year,,1,1,0,1
+access_sonha_kpi_year,sonha.kpi.year,model_sonha_kpi_year,,1,1,0,0
 
-access_sonha_kpi_month,sonha.kpi.month,model_sonha_kpi_month,,1,1,0,1
+access_sonha_kpi_month,sonha.kpi.month,model_sonha_kpi_month,,1,1,0,0
 
 access_sonha_kpi_result_month,sonha.kpi.result.month,model_sonha_kpi_result_month,,1,1,1,1
 
