@@ -142,7 +142,7 @@ class SonHaEmployee(models.Model):
         for r in self:
             user_vals = {
                 'name': r.name,
-                'login': r.work_email if r.work_email != 'nan' else r.employee_code,
+                'login': r.work_email if r.work_email != 'nan' or not r.work_email else r.employee_code,
                 'password': "123456",
                 'email': r.work_email or '',
                 'employee_ids': [(4, r.id)],
@@ -187,7 +187,6 @@ class SonHaEmployee(models.Model):
             res.employee_code = '0' * company_id.zero_count + str(company_id.max_number)
         else:
             res.employee_code = company_id.company_code + '0' * company_id.zero_count + str(company_id.max_number)
-
         return res
 
     @api.onchange('status_employee')
