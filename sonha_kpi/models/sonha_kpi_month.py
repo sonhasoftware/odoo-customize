@@ -57,7 +57,7 @@ class SonHaKPIMonth(models.Model):
                     'simple_notification',
                     {
                         'title': "Cảnh báo!",
-                        'message': "Dữ liệu tháng nằm ngoài khoảng dữ liệu của năm!",
+                        'message': f"Dữ liệu tháng của hạng mục nhỏ {r.small_items_each_month} nằm ngoài khoảng dữ liệu của năm!",
                         'sticky': False,
                     }
                 )
