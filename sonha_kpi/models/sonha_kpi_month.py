@@ -45,6 +45,7 @@ class SonHaKPIMonth(models.Model):
     tq_description = fields.Text("Nhận xét chung của cấp có thẩm quyền")
     sonha_kpi = fields.Many2one('company.sonha.kpi')
     parent_kpi_month = fields.Many2one('parent.kpi.month')
+    upload_file = fields.Binary(string="File")
 
     @api.constrains('start_date', 'end_date')
     def validate_start_end_date(self):

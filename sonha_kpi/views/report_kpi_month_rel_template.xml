@@ -9,7 +9,7 @@
                         <span class="time">(<t t-esc="converted_start_date"/> - <t t-esc="converted_end_date"/>)</span>
                     </h6>
                     <h6 class="classification">
-                        <span class="dv-class">Xếp loại đơn vị đánh giá: <t t-if="dv_classification" t-esc="dv_classification"/></span>
+                        <span class="dv-class">Xếp loại đơn vị tự đánh giá: <t t-if="dv_classification" t-esc="dv_classification"/></span>
                         <br/>
                         <span class="tq-class">Xếp loại thẩm quyền đánh giá: <t t-if="tq_classification" t-esc="tq_classification"/></span>
                     </h6>
@@ -63,7 +63,7 @@
                                     <t t-if="kpi_records and kpi_records[0].status == 'approved'" t-esc="kpi.tq_amount_work"/> %
                                 </td>
                                 <td rowspan="4" class="review">
-                                    <textarea type="text" t-if="kpi_records and kpi_records[0].status == 'waiting'" class="form-control kpi-input" t-att-data-id="kpi.small_items_each_month.id" data-field="tq_description" t-att-value="kpi.tq_description"/>
+                                    <textarea type="text" t-if="kpi_records and kpi_records[0].status == 'waiting'" class="form-control kpi-input" t-att-data-id="kpi.small_items_each_month.id" data-field="tq_description" t-att-value="kpi.tq_description"><t t-esc="kpi.tq_description"/></textarea>
                                     <t t-if="kpi_records and kpi_records[0].status == 'approved'" t-esc="kpi.tq_description"/>
                                 </td>
                             </tr>

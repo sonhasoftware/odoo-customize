@@ -61,6 +61,10 @@ class ParentKPIMonth(models.Model):
             else:
                 raise ValidationError("Chưa có dữ liệu kế hoạch KPI tháng")
 
+    def action_to_draft(self):
+        for r in self:
+            r.status = 'draft'
+
     def action_month_approval(self):
         for r in self:
             if r.plan_kpi_month:

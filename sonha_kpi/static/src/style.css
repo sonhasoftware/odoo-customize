@@ -139,6 +139,18 @@ th.align-middle.cursor-default.o_list_number_th.o_percentage_cell.opacity-trigge
     width: 15% !important;
 }
 
-th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_hidden_cell.opacity-trigger-hover[data-name="sonha_kpi"] {
-    width: 5% !important;
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="kpi_year"] {
+    width: 47% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="kpi_month"] {
+    width: 47% !important;
+}
+
+.o_list_view.kpi-month-custom.o_field_x2many.o_field_x2many_list span.d-block.min-w-0.text-truncate.flex-grow-1 {
+    white-space: pre-line !important;
+}
+
+th.align-middle.cursor-default.opacity-trigger-hover[data-name="upload_file"] {
+    width: 3% !important;
 }

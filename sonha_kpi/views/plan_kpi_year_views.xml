@@ -9,6 +9,7 @@
                     <header>
                         <button name="action_sent" string="Gửi duyệt" type="object" class="oe_highlight" invisible="status != 'draft'"/>
                         <button name="action_approval" string="Duyệt" type="object" class="oe_highlight" invisible="status != 'waiting'"/>
+                        <button name="action_to_draft" string="Về nháp" type="object" class="oe_highlight" invisible="status != 'waiting'"/>
                         <button name="action_back" string="Hoàn duyệt" type="object" class="oe_highlight" invisible="status != 'done'"/>
                         <field name="status" widget="statusbar"/>
                     </header>

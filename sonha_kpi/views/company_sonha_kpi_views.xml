@@ -49,7 +49,7 @@
                         <page string="KPI tháng" name="dl_appraisal_month">
                             <group>
                                 <field name="kpi_month" string="" context="{'default_kpi_id': id}">
-                                    <tree editable="bottom">
+                                    <tree editable="bottom" class="kpi-month-custom">
                                         <field name="small_items_each_month"/>
                                         <field name="kpi_year_id"/>
 <!--                                        <field name="employee_id" widget="many2many_tags"/>-->
@@ -62,6 +62,7 @@
                                         <field name="dv_comply_regulations" widget="percentage"/>
                                         <field name="dv_initiative" widget="percentage"/>
                                         <field name="dv_description"/>
+                                        <field name="upload_file"/>
 
 <!--                                        <field name="tq_amount_work" widget="percentage"/>-->
 <!--                                        <field name="tq_matter_work" widget="percentage"/>-->
@@ -166,16 +167,14 @@
                   action="action_company_sonha_kpi"
                   sequence="1"/>
 
-        <menuitem id="menu_company_year_sonha_kpi"
-                  name="KPI Năm"
-                  parent="sonha_kpi.menu_manage_company_sonha_kpi"
-                  action="action_company_sonha_kpi"
-                  sequence="2"/>
+<!--        <menuitem id="menu_company_year_sonha_kpi"-->
+<!--                  name="KPI Năm"-->
+<!--                  parent="sonha_kpi.menu_manage_company_sonha_kpi"-->
+<!--                  sequence="2"/>-->
 
-        <menuitem id="menu_company_month_sonha_kpi"
-                  name="KPI Tháng"
-                  parent="sonha_kpi.menu_manage_company_sonha_kpi"
-                  action="action_company_sonha_kpi"
-                  sequence="3"/>
+<!--        <menuitem id="menu_company_month_sonha_kpi"-->
+<!--                  name="KPI Tháng"-->
+<!--                  parent="sonha_kpi.menu_manage_company_sonha_kpi"-->
+<!--                  sequence="3"/>-->
     </data>
 </odoo>
