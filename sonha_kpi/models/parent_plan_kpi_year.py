@@ -92,6 +92,10 @@ class ParentKPIYear(models.Model):
             else:
                 raise ValidationError("Chưa có dữ liệu kế hoạch KPI năm")
 
+    def action_to_draft(self):
+        for r in self:
+            r.status = 'draft'
+
     def action_back(self):
         for r in self:
             records = self.env['plan.kpi.month'].sudo().search([('department_id', '=', r.department_id.id),
