@@ -84,6 +84,7 @@ class ParentKPIMonth(models.Model):
         for r in self:
             r.status = 'draft'
             self.env['sonha.kpi.month'].search([('parent_kpi_month', '=', r.id)]).sudo().unlink()
+            self.env['sonha.kpi.month'].calculating_dvdgkpi_tqdgkpi(r)
 
     def write(self, vals):
         res = super(ParentKPIMonth, self).write(vals)
