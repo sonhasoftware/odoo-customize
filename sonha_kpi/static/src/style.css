@@ -150,3 +150,7 @@ th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigg
 .o_list_view.kpi-month-custom.o_field_x2many.o_field_x2many_list span.d-block.min-w-0.text-truncate.flex-grow-1 {
     white-space: pre-line !important;
 }
+
+th.align-middle.cursor-default.opacity-trigger-hover[data-name="upload_file"] {
+    width: 3% !important;
+}
