@@ -161,11 +161,11 @@ th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigg
 }
 
 th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="small_items_each_month"] {
-    width: 13% !important;
+    width: 16% !important;
 }
 
 th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="kpi_year_id"] {
-    width: 13% !important;
+    width: 15% !important;
 }
 
 middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="start_date"] {
