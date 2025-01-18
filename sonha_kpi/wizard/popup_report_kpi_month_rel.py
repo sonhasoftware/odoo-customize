@@ -20,7 +20,7 @@ class PopupWizardReportKpiMonthRel(models.TransientModel):
                               ('eleven', 11),
                               ('twelve', 12), ], string="Tháng", required=True,
                              default=lambda self: self._get_default_month())
-    year = fields.Integer('Năm', required=True, default=lambda self: datetime.date.today().year)
+    year = fields.Integer('Năm', required=True, default=lambda self: self._get_default_year())
 
     def action_confirm(self):
         month = self.get_month()
@@ -97,3 +97,13 @@ class PopupWizardReportKpiMonthRel(models.TransientModel):
             return 'twelve'
         else:
             return None
+
+    def _get_default_year(self):
+        now = datetime.date.today()
+        this_month = now.month
+        this_year = now.year
+        pre_year = this_year - 1
+        if this_month == 1:
+            return pre_year
+        else:
+            return this_year
