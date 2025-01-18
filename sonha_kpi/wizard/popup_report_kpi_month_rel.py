@@ -1,5 +1,6 @@
 from odoo import models, fields
 import datetime
+from dateutil.relativedelta import relativedelta
 
 
 class PopupWizardReportKpiMonthRel(models.TransientModel):
@@ -17,7 +18,8 @@ class PopupWizardReportKpiMonthRel(models.TransientModel):
                               ('nine', 9),
                               ('ten', 10),
                               ('eleven', 11),
-                              ('twelve', 12), ], string="Tháng", required=True)
+                              ('twelve', 12), ], string="Tháng", required=True,
+                             default=lambda self: self._get_default_month())
     year = fields.Integer('Năm', required=True, default=lambda self: datetime.date.today().year)
 
     def action_confirm(self):
@@ -61,5 +63,37 @@ class PopupWizardReportKpiMonthRel(models.TransientModel):
             return 11
         elif self.month == 'twelve':
             return 12
+        else:
+            return None
+
+
+    def _get_default_month(self):
+        now = datetime.date.today()
+        pre_month_time = now + relativedelta(months=-1)
+        pre_month = pre_month_time.month
+        if pre_month == 1:
+            return 'one'
+        elif pre_month == 2:
+            return 'two'
+        elif pre_month == 3:
+            return 'three'
+        elif pre_month == 4:
+            return 'four'
+        elif pre_month == 5:
+            return 'five'
+        elif pre_month == 6:
+            return 'six'
+        elif pre_month == 7:
+            return 'seven'
+        elif pre_month == 8:
+            return 'eight'
+        elif pre_month == 9:
+            return 'nine'
+        elif pre_month == 10:
+            return 'ten'
+        elif pre_month == 11:
+            return 'eleven'
+        elif pre_month == 12:
+            return 'twelve'
         else:
             return None
