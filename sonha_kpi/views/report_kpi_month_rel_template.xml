@@ -335,6 +335,9 @@
                 th.approve-percent {
                     width: 130px;
                 }
+                textarea {
+                    height: 230px !important;
+                }
             </style>
         </t>
     </template>
