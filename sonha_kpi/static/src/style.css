@@ -52,22 +52,6 @@ td.o_data_cell.cursor-pointer.o_field_cell.o_list_char {
     display: none !important;
 }
 
-div.kpi-module div div table thead tr th {
-    border: 1px solid;
-}
-
-div.kpi-module div div table tbody tr.o_data_row td {
-    border: 1px solid;
-}
-
-div.kpi-module div div table tbody tr:not([class]) {
-    display: none;
-}
-
-div.kpi-module div div table tbody tr td.o_data_cell.cursor-pointer {
-    border: 1px solid;
-}
-
 th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="name"]{
     width: 25% !important;
 }
@@ -199,4 +183,8 @@ th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigg
 button.btn.btn-primary[title="In"]{
     display: none !important;
     visibility: hidden !important;
+}
+
+.opacity-50-hover:hover, .opacity-trigger-hover .opacity-50-hover {
+    opacity: 0.2 !important;
 }
