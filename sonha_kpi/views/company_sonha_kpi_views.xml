@@ -7,13 +7,13 @@
             <field name="arch" type="xml">
                 <form>
                     <group>
-                        <field name="department_id"/>
-                        <field name="year" widget="char"/>
+                        <field name="department_id" readonly="1"/>
+                        <field name="year" widget="char" readonly="1"/>
                     </group>
                     <notebook>
                         <page string="KPI năm" name="dl_appraisal_year">
                             <group>
-                                <field name="kpi_year" string="">
+                                <field name="kpi_year" string="" readonly="1">
                                     <tree editable="bottom">
                                         <field name="name"/>
                                         <field name="start_date"/>
