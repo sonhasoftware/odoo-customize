@@ -25,6 +25,9 @@
                     td.left {
                         text-align: left;
                     }
+                    .custom{
+                        text-align: left;
+                    }
                 </style>
                 <t t-if="docs">
                 <table>
@@ -39,7 +42,7 @@
                             <th rowspan="2">MÔ TẢ CHI TIẾT CÔNG VIỆC/ KIẾN NGHỊ ĐỀ XUẤT CỦA ĐƠN VỊ</th>
                             <th colspan="3">Σ ĐIỂM ĐƠN VỊ ĐÁNH GIÁ</th>
                             <th colspan="3">Σ ĐIỂM CẤP THAM QUYỀN ĐÁNH GIÁ</th>
-                            <th rowspan="2">NHẬN XÉT CỦA CẤP CÓ THAM QUYỀN</th>
+                            <th rowspan="2">NHẬN XÉT CỦA CẤP CÓ THẨM QUYỀN</th>
                         </tr>
                         <tr>
                             <th>Bắt đầu</th>
@@ -62,7 +65,7 @@
                                 <td class="left">Khối lượng công việc thực hiện</td>
                                 <td rowspan="4"><t t-esc="round(doc.ti_trong * 100, 2)"/>%</td>
                                 <td><t t-esc="doc.diem_chuan_amount_work"/></td>
-                                <td rowspan="4"><t t-esc="doc.dv_description"/></td>
+                                <td rowspan="4" class="custom"><t t-esc="doc.dv_description"/></td>
 
                                 <td><t t-esc="round(doc.kq_hoan_thanh_amount_work * 100, 2)"/>%</td>
                                 <td><t t-esc="doc.diem_dat_dv_amount_work"/></td>
@@ -70,7 +73,7 @@
                                 <td><t t-esc="round(doc.kq_hoan_thanh_tq_amount_work * 100, 2)"/>%</td>
                                 <td><t t-esc="doc.diem_dat_tq_amount_work"/></td>
                                 <td><t t-esc="doc.quy_doi_tq_amount_work"/></td>
-                                <td rowspan="4"><t t-esc="doc.note"/></td>
+                                <td rowspan="4" class="custom"><t t-esc="doc.note"/></td>
                             </tr>
                             <tr>
                                 <td class="left">Chất lượng công việc thực hiện</td>

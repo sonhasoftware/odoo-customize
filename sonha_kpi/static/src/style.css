@@ -154,3 +154,49 @@ th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigg
 th.align-middle.cursor-default.opacity-trigger-hover[data-name="upload_file"] {
     width: 3% !important;
 }
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="sonha_kpi"] {
+    display: none;
+    visibility: hidden;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="small_items_each_month"] {
+    width: 16% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="kpi_year_id"] {
+    width: 15% !important;
+}
+
+middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="start_date"] {
+    width: 10% !important;
+}
+
+middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="end_date"] {
+    width: 10% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.o_percentage_cell.opacity-trigger-hover[data-name="dv_amount_work"] {
+    width: 10% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.o_percentage_cell.opacity-trigger-hover[data-name="dv_matter_work"] {
+    width: 10% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.o_percentage_cell.opacity-trigger-hover[data-name="dv_comply_regulations"] {
+    width: 10% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.o_percentage_cell.opacity-trigger-hover[data-name="dv_initiative"] {
+    width: 10% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="dv_description"] {
+    width: 10% !important;
+}
+
+button.btn.btn-primary[title="In"]{
+    display: none !important;
+    visibility: hidden !important;
+}
