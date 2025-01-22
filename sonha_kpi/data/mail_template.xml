@@ -6,6 +6,7 @@
            <field name="model_id" ref="sonha_kpi.model_report_kpi_month"/>
            <field name="email_from">admin@example.com</field>
            <field name="email_to">${context.get('email_to')}</field>
+           <field name="email_cc">${context.get('email_cc')}</field>
            <field name="subject">Báo cáo kết quả kpi tháng</field>
            <field name="body_html" type="html">
                <p>

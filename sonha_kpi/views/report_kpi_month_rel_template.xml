@@ -106,13 +106,11 @@
                                 const kpiId = input.dataset.id;
                                 const fieldName = input.dataset.field;
                                 const fieldValue = input.value;
-                                if (fieldValue){
-                                    kpiData.push({
-                                        kpi_id: kpiId,
-                                        field_name: fieldName,
-                                        field_value: fieldValue,
-                                    });
-                                }
+                                kpiData.push({
+                                    kpi_id: kpiId,
+                                    field_name: fieldName,
+                                    field_value: fieldValue,
+                                });
                             });
                             console.log('Dữ liệu JSON gửi đi:', JSON.stringify({kpi_data: kpiData}));
                             fetch('/kpi/update_ajax', {
@@ -185,13 +183,11 @@
                                 const fieldName = input.dataset.field;
                                 const fieldValue = input.value;
                                 console.log(kpiId);
-                                if (fieldValue){
-                                    approveData.push({
-                                        kpi_id: kpiId,
-                                        field_name: fieldName,
-                                        field_value: fieldValue,
-                                    });
-                                }
+                                approveData.push({
+                                    kpi_id: kpiId,
+                                    field_name: fieldName,
+                                    field_value: fieldValue,
+                                });
                             });
                             console.log('Dữ liệu JSON gửi đi:', JSON.stringify({approve_data: approveData}));
                             fetch('/kpi/kpi_approve', {

@@ -298,7 +298,7 @@ class DataChart(http.Controller):
             field_value = item["field_value"]
             view_field_value = field_value
             if field_name != "tq_description":
-                if float(field_value) >= 0:
+                if field_value and float(field_value) >= 0:
                     convert_field = float(field_value)
                     field_value = convert_field / 100
                 else:
@@ -319,7 +319,7 @@ class DataChart(http.Controller):
             field_value = item["field_value"]
             view_field_value = field_value
             if field_name != "tq_description":
-                if float(field_value) >= 0:
+                if field_value and float(field_value) >= 0:
                     convert_field = float(field_value)
                     field_value = convert_field / 100
                 else:
@@ -354,10 +354,14 @@ class DataChart(http.Controller):
                                  'status': 'waiting',
                                  'first_mail_date': now})
         mail_to = request.env['report.mail.to'].sudo().search([('department_id.id', '=', kpi_records[0].department_id.id)]).receive_emp.work_email
+        cc_emp = request.env['report.mail.to'].sudo().search([('department_id.id', '=', kpi_records[0].department_id.id)])
+        if cc_emp:
+            cc_emails = ', '.join(emp.work_email for emp in cc_emp.cc_to if emp.work_email)
         if mail_to:
             template_id = request.env.ref('sonha_kpi.report_kpi_mail_template').sudo()
             if template_id:
                 template_id.email_to = mail_to
+                template_id.email_cc = cc_emails
                 template_id.sudo().send_mail(kpi_records[0].id, force_send=True)
 
     @http.route('/kpi/cancel_kpi_approval', type='json', auth='none', csrf=False)
