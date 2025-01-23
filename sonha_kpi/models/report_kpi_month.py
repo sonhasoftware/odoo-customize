@@ -41,9 +41,13 @@ class ReportKpiMonth(models.Model):
             if (rc.mail_turn == 1 and now == (rc.first_mail_date + timedelta(days=2))) or (rc.mail_turn == 2 and now == (rc.first_mail_date + timedelta(days=4))):
                 if rc.department_id.id not in duplicate_department:
                     mail_to = self.env['report.mail.to'].sudo().search([('department_id.id', '=', rc.department_id.id)]).receive_emp.work_email
+                    cc_emp = self.env['report.mail.to'].sudo().search([('department_id.id', '=', rc.department_id.id)])
+                    if cc_emp:
+                        cc_emails = ', '.join(emp.work_email for emp in cc_emp.cc_to if emp.work_email)
                     if mail_to:
                         template = self.env.ref('sonha_kpi.report_kpi_mail_template').sudo()
                         template.email_to = mail_to
+                        template.email_cc = cc_emails
                         template.sudo().send_mail(rc.id, force_send=True)
                         rc.mail_turn = rc.mail_turn + 1
                         duplicate_department.add(rc.department_id.id)
