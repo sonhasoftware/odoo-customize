@@ -136,7 +136,7 @@ th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigg
 }
 
 th.align-middle.cursor-default.opacity-trigger-hover[data-name="upload_file"] {
-    width: 3% !important;
+    width: 13% !important;
 }
 
 th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="sonha_kpi"] {
@@ -190,5 +190,6 @@ button.btn.btn-primary[title="In"]{
 }
 
 th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="upload_file_name"] {
-    width: 10% !important;
+    display: none !important;
+    visibility: hidden !important;
 }
