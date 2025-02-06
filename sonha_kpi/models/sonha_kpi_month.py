@@ -36,7 +36,7 @@ class SonHaKPIMonth(models.Model):
     dv_initiative = fields.Float("Cải tiến, đề xuất, sáng kiến", default=0)
     dv_description = fields.Text("Mô tả chi tiết công việc")
 
-    tq_amount_work = fields.Float("khối lượng CVTH", default=0)
+    tq_amount_work = fields.Float("Khối lượng CVTH", default=0)
     tq_matter_work = fields.Float("Chất lượng CVTH", default=0)
     tq_comply_regulations = fields.Float("Chấp hành nội quy, quy chế", default=0)
     tq_initiative = fields.Float("Cải tiến, đề xuất, sáng kiến", default=0)

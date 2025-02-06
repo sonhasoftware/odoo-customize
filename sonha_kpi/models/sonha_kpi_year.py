@@ -261,6 +261,6 @@ class SonHaKPIYear(models.Model):
     def fillter_total_percentage_year(self):
         for r in self:
             if r.dvdg_kpi and r.kpi_year:
-                r.total_percentage_year = (r.dvdg_kpi / 100) / r.kpi_year
+                r.total_percentage_year = round(((r.dvdg_kpi / 100) / r.kpi_year) * 100, 1) / 100
             else:
                 r.total_percentage_year = 0
