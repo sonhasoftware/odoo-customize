@@ -129,10 +129,10 @@ class FormWordSlip(models.Model):
     def complete_approval(self):
         for r in self:
             if r.check_level != True:
-                r.status_lv1 = 'draft'
+                r.status_lv1 = 'sent'
             else:
-                r.status_lv2 = 'draft'
-            r.status = 'draft'
+                r.status_lv2 = 'sent'
+            r.status = 'sent'
 
     @api.depends('employee_confirm')
     def get_button_confirm(self):

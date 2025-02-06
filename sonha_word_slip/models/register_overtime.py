@@ -58,3 +58,25 @@ class RegisterOvertime(models.Model):
             date_valid = now - timedelta(days=day.slip)
             if rec.start_date < date_valid or rec.end_date < date_valid:
                 raise ValidationError("Bạn không thể đăng ký làm thêm giờ cho ngày quá khứ")
+
+    @api.constrains('employee_id', 'start_time', 'end_time', 'start_date', 'end_date')
+    def _check_time_overlap(self):
+        for record in self:
+            if record.start_time >= record.end_time:
+                raise ValidationError("Giờ bắt đầu phải nhỏ hơn giờ kết thúc.")
+
+            # Tìm tất cả các bản ghi có cùng nhân viên và có thể bị trùng thời gian
+            domain = [
+                ('id', '!=', record.id),  # Loại trừ bản ghi hiện tại nếu đang cập nhật
+                ('employee_id', '=', record.employee_id.id),  # Cùng một nhân viên
+                ('start_date', '<=', record.end_date),  # Có thể giao nhau về ngày
+                ('end_date', '>=', record.start_date),
+            ]
+            overlapping_records = self.search(domain)
+
+            for overlap in overlapping_records:
+                # Kiểm tra trùng giờ trong cùng ngày
+                if not (record.end_time <= overlap.start_time or record.start_time >= overlap.end_time):
+                    raise ValidationError(f"Nhân viên {record.employee_id.name} đã có lịch từ "
+                                          f"{overlap.start_time}h đến {overlap.end_time}h trong ngày "
+                                          f"{overlap.start_date} - {overlap.end_date}, không thể tạo mới.")

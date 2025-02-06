@@ -4,6 +4,7 @@ from odoo import models, fields, api
 class MasterDataAttendance(models.Model):
     _name = 'master.data.attendance'
     _description = 'Master Data Attendance'
+    _order = 'employee_id, attendance_time DESC'
 
     employee_id = fields.Many2one('hr.employee', string='Nhân viên', required=True)
     department_id = fields.Many2one('hr.department', string="Phòng ban", compute="fill_department", store=True)

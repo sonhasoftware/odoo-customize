@@ -140,6 +140,61 @@ class BiometricDeviceDetails(models.Model):
             else:
                 raise UserError(_('Unable to connect, please check the parameters and network connections.'))
 
+    def download_attendance(self):
+        _logger.info("++++++++++++Cron Executed++++++++++++++++++++++")
+        master_attendance = self.env['master.data.attendance']
+        hr_employee = self.env['hr.employee']
+        device_ids = self.sudo().search([])
+        for info in device_ids:
+            machine_ip = info.device_ip
+            zk_port = info.port_number
+            try:
+                zk = ZK(machine_ip, port=zk_port, timeout=None, password=0, force_udp=False, ommit_ping=False)
+            except NameError:
+                raise UserError(_("Pyzk module not Found. Please install it with 'pip3 install pyzk'."))
+            conn = self.device_connect(zk)
+            if conn:
+                conn.disable_device()
+                users = conn.get_users()
+                attendances = conn.get_attendance()
+                if attendances:
+                    # Thu thập dữ liệu chấm công theo nhân viên và ngày trong khoảng thời gian từ tháng 6 năm 2024 đến hiện tại
+                    for each in attendances:
+                        atten_time = each.timestamp
+                        current_date = datetime.now()
+                        current_year = current_date.year
+                        current_month = current_date.month
+                        if (atten_time.year == current_year and atten_time.month == current_month) or \
+                                (atten_time.year == current_year and atten_time.month == current_month - 1) or \
+                                (current_month == 1 and atten_time.year == current_year - 1 and atten_time.month == 12):
+                            user_key = each.user_id
+
+                            # Trừ 7 giờ từ thời gian chấm công
+                            atten_time_adjusted = atten_time - timedelta(hours=7)
+
+                            # Tìm hoặc tạo nhân viên
+                            employee = hr_employee.sudo().search([('device_id_num', '=', user_key)])
+
+                            # Kiểm tra xem dữ liệu chấm công đã tồn tại chưa
+                            existing_attendance = master_attendance.sudo().search([
+                                ('employee_id', '=', employee.id),
+                                ('attendance_time', '=', fields.Datetime.to_string(atten_time_adjusted))
+                            ])
+
+                            # Lưu dữ liệu vào master.data.attendance nếu chưa tồn tại
+                            if employee and not existing_attendance:
+                                master_attendance.sudo().create({
+                                    'employee_id': employee.id,
+                                    'attendance_time': fields.Datetime.to_string(atten_time_adjusted)
+                                })
+                    conn.disconnect()
+                    return True
+                else:
+                    continue
+            else:
+                continue
+
+
     def action_restart_device(self):
         """For restarting the device"""
         zk = ZK(self.device_ip, port=self.port_number, timeout=15,
