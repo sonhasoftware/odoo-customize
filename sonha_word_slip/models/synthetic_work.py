@@ -112,7 +112,7 @@ class SyntheticWork(models.Model):
     def create_synthetic(self):
         employees = self.env['hr.employee'].search([('id', '!=', 1)])
         current_date = date.today()
-        start_date = current_date.replace(day=1)
+        start_date = current_date.replace(day=1) - relativedelta(months=1)
         end_date = (start_date + relativedelta(months=1)) - timedelta(days=1)
         for employee in employees:
             synthetic = self.env['synthetic.work'].sudo().search([('start_date', '=', start_date),
