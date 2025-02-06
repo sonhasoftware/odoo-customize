@@ -32,18 +32,33 @@ class ReportKpiMonth(models.Model):
     mail_turn = fields.Integer(string="số lần gửi mail", default="0")
     url_data_mail = fields.Char(string="url kpi form")
     first_mail_date = fields.Date(string="Ngày gửi mail lần 1")
+    download_link = fields.Char(string="Download File", compute="_get_link_download")
+
+    @api.depends('small_items_each_month')
+    def _get_link_download(self):
+        for r in self:
+            if r.small_items_each_month and r.small_items_each_month.upload_file:
+                r.download_link = f"/web/content/{r.small_items_each_month.id}?model=sonha.kpi.month&field=upload_file&download=true&filename_field=upload_file_name"
+            else:
+                r.download_link = False
 
     def resend_kpi_report_mail(self):
         now = datetime.now().date()
         list_resend_mail = self.env['report.kpi.month'].sudo().search([('status', '=', 'waiting')])
         duplicate_department = set()
         for rc in list_resend_mail:
-            if (rc.mail_turn == 1 and now == (rc.first_mail_date + timedelta(days=2))) or (rc.mail_turn == 2 and now == (rc.first_mail_date + timedelta(days=4))):
+            if (rc.mail_turn == 1 and now == (rc.first_mail_date + timedelta(days=2))) or (
+                    rc.mail_turn == 2 and now == (rc.first_mail_date + timedelta(days=4))):
                 if rc.department_id.id not in duplicate_department:
-                    mail_to = self.env['report.mail.to'].sudo().search([('department_id.id', '=', rc.department_id.id)]).receive_emp.work_email
+                    mail_to = self.env['report.mail.to'].sudo().search(
+                        [('department_id.id', '=', rc.department_id.id)]).receive_emp.work_email
+                    cc_emp = self.env['report.mail.to'].sudo().search([('department_id.id', '=', rc.department_id.id)])
+                    if cc_emp:
+                        cc_emails = ', '.join(emp.work_email for emp in cc_emp.cc_to if emp.work_email)
                     if mail_to:
                         template = self.env.ref('sonha_kpi.report_kpi_mail_template').sudo()
                         template.email_to = mail_to
+                        template.email_cc = cc_emails
                         template.sudo().send_mail(rc.id, force_send=True)
                         rc.mail_turn = rc.mail_turn + 1
                         duplicate_department.add(rc.department_id.id)

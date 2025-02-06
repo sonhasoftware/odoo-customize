@@ -7,13 +7,13 @@
             <field name="arch" type="xml">
                 <form>
                     <group>
-                        <field name="department_id"/>
-                        <field name="year" widget="char"/>
+                        <field name="department_id" readonly="1"/>
+                        <field name="year" widget="char" readonly="1"/>
                     </group>
                     <notebook>
                         <page string="KPI năm" name="dl_appraisal_year">
                             <group>
-                                <field name="kpi_year" string="">
+                                <field name="kpi_year" string="" readonly="1">
                                     <tree editable="bottom">
                                         <field name="name"/>
                                         <field name="start_date"/>
@@ -49,19 +49,21 @@
                         <page string="KPI tháng" name="dl_appraisal_month">
                             <group>
                                 <field name="kpi_month" string="" context="{'default_kpi_id': id}">
-                                    <tree editable="bottom">
-                                        <field name="small_items_each_month"/>
-                                        <field name="kpi_year_id"/>
+                                    <tree editable="bottom" class="kpi-month-custom">
+                                        <field name="small_items_each_month" readonly="1"/>
+                                        <field name="kpi_year_id" readonly="1"/>
 <!--                                        <field name="employee_id" widget="many2many_tags"/>-->
 <!--                                        <field name="month"/>-->
-                                        <field name="start_date"/>
-                                        <field name="end_date"/>
+                                        <field name="start_date" readonly="1"/>
+                                        <field name="end_date" readonly="1"/>
 
                                         <field name="dv_amount_work" widget="percentage"/>
                                         <field name="dv_matter_work" widget="percentage"/>
                                         <field name="dv_comply_regulations" widget="percentage"/>
                                         <field name="dv_initiative" widget="percentage"/>
                                         <field name="dv_description"/>
+                                        <field name="upload_file" filename="upload_file_name" widget="binary"/>
+                                        <field name="upload_file_name"/>
 
 <!--                                        <field name="tq_amount_work" widget="percentage"/>-->
 <!--                                        <field name="tq_matter_work" widget="percentage"/>-->
@@ -166,16 +168,14 @@
                   action="action_company_sonha_kpi"
                   sequence="1"/>
 
-        <menuitem id="menu_company_year_sonha_kpi"
-                  name="KPI Năm"
-                  parent="sonha_kpi.menu_manage_company_sonha_kpi"
-                  action="action_company_sonha_kpi"
-                  sequence="2"/>
+<!--        <menuitem id="menu_company_year_sonha_kpi"-->
+<!--                  name="KPI Năm"-->
+<!--                  parent="sonha_kpi.menu_manage_company_sonha_kpi"-->
+<!--                  sequence="2"/>-->
 
-        <menuitem id="menu_company_month_sonha_kpi"
-                  name="KPI Tháng"
-                  parent="sonha_kpi.menu_manage_company_sonha_kpi"
-                  action="action_company_sonha_kpi"
-                  sequence="3"/>
+<!--        <menuitem id="menu_company_month_sonha_kpi"-->
+<!--                  name="KPI Tháng"-->
+<!--                  parent="sonha_kpi.menu_manage_company_sonha_kpi"-->
+<!--                  sequence="3"/>-->
     </data>
 </odoo>

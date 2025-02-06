@@ -9,6 +9,7 @@
                     <header>
                         <button name="action_month_sent" string="Gửi duyệt" type="object" class="oe_highlight" invisible="status != 'draft'"/>
                         <button name="action_month_approval" string="Duyệt" type="object" class="oe_highlight" invisible="status != 'waiting'"/>
+                        <button name="action_to_draft" string="Về nháp" type="object" class="oe_highlight" invisible="status != 'waiting'"/>
                         <button name="action_month_back" string="Hoàn duyệt" type="object" class="oe_highlight" invisible="status != 'done'"/>
                         <field name="status" widget="statusbar"/>
                     </header>
@@ -33,12 +34,12 @@
                                 </group>
                             </page>
                         </notebook>
-                    </sheet>
-                    <div class="oe_chatter">
+                        <div class="oe_chatter">
                         <field name="message_follower_ids"/>
                         <field name="activity_ids"/>
                         <field name="message_ids"/>
                     </div>
+                    </sheet>
                 </form>
             </field>
         </record>

@@ -4,18 +4,19 @@
         <field name="name">config.word.slip.tree</field>
         <field name="model">config.word.slip</field>
         <field name="arch" type="xml">
-            <tree string="Config Word Slips" editable="bottom">
+            <tree string="Cấu hình đơn từ" editable="bottom">
                 <field name="name"/>
                 <field name="paid"/>
                 <field name="date_and_time"/>
                 <field name="max_time"/>
                 <field name="company_id"/>
+                <field name="key" groups="sonha_employee.group_back_up_employee"/>
             </tree>
         </field>
     </record>
 
     <record id="config_word_slip_action" model="ir.actions.act_window">
-        <field name="name">Config Word Slips</field>
+        <field name="name">Cấu hình đơn từ</field>
         <field name="res_model">config.word.slip</field>
         <field name="view_mode">tree</field>
     </record>

@@ -52,24 +52,8 @@ td.o_data_cell.cursor-pointer.o_field_cell.o_list_char {
     display: none !important;
 }
 
-div.kpi-module div div table thead tr th {
-    border: 1px solid;
-}
-
-div.kpi-module div div table tbody tr.o_data_row td {
-    border: 1px solid;
-}
-
-div.kpi-module div div table tbody tr:not([class]) {
-    display: none;
-}
-
-div.kpi-module div div table tbody tr td.o_data_cell.cursor-pointer {
-    border: 1px solid;
-}
-
 th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="name"]{
-    width: 25% !important;
+    width: 30% !important;
 }
 
 th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="end_date"]{
@@ -77,7 +61,7 @@ th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigg
 }
 
 th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.o_percentage_cell.opacity-trigger-hover[data-name="kpi_year"]{
-    width: 15% !important;
+    width: 10% !important;
 }
 
 th.align-middle.cursor-default.opacity-trigger-hover[data-name="sonha_kpi"] {
@@ -85,60 +69,127 @@ th.align-middle.cursor-default.opacity-trigger-hover[data-name="sonha_kpi"] {
 }
 
 th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.o_percentage_cell.opacity-trigger-hover[data-name="ti_le_monh_one"] {
-    width: 5% !important;
+    width: 4% !important;
 }
 
 th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.o_percentage_cell.opacity-trigger-hover[data-name="ti_le_monh_two"] {
-    width: 5% !important;
+    width: 4% !important;
 }
 
 th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.o_percentage_cell.opacity-trigger-hover[data-name="ti_le_monh_three"] {
-    width: 5% !important;
+    width: 4% !important;
 }
 
 th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.o_percentage_cell.opacity-trigger-hover[data-name="ti_le_monh_four"] {
-    width: 5% !important;
+    width: 4% !important;
 }
 
 th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.o_percentage_cell.opacity-trigger-hover[data-name="ti_le_monh_five"] {
-    width: 5% !important;
+    width: 4% !important;
 }
 
 th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.o_percentage_cell.opacity-trigger-hover[data-name="ti_le_monh_six"] {
-    width: 5% !important;
+    width: 4% !important;
 }
 
 th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.o_percentage_cell.opacity-trigger-hover[data-name="ti_le_monh_seven"] {
-    width: 5% !important;
+    width: 4% !important;
 }
 
 th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.o_percentage_cell.opacity-trigger-hover[data-name="ti_le_monh_eight"] {
-    width: 5% !important;
+    width: 4% !important;
 }
 
 th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.o_percentage_cell.opacity-trigger-hover[data-name="ti_le_monh_nigh"] {
-    width: 5% !important;
+    width: 4% !important;
 }
 
 th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.o_percentage_cell.opacity-trigger-hover[data-name="ti_le_monh_ten"] {
-    width: 5% !important;
+    width: 4% !important;
 }
 
 th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.o_percentage_cell.opacity-trigger-hover[data-name="ti_le_monh_eleven"] {
-    width: 5% !important;
+    width: 4% !important;
 }
 
 th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.o_percentage_cell.opacity-trigger-hover[data-name="ti_le_monh_twenty"] {
-    width: 5% !important;
+    width: 4% !important;
 }
 td.o_data_cell.cursor-pointer.o_field_cell[name="end_date"] {
     text-align: center !important;
 }
 
 th.align-middle.cursor-default.o_list_number_th.o_percentage_cell.opacity-trigger-hover[data-name="total_percentage_year"] {
+    width: 13% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="kpi_year"] {
+    width: 40% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="kpi_month"] {
+    width: 60% !important;
+}
+
+.o_list_view.kpi-month-custom.o_field_x2many.o_field_x2many_list span.d-block.min-w-0.text-truncate.flex-grow-1 {
+    white-space: pre-line !important;
+}
+
+th.align-middle.cursor-default.opacity-trigger-hover[data-name="upload_file"] {
+    width: 13% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="sonha_kpi"] {
+    display: none;
+    visibility: hidden;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="small_items_each_month"] {
+    width: 16% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="kpi_year_id"] {
     width: 15% !important;
 }
 
-th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_hidden_cell.opacity-trigger-hover[data-name="sonha_kpi"] {
-    width: 5% !important;
+middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="start_date"] {
+    width: 10% !important;
+}
+
+middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="end_date"] {
+    width: 10% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.o_percentage_cell.opacity-trigger-hover[data-name="dv_amount_work"] {
+    width: 10% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.o_percentage_cell.opacity-trigger-hover[data-name="dv_matter_work"] {
+    width: 10% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.o_percentage_cell.opacity-trigger-hover[data-name="dv_comply_regulations"] {
+    width: 10% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.o_percentage_cell.opacity-trigger-hover[data-name="dv_initiative"] {
+    width: 10% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="dv_description"] {
+    width: 10% !important;
+}
+
+button.btn.btn-primary[title="In"]{
+    display: none !important;
+    visibility: hidden !important;
+}
+
+.opacity-50-hover:hover, .opacity-trigger-hover .opacity-50-hover {
+    opacity: 0.2 !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="upload_file_name"] {
+    display: none !important;
+    visibility: hidden !important;
 }

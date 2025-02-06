@@ -9,7 +9,7 @@
                         <span class="time">(<t t-esc="converted_start_date"/> - <t t-esc="converted_end_date"/>)</span>
                     </h6>
                     <h6 class="classification">
-                        <span class="dv-class">Xếp loại đơn vị đánh giá: <t t-if="dv_classification" t-esc="dv_classification"/></span>
+                        <span class="dv-class">Xếp loại đơn vị tự đánh giá: <t t-if="dv_classification" t-esc="dv_classification"/></span>
                         <br/>
                         <span class="tq-class">Xếp loại thẩm quyền đánh giá: <t t-if="tq_classification" t-esc="tq_classification"/></span>
                     </h6>
@@ -45,6 +45,7 @@
                             <th>TIÊU CHÍ</th>
                             <th class="unit-result">KẾT QUẢ ĐƠN VỊ</th>
                             <th>MÔ TẢ CHI TIẾT</th>
+                            <th class="file">File</th>
                             <th class="tq-class approve-percent">% PHÊ DUYỆT</th>
                             <th class="tq-class">NHẬN XÉT ĐÁNH GIÁ</th>
                         </tr>
@@ -58,12 +59,22 @@
                                 <td>Khối lượng công việc thực hiện</td>
                                 <td class="result"><t t-esc="kpi.dv_amount_work * 100"/> %</td>
                                 <td rowspan="4"><t t-esc="kpi.dv_description"/></td>
+                                <td rowspan="4">
+                                    <t t-if="kpi.download_link">
+                                        <a t-att-href="kpi.download_link" class="btn btn-secondary">
+                                            <i class="fa fa-download"></i>
+                                        </a>
+                                    </t>
+                                    <t t-else="">
+                                        <span></span>
+                                    </t>
+                                </td>
                                 <td class="custom">
                                     <input type="number" t-if="kpi_records and kpi_records[0].status == 'waiting'" class="form-control kpi-input" t-att-data-id="kpi.small_items_each_month.id" data-field="tq_amount_work" t-att-value="kpi.tq_amount_work"/>
                                     <t t-if="kpi_records and kpi_records[0].status == 'approved'" t-esc="kpi.tq_amount_work"/> %
                                 </td>
                                 <td rowspan="4" class="review">
-                                    <textarea type="text" t-if="kpi_records and kpi_records[0].status == 'waiting'" class="form-control kpi-input" t-att-data-id="kpi.small_items_each_month.id" data-field="tq_description" t-att-value="kpi.tq_description"/>
+                                    <textarea type="text" t-if="kpi_records and kpi_records[0].status == 'waiting'" class="form-control kpi-input" t-att-data-id="kpi.small_items_each_month.id" data-field="tq_description" t-att-value="kpi.tq_description"><t t-esc="kpi.tq_description"/></textarea>
                                     <t t-if="kpi_records and kpi_records[0].status == 'approved'" t-esc="kpi.tq_description"/>
                                 </td>
                             </tr>
@@ -106,13 +117,11 @@
                                 const kpiId = input.dataset.id;
                                 const fieldName = input.dataset.field;
                                 const fieldValue = input.value;
-                                if (fieldValue){
-                                    kpiData.push({
-                                        kpi_id: kpiId,
-                                        field_name: fieldName,
-                                        field_value: fieldValue,
-                                    });
-                                }
+                                kpiData.push({
+                                    kpi_id: kpiId,
+                                    field_name: fieldName,
+                                    field_value: fieldValue,
+                                });
                             });
                             console.log('Dữ liệu JSON gửi đi:', JSON.stringify({kpi_data: kpiData}));
                             fetch('/kpi/update_ajax', {
@@ -185,13 +194,11 @@
                                 const fieldName = input.dataset.field;
                                 const fieldValue = input.value;
                                 console.log(kpiId);
-                                if (fieldValue){
-                                    approveData.push({
-                                        kpi_id: kpiId,
-                                        field_name: fieldName,
-                                        field_value: fieldValue,
-                                    });
-                                }
+                                approveData.push({
+                                    kpi_id: kpiId,
+                                    field_name: fieldName,
+                                    field_value: fieldValue,
+                                });
                             });
                             console.log('Dữ liệu JSON gửi đi:', JSON.stringify({approve_data: approveData}));
                             fetch('/kpi/kpi_approve', {
@@ -334,6 +341,12 @@
                 }
                 th.approve-percent {
                     width: 130px;
+                }
+                textarea {
+                    height: 230px !important;
+                }
+                .file {
+                    width: 60px !important;
                 }
             </style>
         </t>

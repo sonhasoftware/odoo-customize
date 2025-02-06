@@ -61,6 +61,10 @@ class ParentKPIMonth(models.Model):
             else:
                 raise ValidationError("Chưa có dữ liệu kế hoạch KPI tháng")
 
+    def action_to_draft(self):
+        for r in self:
+            r.status = 'draft'
+
     def action_month_approval(self):
         for r in self:
             if r.plan_kpi_month:
@@ -84,6 +88,7 @@ class ParentKPIMonth(models.Model):
         for r in self:
             r.status = 'draft'
             self.env['sonha.kpi.month'].search([('parent_kpi_month', '=', r.id)]).sudo().unlink()
+            self.env['sonha.kpi.month'].calculating_dvdgkpi_tqdgkpi(r)
 
     def write(self, vals):
         res = super(ParentKPIMonth, self).write(vals)
