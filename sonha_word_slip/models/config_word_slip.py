@@ -14,3 +14,4 @@ class ConfigWordSlip(models.Model):
         ('time', 'Chọn giờ'),
         ('date', 'Chọn ngày'),
     ], string='Dữ liệu cho kiểu nghỉ')
+    key = fields.Char('Key')
