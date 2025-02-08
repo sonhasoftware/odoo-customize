@@ -6,9 +6,9 @@
         <field name="target">main</field>
     </record>
 
-    <menuitem id="menu_owl_sales_dashboard"
-              name="Biểu đồ"
-              parent="menu_sonha_kpi"
-              action="action_owl_greet_dashboard"
-              sequence="5"/>
+<!--    <menuitem id="menu_owl_sales_dashboard"-->
+<!--              name="Biểu đồ"-->
+<!--              parent="menu_sonha_kpi"-->
+<!--              action="action_owl_greet_dashboard"-->
+<!--              sequence="5"/>-->
 </odoo>
