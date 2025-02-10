@@ -9,6 +9,8 @@
                         <span class="time">(<t t-esc="converted_start_date"/> - <t t-esc="converted_end_date"/>)</span>
                     </h6>
                     <h6 class="classification">
+                        <span class="dv-class">Phòng ban: <t t-esc="kpi_records[0].department_id.name"/></span>
+                        <br/>
                         <span class="dv-class">Xếp loại đơn vị tự đánh giá: <t t-if="dv_classification" t-esc="dv_classification"/></span>
                         <br/>
                         <span class="tq-class">Xếp loại thẩm quyền đánh giá: <t t-if="tq_classification" t-esc="tq_classification"/></span>

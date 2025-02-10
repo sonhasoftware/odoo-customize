@@ -48,8 +48,8 @@
                         <t t-foreach="docs" t-as="doc">
                             <tr>
                                 <td style="font-weight: bold;" class="left"><t t-esc="doc.name"/></td>
-                                <td class="time"><t t-esc="doc.start_date"/></td>
-                                <td class="time"><t t-esc="doc.end_date"/></td>
+                                <td class="time"><t t-esc="doc.converted_start_date"/></td>
+                                <td class="time"><t t-esc="doc.converted_end_date"/></td>
                                 <td><t t-esc="round(doc.dvdg_kpi, 1)"/>%</td>
                                 <td class="left"><t t-esc="doc.get_dvdg_status_label()"/></td>
                                 <td><t t-esc="round(doc.ctqdg_kpi, 1)"/>%</td>
