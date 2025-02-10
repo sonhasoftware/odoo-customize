@@ -60,8 +60,8 @@
                             <tr>
                                 <td rowspan="4" style="font-weight: bold;" class="left"><t t-esc="doc.name.name"/></td>
                                 <td rowspan="4" class="left"><t t-esc="doc.content_detail"/></td>
-                                <td rowspan="4"><t t-esc="doc.converted_start_date"/></td>
-                                <td rowspan="4"><t t-esc="doc.converted_end_date"/></td>
+                                <td rowspan="4"><t t-esc="doc.start_date"/></td>
+                                <td rowspan="4"><t t-esc="doc.end_date"/></td>
                                 <td class="left">Khối lượng công việc thực hiện</td>
                                 <td rowspan="4"><t t-esc="round(doc.ti_trong * 100, 1)"/>%</td>
                                 <td><t t-esc="round(doc.diem_chuan_amount_work, 1)"/></td>
