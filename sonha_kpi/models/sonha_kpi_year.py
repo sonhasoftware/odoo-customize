@@ -80,6 +80,9 @@ class SonHaKPIYear(models.Model):
     total_percentage_year = fields.Float(string="Tổng phần trăm năm", compute="fillter_total_percentage_year")
     parent_kpi_year = fields.Many2one('parent.kpi.year')
 
+    converted_start_date = fields.Char("Bắt đầu")
+    converted_end_date = fields.Char("Kết thúc")
+
     @api.constrains('ti_le_monh_one', 'ti_le_monh_two', 'ti_le_monh_three', 'ti_le_monh_four',
                     'ti_le_monh_five', 'ti_le_monh_six', 'ti_le_monh_seven', 'ti_le_monh_eight',
                     'ti_le_monh_nigh', 'ti_le_monh_ten', 'ti_le_monh_eleven', 'ti_le_monh_twenty')

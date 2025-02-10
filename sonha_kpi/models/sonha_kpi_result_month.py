@@ -56,6 +56,9 @@ class SonHaKPIResultMonth(models.Model):
     note = fields.Text("Nhận xét cấp thẩm quyền", compute="get_tq_description")
     sonha_kpi = fields.Many2one('company.sonha.kpi')
 
+    converted_start_date = fields.Char("Bắt đầu")
+    converted_end_date = fields.Char("Kết thúc")
+
     @api.depends('kpi_month')
     def get_dv_description(self):
         for r in self:
