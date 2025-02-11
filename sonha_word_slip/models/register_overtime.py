@@ -9,14 +9,25 @@ class RegisterOvertime(models.Model):
 
     department_id = fields.Many2one('hr.department', string="Phòng ban", required=True, tracking=True)
     employee_id = fields.Many2one('hr.employee', string="Tên nhân viên", tracking=True, required=True)
-    start_date = fields.Date("Từ ngày", tracking=True, required=True)
-    end_date = fields.Date("Đến ngày", tracking=True, required=True)
+    start_date = fields.Date("Từ ngày", tracking=True)
+    end_date = fields.Date("Đến ngày", tracking=True)
+    date = fields.Date("Ngày", tracking=True)
     start_time = fields.Float("Thời gian bắt đầu", tracking=True, required=True)
     end_time = fields.Float("Thời gian kết thúc", tracking=True, required=True)
     status = fields.Selection([
         ('draft', 'Nháp'),
         ('done', 'Đã duyệt'),
     ], string='Trạng thái', default='draft', tracking=True)
+
+    @api.onchange('date')
+    def get_data_date(self):
+        for r in self:
+            if r.date:
+                r.start_date = r.date
+                r.end_date = r.date
+            else:
+                pass
+
 
     def action_confirm(self):
         for r in self:

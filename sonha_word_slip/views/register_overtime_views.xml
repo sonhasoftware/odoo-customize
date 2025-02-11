@@ -31,8 +31,9 @@
                 <sheet>
                     <group>
                         <field name="department_id" options="{'no_create': True, 'no_open': True}" readonly="status != 'draft'"/>
-                        <field name="start_date" readonly="status != 'draft'" required = "1"/>
-                        <field name="end_date" readonly="status != 'draft'" required = "1"/>
+                        <field name="start_date" readonly="status != 'draft'" invisible="1"/>
+                        <field name="end_date" readonly="status != 'draft'" invisible="1"/>
+                        <field name="date" readonly="status != 'draft'"/>
                         <field name="start_time" widget="float_time" readonly="status != 'draft'" required = "1"/>
                         <field name="end_time" widget="float_time" readonly="status != 'draft'" required = "1"/>
                         <field name="employee_id" readonly="status != 'draft'" required = "1" options="{'no_create': True, 'no_open': True}" domain="[('department_id', '=', department_id)]"/>
