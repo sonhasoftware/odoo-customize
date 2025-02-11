@@ -28,6 +28,11 @@ class PopupWizardReportMonth(models.TransientModel):
         if month:
             docs = docs.filtered(lambda x: x.start_date.month == month)
         if docs:
+            for doc in docs:
+                if doc.start_date:
+                    doc.converted_start_date = doc.start_date.strftime('%d-%m-%Y')
+                if doc.end_date:
+                    doc.converted_end_date = doc.end_date.strftime('%d-%m-%Y')
             return self.env.ref('sonha_kpi.template_month_action').report_action(docs)
         else:
             raise ValidationError("Chưa có dữ liệu đánh giá tháng " + str(month) + " của phòng/ban " + self.department_id.name)
