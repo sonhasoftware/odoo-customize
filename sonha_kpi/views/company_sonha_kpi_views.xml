@@ -19,8 +19,8 @@
                                         <field name="start_date"/>
                                         <field name="end_date"/>
                                         <field name="kpi_year" widget="percentage"/>
-                                        <field name="total_percentage_year" widget="percentage"/>
-<!--                                        <field name="dvdg_kpi" widget="percentage"/>-->
+<!--                                        <field name="total_percentage_year" widget="percentage"/>-->
+                                        <field name="dvdg_kpi" widget="percentage"/>
 <!--                                        <field name="dvdg_status"/>-->
 <!--                                        <field name="ctqdg_kpi" widget="percentage"/>-->
 <!--                                        <field name="ctqdg_status"/>-->
