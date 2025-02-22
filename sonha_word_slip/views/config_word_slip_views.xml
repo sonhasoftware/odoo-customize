@@ -9,7 +9,7 @@
                 <field name="paid"/>
                 <field name="date_and_time"/>
                 <field name="max_time"/>
-                <field name="company_id"/>
+                <field name="company_id" widget="many2many_tags"/>
                 <field name="key" groups="sonha_employee.group_back_up_employee"/>
             </tree>
         </field>

@@ -1,5 +1,6 @@
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
+from dateutil.relativedelta import relativedelta
 
 
 class WordSlip(models.Model):
@@ -22,10 +23,67 @@ class WordSlip(models.Model):
     time_from = fields.Float("Thời gian kết thúc")
 
     word_slip = fields.Many2one('form.word.slip')
-    employee_id = fields.Many2one('hr.employee', related='word_slip.employee_id')
+    employee_id = fields.Many2one('hr.employee', compute="get_employee_slip")
     type = fields.Many2one('config.word.slip', related='word_slip.type')
     duration = fields.Float("Ngày", compute="get_duration")
     reason = fields.Text(string="Lý do")
+
+    @api.constrains("from_date", "to_date", 'word_slip')
+    def check_employee_days_limit(self):
+        for r in self:
+            if r.word_slip.regis_type == 'one':
+                limit_day = self.env['config.leave'].sudo().search([('employee_ids', 'in', r.word_slip.employee_id.id)])
+                if limit_day:
+                    start_date = r.from_date.replace(day=1)
+                    end_date = start_date + relativedelta(days=-1, months=1)
+                    requests = self.env["word.slip"].search([
+                        ("word_slip.employee_id", "=", r.word_slip.employee_id.id),
+                        ("from_date", ">=", start_date),
+                        ("to_date", "<=", end_date),
+                        ("word_slip.type", "=", limit_day.word_slip.id),
+                        ("id", "!=", r.id)
+                    ])
+                    total_days = sum((r.to_date - r.from_date).days + 1 for r in requests)
+                    current_days = (r.to_date - r.from_date).days + 1
+                    if total_days + current_days > limit_day.date:
+                        raise ValidationError(f"Bạn đã đăng ký quá số lượng loại đơn này trong 1 tháng!")
+            elif r.word_slip.regis_type == 'many':
+                for emp in r.word_slip.employee_ids:
+                    limit_day = self.env["config.leave"].sudo().search([
+                        ("employee_ids", "in", emp.id)
+                    ], limit=1)
+
+                    if limit_day:
+                        start_date = r.from_date.replace(day=1)
+                        end_date = start_date + relativedelta(days=-1, months=1)
+
+                        # Lọc tất cả đơn của nhân viên này trong tháng
+                        requests = self.env["word.slip"].search([
+                            ("word_slip.employee_ids", "in", emp.id),  # Nhân viên trong đơn
+                            ("from_date", ">=", start_date),
+                            ("to_date", "<=", end_date),
+                            ("word_slip.type", "=", limit_day.word_slip.id),
+                            ("id", "!=", r.id)  # Loại trừ đơn hiện tại nếu đang sửa
+                        ])
+
+                        # Tính tổng số ngày đã đăng ký
+                        total_days = sum((req.to_date - req.from_date).days + 1 for req in requests)
+                        current_days = (r.to_date - r.from_date).days + 1
+
+                        if total_days + current_days > limit_day.date:
+                            raise ValidationError(f"Nhân viên {emp.name} đã đăng ký quá số ngày cho phép trong tháng!")
+
+    @api.depends('word_slip')
+    def get_employee_slip(self):
+        for r in self:
+            if r.word_slip:
+                if r.word_slip.employee_id:
+                    r.employee_id = r.word_slip.employee_id.id
+                elif r.word_slip.employee_ids:
+                    r.employee_id = r.word_slip.employee_ids[:1].id
+                else:
+                    r.employee_id = None
+
 
     #Lấy thông tin số ngày công mà nhân viên nghỉ
     @api.depends('start_time', 'end_time', 'from_date', 'to_date')

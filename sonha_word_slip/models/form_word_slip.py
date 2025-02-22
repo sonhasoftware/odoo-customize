@@ -15,16 +15,8 @@ class FormWordSlip(models.Model):
             return user.employee_id.department_id.id
         return False
 
-    @api.model
-    def _default_employee(self):
-        # Lấy phòng ban từ user đang đăng nhập
-        user = self.env.user
-        if user.employee_id:
-            return user.employee_id.id
-        return False
-
     department = fields.Many2one('hr.department', string="Phòng ban", required=True, tracking=True, default=lambda self: self._default_department())
-    employee_id = fields.Many2one('hr.employee', string="Tên nhân viên", tracking=True, required=True, default=lambda self: self._default_employee())
+    employee_id = fields.Many2one('hr.employee', string="Tên nhân viên", tracking=True)
     type = fields.Many2one('config.word.slip', "Loại đơn", tracking=True, required=True)
     word_slip_id = fields.One2many('word.slip', 'word_slip', string="Ngày", tracking=True)
     description = fields.Text("Lý do", tracking=True)
@@ -58,6 +50,17 @@ class FormWordSlip(models.Model):
     check_sent = fields.Boolean("Check gửi duyệt", default=False, compute="_get_button_sent")
     record_url = fields.Char(string="Record URL", compute="_compute_record_url")
     check_invisible_type = fields.Boolean("Check ẩn hiện", default=False)
+    regis_type = fields.Selection([
+        ('one', 'Tạo cho tôi'),
+        ('many', 'Tạo hộ'),
+    ], string='Loại đăng ký', default='one', tracking=True, required=True)
+
+    employee_ids = fields.Many2many('hr.employee', 'ir_employee_slip_rel',
+                                    'employee_slip_rel', 'slip_rel',
+                                    string='Tên nhân viên', tracking=True)
+
+    company_id = fields.Many2one('res.company', string="Công ty", required=True, default=lambda self: self.env.company)
+
 
     @api.onchange('type')
     def get_check_invisible_type(self):
@@ -116,6 +119,9 @@ class FormWordSlip(models.Model):
             if r.type and r.employee_id:
                 short_code = ''.join(word[0].upper() for word in r.type.name.split())
                 r.code = r.employee_id.company_id.company_code + "-" + short_code + "-" + str(r.id)
+            elif r.type and r.employee_ids:
+                short_code = ''.join(word[0].upper() for word in r.type.name.split())
+                r.code = r.employee_ids[:1].company_id.company_code + "-" + short_code + "-" + str(r.id)
             else:
                 r.code = ""
 
@@ -229,12 +235,14 @@ class FormWordSlip(models.Model):
 
             # tìm kiếm các bản ghi theo các điều kiện
             word_slips = self.env['word.slip'].search([
-                ('employee_id', '=', rec.employee_id.id),
                 ('type.date_and_time', '=', form_type),
                 ('id', '!=', record.id),
                 ('from_date', '<=', record.to_date),
                 ('to_date', '>=', record.from_date),
             ])
+            word_slips = word_slips.filtered(
+                lambda x: (x.word_slip.employee_id and x.word_slip.employee_id.id == rec.employee_id.id) or (
+                        x.word_slip.employee_ids and rec.employee_id.id in x.word_slip.employee_ids.ids))
             # gọi hàm check validate
             self.validate_record_overlap(record, word_slips, form_type)
 
@@ -246,23 +254,27 @@ class FormWordSlip(models.Model):
 
         # Tính số ngày và thiết lập `day_duration`
         rec.day_duration = self.get_duration_day(rec)
+        if rec.employee_id:
+            employee_id = rec.employee_id
+        elif rec.employee_ids:
+            employee_id = rec.employee_ids[:1]
 
-        if rec.employee_id.parent_id.id == rec.employee_id.employee_approval.id:
+        if employee_id.parent_id.id == employee_id.employee_approval.id:
             rec.day_duration = 1
 
         department_spec = self.env['hr.department'].sudo().search([('name', '=', "SHI-Bộ phận xe VPTĐ"),
                                                                    ('id', '=', rec.department.id)])
         if department_spec:
             rec.check_level = True
-            if rec.employee_id.employee_approval and rec.employee_id.parent_id:
-                rec.employee_confirm = rec.employee_id.parent_id.id
-                rec.employee_approval = rec.employee_id.employee_approval.id
-            elif not rec.employee_id.employee_approval and rec.employee_id.parent_id:
-                rec.employee_confirm = rec.employee_id.parent_id.id
-                rec.employee_approval = rec.employee_id.parent_id.parent_id.id if rec.employee_id.parent_id.parent_id else rec.employee_id.department_id.parent_id.manager_id.id
-            elif rec.employee_id.employee_approval and not rec.employee_id.parent_id:
-                rec.employee_confirm = rec.employee_id.employee_approval.id
-                rec.employee_approval = rec.employee_id.employee_approval.parent_id.id if rec.employee_id.employee_approval.parent_id else None
+            if employee_id.employee_approval and employee_id.parent_id:
+                rec.employee_confirm = employee_id.parent_id.id
+                rec.employee_approval = employee_id.employee_approval.id
+            elif not employee_id.employee_approval and employee_id.parent_id:
+                rec.employee_confirm = employee_id.parent_id.id
+                rec.employee_approval = employee_id.parent_id.parent_id.id if employee_id.parent_id.parent_id else employee_id.department_id.parent_id.manager_id.id
+            elif employee_id.employee_approval and not employee_id.parent_id:
+                rec.employee_confirm = employee_id.employee_approval.id
+                rec.employee_approval = employee_id.employee_approval.parent_id.id if employee_id.employee_approval.parent_id else None
                 
         if not department_spec and rec.day_duration <= 3:
             condition = '<=3'
@@ -279,21 +291,21 @@ class FormWordSlip(models.Model):
         if status:
             if status.level <= 1:
                 rec.employee_confirm = None
-                rec.employee_approval = rec.employee_id.employee_approval.id if rec.employee_id.employee_approval else rec.employee_id.parent_id.id
+                rec.employee_approval = employee_id.employee_approval.id if employee_id.employee_approval else employee_id.parent_id.id
             else:
                 rec.check_level = True
-                if rec.employee_id.employee_approval and rec.employee_id.parent_id:
-                    rec.employee_confirm = rec.employee_id.parent_id.id
-                    rec.employee_approval = rec.employee_id.employee_approval.id
-                elif not rec.employee_id.employee_approval and rec.employee_id.parent_id:
-                    rec.employee_confirm = rec.employee_id.parent_id.id
-                    rec.employee_approval = rec.employee_id.parent_id.parent_id.id if rec.employee_id.parent_id.parent_id else rec.employee_id.department_id.parent_id.manager_id.id
-                elif rec.employee_id.employee_approval and not rec.employee_id.parent_id:
-                    rec.employee_confirm = rec.employee_id.employee_approval.id
-                    rec.employee_approval = rec.employee_id.employee_approval.parent_id.id if rec.employee_id.employee_approval.parent_id else None
+                if employee_id.employee_approval and employee_id.parent_id:
+                    rec.employee_confirm = employee_id.parent_id.id
+                    rec.employee_approval = employee_id.employee_approval.id
+                elif not employee_id.employee_approval and employee_id.parent_id:
+                    rec.employee_confirm = employee_id.parent_id.id
+                    rec.employee_approval = employee_id.parent_id.parent_id.id if employee_id.parent_id.parent_id else employee_id.department_id.parent_id.manager_id.id
+                elif employee_id.employee_approval and not employee_id.parent_id:
+                    rec.employee_confirm = employee_id.employee_approval.id
+                    rec.employee_approval = employee_id.employee_approval.parent_id.id if employee_id.employee_approval.parent_id else None
         else:
             # Trường hợp không có bước phê duyệt
-            rec.employee_approval = rec.employee_id.parent_id.id if rec.employee_id.parent_id else rec.employee_id.employee_approval.id
+            rec.employee_approval = employee_id.parent_id.id if employee_id.parent_id else employee_id.employee_approval.id
         return rec
 
     def get_duration_day(self, rec):
@@ -306,15 +318,15 @@ class FormWordSlip(models.Model):
             day_duration = 0
         return day_duration
 
-    @api.constrains('employee_id')
-    def check_word_slip_id(self):
-        for r in self:
-            total_duration = 0
-            if r.word_slip_id and r.type.name.lower() == "nghỉ bù":
-                for slip in r.word_slip_id:
-                    total_duration += slip.duration * 8
-                if r.employee_id.total_compensatory < total_duration:
-                    raise ValidationError("Bạn không còn thời gian nghỉ bù")
+    # @api.constrains('employee_id')
+    # def check_word_slip_id(self):
+    #     for r in self:
+    #         total_duration = 0
+    #         if r.word_slip_id and r.type.name.lower() == "nghỉ bù":
+    #             for slip in r.word_slip_id:
+    #                 total_duration += slip.duration * 8
+    #             if r.employee_id.total_compensatory < total_duration:
+    #                 raise ValidationError("Bạn không còn thời gian nghỉ bù")
 
     @api.constrains('type', 'word_slip_id')
     def check_type(self):

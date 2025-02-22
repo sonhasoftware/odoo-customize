@@ -65,3 +65,13 @@ access_approval_workflow_step,approval.workflow.step,model_approval_workflow_ste
 access_approval_state,approval.state,model_approval_state,,1,1,1,1
 
 access_employee_attendance_store,employee.attendance.store,model_employee_attendance_store,,1,1,1,1
+
+
+
+
+access_register_overtime_update,register.overtime.update,model_register_overtime_update,,1,1,1,1
+access_overtime_rel,overtime.rel,model_overtime_rel,,1,1,1,1
+
+access_free_timekeeping,free.timekeeping,model_free_timekeeping,,1,1,1,1
+
+access_config_leave,config.leave,model_config_leave,,1,1,1,1

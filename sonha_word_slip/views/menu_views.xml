@@ -25,6 +25,20 @@
               groups="sonha_employee.group_hr_employee"
               sequence="2"/>
 
+    <menuitem id="menu_free_timekeeping"
+              name="Danh sách miễn chấm công"
+              parent="menu_config"
+              action="action_free_timekeeping"
+              groups="sonha_employee.group_hr_employee"
+              sequence="3"/>
+
+    <menuitem id="menu_config_leave"
+              name="Cấu hình số lượng đơn từ trong tháng"
+              parent="menu_config"
+              action="action_config_leave"
+              groups="sonha_employee.group_hr_employee"
+              sequence="3"/>
+
     <menuitem id="menu_config_approve"
               name="Cấu hình phê duyệt"
               parent="menu_config"
@@ -64,6 +78,12 @@
               parent="menu_form_word"
               action="action_register_overtime_calendar"
               sequence="3"/>
+
+    <menuitem id="menu_register_overtime_update"
+              name="Đăng ký làm thêm V2"
+              parent="menu_form_word"
+              action="action_register_overtime_update"
+              sequence="4"/>
 
     <menuitem id="menu_synthetic_work"
               name="Bảng công tổng hợp"

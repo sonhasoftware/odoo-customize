@@ -73,11 +73,12 @@ class EmployeeAttendance(models.Model):
 
             # Tìm tất cả các word.slip liên quan
             word_slips = self.env['word.slip'].sudo().search([
-                ('employee_id', '=', r.employee_id.id),
                 ('from_date', '<=', r.date),
                 ('to_date', '>=', r.date),
                 ('word_slip.status', '=', 'done')
             ])
+
+            word_slips = word_slips.filtered(lambda x: (x.word_slip.employee_id and x.word_slip.employee_id.id == r.employee_id.id) or (x.word_slip.employee_ids and r.employee_id.id in x.word_slip.employee_ids.ids))
 
             # Xử lý word.slip
             for slip in word_slips:
@@ -107,21 +108,29 @@ class EmployeeAttendance(models.Model):
     @api.depends('employee_id', 'date')
     def get_hours_reinforcement(self):
         for record in self:
-            overtime = 0
+            total_overtime = 0
             ot = self.env['register.overtime'].sudo().search([('employee_id', '=', record.employee_id.id),
                                                               ('start_date', '<=', record.date),
                                                               ('end_date', '>=', record.date),
                                                               ('status', '=', 'done')])
+
+            overtime = self.env['overtime.rel'].sudo().search([('date', '=', record.date),
+                                                               ('overtime_id.status', '=', 'done')])
+            overtime = overtime.filtered(lambda x: (x.overtime_id.employee_id and x.overtime_id.employee_id.id == record.employee_id.id)
+                                                   or (x.overtime_id.employee_ids and record.employee_id.id in x.overtime_id.employee_ids.ids))
             if ot:
                 for r in ot:
                     if r.start_date != r.end_date and r.start_time > r.end_time:
                         if r.start_date == record.date:
-                            overtime += abs(24 - r.start_time)
+                            total_overtime += abs(24 - r.start_time)
                         elif r.end_date == record.date:
-                            overtime += abs(r.end_time)
+                            total_overtime += abs(r.end_time)
                     else:
-                        overtime += abs(r.end_time - r.start_time)
-            record.over_time = overtime
+                        total_overtime += abs(r.end_time - r.start_time)
+            if overtime:
+                for x in overtime:
+                    total_overtime += abs(x.end_time - x.start_time)
+            record.over_time = total_overtime
 
     color = fields.Selection([
             ('red', 'Red'),
@@ -230,10 +239,23 @@ class EmployeeAttendance(models.Model):
             overtime = self.env['register.overtime'].sudo().search([('employee_id', '=', r.employee_id.id),
                                                                     ('start_date', '<=', r.date),
                                                                     ('end_date', '>=', r.date)])
+            overtime_update = self.env['overtime.rel'].sudo().search([('date', '=', r.date),
+                                                               ('overtime_id.status', '=', 'done')])
+            overtime_update = overtime_update.filtered(lambda x: (x.overtime_id.employee_id and x.overtime_id.employee_id.id == r.employee_id.id)
+                                                   or (x.overtime_id.employee_ids and r.employee_id.id in x.overtime_id.employee_ids.ids))
             if overtime:
                 for ot in overtime:
                     start = int(ot.start_time)
                     end = int(ot.end_time)
+                    if end == r.shift.start.hour + 7:
+                        time_check_in = time_check_in - timedelta(hours=end - start)
+                    if start == r.shift.end_shift.hour + 7:
+                        time_check_out = time_check_out + timedelta(hours=end - start)
+
+            if overtime_update:
+                for ot_update in overtime_update:
+                    start = int(ot_update.start_time)
+                    end = int(ot_update.end_time)
                     if end == r.shift.start.hour + 7:
                         time_check_in = time_check_in - timedelta(hours=end - start)
                     if start == r.shift.end_shift.hour + 7:
@@ -310,12 +332,15 @@ class EmployeeAttendance(models.Model):
 
             # Xử lý in_outs
             in_outs = self.env['word.slip'].sudo().search([
-                ('employee_id', '=', r.employee_id.id),
                 ('from_date', '<=', r.date),
                 ('to_date', '>=', r.date),
                 ('type.date_and_time', '=', 'time'),
                 ('word_slip.status', '=', 'done')
             ])
+
+            in_outs = in_outs.filtered(
+                lambda x: (x.word_slip.employee_id and x.word_slip.employee_id.id == r.employee_id.id) or (
+                            x.word_slip.employee_ids and r.employee_id.id in x.word_slip.employee_ids.ids))
 
             for in_out in in_outs:
                 if in_out and in_out.time_to:
@@ -382,25 +407,39 @@ class EmployeeAttendance(models.Model):
     @api.depends('check_in', 'check_out', 'shift')
     def _get_work_day(self):
         for r in self:
-            if r.shift.half_shift == True:
-                if r.check_in and r.check_out:
-                    r.work_day = 0.5
+            free_time = self.env['free.timekeeping'].sudo().search([('employee_id', '=', r.employee_id.id),
+                                                                    ('state', '=', 'active'),
+                                                                    ('start_date', '<=', r.date),
+                                                                    ('end_date', '>=', r.date)])
+
+            if free_time:
+                if r.compensatory > 0:
+                    r.work_day = 1 - r.compensatory
+                elif r.leave > 0:
+                    r.work_day = 1 - r.leave
                 else:
-                    r.work_day = 0
+                    r.work_day = 1
             else:
-                if r.check_in and r.check_out:
-                    if r.compensatory > 0:
-                        r.work_day = 1 - r.compensatory
-                    elif r.leave > 0:
-                        r.work_day = 1 - r.leave
+                if r.shift.half_shift == True:
+                    if r.check_in and r.check_out:
+                        r.work_day = 0.5
                     else:
-                        r.work_day = 1
-                elif r.check_in and not r.check_out:
-                    r.work_day = 0.5
-                elif not r.check_in and r.check_out:
-                    r.work_day = 0.5
+                        r.work_day = 0
                 else:
-                    r.work_day = 0
+                    if r.check_in and r.check_out:
+                        if r.compensatory > 0:
+                            r.work_day = 1 - r.compensatory
+                        elif r.leave > 0:
+                            r.work_day = 1 - r.leave
+                        else:
+                            r.work_day = 1
+                    elif r.check_in and not r.check_out:
+                        r.work_day = 0.5
+                    elif not r.check_in and r.check_out:
+                        r.work_day = 0.5
+                    else:
+                        r.work_day = 0
+
 
     # tính thứ cho ngày
     @api.depends('date')
@@ -427,12 +466,14 @@ class EmployeeAttendance(models.Model):
 
             # Tính toán số ngày nghỉ (on_leave)
             word_slips = self.env['word.slip'].sudo().search([
-                ('employee_id', '=', r.employee_id.id),
                 ('from_date', '<=', r.date),
                 ('to_date', '>=', r.date),
                 ('type.date_and_time', '=', 'date'),
                 ('word_slip.status', '=', 'done')
             ])
+            word_slips = word_slips.filtered(
+                lambda x: (x.word_slip.employee_id and x.word_slip.employee_id.id == r.employee_id.id) or (
+                        x.word_slip.employee_ids and r.employee_id.id in x.word_slip.employee_ids.ids))
             on_leave = 0
             if word_slips:
                 for slip in word_slips:
