@@ -31,11 +31,13 @@ class WordSlip(models.Model):
     @api.constrains("from_date", "to_date", 'word_slip')
     def check_employee_days_limit(self):
         for r in self:
+            if r.from_date and r.to_date and r.from_date.month != r.to_date.month:
+                raise ValidationError("Dữ liệu từ ngày đến ngày phải trong cùng 1 tháng")
+            start_date = r.from_date.replace(day=1)
+            end_date = start_date + relativedelta(days=-1, months=1)
             if r.word_slip.regis_type == 'one':
                 limit_day = self.env['config.leave'].sudo().search([('employee_ids', 'in', r.word_slip.employee_id.id)])
                 if limit_day:
-                    start_date = r.from_date.replace(day=1)
-                    end_date = start_date + relativedelta(days=-1, months=1)
                     requests = self.env["word.slip"].search([
                         ("word_slip.employee_id", "=", r.word_slip.employee_id.id),
                         ("from_date", ">=", start_date),
@@ -54,8 +56,6 @@ class WordSlip(models.Model):
                     ], limit=1)
 
                     if limit_day:
-                        start_date = r.from_date.replace(day=1)
-                        end_date = start_date + relativedelta(days=-1, months=1)
 
                         # Lọc tất cả đơn của nhân viên này trong tháng
                         requests = self.env["word.slip"].search([
