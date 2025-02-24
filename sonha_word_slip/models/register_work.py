@@ -70,29 +70,3 @@ class RegisterWork(models.Model):
                 date_valid = now - timedelta(days=day.shift)
                 if r.start_date < date_valid or r.end_date < date_valid:
                     raise ValidationError("Bạn không thể đăng ký ca cho ngày quá khứ")
-
-    @api.constrains('start_date', 'end_date', 'start_time', 'end_time', 'employee_id')
-    def _check_time_overlap(self):
-        for record in self:
-            if record.start_time >= record.end_time:
-                raise ValidationError("Giờ bắt đầu phải nhỏ hơn giờ kết thúc.")
-
-            if record.start_date > record.end_date:
-                raise ValidationError("Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc.")
-
-            for employee in record.employee_id:
-                overlapping_schedules = self.env['employee.schedule'].search([
-                    ('id', '!=', record.id),  # Loại trừ chính bản ghi hiện tại
-                    ('employee_id', 'in', employee.id),  # Chỉ xét lịch của nhân viên này
-                    '|', '&',
-                    ('start_date', '<=', record.end_date),
-                    ('end_date', '>=', record.start_date),  # Trùng ngày
-                    '|', '&',
-                    ('start_time', '<', record.end_time),
-                    ('end_time', '>', record.start_time)  # Trùng giờ
-                ])
-
-                if overlapping_schedules:
-                    raise ValidationError(f"Nhân viên {employee.name} đã có lịch trùng thời gian.")
-
-

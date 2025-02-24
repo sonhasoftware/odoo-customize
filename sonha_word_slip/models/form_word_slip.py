@@ -70,6 +70,12 @@ class FormWordSlip(models.Model):
             else:
                 r.check_invisible_type = True
 
+    def unlink(self):
+        for r in self:
+            if r.status != 'sent':
+                raise ValidationError("Chỉ được xóa khi trạng thái là nháp!")
+        return super(FormWordSlip, self).unlink()
+
     @api.depends('employee_id')
     def _compute_record_url(self):
         base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')

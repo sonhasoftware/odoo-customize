@@ -22,6 +22,7 @@
                     <group>
                         <field name="department_id" readonly="status != 'draft' or status_lv2 != 'draft'"/>
                         <field name="type" readonly="status != 'draft' or status_lv2 != 'draft'"/>
+                        <field name="company_id"/>
                         <field name="date" readonly="status != 'draft' or status_lv2 != 'draft'">
                             <tree string="Ngày" editable="bottom">
                                 <field name="date"/>

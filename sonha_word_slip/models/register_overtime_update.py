@@ -43,8 +43,17 @@ class RegisterOvertimeUpdate(models.Model):
     check_qltt = fields.Boolean("Check quản lý trực tiếp", default=False, compute="get_check_qltt")
     check_manager = fields.Boolean("Check giám đốc", default=False, compute="get_check_manager")
     check_user = fields.Boolean("Check nhân viên", default=False, compute="get_user")
+    company_id = fields.Many2one('res.company', string="Công ty", compute="get_company_over")
 
-    @api.onchange('employee_id', 'employee_ids', 'status_lv2')
+    @api.depends('employee_id', 'employee_ids')
+    def get_company_over(self):
+        for r in self:
+            if r.type == 'one':
+                r.company_id = r.employee_id.company_id.id
+            else:
+                r.company_id = r.employee_ids[:1].company_id.id
+
+    @api.depends('employee_id', 'employee_ids', 'status_lv2')
     def get_user(self):
         for r in self:
            if r.type_overtime and r.type == 'one':
