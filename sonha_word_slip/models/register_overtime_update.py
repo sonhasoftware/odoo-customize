@@ -53,20 +53,6 @@ class RegisterOvertimeUpdate(models.Model):
             else:
                 r.company_id = r.employee_ids[:1].company_id.id
 
-    @api.depends('employee_id', 'employee_ids', 'status_lv2')
-    def get_user(self):
-        for r in self:
-           if r.type_overtime and r.type == 'one':
-               if (r.employee_id.user_id.id == self.env.user.id or r.create_uid.id == self.env.user.id) and r.status_lv2 == 'draft':
-                   r.check_user = True
-               else:
-                   r.check_user = False
-           elif r.type_overtime and r.type == 'many':
-               if (r.employee_id[:1].user_id.id == self.env.user.id or r.create_uid.id == self.env.user.id) and r.status_lv2 == 'draft':
-                   r.check_user = True
-               else:
-                   r.check_user = False
-
     @api.onchange('status_lv2')
     def get_check_manager(self):
         for r in self:
@@ -102,6 +88,21 @@ class RegisterOvertimeUpdate(models.Model):
                     r.type_overtime = True
                 else:
                     r.type_overtime = False
+
+    @api.onchange('employee_id', 'employee_ids', 'status_lv2', 'type_overtime')
+    def get_user(self):
+        for r in self:
+            if r.type_overtime and r.type == 'one':
+                if (
+                        r.employee_id.user_id.id == self.env.user.id or r.create_uid.id == self.env.user.id) and r.status_lv2 == 'draft':
+                    r.check_user = True
+                else:
+                    r.check_user = False
+            elif r.type_overtime and r.type == 'many':
+                if (r.employee_id[:1].user_id.id == self.env.user.id or r.create_uid.id == self.env.user.id) and r.status_lv2 == 'draft':
+                    r.check_user = True
+                else:
+                    r.check_user = False
 
     def action_sent(self):
         for r in self:
