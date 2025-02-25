@@ -92,13 +92,12 @@ class RegisterOvertimeUpdate(models.Model):
     @api.onchange('employee_id', 'employee_ids', 'status_lv2', 'type_overtime')
     def get_user(self):
         for r in self:
-            if r.type_overtime and r.type == 'one':
-                if (
-                        r.employee_id.user_id.id == self.env.user.id or r.create_uid.id == self.env.user.id) and r.status_lv2 == 'draft':
+            if r.type == 'one':
+                if (r.employee_id.user_id.id == self.env.user.id or r.create_uid.id == self.env.user.id) and r.status_lv2 == 'draft':
                     r.check_user = True
                 else:
                     r.check_user = False
-            elif r.type_overtime and r.type == 'many':
+            else:
                 if (r.employee_id[:1].user_id.id == self.env.user.id or r.create_uid.id == self.env.user.id) and r.status_lv2 == 'draft':
                     r.check_user = True
                 else:
