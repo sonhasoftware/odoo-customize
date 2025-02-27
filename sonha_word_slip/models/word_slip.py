@@ -28,9 +28,8 @@ class WordSlip(models.Model):
     duration = fields.Float("Ngày", compute="get_duration")
     reason = fields.Text(string="Lý do")
 
-    @api.constrains("from_date", "to_date", 'word_slip')
-    def check_employee_days_limit(self):
-        for r in self:
+    def check_employee_days_limit(self, data):
+        for r in data:
             if r.from_date and r.to_date and r.from_date.month != r.to_date.month:
                 raise ValidationError("Dữ liệu từ ngày đến ngày phải trong cùng 1 tháng")
             start_date = r.from_date.replace(day=1)
@@ -39,11 +38,13 @@ class WordSlip(models.Model):
                 limit_day = self.env['config.leave'].sudo().search([('employee_ids', 'in', r.word_slip.employee_id.id)])
                 if limit_day:
                     requests = self.env["word.slip"].search([
-                        ("word_slip.employee_id", "=", r.word_slip.employee_id.id),
                         ("from_date", ">=", start_date),
                         ("to_date", "<=", end_date),
-                        ("word_slip.type", "=", limit_day.word_slip.id),
-                        ("id", "!=", r.id)
+                        ("type", "=", limit_day.word_slip.id),
+                        ("id", "!=", r.id),
+                        '|',
+                        ("word_slip.employee_id", "=", r.word_slip.employee_id.id),
+                        ("word_slip.employee_ids", "in", r.word_slip.employee_id.id),
                     ])
                     total_days = sum((r.to_date - r.from_date).days + 1 for r in requests)
                     current_days = (r.to_date - r.from_date).days + 1
@@ -56,14 +57,15 @@ class WordSlip(models.Model):
                     ], limit=1)
 
                     if limit_day:
-
-                        # Lọc tất cả đơn của nhân viên này trong tháng
                         requests = self.env["word.slip"].search([
-                            ("word_slip.employee_ids", "in", emp.id),  # Nhân viên trong đơn
                             ("from_date", ">=", start_date),
                             ("to_date", "<=", end_date),
                             ("word_slip.type", "=", limit_day.word_slip.id),
-                            ("id", "!=", r.id)  # Loại trừ đơn hiện tại nếu đang sửa
+                            ("id", "!=", r.id),
+                            '|',
+                            ("word_slip.employee_id", "=", emp.id),
+                            ("word_slip.employee_ids", "in", emp.id),
+                        # Loại trừ đơn hiện tại nếu đang sửa
                         ])
 
                         # Tính tổng số ngày đã đăng ký

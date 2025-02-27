@@ -11,7 +11,7 @@
                     <field name="check_manager" invisible="1"/>
                     <field name="check_user" invisible="1"/>
                     <button name="action_confirm" string="Duyệt" type="object" class="oe_highlight" confirm="Bạn có chắc chắn muốn duyệt đơn này không?" invisible="type_overtime == True"/>
-                    <button name="action_sent" string="Gửi Duyệt" type="object" class="oe_highlight" confirm="Bạn có chắc chắn muốn gửi duyệt đơn này không?" invisible="check_user != True"/>
+                    <button name="action_sent" string="Gửi Duyệt" type="object" class="oe_highlight" confirm="Bạn có chắc chắn muốn gửi duyệt đơn này không?" invisible="check_user != True or type_overtime != True"/>
                     <button name="action_confirm_status" string="Xác nhận" type="object" class="oe_highlight" confirm="Bạn có chắc chắn muốn xác nhận đơn này không?" invisible="check_qltt != True"/>
                     <button name="action_done" string="Duyệt" type="object" class="oe_highlight" confirm="Bạn có chắc chắn muốn duyệt đơn này không?" invisible="check_manager != True"/>
 
@@ -32,6 +32,7 @@
                         </field>
                         <field name="employee_id" options="{'no_create': True, 'no_open': True}" invisible="type == 'many'" domain="[('user_id', '=', uid)]" readonly="status != 'draft' or status_lv2 != 'draft'" required="type == 'one'"/>
                         <field name="employee_ids" widget="many2many_tags" options="{'no_create': True, 'no_open': True}" invisible="type == 'one'" domain="[('department_id', '=', department_id),('user_id', '!=', uid)]" readonly="status != 'draft' or status_lv2 != 'draft'" required="type == 'many'"/>
+                        <field name="employee_security" invisible="1"/>
                     </group>
                 </sheet>
                 <div class="oe_chatter">

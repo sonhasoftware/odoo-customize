@@ -101,9 +101,12 @@ class FormWordSlip(models.Model):
 
     def multi_approval(self):
         for r in self:
-            r.status = 'done'
-            r.status_lv1 = 'done'
-            r.status_lv2 = 'done'
+            if r.status == 'draft':
+                r.status = 'done'
+                r.status_lv1 = 'done'
+                r.status_lv2 = 'done'
+            else:
+                raise ValidationError("Chỉ duyệt được những bản ghi ở trạng thái chờ duyệt!")
 
     def action_sent(self):
         for r in self:
@@ -135,7 +138,7 @@ class FormWordSlip(models.Model):
     def get_complete_approval(self):
         for r in self:
             r.complete_approval_lv = False
-            if (r.employee_confirm.user_id.id == self.env.user.id or r.employee_approval.user_id.id == self.env.user.id) and r.status == 'done':
+            if (r.employee_confirm.user_id.id == self.env.user.id or r.employee_approval.user_id.id == self.env.user.id) and r.status != 'sent':
                 r.complete_approval_lv = True
 
     def complete_approval(self):
@@ -254,6 +257,8 @@ class FormWordSlip(models.Model):
 
     def create(self, vals):
         rec = super(FormWordSlip, self).create(vals)
+
+        self.env['word.slip'].sudo().check_employee_days_limit(rec.word_slip_id)
 
         # check validate khi tạo bản ghi mới
         self.process_word_slip_validation(rec)

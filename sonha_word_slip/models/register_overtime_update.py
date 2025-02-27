@@ -45,6 +45,41 @@ class RegisterOvertimeUpdate(models.Model):
     check_user = fields.Boolean("Check nhân viên", default=False, compute="get_user")
     company_id = fields.Many2one('res.company', string="Công ty", compute="get_company_over")
 
+    employee_security = fields.Many2one('hr.employee', compute='get_employee_security')
+
+    @api.constrains('employee_id', 'employee_ids', 'date')
+    def _check_overtime_conflict(self):
+        for record in self:
+            # Lấy danh sách nhân viên của đơn đăng ký
+            employee_list = record.employee_ids.ids
+            if record.employee_id:
+                employee_list.append(record.employee_id.id)
+
+            # Duyệt từng dòng chi tiết làm thêm
+            for overtime in record.date:
+                # Lọc các bản ghi overtime khác trong cùng ngày
+                conflicts = self.env["overtime.rel"].search([
+                    ("date", "=", overtime.date),  # Cùng ngày
+                    ("overtime_id", "!=", record.id),
+                    '|',
+                    ("overtime_id.employee_id", "in", employee_list),
+                    ("overtime_id.employee_ids", "in", employee_list)# Nhân viên trùng
+                ])
+
+                for conflict in conflicts:
+                    if not (overtime.end_time <= conflict.start_time or overtime.start_time >= conflict.end_time):
+                        raise ValidationError(f"Nhân viên đã có lịch làm thêm trùng giờ vào ngày {overtime.date}!")
+
+    @api.depends('employee_id', 'employee_ids')
+    def get_employee_security(self):
+        for r in self:
+            if r.employee_id:
+                r.employee_security = r.employee_id.parent_id.id
+            elif r.employee_ids:
+                r.employee_security = r.employee_ids[:1].parent_id.id
+            else:
+                r.employee_security = None
+
     @api.depends('employee_id', 'employee_ids')
     def get_company_over(self):
         for r in self:
@@ -162,3 +197,5 @@ class RegisterOvertimeUpdate(models.Model):
             if r.status != 'draft':
                 raise ValidationError("chỉ được xóa bản ghi ở trạng thái nháp")
         return super(RegisterOvertimeUpdate, self).unlink()
+
+

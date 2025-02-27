@@ -70,3 +70,21 @@ class RegisterWork(models.Model):
                 date_valid = now - timedelta(days=day.shift)
                 if r.start_date < date_valid or r.end_date < date_valid:
                     raise ValidationError("Bạn không thể đăng ký ca cho ngày quá khứ")
+
+    @api.constrains('employee_id', 'start_date', 'end_date')
+    def _check_overlap(self):
+        for record in self:
+            for employee in record.employee_id:
+                overlapping_records = self.env['register.work'].sudo().search([
+                    ('id', '!=', record.id),  # Bỏ qua bản ghi hiện tại
+                    ('employee_id', 'in', employee.id),  # Nhân viên đã đăng ký
+                    '|',
+                    '&', ('start_date', '<=', record.end_date), ('end_date', '>=', record.start_date),
+                    # Trùng hoặc gối ngày
+                    '&', ('start_date', '<=', record.start_date), ('end_date', '>=', record.end_date)
+                    # Bao trùm hoàn toàn
+                ])
+
+                if overlapping_records:
+                    raise ValidationError(
+                        f"Nhân viên {employee.name} đã có ca trong thời gian bạn chọn. Vui lòng chọn khoảng thời gian khác.")

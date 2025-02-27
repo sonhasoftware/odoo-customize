@@ -296,9 +296,10 @@
         <field name="name">Rule HR register_overtime_update read</field>
         <field name="model_id" ref="model_register_overtime_update"/>
         <field name="domain_force">
-            ['|',
-                ('company_id', '=', False),
-                ('company_id', 'in', user.company_ids.ids)
+            ['|', '|',
+                ('employee_security', '=', False),
+                ('employee_security.company_id', '=', user.company_id.id),
+                ('employee_security.company_id', 'in', user.company_ids.ids),
             ]
         </field>
         <field name="groups" eval="[(4, ref('sonha_employee.group_hr_employee'))]"/>
@@ -323,9 +324,10 @@
         <field name="name">Rule Manager register_overtime_update read</field>
         <field name="model_id" ref="model_register_overtime_update"/>
         <field name="domain_force">
-            ['|',
-                ('company_id', '=', False),
-                ('company_id', 'in', user.company_ids.ids)
+            ['|', '|',
+                ('employee_security', '=', False),
+                ('employee_security.company_id', '=', user.company_id.id),
+                ('employee_security.company_id', 'in', user.company_ids.ids),
             ]
         </field>
         <field name="groups" eval="[(4, ref('sonha_employee.group_manager_employee'))]"/>
