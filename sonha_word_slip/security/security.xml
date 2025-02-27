@@ -297,8 +297,8 @@
         <field name="model_id" ref="model_register_overtime_update"/>
         <field name="domain_force">
             ['|',
-                ('company_id', '=', user.company_id.id),
-                ('company_id', 'in', user.company_ids.ids)
+                ('employee_id.company_id', '=', user.company_id.id),
+                ('employee_ids.company_id', 'in', user.company_ids.ids)
             ]
         </field>
         <field name="groups" eval="[(4, ref('sonha_employee.group_hr_employee'))]"/>
@@ -324,8 +324,8 @@
         <field name="model_id" ref="model_register_overtime_update"/>
         <field name="domain_force">
             ['|',
-                ('company_id', '=', user.company_id.id),
-                ('company_id', 'in', user.company_ids.ids)
+                ('employee_id.company_id', '=', user.company_id.id),
+                ('employee_ids.company_id', 'in', user.company_ids.ids)
             ]
         </field>
         <field name="groups" eval="[(4, ref('sonha_employee.group_manager_employee'))]"/>
