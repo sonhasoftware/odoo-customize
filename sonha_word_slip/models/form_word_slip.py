@@ -354,4 +354,5 @@ class FormWordSlip(models.Model):
             for record in self:
                 # check validate
                 self.process_word_slip_validation(record)
+                self.env['word.slip'].sudo().check_employee_days_limit(record.word_slip_id)
         return res

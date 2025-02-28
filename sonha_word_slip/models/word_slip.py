@@ -35,7 +35,8 @@ class WordSlip(models.Model):
             start_date = r.from_date.replace(day=1)
             end_date = start_date + relativedelta(days=-1, months=1)
             if r.word_slip.regis_type == 'one':
-                limit_day = self.env['config.leave'].sudo().search([('employee_ids', 'in', r.word_slip.employee_id.id)])
+                limit_day = self.env['config.leave'].sudo().search([('employee_ids', 'in', r.word_slip.employee_id.id),
+                                                                    ('word_slip', '=', r.word_slip.type.id)], limit=1)
                 if limit_day:
                     requests = self.env["word.slip"].search([
                         ("from_date", ">=", start_date),
@@ -53,7 +54,8 @@ class WordSlip(models.Model):
             elif r.word_slip.regis_type == 'many':
                 for emp in r.word_slip.employee_ids:
                     limit_day = self.env["config.leave"].sudo().search([
-                        ("employee_ids", "in", emp.id)
+                        ("employee_ids", "in", emp.id),
+                        ('word_slip', '=', r.word_slip.type.id)
                     ], limit=1)
 
                     if limit_day:
