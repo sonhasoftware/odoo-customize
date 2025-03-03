@@ -24,6 +24,7 @@ class FormWordSlip(models.Model):
         ('sent', 'Nháp'),
         ('draft', 'Chờ duyệt'),
         ('done', 'Đã duyệt'),
+        ('cancel', 'Hủy'),
     ], string='Trạng thái', default='sent')
     state_ids = fields.Many2many('approval.state', 'form_word_slip_rel', 'form_word_slip', 'states_id', string="Trạng thái")
     day_duration = fields.Float("Khoảng cách ngày")
@@ -60,6 +61,37 @@ class FormWordSlip(models.Model):
                                     string='Tên nhân viên', tracking=True)
 
     company_id = fields.Many2one('res.company', string="Công ty", required=True, default=lambda self: self.env.company)
+    check_cancel = fields.Boolean('Hủy', compute="get_action_cancel", default=False)
+    duration = fields.Float("Số ngày", compute="get_duration_leave")
+
+    def get_duration_leave(self):
+        for r in self:
+            leave = self.env['word.slip'].sudo().search([('word_slip', '=', r.id)])
+            if leave:
+                r.duration = sum(leave.mapped('duration'))
+
+    @api.constrains('employee_id', 'employee_ids', 'word_slip_id', 'type')
+    def check_validate_leave(self):
+        for r in self:
+            if r.type.key == "NP":
+                list_employee = r.employee_ids or [r.employee_id]
+                for employee_id in list_employee:
+                    if r.duration > employee_id.old_leave_balance + employee_id.new_leave_balance:
+                        raise ValidationError(f"Nhân viên {employee_id.name} không còn phép!")
+
+    @api.depends('status', 'employee_confirm', 'employee_approval')
+    def get_action_cancel(self):
+        for r in self:
+            if r.status == 'draft' and (self.env.user.employee_id.id == r.employee_approval.id or self.env.user.employee_id.id == r.employee_confirm.id):
+                r.check_cancel = True
+            else:
+                r.check_cancel = False
+
+    def action_cancel(self):
+        for r in self:
+            r.status = 'cancel'
+            r.status_lv1 = 'cancel'
+            r.status_lv2 = 'cancel'
 
 
     @api.onchange('type')
@@ -100,13 +132,31 @@ class FormWordSlip(models.Model):
                 r.check_sent = False
 
     def multi_approval(self):
-        for r in self:
-            if r.status == 'draft':
-                r.status = 'done'
-                r.status_lv1 = 'done'
-                r.status_lv2 = 'done'
+        def deduct_leave(employee, duration):
+            """Trừ phép nhân viên và trả về True nếu thành công, False nếu không đủ phép."""
+            if duration > employee.old_leave_balance + employee.new_leave_balance:
+                raise ValidationError(f"Nhân viên {employee.name} không còn phép nữa!")
+
+            if employee.old_leave_balance >= duration:
+                employee.old_leave_balance -= duration
             else:
+                duration -= employee.old_leave_balance
+                employee.old_leave_balance = 0
+                employee.new_leave_balance -= duration
+            return True
+
+        for r in self:
+            if r.status != 'draft':
                 raise ValidationError("Chỉ duyệt được những bản ghi ở trạng thái chờ duyệt!")
+
+            if r.type.key == "NP":
+                employees = r.employee_ids or [r.employee_id]
+                for employee in employees:
+                    deduct_leave(employee, r.duration)
+
+            r.status = 'done'
+            r.status_lv1 = 'done'
+            r.status_lv2 = 'done'
 
     def action_sent(self):
         for r in self:
@@ -178,21 +228,33 @@ class FormWordSlip(models.Model):
                 raise ValidationError("Bạn không có quyền thực hiện hành động này")
 
     def action_approval(self):
-        for r in self:
-            if r.check_level != True:
-                if r.employee_approval.user_id.id == self.env.user.id:
-                    r.status_lv1 = 'done'
-                    r.status = 'done'
-                    r.button_done = False
-                else:
-                    raise ValidationError("Bạn không có quyền thực hiện hành động này")
+        def deduct_leave(employee, duration):
+            """Trừ phép của nhân viên."""
+            if duration > employee.old_leave_balance + employee.new_leave_balance:
+                raise ValidationError(f"Nhân viên {employee.name} không còn phép nữa!")
+
+            if employee.old_leave_balance >= duration:
+                employee.old_leave_balance -= duration
             else:
-                if r.employee_approval.user_id.id == self.env.user.id:
-                    r.status_lv2 = 'done'
-                    r.status = 'done'
-                    r.button_done = False
-                else:
-                    raise ValidationError("Bạn không có quyền thực hiện hành động này")
+                duration -= employee.old_leave_balance
+                employee.old_leave_balance = 0
+                employee.new_leave_balance -= duration
+
+        for r in self:
+            if r.employee_approval.user_id.id != self.env.user.id:
+                raise ValidationError("Bạn không có quyền thực hiện hành động này")
+
+            # Xác định cấp duyệt
+            status_level = "status_lv2" if r.check_level else "status_lv1"
+
+            if r.type.key == "NP":
+                employees = r.employee_ids or [r.employee_id]
+                for employee in employees:
+                    deduct_leave(employee, r.duration)
+
+            setattr(r, status_level, 'done')
+            r.status = 'done'
+            r.button_done = False
 
     # hàm check validate
     def validate_record_overlap(self, record, word_slips, form_type):

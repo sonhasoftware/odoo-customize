@@ -9,9 +9,11 @@
                     <field name="button_confirm" invisible="1"/>
                     <field name="button_done" invisible="1"/>
                     <field name="check_sent" invisible="1"/>
+                    <field name="check_cancel" invisible="1"/>
                     <button name="action_sent" string="Gửi duyệt" type="object" class="oe_highlight" invisible="check_sent != True" confirm="Bạn có chắc chắn muốn gửi đơn lên cấp quản lý duyệt không?"/>
                     <button name="action_confirm" string="Duyệt" type="object" class="oe_highlight" invisible="button_confirm != True" confirm="Bạn có chắc chắn muốn duyệt đơn này không?"/>
                     <button name="action_approval" string="Duyệt" type="object" class="oe_highlight" invisible="button_done != True" confirm="Bạn có chắc chắn muốn duyệt đơn này không?"/>
+                    <button name="action_cancel" string="Hủy duyệt" type="object" class="oe_highlight" invisible="check_cancel != True" confirm="Bạn có chắc chắn muốn hủy duyệt đơn này không?"/>
                     <field name="check_level" invisible="1"/>
                     <field name="status_lv1" widget="statusbar" invisible="check_level == True"/>
                     <field name="status_lv2" widget="statusbar" invisible="check_level != True"/>
@@ -47,6 +49,7 @@
                         </field>
                         <field name="employee_id" domain="[('user_id', '=', uid)]" readonly="status != 'sent'" options="{'no_create': True, 'no_open': True}" invisible="regis_type == 'many'" required="regis_type == 'one'"/>
                         <field name="employee_ids" domain="[('department_id', '=', department),('user_id', '!=', uid)]" readonly="status != 'sent'" options="{'no_create': True, 'no_open': True}" invisible="regis_type == 'one'" required="regis_type == 'many'" widget="many2many_tags"/>
+                        <field name="duration"/>
                     </group>
                 </sheet>
                 <div class="oe_chatter">

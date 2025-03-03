@@ -106,6 +106,27 @@ class SonHaEmployee(models.Model):
 
     seniority_display = fields.Char(string="Thâm niên", compute="_compute_seniority_display")
 
+    old_leave_balance = fields.Float(string="Phép cũ", readonly=True)
+    new_leave_balance = fields.Float(string="Phép mới", readonly=True)
+
+    def update_employee_leave(self):
+        """Cập nhật phép hàng tháng và reset phép đầu năm."""
+        today = date.today()
+        employees = self.search([])
+
+        for emp in employees:
+            # Cộng phép mới mỗi tháng
+            emp.new_leave_balance += 1
+
+            # Ngày 1/1: chuyển phép mới sang phép cũ, reset phép mới
+            if today.month == 1 and today.day == 1:
+                emp.old_leave_balance = emp.new_leave_balance
+                emp.new_leave_balance = 1
+
+            # Ngày 1/7: Xóa phép cũ nếu chưa dùng
+            if today.month == 7 and today.day == 1:
+                emp.old_leave_balance = 0
+
     @api.depends("onboard")
     def _compute_seniority_display(self):
         today = date.today()

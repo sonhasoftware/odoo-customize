@@ -105,31 +105,32 @@ class EmployeeAttendance(models.Model):
                     lambda leave: leave.date_from.date() <= r.date <= leave.date_to.date()):
                 r.public_leave = 1
 
-    @api.depends('employee_id', 'date')
+    @api.depends('employee_id', 'date', 'check_in', 'check_out')
     def get_hours_reinforcement(self):
         for record in self:
             total_overtime = 0
-            ot = self.env['register.overtime'].sudo().search([('employee_id', '=', record.employee_id.id),
-                                                              ('start_date', '<=', record.date),
-                                                              ('end_date', '>=', record.date),
-                                                              ('status', '=', 'done')])
+            if record.check_in or record.check_out:
+                ot = self.env['register.overtime'].sudo().search([('employee_id', '=', record.employee_id.id),
+                                                                  ('start_date', '<=', record.date),
+                                                                  ('end_date', '>=', record.date),
+                                                                  ('status', '=', 'done')])
 
-            overtime = self.env['overtime.rel'].sudo().search([('date', '=', record.date),
-                                                               ('overtime_id.status', '=', 'done')])
-            overtime = overtime.filtered(lambda x: (x.overtime_id.employee_id and x.overtime_id.employee_id.id == record.employee_id.id)
-                                                   or (x.overtime_id.employee_ids and record.employee_id.id in x.overtime_id.employee_ids.ids))
-            if ot:
-                for r in ot:
-                    if r.start_date != r.end_date and r.start_time > r.end_time:
-                        if r.start_date == record.date:
-                            total_overtime += abs(24 - r.start_time)
-                        elif r.end_date == record.date:
-                            total_overtime += abs(r.end_time)
-                    else:
-                        total_overtime += abs(r.end_time - r.start_time)
-            if overtime:
-                for x in overtime:
-                    total_overtime += abs(x.end_time - x.start_time)
+                overtime = self.env['overtime.rel'].sudo().search([('date', '=', record.date),
+                                                                   ('overtime_id.status', '=', 'done')])
+                overtime = overtime.filtered(lambda x: (x.overtime_id.employee_id and x.overtime_id.employee_id.id == record.employee_id.id)
+                                                       or (x.overtime_id.employee_ids and record.employee_id.id in x.overtime_id.employee_ids.ids))
+                if ot:
+                    for r in ot:
+                        if r.start_date != r.end_date and r.start_time > r.end_time:
+                            if r.start_date == record.date:
+                                total_overtime += abs(24 - r.start_time)
+                            elif r.end_date == record.date:
+                                total_overtime += abs(r.end_time)
+                        else:
+                            total_overtime += abs(r.end_time - r.start_time)
+                if overtime:
+                    for x in overtime:
+                        total_overtime += abs(x.end_time - x.start_time)
             record.over_time = total_overtime
 
     color = fields.Selection([

@@ -51,6 +51,8 @@
                     <field name="place_of_issue" required = "1"/>
                     <field name="culture_level"/>
                     <field name="total_compensatory"/>
+                    <field name="old_leave_balance"/>
+                    <field name="new_leave_balance"/>
                 </xpath>
 <!--        kế thừa thêm field vào page hr setting (page 3)-->
                 <xpath expr="//page[@name='hr_settings']//field[@name='user_id']" position="after">
