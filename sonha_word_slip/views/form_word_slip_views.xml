@@ -70,8 +70,11 @@
                 <field name="department"/>
                 <field name="employee_id"/>
                 <field name="employee_ids" widget="many2many_tags"/>
+                <field name="all_dates"/>
                 <field name="type"/>
                  <field name="status"/>
+                <field name="duration"/>
+                <field name="month"/>
             </tree>
         </field>
     </record>

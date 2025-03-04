@@ -62,13 +62,32 @@ class FormWordSlip(models.Model):
 
     company_id = fields.Many2one('res.company', string="Công ty", required=True, default=lambda self: self.env.company)
     check_cancel = fields.Boolean('Hủy', compute="get_action_cancel", default=False)
-    duration = fields.Float("Số ngày", compute="get_duration_leave")
+    duration = fields.Float("Số ngày nghỉ phép", compute="get_duration_leave")
+    month = fields.Integer("Tháng", compute="get_month_leave")
+    all_dates = fields.Text(string="Khoảng ngày", compute="_compute_all_dates")
+
+    @api.depends('word_slip_id')
+    def _compute_all_dates(self):
+        for record in self:
+            dates = [f"{child.from_date.strftime('%d/%m/%Y')} → {child.to_date.strftime('%d/%m/%Y')}" for child in
+                     record.word_slip_id if child.from_date and child.to_date]
+            record.all_dates = ", ".join(dates) if dates else "Không có"
+
+    def get_month_leave(self):
+        for r in self:
+            leave = self.env['word.slip'].sudo().search([('word_slip', '=', r.id)], limit=1)
+            if leave and leave.from_date:
+                r.month = leave.from_date.month
+            else:
+                r.month = None
 
     def get_duration_leave(self):
         for r in self:
             leave = self.env['word.slip'].sudo().search([('word_slip', '=', r.id)])
             if leave:
                 r.duration = sum(leave.mapped('duration'))
+            else:
+                r.duration = 0
 
     @api.constrains('employee_id', 'employee_ids', 'word_slip_id', 'type')
     def check_validate_leave(self):

@@ -46,6 +46,14 @@ class RegisterOvertimeUpdate(models.Model):
     company_id = fields.Many2one('res.company', string="Công ty", compute="get_company_over")
 
     employee_security = fields.Many2one('hr.employee', compute='get_employee_security')
+    all_times = fields.Text(string="Thời gian", compute="_compute_all_times")
+
+    @api.depends('date')
+    def _compute_all_times(self):
+        for record in self:
+            times = [f"{child.date.strftime('%d/%m/%Y')} {child.start_time}h → {child.end_time}h" for child in
+                     record.date if child.date and child.start_time and child.end_time]
+            record.all_times = "\n".join(times) if times else "Không có dữ liệu"
 
     @api.constrains('employee_id', 'employee_ids', 'date')
     def _check_overtime_conflict(self):
