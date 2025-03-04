@@ -63,8 +63,8 @@ class FormWordSlip(models.Model):
     company_id = fields.Many2one('res.company', string="Công ty", required=True, default=lambda self: self.env.company)
     check_cancel = fields.Boolean('Hủy', compute="get_action_cancel", default=False)
     duration = fields.Float("Số ngày nghỉ phép", compute="get_duration_leave")
-    month = fields.Integer("Tháng", compute="get_month_leave")
-    all_dates = fields.Text(string="Khoảng ngày", compute="_compute_all_dates")
+    month = fields.Integer("Tháng", compute="get_month_leave", store=True)
+    all_dates = fields.Text(string="Khoảng ngày", compute="_compute_all_dates", store=True)
 
     @api.depends('word_slip_id')
     def _compute_all_dates(self):

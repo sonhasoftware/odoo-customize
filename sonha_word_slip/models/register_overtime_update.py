@@ -46,7 +46,7 @@ class RegisterOvertimeUpdate(models.Model):
     company_id = fields.Many2one('res.company', string="Công ty", compute="get_company_over")
 
     employee_security = fields.Many2one('hr.employee', compute='get_employee_security')
-    all_times = fields.Text(string="Thời gian", compute="_compute_all_times")
+    all_times = fields.Text(string="Thời gian", compute="_compute_all_times", store=True)
 
     @api.depends('date')
     def _compute_all_times(self):
