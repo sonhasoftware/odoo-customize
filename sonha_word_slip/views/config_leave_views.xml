@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_config_leave_tree" model="ir.ui.view">
+        <field name="name">view.config.leave.tree</field>
+        <field name="model">config.leave</field>
+        <field name="arch" type="xml">
+            <tree string="Cấu hình số lượng đơn từ trong tháng" editable="bottom">
+                <field name="employee_ids" widget="many2many_tags"/>
+                <field name="word_slip"/>
+                <field name="date"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_config_leave" model="ir.actions.act_window">
+        <field name="name">Cấu hình số lượng đơn từ trong tháng</field>
+        <field name="res_model">config.leave</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

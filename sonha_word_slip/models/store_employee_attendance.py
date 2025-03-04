@@ -45,63 +45,64 @@ class EmployeeAttendanceStore(models.Model):
     c3k4 = fields.Float("Ca 3 kíp 4")
 
     def copy_to_stored_model(self):
-        today = date.today()
-        first_day_last_month = (today.replace(day=1) - timedelta(days=1)).replace(day=1)
-
-        # Tìm tất cả các bản ghi cần xử lý
-        list_attendances = self.env['employee.attendance'].sudo().search([
-            ('date', '>=', first_day_last_month),
-            ('date', '<=', today)
-        ])
-
-        # Xác định kích thước batch (ví dụ: 500 bản ghi mỗi lần)
-        batch_size = 500
-        total_records = len(list_attendances)
-
-        for start in range(0, total_records, batch_size):
-            # Chia thành từng batch nhỏ
-            batch_records = list_attendances[start:start + batch_size]
-
-            for record in batch_records:
-                existing_record = self.sudo().search([
-                    ('employee_id', '=', record.employee_id.id),
-                    ('date', '=', record.date)
-                ], limit=1)
-
-                # Chuẩn bị dữ liệu
-                vals = {
-                    'department_id': record.department_id.id,
-                    'weekday': record.weekday,
-                    'check_in': record.check_in,
-                    'check_out': record.check_out,
-                    'duration': record.duration,
-                    'shift': record.shift.id if record.shift else False,
-                    'time_check_in': record.time_check_in,
-                    'time_check_out': record.time_check_out,
-                    'check_no_in': record.check_no_in,
-                    'check_no_out': record.check_no_out,
-                    'note': record.note,
-                    'work_day': record.work_day,
-                    'minutes_late': record.minutes_late,
-                    'minutes_early': record.minutes_early,
-                    'month': record.month,
-                    'year': record.year,
-                    'over_time': record.over_time,
-                    'leave': record.leave,
-                    'compensatory': record.compensatory,
-                    'public_leave': record.public_leave,
-                    'c2k3': record.c2k3,
-                    'c3k4': record.c3k4,
-                }
-
-                if existing_record:
-                    # Cập nhật từng trường để đảm bảo lưu dữ liệu
-                    for field, value in vals.items():
-                        existing_record.sudo().write({field: value})
-                else:
-                    # Tạo mới nếu không tồn tại
-                    vals.update({
-                        'employee_id': record.employee_id.id,
-                        'date': record.date,
-                    })
-                    self.sudo().create(vals)
+        pass
+        # today = date.today()
+        # first_day_last_month = (today.replace(day=1) - timedelta(days=1)).replace(day=1)
+        #
+        # # Tìm tất cả các bản ghi cần xử lý
+        # list_attendances = self.env['employee.attendance'].sudo().search([
+        #     ('date', '>=', first_day_last_month),
+        #     ('date', '<=', today)
+        # ])
+        #
+        # # Xác định kích thước batch (ví dụ: 500 bản ghi mỗi lần)
+        # batch_size = 500
+        # total_records = len(list_attendances)
+        #
+        # for start in range(0, total_records, batch_size):
+        #     # Chia thành từng batch nhỏ
+        #     batch_records = list_attendances[start:start + batch_size]
+        #
+        #     for record in batch_records:
+        #         existing_record = self.sudo().search([
+        #             ('employee_id', '=', record.employee_id.id),
+        #             ('date', '=', record.date)
+        #         ], limit=1)
+        #
+        #         # Chuẩn bị dữ liệu
+        #         vals = {
+        #             'department_id': record.department_id.id,
+        #             'weekday': record.weekday,
+        #             'check_in': record.check_in,
+        #             'check_out': record.check_out,
+        #             'duration': record.duration,
+        #             'shift': record.shift.id if record.shift else False,
+        #             'time_check_in': record.time_check_in,
+        #             'time_check_out': record.time_check_out,
+        #             'check_no_in': record.check_no_in,
+        #             'check_no_out': record.check_no_out,
+        #             'note': record.note,
+        #             'work_day': record.work_day,
+        #             'minutes_late': record.minutes_late,
+        #             'minutes_early': record.minutes_early,
+        #             'month': record.month,
+        #             'year': record.year,
+        #             'over_time': record.over_time,
+        #             'leave': record.leave,
+        #             'compensatory': record.compensatory,
+        #             'public_leave': record.public_leave,
+        #             'c2k3': record.c2k3,
+        #             'c3k4': record.c3k4,
+        #         }
+        #
+        #         if existing_record:
+        #             # Cập nhật từng trường để đảm bảo lưu dữ liệu
+        #             for field, value in vals.items():
+        #                 existing_record.sudo().write({field: value})
+        #         else:
+        #             # Tạo mới nếu không tồn tại
+        #             vals.update({
+        #                 'employee_id': record.employee_id.id,
+        #                 'date': record.date,
+        #             })
+        #             self.sudo().create(vals)

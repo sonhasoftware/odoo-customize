@@ -10,5 +10,18 @@
             <field name="interval_type">days</field>
             <field name="numbercall">-1</field>
         </record>
+
+        <record id="cron_update_employee_leave" model="ir.cron">
+            <field name="name">Cập nhật phép nhân viên</field>
+            <field name="model_id" ref="hr.model_hr_employee"/>
+            <field name="state">code</field>
+            <field name="code">model.update_employee_leave()</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">months</field>
+            <field name="numbercall">-1</field>
+            <field name="nextcall" eval="(datetime.now().replace(day=1, hour=0, minute=0, second=0) + timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S')"/>
+
+        </record>
     </data>
 </odoo>

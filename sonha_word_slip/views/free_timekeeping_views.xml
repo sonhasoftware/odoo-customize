@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Tree View -->
+    <record id="view_free_timekeeping_tree" model="ir.ui.view">
+        <field name="name">view.free.timekeeping.tree</field>
+        <field name="model">free.timekeeping</field>
+        <field name="arch" type="xml">
+            <tree string="Danh sách miễn chấm công" editable="bottom">
+                <field name="employee_id"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_free_timekeeping_mark_as_done" model="ir.actions.server">
+        <field name="name">Duyệt nhiều</field>
+        <field name="model_id" ref="model_free_timekeeping"/>
+        <field name="binding_model_id" ref="model_free_timekeeping"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+            action = records.multi_approval()
+        </field>
+    </record>
+
+    <record id="action_free_timekeeping_mark_as_draft" model="ir.actions.server">
+        <field name="name">Hoàn duyệt</field>
+        <field name="model_id" ref="model_free_timekeeping"/>
+        <field name="binding_model_id" ref="model_free_timekeeping"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+            action = records.multi_draft()
+        </field>
+    </record>
+
+    <record id="action_free_timekeeping_mark_as_deactive" model="ir.actions.server">
+        <field name="name">Ngưng hoạt động</field>
+        <field name="model_id" ref="model_free_timekeeping"/>
+        <field name="binding_model_id" ref="model_free_timekeeping"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+            action = records.multi_de_active()
+        </field>
+    </record>
+
+    <!-- Action for Config Work -->
+    <record id="action_free_timekeeping" model="ir.actions.act_window">
+        <field name="name">Danh sách miễn chấm công</field>
+        <field name="res_model">free.timekeeping</field>
+        <field name="view_mode">tree</field>
+        <field name="domain">[('state', '!=', 'unactive')]</field>
+    </record>
+</odoo>

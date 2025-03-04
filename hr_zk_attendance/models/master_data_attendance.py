@@ -9,6 +9,13 @@ class MasterDataAttendance(models.Model):
     employee_id = fields.Many2one('hr.employee', string='Nhân viên', required=True)
     department_id = fields.Many2one('hr.department', string="Phòng ban", compute="fill_department", store=True)
     attendance_time = fields.Datetime(string='Thời gian', required=True)
+    month = fields.Integer("Tháng", compute="_get_month_data", store=True)
+
+    @api.depends('attendance_time')
+    def _get_month_data(self):
+        for r in self:
+            if r.attendance_time:
+                r.month = r.attendance_time.month
 
     @api.depends('employee_id')
     def fill_department(self):

@@ -39,3 +39,5 @@ access_update_security_user,update.security.user,model_update_security_user,,1,1
 
 access_update_cccd,update.cccd,model_update_cccd,,1,1,1,1
 
+access_import_leave,import.leave,model_import_leave,,1,1,1,1
+

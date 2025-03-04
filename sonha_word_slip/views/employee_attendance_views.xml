@@ -63,6 +63,16 @@
         <field name="name">Chấm công chi tiết</field>
         <field name="res_model">employee.attendance</field>
         <field name="view_mode">tree,form</field>
+        <field name="domain">
+        [
+            '|', '|',
+            '&amp;', ('month', '=', (context_today().month)), ('year', '=', (context_today().year)),
+            '&amp;', ('month', '=', (context_today().month - 1 if context_today().month > 1 else 12)),
+                 ('year', '=', (context_today().year if context_today().month > 1 else context_today().year - 1)),
+            '&amp;', ('month', '=', (context_today().month - 2 if context_today().month > 2 else 12 + (context_today().month - 2))),
+                 ('year', '=', (context_today().year if context_today().month > 2 else context_today().year - 1))
+        ]
+    </field>
         <field name="view_id" ref="view_employee_attendance_list"/>
         <field name="search_view_id" ref="view_employee_attendance_search"/>
         <field name="context">{'search_default_current_month': 1}</field>

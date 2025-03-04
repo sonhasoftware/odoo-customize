@@ -13,6 +13,8 @@
                     <field name="slip" string="Đơn từ"/>
                     <label for="shift"/>
                     <field name="shift" string="Ca"/>
+                    <label for="overtime"/>
+                    <field name="overtime" string="Làm thêm"/>
                 </div>
             </xpath>
         </field>
