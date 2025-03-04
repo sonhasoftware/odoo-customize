@@ -73,14 +73,14 @@
               action="action_register_work_calendar"
               sequence="2"/>
 
-    <menuitem id="menu_register_overtime"
-              name="Đăng ký làm thêm"
-              parent="menu_form_word"
-              action="action_register_overtime_calendar"
-              sequence="3"/>
+<!--    <menuitem id="menu_register_overtime"-->
+<!--              name="Đăng ký làm thêm"-->
+<!--              parent="menu_form_word"-->
+<!--              action="action_register_overtime_calendar"-->
+<!--              sequence="3"/>-->
 
     <menuitem id="menu_register_overtime_update"
-              name="Đăng ký làm thêm V2"
+              name="Đăng ký làm thêm"
               parent="menu_form_word"
               action="action_register_overtime_update"
               sequence="4"/>
