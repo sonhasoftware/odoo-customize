@@ -15,16 +15,8 @@ class FormWordSlip(models.Model):
             return user.employee_id.department_id.id
         return False
 
-    @api.model
-    def _default_employee(self):
-        # Lấy phòng ban từ user đang đăng nhập
-        user = self.env.user
-        if user.employee_id:
-            return user.employee_id.id
-        return False
-
     department = fields.Many2one('hr.department', string="Phòng ban", required=True, tracking=True, default=lambda self: self._default_department())
-    employee_id = fields.Many2one('hr.employee', string="Tên nhân viên", tracking=True, required=True, default=lambda self: self._default_employee())
+    employee_id = fields.Many2one('hr.employee', string="Tên nhân viên", tracking=True)
     type = fields.Many2one('config.word.slip', "Loại đơn", tracking=True, required=True)
     word_slip_id = fields.One2many('word.slip', 'word_slip', string="Ngày", tracking=True)
     description = fields.Text("Lý do", tracking=True)
@@ -32,6 +24,7 @@ class FormWordSlip(models.Model):
         ('sent', 'Nháp'),
         ('draft', 'Chờ duyệt'),
         ('done', 'Đã duyệt'),
+        ('cancel', 'Hủy'),
     ], string='Trạng thái', default='sent')
     state_ids = fields.Many2many('approval.state', 'form_word_slip_rel', 'form_word_slip', 'states_id', string="Trạng thái")
     day_duration = fields.Float("Khoảng cách ngày")
@@ -58,6 +51,67 @@ class FormWordSlip(models.Model):
     check_sent = fields.Boolean("Check gửi duyệt", default=False, compute="_get_button_sent")
     record_url = fields.Char(string="Record URL", compute="_compute_record_url")
     check_invisible_type = fields.Boolean("Check ẩn hiện", default=False)
+    regis_type = fields.Selection([
+        ('one', 'Tạo cho tôi'),
+        ('many', 'Tạo hộ'),
+    ], string='Loại đăng ký', default='one', tracking=True, required=True)
+
+    employee_ids = fields.Many2many('hr.employee', 'ir_employee_slip_rel',
+                                    'employee_slip_rel', 'slip_rel',
+                                    string='Tên nhân viên', tracking=True)
+
+    company_id = fields.Many2one('res.company', string="Công ty", required=True, default=lambda self: self.env.company)
+    check_cancel = fields.Boolean('Hủy', compute="get_action_cancel", default=False)
+    duration = fields.Float("Số ngày nghỉ phép", compute="get_duration_leave")
+    month = fields.Integer("Tháng", compute="get_month_leave", store=True)
+    all_dates = fields.Text(string="Khoảng ngày", compute="_compute_all_dates", store=True)
+
+    @api.depends('word_slip_id')
+    def _compute_all_dates(self):
+        for record in self:
+            dates = [f"{child.from_date.strftime('%d/%m/%Y')} → {child.to_date.strftime('%d/%m/%Y')}" for child in
+                     record.word_slip_id if child.from_date and child.to_date]
+            record.all_dates = ", ".join(dates) if dates else "Không có"
+
+    def get_month_leave(self):
+        for r in self:
+            leave = self.env['word.slip'].sudo().search([('word_slip', '=', r.id)], limit=1)
+            if leave and leave.from_date:
+                r.month = leave.from_date.month
+            else:
+                r.month = None
+
+    def get_duration_leave(self):
+        for r in self:
+            leave = self.env['word.slip'].sudo().search([('word_slip', '=', r.id)])
+            if leave:
+                r.duration = sum(leave.mapped('duration'))
+            else:
+                r.duration = 0
+
+    @api.constrains('employee_id', 'employee_ids', 'word_slip_id', 'type')
+    def check_validate_leave(self):
+        for r in self:
+            if r.type.key == "NP":
+                list_employee = r.employee_ids or [r.employee_id]
+                for employee_id in list_employee:
+                    if r.duration > employee_id.old_leave_balance + employee_id.new_leave_balance:
+                        raise ValidationError(f"Nhân viên {employee_id.name} không còn phép!")
+
+    @api.depends('status', 'employee_confirm', 'employee_approval')
+    def get_action_cancel(self):
+        for r in self:
+            if r.status == 'draft' and (self.env.user.employee_id.id == r.employee_approval.id or self.env.user.employee_id.id == r.employee_confirm.id):
+                r.check_cancel = True
+            else:
+                r.check_cancel = False
+
+    def action_cancel(self):
+        for r in self:
+            r.status = 'cancel'
+            r.status_lv1 = 'cancel'
+            r.status_lv2 = 'cancel'
+
 
     @api.onchange('type')
     def get_check_invisible_type(self):
@@ -66,6 +120,12 @@ class FormWordSlip(models.Model):
                 r.check_invisible_type = False
             else:
                 r.check_invisible_type = True
+
+    def unlink(self):
+        for r in self:
+            if r.status != 'sent':
+                raise ValidationError("Chỉ được xóa khi trạng thái là nháp!")
+        return super(FormWordSlip, self).unlink()
 
     @api.depends('employee_id')
     def _compute_record_url(self):
@@ -91,7 +151,28 @@ class FormWordSlip(models.Model):
                 r.check_sent = False
 
     def multi_approval(self):
+        def deduct_leave(employee, duration):
+            """Trừ phép nhân viên và trả về True nếu thành công, False nếu không đủ phép."""
+            if duration > employee.old_leave_balance + employee.new_leave_balance:
+                raise ValidationError(f"Nhân viên {employee.name} không còn phép nữa!")
+
+            if employee.old_leave_balance >= duration:
+                employee.old_leave_balance -= duration
+            else:
+                duration -= employee.old_leave_balance
+                employee.old_leave_balance = 0
+                employee.new_leave_balance -= duration
+            return True
+
         for r in self:
+            if r.status != 'draft':
+                raise ValidationError("Chỉ duyệt được những bản ghi ở trạng thái chờ duyệt!")
+
+            if r.type.key == "NP":
+                employees = r.employee_ids or [r.employee_id]
+                for employee in employees:
+                    deduct_leave(employee, r.duration)
+
             r.status = 'done'
             r.status_lv1 = 'done'
             r.status_lv2 = 'done'
@@ -116,6 +197,9 @@ class FormWordSlip(models.Model):
             if r.type and r.employee_id:
                 short_code = ''.join(word[0].upper() for word in r.type.name.split())
                 r.code = r.employee_id.company_id.company_code + "-" + short_code + "-" + str(r.id)
+            elif r.type and r.employee_ids:
+                short_code = ''.join(word[0].upper() for word in r.type.name.split())
+                r.code = r.employee_ids[:1].company_id.company_code + "-" + short_code + "-" + str(r.id)
             else:
                 r.code = ""
 
@@ -123,7 +207,7 @@ class FormWordSlip(models.Model):
     def get_complete_approval(self):
         for r in self:
             r.complete_approval_lv = False
-            if (r.employee_confirm.user_id.id == self.env.user.id or r.employee_approval.user_id.id == self.env.user.id) and r.status == 'done':
+            if (r.employee_confirm.user_id.id == self.env.user.id or r.employee_approval.user_id.id == self.env.user.id) and r.status != 'sent':
                 r.complete_approval_lv = True
 
     def complete_approval(self):
@@ -163,21 +247,33 @@ class FormWordSlip(models.Model):
                 raise ValidationError("Bạn không có quyền thực hiện hành động này")
 
     def action_approval(self):
-        for r in self:
-            if r.check_level != True:
-                if r.employee_approval.user_id.id == self.env.user.id:
-                    r.status_lv1 = 'done'
-                    r.status = 'done'
-                    r.button_done = False
-                else:
-                    raise ValidationError("Bạn không có quyền thực hiện hành động này")
+        def deduct_leave(employee, duration):
+            """Trừ phép của nhân viên."""
+            if duration > employee.old_leave_balance + employee.new_leave_balance:
+                raise ValidationError(f"Nhân viên {employee.name} không còn phép nữa!")
+
+            if employee.old_leave_balance >= duration:
+                employee.old_leave_balance -= duration
             else:
-                if r.employee_approval.user_id.id == self.env.user.id:
-                    r.status_lv2 = 'done'
-                    r.status = 'done'
-                    r.button_done = False
-                else:
-                    raise ValidationError("Bạn không có quyền thực hiện hành động này")
+                duration -= employee.old_leave_balance
+                employee.old_leave_balance = 0
+                employee.new_leave_balance -= duration
+
+        for r in self:
+            if r.employee_approval.user_id.id != self.env.user.id:
+                raise ValidationError("Bạn không có quyền thực hiện hành động này")
+
+            # Xác định cấp duyệt
+            status_level = "status_lv2" if r.check_level else "status_lv1"
+
+            if r.type.key == "NP":
+                employees = r.employee_ids or [r.employee_id]
+                for employee in employees:
+                    deduct_leave(employee, r.duration)
+
+            setattr(r, status_level, 'done')
+            r.status = 'done'
+            r.button_done = False
 
     # hàm check validate
     def validate_record_overlap(self, record, word_slips, form_type):
@@ -229,40 +325,48 @@ class FormWordSlip(models.Model):
 
             # tìm kiếm các bản ghi theo các điều kiện
             word_slips = self.env['word.slip'].search([
-                ('employee_id', '=', rec.employee_id.id),
                 ('type.date_and_time', '=', form_type),
                 ('id', '!=', record.id),
                 ('from_date', '<=', record.to_date),
                 ('to_date', '>=', record.from_date),
             ])
+            word_slips = word_slips.filtered(
+                lambda x: (x.word_slip.employee_id and x.word_slip.employee_id.id == rec.employee_id.id) or (
+                        x.word_slip.employee_ids and rec.employee_id.id in x.word_slip.employee_ids.ids))
             # gọi hàm check validate
             self.validate_record_overlap(record, word_slips, form_type)
 
     def create(self, vals):
         rec = super(FormWordSlip, self).create(vals)
 
+        self.env['word.slip'].sudo().check_employee_days_limit(rec.word_slip_id)
+
         # check validate khi tạo bản ghi mới
         self.process_word_slip_validation(rec)
 
         # Tính số ngày và thiết lập `day_duration`
         rec.day_duration = self.get_duration_day(rec)
+        if rec.employee_id:
+            employee_id = rec.employee_id
+        elif rec.employee_ids:
+            employee_id = rec.employee_ids[:1]
 
-        if rec.employee_id.parent_id.id == rec.employee_id.employee_approval.id:
+        if employee_id.parent_id.id == employee_id.employee_approval.id:
             rec.day_duration = 1
 
         department_spec = self.env['hr.department'].sudo().search([('name', '=', "SHI-Bộ phận xe VPTĐ"),
                                                                    ('id', '=', rec.department.id)])
         if department_spec:
             rec.check_level = True
-            if rec.employee_id.employee_approval and rec.employee_id.parent_id:
-                rec.employee_confirm = rec.employee_id.parent_id.id
-                rec.employee_approval = rec.employee_id.employee_approval.id
-            elif not rec.employee_id.employee_approval and rec.employee_id.parent_id:
-                rec.employee_confirm = rec.employee_id.parent_id.id
-                rec.employee_approval = rec.employee_id.parent_id.parent_id.id if rec.employee_id.parent_id.parent_id else rec.employee_id.department_id.parent_id.manager_id.id
-            elif rec.employee_id.employee_approval and not rec.employee_id.parent_id:
-                rec.employee_confirm = rec.employee_id.employee_approval.id
-                rec.employee_approval = rec.employee_id.employee_approval.parent_id.id if rec.employee_id.employee_approval.parent_id else None
+            if employee_id.employee_approval and employee_id.parent_id:
+                rec.employee_confirm = employee_id.parent_id.id
+                rec.employee_approval = employee_id.employee_approval.id
+            elif not employee_id.employee_approval and employee_id.parent_id:
+                rec.employee_confirm = employee_id.parent_id.id
+                rec.employee_approval = employee_id.parent_id.parent_id.id if employee_id.parent_id.parent_id else employee_id.department_id.parent_id.manager_id.id
+            elif employee_id.employee_approval and not employee_id.parent_id:
+                rec.employee_confirm = employee_id.employee_approval.id
+                rec.employee_approval = employee_id.employee_approval.parent_id.id if employee_id.employee_approval.parent_id else None
                 
         if not department_spec and rec.day_duration <= 3:
             condition = '<=3'
@@ -279,21 +383,21 @@ class FormWordSlip(models.Model):
         if status:
             if status.level <= 1:
                 rec.employee_confirm = None
-                rec.employee_approval = rec.employee_id.employee_approval.id if rec.employee_id.employee_approval else rec.employee_id.parent_id.id
+                rec.employee_approval = employee_id.employee_approval.id if employee_id.employee_approval else employee_id.parent_id.id
             else:
                 rec.check_level = True
-                if rec.employee_id.employee_approval and rec.employee_id.parent_id:
-                    rec.employee_confirm = rec.employee_id.parent_id.id
-                    rec.employee_approval = rec.employee_id.employee_approval.id
-                elif not rec.employee_id.employee_approval and rec.employee_id.parent_id:
-                    rec.employee_confirm = rec.employee_id.parent_id.id
-                    rec.employee_approval = rec.employee_id.parent_id.parent_id.id if rec.employee_id.parent_id.parent_id else rec.employee_id.department_id.parent_id.manager_id.id
-                elif rec.employee_id.employee_approval and not rec.employee_id.parent_id:
-                    rec.employee_confirm = rec.employee_id.employee_approval.id
-                    rec.employee_approval = rec.employee_id.employee_approval.parent_id.id if rec.employee_id.employee_approval.parent_id else None
+                if employee_id.employee_approval and employee_id.parent_id:
+                    rec.employee_confirm = employee_id.parent_id.id
+                    rec.employee_approval = employee_id.employee_approval.id
+                elif not employee_id.employee_approval and employee_id.parent_id:
+                    rec.employee_confirm = employee_id.parent_id.id
+                    rec.employee_approval = employee_id.parent_id.parent_id.id if employee_id.parent_id.parent_id else employee_id.department_id.parent_id.manager_id.id
+                elif employee_id.employee_approval and not employee_id.parent_id:
+                    rec.employee_confirm = employee_id.employee_approval.id
+                    rec.employee_approval = employee_id.employee_approval.parent_id.id if employee_id.employee_approval.parent_id else None
         else:
             # Trường hợp không có bước phê duyệt
-            rec.employee_approval = rec.employee_id.parent_id.id if rec.employee_id.parent_id else rec.employee_id.employee_approval.id
+            rec.employee_approval = employee_id.parent_id.id if employee_id.parent_id else employee_id.employee_approval.id
         return rec
 
     def get_duration_day(self, rec):
@@ -306,15 +410,15 @@ class FormWordSlip(models.Model):
             day_duration = 0
         return day_duration
 
-    @api.constrains('employee_id')
-    def check_word_slip_id(self):
-        for r in self:
-            total_duration = 0
-            if r.word_slip_id and r.type.name.lower() == "nghỉ bù":
-                for slip in r.word_slip_id:
-                    total_duration += slip.duration * 8
-                if r.employee_id.total_compensatory < total_duration:
-                    raise ValidationError("Bạn không còn thời gian nghỉ bù")
+    # @api.constrains('employee_id')
+    # def check_word_slip_id(self):
+    #     for r in self:
+    #         total_duration = 0
+    #         if r.word_slip_id and r.type.name.lower() == "nghỉ bù":
+    #             for slip in r.word_slip_id:
+    #                 total_duration += slip.duration * 8
+    #             if r.employee_id.total_compensatory < total_duration:
+    #                 raise ValidationError("Bạn không còn thời gian nghỉ bù")
 
     @api.constrains('type', 'word_slip_id')
     def check_type(self):
@@ -331,4 +435,5 @@ class FormWordSlip(models.Model):
             for record in self:
                 # check validate
                 self.process_word_slip_validation(record)
+                self.env['word.slip'].sudo().check_employee_days_limit(record.word_slip_id)
         return res

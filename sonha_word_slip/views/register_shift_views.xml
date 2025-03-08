@@ -5,25 +5,23 @@
         <field name="model">register.shift</field>
         <field name="arch" type="xml">
             <form string="Đơn đổi ca">
-                <header>
-                    <button name="action_confirm" string="Duyệt" type="object" class="oe_highlight" invisible="status != 'draft'"/>
-                    <field name="status" widget="statusbar"/>
-                </header>
+
                 <sheet>
                     <group>
-                        <field name="type_register" readonly="status != 'draft'" required = "1"/>
+                        <field name="department_id" options="{'no_create': True, 'no_open': True}"/>
+<!--                        <field name="type_register" readonly="status != 'draft'" required = "1"/>-->
                         <field name="is_display" invisible="True"/>
-                        <field name="from_date" invisible="is_display != True " readonly="status != 'draft'" required = "1"/>
-                        <field name="to_date" invisible="is_display != True " readonly="status != 'draft'" required = "1"/>
-                        <field name="register_rel" readonly="status != 'draft'">
+<!--                        <field name="from_date" invisible="is_display != True " readonly="status != 'draft'" required = "1"/>-->
+<!--                        <field name="to_date" invisible="is_display != True " readonly="status != 'draft'" required = "1"/>-->
+                        <field name="register_rel">
                             <tree editable="bottom">
                                 <field name="date"/>
-                                <field name="shift"/>
+                                <field name="shift" domain="[('company_id', 'in', company_id)]"/>
+                                <field name="company_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                             </tree>
                         </field>
-                        <field name="department_id" options="{'no_create': True, 'no_open': True}"/>
-                        <field name="employee_id" readonly="status != 'draft'" required = "1" domain="[('department_id', '=', department_id)]"/>
-                        <field name="description" readonly="status != 'draft'"  required = "1"/>
+                        <field name="employee_id" required = "1" domain="[('department_id', '=', department_id)]"/>
+                        <field name="description"  required = "1"/>
                     </group>
                 </sheet>
                 <div class="oe_chatter">
