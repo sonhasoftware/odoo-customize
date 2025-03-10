@@ -12,3 +12,7 @@ from . import config_reason
 from . import distribute_shift
 from . import config_approve
 from . import store_employee_attendance
+from . import register_overtime_update
+from . import overtime_rel
+from . import free_timekeeping
+from . import config_leave

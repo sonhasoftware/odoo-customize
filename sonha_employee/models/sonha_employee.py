@@ -2,6 +2,8 @@ from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
 import re
 import math
+from datetime import date
+from dateutil.relativedelta import relativedelta
 
 
 class SonHaEmployee(models.Model):
@@ -101,6 +103,41 @@ class SonHaEmployee(models.Model):
     total_compensatory = fields.Float("Thời gian nghỉ bù còn lại", compute="get_compensatory")
 
     compensatory = fields.Float("Nghỉ bù", default=0)
+
+    seniority_display = fields.Char(string="Thâm niên", compute="_compute_seniority_display")
+
+    old_leave_balance = fields.Float(string="Phép cũ", readonly=True)
+    new_leave_balance = fields.Float(string="Phép mới", readonly=True)
+
+    def update_employee_leave(self):
+        """Cập nhật phép hàng tháng và reset phép đầu năm."""
+        today = date.today()
+        employees = self.search([])
+
+        for emp in employees:
+            # Cộng phép mới mỗi tháng
+            emp.new_leave_balance += 1
+
+            # Ngày 1/1: chuyển phép mới sang phép cũ, reset phép mới
+            if today.month == 1 and today.day == 1:
+                emp.old_leave_balance = emp.new_leave_balance
+                emp.new_leave_balance = 1
+
+            # Ngày 1/7: Xóa phép cũ nếu chưa dùng
+            if today.month == 7 and today.day == 1:
+                emp.old_leave_balance = 0
+
+    @api.depends("onboard")
+    def _compute_seniority_display(self):
+        today = date.today()
+        for record in self:
+            if record.onboard:
+                delta = relativedelta(today, record.onboard)
+                years = delta.years
+                months = delta.months
+                record.seniority_display = f"{years} năm {months} tháng"
+            else:
+                record.seniority_display = "Chưa có dữ liệu"
 
     @api.onchange('department_id')
     def get_shift_department(self):
@@ -228,6 +265,7 @@ class ResCompany(models.Model):
     company_code = fields.Char(string="Mã công ty")
     slip = fields.Integer("Đơn từ", default=0)
     shift = fields.Integer("Ca", default=0)
+    overtime = fields.Boolean("Làm thêm cấp 2")
 
     def _compute_max_number(self):
         for r in self:

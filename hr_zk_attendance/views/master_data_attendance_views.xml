@@ -23,6 +23,7 @@
                 <field name="employee_id"/>
                 <field name="department_id"/>
                 <field name="attendance_time"/>
+                <field name="month"/>
             </tree>
         </field>
     </record>
@@ -34,6 +35,8 @@
             <search>
                 <field name="employee_id" string="Nhân viên"/>
                 <field name="department_id" string="Phòng ban"/>
+                <field name="month" string="Tháng"/>
+                <filter string="Tháng hiện tại" name="current_month" domain="[('month', '=', context_today().month)]" />
             </search>
         </field>
     </record>
@@ -43,5 +46,6 @@
         <field name="res_model">master.data.attendance</field>
         <field name="view_mode">tree,form</field>
         <field name="search_view_id" ref="view_master_data_attendance_search"/>
+        <field name="context">{'search_default_current_month': 1}</field>
     </record>
 </odoo>
