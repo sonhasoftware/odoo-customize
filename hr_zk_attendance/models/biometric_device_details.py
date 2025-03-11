@@ -155,7 +155,7 @@ class BiometricDeviceDetails(models.Model):
             conn = self.device_connect(zk)
             if conn:
                 conn.disable_device()
-                today = datetime.today()
+                today = datetime.today() + timedelta(days=1)
                 first_day_last_month = (today - timedelta(days=5))
                 attendances = conn.get_attendance()
                 attendances = [
