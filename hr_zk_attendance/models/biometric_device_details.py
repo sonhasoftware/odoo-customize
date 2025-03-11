@@ -155,38 +155,37 @@ class BiometricDeviceDetails(models.Model):
             conn = self.device_connect(zk)
             if conn:
                 conn.disable_device()
-                users = conn.get_users()
+                today = datetime.today()
+                first_day_last_month = (today - timedelta(days=30))
                 attendances = conn.get_attendance()
+                attendances = [
+                    att for att in attendances
+                    if first_day_last_month <= att.timestamp < today
+                ]
                 if attendances:
                     # Thu thập dữ liệu chấm công theo nhân viên và ngày trong khoảng thời gian từ tháng 6 năm 2024 đến hiện tại
                     for each in attendances:
                         atten_time = each.timestamp
-                        current_date = datetime.now()
-                        current_year = current_date.year
-                        current_month = current_date.month
-                        if (atten_time.year == current_year and atten_time.month == current_month) or \
-                                (atten_time.year == current_year and atten_time.month == current_month - 1) or \
-                                (current_month == 1 and atten_time.year == current_year - 1 and atten_time.month == 12):
-                            user_key = each.user_id
+                        user_key = each.user_id
 
-                            # Trừ 7 giờ từ thời gian chấm công
-                            atten_time_adjusted = atten_time - timedelta(hours=7)
+                        # Trừ 7 giờ từ thời gian chấm công
+                        atten_time_adjusted = atten_time - timedelta(hours=7)
 
-                            # Tìm hoặc tạo nhân viên
-                            employee = hr_employee.sudo().search([('device_id_num', '=', user_key)])
+                        # Tìm hoặc tạo nhân viên
+                        employee = hr_employee.sudo().search([('device_id_num', '=', user_key)])
 
-                            # Kiểm tra xem dữ liệu chấm công đã tồn tại chưa
-                            existing_attendance = master_attendance.sudo().search([
-                                ('employee_id', '=', employee.id),
-                                ('attendance_time', '=', fields.Datetime.to_string(atten_time_adjusted))
-                            ])
+                        # Kiểm tra xem dữ liệu chấm công đã tồn tại chưa
+                        existing_attendance = master_attendance.sudo().search([
+                            ('employee_id', '=', employee.id),
+                            ('attendance_time', '=', fields.Datetime.to_string(atten_time_adjusted))
+                        ])
 
-                            # Lưu dữ liệu vào master.data.attendance nếu chưa tồn tại
-                            if employee and not existing_attendance:
-                                master_attendance.sudo().create({
-                                    'employee_id': employee.id,
-                                    'attendance_time': fields.Datetime.to_string(atten_time_adjusted)
-                                })
+                        # Lưu dữ liệu vào master.data.attendance nếu chưa tồn tại
+                        if employee and not existing_attendance:
+                            master_attendance.sudo().create({
+                                'employee_id': employee.id,
+                                'attendance_time': fields.Datetime.to_string(atten_time_adjusted)
+                            })
                     conn.disconnect()
                     return True
                 else:
