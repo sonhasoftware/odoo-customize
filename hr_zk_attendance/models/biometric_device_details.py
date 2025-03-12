@@ -141,6 +141,9 @@ class BiometricDeviceDetails(models.Model):
                 raise UserError(_('Unable to connect, please check the parameters and network connections.'))
 
     def download_attendance(self):
+        self.with_delay().clone_data_biometric()
+
+    def clone_data_biometric(self):
         _logger.info("++++++++++++Cron Executed++++++++++++++++++++++")
         master_attendance = self.env['master.data.attendance']
         hr_employee = self.env['hr.employee']
