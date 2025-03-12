@@ -218,6 +218,12 @@ class FormWordSlip(models.Model):
                 r.status_lv1 = 'sent'
             else:
                 r.status_lv2 = 'sent'
+            if r.status == 'done' and r.type.key == 'NP':
+                employees = r.employee_ids or [r.employee_id]
+                for emp in employees:
+                    emp.new_leave_balance += r.duration
+            else:
+                continue
             r.status = 'sent'
 
     @api.depends('employee_confirm')
