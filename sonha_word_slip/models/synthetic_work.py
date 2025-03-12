@@ -110,6 +110,37 @@ class SyntheticWork(models.Model):
                 r.employee_code = None
 
     def create_synthetic(self):
+        self.with_delay().create_synthetic_month()
+        # employees = self.env['hr.employee'].search([('id', '!=', 1)])
+        # current_date = date.today()
+        # start_date = current_date.replace(day=1)
+        # end_date = (start_date + relativedelta(months=1)) - timedelta(days=1)
+        #
+        # start_current = start_date - relativedelta(months=1)
+        # end_current = (start_current + relativedelta(months=1)) - timedelta(days=1)
+        # for employee in employees:
+        #     synthetic = self.env['synthetic.work'].sudo().search([('start_date', '=', start_date),
+        #                                                           ('employee_id', '=', employee.id)])
+        #     if not synthetic:
+        #         self.env['synthetic.work'].create({
+        #             'employee_id': employee.id,
+        #             'department_id': employee.department_id.id,
+        #             'start_date': str(start_date),
+        #             'end_date': str(end_date),
+        #         })
+        #
+        #     synthetic_current = self.env['synthetic.work'].sudo().search([('start_date', '=', start_current),
+        #                                                           ('employee_id', '=', employee.id)])
+        #
+        #     if not synthetic_current:
+        #         self.env['synthetic.work'].create({
+        #             'employee_id': employee.id,
+        #             'department_id': employee.department_id.id,
+        #             'start_date': str(start_current),
+        #             'end_date': str(end_current),
+        #         })
+
+    def create_synthetic_month(self):
         employees = self.env['hr.employee'].search([('id', '!=', 1)])
         current_date = date.today()
         start_date = current_date.replace(day=1)
@@ -129,7 +160,7 @@ class SyntheticWork(models.Model):
                 })
 
             synthetic_current = self.env['synthetic.work'].sudo().search([('start_date', '=', start_current),
-                                                                  ('employee_id', '=', employee.id)])
+                                                                          ('employee_id', '=', employee.id)])
 
             if not synthetic_current:
                 self.env['synthetic.work'].create({
