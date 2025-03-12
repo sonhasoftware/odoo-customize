@@ -195,6 +195,7 @@ class BiometricDeviceDetails(models.Model):
                     continue
             else:
                 continue
+        self.env.cr.commit()
 
 
     def action_restart_device(self):
