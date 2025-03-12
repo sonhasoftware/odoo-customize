@@ -73,6 +73,7 @@ class FormWordSlip(models.Model):
                      record.word_slip_id if child.from_date and child.to_date]
             record.all_dates = ", ".join(dates) if dates else "Không có"
 
+    @api.depends('word_slip_id')
     def get_month_leave(self):
         for r in self:
             leave = self.env['word.slip'].sudo().search([('word_slip', '=', r.id)], limit=1)
@@ -125,6 +126,7 @@ class FormWordSlip(models.Model):
         for r in self:
             if r.status != 'sent':
                 raise ValidationError("Chỉ được xóa khi trạng thái là nháp!")
+            self.env['word.slip'].sudo().search([('word_slip.id', '=', r.id)]).unlink()
         return super(FormWordSlip, self).unlink()
 
     @api.depends('employee_id')
