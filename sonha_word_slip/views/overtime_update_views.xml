@@ -14,6 +14,7 @@
                     <button name="action_sent" string="Gửi Duyệt" type="object" class="oe_highlight" confirm="Bạn có chắc chắn muốn gửi duyệt đơn này không?" invisible="check_user != True or type_overtime != True"/>
                     <button name="action_confirm_status" string="Xác nhận" type="object" class="oe_highlight" confirm="Bạn có chắc chắn muốn xác nhận đơn này không?" invisible="check_qltt != True"/>
                     <button name="action_done" string="Duyệt" type="object" class="oe_highlight" confirm="Bạn có chắc chắn muốn duyệt đơn này không?" invisible="check_manager != True"/>
+                    <button name="action_back_status" string="Hoàn duyệt" type="object" class="oe_highlight" confirm="Bạn có chắc chắn muốn hoàn duyệt đơn này không?"  invisible="check_manager != True and check_qltt != True"/>
 
                     <field name="status" widget="statusbar" invisible="type_overtime == True"/>
                     <field name="status_lv2" widget="statusbar" invisible="type_overtime != True"/>

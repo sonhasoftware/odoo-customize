@@ -167,6 +167,12 @@ class FormWordSlip(models.Model):
             return True
 
         for r in self:
+            over_time = 0
+            for ot in r.word_slip_id:
+                if ot.start_time != ot.end_time:
+                    over_time += 8
+                elif ot.start_time == ot.end_time:
+                    over_time += 4
             if r.status != 'draft':
                 raise ValidationError("Chỉ duyệt được những bản ghi ở trạng thái chờ duyệt!")
 
@@ -174,6 +180,10 @@ class FormWordSlip(models.Model):
                 employees = r.employee_ids or [r.employee_id]
                 for employee in employees:
                     deduct_leave(employee, r.duration)
+            elif r.type.key == "NB":
+                employees = r.employee_ids or [r.employee_id]
+                for employee in employees:
+                    employee.total_compensatory -= over_time
 
             r.status = 'done'
             r.status_lv1 = 'done'
@@ -214,6 +224,12 @@ class FormWordSlip(models.Model):
 
     def complete_approval(self):
         for r in self:
+            over_time = 0
+            for ot in r.word_slip_id:
+                if ot.start_time != ot.end_time:
+                    over_time += 8
+                elif ot.start_time == ot.end_time:
+                    over_time += 4
             if r.check_level != True:
                 r.status_lv1 = 'sent'
             else:
@@ -222,6 +238,10 @@ class FormWordSlip(models.Model):
                 employees = r.employee_ids or [r.employee_id]
                 for emp in employees:
                     emp.new_leave_balance += r.duration
+            elif r.status == 'done' and r.type.key == 'NB':
+                employees = r.employee_ids or [r.employee_id]
+                for employee in employees:
+                    employee.total_compensatory += over_time
             else:
                 continue
             r.status = 'sent'
@@ -273,11 +293,21 @@ class FormWordSlip(models.Model):
 
             # Xác định cấp duyệt
             status_level = "status_lv2" if r.check_level else "status_lv1"
+            over_time = 0
+            for ot in r.word_slip_id:
+                if ot.start_time != ot.end_time:
+                    over_time += 8
+                elif ot.start_time == ot.end_time:
+                    over_time += 4
 
             if r.type.key == "NP":
                 employees = r.employee_ids or [r.employee_id]
                 for employee in employees:
                     deduct_leave(employee, r.duration)
+            elif r.type.key == "NB":
+                employees = r.employee_ids or [r.employee_id]
+                for employee in employees:
+                    employee.total_compensatory -= over_time
 
             setattr(r, status_level, 'done')
             r.status = 'done'
