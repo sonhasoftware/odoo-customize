@@ -165,34 +165,50 @@ class RegisterOvertimeUpdate(models.Model):
             if r.check_manager:
                 r.status_lv2 = 'done'
                 r.status = 'done'
+                over_time = 0
+                for ot in r.date:
+                    time_ot = ot.end_time - ot.start_time
+                    over_time += time_ot
+                list_employee = r.employee_ids or [r.employee_id]
+                for employee in list_employee:
+                    employee.total_compensatory += over_time
             else:
                 raise ValidationError("Bạn không có quyền thực hiện hành động này")
 
-    # def action_back(self):
-    #     for r in self:
-    #         if r.type == 'one':
-    #             if r.employee_id.parent_id.user_id.id == self.env.user.id:
-    #                 r.status = 'done'
-    #             else:
-    #                 raise ValidationError("Bạn không có quyền thực hiện hành động này")
-    #         else:
-    #             employee_id = r.employee_ids[:1]
-    #             if employee_id.parent_id.user_id.id == self.env.user.id:
-    #                 r.status = 'done'
-    #             else:
-    #                 raise ValidationError("Bạn không có quyền thực hiện hành động này")
+    def action_back_status(self):
+        for r in self:
+            over_time = 0
+            for ot in r.date:
+                time_ot = ot.end_time - ot.start_time
+                over_time += time_ot
+            if r.check_manager or r.check_qltt:
+                r.status = 'draft'
+                r.status_lv2 = 'draft'
+                list_employee = r.employee_ids or [r.employee_id]
+                for employee in list_employee:
+                    employee.total_compensatory -= over_time
+            else:
+                raise ValidationError('Bạn không có quyền hoàn duyệt đơn này')
+
 
     def action_confirm(self):
         for r in self:
+            over_time = 0
+            for ot in r.date:
+                time_ot = ot.end_time - ot.start_time
+                over_time += time_ot
             if r.type == 'one':
                 if r.employee_id.parent_id.user_id.id == self.env.user.id:
                     r.status = 'done'
+                    r.employee_id.total_compensatory += over_time
                 else:
                     raise ValidationError("Bạn không có quyền thực hiện hành động này")
             else:
                 employee_id = r.employee_ids[:1]
                 if employee_id.parent_id.user_id.id == self.env.user.id:
                     r.status = 'done'
+                    for employee in r.employee_ids:
+                        employee.total_compensatory += over_time
                 else:
                     raise ValidationError("Bạn không có quyền thực hiện hành động này")
 

@@ -11,21 +11,21 @@ class SonHaEmployee(models.Model):
     _rec_name = 'combination'
     _order = 'department_id, employee_code ASC'
 
-    list_employee = fields.Many2many('hr.employee', 'ir_employee_group_rel',
-                                     'employee_group_rel', 'employee_rel',
-                                     string='List Staff', tracking=True)
+    # list_employee = fields.Many2many('hr.employee', 'ir_employee_group_rel',
+    #                                  'employee_group_rel', 'employee_rel',
+    #                                  string='List Staff', tracking=True)
 
-    lower_grade = fields.Many2many('hr.employee', 'ir_lower_grade_id_rel',
-                                   'lower_grade_id_rel', 'lower_grade_id',
-                                    string="Lower Grade", tracking=True)
+    # lower_grade = fields.Many2many('hr.employee', 'ir_lower_grade_id_rel',
+    #                                'lower_grade_id_rel', 'lower_grade_id',
+    #                                 string="Lower Grade", tracking=True)
 
-    kpi = fields.Many2many('hr.employee', 'ir_kpi_id_rel',
-                           'kpi_id_rel', 'kpi_id',
-                           string="Edit KPI", tracking=True)
+    # kpi = fields.Many2many('hr.employee', 'ir_kpi_id_rel',
+    #                        'kpi_id_rel', 'kpi_id',
+    #                        string="Edit KPI", tracking=True)
 
-    department_ids = fields.Many2many('hr.department', 'ir_department_ids_rel',
-                                      'department_ids_rel', 'department_ids',
-                                      string="Department", tracking=True)
+    # department_ids = fields.Many2many('hr.department', 'ir_department_ids_rel',
+    #                                   'department_ids_rel', 'department_ids',
+    #                                   string="Department", tracking=True)
 
     level = fields.Selection([
         ('N0', 'N0'),
@@ -98,11 +98,9 @@ class SonHaEmployee(models.Model):
     reception_date = fields.Date("Ngày tiếp nhận", tracking=True)
     culture_level = fields.Char("Trình độ văn hóa", tracking=True)
     tax_code = fields.Char("Mã số thuế", tracking=True)
-    check_account = fields.Boolean('check_account', compute="check_account_user")
+    check_account = fields.Boolean('check_account', compute="check_account_user", store=True)
 
-    total_compensatory = fields.Float("Thời gian nghỉ bù còn lại", compute="get_compensatory")
-
-    compensatory = fields.Float("Nghỉ bù", default=0)
+    total_compensatory = fields.Float("Thời gian nghỉ bù còn lại")
 
     seniority_display = fields.Char(string="Thâm niên", compute="_compute_seniority_display")
 
@@ -148,24 +146,6 @@ class SonHaEmployee(models.Model):
                 r.shift = r.department_id.shift.id
             else:
                 r.shift = None
-
-    def get_compensatory(self):
-        for r in self:
-            r.total_compensatory = 0
-            data = self.env['employee.attendance'].sudo().search([('employee_id', '=', r.id)])
-            if data:
-                over_time = data.mapped('over_time')
-                data_compensatory = data.filtered(lambda x: x.compensatory > 0)
-                leave_compensatory = 0
-                if data_compensatory:
-                    for rec in data_compensatory:
-                        if rec.compensatory == 0.5:
-                            so = ((math.ceil(rec.duration) * 60) - rec.shift.minutes_rest) / 60 if rec.duration else 0
-                            leave_compensatory += so / 2
-                        elif rec.compensatory == 1:
-                            so = ((math.ceil(rec.duration) * 60) - rec.shift.minutes_rest) if rec.duration else 0
-                            leave_compensatory += so / 60
-                r.total_compensatory = r.compensatory + sum(over_time) - leave_compensatory
 
     @api.depends('user_id')
     def check_account_user(self):
