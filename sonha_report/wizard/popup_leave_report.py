@@ -50,34 +50,6 @@ class PopupLeaveReport(models.TransientModel):
             else:
                 raise ValidationError("Nhân viên không sử dụng phép trong tháng này!")
 
-    # def caculate_leave_exit(self, list_records):
-    #     base_timeline = datetime(2024, 12, 31)
-    #     list_emp = list_records.mapped('employee_id')
-    #     for emp in list_emp:
-    #         personal_records = list_records.filtered(lambda x: x.employee_id.id == emp.employee_id.id)
-    #         if personal_records:
-    #             begin_date = self.from_date
-    #             for r in personal_records:
-    #                 start_time = datetime.strptime(self.from_date, "%Y-%m-%d")
-    #                 diff = relativedelta(start_time, base_timeline)
-    #                 months_difference = diff.years * 12 + diff.months
-    #                 leave_used = self.env['employee.attendance'].sudo().search([('date', '>=', base_timeline),
-    #                                                                             ('date', '<=', begin_date),
-    #                                                                             ('employee_id', '=', r.employee_id.id)])
-    #                 leave_used = leave_used.filtered(lambda x: x.leave != 0)
-    #                 total_leave_used = sum(leave_used.mapped('employee_id'))
-    #                 begin_period = r.employee_id.old_leave_balance + months_difference - total_leave_used
-    #                 total_leave_left = begin_period - r.leave
-    #                 vals = {
-    #                     'employee_id': r.employee_id.id,
-    #                     'department_id': r.department_id.id,
-    #                     'begin_period': begin_period,
-    #                     'leave': r.leave,
-    #                     'total_leave_left': total_leave_left,
-    #                 }
-    #                 self.env['leave.report'].sudo().create(vals)
-    #                 begin_date = r.date
-
 
     def caculate_total_leave_balance_left(self, emp):
         base_timeline = date(2023, 12, 31)

@@ -35,7 +35,7 @@ class PopupEmployeeShiftReport(models.TransientModel):
                     self.env['employee.shift.report'].sudo().create(vals)
                 return {
                     'type': 'ir.actions.act_window',
-                    'name': 'Báo cáo công chi tiết',
+                    'name': 'Báo cáo ca làm việc',
                     'res_model': 'employee.shift.report',
                     'view_mode': 'tree',
                     'target': 'current',

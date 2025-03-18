@@ -52,7 +52,7 @@ class PopupSyntheticWorkReport(models.TransientModel):
                     self.env['synthetic.work.report'].sudo().create(vals)
                 return {
                     'type': 'ir.actions.act_window',
-                    'name': 'Báo cáo công chi tiết',
+                    'name': 'Báo cáo công tổng hợp',
                     'res_model': 'synthetic.work.report',
                     'view_mode': 'tree',
                     'target': 'current',

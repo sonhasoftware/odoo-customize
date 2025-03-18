@@ -68,7 +68,7 @@ class PopupSonhaEmployeeReport(models.TransientModel):
                 self.env['sonha.employee.report'].sudo().create(vals)
             return {
                 'type': 'ir.actions.act_window',
-                'name': 'Báo cáo công chi tiết',
+                'name': 'Báo cáo hồ sơ nhân sự',
                 'res_model': 'sonha.employee.report',
                 'view_mode': 'tree',
                 'target': 'current',
