@@ -224,6 +224,7 @@ class FormWordSlip(models.Model):
 
     def complete_approval(self):
         for r in self:
+            r.status = 'sent'
             over_time = 0
             for ot in r.word_slip_id:
                 if ot.start_time != ot.end_time:
@@ -244,7 +245,6 @@ class FormWordSlip(models.Model):
                     employee.total_compensatory += over_time
             else:
                 continue
-            r.status = 'sent'
 
     @api.depends('employee_confirm')
     def get_button_confirm(self):
