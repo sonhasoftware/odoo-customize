@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <menuitem id="menu_sonha_report"
+              name="Báo cáo"
+              action="master_data_report_action"
+              sequence="11"/>
+
+    <menuitem id="menu_sonha_report_sonha"
+              name="Báo cáo công"
+              parent="menu_sonha_report"
+              sequence="2"/>
+
+    <menuitem id="menu_sonha_report_leave"
+              name="Báo cáo nghỉ phép"
+              parent="menu_sonha_report"
+              sequence="3"/>
+
+    <menuitem id="menu_sonha_report_employee"
+              name="Báo cáo nhân viên"
+              parent="menu_sonha_report"
+              sequence="1"/>
+</odoo>
