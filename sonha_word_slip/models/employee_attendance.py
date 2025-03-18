@@ -115,8 +115,13 @@ class EmployeeAttendance(models.Model):
                                                                   ('end_date', '>=', record.date),
                                                                   ('status', '=', 'done')])
 
-                overtime = self.env['overtime.rel'].sudo().search([('date', '=', record.date),
-                                                                   ('overtime_id.status', '=', 'done')])
+                overtime = self.env['overtime.rel'].sudo().search([
+                    '&',
+                    ('date', '=', record.date),
+                    '|',
+                    ('overtime_id.status', '=', 'done'),
+                    ('overtime_id.status_lv2', '=', 'done'),
+                ])
                 overtime = overtime.filtered(lambda x: (x.overtime_id.employee_id and x.overtime_id.employee_id.id == record.employee_id.id)
                                                        or (x.overtime_id.employee_ids and record.employee_id.id in x.overtime_id.employee_ids.ids))
                 if ot:
