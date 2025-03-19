@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+<!--        man hien thi form view-->
+        <record id="nhan_vien_form_view" model="ir.ui.view">
+            <!-- ten minh dat-->
+            <field name="name">nhan.vien.form.view</field>
+            <!-- ten bang-->
+            <field name="model">nhan.vien</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+<!--                            <field name="chi_nhanh_id"/>-->
+                            <field name="ma_nhan_vien"/>
+                            <field name="ten_nhan_vien"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!--man hien thi danh sach-->
+        <record id="nhan_vien_tree_view" model="ir.ui.view">
+            <field name="name">nhan.vien.tree.view</field>
+            <field name="model">nhan.vien</field>
+            <field name="arch" type="xml">
+                <tree string="nhan_vien" default_order="create_date desc" editable="bottom">
+<!--                    <field name="chi_nhanh_id"/>-->
+                    <field name="ma_nhan_vien"/>
+                    <field name="ten_nhan_vien"/>
+                    <field name="dien_thoai"/>
+                    <field name="dien_thoai2"/>
+                    <field name="dia_chi"/>
+                    <field name="lock"/>
+                </tree>
+            </field>
+        </record>
+
+        <!--để lọc-->
+        <record id="nhan_vien_search_view" model="ir.ui.view">
+            <field name="name">nhan.vien.search.view</field>
+            <field name="model">nhan.vien</field>
+            <field name="arch" type="xml">
+                <search>
+<!--                    <field name="chi_nhanh_id"/>-->
+                    <field name="ma_nhan_vien"/>
+                    <field name="ten_nhan_vien"/>
+                    <field name="dien_thoai"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_nhan_vien" model="ir.actions.act_window">
+            <field name="name">Nhân viên</field> <!--hiển thị title trong danh sách -->
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">nhan.vien</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('nhan_vien_tree_view')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('nhan_vien_form_view')})]"/>
+        </record>
+
+    </data>
+</odoo>

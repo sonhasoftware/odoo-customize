@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="staff_warranty_information_form_view" model="ir.ui.view">
+            <field name="name">staff.warranty.information.form.view</field>
+            <field name="model">warranty.information</field>
+            <field name="arch" type="xml">
+                <form>
+<!--                    <header>-->
+<!--                        <field name="warranty_status" widget="statusbar"/>-->
+<!--                    </header>-->
+                    <sheet>
+                        <group>
+                            <field name="display_warranty_code"/>
+                            <field name="exchange_form"/>
+                            <field name="error_code"/>
+                            <field name="error_cause"/>
+                            <field name="product_code"/>
+                            <field name="processing_content"/>
+                            <field name="produce_month"/>
+                            <field name="produce_year"/>
+                            <field name="distance"/>
+                            <field name="service_fee"/>
+                            <field name="sent_date"/>
+                            <field name="picture" widget="many2many_binary"/>
+                            <field name="return_date"/>
+                        </group>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <record id="staff_warranty_information_tree_view" model="ir.ui.view">
+            <field name="name">staff.warranty.information.tree.view</field>
+            <field name="model">warranty.information</field>
+            <field name="arch" type="xml">
+                <tree string="Thông tin bảo hành" default_order="create_date desc">
+                    <field name="display_warranty_code"/>
+                    <field name="customer_information"/>
+                    <field name="mobile_customer"/>
+                    <field name="reporter"/>
+                    <field name="address"/>
+                    <field name="product_type_id"/>
+                    <field name="error_information"/>
+                    <field name="call_date" string="Ngày nhận"/>
+                    <field name="warranty_status"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_staff_warranty_information" model="ir.actions.act_window">
+            <field name="name">Tổng quan</field>
+            <field name="res_model">warranty.information</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('work', '=', 'assign')]</field>
+        </record>
+
+        <record id="action_open_staff_warranty_information" model="ir.actions.act_window">
+            <field name="name">Danh sách mở</field>
+            <field name="res_model">warranty.information</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('warranty_status', '=', 'open'), ('work', '=', 'assign')]</field>
+        </record>
+
+        <record id="action_close_staff_warranty_information" model="ir.actions.act_window">
+            <field name="name">Danh sách đóng</field>
+            <field name="res_model">warranty.information</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('warranty_status', '=', 'close'), ('work', '=', 'assign')]</field>
+        </record>
+    </data>
+</odoo>

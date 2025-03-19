@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_produce_year_tree" model="ir.ui.view">
+        <field name="name">view.produce.year.tree</field>
+        <field name="model">produce.year</field>
+        <field name="arch" type="xml">
+            <tree string="Năm" editable="bottom">
+                <field name="id"/>
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="produce_year_action" model="ir.actions.act_window">
+        <field name="name">Năm</field>
+        <field name="res_model">produce.year</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

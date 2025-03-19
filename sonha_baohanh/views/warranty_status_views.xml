@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="warranty_status_tree_view" model="ir.ui.view">
+        <field name="name">warranty.status.tree.view</field>
+        <field name="model">warranty.status</field>
+        <field name="arch" type="xml">
+            <tree string="Cấu hình trạng thái">
+                <field name="warranty_status_code"/>
+                <field name="warranty_status_name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="warranty_status_form_view" model="ir.ui.view">
+        <field name="name">warranty.status.form.view</field>
+        <field name="model">warranty.status</field>
+        <field name="arch" type="xml">
+            <form string="Cấu hình trạng thái">
+                <group>
+                    <field name="warranty_status_code"/>
+                    <field name="warranty_status_name"/>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <record id="warranty_status_action" model="ir.actions.act_window">
+        <field name="name">Cấu hình trạng thái</field>
+        <field name="res_model">warranty.status</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

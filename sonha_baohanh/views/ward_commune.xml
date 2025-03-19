@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!--man hien thi form view-->
+        <record id="ward_commune_form_view" model="ir.ui.view">
+            <!-- ten minh dat-->
+            <field name="name">ward.commune.form.view</field>
+            <!-- ten bang-->
+            <field name="model">ward.commune</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <field name="district_id"/>
+                            <field name="ward_commune_code"/>
+                            <field name="ward_commune_name"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!--man hien thi danh sach-->
+        <record id="ward_commune_tree_view" model="ir.ui.view">
+            <field name="name">ward.commune.tree.view</field>
+            <field name="model">ward.commune</field>
+            <field name="arch" type="xml">
+                <tree string="ward_commune" default_order="create_date desc" editable="bottom">
+                     <field name="district_id"/>
+                            <field name="ward_commune_code"/>
+                            <field name="ward_commune_name"/>
+                </tree>
+            </field>
+        </record>
+
+        <!--để lọc-->
+        <record id="ward_commune_search_view" model="ir.ui.view">
+            <field name="name">ward.commune.search.view</field>
+            <field name="model">ward.commune</field>
+            <field name="arch" type="xml">
+                <search>
+                            <field name="ward_commune_code"/>
+                            <field name="ward_commune_name"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_ward_commune" model="ir.actions.act_window">
+            <field name="name">Phường/xã</field> <!--hiển thị title trong danh sách -->
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">ward.commune</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('ward_commune_tree_view')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('ward_commune_form_view')})]"/>
+        </record>
+
+    </data>
+</odoo>

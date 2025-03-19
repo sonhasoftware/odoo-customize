@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="error_code_tree_view" model="ir.ui.view">
+        <field name="name">error.code.tree.view</field>
+        <field name="model">error.code</field>
+        <field name="arch" type="xml">
+            <tree string="Cấu hình mã lỗi" editable="bottom">
+<!--                <field name="company_id"/>-->
+                <field name="error_group_id"/>
+                <field name="product_type_id"/>
+                <field name="error_code"/>
+                <field name="error_name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="error_code_form_view" model="ir.ui.view">
+        <field name="name">error.code.form.view</field>
+        <field name="model">error.code</field>
+        <field name="arch" type="xml">
+            <form string="Cấu hình mã lỗi">
+                <group>
+<!--                    <field name="company_id"/>-->
+                    <field name="error_group_id"/>
+                    <field name="product_type_id"/>
+                    <field name="error_code"/>
+                    <field name="error_name"/>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <record id="error_code_action" model="ir.actions.act_window">
+        <field name="name">Cấu hình mã lỗi</field>
+        <field name="res_model">error.code</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="warranty_information_form_view" model="ir.ui.view">
+            <field name="name">warranty.information.form.view</field>
+            <field name="model">warranty.information</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <field name="reporter"/>
+                            <field name="customer_information"/>
+                            <field name="mobile_customer"/>
+                            <field name="province_id"/>
+                            <field name="district_id" domain="[('province_id', '=', province_id)]"/>
+                            <field name="ward_commune_id"/>
+                            <field name="address"/>
+                            <field name="product_type_id"/>
+                            <field name="error_information"/>
+                            <field name="branch_id"/>
+                            <field name="call_date"/>
+                            <field name="appointment_date"/>
+                            <field name="create_date"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="warranty_information_tree_view" model="ir.ui.view">
+            <field name="name">warranty.information.tree.view</field>
+            <field name="model">warranty.information</field>
+            <field name="arch" type="xml">
+                <tree string="thong_tin_bao_hanh" default_order="create_date desc" editable="bottom">
+                    <field name="display_warranty_code"/>
+                    <field name="work"/>
+                    <field name="reporter"/>
+                    <field name="customer_information"/>
+                    <field name="mobile_customer"/>
+                    <field name="province_id"/>
+                    <field name="district_id"/>
+                    <field name="ward_commune_id"/>
+                    <field name="address"/>
+                    <field name="product_type_id"/>
+                    <field name="error_information"/>
+                    <field name="note"/>
+                    <field name="employee" readonly="work != 'assign'"/>
+                    <field name="branch_id"/>
+                    <field name="call_date"/>
+                    <field name="appointment_date"/>
+                    <field name="appointment"/>
+                    <field name="sap_document"/>
+<!--                   <field name="create_date" string="Ngày tạo"/>-->
+                </tree>
+            </field>
+        </record>
+
+        <!--để lọc-->
+        <!--
+        <record id="nguoi_dung_search_view" model="ir.ui.view">
+            <field name="name">nguoi.dung.search.view</field>
+            <field name="model">nguoi.dung</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="code" string="Mã người dùng"/>
+                    <field name="description" string="Tên người dùng"/>
+                </search>
+            </field>
+        </record>
+        -->
+        <record id="action_warranty_information" model="ir.actions.act_window">
+            <field name="name">Thông tin bảo hành</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">warranty.information</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('warranty_information_tree_view')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('warranty_information_form_view')})]"/>
+        </record>
+
+    </data>
+</odoo>

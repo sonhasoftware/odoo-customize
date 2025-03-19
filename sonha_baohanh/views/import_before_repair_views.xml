@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="import_before_repair_tree_view" model="ir.ui.view">
+        <field name="name">import.before.repair.tree.view</field>
+        <field name="model">import.before.repair</field>
+        <field name="arch" type="xml">
+            <tree string="Nhập kho trước SC" editable="bottom">
+                <field name="bh_create_date"/>
+                <field name="warranty_code"/>
+                <field name="customer_name"/>
+                <field name="phone_number"/>
+                <field name="address"/>
+                <field name="product_code"/>
+                <field name="product_name"/>
+                <field name="unit"/>
+                <field name="amount"/>
+                <field name="produce_month"/>
+                <field name="produce_year"/>
+                <field name="error_infor"/>
+                <field name="input_content"/>
+                <field name="delivery_people"/>
+                <field name="branch_id"/>
+                <field name="warehouse"/>
+                <field name="plant"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_import_before_repair" model="ir.actions.act_window">
+        <field name="name">Nhập kho trước SC</field>
+        <field name="res_model">import.before.repair</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

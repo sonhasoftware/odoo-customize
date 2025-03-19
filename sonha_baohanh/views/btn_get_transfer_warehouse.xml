@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+   <record id="view_quotation_tree_warranty" model="ir.ui.view">
+       <field name="name">get.tranfer.warehouse.view.tree.inherit</field>
+       <field name="model">import.before.repair</field>
+       <field name="inherit_id" ref="sonha_baohanh.import_before_repair_tree_view"/>
+       <field name="arch" type="xml">
+           <xpath expr="//tree" position="attributes">
+               <attribute name="js_class">button_transfer</attribute>
+           </xpath>
+       </field>
+   </record>
+</odoo>

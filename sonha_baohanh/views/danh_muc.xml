@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+     <menuitem id="menu_thong_tin_bao_hanh"
+              name="Bảo hành"
+              sequence="1"/>
+
+    <menuitem id="menu_warranty_information"
+              name="Thông tin bảo hành"
+              parent="menu_thong_tin_bao_hanh"
+              action="action_warranty_information"
+              sequence="2"/>
+
+    <menuitem id="menu_category_root"
+              name="Danh mục"
+              parent="menu_thong_tin_bao_hanh"
+              sequence="10"/>
+
+    <menuitem id="menu_bh_users"
+              name="Người dùng"
+              action="action_bh_users"
+              parent="menu_category_root"
+              sequence="3"/>
+
+    <menuitem id="menu_category_province"
+              name="Tỉnh thành"
+              action="action_province"
+              parent="menu_category_root"
+              sequence="4"/>
+
+    <menuitem id="menu_category_district"
+              name="Quận huyện"
+              action="action_district"
+              parent="menu_category_root"
+              sequence="5"/>
+
+    <menuitem id="menu_category_ward_commune"
+              name="Phường/xã"
+              action="action_ward_commune"
+              parent="menu_category_root"
+              sequence="6"/>
+
+    <menuitem id="menu_category_product_type"
+              name="Loại sản phẩm"
+              action="action_product_type"
+              parent="menu_category_root"
+              sequence="7"/>
+
+     <menuitem id="menu_danh_muc_chi_nhanh"
+              name="Chi nhánh"
+              action="action_bh_branch"
+              parent="menu_category_root"
+              sequence="8"/>
+
+     <menuitem id="menu_danh_muc_nhan_vien"
+              name="Nhân viên"
+              action="action_nhan_vien"
+              parent="menu_category_root"
+              sequence="9"/>
+
+    <menuitem id="menu_danh_muc_nam"
+              name="Năm"
+              action="produce_year_action"
+              parent="menu_category_root"
+              sequence="10"/>
+
+    <menuitem id="menu_error_group"
+              name="Nhóm lỗi"
+              action="error_group_action"
+              parent="menu_category_root"
+              sequence="11"/>
+
+    <menuitem id="menu_error_code"
+              name="Mã lỗi"
+              action="error_code_action"
+              parent="menu_category_root"
+              sequence="12"/>
+
+    <menuitem id="menu_form_exchange"
+              name="Hình thức trao đổi"
+              action="form_exchange_action"
+              parent="menu_category_root"
+              sequence="13"/>
+
+    <menuitem id="menu_warranty_status"
+              name="Trạng thái"
+              action="warranty_status_action"
+              parent="menu_category_root"
+              sequence="14"/>
+
+    <menuitem id="menu_staff_warranty_information"
+              name="Thông tin bảo hành(Nhân viên)"
+              parent="menu_thong_tin_bao_hanh"
+              sequence="3"/>
+
+    <menuitem id="menu_all_staff_warranty_information"
+              name="Tổng quan"
+              action="action_staff_warranty_information"
+              parent="menu_staff_warranty_information"
+              sequence="3"/>
+
+    <menuitem id="menu_open_staff_warranty_information"
+              name="Danh sách mở"
+              action="action_open_staff_warranty_information"
+              parent="menu_staff_warranty_information"
+              sequence="3"/>
+
+    <menuitem id="menu_close_staff_warranty_information"
+              name="Danh sách đóng"
+              action="action_close_staff_warranty_information"
+              parent="menu_staff_warranty_information"
+              sequence="3"/>
+
+    <menuitem id="menu_sonha_product"
+              name="Sản phẩm"
+              action="action_sonha_product"
+              parent="menu_category_root"
+              sequence="16"/>
+
+    <menuitem id="menu_data_branch"
+              name="Tool chi nhánh"
+              parent="menu_thong_tin_bao_hanh"
+              sequence="4"/>
+
+    <menuitem id="menu_import_before_repair"
+              name="Nhập kho trước SC"
+              parent="menu_data_branch"
+              action="action_import_before_repair"
+              sequence="1"/>
+
+    <menuitem id="menu_export_company"
+              name="Xuất kho về công ty"
+              parent="menu_data_branch"
+              action="action_export_company"
+              sequence="2"/>
+
+    <menuitem id="menu_return_customer"
+              name="Nhập kho trả khách"
+              parent="menu_data_branch"
+              action="action_return_customer"
+              sequence="5"/>
+
+    <menuitem id="menu_export_warehouse"
+              name="Xuất kho"
+              parent="menu_data_branch"
+              action="action_export_warehouse"
+              sequence="8"/>
+
+    <menuitem id="menu_transfer_warehouse"
+              name="Chuyển kho GCN TTH"
+              parent="menu_data_branch"
+              action="action_transfer_warehouse"
+              sequence="3"/>
+
+    <menuitem id="menu_transfer_warehouse_sth"
+              name="Chuyển kho GCN STH"
+              parent="menu_data_branch"
+              action="action_transfer_warehouse_sth"
+              sequence="4"/>
+</odoo>

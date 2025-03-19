@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="export_warehouse_tree_view" model="ir.ui.view">
+        <field name="name">export.warehouse.tree.view</field>
+        <field name="model">export.warehouse</field>
+        <field name="arch" type="xml">
+            <tree string="Xuất kho">
+                <field name="delivery_note"/>
+                <field name="customer_name"/>
+                <field name="warranty_code"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="export_warehouse_form_view" model="ir.ui.view">
+        <field name="name">export.warehouse.form.view</field>
+        <field name="model">export.warehouse</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="export_date"/>
+                            <field name="delivery_note"/>
+                            <field name="number_receipts"/>
+                            <field name="warranty_code"/>
+                            <field name="branch_id"/>
+                        </group>
+                        <group>
+                            <field name="customer_name"/>
+                            <field name="phone_number"/>
+                            <field name="address"/>
+                            <field name="driver"/>
+                            <field name="delivery_confirmation"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="form_export_id">
+                            <tree editable="bottom">
+                                <field name="warranty_code"/>
+                                <field name="product_code"/>
+                                <field name="product_name"/>
+                                <field name="export_warehouse"/>
+                                <field name="plant"/>
+                                <field name="unit"/>
+                                <field name="request_amount"/>
+                                <field name="export_amount"/>
+                                <field name="note"/>
+                            </tree>
+                        </field>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_export_warehouse" model="ir.actions.act_window">
+        <field name="name">Xuất kho</field>
+        <field name="res_model">export.warehouse</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>
