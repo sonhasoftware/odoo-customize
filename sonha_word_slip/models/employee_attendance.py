@@ -306,14 +306,15 @@ class EmployeeAttendance(models.Model):
                 r.duration = 0
 
     #Lấy giờ mốc để tách giờ check-in và giờ check-out của nhân viên
-    @api.depends('shift')
+    @api.depends('shift', 'duration', 'time_check_in', 'time_check_out')
     def _check_no_in_out(self):
         for r in self:
             r.check_no_in = None
             r.check_no_out = None
-            if r.shift:
+            if r.shift and r.duration > 0 and r.time_check_in and r.time_check_out:
+                duration = r.duration / 2
                 r.check_no_in = r.time_check_in + timedelta(minutes=r.shift.earliest + r.shift.latest)
-                r.check_no_out = r.time_check_out - timedelta(minutes=r.shift.latest_out - r.shift.earliest_out)
+                r.check_no_out = r.time_check_out - timedelta(hours=duration, minutes=r.shift.latest_out)
 
     #Lấy thông tin check-in và check-out của nhân viên
     @api.depends('employee_id', 'time_check_in', 'time_check_out', 'check_no_in', 'check_no_out')
