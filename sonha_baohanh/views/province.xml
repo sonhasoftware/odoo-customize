@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!--man hien thi form view-->
+        <record id="province_form_view" model="ir.ui.view">
+            <!-- ten minh dat-->
+            <field name="name">province.form.view</field>
+            <!-- ten bang-->
+            <field name="model">province</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <field name="province_code"/>
+                            <field name="province_name"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!--man hien thi danh sach-->
+        <record id="province_tree_view" model="ir.ui.view">
+            <field name="name">province.tree.view</field>
+            <field name="model">province</field>
+            <field name="arch" type="xml">
+                <tree string="province" default_order="create_date desc" editable="bottom">
+                    <field name="province_code"/>
+                    <field name="province_name"/>
+                </tree>
+            </field>
+        </record>
+
+        <!--để lọc-->
+        <record id="province_search_view" model="ir.ui.view">
+            <field name="name">province.search.view</field>
+            <field name="model">province</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="province_code"/>
+                    <field name="province_name"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_province" model="ir.actions.act_window">
+            <field name="name">Tỉnh thành</field> <!--hiển thị title trong danh sách -->
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">province</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('province_tree_view')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('province_form_view')})]"/>
+        </record>
+
+    </data>
+</odoo>

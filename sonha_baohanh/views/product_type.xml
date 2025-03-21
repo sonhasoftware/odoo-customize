@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!--man hien thi form view-->
+        <record id="product_type_form_view" model="ir.ui.view">
+            <!-- ten minh dat-->
+            <field name="name">product.type.form.view</field>
+            <!-- ten bang-->
+            <field name="model">product.type</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                             <field name="company_id"/>
+                            <field name="product_type_code"/>
+                            <field name="product_type_name"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!--man hien thi danh sach-->
+        <record id="product_type_tree_view" model="ir.ui.view">
+            <field name="name">product.type.tree.view</field>
+            <field name="model">product.type</field>
+            <field name="arch" type="xml">
+                <tree string="product_type" default_order="create_date desc" editable="bottom">
+                    <field name="company_id"/>
+                    <field name="product_type_code"/>
+                    <field name="product_type_name"/>
+                </tree>
+            </field>
+        </record>
+
+        <!--để lọc-->
+        <record id="product_type_search_view" model="ir.ui.view">
+            <field name="name">product.type.search.view</field>
+            <field name="model">product.type</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="product_type_code"/>
+                    <field name="product_type_name"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_product_type" model="ir.actions.act_window">
+            <field name="name">Loại sản phẩm</field> <!--hiển thị title trong danh sách -->
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">product.type</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('product_type_tree_view')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('product_type_form_view')})]"/>
+        </record>
+
+    </data>
+</odoo>

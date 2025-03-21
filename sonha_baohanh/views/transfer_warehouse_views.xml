@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="transfer_warehouse_tree_view" model="ir.ui.view">
+        <field name="name">transfer.warehouse.tree.view</field>
+        <field name="model">return.customer</field>
+        <field name="arch" type="xml">
+            <tree string="Chuyển kho GCN TTH">
+                <field name="customer_name"/>
+                <field name="phone_number"/>
+                <field name="address"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="transfer_warehouse_form_view" model="ir.ui.view">
+            <field name="name">transfer.warehouse.form.view</field>
+            <field name="model">return.customer</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="warranty_code"/>
+                                <field name="customer_name"/>
+                                <field name="address"/>
+                            </group>
+                            <group>
+                                <field name="phone_number"/>
+                                <field name="sap_document"/>
+                            </group>
+                        </group>
+                        <group>
+                            <field name="transfer_warehouse_ids" string=" ">
+                                <tree editable="bottom">
+                                    <field name="product_code"/>
+                                    <field name="product_name"/>
+                                    <field name="unit"/>
+                                    <field name="request_amount"/>
+                                    <field name="receive_amount"/>
+                                    <field name="export_warehouse"/>
+                                    <field name="import_warehouse"/>
+                                    <field name="note"/>
+                                    <field name="branch_id"/>
+                                </tree>
+                            </field>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+    <record id="transfer_warehouse_sth_tree_view" model="ir.ui.view">
+        <field name="name">transfer.warehouse.sth.tree.view</field>
+        <field name="model">return.customer</field>
+        <field name="arch" type="xml">
+            <tree string="Chuyển kho GCN STH">
+                <field name="customer_name"/>
+                <field name="phone_number"/>
+                <field name="address"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="transfer_warehouse_sth_form_view" model="ir.ui.view">
+            <field name="name">transfer.warehouse.sth.form.view</field>
+            <field name="model">return.customer</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="warranty_code"/>
+                                <field name="customer_name"/>
+                                <field name="address"/>
+                            </group>
+                            <group>
+                                <field name="phone_number"/>
+                                <field name="sap_document"/>
+                            </group>
+                        </group>
+                        <group>
+                            <field name="transfer_warehouse_ids" string=" ">
+                                <tree editable="bottom">
+                                    <field name="product_code"/>
+                                    <field name="product_name"/>
+                                    <field name="unit"/>
+                                    <field name="request_amount"/>
+                                    <field name="receive_amount"/>
+                                    <field name="export_warehouse"/>
+                                    <field name="import_warehouse"/>
+                                    <field name="note"/>
+                                    <field name="branch_id"/>
+                                </tree>
+                            </field>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+    <record id="action_transfer_warehouse" model="ir.actions.act_window">
+        <field name="name">Chuyển kho GCN TTH</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">return.customer</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('transfer_warehouse_tree_view')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('transfer_warehouse_form_view')})]"/>
+        <field name="domain">[('type', '=', 'tth')]</field>
+        <field name="context">{'default_type': 'tth'}</field>
+    </record>
+
+    <record id="action_transfer_warehouse_sth" model="ir.actions.act_window">
+        <field name="name">Chuyển kho GCN STH</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">return.customer</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('transfer_warehouse_sth_tree_view')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('transfer_warehouse_sth_form_view')})]"/>
+        <field name="domain">[('type', '=', 'sth')]</field>
+        <field name="context">{'default_type': 'sth'}</field>
+    </record>
+</odoo>

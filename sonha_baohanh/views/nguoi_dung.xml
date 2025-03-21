@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <!--man hien thi form view-->
+        <record id="nguoi_dung_form_view" model="ir.ui.view">
+            <!-- ten minh dat-->
+            <field name="name">nguoi.dung.form.view</field>
+            <!-- ten bang-->
+            <field name="model">nguoi.dung</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <button name="create_user" type="object" string="Tạo account user" class="btn-primary"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <field name="code"/>
+                            <field name="description"/>
+                            <field name="password"/>
+                            <field name="password_hint"/>
+                            <field name="di_dong"/>
+                            <field name="email"/>
+<!--                            <field name="chi_nhanh_ids" widget="many2many_tags"/>-->
+                            <field name="user_id" readonly="1"/>
+                            <!--
+                            <field name="chi_nhanh_ids" string=" ">
+                                <tree editable="bottom">
+                                    <field name="ma_chi_nhanh"/>
+                                    <field name="ten_chi_nhanh"/>
+                                </tree>
+                            </field>
+                            -->
+                        </group>
+
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!--man hien thi danh sach-->
+        <record id="nguoi_dung_tree_view" model="ir.ui.view">
+            <field name="name">nguoi.dung.tree.view</field>
+            <field name="model">nguoi.dung</field>
+            <field name="arch" type="xml">
+                <tree string="nguoi_dung" default_order="create_date desc">
+                    <field name="code" string="Mã người dùng"/>
+                    <field name="description" string="Tên người dùng"/>
+                    <field name="password" string="Mật khẩu"/>
+                    <field name="password_hint"/>
+                    <field name="di_dong" string="Di động"/>
+                    <field name="email"/>
+                    <field name="user_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <!--để lọc-->
+        <record id="nguoi_dung_search_view" model="ir.ui.view">
+            <field name="name">nguoi.dung.search.view</field>
+            <field name="model">nguoi.dung</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="code" string="Mã người dùng"/>
+                    <field name="description" string="Tên người dùng"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_nguoi_dung" model="ir.actions.act_window">
+            <field name="name">Người dùng</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">nguoi.dung</field>
+            <!-- <field name="view_type">form</field> --> <!-- Odoo 13 has removed this field -->
+            <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('nguoi_dung_tree_view')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('nguoi_dung_form_view')})]"/>
+        </record>
+
+        <menuitem id="menu_my_pet"
+                  name="Người dùng"
+                  action="action_nguoi_dung"
+                  sequence="10"/>
+    </data>
+</odoo>

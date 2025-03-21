@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+     <data>
+        <!--man hien thi form view-->
+        <record id="bh_branch_form_view" model="ir.ui.view">
+            <!-- ten minh dat-->
+            <field name="name">bh.branch.form.view</field>
+            <!-- ten bang-->
+            <field name="model">bh.branch</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <field name="branch_name"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!--man hien thi danh sach-->
+        <record id="bh_branch_tree_view" model="ir.ui.view">
+            <field name="name">bh.branch.tree.view</field>
+            <field name="model">bh.branch</field>
+            <field name="arch" type="xml">
+                <tree string="Chi nhánh" default_order="create_date desc" editable="bottom">
+                    <field name="branch_code"/>
+                    <field name="branch_name"/>
+                    <field name="province_id"/>
+                    <field name="district_id"/>
+                    <field name="ward_commune_id"/>
+                    <field name="address"/>
+                    <field name="plant"/>
+                    <field name="warehouse_tsc"/>
+                    <field name="warehouse_tp"/>
+                    <field name="warehouse_tk"/>
+                </tree>
+            </field>
+        </record>
+
+        <!--để lọc-->
+        <record id="bh_branch_search_view" model="ir.ui.view">
+            <field name="name">bh.branch.search.view</field>
+            <field name="model">bh.branch</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="branch_name"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_bh_branch" model="ir.actions.act_window">
+            <field name="name">Chi nhánh</field> <!--hiển thị title trong danh sách -->
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">bh.branch</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('bh_branch_tree_view')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('bh_branch_form_view')})]"/>
+        </record>
+
+    </data>
+</odoo>

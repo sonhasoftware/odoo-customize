@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="form_exchange_tree_view" model="ir.ui.view">
+        <field name="name">form.exchange.tree.view</field>
+        <field name="model">form.exchange</field>
+        <field name="arch" type="xml">
+            <tree string="Hình thức trao đổi"  editable="bottom">
+                <field name="form_exchange_code"/>
+                <field name="form_exchange_name"/>
+                <field name="change_status"/>
+                <field name="change_done_date"/>
+                <field name="import_company"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="form_exchange_form_view" model="ir.ui.view">
+        <field name="name">form.exchange.form.view</field>
+        <field name="model">form.exchange</field>
+        <field name="arch" type="xml">
+            <form string="Hình thức trao đổi">
+                <group>
+                    <field name="form_exchange_code"/>
+                    <field name="form_exchange_name"/>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <record id="form_exchange_action" model="ir.actions.act_window">
+        <field name="name">Hình thức trao đổi</field>
+        <field name="res_model">form.exchange</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>
