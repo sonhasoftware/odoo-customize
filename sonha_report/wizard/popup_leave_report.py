@@ -28,10 +28,10 @@ class PopupLeaveReport(models.TransientModel):
             if list_records:
                 list_emp = list_records.mapped('employee_id')
                 for emp in list_emp:
-                    total_leave_balance_left = self.caculate_total_leave_balance_left(emp)
                     personal_records = list_records.filtered(lambda x: x.employee_id.id == emp.id)
                     if personal_records:
                         for r in personal_records:
+                            total_leave_balance_left = self.caculate_begin_period(r)
                             vals = {
                                 'employee_id': r.employee_id.id,
                                 'department_id': r.department_id.id,
@@ -51,67 +51,89 @@ class PopupLeaveReport(models.TransientModel):
                 raise ValidationError("Nhân viên không sử dụng phép trong tháng này!")
 
 
-    def caculate_total_leave_balance_left(self, emp):
+    def caculate_begin_period(self, record):
         base_timeline = date(2023, 12, 31)
         base_leave_balance = 4
         old_leave_balance = base_leave_balance
-        begin_date = self.from_date
+        begin_date = record.date
         base_year = base_timeline.year
         begin_year = begin_date.year
-        caculate_date_1 = date(begin_year, 6, 30)
-        caculate_date_2 = (begin_date + relativedelta(years=-1)).replace(month=12, day=31)
         if begin_date >= base_timeline:
-            while base_year < begin_year - 1:
-                caculate_time_1 = (base_timeline + relativedelta(years=1)).replace(month=6, day=30)
-                used_leave = self.env['employee.attendance'].sudo().search([('date', '>=', base_timeline),
-                                                                            ('date', '<=', caculate_time_1),
-                                                                            ('employee_id', '=', emp.id)])
-                total_used_leave = sum(used_leave.mapped('leave')) if used_leave else 0
-                new_leave_balance = old_leave_balance + 6 - total_used_leave
-                if new_leave_balance >= 6:
-                    new_leave_balance = 6
-                caculate_time_2 = (base_timeline + relativedelta(years=1)).replace(month=12, day=31)
-                used_leave = self.env['employee.attendance'].sudo().search([('date', '>', caculate_time_1),
-                                                                            ('date', '<=', caculate_time_2),
-                                                                            ('employee_id', '=', emp.id)])
-                total_used_leave = sum(used_leave.mapped('leave')) if used_leave else 0
-                new_leave_balance = new_leave_balance + 6 - total_used_leave
-                old_leave_balance = new_leave_balance
-                base_year = base_year + 1
-                base_timeline = base_timeline + relativedelta(years=1)
-            begin_nonth = begin_date.month
-            if begin_nonth <= 6:
-                used_leave = self.env['employee.attendance'].sudo().search([('date', '>', caculate_date_2),
-                                                                            ('date', '<', begin_date),
-                                                                            ('employee_id', '=', emp.id)])
-                total_used_leave = sum(used_leave.mapped('leave')) if used_leave else 0
-                start_time = begin_date.replace(month=1, day=1)
-                start_time = datetime.strptime(start_time.strftime("%Y-%m-%d"), "%Y-%m-%d")
-                end_time = datetime.strptime(begin_date.strftime("%Y-%m-%d"), "%Y-%m-%d")
-                diff = relativedelta(end_time, start_time)
-                months_difference = diff.months + 1
-                total_leave_left = old_leave_balance + months_difference - total_used_leave
+            start_date = base_timeline
+            if base_timeline.month <= 6:
+                total_leave_left = self.caculate_leave_balance_left(start_date, begin_date, old_leave_balance, record)
+                return total_leave_left
             else:
-                used_leave = self.env['employee.attendance'].sudo().search([('date', '>', caculate_date_2),
-                                                                            ('date', '<=', caculate_date_1),
-                                                                            ('employee_id', '=', emp.id)])
+                if base_year < begin_year:
+                    end_date = start_date.replace(year=base_year, month=12, day=31)
+                else:
+                    end_date = begin_date
+                used_leave = self.env['employee.attendance'].sudo().search([('date', '>=', start_date),
+                                                                            ('date', '<=', end_date),
+                                                                            ('employee_id', '=', record.employee_id.id)])
                 total_used_leave = sum(used_leave.mapped('leave')) if used_leave else 0
-                total_leave_left = old_leave_balance + 6 - total_used_leave
-                if total_leave_left >= 6:
-                    total_leave_left = 6
-                used_leave = self.env['employee.attendance'].sudo().search([('date', '>', caculate_date_1),
-                                                                            ('date', '<', begin_date),
-                                                                            ('employee_id', '=', emp.id)])
-                total_used_leave = sum(used_leave.mapped('leave')) if used_leave else 0
-                start_time = begin_date.replace(month=1, day=1)
-                start_time = datetime.strptime(caculate_date_1.strftime("%Y-%m-%d"), "%Y-%m-%d")
-                end_time = datetime.strptime(begin_date.strftime("%Y-%m-%d"), "%Y-%m-%d")
+                start_time = datetime.strptime(start_date.strftime("%Y-%m-%d"), "%Y-%m-%d")
+                end_time = datetime.strptime(end_date.strftime("%Y-%m-%d"), "%Y-%m-%d")
                 diff = relativedelta(end_time, start_time)
-                months_difference = diff.months + 1
-                total_leave_left = total_leave_left + months_difference - total_used_leave
-            return total_leave_left
+                months_difference = diff.months
+                total_leave_left = old_leave_balance + months_difference - total_used_leave
+                if base_year < begin_year:
+                    start_date = end_date + relativedelta(days=1)
+                    total_leave_left = total_leave_left + 1
+                    total_leave_left = self.caculate_leave_balance_left(start_date, begin_date, total_leave_left, record)
+                return total_leave_left
         else:
             return 0
+
+
+
+    def caculate_leave_balance_left(self, start_date, begin_date, old_leave_balance, record):
+        base_year = start_date.year
+        begin_year = begin_date.year
+        while base_year <= begin_year:
+            if base_year < begin_year:
+                caculate_date_1 = start_date.replace(year=base_year, month=7, day=1)
+                caculate_time_1 = start_date.replace(year=base_year, month=6, day=30)
+            else:
+                if begin_date.month <= 6:
+                    caculate_date_1 = begin_date
+                    caculate_time_1 = begin_date
+                else:
+                    caculate_date_1 = start_date.replace(year=base_year, month=7, day=1)
+                    caculate_time_1 = start_date.replace(year=base_year, month=6, day=30)
+            used_leave = self.env['employee.attendance'].sudo().search([('date', '>=', start_date),
+                                                                        ('date', '<', caculate_date_1),
+                                                                        ('employee_id', '=', record.employee_id.id)])
+            total_used_leave = sum(used_leave.mapped('leave')) if used_leave else 0
+            start_time = datetime.strptime(start_date.strftime("%Y-%m-%d"), "%Y-%m-%d")
+            end_date = datetime.strptime(caculate_time_1.strftime("%Y-%m-%d"), "%Y-%m-%d")
+            diff = relativedelta(end_date, start_time)
+            months_difference = diff.months
+            total_leave_left = old_leave_balance + months_difference - total_used_leave
+            if base_year < begin_year or begin_date.month > 6:
+                if total_leave_left >= 6:
+                    total_leave_left = 6
+                if base_year < begin_year:
+                    caculate_date_2 = start_date.replace(year=base_year, month=12, day=31) + relativedelta(days=1)
+                else:
+                    if begin_date.month > 6:
+                        caculate_date_2 = begin_date
+                start_date = caculate_date_1
+                used_leave = self.env['employee.attendance'].sudo().search([('date', '>=', start_date),
+                                                                            ('date', '<', caculate_date_2),
+                                                                            ('employee_id', '=', record.employee_id.id)])
+                total_used_leave = sum(used_leave.mapped('leave')) if used_leave else 0
+                start_time = datetime.strptime(start_date.strftime("%Y-%m-%d"), "%Y-%m-%d")
+                caculate_time_2 = datetime.strptime(caculate_date_2.strftime("%Y-%m-%d"), "%Y-%m-%d")
+                diff = relativedelta(caculate_time_2, start_time)
+                months_difference = diff.months + 1
+                total_leave_left = total_leave_left + months_difference - total_used_leave
+                old_leave_balance = total_leave_left
+                start_date = caculate_date_2
+            base_year = base_year + 1
+        return total_leave_left
+
+
 
 
 
