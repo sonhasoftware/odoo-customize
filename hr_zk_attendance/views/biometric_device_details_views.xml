@@ -36,6 +36,7 @@
                         <field name="name"/>
                         <field name="device_ip"/>
                         <field name="port_number"/>
+                        <field name="mail"/>
                         <field name="address_id"/>
                     </group>
                     <button name="action_test_connection"

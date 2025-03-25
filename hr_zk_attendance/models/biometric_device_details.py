@@ -24,6 +24,7 @@ class BiometricDeviceDetails(models.Model):
                                  help="The Port Number of the Device")
     address_id = fields.Many2one('res.partner', string='Working Address',
                                  help='Working address of the partner')
+    mail = fields.Char("Mail")
     company_id = fields.Many2one('res.company', string='Company',
                                  default=lambda
                                      self: self.env.user.company_id.id,
@@ -138,6 +139,8 @@ class BiometricDeviceDetails(models.Model):
                 else:
                     raise UserError(_('Unable to get the attendance log, please try again later.'))
             else:
+                template = self.env.ref('hr_zk_attendance.template_sent_mail_biometric')
+                template.send_mail(info.id, force_send=True)
                 raise UserError(_('Unable to connect, please check the parameters and network connections.'))
 
     def download_attendance(self):
