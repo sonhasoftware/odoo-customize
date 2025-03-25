@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 {
     'name': "Bao hanh Son Ha",
-    'summary': "",
-    'description': "",
-    'author': "",
+    'summary': "Bao hanh Son Ha",
+    'description': "Bao hanh Son Ha cho cham soc khach hang, nhan vien bao hanh, tool bao hanh",
+    'author': "dev-sonha",
     'website': "",
     'category': '',
     'version': '0.1',
