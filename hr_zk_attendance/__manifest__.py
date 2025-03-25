@@ -25,6 +25,7 @@
         'views/import_attendance_views.xml',
         'wizard/wizard_date_range_view.xml',
         'data/cron_job.xml',
+        'data/template_mail.xml',
     ],
     'images': ['static/description/banner.png'],
     'license': 'AGPL-3',

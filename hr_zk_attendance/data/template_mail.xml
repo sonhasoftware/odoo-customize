@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="template_sent_mail_biometric" model="mail.template">
+        <field name="name">Gửi mail đến cấp duyệt</field>
+        <field name="model_id" ref="model_biometric_device_details"/>
+        <field name="subject">THÔNG BÁO: Không kéo được dữ liệu chấm công</field>
+        <field name="email_to">{{object.mail}}</field>
+        <field name="email_from">adminservices@sonha.com.vn</field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                    Dear anh/chị:
+                    <br/>
+                    Hiện tại máy chấm công có tên <t t-out="object.name"/>
+                    <br/>
+                    Địa chỉ IP: <t t-out="object.device_ip"/>
+                    <br/>
+                    Đang không có kết nối mạng để kéo dữ liệu công về hệ thống phần mềm HRM,
+                    <br/>
+                    Anh/chị vui lòng kiểm tra kết nối mạng của máy chấm công để hệ thống kéo được dữ liệu về cho anh/chị
+                    <br/>
+                    Đây là mail được gửi tự động từ hệ thống, anh/chị vui lòng không phản hồi thông tin tại mail này!
+                    <br/>
+                    Trân trọng cảm ơn!
+                </p>
+            </div>
+        </field>
+    </record>
+</odoo>
