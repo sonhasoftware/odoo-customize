@@ -4,6 +4,7 @@ access_hr_employee_user,hr.employee.user,model_hr_employee,group_user_employee,1
 access_hr_employee_dl,hr.employee.dl,model_hr_employee,group_dl_employee,1,0,0,0
 access_hr_employee_hr,hr.employee.hr,model_hr_employee,group_hr_employee,1,1,1,1
 access_hr_employee_manager,hr.employee.manager,model_hr_employee,group_manager_employee,1,0,0,0
+access_hr_employee_user,hr.employee.user,model_hr_employee,sonha_baohanh.group_warranty_admin,1,0,0,0
 
 sonha_employee.access_unit_reward,access_unit_reward,sonha_employee.model_unit_reward,base.group_user,1,1,1,1
 sonha_employee.access_form_reward_config,access_form_reward_config,sonha_employee.model_form_reward_config,base.group_user,1,1,1,1

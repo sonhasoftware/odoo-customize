@@ -36,6 +36,7 @@
             <field name="model">warranty.information</field>
             <field name="arch" type="xml">
                 <tree string="thong_tin_bao_hanh" default_order="create_date desc" editable="bottom" class="sticky_c">
+                    <button name="open_record" string="Xem" type="object" class="oe_highlight"/>
                     <field name="display_warranty_code"/>
                     <field name="work"/>
                     <field name="reporter"/>
@@ -47,9 +48,10 @@
                     <field name="address"/>
                     <field name="product_type_id"/>
                     <field name="error_information"/>
-                    <button name="open_record" string="Xem" type="object" class="oe_highlight"/>
+                    <field name="employee_id"/>
                     <field name="note"/>
                     <field name="branch_id"/>
+                    <field name="company_id"/>
                     <field name="call_date"/>
                     <field name="appointment_date"/>
                     <field name="appointment"/>

@@ -60,6 +60,15 @@ class WarrantyInformation(models.Model):
     appointment = fields.Text(string="Hẹn khách")
     sap_document = fields.Char(string="Chứng từ")
     non_fix = fields.Boolean(string="Không sửa", compute="is_non_fix", store=True)
+    employee_id = fields.Many2one('hr.employee', string="Nhân viên")
+    company_id = fields.Many2one('res.company', string="Công ty", default=lambda self: self._default_company())
+
+    @api.model
+    def _default_company(self):
+        user = self.env.user
+        if user.company_id:
+            return user.company_id.id
+        return False
 
     @api.depends('work')
     def filter_display_code(self):
