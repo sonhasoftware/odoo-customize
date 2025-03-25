@@ -8,19 +8,23 @@
                 <form>
                     <sheet>
                         <group>
-                            <field name="reporter"/>
-                            <field name="customer_information"/>
-                            <field name="mobile_customer"/>
-                            <field name="province_id"/>
-                            <field name="district_id" domain="[('province_id', '=', province_id)]"/>
-                            <field name="ward_commune_id"/>
-                            <field name="address"/>
-                            <field name="product_type_id"/>
-                            <field name="error_information"/>
-                            <field name="branch_id"/>
-                            <field name="call_date"/>
-                            <field name="appointment_date"/>
-                            <field name="create_date"/>
+                            <group>
+                                <field name="display_warranty_code"/>
+                                <field name="customer_information"/>
+                                <field name="mobile_customer"/>
+                                <field name="province_id"/>
+                                <field name="district_id"/>
+                                <field name="ward_commune_id"/>
+                                <field name="address"/>
+                            </group>
+                            <group>
+                                <field name="product_type_id"/>
+                                <field name="error_information"/>
+                                <field name="branch_id"/>
+                                <field name="call_date"/>
+                                <field name="appointment_date"/>
+                                <field name="create_date"/>
+                            </group>
                         </group>
                     </sheet>
                 </form>
@@ -43,6 +47,7 @@
                     <field name="address"/>
                     <field name="product_type_id"/>
                     <field name="error_information"/>
+                    <button name="open_record" string="Xem" type="object" class="oe_highlight"/>
                     <field name="note"/>
                     <field name="branch_id"/>
                     <field name="call_date"/>

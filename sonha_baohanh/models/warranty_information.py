@@ -112,5 +112,15 @@ class WarrantyInformation(models.Model):
             else:
                 r.non_fix = False
 
+    def open_record(self):
+        return {
+            'type': 'ir.actions.act_window',
+            'view_mode': 'form',
+            'res_model': 'warranty.information',
+            'res_id': self.id,
+            'views': [(self.env.ref('sonha_baohanh.warranty_information_form_view').id, 'form')],
+            'target': 'current',
+        }
+
 
 
