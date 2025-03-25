@@ -313,7 +313,7 @@ class EmployeeAttendance(models.Model):
             r.check_no_out = None
             if r.shift and r.duration > 0 and r.time_check_in and r.time_check_out:
                 duration = r.duration / 2
-                r.check_no_in = r.time_check_in + timedelta(hours=duration, minutes=r.shift.earliest)
+                r.check_no_in = r.time_check_in + timedelta(minutes=r.shift.earliest + r.shift.latest)
                 r.check_no_out = r.time_check_out - timedelta(hours=duration, minutes=r.shift.latest_out)
 
     #Lấy thông tin check-in và check-out của nhân viên
@@ -515,12 +515,20 @@ class EmployeeAttendance(models.Model):
             else:
                 r.color = 'red'
 
+            if r.shift.half_shift:
+                if tong_cong >= 0.5 and r.minutes_late == 0 and r.minutes_early == 0:
+                    r.color = 'green'
+                else:
+                    r.color = 'red'
+            else:
+                continue
+
             # Xử lý điều kiện đặc biệt cho cuối tuần
             if weekday == 6 or (weekday == 5 and week_number % 2 == 1):
                 if r.over_time != 0:
-                    if r.minutes_late == 0 and r.minutes_early == 0 :
+                    if r.minutes_late == 0 and r.minutes_early == 0:
                         r.color = 'green'
-                    else :
+                    else:
                         r.color = 'red'
                 elif tong_cong == 0:
                     r.color = None
