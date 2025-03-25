@@ -13,4 +13,5 @@ class BhBranch(models.Model):
     branch_code = fields.Char(string="Mã chi nhánh")
     province_id = fields.Many2one('province', string="Tỉnh thành")
     district_id = fields.Many2one('district', string="Quận/huyện", domain="[('province_id', '=', province_id)]")
-    ward_commune_id = fields.Many2one('ward.commune', string="Phường/xã", domain="[('district_id', '=', district_id)]")
+    # ward_commune_id = fields.Many2one('ward.commune', string="Phường/xã", domain="[('district_id', '=', district_id)]")
+    company_id = fields.Many2one("res.company", string="Công ty")

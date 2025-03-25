@@ -65,7 +65,7 @@
   left: 539px;
   min-width: 100px !important;
   background: white;
-  z-index: 2;
+  z-index: 3;
 }
 
 /* Fix eighth column */
@@ -75,7 +75,7 @@
   position: sticky !important;
   left: 639px;
   background: white;
-  z-index: 2;
+  z-index: 3;
 }
 
 /* Fix ninth column */
@@ -85,7 +85,7 @@
   left: 744px;
   background: white;
   min-width: 100px !important;
-  z-index: 2;
+  z-index: 3;
 }
 /* Fix tenth column */
 .sticky_c thead th:nth-child(10),
@@ -103,7 +103,7 @@
   position: sticky !important;
   left: 944px;
   background: white;
-  z-index: 2;
+  z-index: 3;
 }
 
 .sticky_c thead th:nth-child(12),
