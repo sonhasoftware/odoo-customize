@@ -9,108 +9,116 @@
 }
 
 /* Fix second column */
-.sticky_c thead th:nth-child(2),
-.sticky_c tbody td:nth-child(2) {
+.sticky_c thead th:nth-child(3),
+.sticky_c tbody td:nth-child(3) {
   min-width: 100px !important;
   position: sticky !important;
-  left: 40px;
+  left: 90px;
   background: white;
   z-index: 2;
 }
 
 /* Fix third column */
-.sticky_c thead th:nth-child(3),
-.sticky_c tbody td:nth-child(3) {
+.sticky_c thead th:nth-child(4),
+.sticky_c tbody td:nth-child(4) {
   position: sticky !important;
-  left: 132px;
+  left: 182px;
   min-width: 78px !important;
   background: white;
   z-index: 2;
 }
 
 /* Fix fourth column */
-.sticky_c thead th:nth-child(4),
-.sticky_c tbody td:nth-child(4) {
+.sticky_c thead th:nth-child(5),
+.sticky_c tbody td:nth-child(5) {
   position: sticky !important;
-  left: 210px;
+  left: 260px;
   background: white;
   min-width: 93px !important;
   z-index: 2;
 }
 
 /* Fix fifth column */
-.sticky_c thead th:nth-child(5),
-.sticky_c tbody td:nth-child(5) {
+.sticky_c thead th:nth-child(6),
+.sticky_c tbody td:nth-child(6) {
   min-width: 130px !important;
   position: sticky !important;
-  left: 303px;
+  left: 353px;
   background: white;
   z-index: 2;
 }
 
 /* Fix sixth column */
-.sticky_c thead th:nth-child(6),
-.sticky_c tbody td:nth-child(6) {
+.sticky_c thead th:nth-child(7),
+.sticky_c tbody td:nth-child(7) {
   min-width: 106px !important;
   position: sticky !important;
-  left: 433px;
+  left: 483px;
   background: white;
   z-index: 2;
 }
 
 /* Fix seventh column */
-.sticky_c thead th:nth-child(7),
-.sticky_c tbody td:nth-child(7) {
+.sticky_c thead th:nth-child(8),
+.sticky_c tbody td:nth-child(8) {
   position: sticky !important;
-  left: 539px;
+  left: 589px;
   min-width: 100px !important;
   background: white;
   z-index: 2;
 }
 
 /* Fix eighth column */
-.sticky_c thead th:nth-child(8),
-.sticky_c tbody td:nth-child(8) {
+.sticky_c thead th:nth-child(9),
+.sticky_c tbody td:nth-child(9) {
   min-width: 105px !important;
   position: sticky !important;
-  left: 639px;
+  left: 689px;
   background: white;
   z-index: 2;
 }
 
 /* Fix ninth column */
-.sticky_c thead th:nth-child(9),
-.sticky_c tbody td:nth-child(9) {
+.sticky_c thead th:nth-child(10),
+.sticky_c tbody td:nth-child(10) {
   position: sticky !important;
-  left: 744px;
+  left: 794px;
   background: white;
   min-width: 100px !important;
   z-index: 2;
 }
 /* Fix tenth column */
-.sticky_c thead th:nth-child(10),
-.sticky_c tbody td:nth-child(10) {
-  position: sticky !important;
-  left: 844px;
-  min-width: 100px !important;
-  background: white;
-  z-index: 2;
-}
-
 .sticky_c thead th:nth-child(11),
 .sticky_c tbody td:nth-child(11) {
-  min-width: 114px !important;
   position: sticky !important;
-  left: 944px;
+  left: 894px;
+  min-width: 100px !important;
   background: white;
   z-index: 2;
 }
 
 .sticky_c thead th:nth-child(12),
 .sticky_c tbody td:nth-child(12) {
+  min-width: 114px !important;
+  position: sticky !important;
+  left: 994px;
+  background: white;
+  z-index: 2;
+}
+
+.sticky_c thead th:nth-child(13),
+.sticky_c tbody td:nth-child(13) {
   min-width: 115px !important;
   position: sticky !important;
-  left: 1056px;
+  left: 1101px;
+  background: white;
+  z-index: 2;
+}
+.sticky_c thead th:nth-child(2),
+.sticky_c tbody td:nth-child(2) {
+  min-width: 50px !important;
+  position: sticky !important;
+  left: 40px;
   background: white;
   z-index: 2;
 }
