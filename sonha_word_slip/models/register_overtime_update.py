@@ -47,6 +47,22 @@ class RegisterOvertimeUpdate(models.Model):
 
     employee_security = fields.Many2one('hr.employee', compute='get_employee_security')
     all_times = fields.Text(string="Thời gian", compute="_compute_all_times", store=True)
+    record_url = fields.Char(string="Record URL", compute="_compute_record_url")
+
+    @api.depends('employee_id', 'employee_ids')
+    def _compute_record_url(self):
+        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+        menu_id = self.env.ref('sonha_word_slip.menu_register_overtime_update').id
+        action_id = self.env.ref('sonha_word_slip.action_register_overtime_update').id
+
+        for record in self:
+            record.record_url = (
+                f"{base_url}/web#id={record.id}"
+                f"&model=form.word.slip"
+                f"&view_type=form"
+                f"&menu_id={menu_id}"
+                f"&action={action_id}"
+            )
 
     @api.depends('date')
     def _compute_all_times(self):
@@ -132,6 +148,13 @@ class RegisterOvertimeUpdate(models.Model):
                 else:
                     r.type_overtime = False
 
+    def create(self, vals):
+        res = super(RegisterOvertimeUpdate, self).create(vals)
+        if not res.type_overtime:
+            template = self.env.ref('sonha_word_slip.template_sent_mail_manager_ot')
+            template.send_mail(res.id, force_send=True)
+        return res
+
     @api.onchange('employee_id', 'employee_ids', 'status_lv2', 'type_overtime')
     def get_user(self):
         for r in self:
@@ -150,6 +173,8 @@ class RegisterOvertimeUpdate(models.Model):
         for r in self:
             if r.check_user:
                 r.status_lv2 = 'waiting'
+                template = self.env.ref('sonha_word_slip.template_sent_mail_manager_ot')
+                template.send_mail(r.id, force_send=True)
             else:
                 raise ValidationError("Bạn không có quyền thực hiện hành động này")
 
@@ -157,6 +182,8 @@ class RegisterOvertimeUpdate(models.Model):
         for r in self:
             if r.check_qltt:
                 r.status_lv2 = 'confirm'
+                template = self.env.ref('sonha_word_slip.template_sent_mail_gd_ot')
+                template.send_mail(r.id, force_send=True)
             else:
                 raise ValidationError("Bạn không có quyền thực hiện hành động này")
 
