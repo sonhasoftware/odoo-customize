@@ -4,11 +4,11 @@
     'summary': "Bao hanh Son Ha",
     'description': "Bao hanh Son Ha cho cham soc khach hang, nhan vien bao hanh, tool bao hanh",
     'author': "dev-sonha",
-    'website': "",
-    'category': '',
+    'website': "https://",
+    'category': 'Son Ha warranty',
     'version': '0.1',
     'depends': [
-        'base', 'mail'
+        'base'
     ],
     'data': [
         'security/security.xml',
