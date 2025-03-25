@@ -1,141 +1,140 @@
 /* Fix first column */
 .sticky_c thead th:first-child,
 .sticky_c tbody td:first-child {
-    position: sticky !important;
-    left: 0px;
-    min-width: 40px !important;
-    background: white;
-    z-index: 2; /* Đặt z-index cao hơn nội dung */
+  position: sticky !important;
+  left: 0px;
+  min-width: 40px !important;
+  background: white;
+  z-index: 2; /* Đặt z-index cao hơn nội dung */
 }
 
 /* Fix second column */
 .sticky_c thead th:nth-child(2),
 .sticky_c tbody td:nth-child(2) {
-    min-width: 100px !important;
-    position: sticky !important;
-    left: 40px;
-    background: white;
-    z-index: 2;
+  min-width: 100px !important;
+  position: sticky !important;
+  left: 40px;
+  background: white;
+  z-index: 2;
 }
 
 /* Fix third column */
 .sticky_c thead th:nth-child(3),
 .sticky_c tbody td:nth-child(3) {
-    position: sticky !important;
-    left: 132px;
-    min-width: 78px !important;
-    background: white;
-    z-index: 2;
+  position: sticky !important;
+  left: 132px;
+  min-width: 78px !important;
+  background: white;
+  z-index: 2;
 }
 
 /* Fix fourth column */
 .sticky_c thead th:nth-child(4),
 .sticky_c tbody td:nth-child(4) {
-    position: sticky !important;
-    left: 210px;
-    background: white;
-    min-width: 93px !important;
-    z-index: 2;
+  position: sticky !important;
+  left: 210px;
+  background: white;
+  min-width: 93px !important;
+  z-index: 2;
 }
 
 /* Fix fifth column */
 .sticky_c thead th:nth-child(5),
 .sticky_c tbody td:nth-child(5) {
-    min-width: 130px !important;
-    position: sticky !important;
-    left: 303px;
-    background: white;
-    z-index: 2;
+  min-width: 130px !important;
+  position: sticky !important;
+  left: 303px;
+  background: white;
+  z-index: 2;
 }
 
 /* Fix sixth column */
 .sticky_c thead th:nth-child(6),
 .sticky_c tbody td:nth-child(6) {
-    min-width: 106px !important;
-    position: sticky !important;
-    left: 433px;
-    background: white;
-    z-index: 2;
+  min-width: 106px !important;
+  position: sticky !important;
+  left: 433px;
+  background: white;
+  z-index: 2;
 }
 
 /* Fix seventh column */
 .sticky_c thead th:nth-child(7),
 .sticky_c tbody td:nth-child(7) {
-    position: sticky !important;
-    left: 539px;
-    min-width: 100px !important;
-    background: white;
-    z-index: 2;
+  position: sticky !important;
+  left: 539px;
+  min-width: 100px !important;
+  background: white;
+  z-index: 2;
 }
 
 /* Fix eighth column */
 .sticky_c thead th:nth-child(8),
 .sticky_c tbody td:nth-child(8) {
-    min-width: 105px !important;
-    position: sticky !important;
-    left: 639px;
-    background: white;
-    z-index: 2;
+  min-width: 105px !important;
+  position: sticky !important;
+  left: 639px;
+  background: white;
+  z-index: 2;
 }
 
 /* Fix ninth column */
 .sticky_c thead th:nth-child(9),
 .sticky_c tbody td:nth-child(9) {
-    position: sticky !important;
-    left: 744px;
-    background: white;
-    min-width: 100px !important;
-    z-index: 2;
+  position: sticky !important;
+  left: 744px;
+  background: white;
+  min-width: 100px !important;
+  z-index: 2;
 }
 /* Fix tenth column */
 .sticky_c thead th:nth-child(10),
 .sticky_c tbody td:nth-child(10) {
-    position: sticky !important;
-    left: 844px;
-    min-width: 100px !important;
-    background: white;
-    z-index: 2;
+  position: sticky !important;
+  left: 844px;
+  min-width: 100px !important;
+  background: white;
+  z-index: 2;
 }
 
 .sticky_c thead th:nth-child(11),
 .sticky_c tbody td:nth-child(11) {
-    min-width: 114px !important;
-    position: sticky !important;
-    left: 944px;
-    background: white;
-    z-index: 2;
+  min-width: 114px !important;
+  position: sticky !important;
+  left: 944px;
+  background: white;
+  z-index: 2;
 }
 
 .sticky_c thead th:nth-child(12),
 .sticky_c tbody td:nth-child(12) {
-    min-width: 115px !important;
-    position: sticky !important;
-    left: 1056px;
-    background: white;
-    z-index: 2;
+  min-width: 115px !important;
+  position: sticky !important;
+  left: 1056px;
+  background: white;
+  z-index: 2;
 }
 
 /* Add shadow to separate fixed columns */
 .sticky_c th,
 .sticky_c td {
-    box-shadow: inset -1px 0 #ddd;
+  box-shadow: inset -1px 0 #ddd;
 }
 
 /* Fix table layout in Odoo */
 .sticky_c th,
 .sticky_c td {
-    white-space: nowrap !important; /* Tránh bị xuống dòng */
-    overflow: hidden !important;
-    text-overflow: ellipsis; /* Hiển thị dấu "..." khi quá dài */
+  white-space: nowrap !important; /* Tránh bị xuống dòng */
+  overflow: hidden !important;
+  text-overflow: ellipsis; /* Hiển thị dấu "..." khi quá dài */
 }
 
 .sticky_c thead th {
-    min-width: 150px !important;
-    background: #f8f9fa; /* Màu nền nhẹ để dễ nhìn */
+  min-width: 150px !important;
+  background: #f8f9fa; /* Màu nền nhẹ để dễ nhìn */
 }
-
 
 /* Đảm bảo Tree View có thể cuộn ngang nếu bị tràn */
 .sticky_c table {
-    width: auto !important;
+  width: auto !important;
 }
