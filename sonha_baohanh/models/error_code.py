@@ -1,7 +1,7 @@
 from odoo import api, fields, models
 
 
-class MaLoi(models.Model):
+class ErrorCode(models.Model):
     _name = 'error.code'
     _rec_name = 'error_code'
 

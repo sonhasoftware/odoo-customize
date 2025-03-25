@@ -25,10 +25,8 @@ class ExportWarehouse(models.Model):
     @api.depends('warranty_code')
     def _onchange_warranty_code(self):
         for record in self:
-            if record.warranty_code:
-                record.form_export_id = self.env['form.export.company.rel'].sudo().search([('warranty_code', '=', record.warranty_code.id)])
-            else:
-                record.form_export_id = False
+            form_export_id = self.env['form.export.company.rel'].sudo().search([('warranty_code', '=', record.warranty_code.id)])
+            record.form_export_id = form_export_id if form_export_id else False
 
     def _inverse_data(self):
         for r in self:
