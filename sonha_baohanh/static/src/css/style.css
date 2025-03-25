@@ -127,9 +127,3 @@
     min-width: 150px !important;
     background: #f8f9fa; /* Màu nền nhẹ để dễ nhìn */
 }
-
-/* Đảm bảo tiêu đề cố định hiển thị trên nội dung
-.o_list_view .o_list_table thead th.fixed-column {
-    z-index: 3;
-}
-*/

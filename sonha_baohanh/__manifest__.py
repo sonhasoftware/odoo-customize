@@ -8,7 +8,7 @@
     'category': 'Son Ha warranty',
     'version': '0.1',
     'depends': [
-        'base'
+        'base', 'mail'
     ],
     'data': [
         'security/security.xml',
