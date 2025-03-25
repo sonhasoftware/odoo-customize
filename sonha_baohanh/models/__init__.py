@@ -7,8 +7,6 @@ from . import error_group
 from . import error_code
 from . import form_exchange
 from . import warranty_status
-from . import nhan_vien
-from . import nguoi_dung
 from . import produce_year
 from . import warranty_information
 from . import import_before_repair
@@ -18,4 +16,3 @@ from . import return_customer
 from . import export_warehouse
 from . import transfer_warehouse
 from . import form_export_company_rel
-from . import bh_users

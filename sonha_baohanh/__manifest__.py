@@ -11,15 +11,13 @@
         'base', 'mail'
     ],
     'data': [
+        'security/security.xml',
         'security/ir.model.access.csv',
-        'views/nguoi_dung.xml',
-        'views/bh_users_views.xml',
         'views/province.xml',
         'views/district.xml',
         'views/ward_commune.xml',
         'views/product_type.xml',
         'views/bh_branch_views.xml',
-        'views/nhan_vien.xml',
         'views/produce_year_views.xml',
         'views/error_code_views.xml',
         'views/error_group_views.xml',
@@ -41,6 +39,7 @@
         'web.assets_backend': [
             'sonha_baohanh/static/src/js/get_transfer_warehouse.js',
             'sonha_baohanh/static/src/xml/get_transfer_warehouse.xml',
+            'sonha_baohanh/static/src/css/style.css'
         ],
     },
     'installable': True,
