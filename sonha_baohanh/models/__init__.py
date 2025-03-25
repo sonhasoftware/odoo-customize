@@ -16,3 +16,4 @@ from . import return_customer
 from . import export_warehouse
 from . import transfer_warehouse
 from . import form_export_company_rel
+from . import user_inherit

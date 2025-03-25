@@ -33,6 +33,7 @@
         'views/transfer_warehouse_views.xml',
         'views/btn_get_transfer_warehouse.xml',
         'wizard/get_transfer_warehouse_views.xml',
+        'views/user_inherit_views.xml',
         'views/danh_muc.xml',
     ],
     'assets': {
