@@ -516,7 +516,7 @@ class EmployeeAttendance(models.Model):
                 r.color = 'red'
 
             if r.shift.half_shift:
-                if r.tong_cong >= 0.5 and r.minutes_late == 0 and r.minutes_early == 0:
+                if tong_cong >= 0.5 and r.minutes_late == 0 and r.minutes_early == 0:
                     r.color = 'green'
                 else:
                     r.color = 'red'
