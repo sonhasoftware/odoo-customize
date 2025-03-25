@@ -1,4 +1,5 @@
 from odoo import api, fields, models
+from odoo.exceptions import UserError, ValidationError
 
 class ReturnCustomer(models.Model):
     _name = 'return.customer'
@@ -29,57 +30,43 @@ class ReturnCustomer(models.Model):
     @api.depends('warranty_code')
     def fillter_data_customer(self):
         for r in self:
-            if r.warranty_code:
-                r.customer_name = r.warranty_code.customer_information if r.warranty_code.customer_information else ''
-                r.phone_number = r.warranty_code.mobile_customer if r.warranty_code.mobile_customer else ''
-                r.address = r.warranty_code.address if r.warranty_code.address else ''
-            else:
-                r.customer_name = ''
-                r.phone_number = ''
-                r.address = ''
+            r.customer_name = r.warranty_code.customer_information if r.warranty_code.customer_information else ''
+            r.phone_number = r.warranty_code.mobile_customer if r.warranty_code.mobile_customer else ''
+            r.address = r.warranty_code.address if r.warranty_code.address else ''
 
-    def check_transfer_warehouse(self):
-        warranty_information = self.env['warranty.information'].sudo().search([])
-        for r in warranty_information:
-            transfer_warehouse = self.env['return.customer'].sudo().search([('warranty_code', '=', r.id)])
-            if transfer_warehouse and transfer_warehouse.type == 'tth':
-                r.transfer_warehouse = True
-            else:
-                r.transfer_warehouse = False
+    def check_transfer_warehouse(self, record):
+        warranty_information = self.env['warranty.information'].sudo().search([('id', '=', record.warranty_code.id)])
+        if record and record.type == 'tth':
+            warranty_information.transfer_warehouse = True
+        else:
+            warranty_information.transfer_warehouse = False
 
     def create(self, vals):
-        list_records = super(ReturnCustomer, self).create(vals)
-        for record in list_records:
-            transfer_warehouse = self.env['transfer.warehouse'].sudo().search([('return_customer', '=', record.id)])
-            vals = {
-                'customer_information': record.customer_name,
-                'mobile_customer': record.phone_number,
-                'address': record.address,
-                'warranty_code': record.warranty_code.id
-            }
-            if transfer_warehouse:
-                transfer_warehouse.sudo().write(vals)
-        self.check_transfer_warehouse()
-        return list_records
+        record = super(ReturnCustomer, self).create(vals)
+        transfer_warehouse = self.env['transfer.warehouse'].sudo().search([('return_customer', '=', record.id)])
+        vals = {
+            'customer_information': record.customer_name,
+            'mobile_customer': record.phone_number,
+            'address': record.address,
+            'warranty_code': record.warranty_code.id,
+            'return_customer': record.id
+        }
+        if transfer_warehouse:
+            transfer_warehouse.sudo().write(vals)
+        else:
+            raise ValidationError("Không có dữ liệu sản phẩm!")
+        self.check_transfer_warehouse(record)
+        return record
 
     def write(self, vals):
         res = super(ReturnCustomer, self).write(vals)
-        for record in self:
-            transfer_warehouse = self.env['transfer.warehouse'].sudo().search([('return_customer', '=', record.id)])
-            vals = {
-                'customer_information': record.customer_name,
-                'mobile_customer': record.phone_number,
-                'address': record.address,
-                'warranty_code': record.warranty_code.id
-            }
-            if transfer_warehouse:
-                transfer_warehouse.sudo().write(vals)
-        self.check_transfer_warehouse()
+        if 'warranty_code' in vals:
+            raise ValidationError("Không thể sửa mã bảo hành của phiếu!")
         return res
 
     def unlink(self):
         for r in self:
-            self.env['transfer.warehouse'].search([('return_customer', '=', r.id)]).unlink()
-        remove = super(ReturnCustomer, self).unlink()
-        self.check_transfer_warehouse()
-        return remove
+            self.env['transfer.warehouse'].sudo().search([('return_customer', '=', r.id)]).unlink()
+            warranty_information = self.env['warranty.information'].sudo().search([('id', '=', r.warranty_code.id)])
+            warranty_information.transfer_warehouse = False
+        return super(ReturnCustomer, self).unlink()

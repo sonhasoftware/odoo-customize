@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-     <menuitem id="menu_thong_tin_bao_hanh"
+    <menuitem id="menu_thong_tin_bao_hanh"
               name="Bảo hành"
               sequence="1"/>
 
@@ -8,18 +8,13 @@
               name="Thông tin bảo hành"
               parent="menu_thong_tin_bao_hanh"
               action="action_warranty_information"
+              groups="sonha_baohanh.group_warranty_admin,sonha_baohanh.group_warranty_input,sonha_baohanh.group_warranty_manager"
               sequence="2"/>
 
     <menuitem id="menu_category_root"
               name="Danh mục"
               parent="menu_thong_tin_bao_hanh"
               sequence="10"/>
-
-    <menuitem id="menu_bh_users"
-              name="Người dùng"
-              action="action_bh_users"
-              parent="menu_category_root"
-              sequence="3"/>
 
     <menuitem id="menu_category_province"
               name="Tỉnh thành"
@@ -45,17 +40,11 @@
               parent="menu_category_root"
               sequence="7"/>
 
-     <menuitem id="menu_danh_muc_chi_nhanh"
+    <menuitem id="menu_danh_muc_chi_nhanh"
               name="Chi nhánh"
               action="action_bh_branch"
               parent="menu_category_root"
               sequence="8"/>
-
-     <menuitem id="menu_danh_muc_nhan_vien"
-              name="Nhân viên"
-              action="action_nhan_vien"
-              parent="menu_category_root"
-              sequence="9"/>
 
     <menuitem id="menu_danh_muc_nam"
               name="Năm"
@@ -90,6 +79,7 @@
     <menuitem id="menu_staff_warranty_information"
               name="Thông tin bảo hành(Nhân viên)"
               parent="menu_thong_tin_bao_hanh"
+              groups="sonha_baohanh.group_warranty_employee,sonha_baohanh.group_warranty_admin"/>
               sequence="3"/>
 
     <menuitem id="menu_all_staff_warranty_information"

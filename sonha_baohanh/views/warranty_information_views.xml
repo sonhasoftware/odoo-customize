@@ -31,7 +31,7 @@
             <field name="name">warranty.information.tree.view</field>
             <field name="model">warranty.information</field>
             <field name="arch" type="xml">
-                <tree string="thong_tin_bao_hanh" default_order="create_date desc" editable="bottom">
+                <tree string="thong_tin_bao_hanh" default_order="create_date desc" editable="bottom" class="sticky_c">
                     <field name="display_warranty_code"/>
                     <field name="work"/>
                     <field name="reporter"/>
@@ -44,30 +44,16 @@
                     <field name="product_type_id"/>
                     <field name="error_information"/>
                     <field name="note"/>
-                    <field name="employee" readonly="work != 'assign'"/>
                     <field name="branch_id"/>
                     <field name="call_date"/>
                     <field name="appointment_date"/>
                     <field name="appointment"/>
                     <field name="sap_document"/>
-<!--                   <field name="create_date" string="Ngày tạo"/>-->
+                    <!--                   <field name="create_date" string="Ngày tạo"/>-->
                 </tree>
             </field>
         </record>
 
-        <!--để lọc-->
-        <!--
-        <record id="nguoi_dung_search_view" model="ir.ui.view">
-            <field name="name">nguoi.dung.search.view</field>
-            <field name="model">nguoi.dung</field>
-            <field name="arch" type="xml">
-                <search>
-                    <field name="code" string="Mã người dùng"/>
-                    <field name="description" string="Tên người dùng"/>
-                </search>
-            </field>
-        </record>
-        -->
         <record id="action_warranty_information" model="ir.actions.act_window">
             <field name="name">Thông tin bảo hành</field>
             <field name="type">ir.actions.act_window</field>
@@ -75,6 +61,9 @@
             <field name="view_ids" eval="[(5, 0, 0),
                 (0, 0, {'view_mode': 'tree', 'view_id': ref('warranty_information_tree_view')}),
                 (0, 0, {'view_mode': 'form', 'view_id': ref('warranty_information_form_view')})]"/>
+            <field name="groups_id" eval="[(4, ref('sonha_baohanh.group_warranty_manager')),
+         (4, ref('sonha_baohanh.group_warranty_input')),
+         (4, ref('sonha_baohanh.group_warranty_admin'))]"/>
         </record>
 
     </data>

@@ -10,6 +10,7 @@
                 <field name="change_status"/>
                 <field name="change_done_date"/>
                 <field name="import_company"/>
+                <field name="non_fix"/>
             </tree>
         </field>
     </record>

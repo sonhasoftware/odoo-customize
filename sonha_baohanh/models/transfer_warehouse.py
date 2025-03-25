@@ -22,10 +22,6 @@ class TransferWarehouse(models.Model):
     @api.depends('product_code')
     def filter_product(self):
         for r in self:
-            if r.product_code:
-                r.product_name = r.product_code.product_name if r.product_code.product_name else ''
-                r.unit = r.product_code.unit if r.product_code.unit else ''
-            else:
-                r.product_name = ''
-                r.unit = ''
+            r.product_name = r.product_code.product_name if r.product_code.product_name else ''
+            r.unit = r.product_code.unit if r.product_code.unit else ''
 

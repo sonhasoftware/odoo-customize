@@ -11,19 +11,21 @@
 <!--                    </header>-->
                     <sheet>
                         <group>
+                            <field name="non_fix" invisible="1"/>
+                            <field name="warranty_status" invisible="1"/>
                             <field name="display_warranty_code"/>
-                            <field name="exchange_form"/>
-                            <field name="error_code"/>
-                            <field name="error_cause"/>
-                            <field name="product_code"/>
-                            <field name="processing_content"/>
-                            <field name="produce_month"/>
-                            <field name="produce_year"/>
-                            <field name="distance"/>
-                            <field name="service_fee"/>
-                            <field name="sent_date"/>
-                            <field name="picture" widget="many2many_binary"/>
-                            <field name="return_date"/>
+                            <field name="exchange_form" readonly="warranty_status == 'close'"/>
+                            <field name="error_code" readonly="non_fix != False or warranty_status == 'close'"/>
+                            <field name="error_cause" readonly="non_fix != False or warranty_status == 'close'"/>
+                            <field name="product_code" readonly="non_fix != False or warranty_status == 'close'"/>
+                            <field name="processing_content" readonly="warranty_status == 'close'"/>
+                            <field name="produce_month" readonly="non_fix != False or warranty_status == 'close'"/>
+                            <field name="produce_year" readonly="non_fix != False or warranty_status == 'close'"/>
+                            <field name="distance" readonly="non_fix != False or warranty_status == 'close'"/>
+                            <field name="service_fee" readonly="non_fix != False or warranty_status == 'close'"/>
+                            <field name="sent_date" readonly="warranty_status == 'close'"/>
+                            <field name="picture" widget="many2many_binary" readonly="non_fix != False or warranty_status == 'close'"/>
+                            <field name="return_date" readonly="warranty_status == 'close'"/>
                         </group>
                     </sheet>
                     <div class="oe_chatter">
@@ -58,6 +60,8 @@
             <field name="res_model">warranty.information</field>
             <field name="view_mode">tree,form</field>
             <field name="domain">[('work', '=', 'assign')]</field>
+            <field name="groups_id" eval="[(4, ref('sonha_baohanh.group_warranty_employee')),
+            (4, ref('sonha_baohanh.group_warranty_admin'))]"/>
         </record>
 
         <record id="action_open_staff_warranty_information" model="ir.actions.act_window">
@@ -65,6 +69,8 @@
             <field name="res_model">warranty.information</field>
             <field name="view_mode">tree,form</field>
             <field name="domain">[('warranty_status', '=', 'open'), ('work', '=', 'assign')]</field>
+            <field name="groups_id" eval="[(4, ref('sonha_baohanh.group_warranty_employee')),
+            (4, ref('sonha_baohanh.group_warranty_admin'))]"/>
         </record>
 
         <record id="action_close_staff_warranty_information" model="ir.actions.act_window">
@@ -72,6 +78,8 @@
             <field name="res_model">warranty.information</field>
             <field name="view_mode">tree,form</field>
             <field name="domain">[('warranty_status', '=', 'close'), ('work', '=', 'assign')]</field>
+            <field name="groups_id" eval="[(4, ref('sonha_baohanh.group_warranty_employee')),
+            (4, ref('sonha_baohanh.group_warranty_admin'))]"/>
         </record>
     </data>
 </odoo>
