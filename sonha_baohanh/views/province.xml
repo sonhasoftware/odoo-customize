@@ -24,7 +24,7 @@
             <field name="name">province.tree.view</field>
             <field name="model">province</field>
             <field name="arch" type="xml">
-                <tree string="province" default_order="create_date desc" editable="bottom">
+                <tree string="province" editable="bottom">
                     <field name="province_code"/>
                     <field name="province_name"/>
                 </tree>

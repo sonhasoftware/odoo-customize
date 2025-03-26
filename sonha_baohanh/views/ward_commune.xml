@@ -25,7 +25,7 @@
             <field name="name">ward.commune.tree.view</field>
             <field name="model">ward.commune</field>
             <field name="arch" type="xml">
-                <tree string="ward_commune" default_order="create_date desc" editable="bottom">
+                <tree string="ward_commune" editable="bottom">
                      <field name="district_id"/>
                             <field name="ward_commune_code"/>
                             <field name="ward_commune_name"/>

@@ -25,7 +25,7 @@
             <field name="name">district.tree.view</field>
             <field name="model">district</field>
             <field name="arch" type="xml">
-                <tree string="district" default_order="create_date desc" editable="bottom">
+                <tree string="district" editable="bottom">
                     <field name="province_id"/>
                     <field name="district_code"/>
                     <field name="district_name"/>
