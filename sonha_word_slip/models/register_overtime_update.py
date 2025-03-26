@@ -208,7 +208,7 @@ class RegisterOvertimeUpdate(models.Model):
             for ot in r.date:
                 time_ot = ot.end_time - ot.start_time
                 over_time += time_ot
-            employee = r.employee_ids | r.employee_id
+            employee = r.employee_ids or [r.employee_id]
             if employee[0].parent_id.id == self.env.user.employee_id.id or self.env.user.has_group('sonha_employee.group_manager_employee'):
                 r.status = 'draft'
                 r.status_lv2 = 'draft'
