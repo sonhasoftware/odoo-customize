@@ -146,10 +146,10 @@ class AuthAPI(http.Controller):
                  "error": str(e)
                  }), content_type="application/json", status=500)
 
-    @http.route('/api/config/word-slip', type='http', auth='none', methods=['GET'], csrf=False)
-    def get_config_word_slip(self):
+    @http.route('/api/config/word-slip/<int:company_id>', type='http', auth='none', methods=['GET'], csrf=False)
+    def get_config_word_slip(self, company_id):
         try:
-            list_records = request.env['config.word.slip'].sudo().search([])
+            list_records = request.env['config.word.slip'].sudo().search([('company_id', 'in', company_id)])
             data = []
             if list_records:
                 for r in list_records:
@@ -179,10 +179,10 @@ class AuthAPI(http.Controller):
                  "error": str(e)
                  }), content_type="application/json", status=500)
 
-    @http.route('/api/config-shift', type='http', auth='none', methods=['GET'], csrf=False)
-    def get_config_shift(self):
+    @http.route('/api/config-shift/<int:company_id>', type='http', auth='none', methods=['GET'], csrf=False)
+    def get_config_shift(self, company_id):
         try:
-            list_records = request.env['config.shift'].sudo().search([])
+            list_records = request.env['config.shift'].sudo().search([('company_id', 'in', company_id)])
             data = []
             if list_records:
                 for r in list_records:
@@ -319,6 +319,52 @@ class AuthAPI(http.Controller):
                  "error": str(e)
                  }), content_type="application/json", status=500)
 
+    @http.route('/api/get_employee_company/<int:company_id>', type='http', auth='none', methods=['GET'], csrf=False)
+    def get_employee_company(self, company_id):
+        try:
+            list_records = request.env['hr.employee'].sudo().search([
+                ('company_id', '=', company_id)
+            ])
+            data = []
+            if list_records:
+                for emp in list_records:
+                    data.append({
+                        'id': emp.id,
+                        'employee_code': emp.employee_code,
+                        'name': emp.name,
+                    })
 
+            return Response(
+                json.dumps({"success": True, "data": data}),
+                status=200, content_type="application/json"
+            )
+        except Exception as e:
+            return Response(json.dumps(
+                {"success": False,
+                 "error": str(e)
+                 }), content_type="application/json", status=500)
 
+    @http.route('/api/get_department_company/<int:company_id>', type='http', auth='none', methods=['GET'], csrf=False)
+    def get_department_company(self, company_id):
+        try:
+            list_records = request.env['hr.department'].sudo().search([
+                ('company_id', '=', company_id)
+            ])
+            data = []
+            if list_records:
+                for dep in list_records:
+                    data.append({
+                        'id': dep.id,
+                        'name': dep.name,
+                    })
+
+            return Response(
+                json.dumps({"success": True, "data": data}),
+                status=200, content_type="application/json"
+            )
+        except Exception as e:
+            return Response(json.dumps(
+                {"success": False,
+                 "error": str(e)
+                 }), content_type="application/json", status=500)
 
