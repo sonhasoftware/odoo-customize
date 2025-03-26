@@ -45,7 +45,7 @@ class ConfigShift(models.Model):
     @api.depends('start', 'end_shift')
     def check_shift_night(self):
         for r in self:
-            if (r.end_shift + timedelta(hours=7)).time() < (r.start + timedelta(hours=7)).time():
+            if r.end_shift and r.start and (r.end_shift + timedelta(hours=7)).time() < (r.start + timedelta(hours=7)).time():
                 r.night = True
             else:
                 r.night = False
