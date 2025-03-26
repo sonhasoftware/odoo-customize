@@ -25,14 +25,24 @@
         <field name="category_id" ref="sonha_warranty_cat_security"/>
     </record>
 
+    <record id="rule_bh_branch_all" model="ir.rule">
+        <field name="name">Rule Bh Branch</field>
+        <field name="model_id" ref="model_bh_branch"/>
+        <field name="domain_force">
+            ['|',
+                ('company_id', '=', user.company_id.id),
+                ('company_id', 'in', user.company_ids.ids)
+            ]
+        </field>
+    </record>
+
     <record id="rule_warranty_information_input" model="ir.rule">
         <field name="name">Rule warranty information Input</field>
         <field name="model_id" ref="model_warranty_information"/>
         <field name="domain_force">
             ['|',
-                ('branch_id', 'in', user.branch_ids.ids),
-                ('company_id', '=', user.company_id.id),
-                ('company_id', 'in', user.company_ids.ids)
+                ('branch_id.company_id', '=', user.company_id.id),
+                ('branch_id.company_id', 'in', user.company_ids.ids)
             ]
         </field>
         <field name="groups" eval="[(4, ref('sonha_baohanh.group_warranty_input'))]"/>
@@ -43,9 +53,8 @@
         <field name="model_id" ref="model_warranty_information"/>
         <field name="domain_force">
             ['|',
-                ('branch_id', 'in', user.branch_ids.ids),
-                ('company_id', '=', user.company_id.id),
-                ('company_id', 'in', user.company_ids.ids)
+                ('branch_id.company_id', '=', user.company_id.id),
+                ('branch_id.company_id', 'in', user.company_ids.ids)
             ]
         </field>
         <field name="groups" eval="[(4, ref('sonha_baohanh.group_warranty_manager'))]"/>

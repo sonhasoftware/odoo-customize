@@ -51,7 +51,6 @@
                     <field name="employee_id"/>
                     <field name="note"/>
                     <field name="branch_id"/>
-                    <field name="company_id"/>
                     <field name="call_date"/>
                     <field name="appointment_date"/>
                     <field name="appointment"/>
