@@ -448,15 +448,15 @@ class FormWordSlip(models.Model):
             day_duration = 0
         return day_duration
 
-    # @api.constrains('employee_id')
-    # def check_word_slip_id(self):
-    #     for r in self:
-    #         total_duration = 0
-    #         if r.word_slip_id and r.type.name.lower() == "nghỉ bù":
-    #             for slip in r.word_slip_id:
-    #                 total_duration += slip.duration * 8
-    #             if r.employee_id.total_compensatory < total_duration:
-    #                 raise ValidationError("Bạn không còn thời gian nghỉ bù")
+    @api.constrains('employee_id')
+    def check_word_slip_id(self):
+        for r in self:
+            total_duration = 0
+            if r.word_slip_id and r.type.name.lower() == "nghỉ bù":
+                for slip in r.word_slip_id:
+                    total_duration += slip.duration * 8
+                if r.employee_id.total_compensatory < total_duration:
+                    raise ValidationError("Bạn không còn thời gian nghỉ bù")
 
     @api.constrains('type', 'word_slip_id')
     def check_type(self):
