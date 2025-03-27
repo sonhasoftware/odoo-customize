@@ -6,5 +6,5 @@ class WarrantyStatus(models.Model):
     _rec_name ='warranty_status_name'
 
     warranty_status_code = fields.Char(string="Mã trạng thái")
-    warranty_status_name = fields.Text(string="Tên trạng thái")
+    warranty_status_name = fields.Char(string="Tên trạng thái")
     #thong_tin_bao_hanh_ids = fields.One2many('thong.tin.bao.hanh', 'trang_thai_id', string="Thông tin bảo hành")

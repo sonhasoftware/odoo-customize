@@ -5,7 +5,7 @@ class TransferWarehouse(models.Model):
     _rec_name = 'warranty_code'
 
     warranty_code = fields.Many2one('warranty.information', string="ID")
-    customer_information = fields.Text(string="Tên khách hàng")
+    customer_information = fields.Char(string="Tên khách hàng")
     mobile_customer = fields.Char(string="Số điện thoại")
     address = fields.Text(string="Địa chỉ")
     product_code = fields.Many2one('sonha.product', string="Mã sản phẩm")

@@ -5,5 +5,5 @@ class ProductType(models.Model):
 
     _rec_name = 'product_type_name'
     product_type_code = fields.Char(string="Mã loại sản phẩm")
-    product_type_name = fields.Text(string="Tên loại sản phẩm")
+    product_type_name = fields.CHar(string="Tên loại sản phẩm")
     company_id = fields.Many2one("res.company", string="Công ty")

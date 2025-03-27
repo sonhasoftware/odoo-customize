@@ -8,7 +8,7 @@ class WarrantyInformation(models.Model):
 
     id = fields.Char(string="ID")
     reporter = fields.Char(string="Người báo")
-    customer_information = fields.Text(string="Tên khách hàng", required=True)
+    customer_information = fields.Char(string="Tên khách hàng", required=True)
     mobile_customer = fields.Char(string="Số điện thoại")
 
     province_id = fields.Many2one('province', string="Tỉnh thành")
