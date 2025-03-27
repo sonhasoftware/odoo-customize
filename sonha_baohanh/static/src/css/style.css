@@ -146,3 +146,13 @@
 .sticky_c table {
   width: auto !important;
 }
+
+.sticky_c td.o_data_cell.cursor-pointer.o_field_cell.o_list_text {
+    white-space: pre-line !important;
+    max-width: 100px !important;
+}
+
+.sticky_c td.o_data_cell.cursor-pointer.o_field_cell.o_list_char.o_required_modifier[name="customer_information"] {
+    max-width: 130px !important;
+    white-space: pre-line !important;
+}
