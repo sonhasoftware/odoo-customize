@@ -148,12 +148,12 @@ class RegisterOvertimeUpdate(models.Model):
                 else:
                     r.type_overtime = False
 
-    def create(self, vals):
-        res = super(RegisterOvertimeUpdate, self).create(vals)
-        if not res.type_overtime:
-            template = self.env.ref('sonha_word_slip.template_sent_mail_manager_ot')
-            template.send_mail(res.id, force_send=True)
-        return res
+    # def create(self, vals):
+    #     res = super(RegisterOvertimeUpdate, self).create(vals)
+    #     if not res.type_overtime:
+    #         template = self.env.ref('sonha_word_slip.template_sent_mail_manager_ot')
+    #         template.send_mail(res.id, force_send=True)
+    #     return res
 
     @api.onchange('employee_id', 'employee_ids', 'status_lv2', 'type_overtime')
     def get_user(self):
@@ -173,8 +173,8 @@ class RegisterOvertimeUpdate(models.Model):
         for r in self:
             if r.check_user:
                 r.status_lv2 = 'waiting'
-                template = self.env.ref('sonha_word_slip.template_sent_mail_manager_ot')
-                template.send_mail(r.id, force_send=True)
+                # template = self.env.ref('sonha_word_slip.template_sent_mail_manager_ot')
+                # template.send_mail(r.id, force_send=True)
             else:
                 raise ValidationError("Bạn không có quyền thực hiện hành động này")
 
@@ -182,8 +182,8 @@ class RegisterOvertimeUpdate(models.Model):
         for r in self:
             if r.check_qltt:
                 r.status_lv2 = 'confirm'
-                template = self.env.ref('sonha_word_slip.template_sent_mail_gd_ot')
-                template.send_mail(r.id, force_send=True)
+                # template = self.env.ref('sonha_word_slip.template_sent_mail_gd_ot')
+                # template.send_mail(r.id, force_send=True)
             else:
                 raise ValidationError("Bạn không có quyền thực hiện hành động này")
 
