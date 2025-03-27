@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="sonha_product_tree_view" model="ir.ui.view">
+        <field name="name">sonha.product.tree.view</field>
+        <field name="model">sonha.product</field>
+        <field name="arch" type="xml">
+            <tree string="Sản phẩm" editable="bottom">
+                <field name="product_code"/>
+                <field name="product_name"/>
+                <field name="product_type"/>
+                <field name="unit"/>
+                <field name="note"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_sonha_product" model="ir.actions.act_window">
+        <field name="name">Sản phẩm</field>
+        <field name="res_model">sonha.product</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>
