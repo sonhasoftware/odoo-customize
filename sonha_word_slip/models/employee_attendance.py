@@ -408,7 +408,7 @@ class EmployeeAttendance(models.Model):
                 continue
 
             # Tính thời gian bắt đầu và kết thúc ca làm việc
-            shift_start_time = datetime.combine(r.date, r.shift.start) + timedelta(hours=7)
+            shift_start_time = datetime.combine(r.date, r.shift.start.time()) + timedelta(hours=7)
             shift_end_time = datetime.combine(r.date, r.shift.end_shift.time()) + timedelta(hours=7)
 
             if r.check_in:
