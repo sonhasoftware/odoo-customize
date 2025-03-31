@@ -69,7 +69,7 @@ class AuthAPI(http.Controller):
                             status=500)
 
     # api get ra đơn từ chờ duyệt
-    @http.route('/api/get_word_slip_manager/<int:id_employee>', type='http', auth='user', methods=['GET'], csrf=False)
+    @http.route('/api/get_word_slip_manager/<int:id_employee>', type='http', auth='none', methods=['GET'], csrf=False)
     def get_pending_records(self, id_employee):
         try:
             list_records = request.env['form.word.slip'].sudo().search([
@@ -108,6 +108,7 @@ class AuthAPI(http.Controller):
                             "code": r.code,
                             "status": "Chờ duyệt",
                             "regis_type": "Tạo cho tôi",
+                            "date_sent": str(r.create_date),
                             "type": {
                                 "id": r.type.id,
                                 "name": r.type.name
@@ -130,6 +131,7 @@ class AuthAPI(http.Controller):
                             "code": r.code,
                             "status": "Chờ duyệt",
                             "regis_type": "Tạo hộ",
+                            "date_sent": str(r.create_date),
                             "type": {
                                 "id": r.type.id,
                                 "name": r.type.name
