@@ -224,7 +224,6 @@ class FormWordSlip(models.Model):
 
     def complete_approval(self):
         for r in self:
-            r.status = 'sent'
             over_time = 0
             for ot in r.word_slip_id:
                 if ot.start_time != ot.end_time:
@@ -244,7 +243,8 @@ class FormWordSlip(models.Model):
                 for employee in employees:
                     employee.total_compensatory += over_time
             else:
-                continue
+                pass
+            r.status = 'sent'
 
     @api.depends('employee_confirm')
     def get_button_confirm(self):
@@ -448,15 +448,17 @@ class FormWordSlip(models.Model):
             day_duration = 0
         return day_duration
 
-    # @api.constrains('employee_id')
-    # def check_word_slip_id(self):
-    #     for r in self:
-    #         total_duration = 0
-    #         if r.word_slip_id and r.type.name.lower() == "nghỉ bù":
-    #             for slip in r.word_slip_id:
-    #                 total_duration += slip.duration * 8
-    #             if r.employee_id.total_compensatory < total_duration:
-    #                 raise ValidationError("Bạn không còn thời gian nghỉ bù")
+    @api.constrains('employee_id')
+    def check_word_slip_id(self):
+        for r in self:
+            total_duration = 0
+            list_employees = r.employee_id or r.employee_ids
+            if r.word_slip_id and r.type.name.lower() == "nghỉ bù":
+                for slip in r.word_slip_id:
+                    total_duration += slip.duration * 8
+                for emp in list_employees:
+                    if emp.total_compensatory < total_duration:
+                        raise ValidationError("Nhân viên " + emp.name + " không còn thời gian nghỉ bù")
 
     @api.constrains('type', 'word_slip_id')
     def check_type(self):

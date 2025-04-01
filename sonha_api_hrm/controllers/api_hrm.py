@@ -7,6 +7,7 @@ _logger = logging.getLogger(__name__)
 
 class AuthAPI(http.Controller):
 
+    # api đăng nhập
     @http.route('/api/login', type='http', auth='none', methods=['POST'], csrf=False)
     def api_login(self, **kwargs):
         """
@@ -67,7 +68,8 @@ class AuthAPI(http.Controller):
             return Response(json.dumps({"success": False, "error": str(e)}), content_type="application/json",
                             status=500)
 
-    @http.route('/api/get_word_slip_manager/<int:id_employee>', type='http', auth='user', methods=['GET'], csrf=False)
+    # api get ra đơn từ chờ duyệt
+    @http.route('/api/get_word_slip_manager/<int:id_employee>', type='http', auth='none', methods=['GET'], csrf=False)
     def get_pending_records(self, id_employee):
         try:
             list_records = request.env['form.word.slip'].sudo().search([
@@ -106,6 +108,7 @@ class AuthAPI(http.Controller):
                             "code": r.code,
                             "status": "Chờ duyệt",
                             "regis_type": "Tạo cho tôi",
+                            "date_sent": str(r.create_date),
                             "type": {
                                 "id": r.type.id,
                                 "name": r.type.name
@@ -128,6 +131,7 @@ class AuthAPI(http.Controller):
                             "code": r.code,
                             "status": "Chờ duyệt",
                             "regis_type": "Tạo hộ",
+                            "date_sent": str(r.create_date),
                             "type": {
                                 "id": r.type.id,
                                 "name": r.type.name
@@ -146,28 +150,17 @@ class AuthAPI(http.Controller):
                  "error": str(e)
                  }), content_type="application/json", status=500)
 
-    @http.route('/api/config/word-slip', type='http', auth='none', methods=['GET'], csrf=False)
-    def get_config_word_slip(self):
+    # api get ra danh mục đơn từ
+    @http.route('/api/config/word-slip/<int:company_id>', type='http', auth='none', methods=['GET'], csrf=False)
+    def get_config_word_slip(self, company_id):
         try:
-            list_records = request.env['config.word.slip'].sudo().search([])
+            list_records = request.env['config.word.slip'].sudo().search([('company_id', 'in', company_id)])
             data = []
             if list_records:
                 for r in list_records:
-                    company_id = []
-                    for company in r.company_id:
-                        if company:
-                            company_id.append({
-                                "id": company.id,
-                                "name": company.name,
-                            })
                     data.append({
                         "id": r.id,
                         "name": r.name,
-                        "paid": r.paid,
-                        "date_and_time": r.date_and_time,
-                        "max_time": r.max_time,
-                        "company_id": company_id,
-                        "key": r.key or '',
                         })
             return Response(
                 json.dumps({"success": True, "data": data}),
@@ -179,52 +172,18 @@ class AuthAPI(http.Controller):
                  "error": str(e)
                  }), content_type="application/json", status=500)
 
-    @http.route('/api/config-shift', type='http', auth='none', methods=['GET'], csrf=False)
-    def get_config_shift(self):
+    # api get ra danh mục ca
+    @http.route('/api/config-shift/<int:company_id>', type='http', auth='none', methods=['GET'], csrf=False)
+    def get_config_shift(self, company_id):
         try:
-            list_records = request.env['config.shift'].sudo().search([])
+            list_records = request.env['config.shift'].sudo().search([('company_id', 'in', company_id)])
             data = []
             if list_records:
                 for r in list_records:
-                    company_id = []
-                    for company in r.company_id:
-                        if company:
-                            company_id.append({
-                                "id": company.id,
-                                "name": company.name,
-                            })
                     data.append({
                         "id": r.id,
                         "code": r.code or '',
                         "name": r.name or '',
-                        "earliest": r.earliest or '',
-                        "overtime_before_shift": r.overtime_before_shift or '',
-                        "start": str(r.start) or '',
-                        "late_entry_allowed": r.late_entry_allowed or '',
-                        "latest": r.latest or '',
-                        "rest": r.rest or '',
-                        "from_rest": str(r.from_rest) or '',
-                        "minutes_rest": r.minutes_rest or '',
-                        "to_rest": str(r.to_rest) or '',
-                        "earliest_out": r.earliest_out or '',
-                        "allow_early_exit": r.allow_early_exit or '',
-                        "end_shift": str(r.end_shift) or '',
-                        "overtime_after_shift": r.overtime_after_shift or '',
-                        "latest_out": r.latest_out or '',
-                        "night_shift": r.night_shift or '',
-                        "night_shift_from": str(r.night_shift_from) or '',
-                        "night_shift_to": str(r.night_shift_to) or '',
-                        "effect_to": str(r.effect_to) or '',
-                        "effect_from": str(r.effect_from) or '',
-                        "using": r.using or '',
-                        "note": r.note or '',
-                        "contract": r.contract or '',
-                        "company_id": company_id,
-                        "is_office_hour": r.is_office_hour or '',
-                        "night": r.night,
-                        "c2k3": r.c2k3,
-                        "c3k4": r.c3k4,
-                        "half_shift": r.half_shift,
                     })
             return Response(
                 json.dumps({"success": True, "data": data}),
@@ -236,6 +195,7 @@ class AuthAPI(http.Controller):
                  "error": str(e)
                  }), content_type="application/json", status=500)
 
+    # api get ra cấu hình nghỉ lễ
     @http.route('/api/config/public-leave', type='http', auth='none', methods=['GET'], csrf=False)
     def get_config_public_leave(self):
         try:
@@ -259,6 +219,7 @@ class AuthAPI(http.Controller):
                  "error": str(e)
                  }), content_type="application/json", status=500)
 
+    # api get danh sách miễn chấm công
     @http.route('/api/config/free-timekeeping', type='http', auth='none', methods=['GET'], csrf=False)
     def get_config_free_timekeeping(self):
         try:
@@ -286,6 +247,7 @@ class AuthAPI(http.Controller):
                  "error": str(e)
                  }), content_type="application/json", status=500)
 
+    # api get ra cấu hình số đơn làm trong 1 tháng
     @http.route('/api/config/leave', type='http', auth='none', methods=['GET'], csrf=False)
     def get_config_leave(self):
         try:
@@ -319,6 +281,54 @@ class AuthAPI(http.Controller):
                  "error": str(e)
                  }), content_type="application/json", status=500)
 
+    # api get nhân viên theo công ty
+    @http.route('/api/get_employee_company/<int:company_id>', type='http', auth='none', methods=['GET'], csrf=False)
+    def get_employee_company(self, company_id):
+        try:
+            list_records = request.env['hr.employee'].sudo().search([
+                ('company_id', '=', company_id)
+            ])
+            data = []
+            if list_records:
+                for emp in list_records:
+                    data.append({
+                        'id': emp.id,
+                        'employee_code': emp.employee_code,
+                        'name': emp.name,
+                    })
 
+            return Response(
+                json.dumps({"success": True, "data": data}),
+                status=200, content_type="application/json"
+            )
+        except Exception as e:
+            return Response(json.dumps(
+                {"success": False,
+                 "error": str(e)
+                 }), content_type="application/json", status=500)
 
+    # api get phòng ban theo công ty
+    @http.route('/api/get_department_company/<int:company_id>', type='http', auth='none', methods=['GET'], csrf=False)
+    def get_department_company(self, company_id):
+        try:
+            list_records = request.env['hr.department'].sudo().search([
+                ('company_id', '=', company_id)
+            ])
+            data = []
+            if list_records:
+                for dep in list_records:
+                    data.append({
+                        'id': dep.id,
+                        'name': dep.name,
+                    })
+
+            return Response(
+                json.dumps({"success": True, "data": data}),
+                status=200, content_type="application/json"
+            )
+        except Exception as e:
+            return Response(json.dumps(
+                {"success": False,
+                 "error": str(e)
+                 }), content_type="application/json", status=500)
 

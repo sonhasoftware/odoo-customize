@@ -413,7 +413,7 @@ class EmployeeAttendance(models.Model):
 
             if r.check_in:
                 check_in_time = r.check_in + timedelta(hours=7)
-                if check_in_time > shift_start_time:
+                if check_in_time.time() > shift_start_time.time():
                     minute_late = (check_in_time - datetime.combine(check_in_time.date(), shift_start_time.time())).total_seconds() / 60
                     r.minutes_late = int(minute_late)
 
