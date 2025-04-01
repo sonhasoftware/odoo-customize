@@ -243,7 +243,7 @@ class FormWordSlip(models.Model):
                 for employee in employees:
                     employee.total_compensatory += over_time
             else:
-                continue
+                pass
             r.status = 'sent'
 
     @api.depends('employee_confirm')
