@@ -539,3 +539,8 @@ class EmployeeAttendance(models.Model):
                         r.color = 'red'
                 elif tong_cong == 0:
                     r.color = None
+
+            if r.shift.is_office_hour and (weekday == 6 or (weekday == 5 and week_number % 2 == 1)):
+                r.color = None
+            else:
+                pass
