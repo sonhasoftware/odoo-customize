@@ -6,7 +6,7 @@ from dateutil.relativedelta import relativedelta
 class PopupWizardReportKpiMonthRel(models.TransientModel):
     _name = 'popup.wizard.report.kpi.month.rel'
 
-    department_id = fields.Many2one('hr.department', string="Phòng ban", required=True)
+    department_id = fields.Many2one('hr.department', string="Phòng ban", required=True, default=lambda self: self._get_default_department())
     month = fields.Selection([('one', 1),
                               ('two', 2),
                               ('three', 3),
@@ -107,3 +107,12 @@ class PopupWizardReportKpiMonthRel(models.TransientModel):
             return pre_year
         else:
             return this_year
+
+    def _get_default_department(self):
+        emp = self.env['hr.employee'].sudo().search([('user_id', '=', self.env.user.id)], limit=1)
+        department_id = emp.department_id
+        if department_id:
+            return department_id
+        else:
+            return None
+
