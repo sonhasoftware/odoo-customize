@@ -431,6 +431,8 @@ class EmployeeAttendance(models.Model):
     @api.depends('check_in', 'check_out', 'shift')
     def _get_work_day(self):
         for r in self:
+            weekday = r.date.weekday()
+            week_number = r.date.isocalendar()[1]
             free_time = self.env['free.timekeeping'].sudo().search([('employee_id', '=', r.employee_id.id),
                                                                     ('state', '=', 'active'),
                                                                     ('start_date', '<=', r.date),
@@ -463,6 +465,11 @@ class EmployeeAttendance(models.Model):
                         r.work_day = 0.5
                     else:
                         r.work_day = 0
+
+            if r.shift.is_offoce_hour and (weekday == 6 or (weekday == 5 and week_number % 2 != 1)):
+                r.work_day = 0
+            else:
+                pass
 
 
     # tính thứ cho ngày
