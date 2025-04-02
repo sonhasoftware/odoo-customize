@@ -94,8 +94,6 @@ class ImportBeforeRepair(models.Model):
             }
             if form_export:
                 form_export.sudo().write(vals)
-            if 'warranty_code' in vals:
-                raise ValidationError("Không thể sửa mã bảo hành!")
         return res
 
     def unlink(self):

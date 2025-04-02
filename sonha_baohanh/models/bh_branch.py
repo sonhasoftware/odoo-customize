@@ -4,7 +4,7 @@ class BhBranch(models.Model):
     _name = 'bh.branch'
     _rec_name = 'branch_name'
 
-    branch_name = fields.Text(string="Tên chi nhánh")
+    branch_name = fields.Char(string="Tên chi nhánh")
     address = fields.Text(string="Địa chỉ")
     plant = fields.Char(string="Plant")
     warehouse_tsc = fields.Char(string="Mã kho TSC")
