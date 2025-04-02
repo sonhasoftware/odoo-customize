@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <menuitem id="menu_report_api_root"
+              name="Kéo dữ liệu API"
+              sequence="14"/>
+    <menuitem
+            id="menu_config_api"
+            name="Danh sách API"
+            parent="menu_report_api_root"
+            action="config_api_action"
+            sequence="2"/>
+</odoo>

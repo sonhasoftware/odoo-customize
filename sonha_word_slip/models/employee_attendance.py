@@ -164,26 +164,8 @@ class EmployeeAttendance(models.Model):
                 r.department_id = None
 
     # tạo ra bản ghi cho từng nhân viên trong các ngày của tháng
-    def update_attendance_data(self):
-        self.with_delay().update_attendance_data_month()
-        # employees = self.env['hr.employee'].search([('id', '!=', 1)])
-        # current_date = datetime.now()
-        # start_date = current_date.replace(day=1) + timedelta(hours=7) - relativedelta(months=1)
-        # end_date = (start_date + relativedelta(months=2)) - timedelta(days=1)
-        #
-        # for employee in employees:
-        #     for single_date in (start_date + timedelta(n) for n in range((end_date - start_date).days + 1)):
-        #         existing_record = self.env['employee.attendance'].search([
-        #             ('employee_id', '=', employee.id),
-        #             ('date', '=', single_date)
-        #         ])
-        #         if not existing_record:
-        #             self.env['employee.attendance'].create({
-        #                 'employee_id': employee.id,
-        #                 'date': single_date,
-        #             })
 
-    def update_attendance_data_month(self):
+    def update_attendance_data(self):
         employees = self.env['hr.employee'].search([('id', '!=', 1)])
         current_date = datetime.now()
         start_date = current_date.replace(day=1) + timedelta(hours=7) - relativedelta(months=1)
@@ -431,6 +413,8 @@ class EmployeeAttendance(models.Model):
     @api.depends('check_in', 'check_out', 'shift')
     def _get_work_day(self):
         for r in self:
+            weekday = r.date.weekday()
+            week_number = r.date.isocalendar()[1]
             free_time = self.env['free.timekeeping'].sudo().search([('employee_id', '=', r.employee_id.id),
                                                                     ('state', '=', 'active'),
                                                                     ('start_date', '<=', r.date),
@@ -463,6 +447,11 @@ class EmployeeAttendance(models.Model):
                         r.work_day = 0.5
                     else:
                         r.work_day = 0
+
+            if r.shift.is_office_hour and (weekday == 6 or (weekday == 5 and week_number % 2 == 1)):
+                r.work_day = 0
+            else:
+                pass
 
 
     # tính thứ cho ngày
@@ -532,3 +521,8 @@ class EmployeeAttendance(models.Model):
                         r.color = 'red'
                 elif tong_cong == 0:
                     r.color = None
+
+            if r.shift.is_office_hour and (weekday == 6 or (weekday == 5 and week_number % 2 == 1)):
+                r.color = None
+            else:
+                pass
