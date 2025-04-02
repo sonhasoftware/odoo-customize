@@ -15,6 +15,7 @@
                             <field name="warranty_status" invisible="1"/>
                             <field name="display_warranty_code"/>
                             <field name="exchange_form" readonly="warranty_status == 'close'"/>
+                            <field name="product_type_id" invisible="1"/>
                             <field name="error_code" readonly="non_fix != False or warranty_status == 'close'"/>
                             <field name="error_cause" readonly="non_fix != False or warranty_status == 'close'"/>
                             <field name="product_code" readonly="non_fix != False or warranty_status == 'close'"/>
