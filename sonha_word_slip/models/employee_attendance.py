@@ -164,26 +164,8 @@ class EmployeeAttendance(models.Model):
                 r.department_id = None
 
     # tạo ra bản ghi cho từng nhân viên trong các ngày của tháng
-    def update_attendance_data(self):
-        self.with_delay().update_attendance_data_month()
-        # employees = self.env['hr.employee'].search([('id', '!=', 1)])
-        # current_date = datetime.now()
-        # start_date = current_date.replace(day=1) + timedelta(hours=7) - relativedelta(months=1)
-        # end_date = (start_date + relativedelta(months=2)) - timedelta(days=1)
-        #
-        # for employee in employees:
-        #     for single_date in (start_date + timedelta(n) for n in range((end_date - start_date).days + 1)):
-        #         existing_record = self.env['employee.attendance'].search([
-        #             ('employee_id', '=', employee.id),
-        #             ('date', '=', single_date)
-        #         ])
-        #         if not existing_record:
-        #             self.env['employee.attendance'].create({
-        #                 'employee_id': employee.id,
-        #                 'date': single_date,
-        #             })
 
-    def update_attendance_data_month(self):
+    def update_attendance_data(self):
         employees = self.env['hr.employee'].search([('id', '!=', 1)])
         current_date = datetime.now()
         start_date = current_date.replace(day=1) + timedelta(hours=7) - relativedelta(months=1)
