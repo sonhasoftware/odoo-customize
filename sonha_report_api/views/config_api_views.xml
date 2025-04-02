@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_config_api_tree" model="ir.ui.view">
+        <field name="name">config.api.tree</field>
+        <field name="model">config.api</field>
+        <field name="arch" type="xml">
+            <tree string="Danh sách API" editable="bottom">
+                <field name="url"/>
+                <field name="user"/>
+                <field name="password"/>
+                <button name="action_download" string="Tải dữ liệu" type="object" class="oe_highlight"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="config_api_action" model="ir.actions.act_window">
+        <field name="name">Danh sách API</field>
+        <field name="res_model">config.api</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>
