@@ -35,6 +35,7 @@
         'wizard/get_transfer_warehouse_views.xml',
         'views/user_inherit_views.xml',
         'views/danh_muc.xml',
+        'data/cron_job.xml',
     ],
     'assets': {
         'web.assets_backend': [

@@ -1,4 +1,5 @@
 from odoo import api, fields, models
+from datetime import datetime, time, timedelta
 from odoo.exceptions import UserError, ValidationError
 
 class WarrantyInformation(models.Model):
@@ -20,8 +21,16 @@ class WarrantyInformation(models.Model):
     branch_id = fields.Many2one('bh.branch', string="Chi nhánh")
     number_warranty_times = fields.Integer(string="Số lần bảo hành")
     warranty_status = fields.Selection([('open', "Mở"),
+                                        ('waiting', "Chờ"),
+                                        ('branch_warehouse', "Về kho chi nhánh"),
+                                        ('company_warehouse', "Về kho công ty"),
+                                        ('fixing', "Đang sửa chữa"),
+                                        ('fix_done', "Đã sửa chữa xong"),
+                                        ('place_order', "Đã lập đơn hàng"),
+                                        ('exported', "Đã xuất kho"),
+                                        ('return_customer', "Sửa xong, nhập kho chi nhánh, kho VT"),
                                         ('close', "Đóng")], string="Trạng thái",
-                                       default='open', tracking=True)
+                                       default='open', tracking=True, compute="change_status", store=True)
     error_code = fields.Many2one('error.code', string="Mã lỗi", tracking=True)
 
     staff_number = fields.Char(string="Điện thoại nhân viên")
@@ -56,11 +65,19 @@ class WarrantyInformation(models.Model):
     transfer_warehouse = fields.Boolean(string="Chuyển kho")
     display_warranty_code = fields.Char(string="ID bảo hành", compute="filter_display_code", store=True)
     work = fields.Selection([('assign', 'Giao lịch'),
+                             ('wait_assign', 'Chờ giao lịch'),
                              ('non_assign', 'Không giao lịch')], string="Giao lịch", required=True, default='assign')
     appointment = fields.Text(string="Hẹn khách")
     sap_document = fields.Char(string="Chứng từ")
     non_fix = fields.Boolean(string="Không sửa", compute="is_non_fix", store=True)
     employee_id = fields.Many2one('hr.employee', string="Nhân viên")
+
+    @api.constrains('work', 'appointment_date')
+    def validate_appointment_date(self):
+        now = datetime.now()
+        for r in self:
+            if r.work == 'wait_assign' and r.appointment_date <= now:
+                raise ValidationError("Ngày hẹn phải lớn hơn ngày hiện tại!")
 
     @api.depends('work')
     def filter_display_code(self):
@@ -73,21 +90,10 @@ class WarrantyInformation(models.Model):
     def create(self, vals):
         record = super(WarrantyInformation, self).create(vals)
         vals = {
-            'display_warranty_code': f"{record.id:06d}" if record.work == 'assign' else f"{record.id:06d}" + "N"
+            'display_warranty_code': f"{record.id:06d}" if record.work != 'non_assign' else f"{record.id:06d}" + "N"
         }
         record.sudo().write(vals)
         return record
-
-    def write(self,vals):
-        res = super(WarrantyInformation, self).write(vals)
-        if 'exchange_form' in vals:
-            for r in self:
-                vals = {
-                    'warranty_status': 'close' if r.exchange_form.change_status else 'open'
-                }
-                r.sudo().write(vals)
-        return res
-
 
     @api.depends('exchange_form.change_done_date', 'return_date')
     def fill_warranty_date_completed(self):
@@ -96,14 +102,6 @@ class WarrantyInformation(models.Model):
                 r.warranty_date_completed = r.return_date
             else:
                 r.warranty_date_completed = ''
-
-    @api.depends('exchange_form.import_company')
-    def is_import(self):
-        for r in self:
-            if r.exchange_form.import_company:
-                r.import_company = True
-            else:
-                r.import_company = False
 
     @api.depends('exchange_form.non_fix')
     def is_non_fix(self):
@@ -123,5 +121,21 @@ class WarrantyInformation(models.Model):
             'target': 'current',
         }
 
+    def change_assign_status(self):
+        now = datetime.now().date()
+        list_record = self.env['warranty.information'].sudo().search([('work', '=', 'wait_assign')])
+        list_record = list_record.filtered(lambda x: x.appointment_date.date() == now)
+        for r in list_record:
+            r.work = 'assign'
+
+    @api.depends('exchange_form.import_company', 'exchange_form.change_status')
+    def change_status(self):
+        for r in self:
+            if r.exchange_form.import_company:
+                r.warranty_status = 'waiting'
+            elif r.exchange_form.change_status:
+                r.warranty_status = 'close'
+            else:
+                r.warranty_status = 'open'
 
 

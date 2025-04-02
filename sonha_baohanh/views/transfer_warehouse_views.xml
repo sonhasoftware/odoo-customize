@@ -20,6 +20,7 @@
                     <sheet>
                         <group>
                             <group>
+                                <field name="number_receipts"/>
                                 <field name="warranty_code"/>
                                 <field name="customer_name"/>
                                 <field name="address"/>
@@ -69,6 +70,7 @@
                     <sheet>
                         <group>
                             <group>
+                                <field name="number_receipts"/>
                                 <field name="warranty_code"/>
                                 <field name="customer_name"/>
                                 <field name="address"/>

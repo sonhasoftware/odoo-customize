@@ -6,6 +6,9 @@
             <field name="model">warranty.information</field>
             <field name="arch" type="xml">
                 <form>
+                    <header>
+                        <field name="warranty_status" widget="statusbar"/>
+                    </header>
                     <sheet>
                         <group>
                             <group>
@@ -23,7 +26,7 @@
                                 <field name="branch_id"/>
                                 <field name="call_date"/>
                                 <field name="appointment_date"/>
-                                <field name="create_date"/>
+                                <field name="create_date" string="Ngày tạo"/>
                             </group>
                         </group>
                     </sheet>
@@ -48,11 +51,12 @@
                     <field name="address"/>
                     <field name="product_type_id"/>
                     <field name="error_information"/>
+                    <field name="warranty_status"/>
                     <field name="employee_id"/>
                     <field name="note"/>
                     <field name="branch_id"/>
                     <field name="call_date"/>
-                    <field name="appointment_date"/>
+                    <field name="appointment_date" readonly="work != 'wait_assign'"/>
                     <field name="appointment"/>
                     <field name="sap_document"/>
                     <!--                   <field name="create_date" string="Ngày tạo"/>-->

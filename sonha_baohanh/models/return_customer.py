@@ -4,7 +4,7 @@ from odoo.exceptions import UserError, ValidationError
 class ReturnCustomer(models.Model):
     _name = 'return.customer'
 
-    number_receipts = fields.Char(string="Số phiếu nhập")
+    number_receipts = fields.Char(string="Số phiếu")
     sap_document = fields.Char(string="XNGH/CT SAP")
     customer_name = fields.Char(string="Họ và tên", compute="fillter_data_customer", store=True)
     phone_number = fields.Char(string="Điện thoại", compute="fillter_data_customer", store=True)

@@ -5,7 +5,7 @@ class ImportBeforeRepair(models.Model):
     _name = 'import.before.repair'
 
     warranty_code = fields.Many2one('warranty.information', string="ID bảo hành",
-                                    domain="['|', ('import_company', '=', True), ('work', '=', 'non_assign')]")
+                                    domain="['|', ('warranty_status', '=', 'waiting'), ('work', '=', 'non_assign')]")
     customer_name = fields.Char(string="Tên khách hàng", compute="fill_data_import", store=True)
     phone_number = fields.Char(string="Điện thoại", compute="fill_data_import", store=True)
     address = fields.Text(string="Địa chỉ", compute="fill_data_import", store=True)
@@ -57,6 +57,9 @@ class ImportBeforeRepair(models.Model):
 
     def create(self, vals):
         record = super(ImportBeforeRepair, self).create(vals)
+        change_status = self.env['warranty.information'].sudo().search([('id', '=', record.warranty_code.id)])
+        if change_status:
+            change_status.sudo().write({'warranty_status': 'branch_warehouse'})
         vals = {
             'customer_name': record.customer_name,
             'phone_number': record.phone_number,
@@ -76,6 +79,8 @@ class ImportBeforeRepair(models.Model):
 
     def write(self, vals):
         res = super(ImportBeforeRepair, self).write(vals)
+        if 'warranty_code' in vals:
+            raise ValidationError("Không được sửa mã bảo hành!")
         for record in self:
             form_export = self.env['form.export.company.rel'].sudo().search([('import_before_repair', '=', record.id)])
             vals = {
@@ -99,6 +104,11 @@ class ImportBeforeRepair(models.Model):
     def unlink(self):
         for r in self:
             self.env['form.export.company.rel'].sudo().search([('import_before_repair', '=', r.id)]).sudo().unlink()
+            change_status = self.env['warranty.information'].sudo().search([('id', '=', r.warranty_code.id)])
+            record = self.env['import.before.repair'].sudo().search([('warranty_code', '=', r.warranty_code.id),
+                                                                     ('id', '!=', r.id)])
+            if change_status and not record:
+                change_status.sudo().write({'warranty_status': 'waiting'})
         return super(ImportBeforeRepair, self).unlink()
 
 

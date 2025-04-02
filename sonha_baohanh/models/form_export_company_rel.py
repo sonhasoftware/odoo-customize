@@ -17,4 +17,7 @@ class FormExportCompanyRel(models.Model):
     plant = fields.Char(string="Plant")
     branch_id = fields.Many2one('bh.branch', string="Đơn vị")
     import_before_repair = fields.Many2one('import.before.repair', string="Id trước sửa chữa")
+    export_company_date = fields.Date(string="Ngày xuất kho về công ty")
+    delivery_note_to_com = fields.Char(string="Phiếu xuất về công ty")
+
 

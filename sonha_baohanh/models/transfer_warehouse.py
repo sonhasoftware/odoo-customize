@@ -25,3 +25,7 @@ class TransferWarehouse(models.Model):
             r.product_name = r.product_code.product_name if r.product_code.product_name else ''
             r.unit = r.product_code.unit if r.product_code.unit else ''
 
+    def create(self, vals):
+        record = super(TransferWarehouse, self).create(vals)
+        record.sudo().write({"warranty_code": record.return_customer.warranty_code.id})
+        return record

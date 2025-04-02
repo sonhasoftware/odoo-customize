@@ -7,7 +7,6 @@
             <tree string="Xuất kho về công ty">
                 <field name="export_date"/>
                 <field name="delivery_note"/>
-                <field name="customer_name"/>
                 <field name="warranty_code"/>
             </tree>
         </field>
@@ -27,9 +26,9 @@
                             <field name="branch_id"/>
                         </group>
                         <group>
-                            <field name="customer_name"/>
-                            <field name="customer_phone"/>
+                            <field name="employee_name"/>
                             <field name="address"/>
+                            <field name="export_reason"/>
                         </group>
                     </group>
                     <group>
