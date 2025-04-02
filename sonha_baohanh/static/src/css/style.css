@@ -8,6 +8,15 @@
   z-index: 2; /* Đặt z-index cao hơn nội dung */
 }
 
+.sticky_c thead th:nth-child(2),
+.sticky_c tbody td:nth-child(2) {
+  min-width: 50px !important;
+  position: sticky !important;
+  left: 40px;
+  background: white;
+  z-index: 2;
+}
+
 /* Fix second column */
 .sticky_c thead th:nth-child(3),
 .sticky_c tbody td:nth-child(3) {
@@ -111,14 +120,6 @@
   min-width: 115px !important;
   position: sticky !important;
   left: 1101px;
-  background: white;
-  z-index: 2;
-}
-.sticky_c thead th:nth-child(2),
-.sticky_c tbody td:nth-child(2) {
-  min-width: 50px !important;
-  position: sticky !important;
-  left: 40px;
   background: white;
   z-index: 2;
 }

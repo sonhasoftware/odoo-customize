@@ -31,7 +31,7 @@ class WarrantyInformation(models.Model):
                                         ('return_customer', "Sửa xong, nhập kho chi nhánh, kho VT"),
                                         ('close', "Đóng")], string="Trạng thái",
                                        default='open', tracking=True, compute="change_status", store=True)
-    error_code = fields.Many2one('error.code', string="Mã lỗi", tracking=True)
+    error_code = fields.Many2one('error.code', string="Mã lỗi", domain="[('product_type_id', '=', product_type_id)]",tracking=True)
 
     staff_number = fields.Char(string="Điện thoại nhân viên")
     call_date = fields.Datetime(string="Ngày gọi", default=fields.Datetime.now)

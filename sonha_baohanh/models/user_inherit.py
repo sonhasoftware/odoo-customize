@@ -1,4 +1,5 @@
 from odoo import api, fields, models
+from odoo.fields import Boolean
 
 
 class UserInherit(models.Model):
