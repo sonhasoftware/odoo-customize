@@ -47,6 +47,7 @@ class SonHaKPIMonth(models.Model):
     parent_kpi_month = fields.Many2one('parent.kpi.month')
     upload_file = fields.Binary(string="File")
     upload_file_name = fields.Char(string="Tên File")
+    upload_files = fields.Many2many('ir.attachment', string="Files")
 
     @api.constrains('start_date', 'end_date')
     def validate_start_end_date(self):
