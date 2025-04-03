@@ -429,38 +429,36 @@ class EmployeeAttendance(models.Model):
                                                                     ('start_date', '<=', r.date),
                                                                     ('end_date', '>=', r.date)])
 
-            if free_time:
-                if r.compensatory > 0:
-                    r.work_day = 1 - r.compensatory
-                elif r.leave > 0:
-                    r.work_day = 1 - r.leave
-                else:
-                    r.work_day = 1
-            else:
-                if r.shift.half_shift == True:
-                    if r.check_in and r.check_out:
-                        r.work_day = 0.5
-                    else:
-                        r.work_day = 0
-                else:
-                    if r.check_in and r.check_out:
-                        if r.compensatory > 0:
-                            r.work_day = 1 - r.compensatory
-                        elif r.leave > 0:
-                            r.work_day = 1 - r.leave
-                        else:
-                            r.work_day = 1
-                    elif r.check_in and not r.check_out:
-                        r.work_day = 0.5
-                    elif not r.check_in and r.check_out:
-                        r.work_day = 0.5
-                    else:
-                        r.work_day = 0
-
             if r.shift.is_office_hour and (weekday == 6 or (weekday == 5 and week_number % 2 == 1)):
                 r.work_day = 0
             else:
-                pass
+                if free_time:
+                    if r.compensatory > 0:
+                        r.work_day = 1 - r.compensatory
+                    elif r.leave > 0:
+                        r.work_day = 1 - r.leave
+                    else:
+                        r.work_day = 1
+                else:
+                    if r.shift.half_shift == True:
+                        if r.check_in and r.check_out:
+                            r.work_day = 0.5
+                        else:
+                            r.work_day = 0
+                    else:
+                        if r.check_in and r.check_out:
+                            if r.compensatory > 0:
+                                r.work_day = 1 - r.compensatory
+                            elif r.leave > 0:
+                                r.work_day = 1 - r.leave
+                            else:
+                                r.work_day = 1
+                        elif r.check_in and not r.check_out:
+                            r.work_day = 0.5
+                        elif not r.check_in and r.check_out:
+                            r.work_day = 0.5
+                        else:
+                            r.work_day = 0
 
 
     # tính thứ cho ngày
