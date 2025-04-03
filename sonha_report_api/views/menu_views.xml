@@ -9,4 +9,11 @@
             parent="menu_report_api_root"
             action="config_api_action"
             sequence="2"/>
+
+    <menuitem
+            id="menu_api_table_sql"
+            name="Danh sách API (A Ngọc)"
+            parent="menu_report_api_root"
+            action="api_table_sql_action"
+            sequence="3"/>
 </odoo>

@@ -3,12 +3,13 @@ import requests
 import json
 
 
-class ConfigAPI(models.Model):
-    _name = 'config.api'
+class APITableSQL(models.Model):
+    _name = 'api.table.sql'
 
     url = fields.Char(string="URL API", required=True)
     user = fields.Char(string="Tên đăng nhập", required=True)
     password = fields.Char(string="Mật khẩu", required=True)
+    table = fields.Char(string="Tên database", required=True)
 
     def action_download(self):
         url = str(self.url)
@@ -16,15 +17,27 @@ class ConfigAPI(models.Model):
         # Thông tin xác thực cho Basic Auth
         username = str(self.user)
         password = str(self.password)
+        table = str(self.table)
 
         response = requests.get(url, auth=(username, password), verify=False)
 
         # Kiểm tra phản hồi của API
         if response.status_code == 200:
             data = response.json().get('d', {}).get('results', [])
-            table_name = "data_sap"
+            table_name = table
+            self.create_table_if_not_exists(table_name)
             self.create_dynamic_fields(table_name, data)
             self.insert_data(table_name, data)
+
+    def create_table_if_not_exists(self, table_name):
+        """Tạo bảng nếu chưa tồn tại"""
+        cr = self._cr
+        cr.execute(f"""
+            CREATE TABLE IF NOT EXISTS {table_name} (
+                id SERIAL PRIMARY KEY
+            );
+        """)
+        self._cr.commit()
 
     def create_dynamic_fields(self, table_name, data):
         """Tự động tạo field trong bảng nếu chưa tồn tại."""
@@ -96,4 +109,3 @@ class ConfigAPI(models.Model):
             self._cr.execute(sql, tuple(processed_data.values()))
 
         self._cr.commit()
-

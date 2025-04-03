@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_api_table_sql_tree" model="ir.ui.view">
+        <field name="name">api.table.sql.tree</field>
+        <field name="model">api.table.sql</field>
+        <field name="arch" type="xml">
+            <tree string="Danh sách API" editable="bottom">
+                <field name="url"/>
+                <field name="user"/>
+                <field name="password"/>
+                <field name="table"/>
+                <button name="action_download" string="Tải dữ liệu" type="object" class="oe_highlight"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="api_table_sql_action" model="ir.actions.act_window">
+        <field name="name">Danh sách API Table</field>
+        <field name="res_model">api.table.sql</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>
