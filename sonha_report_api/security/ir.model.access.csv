@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+
+access_config_api,access.config.api,model_config_api,,1,1,1,1
+access_data_sap,access.data.sap,model_data_sap,,1,1,1,1
+access_api_table_sql,access.api.table.sql,model_api_table_sql,,1,1,1,1
