@@ -1,6 +1,7 @@
 from odoo import api, fields, models
 import requests
 import json
+from datetime import datetime
 
 
 class APITableSQL(models.Model):
@@ -100,6 +101,9 @@ class APITableSQL(models.Model):
             if "id" not in processed_data or processed_data["id"] is None:
                 self._cr.execute(f"SELECT COALESCE(MAX(id), 0) + 1 FROM {table_name};")
                 processed_data["id"] = self._cr.fetchone()[0]
+
+            if "create_date" not in processed_data:
+                processed_data["create_date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
             # Xây dựng câu lệnh INSERT
             keys = ", ".join(processed_data.keys())
