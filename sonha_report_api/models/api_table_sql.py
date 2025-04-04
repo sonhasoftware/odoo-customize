@@ -25,7 +25,7 @@ class APITableSQL(models.Model):
         # Kiểm tra phản hồi của API
         if response.status_code == 200:
             data = response.json().get('d', {}).get('results', [])
-            table_name = table
+            table_name = table.lower()
             self.create_table_if_not_exists(table_name)
             self.create_dynamic_fields(table_name, data)
             self.insert_data(table_name, data)
@@ -82,6 +82,18 @@ class APITableSQL(models.Model):
         if not isinstance(data, list):
             raise ValueError("Dữ liệu đầu vào phải là danh sách chứa các dictionary!")
 
+        self._cr.execute(f"""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name = %s;
+            """, (table_name,))
+        existing_columns = {row[0] for row in self._cr.fetchall()}
+
+        if "create_date" not in existing_columns:
+            self._cr.execute(f"ALTER TABLE {table_name} ADD COLUMN create_date TIMESTAMP;")
+            self._cr.commit()
+            existing_columns.add("create_date")
+
         for record in data:  # Lặp từng dictionary trong danh sách
             processed_data = {}
 
@@ -89,6 +101,7 @@ class APITableSQL(models.Model):
                 # Chuẩn hóa các trường id (viết hoa hoặc viết thường đều xử lý chung một cách)
                 if key.lower() == 'id':  # Dùng 'id' để chuẩn hóa tất cả
                     key = 'id'
+                key = key.lower()
 
                 if isinstance(value, dict):
                     processed_data[key] = json.dumps(value)  # Chuyển dict sang JSON string
@@ -101,7 +114,6 @@ class APITableSQL(models.Model):
             if "id" not in processed_data or processed_data["id"] is None:
                 self._cr.execute(f"SELECT COALESCE(MAX(id), 0) + 1 FROM {table_name};")
                 processed_data["id"] = self._cr.fetchone()[0]
-
             if "create_date" not in processed_data:
                 processed_data["create_date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
