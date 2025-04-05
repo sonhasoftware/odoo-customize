@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="popup_synthetic_work_report_form_view" model="ir.ui.view">
+        <field name="name">popup.synthetic.work.report.form.view</field>
+        <field name="model">popup.synthetic.work.report</field>
+        <field name="arch" type="xml">
+            <form string="Báo cáo công thô">
+                <group>
+                    <field name="from_date"/>
+                    <field name="to_date"/>
+                    <field name="company_id"/>
+                    <field name="department_id"/>
+                    <field name="employee_id"/>
+                </group>
+                <footer>
+                    <button string="Xác nhận" type="object" name="action_confirm" class="oe_highlight"/>
+                    <button string="Cancel" class="oe_link" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_popup_synthetic_work_report" model="ir.actions.act_window">
+        <field name="name">Báo cáo công tổng hợp</field>
+        <field name="res_model">popup.synthetic.work.report</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_popup_synthetic_work_report"
+              name="Báo cáo công tổng hợp"
+              parent="menu_sonha_report_sonha"
+              action="action_popup_synthetic_work_report"
+              sequence="3"/>
+</odoo>

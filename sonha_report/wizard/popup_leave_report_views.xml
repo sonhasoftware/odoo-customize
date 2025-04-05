@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="popup_leave_report_form_view" model="ir.ui.view">
+        <field name="name">popup.leave.report.form.view</field>
+        <field name="model">popup.leave.report</field>
+        <field name="arch" type="xml">
+            <form string="Báo cáo phép chi tiết">
+                <group>
+                    <field name="from_date"/>
+                    <field name="to_date"/>
+                    <field name="company_id"/>
+                    <field name="department_id"/>
+                    <field name="employee_id"/>
+                </group>
+                <footer>
+                    <button string="Xác nhận" type="object" name="action_confirm" class="oe_highlight"/>
+                    <button string="Cancel" class="oe_link" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_popup_leave_report" model="ir.actions.act_window">
+        <field name="name">Báo cáo phép chi tiết</field>
+        <field name="res_model">popup.leave.report</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_popup_leave_report"
+              name="Báo cáo phép chi tiết"
+              parent="menu_sonha_report_leave"
+              action="action_popup_leave_report"
+              sequence="1"/>
+</odoo>

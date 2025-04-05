@@ -119,7 +119,7 @@ td.o_data_cell.cursor-pointer.o_field_cell[name="end_date"] {
     text-align: center !important;
 }
 
-th.align-middle.cursor-default.o_list_number_th.o_percentage_cell.opacity-trigger-hover[data-name="total_percentage_year"] {
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.o_percentage_cell.opacity-trigger-hover[data-name="dvdg_kpi"] {
     width: 6% !important;
 }
 
@@ -198,6 +198,6 @@ th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number
     white-space: pre-line !important;
 }
 
-th.align-middle.cursor-default.o_list_number_th.o_percentage_cell.opacity-trigger-hover[data-name="total_percentage_year"] span.d-block.min-w-0.text-truncate.flex-grow-1.o_list_number_th{
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.o_percentage_cell.opacity-trigger-hover[data-name="dvdg_kpi"] span.d-block.min-w-0.text-truncate.flex-grow-1.o_list_number_th {
     white-space: pre-line !important;
 }

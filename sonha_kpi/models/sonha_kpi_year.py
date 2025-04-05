@@ -11,7 +11,7 @@ class SonHaKPIYear(models.Model):
     start_date = fields.Date('Bắt đầu')
     end_date = fields.Date("Hoàn thành")
     kpi_year = fields.Float("KPI KH cả năm")
-    dvdg_kpi = fields.Float("Đơn vị ĐG kpi đến hiện tại", readonly=True)
+    dvdg_kpi = fields.Float("KPI thực hiện", readonly=True)
     dvdg_status = fields.Selection([('draft', "Chưa thực hiện"),
                                     ('in_progres', "Đang thực hiện"),
                                     ('done', "Hoàn thành")],
@@ -77,7 +77,8 @@ class SonHaKPIYear(models.Model):
     th_kl_cv_monh_twenty = fields.Float("Tháng 12")
 
     sonha_kpi = fields.Many2one('company.sonha.kpi')
-    total_percentage_year = fields.Float(string="Tổng phần trăm năm", compute="fillter_total_percentage_year")
+    total_percentage_year = fields.Float(string="KPI thực hiện", compute="fillter_total_percentage_year")
+    total_percentage_tq_year = fields.Float(string="Cấp thẩm quyền ĐG KPI (trên 100%)", compute="fillter_total_percentage_tq_year")
     parent_kpi_year = fields.Many2one('parent.kpi.year')
 
     converted_start_date = fields.Char("Bắt đầu")
@@ -123,7 +124,7 @@ class SonHaKPIYear(models.Model):
         for r in self:
             if not r.dvdg_kpi:
                 r.dvdg_status = 'draft'
-            elif r.dvdg_kpi / 100 < r.kpi_year:
+            elif r.dvdg_kpi < r.kpi_year:
                 r.dvdg_status = 'in_progres'
             else:
                 r.dvdg_status = 'done'
@@ -133,7 +134,7 @@ class SonHaKPIYear(models.Model):
         for r in self:
             if not r.ctqdg_kpi:
                 r.ctqdg_status = 'draft'
-            elif r.ctqdg_kpi / 100 < r.kpi_year:
+            elif r.ctqdg_kpi < r.kpi_year:
                 r.ctqdg_status = 'in_progres'
             else:
                 r.ctqdg_status = 'done'
@@ -261,9 +262,19 @@ class SonHaKPIYear(models.Model):
                 }
             )
 
+    @api.depends('dvdg_kpi', 'kpi_year')
     def fillter_total_percentage_year(self):
         for r in self:
             if r.dvdg_kpi and r.kpi_year:
-                r.total_percentage_year = round(((r.dvdg_kpi / 100) / r.kpi_year) * 100, 1) / 100
+                r.total_percentage_year = (r.dvdg_kpi / r.kpi_year) * 100
             else:
                 r.total_percentage_year = 0
+
+    @api.depends('ctqdg_kpi', 'kpi_year')
+    def fillter_total_percentage_tq_year(self):
+        for r in self:
+            if r.ctqdg_kpi and r.kpi_year:
+                r.total_percentage_tq_year = (r.ctqdg_kpi / r.kpi_year) * 100
+            else:
+                r.total_percentage_tq_year = 0
+
