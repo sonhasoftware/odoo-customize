@@ -135,7 +135,10 @@ class EmployeeAttendance(models.Model):
             if overtime:
                 for x in overtime:
                     total_overtime += abs(x.end_time - x.start_time)
-            record.over_time = total_overtime
+            if record.weekday == '6' and record.employee_id.company_id.id == 16:
+                record.over_time = total_overtime * 2
+            else:
+                record.over_time = total_overtime
 
     color = fields.Selection([
             ('red', 'Red'),
