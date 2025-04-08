@@ -31,6 +31,10 @@
 <!--        kế thừa thêm field vào form employee-->
                 <xpath expr="//field[@name='mobile_phone']" position="before">
                     <field name="employee_code" />
+                    <field name="sonha_number_phone" />
+                </xpath>
+                <xpath expr="//field[@name='mobile_phone']" position="attributes">
+                    <attribute name="invisible">True</attribute>
                 </xpath>
                 <xpath expr="//field[@name='work_email']" position="after">
                     <field name="date_birthday" required = "1"/>

@@ -332,3 +332,383 @@ class AuthAPI(http.Controller):
                  "error": str(e)
                  }), content_type="application/json", status=500)
 
+    @http.route('/api/get_word_slip_user/<int:id_employee>', type='http', auth='none', methods=['GET'], csrf=False)
+    def get_word_slip_user(self, id_employee):
+        try:
+            list_records = request.env['form.word.slip'].sudo().search([
+                '|',
+                ('employee_id', '=', id_employee),
+                ('employee_ids', 'in', id_employee)
+            ])
+            data = []
+            if list_records:
+                for r in list_records:
+                    if r.status == 'sent':
+                        state = "Nháp"
+                    elif r.status == 'draft':
+                        state = "Chờ duyệt"
+                    elif r.status == 'done':
+                        state = "Đã duyệt"
+                    else:
+                        state = "Hủy"
+                    word_slip_data = []
+                    for slip in r.word_slip_id:
+                        if slip.type.date_and_time == 'time':
+                            word_slip_data.append({
+                                "id": slip.id,
+                                "from_date": str(slip.from_date) or '',
+                                "to_date": str(slip.to_date) or '',
+                                "time_to": slip.time_to or '',
+                                "time_from": slip.time_from or '',
+                                "reason": slip.reason or '',
+                            })
+                        else:
+                            word_slip_data.append({
+                                "id": slip.id,
+                                "from_date": str(slip.from_date) or '',
+                                "to_date": str(slip.to_date) or '',
+                                "start_time": "Nửa ca đầu" if slip.start_time == 'first_half' else "Nửa ca sau",
+                                "end_time": "Nửa ca đầu" if slip.end_time == 'first_half' else "Nửa ca sau",
+                                "reason": slip.reason or '',
+                            })
+                    if r.regis_type == 'one':
+                        data.append({
+                            "id": r.id,
+                            "code": r.code,
+                            "status": state,
+                            "regis_type": "Tạo cho tôi",
+                            "date_sent": str(r.create_date),
+                            "type": {
+                                "id": r.type.id,
+                                "name": r.type.name
+                            },
+                            "date": word_slip_data,
+                            "employee_id": {
+                                "id": r.employee_id.id,
+                                "name": r.employee_id.name
+                            }
+                        })
+                    else:
+                        list_employee = []
+                        for emp in r.employee_ids:
+                            list_employee.append({
+                                'id': emp.id,
+                                'name': emp.name,
+                            })
+                        data.append({
+                            "id": r.id,
+                            "code": r.code,
+                            "status": state,
+                            "regis_type": "Tạo hộ",
+                            "date_sent": str(r.create_date),
+                            "type": {
+                                "id": r.type.id,
+                                "name": r.type.name
+                            },
+                            "date": word_slip_data,
+                            "employee_id": list_employee
+                        })
+
+            return Response(
+                json.dumps({"success": True, "data": data}),
+                status=200, content_type="application/json"
+            )
+        except Exception as e:
+            return Response(json.dumps(
+                {"success": False,
+                 "error": str(e)
+                 }), content_type="application/json", status=500)
+
+    @http.route('/api/get_word_slip_id/<int:id>', type='http', auth='none', methods=['GET'], csrf=False)
+    def get_word_slip_id(self, id):
+        try:
+            r = request.env['form.word.slip'].sudo().search([
+                ('id', '=', id)
+            ])
+            data = []
+            if r:
+                if r.status == 'sent':
+                    state = "Nháp"
+                elif r.status == 'draft':
+                    state = "Chờ duyệt"
+                elif r.status == 'done':
+                    state = "Đã duyệt"
+                else:
+                    state = "Hủy"
+                word_slip_data = []
+                for slip in r.word_slip_id:
+                    if slip.type.date_and_time == 'time':
+                        word_slip_data.append({
+                            "id": slip.id,
+                            "from_date": str(slip.from_date) or '',
+                            "to_date": str(slip.to_date) or '',
+                            "time_to": slip.time_to or '',
+                            "time_from": slip.time_from or '',
+                            "reason": slip.reason or '',
+                        })
+                    else:
+                        word_slip_data.append({
+                            "id": slip.id,
+                            "from_date": str(slip.from_date) or '',
+                            "to_date": str(slip.to_date) or '',
+                            "start_time": "Nửa ca đầu" if slip.start_time == 'first_half' else "Nửa ca sau",
+                            "end_time": "Nửa ca đầu" if slip.end_time == 'first_half' else "Nửa ca sau",
+                            "reason": slip.reason or '',
+                        })
+                if r.regis_type == 'one':
+                    data.append({
+                        "id": r.id,
+                        "code": r.code,
+                        "status": state,
+                        "regis_type": "Tạo cho tôi",
+                        "date_sent": str(r.create_date),
+                        "type": {
+                            "id": r.type.id,
+                            "name": r.type.name
+                        },
+                        "date": word_slip_data,
+                        "employee_id": {
+                            "id": r.employee_id.id,
+                            "name": r.employee_id.name
+                        }
+                    })
+                else:
+                    list_employee = []
+                    for emp in r.employee_ids:
+                        list_employee.append({
+                            'id': emp.id,
+                            'name': emp.name,
+                        })
+                    data.append({
+                        "id": r.id,
+                        "code": r.code,
+                        "status": state,
+                        "regis_type": "Tạo hộ",
+                        "date_sent": str(r.create_date),
+                        "type": {
+                            "id": r.type.id,
+                            "name": r.type.name
+                        },
+                        "date": word_slip_data,
+                        "employee_id": list_employee
+                    })
+
+            return Response(
+                json.dumps({"success": True, "data": data}),
+                status=200, content_type="application/json"
+            )
+        except Exception as e:
+            return Response(json.dumps(
+                {"success": False,
+                 "error": str(e)
+                 }), content_type="application/json", status=500)
+
+    # api danh sách đổi ca
+    @http.route('/api/register_list_shift', type='http', auth='none', methods=['GET'], csrf=False)
+    def get_register_list_shift(self):
+        try:
+            list_records = request.env['register.shift'].sudo().search([])
+            data = []
+            if list_records:
+                for record in list_records:
+                    data_date = []
+                    if record.register_rel:
+                        for detail in record.register_rel:
+                            data_date.append({
+                                'date': str(detail.date),
+                                'shift': {
+                                    'id': detail.shift.id,
+                                    'name': detail.shift.name,
+                                }
+                            })
+                    data.append({
+                        'id': record.id,
+                        'shift': data_date,
+                        'department': {
+                            'id': record.department_id.id,
+                            'name': record.department_id.name
+                        },
+                        'employee': {
+                            'id': record.employee_id.id,
+                            'name': record.employee_id.name
+                        },
+                        'reason': record.description,
+                    })
+
+            return Response(
+                json.dumps({"success": True, "data": data}),
+                status=200, content_type="application/json"
+            )
+        except Exception as e:
+            return Response(json.dumps(
+                {"success": False,
+                 "error": str(e)
+                 }), content_type="application/json", status=500)
+
+    # api đơn đổi ca chi tiết
+    @http.route('/api/register_shift/<int:id_record>', type='http', auth='none', methods=['GET'], csrf=False)
+    def get_register_shift(self, id_record):
+        try:
+            list_records = request.env['register.shift'].sudo().search([
+                ('id', '=', id_record)
+            ])
+            data = []
+            if list_records:
+                for record in list_records:
+                    data_date = []
+                    if record.register_rel:
+                        for detail in record.register_rel:
+                            data_date.append({
+                                'date': str(detail.date),
+                                'shift': {
+                                    'id': detail.shift.id,
+                                    'name': detail.shift.name,
+                                }
+                            })
+                    data.append({
+                        'id': record.id,
+                        'shift': data_date,
+                        'department': {
+                            'id': record.department_id.id,
+                            'name': record.department_id.name
+                        },
+                        'employee': {
+                            'id': record.employee_id.id,
+                            'name': record.employee_id.name
+                        },
+                        'reason': record.description,
+                    })
+
+            return Response(
+                json.dumps({"success": True, "data": data}),
+                status=200, content_type="application/json"
+            )
+        except Exception as e:
+            return Response(json.dumps(
+                {"success": False,
+                 "error": str(e)
+                 }), content_type="application/json", status=500)
+
+    # api chi tiết đăng ký ca làm việc
+    @http.route('/api/register_work/<int:id_record>', type='http', auth='none', methods=['GET'], csrf=False)
+    def get_register_work(self, id_record):
+        try:
+            list_records = request.env['register.work'].sudo().search([
+                ('id', '=', id_record)
+            ])
+            data = []
+            if list_records:
+                for record in list_records:
+                    data_employee = []
+                    if record.employee_id:
+                        for employee_id in record.employee_id:
+                            data_employee.append({
+                                'id': employee_id.id,
+                                'name': employee_id.name,
+                            })
+                    data.append({
+                        'id': record.id,
+                        'department': {
+                            'id': record.department_id.id,
+                            'name': record.department_id.name
+                        },
+                        'start_time': str(record.start_date),
+                        'end_time': str(record.end_date),
+                        'shift': {
+                            'id': record.shift.id,
+                            'name': record.shift.name
+                        },
+                        'employee_id': data_employee,
+                    })
+
+            return Response(
+                json.dumps({"success": True, "data": data}),
+                status=200, content_type="application/json"
+            )
+        except Exception as e:
+            return Response(json.dumps(
+                {"success": False,
+                 "error": str(e)
+                 }), content_type="application/json", status=500)
+
+    # api danh sách đăng ký ca làm việc
+    @http.route('/api/register_work_list', type='http', auth='none', methods=['GET'], csrf=False)
+    def get_register_work_list(self):
+        try:
+            list_records = request.env['register.work'].sudo().search([
+            ])
+            data = []
+            if list_records:
+                for record in list_records:
+                    data_employee = []
+                    if record.employee_id:
+                        for employee_id in record.employee_id:
+                            data_employee.append({
+                                'id': employee_id.id,
+                                'name': employee_id.name,
+                            })
+                    data.append({
+                        'id': record.id,
+                        'department': {
+                            'id': record.department_id.id,
+                            'name': record.department_id.name
+                        },
+                        'start_time': str(record.start_date),
+                        'end_time': str(record.end_date),
+                        'shift': {
+                            'id': record.shift.id,
+                            'name': record.shift.name
+                        },
+                        'employee_id': data_employee,
+                    })
+
+            return Response(
+                json.dumps({"success": True, "data": data}),
+                status=200, content_type="application/json"
+            )
+        except Exception as e:
+            return Response(json.dumps(
+                {"success": False,
+                 "error": str(e)
+                 }), content_type="application/json", status=500)
+
+    @http.route('/api/get_synthetic_work/<int:employee_id>/<int:month>/<int:year>', type='http', auth='none', methods=['GET'],csrf=False)
+    def get_synthetic_work(self, employee_id, month, year):
+        try:
+            data = []
+            list_record = request.env['synthetic.work'].sudo().search([
+                ('employee_id', '=', employee_id),
+                ('month', '=', month),
+                ('year', '=', year)
+            ])
+            if list_record:
+                for record in list_record:
+                    data.append({
+                        'employee_id': record.employee_id.name,
+                        'employee_code': record.employee_code,
+                        'department_id': record.department_id.name,
+                        'total_work': record.total_work,
+                        'date_work': record.date_work,
+                        'ot_one_hundred': record.ot_one_hundred,
+                        'paid_leave': record.paid_leave,
+                        'number_minutes_late': record.number_minutes_late,
+                        'number_minutes_early': record.number_minutes_early,
+                        'shift_two_crew_three': record.shift_two_crew_three,
+                        'shift_three_crew_four': record.shift_three_crew_four,
+                        'on_leave': record.on_leave,
+                        'compensatory_leave': record.compensatory_leave,
+                        'vacation': record.vacation,
+                        'public_leave': record.public_leave,
+                        'month': record.month,
+                        'year': record.year,
+
+                    })
+            return Response(
+                json.dumps({"success": True, "data": data}),
+                status=200, content_type="application/json"
+            )
+        except Exception as e:
+            return Response(json.dumps(
+                {"success": False,
+                 "error": str(e)
+                 }), content_type="application/json", status=500)

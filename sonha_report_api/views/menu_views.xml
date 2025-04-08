@@ -3,17 +3,22 @@
     <menuitem id="menu_report_api_root"
               name="Kéo dữ liệu API"
               sequence="14"/>
+
+    <menuitem id="menu_list_api_root"
+              name="Danh sách API"
+              parent="menu_report_api_root"
+              sequence="1"/>
     <menuitem
             id="menu_config_api"
-            name="Danh sách API"
-            parent="menu_report_api_root"
+            name="Outbound SAP - DWH Transactions"
+            parent="menu_list_api_root"
             action="config_api_action"
             sequence="2"/>
 
     <menuitem
             id="menu_api_table_sql"
-            name="Danh sách API (A Ngọc)"
-            parent="menu_report_api_root"
+            name="Outbound SAP - DWH Master Data"
+            parent="menu_list_api_root"
             action="api_table_sql_action"
             sequence="3"/>
 </odoo>
