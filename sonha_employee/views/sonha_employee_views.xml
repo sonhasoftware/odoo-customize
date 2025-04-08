@@ -167,9 +167,6 @@
                 <xpath expr="//field[@name='company_id']" position="attributes">
                     <attribute name="required">True</attribute>
                 </xpath>
-                <xpath expr="//field[@name='mobile_phone']" position="attributes">
-                    <attribute name="required">True</attribute>
-                </xpath>
             </field>
         </record>
 
