@@ -1,7 +1,11 @@
+import psycopg2
 from odoo import api, fields, models
 import requests
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
+from datetime import time
+import logging
+_logger = logging.getLogger(__name__)
 
 
 class APITableSQL(models.Model):
@@ -11,24 +15,85 @@ class APITableSQL(models.Model):
     user = fields.Char(string="Tên đăng nhập", required=True)
     password = fields.Char(string="Mật khẩu", required=True)
     table = fields.Char(string="Tên database", required=True)
+    error = fields.Char("Lỗi")
+    job = fields.Boolean("Chạy tự động")
+    start_time = fields.Float("Giờ bắt đầu")
+    end_time = fields.Float("Giờ kết thúc")
+
+    def cron_data(self):
+        self.cron_data_api_download()
+
+    def cron_data_api_download(self):
+        list_api = self.env['api.table.sql'].sudo().search([('job', '=', True)])
+        for r in list_api:
+            now = datetime.now() + timedelta(hours=7)
+            hours = int(r.start_time)
+            minutes = int((r.start_time - hours) * 60)
+            seconds = int(((r.start_time - hours) * 60 - minutes) * 60)
+            start_time = time(hour=hours, minute=minutes, second=seconds)
+
+            hours_end_time = int(r.end_time)
+            minutes_end_time = int((r.end_time - hours_end_time) * 60)
+            seconds_end_time = int(((r.end_time - hours_end_time) * 60 - minutes_end_time) * 60)
+            end_time = time(hour=hours_end_time, minute=minutes_end_time, second=seconds_end_time)
+            if start_time <= now.time() <= end_time:
+                url = str(r.url)
+                username = str(r.user)
+                password = str(r.password)
+                table = str(r.table)
+                try:
+                    response = requests.get(url, auth=(username, password), verify=False)
+                    if response.status_code == 200:
+                        data = response.json().get('d', {}).get('results', [])
+                        table_name = table.lower()
+                        self.create_table_if_not_exists(table_name)
+                        self.create_dynamic_fields(table_name, data)
+                        self.insert_data(table_name, data)
+                        r.error = ""
+                    else:
+                        r.error = f"Lỗi API: {response.status_code} - {response.reason}"
+                except requests.exceptions.ConnectionError:
+                    r.error = "Không thể kết nối tới máy chủ API. Vui lòng kiểm tra mạng hoặc URL."
+                except requests.exceptions.Timeout:
+                    r.error = "Kết nối đến API bị hết thời gian chờ. Vui lòng thử lại sau."
+                except requests.exceptions.RequestException as e:
+                    r.error = f"Lỗi yêu cầu API: {str(e)}"
+                except ValueError:
+                    r.error = "Lỗi xử lý dữ liệu JSON trả về từ API."
+                except psycopg2.Error as db_error:
+                    r.error = f"Lỗi cơ sở dữ liệu: {str(db_error).splitlines()[0]}"
+                except Exception as e:
+                    r.error = f"Lỗi không xác định: {str(e).splitlines()[0]}"
+
 
     def action_download(self):
         url = str(self.url)
-
-        # Thông tin xác thực cho Basic Auth
         username = str(self.user)
         password = str(self.password)
         table = str(self.table)
-
-        response = requests.get(url, auth=(username, password), verify=False)
-
-        # Kiểm tra phản hồi của API
-        if response.status_code == 200:
-            data = response.json().get('d', {}).get('results', [])
-            table_name = table.lower()
-            self.create_table_if_not_exists(table_name)
-            self.create_dynamic_fields(table_name, data)
-            self.insert_data(table_name, data)
+        try:
+            response = requests.get(url, auth=(username, password), verify=False)
+            if response.status_code == 200:
+                data = response.json().get('d', {}).get('results', [])
+                table_name = table.lower()
+                self.create_table_if_not_exists(table_name)
+                self.create_dynamic_fields(table_name, data)
+                self.insert_data(table_name, data)
+                self.error = ""
+            else:
+                self.error = f"Lỗi API: {response.status_code} - {response.reason}"
+        except requests.exceptions.ConnectionError:
+            self.error = "Không thể kết nối tới máy chủ API. Vui lòng kiểm tra mạng hoặc URL."
+        except requests.exceptions.Timeout:
+            self.error = "Kết nối đến API bị hết thời gian chờ. Vui lòng thử lại sau."
+        except requests.exceptions.RequestException as e:
+            self.error = f"Lỗi yêu cầu API: {str(e)}"
+        except ValueError:
+            self.error = "Lỗi xử lý dữ liệu JSON trả về từ API."
+        except psycopg2.Error as db_error:
+            self.error = f"Lỗi cơ sở dữ liệu: {str(db_error).splitlines()[0]}"
+        except Exception as e:
+            self.error = f"Lỗi không xác định: {str(e).splitlines()[0]}"
 
     def create_table_if_not_exists(self, table_name):
         """Tạo bảng nếu chưa tồn tại"""
