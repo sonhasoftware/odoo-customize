@@ -106,6 +106,7 @@ class SonHaEmployee(models.Model):
 
     old_leave_balance = fields.Float(string="Phép cũ", readonly=True)
     new_leave_balance = fields.Float(string="Phép mới", readonly=True)
+    sonha_number_phone = fields.Char("Số điện thoại")
 
     def update_employee_leave(self):
         """Cập nhật phép hàng tháng và reset phép đầu năm."""
@@ -163,7 +164,7 @@ class SonHaEmployee(models.Model):
                 'password': "123456",
                 'email': r.work_email or '',
                 'employee_ids': [(4, r.id)],
-                'groups_id': [(6, 0, [self.env.ref('base.group_user').id])],
+                'groups_id': [(6, 0, [self.env.ref('sonha_employee.group_user_employee').id])],
             }
             self.env['res.users'].sudo().create(user_vals)
             r.user_id = self.env['res.users'].sudo().search(['|', ('login', '=', r.employee_code),
