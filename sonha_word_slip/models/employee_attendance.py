@@ -135,9 +135,7 @@ class EmployeeAttendance(models.Model):
             if overtime:
                 for x in overtime:
                     total_overtime += abs(x.end_time - x.start_time)
-            weekday = record.date.weekday()
-            week_number = record.date.isocalendar()[1]
-            if (weekday == 6 or (weekday == 5 and week_number % 2 == 1)) and record.employee_id.company_id.id == 16:
+            if record.weekday == '6' and record.employee_id.company_id.id == 16:
                 record.over_time = total_overtime * 2
             else:
                 record.over_time = total_overtime
