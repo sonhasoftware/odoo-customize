@@ -21,7 +21,7 @@ class APITableSQL(models.Model):
     end_time = fields.Float("Giờ kết thúc")
 
     def cron_data(self):
-        self.cron_data_api_download()
+        self.with_delay().cron_data_api_download()
 
     def cron_data_api_download(self):
         list_api = self.env['api.table.sql'].sudo().search([('job', '=', True)])

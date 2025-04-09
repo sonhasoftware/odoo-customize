@@ -13,7 +13,7 @@
                 <field name="end_time" widget="float_time"/>
                 <field name="job"/>
                 <field name="error"/>
-                <button name="action_download" string="Tải dữ liệu" type="object" class="oe_highlight"/>
+                <button name="action_download" string="Tải dữ liệu" type="object" class="oe_highlight" invisible="job != False"/>
             </tree>
         </field>
     </record>
