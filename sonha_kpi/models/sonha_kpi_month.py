@@ -145,12 +145,9 @@ class SonHaKPIMonth(models.Model):
             'kq_hoan_thanh_tq_comply_regulations': record.tq_comply_regulations or '',
             'kq_hoan_thanh_tq_initiative': record.tq_initiative or '',
         }
-        if kpi_month_result:
-            kpi_month_result.sudo().write(vals)
-            kpi_month_result.filter_data_dvdg(kpi_month_result)
-            kpi_month_result.filter_data_dvtq(kpi_month_result)
-        else:
-            self.env['sonha.kpi.result.month'].sudo().create(vals)
+        kpi_month_result.sudo().write(vals)
+        kpi_month_result.filter_data_dvdg(kpi_month_result)
+        kpi_month_result.filter_data_dvtq(kpi_month_result)
 
     def create_result_month(self, record):
         number_density = round(self.calculating_density(record), 2)
