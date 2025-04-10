@@ -8,6 +8,10 @@ class SonHaKPIMonth(models.Model):
     _name = 'sonha.kpi.month'
     _rec_name = 'small_items_each_month'
 
+    state = fields.Selection([('cancel', "Hủy"),
+                              ('waiting', "Chưa hoàn thành"),
+                              ('done', "Hoàn thành")
+                              ], string="Trạng thái")
     department_id = fields.Many2one('hr.department', string="Phòng ban")
     year = fields.Integer('Năm')
     small_items_each_month = fields.Text("Nội dung CV KPI của tháng")
@@ -49,6 +53,18 @@ class SonHaKPIMonth(models.Model):
     upload_file_name = fields.Char(string="Tên File")
     upload_files = fields.Many2many('ir.attachment', string="Files")
 
+    @api.onchange('state')
+    def get_value_data(self):
+        for r in self:
+            if r.state == 'done':
+                r.dv_amount_work = 1
+                r.dv_matter_work = 1
+                r.dv_comply_regulations = 1
+            else:
+                r.dv_amount_work = r.dv_amount_work
+                r.dv_matter_work = r.dv_matter_work
+                r.dv_comply_regulations = r.dv_comply_regulations
+
     @api.constrains('start_date', 'end_date')
     def validate_start_end_date(self):
         for r in self:
@@ -84,8 +100,11 @@ class SonHaKPIMonth(models.Model):
     def write(self, vals):
         res = super(SonHaKPIMonth, self).write(vals)
         for r in self:
-            self.write_result_month(r)
-            self.write_report_month(r)
+            if r.state == 'cancel':
+                self.delete_record_result(r)
+            else:
+                self.write_result_month(r)
+                self.write_report_month(r)
         self.re_calculating_density_all(self[0])
         self.calculating_dvdgkpi_tqdgkpi(self[0])
         return res
@@ -97,9 +116,13 @@ class SonHaKPIMonth(models.Model):
             record.year = record.kpi_year_id.year
             self.create_result_month(record)
             self.create_report_month(record)
-        self.re_calculating_density(record)
+            self.re_calculating_density(record)
         self.calculating_dvdgkpi_tqdgkpi(list_record[0])
         return list_record
+
+    def delete_record_result(self, record):
+        kpi_month_result = self.env['sonha.kpi.result.month'].sudo().search([('kpi_month', '=', record.id)])
+        kpi_month_result.sudo().unlink()
 
     def write_result_month(self, record):
         kpi_month_result = self.env['sonha.kpi.result.month'].sudo().search([('kpi_month', '=', record.id)])
@@ -122,9 +145,12 @@ class SonHaKPIMonth(models.Model):
             'kq_hoan_thanh_tq_comply_regulations': record.tq_comply_regulations or '',
             'kq_hoan_thanh_tq_initiative': record.tq_initiative or '',
         }
-        kpi_month_result.sudo().write(vals)
-        kpi_month_result.filter_data_dvdg(kpi_month_result)
-        kpi_month_result.filter_data_dvtq(kpi_month_result)
+        if kpi_month_result:
+            kpi_month_result.sudo().write(vals)
+            kpi_month_result.filter_data_dvdg(kpi_month_result)
+            kpi_month_result.filter_data_dvtq(kpi_month_result)
+        else:
+            self.env['sonha.kpi.result.month'].sudo().create(vals)
 
     def create_result_month(self, record):
         number_density = round(self.calculating_density(record), 2)

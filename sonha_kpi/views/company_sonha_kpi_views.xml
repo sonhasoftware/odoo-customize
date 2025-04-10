@@ -9,6 +9,9 @@
                     <group>
                         <field name="department_id" readonly="1"/>
                         <field name="year" widget="char" readonly="1"/>
+                        <field name="done"/>
+                        <field name="waiting"/>
+                        <field name="cancel"/>
                     </group>
                     <notebook>
                         <page string="KPI năm" name="dl_appraisal_year">
@@ -61,6 +64,7 @@
                                         <field name="dv_matter_work" widget="percentage"/>
                                         <field name="dv_comply_regulations" widget="percentage"/>
                                         <field name="dv_initiative" widget="percentage"/>
+                                        <field name="state"/>
                                         <field name="dv_description"/>
                                         <field name="upload_file" filename="upload_file_name" widget="binary"/>
                                         <field name="upload_file_name"/>
