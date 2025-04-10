@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="book_car_form_view" model="ir.ui.view">
+        <field name="name">book.car.form.view</field>
+        <field name="model">book.car</field>
+        <field name="arch" type="xml">
+            <form string="Đặt xe">
+                <header>
+                    <button name="action_approve" string="Duyệt" type="object" class="oe_highlight" invisible="status != 'draft'"/>
+                    <button name="action_exist_car" string="Còn xe" type="object" class="oe_highlight" invisible="status != 'approved'"/>
+                    <button name="action_issuing_card" string="Cấp thẻ" type="object" class="oe_highlight" invisible="status != 'approved'"/>
+                    <button name="action_not_issuing_card" string="Không cấp thẻ" type="object" class="oe_highlight" invisible="status != 'approved'"/>
+                    <button name="action_return_card" string="Trả thẻ" type="object" class="oe_highlight" invisible="status != 'issuing'"/>
+                    <field name="status" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+<!--                        <field name="competency_employee"/>-->
+                        <field name="exist_car" invisible="1"/>
+                        <field name="issuing_card" invisible="1"/>
+                        <field name="department_id" readonly="status != 'draft'"/>
+                        <field name="purpose" readonly="status != 'draft'"/>
+                        <field name="amount_people" readonly="status != 'draft'"/>
+                        <field name="phone_number" readonly="status != 'draft'"/>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="start_place" readonly="status != 'draft'"/>
+                            <field name="start_date" readonly="status != 'draft'"/>
+                            <field name="start_time" widget="float_time" readonly="status != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="end_place" readonly="status != 'draft'"/>
+                            <field name="end_date" readonly="status != 'draft'"/>
+                            <field name="end_time" widget="float_time" readonly="status != 'draft'"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="approve_people" readonly="status != 'draft'"/>
+                    </group>
+                    <group string="Thông tin xe" invisible="exist_car != True">
+                        <field name="driver" readonly="status != 'draft'"/>
+                        <field name="driver_phone" readonly="status != 'draft'"/>
+                        <field name="license_plate" readonly="status != 'draft'"/>
+                    </group>
+                    <group string="Thông tin trả thẻ" invisible="issuing_card != True">
+                        <field name="receive_people" readonly="status != 'draft'"/>
+                        <field name="receive_time" readonly="status != 'draft'"/>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="book_car_tree_view" model="ir.ui.view">
+        <field name="name">book.car.tree.view</field>
+        <field name="model">book.car</field>
+        <field name="arch" type="xml">
+            <tree string="Đặt xe" default_order="create_date desc">
+                <field name="department_id"/>
+                <field name="purpose"/>
+                <field name="amount_people"/>
+                <field name="phone_number"/>
+                <field name="start_place"/>
+                <field name="end_place"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+                <field name="status"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="book_car_action" model="ir.actions.act_window">
+        <field name="name">Đặt xe</field>
+        <field name="res_model">book.car</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>
