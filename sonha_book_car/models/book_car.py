@@ -181,3 +181,13 @@ class BookCar(models.Model):
                 r.list_view_status = r.list_view_status + " → Chờ duyệt"
             else:
                 raise ValidationError("Bạn không có quyền thực hiện hành động này!")
+
+    def action_to_draft(self):
+        for r in self:
+            if r.approve_people and r.approve_people.user_id.id == self.env.user.id:
+                r.status = 'draft'
+                r.type = 'draft'
+                r.list_view_status = "Nháp"
+            else:
+                raise ValidationError("Bạn không có quyền thực hiện hành động này!")
+

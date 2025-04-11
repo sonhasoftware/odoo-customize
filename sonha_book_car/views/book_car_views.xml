@@ -8,6 +8,7 @@
                 <header>
                     <button name="action_sent" string="Gửi duyệt" type="object" class="oe_highlight" invisible="status != 'draft'"/>
                     <button name="action_approve" string="Duyệt" type="object" class="oe_highlight" invisible="status != 'waiting'"/>
+                    <button name="action_to_draft" string="Về nháp" type="object" class="oe_highlight" invisible="status != 'waiting'"/>
                     <button name="action_exist_car" string="Còn xe" type="object" class="oe_highlight" invisible="status != 'approved' or type != 'approved'"/>
                     <button name="action_issuing_card" string="Cấp thẻ" type="object" class="oe_highlight" invisible="status != 'approved' or type != 'approved'"/>
                     <button name="action_not_issuing_card" string="Không cấp thẻ" type="object" class="oe_highlight" invisible="status != 'approved' or type != 'approved'"/>
