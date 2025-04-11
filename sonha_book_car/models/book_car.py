@@ -34,7 +34,7 @@ class BookCar(models.Model):
     booking_employee_job_id = fields.Many2one('hr.job', string="Chức vụ người liên hệ",
                                               compute="filter_booking_employee_job", tracking=True)
     company_id = fields.Many2one('res.company', string="Công ty",
-                                 default=lambda self: self.default_approve_people(), tracking=True)
+                                 default=lambda self: self.default_company_id(), tracking=True)
     return_people = fields.Many2one('hr.employee', string="Người trả thẻ")
     type = fields.Selection([('draft', "Nháp"),
                              ('waiting', "Chờ duyệt"),
@@ -58,7 +58,12 @@ class BookCar(models.Model):
     approve_people_job_id = fields.Many2one('hr.job', string="Chức vụ người phê duyệt", compute="filter_approve_people_job")
 
     def default_approve_people(self):
-        return self.department_id.manager_id if self.department_id.manager_id else None
+        emp = self.env['hr.employee'].sudo().search([('user_id', '=', self.env.user.id)], limit=1)
+        employee = emp.department_id.manager_id
+        if employee:
+            return employee
+        else:
+            return None
 
     def default_department(self):
         emp = self.env['hr.employee'].sudo().search([('user_id', '=', self.env.user.id)], limit=1)
@@ -68,7 +73,7 @@ class BookCar(models.Model):
         else:
             return None
 
-    def default_approve_people(self):
+    def default_company_id(self):
         emp = self.env['hr.employee'].sudo().search([('user_id', '=', self.env.user.id)], limit=1)
         company_id = emp.company_id
         if company_id:
