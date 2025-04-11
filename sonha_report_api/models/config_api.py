@@ -1,14 +1,15 @@
 from odoo import api, fields, models
 import requests
 import json
+from datetime import datetime
 
 
 class ConfigAPI(models.Model):
     _name = 'config.api'
 
-    url = fields.Char(string="URL API")
-    user = fields.Char(string="Tên đăng nhập")
-    password = fields.Char(string="Mật khẩu")
+    url = fields.Char(string="URL API", required=True)
+    user = fields.Char(string="Tên đăng nhập", required=True)
+    password = fields.Char(string="Mật khẩu", required=True)
 
     def action_download(self):
         url = str(self.url)
@@ -72,6 +73,10 @@ class ConfigAPI(models.Model):
             processed_data = {}
 
             for key, value in record.items():
+                # Chuẩn hóa các trường id (viết hoa hoặc viết thường đều xử lý chung một cách)
+                if key.lower() == 'id':  # Dùng 'id' để chuẩn hóa tất cả
+                    key = 'id'
+
                 if isinstance(value, dict):
                     processed_data[key] = json.dumps(value)  # Chuyển dict sang JSON string
                 elif isinstance(value, str) and value.strip() == "":
@@ -79,9 +84,13 @@ class ConfigAPI(models.Model):
                 else:
                     processed_data[key] = value
 
+            # Nếu không có `id`, tự động sinh ra `id` theo thứ tự tăng dần
             if "id" not in processed_data or processed_data["id"] is None:
                 self._cr.execute(f"SELECT COALESCE(MAX(id), 0) + 1 FROM {table_name};")
                 processed_data["id"] = self._cr.fetchone()[0]
+
+            if "create_date" not in processed_data:
+                processed_data["create_date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
             # Xây dựng câu lệnh INSERT
             keys = ", ".join(processed_data.keys())

@@ -34,32 +34,32 @@ class PlanKPIYear(models.Model):
             if not r.plan_kpi_year.year or r.plan_kpi_year.year <= 0:
                 raise ValidationError("Dữ liệu năm phải là một năm hợp lệ")
 
-    @api.constrains('ti_le_monh_one', 'ti_le_monh_two', 'ti_le_monh_three', 'ti_le_monh_four',
-                    'ti_le_monh_five', 'ti_le_monh_six', 'ti_le_monh_seven', 'ti_le_monh_eight',
-                    'ti_le_monh_nigh', 'ti_le_monh_ten', 'ti_le_monh_eleven', 'ti_le_monh_twenty')
-    def _check_month_values(self):
-        for r in self:
-            sum_month = r.ti_le_monh_one + r.ti_le_monh_two + r.ti_le_monh_three + r.ti_le_monh_four + r.ti_le_monh_five + r.ti_le_monh_six + r.ti_le_monh_seven + r.ti_le_monh_eight + r.ti_le_monh_nigh + r.ti_le_monh_ten + r.ti_le_monh_eleven + r.ti_le_monh_twenty
-            if sum_month > r.kpi_year + 0.000001 or not r.kpi_year:
-                raise ValidationError(f"Tổng % các tháng của hạng mục {r.name} lớn hơn KPI dự kiến cả năm")
-            else:
-                pass
-            if r.start_date and r.end_date:
-                months_to_check = [r.ti_le_monh_one, r.ti_le_monh_two,
-                                   r.ti_le_monh_three, r.ti_le_monh_four,
-                                   r.ti_le_monh_five, r.ti_le_monh_six,
-                                   r.ti_le_monh_seven, r.ti_le_monh_eight,
-                                   r.ti_le_monh_nigh, r.ti_le_monh_ten,
-                                   r.ti_le_monh_eleven, r.ti_le_monh_twenty]
-
-                start_month = r.start_date.month
-                end_month = r.end_date.month
-                for month in range(1, 13):
-                    if month < start_month or month > end_month:
-                        if months_to_check[month - 1] != 0.0:
-                            raise ValidationError(f"Tháng {month} nằm ngoài phạm vi ngày bắt đầu và ngày kết thúc.")
-            else:
-                raise ValidationError("Phải điền dữ liệu ngày bắt đầu và ngày kết thúc trước")
+    # @api.constrains('ti_le_monh_one', 'ti_le_monh_two', 'ti_le_monh_three', 'ti_le_monh_four',
+    #                 'ti_le_monh_five', 'ti_le_monh_six', 'ti_le_monh_seven', 'ti_le_monh_eight',
+    #                 'ti_le_monh_nigh', 'ti_le_monh_ten', 'ti_le_monh_eleven', 'ti_le_monh_twenty')
+    # def _check_month_values(self):
+    #     for r in self:
+    #         sum_month = r.ti_le_monh_one + r.ti_le_monh_two + r.ti_le_monh_three + r.ti_le_monh_four + r.ti_le_monh_five + r.ti_le_monh_six + r.ti_le_monh_seven + r.ti_le_monh_eight + r.ti_le_monh_nigh + r.ti_le_monh_ten + r.ti_le_monh_eleven + r.ti_le_monh_twenty
+    #         if sum_month > r.kpi_year + 0.000001 or not r.kpi_year:
+    #             raise ValidationError(f"Tổng % các tháng của hạng mục {r.name} lớn hơn KPI dự kiến cả năm")
+    #         else:
+    #             pass
+    #         if r.start_date and r.end_date:
+    #             months_to_check = [r.ti_le_monh_one, r.ti_le_monh_two,
+    #                                r.ti_le_monh_three, r.ti_le_monh_four,
+    #                                r.ti_le_monh_five, r.ti_le_monh_six,
+    #                                r.ti_le_monh_seven, r.ti_le_monh_eight,
+    #                                r.ti_le_monh_nigh, r.ti_le_monh_ten,
+    #                                r.ti_le_monh_eleven, r.ti_le_monh_twenty]
+    #
+    #             start_month = r.start_date.month
+    #             end_month = r.end_date.month
+    #             for month in range(1, 13):
+    #                 if month < start_month or month > end_month:
+    #                     if months_to_check[month - 1] != 0.0:
+    #                         raise ValidationError(f"Tháng {month} nằm ngoài phạm vi ngày bắt đầu và ngày kết thúc.")
+    #         else:
+    #             raise ValidationError("Phải điền dữ liệu ngày bắt đầu và ngày kết thúc trước")
 
     @api.constrains('kpi_year')
     def validate_kpi_kh_year(self):

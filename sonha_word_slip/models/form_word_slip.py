@@ -406,7 +406,7 @@ class FormWordSlip(models.Model):
                 rec.employee_confirm = employee_id.employee_approval.id
                 rec.employee_approval = employee_id.employee_approval.parent_id.id if employee_id.employee_approval.parent_id else None
                 
-        if not department_spec and rec.day_duration <= 3:
+        if (not department_spec and rec.day_duration <= 3) or (rec.type.key != "NP"):
             condition = '<=3'
             rec.check_level = False
         else:
@@ -448,17 +448,17 @@ class FormWordSlip(models.Model):
             day_duration = 0
         return day_duration
 
-    @api.constrains('employee_id')
-    def check_word_slip_id(self):
-        for r in self:
-            total_duration = 0
-            list_employees = r.employee_id or r.employee_ids
-            if r.word_slip_id and r.type.name.lower() == "nghỉ bù":
-                for slip in r.word_slip_id:
-                    total_duration += slip.duration * 8
-                for emp in list_employees:
-                    if emp.total_compensatory < total_duration:
-                        raise ValidationError("Nhân viên " + emp.name + " không còn thời gian nghỉ bù")
+    # @api.constrains('employee_id')
+    # def check_word_slip_id(self):
+    #     for r in self:
+    #         total_duration = 0
+    #         list_employees = r.employee_id or r.employee_ids
+    #         if r.word_slip_id and r.type.name.lower() == "nghỉ bù":
+    #             for slip in r.word_slip_id:
+    #                 total_duration += slip.duration * 8
+    #             for emp in list_employees:
+    #                 if emp.total_compensatory < total_duration:
+    #                     raise ValidationError("Nhân viên " + emp.name + " không còn thời gian nghỉ bù")
 
     @api.constrains('type', 'word_slip_id')
     def check_type(self):

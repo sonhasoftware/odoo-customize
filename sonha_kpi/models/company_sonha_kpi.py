@@ -18,6 +18,28 @@ class CompanySonHaKPI(models.Model):
     kpi_result_month = fields.One2many('sonha.kpi.result.month', 'sonha_kpi')
     plan_kpi_year = fields.One2many('plan.kpi.year', 'sonha_kpi')
     plan_kpi_month = fields.One2many('plan.kpi.month', 'sonha_kpi')
+    done = fields.Integer("Số lượng hoàn Thành", compute="_get_data_number_state")
+    waiting = fields.Integer("Số lượng chưa hoàn thành", compute="_get_data_number_state")
+    cancel = fields.Integer("Số lượng hủy", compute="_get_data_number_state")
+
+    @api.depends('kpi_month')
+    def _get_data_number_state(self):
+        for r in self:
+            waiting_count = 0
+            done_count = 0
+            cancel_count = 0
+            for data in r.kpi_month:
+                if data.state == 'done':
+                    done_count += 1
+                elif data.state == 'waiting':
+                    waiting_count += 1
+                elif data.state == 'cancel':
+                    cancel_count += 1
+            r.waiting = waiting_count
+            r.done = done_count
+            r.cancel = cancel_count
+
+
 
     @api.constrains('year')
     def validate_year(self):

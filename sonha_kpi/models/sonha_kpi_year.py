@@ -84,32 +84,32 @@ class SonHaKPIYear(models.Model):
     converted_start_date = fields.Char("Bắt đầu")
     converted_end_date = fields.Char("Kết thúc")
 
-    @api.constrains('ti_le_monh_one', 'ti_le_monh_two', 'ti_le_monh_three', 'ti_le_monh_four',
-                    'ti_le_monh_five', 'ti_le_monh_six', 'ti_le_monh_seven', 'ti_le_monh_eight',
-                    'ti_le_monh_nigh', 'ti_le_monh_ten', 'ti_le_monh_eleven', 'ti_le_monh_twenty')
-    def _check_month_values(self):
-        for r in self:
-            sum_month = r.ti_le_monh_one + r.ti_le_monh_two + r.ti_le_monh_three + r.ti_le_monh_four + r.ti_le_monh_five + r.ti_le_monh_six + r.ti_le_monh_seven + r.ti_le_monh_eight + r.ti_le_monh_nigh + r.ti_le_monh_ten + r.ti_le_monh_eleven + r.ti_le_monh_twenty
-            if sum_month > r.kpi_year + 0.000001 or not r.kpi_year:
-                raise ValidationError("Tổng % các tháng lớn hơn KPI dự kiến cả năm")
-            else:
-                pass
-            if r.start_date and r.end_date:
-                months_to_check = [r.ti_le_monh_one, r.ti_le_monh_two,
-                                   r.ti_le_monh_three, r.ti_le_monh_four,
-                                   r.ti_le_monh_five, r.ti_le_monh_six,
-                                   r.ti_le_monh_seven, r.ti_le_monh_eight,
-                                   r.ti_le_monh_nigh, r.ti_le_monh_ten,
-                                   r.ti_le_monh_eleven, r.ti_le_monh_twenty]
-
-                start_month = r.start_date.month
-                end_month = r.end_date.month
-                for month in range(1, 13):
-                    if month < start_month or month > end_month:
-                        if months_to_check[month - 1] != 0.0:
-                            raise ValidationError(f"Tháng {month} nằm ngoài phạm vi ngày bắt đầu và ngày kết thúc.")
-            else:
-                raise ValidationError("Phải điền dữ liệu ngày bắt đầu và ngày kết thúc trước")
+    # @api.constrains('ti_le_monh_one', 'ti_le_monh_two', 'ti_le_monh_three', 'ti_le_monh_four',
+    #                 'ti_le_monh_five', 'ti_le_monh_six', 'ti_le_monh_seven', 'ti_le_monh_eight',
+    #                 'ti_le_monh_nigh', 'ti_le_monh_ten', 'ti_le_monh_eleven', 'ti_le_monh_twenty')
+    # def _check_month_values(self):
+    #     for r in self:
+    #         sum_month = r.ti_le_monh_one + r.ti_le_monh_two + r.ti_le_monh_three + r.ti_le_monh_four + r.ti_le_monh_five + r.ti_le_monh_six + r.ti_le_monh_seven + r.ti_le_monh_eight + r.ti_le_monh_nigh + r.ti_le_monh_ten + r.ti_le_monh_eleven + r.ti_le_monh_twenty
+    #         if sum_month > r.kpi_year + 0.000001 or not r.kpi_year:
+    #             raise ValidationError("Tổng % các tháng lớn hơn KPI dự kiến cả năm")
+    #         else:
+    #             pass
+    #         if r.start_date and r.end_date:
+    #             months_to_check = [r.ti_le_monh_one, r.ti_le_monh_two,
+    #                                r.ti_le_monh_three, r.ti_le_monh_four,
+    #                                r.ti_le_monh_five, r.ti_le_monh_six,
+    #                                r.ti_le_monh_seven, r.ti_le_monh_eight,
+    #                                r.ti_le_monh_nigh, r.ti_le_monh_ten,
+    #                                r.ti_le_monh_eleven, r.ti_le_monh_twenty]
+    #
+    #             start_month = r.start_date.month
+    #             end_month = r.end_date.month
+    #             for month in range(1, 13):
+    #                 if month < start_month or month > end_month:
+    #                     if months_to_check[month - 1] != 0.0:
+    #                         raise ValidationError(f"Tháng {month} nằm ngoài phạm vi ngày bắt đầu và ngày kết thúc.")
+    #         else:
+    #             raise ValidationError("Phải điền dữ liệu ngày bắt đầu và ngày kết thúc trước")
 
     @api.constrains('kpi_year')
     def validate_kpi_kh_year(self):
@@ -145,7 +145,7 @@ class SonHaKPIYear(models.Model):
             self.filter_date_year(r)
             self.filter_conversion_data(r)
             self.validate_kpi_year(r)
-            self.is_missing_field(r)
+            # self.is_missing_field(r)
         return record
 
     def validate_kpi_year(self, record):

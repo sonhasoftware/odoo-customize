@@ -9,7 +9,9 @@
     'depends': ['base'],
     'data': [
         'security/ir.model.access.csv',
+        'data/cron_job.xml',
         'views/config_api_views.xml',
+        'views/api_table_views.xml',
         'views/menu_views.xml',
     ],
     'installable': True,
