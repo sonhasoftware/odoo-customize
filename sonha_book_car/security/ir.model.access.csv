@@ -11,4 +11,5 @@ access_wizard_return_card,access.wizard.return.card,model_wizard_return_card,,1,
 
 access_wizard_not_issuing_card,access.wizard.not.issuing.card,model_wizard_not_issuing_card,,1,1,1,1
 
-access_wizard_book_car_report,access.wizard.book.car.report,model_wizard_book_car_report,,1,1,1,1
+access_wizard_book_car_report_user,access.wizard.book.car.report.user,model_wizard_book_car_report,group_book_car_user,1,1,1,1
+access_wizard_book_car_report_manager,access.wizard.book.car.report.manager,model_wizard_book_car_report,group_book_car_manager,1,1,1,1
