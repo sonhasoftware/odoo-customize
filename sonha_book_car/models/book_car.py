@@ -55,6 +55,7 @@ class BookCar(models.Model):
     list_view_status = fields.Text("Trạng thái", default="Nháp")
     reason = fields.Text("Lý do hủy", tracking=True)
     employee_id = fields.Many2one('hr.employee', string="Người tạo đơn")
+    approve_people_job_id = fields.Many2one('hr.job', string="Chức vụ người phê duyệt", compute="filter_approve_people_job")
 
     def default_approve_people(self):
         return self.department_id.manager_id if self.department_id.manager_id else None
@@ -79,6 +80,11 @@ class BookCar(models.Model):
     def filter_booking_employee_job(self):
         for r in self:
             r.booking_employee_job_id = r.booking_employee_id.job_id.id if r.booking_employee_id.job_id else None
+
+    @api.depends('approve_people.job_id')
+    def filter_approve_people_job(self):
+        for r in self:
+            r.approve_people_job_id = r.approve_people.job_id.id if r.approve_people.job_id else None
 
     def action_approve(self):
         for r in self:

@@ -44,6 +44,7 @@
                     </group>
                     <group>
                         <field name="approve_people" readonly="status != 'draft'"/>
+                        <field name="approve_people_job_id" readonly="status != 'draft'"/>
                     </group>
                     <group string="Thông tin xe" invisible="type != 'exist_car'">
                         <field name="driver" readonly="status != 'draft'"/>
