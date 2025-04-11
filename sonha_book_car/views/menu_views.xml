@@ -4,22 +4,26 @@
               name="Đặt xe"
               sequence="12"/>
 
-    <menuitem
-            id="menu_book_car"
-            name="Đặt xe"
-            parent="menu_book_car_root"
-            action="book_car_action"
-            sequence="1"/>
+    <menuitem id="menu_book_car"
+              name="Đặt xe"
+              parent="menu_book_car_root"
+              action="book_car_action"
+              sequence="1"/>
 
     <menuitem id="menu_config"
               name="Danh mục"
               parent="menu_book_car_root"
               sequence="12"/>
 
-    <menuitem
-            id="menu_config_competency_employee"
-            name="Cấu hình nhân viên"
-            parent="menu_config"
-            action="config_competency_employee_action"
-            sequence="1"/>
+    <menuitem id="menu_config_competency_employee"
+              name="Cấu hình nhân viên"
+              parent="menu_config"
+              action="config_competency_employee_action"
+              sequence="1"/>
+
+    <menuitem id="menu_report"
+              name="Báo cáo"
+              parent="menu_book_car_root"
+              action="action_wizard_book_car_report"
+              sequence="2"/>
 </odoo>
