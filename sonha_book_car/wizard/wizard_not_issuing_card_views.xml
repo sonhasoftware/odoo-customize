@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="wizard_not_issuing_card_form" model="ir.ui.view">
+        <field name="name">wizard.not.issuing.card.form</field>
+        <field name="model">wizard.not.issuing.card</field>
+        <field name="arch" type="xml">
+            <form string="Lý do hủy">
+                <group>
+                    <field name="reason"/>
+                </group>
+                <footer>
+                    <button string="Xác nhận" type="object" name="action_confirm" class="oe_highlight"/>
+                    <button string="Cancel" class="oe_link" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

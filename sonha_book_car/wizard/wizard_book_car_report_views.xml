@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="wizard_book_car_report_form" model="ir.ui.view">
+        <field name="name">wizard.book.car.report.form</field>
+        <field name="model">wizard.book.car.report</field>
+        <field name="arch" type="xml">
+            <form string="Báo cáo">
+                <group>
+                    <field name="start_date"/>
+                    <field name="end_date"/>
+                    <field name="company_id"/>
+                    <field name="department_id"/>
+                    <field name="status"/>
+                    <field name="state" invisible="status not in ('exist_car', 'issuing_card')"/>
+                </group>
+                <footer>
+                    <button string="Xác nhận" type="object" name="action_confirm" class="oe_highlight"/>
+                    <button string="Cancel" class="oe_link" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_wizard_book_car_report" model="ir.actions.act_window">
+        <field name="name">Báo cáo đặt xe</field>
+        <field name="res_model">wizard.book.car.report</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>
