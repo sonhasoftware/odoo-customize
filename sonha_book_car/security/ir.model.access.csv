@@ -1,0 +1,15 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+
+access_book_car_user,access.book.car.user,model_book_car,group_book_car_user,1,1,1,1
+access_book_car_manager,access.book.car.manager,model_book_car,group_book_car_manager,1,1,1,1
+
+access_config_competency_employee,access.config.competency.employee,model_config_competency_employee,group_book_car_manager,1,1,1,1
+
+access_wizard_exist_car,access.wizard.exist.car,model_wizard_exist_car,,1,1,1,1
+
+access_wizard_return_card,access.wizard.return.card,model_wizard_return_card,,1,1,1,1
+
+access_wizard_not_issuing_card,access.wizard.not.issuing.card,model_wizard_not_issuing_card,,1,1,1,1
+
+access_wizard_book_car_report_user,access.wizard.book.car.report.user,model_wizard_book_car_report,group_book_car_user,1,1,1,1
+access_wizard_book_car_report_manager,access.wizard.book.car.report.manager,model_wizard_book_car_report,group_book_car_manager,1,1,1,1

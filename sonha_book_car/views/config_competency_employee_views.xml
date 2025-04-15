@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="config_competency_employee_tree_view" model="ir.ui.view">
+        <field name="name">config.competency.employee.tree.view</field>
+        <field name="model">config.competency.employee</field>
+        <field name="arch" type="xml">
+            <tree string="Đặt xe" editable="bottom">
+                <field name="company_id"/>
+                <field name="employee_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="config_competency_employee_action" model="ir.actions.act_window">
+        <field name="name">Cấu hình nhân viên</field>
+        <field name="res_model">config.competency.employee</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>
