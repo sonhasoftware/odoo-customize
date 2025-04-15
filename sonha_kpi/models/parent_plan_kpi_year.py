@@ -82,6 +82,11 @@ class ParentKPIYear(models.Model):
                 raise ValidationError("Chưa có dữ liệu kế hoạch KPI năm")
             r.status = 'done'
 
+    # def create(self, vals):
+    #     res = super(ParentKPIYear, self).create(vals)
+    #     self.action_approval(res)
+    #     return res
+
     def action_sent(self):
         for r in self:
             if r.plan_kpi_year:

@@ -26,8 +26,8 @@
                                         <tree editable="bottom">
                                             <field name="kpi_year" options="{'no_create': True, 'no_open': True}"/>
                                             <field name="kpi_month"/>
-<!--                                            <field name="start_date"/>-->
-<!--                                            <field name="end_date"/>-->
+                                            <field name="start_date"/>
+                                            <field name="end_date"/>
                                             <field name="sonha_kpi"/>
                                         </tree>
                                     </field>

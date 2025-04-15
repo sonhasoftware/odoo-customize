@@ -58,11 +58,8 @@ class PlanKPIMonth(models.Model):
         if record.plan_kpi_month:
             record.year = record.plan_kpi_month.year if record.plan_kpi_month.year else ''
             record.department_id = record.plan_kpi_month.department_id.id if record.plan_kpi_month.department_id else ''
-            if 0 < record.plan_kpi_month.month < 13:
-                record.start_date = f'{record.plan_kpi_month.year}-{record.plan_kpi_month.month}-1' if record.plan_kpi_month.month and record.plan_kpi_month.year else ''
-                record.end_date = record.start_date + relativedelta(months=1, days=-1)
-            else:
-                raise ValidationError("Dữ liệu tháng phải là một tháng hợp lệ trong năm!")
+        else:
+            pass
 
     def create(self, vals):
         record = super(PlanKPIMonth, self).create(vals)

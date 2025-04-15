@@ -145,7 +145,7 @@ class SonHaKPIYear(models.Model):
             self.filter_date_year(r)
             self.filter_conversion_data(r)
             self.validate_kpi_year(r)
-            self.is_missing_field(r)
+            # self.is_missing_field(r)
         return record
 
     def validate_kpi_year(self, record):
