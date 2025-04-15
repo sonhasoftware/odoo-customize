@@ -18,22 +18,27 @@ class PopupSonhaEmployeeReport(models.TransientModel):
                                                                                                   ('date_quit', '<=', self.to_date),
                                                                                                   ('active', '=', False)])
         elif self.status_employee and self.status_employee == 'working':
-            list_records = self.env['hr.employee'].sudo().search([('onboard', '>=', self.from_date),
-                                                                  ('onboard', '<=', self.to_date),
-                                                                  ('active', '=', True)])
+            list_records = self.env['hr.employee'].with_context(active_test=False).sudo().search([
+                '|', '|',
+                ('date_quit', '=', False),
+                ('date_quit', '>=', self.to_date),
+                '&',
+                ('onboard', '<=', self.to_date),
+                ('onboard', '>=', self.from_date),
+            ])
         else:
             list_records = self.env['hr.employee'].sudo().with_context(active_test=False).search([('onboard', '>=', self.from_date),
                                                                                                   ('onboard', '<=', self.to_date)])
-        if self.company_id:
+        if self.company_id and not self.department_id:
             list_records = list_records.filtered(lambda x: x.company_id.id == self.company_id.id)
-            if self.department_id:
-                list_records = list_records.filtered(lambda x: x.department_id.id == self.department_id.id)
+        if self.department_id:
+            list_records = list_records.filtered(lambda x: x.department_id.id == self.department_id.id)
         if list_records:
             for r in list_records:
                 vals = {
                     'name': r.name,
                     'employee_code': r.employee_code,
-                    'mobile_phone': r.mobile_phone,
+                    'sonha_number_phone': r.sonha_number_phone,
                     'work_email': r.work_email,
                     'company_id': r.company_id.id,
                     'department_id': r.department_id.id,
