@@ -12,12 +12,12 @@
         'security/ir.model.access.csv',
         'views/book_car_views.xml',
         'views/config_competency_employee_views.xml',
-        'views/menu_views.xml',
         'wizard/wizard_exist_car_views.xml',
         'wizard/wizard_return_card_views.xml',
         'wizard/wizard_not_issuing_card_views.xml',
         'wizard/wizard_book_car_report_views.xml',
         'data/mail_template.xml',
+        'views/menu_views.xml',
     ],
 
     'installable': True,
