@@ -131,7 +131,11 @@
     <record id="rule_parent_kpi_year_dl" model="ir.rule">
         <field name="name">Rule kpi KPI Year dl</field>
         <field name="model_id" ref="model_parent_kpi_year"/>
-        <field name="domain_force">[('department_id', '=', user.employee_id.department_id.id)]</field>
+        <field name="domain_force">[
+            '|',
+            ('department_id', '=', user.employee_id.department_id.id),
+            ('department_id.manager_id.user_id', '=', user.id)]
+        </field>
         <field name="groups" eval="[(4, ref('sonha_employee.group_dl_employee'))]"/>
     </record>
 
@@ -145,7 +149,11 @@
     <record id="rule_parent_kpi_month_dl" model="ir.rule">
         <field name="name">Rule KPI month dl</field>
         <field name="model_id" ref="model_parent_kpi_month"/>
-        <field name="domain_force">[('department_id', '=', user.employee_id.department_id.id)]</field>
+        <field name="domain_force">[
+            '|',
+            ('department_id', '=', user.employee_id.department_id.id),
+            ('department_id.manager_id.user_id', '=', user.id)]
+        </field>
         <field name="groups" eval="[(4, ref('sonha_employee.group_dl_employee'))]"/>
     </record>
 
@@ -159,7 +167,11 @@
     <record id="rule_company_sonha_kpi_dl" model="ir.rule">
         <field name="name">Company Sonha KPI User dl</field>
         <field name="model_id" ref="model_company_sonha_kpi"/>
-        <field name="domain_force">[('department_id', '=', user.employee_id.department_id.id)]</field>
+        <field name="domain_force">[
+            '|',
+            ('department_id', '=', user.employee_id.department_id.id),
+            ('department_id.manager_id.user_id', '=', user.id)]
+        </field>
         <field name="groups" eval="[(4, ref('sonha_employee.group_dl_employee'))]"/>
     </record>
 
