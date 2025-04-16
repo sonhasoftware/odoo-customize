@@ -16,5 +16,69 @@
                </p>
            </field>
        </record>
+
+       <record id="approve_plan_kpi_year_mail_template" model="mail.template">
+           <field name="name">Mail duyệt kế hoạch kpi năm</field>
+           <field name="model_id" ref="sonha_kpi.model_parent_kpi_year"/>
+           <field name="email_from">admin@example.com</field>
+           <field name="email_to">${context.get('email_to')}</field>
+           <field name="subject">Duyệt kế hoạch KPI năm</field>
+           <field name="body_html" type="html">
+               <p>
+                   Anh/chị vui lòng duyệt kế hoạch KPI năm <t t-out="object.year"/> của phòng ban
+                   <t t-out="object.department_id.name"/> qua link sau:
+                   <br/>
+                   <a t-att-href="object.record_url" target="_blank">Link duyệt kế hoạch năm</a>
+               </p>
+           </field>
+       </record>
+
+       <record id="approve_plan_kpi_month_mail_template" model="mail.template">
+           <field name="name">Mail duyệt kế hoạch kpi tháng</field>
+           <field name="model_id" ref="sonha_kpi.model_parent_kpi_month"/>
+           <field name="email_from">admin@example.com</field>
+           <field name="email_to">${context.get('email_to')}</field>
+           <field name="subject">Duyệt kế hoạch KPI tháng</field>
+           <field name="body_html" type="html">
+               <p>
+                   Anh/chị vui lòng duyệt kế hoạch KPI tháng <t t-out="object.month"/> năm
+                   <t t-out="object.year"/> của phòng ban <t t-out="object.department_id.name"/> qua link sau:
+                   <br/>
+                   <a t-att-href="object.record_url" target="_blank">Link duyệt kế hoạch tháng</a>
+               </p>
+           </field>
+       </record>
+
+       <record id="cancel_approve_plan_kpi_year_mail_template" model="mail.template">
+           <field name="name">Mail hoàn duyệt kế hoạch kpi năm</field>
+           <field name="model_id" ref="sonha_kpi.model_parent_kpi_year"/>
+           <field name="email_from">admin@example.com</field>
+           <field name="email_to">${context.get('email_to')}</field>
+           <field name="subject">Hoàn duyệt kế hoạch KPI năm</field>
+           <field name="body_html" type="html">
+               <p>
+                   Anh/chị vui lòng kiểm tra lại dữ liệu kế hoạch KPI năm <t t-out="object.year"/> của phòng ban
+                   <t t-out="object.department_id.name"/> qua link sau:
+                   <br/>
+                   <a t-att-href="object.record_url" target="_blank">Link kế hoạch năm</a>
+               </p>
+           </field>
+       </record>
+
+       <record id="cancel_approve_plan_kpi_month_mail_template" model="mail.template">
+           <field name="name">Mail hoàn duyệt kế hoạch kpi tháng</field>
+           <field name="model_id" ref="sonha_kpi.model_parent_kpi_month"/>
+           <field name="email_from">admin@example.com</field>
+           <field name="email_to">${context.get('email_to')}</field>
+           <field name="subject">Hoàn duyệt kế hoạch KPI tháng</field>
+           <field name="body_html" type="html">
+               <p>
+                   Anh/chị vui kiểm tra lại dữ liệu kế hoạch KPI tháng <t t-out="object.month"/> năm
+                   <t t-out="object.year"/> của phòng ban <t t-out="object.department_id.name"/> qua link sau:
+                   <br/>
+                   <a t-att-href="object.record_url" target="_blank">Link kế hoạch tháng</a>
+               </p>
+           </field>
+       </record>
    </data>
 </odoo>
