@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="wizard_exist_car_form" model="ir.ui.view">
+        <field name="name">wizard.exist.car.form</field>
+        <field name="model">wizard.exist.car</field>
+        <field name="arch" type="xml">
+            <form string="Thông tin xe">
+                <group>
+                    <field name="driver"/>
+                    <field name="driver_phone"/>
+                    <field name="license_plate"/>
+                </group>
+                <footer>
+                    <button string="Xác nhận" type="object" name="action_confirm" class="oe_highlight"/>
+                    <button string="Cancel" class="oe_link" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>
