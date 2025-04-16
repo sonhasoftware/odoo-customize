@@ -43,3 +43,4 @@ class SonhaEmployeeReport(models.Model):
     date_quit = fields.Date("Ngày nghỉ việc")
     reason_quit = fields.Char("Lý do nghỉ việc")
     seniority_display = fields.Char("Thâm niên")
+    sonha_number_phone = fields.Char("Số điện thoại")
