@@ -1,6 +1,7 @@
 from odoo import api, fields, models, _
 
 import datetime
+from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 from odoo.exceptions import UserError, ValidationError
 
@@ -19,6 +20,23 @@ class ParentKPIMonth(models.Model):
 
     plan_kpi_month = fields.One2many('plan.kpi.month', 'plan_kpi_month')
     sonha_kpi = fields.Many2one('company.sonha.kpi', compute="filter_sonha_kpi")
+    record_url = fields.Char(string="Record URL", compute="_compute_get_record_url")
+    first_mail_date = fields.Date(string="Ngày đầu gửi mail")
+
+    @api.depends('department_id')
+    def _compute_get_record_url(self):
+        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+        menu_id = self.env.ref('sonha_kpi.menu_plan_kpi_month').id
+        action_id = self.env.ref('sonha_kpi.action_plan_kpi_month').id
+
+        for record in self:
+            record.record_url = (
+                f"{base_url}/web#id={record.id}"
+                f"&model=parent.kpi.year"
+                f"&view_type=form"
+                f"&menu_id={menu_id}"
+                f"&action={action_id}"
+            )
 
     @api.constrains('year')
     def validate_year(self):
@@ -56,6 +74,13 @@ class ParentKPIMonth(models.Model):
             if r.plan_kpi_month:
                 if r.department_id.id == self.env.user.employee_id.department_id.id and r.status == 'draft':
                     r.status = 'waiting'
+                    emp = r.department_id.manager_id
+                    mail_to = emp.work_email if emp.work_email else ''
+                    if mail_to:
+                        template = self.env.ref('sonha_kpi.approve_plan_kpi_month_mail_template').sudo()
+                        template.email_to = mail_to
+                        template.sudo().send_mail(r.id, force_send=True)
+                        r.first_mail_date = datetime.date.today()
                 else:
                     raise ValidationError("Bạn không có quyền gửi duyệt đến cấp lãnh đạo")
             else:
@@ -64,12 +89,18 @@ class ParentKPIMonth(models.Model):
     def action_to_draft(self):
         for r in self:
             r.status = 'draft'
+            emp = self.env['hr.employee'].sudo().search([('user_id', '=', r.create_uid.id)])
+            mail_to = emp.work_email if emp.work_email else ''
+            if mail_to:
+                template = self.env.ref('sonha_kpi.cancel_approve_plan_kpi_month_mail_template').sudo()
+                template.email_to = mail_to
+                template.sudo().send_mail(r.id, force_send=True)
 
     def action_month_approval(self):
         for r in self:
             if r.plan_kpi_month:
                 kpi = self.env['company.sonha.kpi'].sudo().search([('department_id', '=', r.department_id.id),
-                                                                   ('year', '=', r.year)])
+                                                                ('year', '=', r.year)])
                 if kpi:
                     for kpi_rc in r.plan_kpi_month:
                         self.env['sonha.kpi.month'].sudo().create({
@@ -89,6 +120,28 @@ class ParentKPIMonth(models.Model):
             r.status = 'draft'
             self.env['sonha.kpi.month'].search([('parent_kpi_month', '=', r.id)]).sudo().unlink()
             self.env['sonha.kpi.month'].calculating_dvdgkpi_tqdgkpi(r)
+            emp = self.env['hr.employee'].sudo().search([('user_id', '=', r.create_uid.id)])
+            mail_to = emp.work_email if emp.work_email else ''
+            if mail_to:
+                template = self.env.ref('sonha_kpi.cancel_approve_plan_kpi_month_mail_template').sudo()
+                template.email_to = mail_to
+                template.sudo().send_mail(r.id, force_send=True)
+
+    def resend_approve_kpi_month_mail(self):
+        now = datetime.date.today()
+        list_resend_mail = self.env['parent.kpi.month'].sudo().search([('status', '=', 'waiting')])
+        for r in list_resend_mail:
+            if (now + timedelta(days=-2)) == r.first_mail_date or (now + timedelta(days=-4)) == r.first_mail_date:
+                emp = r.department_id.manager_id
+                mail_to = emp.work_email if emp.work_email else ''
+                if mail_to:
+                    template = self.env.ref('sonha_kpi.approve_plan_kpi_month_mail_template').sudo()
+                    template.email_to = mail_to
+                    template.sudo().send_mail(r.id, force_send=True)
+            if (now + timedelta(days=-5)) == r.first_mail_date:
+                r.status = 'done'
+                record = self.env['parent.kpi.month'].sudo().search([('id', '=', r.id)])
+                record.sudo().action_month_approval()
 
     def write(self, vals):
         res = super(ParentKPIMonth, self).write(vals)
