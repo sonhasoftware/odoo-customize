@@ -108,7 +108,7 @@ class ParentKPIYear(models.Model):
     def action_sent(self):
         for r in self:
             if r.plan_kpi_year:
-                if r.create_uid.id == self.env.user.id and r.status == 'draft':
+                if r.department_id.id == self.env.user.employee_id.department_id.id and r.status == 'draft':
                     r.status = 'waiting'
                     emp = r.department_id.manager_id
                     mail_to = emp.work_email if emp.work_email else ''

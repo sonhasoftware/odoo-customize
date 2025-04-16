@@ -121,26 +121,59 @@
 <!--        <field name="groups" eval="[(4, ref('sonha_employee.group_dl_employee'))]"/>-->
 <!--    </record>-->
 
-    <record id="rule_kpi_company_ceo" model="ir.rule">
-        <field name="name">Rule kpi Company CEO</field>
-        <field name="model_id" ref="model_company_sonha_kpi"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="True"/>
-        <field name="perm_create" eval="True"/>
-        <field name="perm_unlink" eval="True"/>
-        <field name="groups" eval="[(4, ref('sonha_employee.group_manager_employee'))]"/>
+    <record id="rule_parent_kpi_year_user" model="ir.rule">
+        <field name="name">Rule kpi KPI Year User</field>
+        <field name="model_id" ref="model_parent_kpi_year"/>
+        <field name="domain_force">[('department_id', '=', user.employee_id.department_id.id)]</field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_user_employee'))]"/>
     </record>
 
-    <record id="rule_kpi_company_hr" model="ir.rule">
-        <field name="name">Rule kpi Company HR</field>
-        <field name="model_id" ref="model_company_sonha_kpi"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="True"/>
-        <field name="perm_create" eval="True"/>
-        <field name="perm_unlink" eval="True"/>
-        <field name="groups" eval="[(4, ref('sonha_employee.group_hr_employee'))]"/>
+    <record id="rule_parent_kpi_year_dl" model="ir.rule">
+        <field name="name">Rule kpi KPI Year dl</field>
+        <field name="model_id" ref="model_parent_kpi_year"/>
+        <field name="domain_force">[
+            '|',
+            ('department_id', '=', user.employee_id.department_id.id),
+            ('department_id.manager_id.user_id', '=', user.id)]
+        </field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_dl_employee'))]"/>
     </record>
+
+    <record id="rule_parent_kpi_month_user" model="ir.rule">
+        <field name="name">Rule KPI month User</field>
+        <field name="model_id" ref="model_parent_kpi_month"/>
+        <field name="domain_force">[('department_id', '=', user.employee_id.department_id.id)]</field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_user_employee'))]"/>
+    </record>
+
+    <record id="rule_parent_kpi_month_dl" model="ir.rule">
+        <field name="name">Rule KPI month dl</field>
+        <field name="model_id" ref="model_parent_kpi_month"/>
+        <field name="domain_force">[
+            '|',
+            ('department_id', '=', user.employee_id.department_id.id),
+            ('department_id.manager_id.user_id', '=', user.id)]
+        </field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_dl_employee'))]"/>
+    </record>
+
+    <record id="rule_company_sonha_kpi_user" model="ir.rule">
+        <field name="name">Company Sonha KPI User</field>
+        <field name="model_id" ref="model_company_sonha_kpi"/>
+        <field name="domain_force">[('department_id', '=', user.employee_id.department_id.id)]</field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_user_employee'))]"/>
+    </record>
+
+    <record id="rule_company_sonha_kpi_dl" model="ir.rule">
+        <field name="name">Company Sonha KPI User dl</field>
+        <field name="model_id" ref="model_company_sonha_kpi"/>
+        <field name="domain_force">[
+            '|',
+            ('department_id', '=', user.employee_id.department_id.id),
+            ('department_id.manager_id.user_id', '=', user.id)]
+        </field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_dl_employee'))]"/>
+    </record>
+
 
 </odoo>
