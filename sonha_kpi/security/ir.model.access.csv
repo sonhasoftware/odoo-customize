@@ -21,13 +21,6 @@ access_config_column,config.column,model_config_column,,1,1,1,1
 
 access_config_recipe,config.recipe,model_config_recipe,,1,1,1,1
 
-access_company_sonha_kpi_user,company.sonha.kpi.user,model_company_sonha_kpi,sonha_employee.group_user_employee,1,0,0,0
-access_company_sonha_kpi_lead,company.sonha.kpi.lead,model_company_sonha_kpi,sonha_employee.group_leader_employee,1,0,0,0
-access_company_sonha_kpi_dl,company.sonha.kpi.dl,model_company_sonha_kpi,sonha_employee.group_dl_employee,1,1,1,0
-access_company_sonha_kpi_ceo,company.sonha.kpi.ceo,model_company_sonha_kpi,sonha_employee.group_manager_employee,1,1,1,0
-access_company_sonha_kpi_hr,company.sonha.kpi.hr,model_company_sonha_kpi,sonha_employee.group_hr_employee,1,1,1,0
-
-
 access_sonha_kpi_year,sonha.kpi.year,model_sonha_kpi_year,,1,1,0,0
 
 access_sonha_kpi_month,sonha.kpi.month,model_sonha_kpi_month,,1,1,0,0
@@ -52,6 +45,20 @@ access_plan_kpi_year,plan.kpi.year,model_plan_kpi_year,,1,1,1,1
 
 access_plan_kpi_month,plan.kpi.month,model_plan_kpi_month,,1,1,1,1
 
-access_parent_plan_kpi_year,parent.plan.kpi.year,model_parent_kpi_year,,1,1,1,1
+access_parent_plan_kpi_year_user,parent.plan.kpi.year.user,model_parent_kpi_year,sonha_employee.group_user_employee,1,0,0,0
+access_parent_plan_kpi_year_dl,parent.plan.kpi.year.dl,model_parent_kpi_year,sonha_employee.group_dl_employee,1,1,1,1
+access_parent_plan_kpi_year_manager,parent.plan.kpi.year.manager,model_parent_kpi_year,sonha_employee.group_manager_employee,1,1,1,1
+access_parent_plan_kpi_year_hr,parent.plan.kpi.year.hr,model_parent_kpi_year,sonha_employee.group_hr_employee,1,1,1,1
+access_parent_plan_kpi_year_back_up,parent.plan.kpi.year.back.up,model_parent_kpi_year,sonha_employee.group_back_up_employee,1,1,1,1
 
-access_parent_plan_kpi_month,parent.plan.kpi.month,model_parent_kpi_month,,1,1,1,1
+access_parent_plan_kpi_month_user,parent.plan.kpi.month.user,model_parent_kpi_month,sonha_employee.group_user_employee,1,0,0,0
+access_parent_plan_kpi_month_dl,parent.plan.kpi.month.dl,model_parent_kpi_month,sonha_employee.group_dl_employee,1,1,1,1
+access_parent_plan_kpi_month_manager,parent.plan.kpi.month.manager,model_parent_kpi_month,sonha_employee.group_manager_employee,1,1,1,1
+access_parent_plan_kpi_month_hr,parent.plan.kpi.month.hr,model_parent_kpi_month,sonha_employee.group_hr_employee,1,1,1,1
+access_parent_plan_kpi_month_back_up,parent.plan.kpi.month.back.up,model_parent_kpi_month,sonha_employee.group_back_up_employee,1,1,1,1
+
+access_company_sonha_kpi_user,company.sonha.kpi.user,model_company_sonha_kpi,sonha_employee.group_user_employee,1,0,0,0
+access_company_sonha_kpi_dl,company.sonha.kpi.dl,model_company_sonha_kpi,sonha_employee.group_dl_employee,1,1,1,1
+access_company_sonha_kpi_manager,company.sonha.kpi.manager,model_company_sonha_kpi,sonha_employee.group_manager_employee,1,1,1,1
+access_company_sonha_kpi_hr,company.sonha.kpi.hr,model_company_sonha_kpi,sonha_employee.group_hr_employee,1,1,1,1
+access_company_sonha_kpi_back_up,company.sonha.kpi.back.up,model_company_sonha_kpi,sonha_employee.group_back_up_employee,1,1,1,1
