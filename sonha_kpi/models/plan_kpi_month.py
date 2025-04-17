@@ -17,6 +17,12 @@ class PlanKPIMonth(models.Model):
     sonha_kpi = fields.Many2one('company.sonha.kpi', compute="get_sonha_kpi")
     plan_kpi_month = fields.Many2one('parent.kpi.month')
 
+    @api.constrains("start_date", "end_date")
+    def parent_required(self):
+        for record in self:
+            if record.start_date and record.end_date and record.start_date.month != record.end_date.month:
+                raise ValidationError(_("Ngày bắt đầu và ngày hoàn thành phải trong cùng 1 tháng!"))
+
     def validate_kpi_year(self, record):
         if not record.kpi_year:
             raise ValidationError("Phải chọn hạng mục lớn")
