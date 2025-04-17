@@ -9,6 +9,7 @@
                     <button name="action_sent" string="Gửi duyệt" type="object" class="oe_highlight" invisible="status != 'draft'"/>
                     <button name="action_approve" string="Duyệt" type="object" class="oe_highlight" invisible="status != 'waiting'"/>
                     <button name="action_to_draft" string="Về nháp" type="object" class="oe_highlight" invisible="status != 'waiting'"/>
+                    <button name="action_cancel" string="Không duyệt" type="object" class="oe_highlight" invisible="status != 'waiting'"/>
                     <button name="action_exist_car" string="Còn xe" type="object" class="oe_highlight" invisible="status != 'approved' or type != 'approved'"/>
                     <button name="action_issuing_card" string="Cấp thẻ" type="object" class="oe_highlight" invisible="status != 'approved' or type != 'approved'"/>
                     <button name="action_not_issuing_card" string="Không cấp thẻ" type="object" class="oe_highlight" invisible="status != 'approved' or type != 'approved'"/>
@@ -88,9 +89,25 @@
         </field>
     </record>
 
+    <record id="book_car_search_view" model="ir.ui.view">
+        <field name="name">book.car.search.view</field>
+        <field name="model">book.car</field>
+        <field name="arch" type="xml">
+            <search string="Search Đặt xe">
+                <filter string="Đặt xe: Chờ duyệt" name="approve_request" domain="['|',
+                ('create_uid', '=', uid),
+                '&amp;',
+                ('approve_people.user_id', '=', uid),
+                ('type', '=', 'waiting')]" />
+            </search>
+        </field>
+    </record>
+
     <record id="book_car_action" model="ir.actions.act_window">
         <field name="name">Đặt xe</field>
         <field name="res_model">book.car</field>
         <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="book_car_search_view"/>
+        <field name="context">{'search_default_approve_request': 1}</field>
     </record>
 </odoo>
