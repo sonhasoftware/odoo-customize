@@ -52,6 +52,27 @@ class SonHaKPIMonth(models.Model):
     upload_file = fields.Binary(string="File")
     upload_file_name = fields.Char(string="Tên File")
     upload_files = fields.Many2many('ir.attachment', string="Files")
+    month_filter = fields.Integer("Tháng", compute="_get_month_filter")
+
+    @api.onchange('sonha_kpi')
+    def _onchange_kpi_id(self):
+        # Lấy giá trị 'month_from_parent' từ context
+        month = self.env.context.get('month_from_parent', 0)
+        if month and month > 0:
+            # Lọc những bản ghi có month_filter == month
+            domain = [('month_filter', '=', month)]
+        else:
+            # Nếu không truyền month (hoặc month = 0), không lọc gì cả
+            domain = []
+        return {'domain': {'month_filter': domain}}
+
+    @api.depends('start_date')
+    def _get_month_filter(self):
+        for r in self:
+            if r.start_date:
+                r.month_filter = r.start_date.month
+            else:
+                r.month_filter = 0
 
     @api.onchange('state')
     def get_value_data(self):
