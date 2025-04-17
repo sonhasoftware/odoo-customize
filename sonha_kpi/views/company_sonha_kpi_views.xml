@@ -12,6 +12,8 @@
                         <field name="done"/>
                         <field name="waiting"/>
                         <field name="cancel"/>
+                        <field name="month"/>
+                        <button name="action_sent_hr" type="object" string="Gửi kết quả cho HR" class="oe_highlight" confirm="Bạn có chắc chắn muốn gi kết quả cho Ban Nhân sự - Văn phòng không? Hãy kiểm tra kỹ dữ liệu và tháng bạn đang chọn!"/>/>
                     </group>
                     <notebook>
                         <page string="KPI năm" name="dl_appraisal_year">
@@ -49,10 +51,11 @@
                                 </field>
                             </group>
                         </page>
-                        <page string="KPI tháng" name="dl_appraisal_month">
+                        <page string="KPI tháng" name="dl_appraisal_month_filter">
                             <group>
-                                <field name="kpi_month" string="" context="{'default_kpi_id': id}">
+                                <field name="kpi_month_filtered_ids" string="" context="{'default_kpi_id': id}">
                                     <tree editable="bottom" class="kpi-month-custom">
+                                        month_filter
                                         <field name="small_items_each_month" readonly="1"/>
                                         <field name="kpi_year_id" readonly="1"/>
 <!--                                        <field name="employee_id" widget="many2many_tags"/>-->
