@@ -80,5 +80,32 @@
                </p>
            </field>
        </record>
+
+
+       <record id="template_sent_mail_hr_kpi" model="mail.template">
+        <field name="name">Gửi mail KPI đến HR</field>
+        <field name="model_id" ref="model_company_sonha_kpi"/>
+        <field name="subject">KPI phòng/ban {{object.department_id.name}} đã đánh giá xong cần Ban Nhân sự - Văn phòng phê duyệt</field>
+        <field name="email_to">haint5@sonha.com.vn</field>
+           <field name="email_cc">ngabt1@sonha.com.vn, luongpt@sonha.com.vn, anhntl2@sonha.com.vn</field>
+        <field name="email_from">adminservices@sonha.com.vn</field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                    Dear Ban Nhân sự - Văn phòng,
+                    <br/>
+                    Hiện tại KPI tháng <t t-out="object.month"/> năm <t t-out="object.year"/> của phòng/ban <t t-out="object.department_id.name"/> đã đánh giá xong
+                    <br/>
+                    Anh/chị vui lòng đánh giá theo link dưới đây:
+                    <br/>
+                    <a t-att-href="object.url" target="_blank">Link đánh giá</a>
+                    <br/>
+                    Đây là mail được gửi tự động từ hệ thống, anh/chị vui lòng không phản hồi thông tin tại mail này!
+                    <br/>
+                    Trân trọng cảm ơn!
+                </p>
+            </div>
+        </field>
+    </record>
    </data>
 </odoo>
