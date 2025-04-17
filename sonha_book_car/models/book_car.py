@@ -155,7 +155,7 @@ class BookCar(models.Model):
 
     def action_return_card(self):
         for r in self:
-            if (r.create_uid.id == self.env.user.id) or self.env.user.has_group('sonha_book_car.group_book_car_manager'):
+            if r.create_uid.id == self.env.user.id or r.booking_employee_id.id == self.env.user.id or self.env.user.has_group('sonha_book_car.group_book_car_manager'):
                 return {
                     'name': 'Nhập thông trả thẻ',
                     'type': 'ir.actions.act_window',
@@ -173,7 +173,7 @@ class BookCar(models.Model):
 
     def action_exist_car_done(self):
         for r in self:
-            if (r.create_uid.id == self.env.user.id) or self.env.user.has_group('sonha_book_car.group_book_car_manager'):
+            if r.create_uid.id == self.env.user.id or r.booking_employee_id.id == self.env.user.id or self.env.user.has_group('sonha_book_car.group_book_car_manager'):
                 r.status_exist_car = 'done'
                 r.list_view_status = r.list_view_status + " → Hoàn thành"
             else:
@@ -197,7 +197,7 @@ class BookCar(models.Model):
 
     def action_sent(self):
         for r in self:
-            if (r.create_uid.id == self.env.user.id) or self.env.user.has_group('sonha_book_car.group_book_car_manager'):
+            if r.create_uid.id == self.env.user.id or self.env.user.has_group('sonha_book_car.group_book_car_manager'):
                 r.status = 'waiting'
                 r.type = 'waiting'
                 r.list_view_status = r.list_view_status + " → Chờ duyệt"
@@ -214,7 +214,7 @@ class BookCar(models.Model):
                 raise ValidationError("Bạn không có quyền thực hiện hành động này!")
 
     @api.constrains('start_date', 'end_date', 'start_time', 'end_time')
-    def valtidate_date_time(self):
+    def validate_date_time(self):
         for r in self:
             now = datetime.now().date()
             if r.start_date < now:
