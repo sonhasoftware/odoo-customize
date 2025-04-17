@@ -22,6 +22,8 @@ class PlanKPIMonth(models.Model):
         for record in self:
             if record.start_date and record.end_date and record.start_date.month != record.end_date.month:
                 raise ValidationError(_("Ngày bắt đầu và ngày hoàn thành phải trong cùng 1 tháng!"))
+            if record.start_date and record.end_date and record.start_date > record.end_date:
+                raise ValidationError(_("Ngày bắt đầu không được lớn hơn ngày kết thúc!"))
 
     def validate_kpi_year(self, record):
         if not record.kpi_year:
