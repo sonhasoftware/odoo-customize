@@ -102,7 +102,7 @@ class BookCar(models.Model):
 
     def action_approve(self):
         for r in self:
-            if (r.approve_people and r.approve_people.user_id.id == self.env.user.id) or self.env.user.has_group('sonha_book_car.group_book_car_manager'):
+            if (r.approve_people and r.approve_people.user_id.id == self.env.user.id) or self.env.user.id == 2:
                 r.status = 'approved'
                 r.type = 'approved'
                 r.list_view_status = r.list_view_status + " → Đã duyệt"
@@ -114,7 +114,7 @@ class BookCar(models.Model):
 
     def action_exist_car(self):
         for r in self:
-            if (r.competency_employee and r.competency_employee.user_id.id == self.env.user.id) or self.env.user.has_group('sonha_book_car.group_book_car_manager'):
+            if (r.competency_employee and r.competency_employee.user_id.id == self.env.user.id) or self.env.user.id == 2:
                 return {
                     'name': 'Nhập thông tin xe',
                     'type': 'ir.actions.act_window',
@@ -130,7 +130,7 @@ class BookCar(models.Model):
 
     def action_issuing_card(self):
         for r in self:
-            if (r.competency_employee and r.competency_employee.user_id.id == self.env.user.id) or self.env.user.has_group('sonha_book_car.group_book_car_manager'):
+            if (r.competency_employee and r.competency_employee.user_id.id == self.env.user.id) or self.env.user.id == 2:
                 r.status_issuing_card = 'issuing'
                 r.type = 'issuing_card'
                 r.list_view_status = r.list_view_status + " → Cấp thẻ"
@@ -139,7 +139,7 @@ class BookCar(models.Model):
 
     def action_not_issuing_card(self):
         for r in self:
-            if (r.competency_employee and r.competency_employee.user_id.id == self.env.user.id) or self.env.user.has_group('sonha_book_car.group_book_car_manager'):
+            if (r.competency_employee and r.competency_employee.user_id.id == self.env.user.id) or self.env.user.id == 2:
                 return {
                     'name': 'Nhập lý do hủy đơn',
                     'type': 'ir.actions.act_window',
@@ -155,7 +155,7 @@ class BookCar(models.Model):
 
     def action_return_card(self):
         for r in self:
-            if r.create_uid.id == self.env.user.id or r.booking_employee_id.id == self.env.user.id or self.env.user.has_group('sonha_book_car.group_book_car_manager'):
+            if r.create_uid.id == self.env.user.id or r.booking_employee_id.id == self.env.user.id or self.env.user.id == 2:
                 return {
                     'name': 'Nhập thông trả thẻ',
                     'type': 'ir.actions.act_window',
@@ -173,7 +173,7 @@ class BookCar(models.Model):
 
     def action_exist_car_done(self):
         for r in self:
-            if r.create_uid.id == self.env.user.id or r.booking_employee_id.id == self.env.user.id or self.env.user.has_group('sonha_book_car.group_book_car_manager'):
+            if r.create_uid.id == self.env.user.id or r.booking_employee_id.id == self.env.user.id or self.env.user.id == 2:
                 r.status_exist_car = 'done'
                 r.list_view_status = r.list_view_status + " → Hoàn thành"
             else:
@@ -181,7 +181,7 @@ class BookCar(models.Model):
 
     def unlink(self):
         for r in self:
-            if r.status == 'draft' or self.env.user.has_group('sonha_book_car.group_book_car_manager'):
+            if r.status == 'draft' or self.env.user.id == 2:
                 pass
             else:
                 raise ValidationError("Chỉ được xóa khi trạng thái là nháp!")
@@ -197,7 +197,7 @@ class BookCar(models.Model):
 
     def action_sent(self):
         for r in self:
-            if r.create_uid.id == self.env.user.id or self.env.user.has_group('sonha_book_car.group_book_car_manager'):
+            if r.create_uid.id == self.env.user.id or self.env.user.id == 2:
                 r.status = 'waiting'
                 r.type = 'waiting'
                 r.list_view_status = r.list_view_status + " → Chờ duyệt"
@@ -206,7 +206,7 @@ class BookCar(models.Model):
 
     def action_to_draft(self):
         for r in self:
-            if (r.approve_people and r.approve_people.user_id.id == self.env.user.id) or self.env.user.has_group('sonha_book_car.group_book_car_manager'):
+            if (r.approve_people and r.approve_people.user_id.id == self.env.user.id) or self.env.user.id == 2:
                 r.status = 'draft'
                 r.type = 'draft'
                 r.list_view_status = "Nháp"
@@ -235,7 +235,7 @@ class BookCar(models.Model):
 
     def action_cancel(self):
         for r in self:
-            if (r.approve_people and r.approve_people.user_id.id == self.env.user.id) or self.env.user.has_group('sonha_book_car.group_book_car_manager'):
+            if (r.approve_people and r.approve_people.user_id.id == self.env.user.id) or self.env.user.id == 2:
                 return {
                     'name': 'Nhập lý do hủy đơn',
                     'type': 'ir.actions.act_window',
