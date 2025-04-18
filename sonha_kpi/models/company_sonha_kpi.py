@@ -21,6 +21,28 @@ class CompanySonHaKPI(models.Model):
     done = fields.Integer("Số lượng hoàn Thành", compute="_get_data_number_state")
     waiting = fields.Integer("Số lượng chưa hoàn thành", compute="_get_data_number_state")
     cancel = fields.Integer("Số lượng hủy", compute="_get_data_number_state")
+    kpi_month_filtered_ids = fields.One2many(
+        'sonha.kpi.month',
+        compute='_compute_filtered_kpis',
+        string='KPI tháng theo tháng đã chọn',
+        readonly=False
+    )
+    url = fields.Char("URL")
+
+    @api.onchange('month', 'kpi_month')
+    def _compute_filtered_kpis(self):
+        for rec in self:
+            if rec.month != 0:
+                rec.kpi_month_filtered_ids = rec.kpi_month.filtered(lambda r: r.month_filter == rec.month)
+            else:
+                rec.kpi_month_filtered_ids = rec.kpi_month
+
+    def action_sent_hr(self):
+        for r in self:
+            base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+            r.url =(f"{base_url}/kpi/form?department_id={r.department_id.id}&month={r.month}&year={r.year}")
+            template = self.env.ref('sonha_kpi.template_sent_mail_hr_kpi')
+            template.send_mail(r.id, force_send=True)
 
     @api.depends('kpi_month')
     def _get_data_number_state(self):
