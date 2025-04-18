@@ -157,8 +157,7 @@ class EmployeeAttendance(models.Model):
                 r.month = None
                 r.year = None
 
-
-    @api.depends('employee_id')
+    @api.depends('employee_id', 'employee_id.department_id')
     def _get_department_id(self):
         for r in self:
             if r.employee_id.department_id:
