@@ -6,7 +6,6 @@
         <field name="arch" type="xml">
             <form string="Thông tin xe">
                 <group>
-                    <field name="receive_people"/>
                     <field name="receive_time"/>
                     <field name="return_people"/>
                     <field name="department_id" invisible="1"/>

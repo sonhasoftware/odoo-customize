@@ -15,6 +15,7 @@
                     <button name="action_not_issuing_card" string="Không cấp thẻ" type="object" class="oe_highlight" invisible="status != 'approved' or type != 'approved'"/>
                     <button name="action_return_card" string="Trả thẻ" type="object" class="oe_highlight" invisible="status_issuing_card != 'issuing'"/>
                     <button name="action_exist_car_done" string="Hoàn thành" type="object" class="oe_highlight" invisible="status_exist_car != 'exist'"/>
+                    <button name="action_edit_exist_car" string="Sửa thông tin" type="object" class="oe_highlight" invisible="status_exist_car != 'exist'"/>
                     <field name="status" widget="statusbar" invisible="type in ('exist_car', 'issuing_card')"/>
                     <field name="status_exist_car" widget="statusbar" invisible="type != 'exist_car'"/>
                     <field name="status_issuing_card" widget="statusbar" invisible="type != 'issuing_card'"/>
@@ -53,12 +54,15 @@
                         <field name="license_plate" readonly="status != 'draft'"/>
                     </group>
                     <group string="Thông tin trả thẻ" invisible="status_issuing_card != 'done'">
-                        <field name="receive_people" readonly="status != 'draft'"/>
                         <field name="receive_time" readonly="status != 'draft'"/>
                         <field name="return_people" readonly="status != 'draft'"/>
                     </group>
                     <group string="Thông tin hủy đơn" invisible="status != 'cancel'">
                         <field name="reason" readonly="status != 'draft'"/>
+                    </group>
+                    <group string="Thông tin xác nhận" invisible="status_exist_car != 'done' and status_issuing_card != 'done'">
+                        <field name="reality_start_date" readonly="status != 'draft'"/>
+                        <field name="reality_end_date" readonly="status != 'draft'"/>
                     </group>
                 </sheet>
                 <div class="oe_chatter">
@@ -78,12 +82,13 @@
                 <field name="company_id"/>
                 <field name="department_id"/>
                 <field name="purpose"/>
-                <field name="amount_people"/>
-                <field name="booking_employee_id"/>
+                <field name="employee_id"/>
+<!--                <field name="booking_employee_id"/>-->
                 <field name="phone_number"/>
-                <field name="driver"/>
-                <field name="driver_phone"/>
-                <field name="license_plate"/>
+                <field name="start_date"/>
+                <field name="reality_start_date"/>
+                <field name="end_date"/>
+                <field name="reality_end_date"/>
                 <field name="list_view_status"/>
             </tree>
         </field>

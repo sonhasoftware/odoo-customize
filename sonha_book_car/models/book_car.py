@@ -21,7 +21,6 @@ class BookCar(models.Model):
     driver = fields.Many2one('hr.employee', string="Lái xe", tracking=True)
     driver_phone = fields.Char("Số điện thoại lái xe", tracking=True)
     license_plate = fields.Char("Biển số xe", tracking=True)
-    receive_people = fields.Many2one('hr.employee', string="Người nhận thẻ", tracking=True)
     receive_time = fields.Date("Ngày trả thẻ", tracking=True)
     approve_people = fields.Many2one('hr.employee', string="Người phê duyệt",
                                      default=lambda self: self.default_approve_people(), required=True, tracking=True)
@@ -58,6 +57,8 @@ class BookCar(models.Model):
     reason = fields.Text("Lý do hủy", tracking=True)
     employee_id = fields.Many2one('hr.employee', string="Người tạo đơn")
     approve_people_job_id = fields.Many2one('hr.job', string="Chức vụ người phê duyệt", compute="filter_approve_people_job")
+    reality_start_date = fields.Date("Ngày khởi hành thực tế", tracking=True)
+    reality_end_date = fields.Date("Ngày kết thúc thực tế", tracking=True)
 
     def default_booking_employee_id(self):
         emp = self.env['hr.employee'].sudo().search([('user_id', '=', self.env.user.id)], limit=1)
@@ -155,7 +156,7 @@ class BookCar(models.Model):
 
     def action_return_card(self):
         for r in self:
-            if r.create_uid.id == self.env.user.id or r.booking_employee_id.id == self.env.user.id or self.env.user.id == 2:
+            if (r.competency_employee and r.competency_employee.user_id.id == self.env.user.id) or r.booking_employee_id.id == self.env.user.id or self.env.user.id == 2:
                 return {
                     'name': 'Nhập thông trả thẻ',
                     'type': 'ir.actions.act_window',
@@ -173,9 +174,23 @@ class BookCar(models.Model):
 
     def action_exist_car_done(self):
         for r in self:
-            if r.create_uid.id == self.env.user.id or r.booking_employee_id.id == self.env.user.id or self.env.user.id == 2:
-                r.status_exist_car = 'done'
-                r.list_view_status = r.list_view_status + " → Hoàn thành"
+            if (r.competency_employee and r.competency_employee.user_id.id == self.env.user.id) or self.env.user.id == 2:
+                return {
+                    'name': 'Nhập thông tin xác nhận hoàn thành',
+                    'type': 'ir.actions.act_window',
+                    'res_model': 'wizard.exist.car.done',
+                    'view_mode': 'form',
+                    'target': 'new',
+                    'context': {
+                        'default_parent_id': r.id,
+                        'default_driver': r.driver.id,
+                        'default_driver_phone': r.driver_phone,
+                        'default_license_plate': r.license_plate,
+                        'default_reality_start_date': r.start_date,
+                        'default_reality_end_date': r.end_date,
+                    },
+                }
+                pass
             else:
                 raise ValidationError("Bạn không có quyền thực hiện hành động này!")
 
@@ -244,6 +259,25 @@ class BookCar(models.Model):
                     'target': 'new',
                     'context': {
                         'default_parent_id': r.id,
+                    },
+                }
+            else:
+                raise ValidationError("Bạn không có quyền thực hiện hành động này!")
+
+    def action_edit_exist_car(self):
+        for r in self:
+            if (r.competency_employee and r.competency_employee.user_id.id == self.env.user.id) or self.env.user.id == 2:
+                return {
+                    'name': 'Nhập thông tin xe',
+                    'type': 'ir.actions.act_window',
+                    'res_model': 'wizard.exist.car',
+                    'view_mode': 'form',
+                    'target': 'new',
+                    'context': {
+                        'default_parent_id': r.id,
+                        'default_driver': r.driver.id,
+                        'default_driver_phone': r.driver_phone,
+                        'default_license_plate': r.license_plate,
                     },
                 }
             else:
