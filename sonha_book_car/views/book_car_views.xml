@@ -6,14 +6,21 @@
         <field name="arch" type="xml">
             <form string="Đặt xe">
                 <header>
-                    <button name="action_sent" string="Gửi duyệt" type="object" class="oe_highlight" invisible="status != 'draft'"/>
-                    <button name="action_approve" string="Duyệt" type="object" class="oe_highlight" invisible="status != 'waiting'"/>
-                    <button name="action_to_draft" string="Về nháp" type="object" class="oe_highlight" invisible="status != 'waiting'"/>
-                    <button name="action_exist_car" string="Còn xe" type="object" class="oe_highlight" invisible="status != 'approved' or type != 'approved'"/>
-                    <button name="action_issuing_card" string="Cấp thẻ" type="object" class="oe_highlight" invisible="status != 'approved' or type != 'approved'"/>
-                    <button name="action_not_issuing_card" string="Không cấp thẻ" type="object" class="oe_highlight" invisible="status != 'approved' or type != 'approved'"/>
-                    <button name="action_return_card" string="Trả thẻ" type="object" class="oe_highlight" invisible="status_issuing_card != 'issuing'"/>
-                    <button name="action_exist_car_done" string="Hoàn thành" type="object" class="oe_highlight" invisible="status_exist_car != 'exist'"/>
+                    <field name="check_sent" invisible="1"/>
+                    <field name="check_approve" invisible="1"/>
+                    <field name="check_process" invisible="1"/>
+                    <field name="check_exist_car" invisible="1"/>
+                    <field name="check_return_card" invisible="1"/>
+                    <button name="action_sent" string="Gửi duyệt" type="object" class="oe_highlight" invisible="check_sent != True"/>
+                    <button name="action_approve" string="Duyệt" type="object" class="oe_highlight" invisible="check_approve != True"/>
+                    <button name="action_to_draft" string="Về nháp" type="object" class="oe_highlight" invisible="check_approve != True"/>
+                    <button name="action_cancel" string="Không duyệt" type="object" class="oe_highlight" invisible="check_approve != True"/>
+                    <button name="action_exist_car" string="Còn xe" type="object" class="oe_highlight" invisible="check_process != True"/>
+                    <button name="action_issuing_card" string="Cấp thẻ" type="object" class="oe_highlight" invisible="check_process != True"/>
+                    <button name="action_not_issuing_card" string="Không cấp thẻ" type="object" class="oe_highlight" invisible="check_process != True"/>
+                    <button name="action_return_card" string="Trả thẻ" type="object" class="oe_highlight" invisible="check_return_card != True"/>
+                    <button name="action_exist_car_done" string="Hoàn thành" type="object" class="oe_highlight" invisible="check_exist_car != True"/>
+                    <button name="action_edit_exist_car" string="Sửa thông tin" type="object" class="oe_highlight" invisible="check_exist_car != True"/>
                     <field name="status" widget="statusbar" invisible="type in ('exist_car', 'issuing_card')"/>
                     <field name="status_exist_car" widget="statusbar" invisible="type != 'exist_car'"/>
                     <field name="status_issuing_card" widget="statusbar" invisible="type != 'issuing_card'"/>
@@ -27,7 +34,7 @@
                         <field name="purpose" readonly="status != 'draft'"/>
                         <field name="amount_people" readonly="status != 'draft'"/>
                         <field name="booking_employee_id" readonly="status != 'draft'"/>
-                        <field name="booking_employee_job_id" readonly="status != 'draft'"/>
+                        <field name="booking_employee_job_id" readonly="1"/>
                         <field name="phone_number" readonly="status != 'draft'"/>
                     </group>
                     <group>
@@ -44,7 +51,7 @@
                     </group>
                     <group>
                         <field name="approve_people" readonly="status != 'draft'"/>
-                        <field name="approve_people_job_id" readonly="status != 'draft'"/>
+                        <field name="approve_people_job_id" readonly="1"/>
                     </group>
                     <group string="Thông tin xe" invisible="type != 'exist_car'">
                         <field name="driver" readonly="status != 'draft'"/>
@@ -52,12 +59,15 @@
                         <field name="license_plate" readonly="status != 'draft'"/>
                     </group>
                     <group string="Thông tin trả thẻ" invisible="status_issuing_card != 'done'">
-                        <field name="receive_people" readonly="status != 'draft'"/>
                         <field name="receive_time" readonly="status != 'draft'"/>
                         <field name="return_people" readonly="status != 'draft'"/>
                     </group>
                     <group string="Thông tin hủy đơn" invisible="status != 'cancel'">
                         <field name="reason" readonly="status != 'draft'"/>
+                    </group>
+                    <group string="Thông tin xác nhận" invisible="status_exist_car != 'done' and status_issuing_card != 'done'">
+                        <field name="reality_start_date" readonly="status != 'draft'"/>
+                        <field name="reality_end_date" readonly="status != 'draft'"/>
                     </group>
                 </sheet>
                 <div class="oe_chatter">
@@ -77,14 +87,35 @@
                 <field name="company_id"/>
                 <field name="department_id"/>
                 <field name="purpose"/>
-                <field name="amount_people"/>
-                <field name="booking_employee_id"/>
+                <field name="employee_id"/>
+<!--                <field name="booking_employee_id"/>-->
                 <field name="phone_number"/>
-                <field name="driver"/>
-                <field name="driver_phone"/>
-                <field name="license_plate"/>
+                <field name="start_date"/>
+                <field name="reality_start_date"/>
+                <field name="end_date"/>
+                <field name="reality_end_date"/>
                 <field name="list_view_status"/>
             </tree>
+        </field>
+    </record>
+
+    <record id="book_car_search_view" model="ir.ui.view">
+        <field name="name">book.car.search.view</field>
+        <field name="model">book.car</field>
+        <field name="arch" type="xml">
+            <search string="Search Đặt xe">
+                <filter string="Đặt xe: Bản thân/Chờ duyệt" name="my_record_n_approve_request" domain="[
+                '|','|','|',
+                ('competency_employee.user_id', '=', uid),
+                ('create_uid', '=', uid),
+                ('driver.user_id', '=', uid),
+                '&amp;',
+                ('approve_people.user_id', '=', uid),
+                ('type', '=', 'waiting')]" />
+                <filter string="Đặt xe: Chờ duyệt" name="approve_request" domain="[
+                ('approve_people.user_id', '=', uid),
+                ('type', '=', 'waiting')]" />
+            </search>
         </field>
     </record>
 
@@ -92,5 +123,7 @@
         <field name="name">Đặt xe</field>
         <field name="res_model">book.car</field>
         <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="book_car_search_view"/>
+        <field name="context">{'search_default_my_record_n_approve_request': 1}</field>
     </record>
 </odoo>

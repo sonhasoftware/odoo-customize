@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="wizard_exist_car_done_form" model="ir.ui.view">
+        <field name="name">wizard.exist.car.done.form</field>
+        <field name="model">wizard.exist.car.done</field>
+        <field name="arch" type="xml">
+            <form string="Thông tin xác nhận hoàn thành">
+                <group>
+                    <field name="driver" readonly="1"/>
+                    <field name="driver_phone" readonly="1"/>
+                    <field name="license_plate" readonly="1"/>
+                    <field name="reality_start_date"/>
+                    <field name="reality_end_date"/>
+                </group>
+                <footer>
+                    <button string="Xác nhận" type="object" name="action_confirm" class="oe_highlight"/>
+                    <button string="Hủy" class="oe_link" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -16,6 +16,7 @@
         'wizard/wizard_return_card_views.xml',
         'wizard/wizard_not_issuing_card_views.xml',
         'wizard/wizard_book_car_report_views.xml',
+        'wizard/wizard_exist_car_done_views.xml',
         'data/mail_template.xml',
         'views/menu_views.xml',
     ],

@@ -16,3 +16,4 @@ class WizardNotIssuingCard(models.TransientModel):
             'list_view_status': self.parent_id.list_view_status + " → Hủy"
         })
         return {'type': 'ir.actions.act_window_close'}
+

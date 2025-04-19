@@ -17,6 +17,6 @@ class WizardExistCar(models.TransientModel):
             'license_plate': self.license_plate,
             'status_exist_car': 'exist',
             'type': 'exist_car',
-            'list_view_status': self.parent_id.list_view_status + " → Cấp xe",
+            'list_view_status': self.parent_id.list_view_status + " → Cấp xe" if not self.parent_id.driver else self.parent_id.list_view_status,
         })
         return {'type': 'ir.actions.act_window_close'}
