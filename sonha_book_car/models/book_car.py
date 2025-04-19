@@ -23,6 +23,7 @@ class BookCar(models.Model):
     license_plate = fields.Char("Biển số xe", tracking=True)
     receive_time = fields.Date("Ngày trả thẻ", tracking=True)
     approve_people = fields.Many2one('hr.employee', string="Người phê duyệt",
+                                     domain="[('company_id', '=', company_id),('user_id', '!=', uid)]",
                                      default=lambda self: self.default_approve_people(), required=True, tracking=True)
     status = fields.Selection([('draft', "Nháp"),
                                ('waiting', "Chờ duyệt"),
@@ -59,6 +60,51 @@ class BookCar(models.Model):
     approve_people_job_id = fields.Many2one('hr.job', string="Chức vụ người phê duyệt", compute="filter_approve_people_job")
     reality_start_date = fields.Date("Ngày khởi hành thực tế", tracking=True)
     reality_end_date = fields.Date("Ngày kết thúc thực tế", tracking=True)
+    check_sent = fields.Boolean("check_sent", compute="get_check_sent")
+    check_approve = fields.Boolean("check_approve", compute="get_check_approve")
+    check_process = fields.Boolean("check_process", compute="get_check_process")
+    check_exist_car = fields.Boolean("check_exist_car", compute="get_check_exist_car")
+    check_return_card = fields.Boolean("check_return_card", compute="get_check_return_card")
+
+    @api.depends('status', 'employee_id')
+    def get_check_sent(self):
+        for r in self:
+            if r.status == 'draft' and (self.env.user.employee_id.id == r.employee_id.id or self.env.user.id == 2):
+                r.check_sent = True
+            else:
+                r.check_sent = False
+
+    @api.depends('status', 'approve_people')
+    def get_check_approve(self):
+        for r in self:
+            if r.status == 'waiting' and (self.env.user.employee_id.id == r.approve_people.id or self.env.user.id == 2):
+                r.check_approve = True
+            else:
+                r.check_approve = False
+
+    @api.depends('type', 'competency_employee')
+    def get_check_process(self):
+        for r in self:
+            if r.type == 'approved' and (self.env.user.employee_id.id == r.competency_employee.id or self.env.user.id == 2):
+                r.check_process = True
+            else:
+                r.check_process = False
+
+    @api.depends('status_exist_car', 'competency_employee')
+    def get_check_exist_car(self):
+        for r in self:
+            if r.status_exist_car == 'exist' and (self.env.user.employee_id.id == r.competency_employee.id or self.env.user.id == 2):
+                r.check_exist_car = True
+            else:
+                r.check_exist_car = False
+
+    @api.depends('status_issuing_card', 'competency_employee')
+    def get_check_return_card(self):
+        for r in self:
+            if r.status_issuing_card == 'issuing' and (self.env.user.employee_id.id == r.competency_employee.id or self.env.user.id == 2):
+                r.check_return_card = True
+            else:
+                r.check_return_card = False
 
     def default_booking_employee_id(self):
         emp = self.env['hr.employee'].sudo().search([('user_id', '=', self.env.user.id)], limit=1)
@@ -158,7 +204,7 @@ class BookCar(models.Model):
         for r in self:
             if (r.competency_employee and r.competency_employee.user_id.id == self.env.user.id) or r.booking_employee_id.id == self.env.user.id or self.env.user.id == 2:
                 return {
-                    'name': 'Nhập thông trả thẻ',
+                    'name': 'Nhập thông tin trả thẻ',
                     'type': 'ir.actions.act_window',
                     'res_model': 'wizard.return.card',
                     'view_mode': 'form',
