@@ -48,16 +48,19 @@ class BookCar(models.Model):
                                          ('waiting', "Chờ duyệt"),
                                          ('approved', "Đã duyệt"),
                                          ('exist', "Cấp xe"),
-                                         ('done', "Hoàn thành")], string="Trạng thái", default='approved', tracking=True)
+                                         ('done', "Hoàn thành")],
+                                        string="Trạng thái", default='approved', tracking=True)
     status_issuing_card = fields.Selection([('draft', "Nháp"),
                                             ('waiting', "Chờ duyệt"),
                                             ('approved', "Đã duyệt"),
                                             ('issuing', "Cấp thẻ"),
-                                            ('done', "Hoàn thành")], string="Trạng thái", default='approved', tracking=True)
+                                            ('done', "Hoàn thành")],
+                                           string="Trạng thái", default='approved', tracking=True)
     list_view_status = fields.Text("Trạng thái", default="Nháp")
     reason = fields.Text("Lý do hủy", tracking=True)
     employee_id = fields.Many2one('hr.employee', string="Người tạo đơn")
-    approve_people_job_id = fields.Many2one('hr.job', string="Chức vụ người phê duyệt", compute="filter_approve_people_job")
+    approve_people_job_id = fields.Many2one('hr.job', string="Chức vụ người phê duyệt",
+                                            compute="filter_approve_people_job")
     reality_start_date = fields.Date("Ngày khởi hành thực tế", tracking=True)
     reality_end_date = fields.Date("Ngày kết thúc thực tế", tracking=True)
     check_sent = fields.Boolean("check_sent", compute="get_check_sent")
@@ -65,6 +68,27 @@ class BookCar(models.Model):
     check_process = fields.Boolean("check_process", compute="get_check_process")
     check_exist_car = fields.Boolean("check_exist_car", compute="get_check_exist_car")
     check_return_card = fields.Boolean("check_return_card", compute="get_check_return_card")
+
+    @api.onchange('booking_employee_id')
+    def onchange_phone_number(self):
+        for r in self:
+            if r.booking_employee_id.sonha_number_phone:
+                r.phone_number = r.booking_employee_id.sonha_number_phone
+            else:
+                r.phone_number = ''
+
+    @api.onchange('driver')
+    def onchange_driver_phone(self):
+        for r in self:
+            if r.driver.sonha_number_phone:
+                r.driver_phone = r.booking_employee_id.sonha_number_phone
+            else:
+                r.driver_phone = ''
+
+    @api.onchange('department_id')
+    def onchange_approve_people(self):
+        for r in self:
+            r.approve_people = r.department_id.manager_id.id if r.department_id.manager_id else None
 
     @api.depends('status', 'employee_id')
     def get_check_sent(self):
