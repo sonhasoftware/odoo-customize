@@ -10,7 +10,7 @@ class PlanKPIMonth(models.Model):
     year = fields.Integer('Năm')
     kpi_year = fields.Many2one('sonha.kpi.year', string="Hạng mục lớn", domain="[('sonha_kpi', '=', sonha_kpi)]")
     month = fields.Integer("Tháng")
-    kpi_month = fields.Char("Hạng mục nhỏ")
+    kpi_month = fields.Text("Hạng mục nhỏ")
     start_date = fields.Date('Ngày bắt đầu')
     end_date = fields.Date(string="Ngày hoàn thành")
 
