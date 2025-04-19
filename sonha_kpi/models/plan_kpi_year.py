@@ -7,7 +7,7 @@ class PlanKPIYear(models.Model):
 
     department_id = fields.Many2one('hr.department', string="Phòng ban")
     year = fields.Integer('Năm')
-    name = fields.Char("Hạng mục lớn")
+    name = fields.Text("Hạng mục lớn")
     start_date = fields.Date('Bắt đầu')
     end_date = fields.Date("Hoàn thành")
     kpi_year = fields.Float("KPI KH cả năm")
