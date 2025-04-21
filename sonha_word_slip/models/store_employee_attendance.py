@@ -43,6 +43,7 @@ class EmployeeAttendanceStore(models.Model):
     public_leave = fields.Float("Nghỉ lễ")
     c2k3 = fields.Float("Ca 2 kíp 3")
     c3k4 = fields.Float("Ca 3 kíp 4")
+    shift_toxic = fields.Float("Ca độc hại")
 
     def copy_to_stored_model(self):
         self.with_delay().copy_data_employee_attendance()
@@ -146,6 +147,7 @@ class EmployeeAttendanceStore(models.Model):
                 'public_leave': record.public_leave,
                 'c2k3': record.c2k3,
                 'c3k4': record.c3k4,
+                'shift_toxic': record.shift_toxic,
             }
 
             if existing_record:

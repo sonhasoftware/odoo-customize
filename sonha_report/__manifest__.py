@@ -9,6 +9,7 @@
     'depends': ['base', 'hr'],
     'data': [
         'security/ir.model.access.csv',
+        'views/config_template_views.xml',
         'views/master_data_report_views.xml',
         'views/employee_attendance_report_views.xml',
         'views/synthetic_work_report_views.xml',
@@ -26,6 +27,7 @@
         'wizard/popup_synthetic_leave_report_views.xml',
         'wizard/popup_sonha_employee_report_views.xml',
         'wizard/popup_sonha_contract_report_views.xml',
+        'wizard/export_report_employee.xml',
     ],
 
     'installable': True,

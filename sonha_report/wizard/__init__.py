@@ -6,3 +6,4 @@ from . import popup_leave_report
 from . import popup_synthetic_leave_report
 from . import popup_sonha_employee_report
 from . import popup_sonha_contract_report
+from . import export_report_employee

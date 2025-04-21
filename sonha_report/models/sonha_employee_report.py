@@ -1,5 +1,6 @@
 from odoo import api, fields, models
 
+
 class SonhaEmployeeReport(models.Model):
     _name = 'sonha.employee.report'
 

@@ -54,6 +54,7 @@
                         <field name="is_office_hour"/>
                         <field name="c2k3"/>
                         <field name="c3k4"/>
+                        <field name="shift_toxic"/>
                     </group>
                     <group>
                         <field name="earliest_out"/>

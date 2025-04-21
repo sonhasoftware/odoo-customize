@@ -31,3 +31,7 @@ access_popup_synthetic_leave_report,access.popup.synthetic.leave.report,model_po
 access_popup_sonha_employee_report,access.popup.sonha.employee.report,model_popup_sonha_employee_report,,1,1,1,1
 
 access_popup_sonha_contract_report,access.popup.sonha.contract.report,model_popup_sonha_contract_report,,1,1,1,1
+
+
+access_config_template_report,access.config.template.report,model_config_template_report,,1,1,1,1
+access_export_report_employee,access.export.report.employee,model_export_report_employee,,1,1,1,1

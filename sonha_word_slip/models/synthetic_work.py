@@ -60,7 +60,8 @@ class SyntheticWork(models.Model):
                     COALESCE(SUM(minutes_early), 0) AS number_minutes_early,
                     COALESCE(SUM(public_leave), 0) AS public_leave,
                     COALESCE(SUM(c2k3), 0) AS shift_two_crew_three,
-                    COALESCE(SUM(c3k4), 0) AS shift_three_crew_four
+                    COALESCE(SUM(c3k4), 0) AS shift_three_crew_four,
+                    COALESCE(SUM(shift_toxic), 0) AS toxic_work
                 FROM employee_attendance_store
                 WHERE employee_id = %s
                   AND date >= %s
@@ -80,6 +81,7 @@ class SyntheticWork(models.Model):
             r.public_leave = result['public_leave']
             r.shift_two_crew_three = result['shift_two_crew_three']
             r.shift_three_crew_four = result['shift_three_crew_four']
+            r.toxic_work = result['toxic_work']
 
     @api.depends('on_leave', 'compensatory_leave', 'public_leave')
     def get_leave(self):
