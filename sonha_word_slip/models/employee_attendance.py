@@ -44,6 +44,7 @@ class EmployeeAttendance(models.Model):
     public_leave = fields.Float("Nghỉ lễ", cumpute="_get_time_off")
     c2k3 = fields.Float("Ca 2 kíp 3", compute="get_shift")
     c3k4 = fields.Float("Ca 3 kíp 4", compute="get_shift")
+    shift_toxic = fields.Float("Ca độc hại", compute="get_shift")
 
     @api.depends('shift')
     def get_shift(self):
@@ -51,11 +52,13 @@ class EmployeeAttendance(models.Model):
             # Reset giá trị mặc định
             r.c2k3 = 0
             r.c3k4 = 0
+            r.shift_toxic = 0
 
             # Nếu shift tồn tại, kiểm tra các điều kiện
             if r.shift:
                 r.c2k3 = 1 if r.shift.c2k3 else 0
                 r.c3k4 = 1 if r.shift.c3k4 else 0
+                r.shift_toxic = 1 if r.shift.shift_toxic else 0
 
     @api.depends('employee_id', 'date')
     def _get_time_off(self):
