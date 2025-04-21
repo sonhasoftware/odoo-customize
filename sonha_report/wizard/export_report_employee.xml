@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_export_report_employee_form" model="ir.ui.view">
+        <field name="name">export.report.employee.form</field>
+        <field name="model">export.report.employee</field>
+        <field name="arch" type="xml">
+            <form string="Chọn mẫu báo cáo">
+                <group>
+                    <field name="report"/>
+                </group>
+                <footer>
+                    <button name="action_export" type="object" string="Xuất báo cáo" class="btn-primary"/>
+                    <button string="Hủy" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_export_report_employee_wizard" model="ir.actions.act_window">
+        <field name="name">Chọn mẫu báo cáo</field>
+        <field name="res_model">export.report.employee</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

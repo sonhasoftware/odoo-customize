@@ -19,4 +19,10 @@
               name="Báo cáo nhân viên"
               parent="menu_sonha_report"
               sequence="1"/>
+
+    <menuitem id="menu_config_template_report"
+              name="Cấu hình báo cáo"
+              parent="menu_sonha_report"
+              action="action_config_template_report"
+              sequence="10"/>
 </odoo>
