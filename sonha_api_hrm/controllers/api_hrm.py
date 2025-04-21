@@ -1,6 +1,8 @@
 from odoo import http
 from odoo.http import request, Response, route
 import json
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -82,15 +84,23 @@ class AuthAPI(http.Controller):
             data = []
             if list_records:
                 for r in list_records:
+                    date_sent = r.create_date + relativedelta(hours=7)
                     word_slip_data = []
                     for slip in r.word_slip_id:
                         if slip.type.date_and_time == 'time':
+                            hours_start = int(slip.time_to)
+                            minutes_start = int(round((slip.time_to - hours_start) * 60))
+                            time_start = f"{hours_start:02d}:{minutes_start:02d}"
+
+                            hours_end = int(slip.time_from)
+                            minutes_end = int(round((slip.time_from - hours_end) * 60))
+                            time_end = f"{hours_end:02d}:{minutes_end:02d}"
                             word_slip_data.append({
                                 "id": slip.id,
                                 "from_date": str(slip.from_date) or '',
                                 "to_date": str(slip.to_date) or '',
-                                "time_to": slip.time_to or '',
-                                "time_from": slip.time_from or '',
+                                "time_to": time_start or '',
+                                "time_from": time_end or '',
                                 "reason": slip.reason or '',
                             })
                         else:
@@ -108,7 +118,7 @@ class AuthAPI(http.Controller):
                             "code": r.code,
                             "status": "Chờ duyệt",
                             "regis_type": "Tạo cho tôi",
-                            "date_sent": str(r.create_date),
+                            "date_sent": str(date_sent),
                             "type": {
                                 "id": r.type.id,
                                 "name": r.type.name
@@ -131,7 +141,7 @@ class AuthAPI(http.Controller):
                             "code": r.code,
                             "status": "Chờ duyệt",
                             "regis_type": "Tạo hộ",
-                            "date_sent": str(r.create_date),
+                            "date_sent": str(date_sent),
                             "type": {
                                 "id": r.type.id,
                                 "name": r.type.name
@@ -343,6 +353,7 @@ class AuthAPI(http.Controller):
             data = []
             if list_records:
                 for r in list_records:
+                    date_sent = r.create_date + relativedelta(hours=7)
                     if r.status == 'sent':
                         state = "Nháp"
                     elif r.status == 'draft':
@@ -354,12 +365,19 @@ class AuthAPI(http.Controller):
                     word_slip_data = []
                     for slip in r.word_slip_id:
                         if slip.type.date_and_time == 'time':
+                            hours_start = int(slip.time_to)
+                            minutes_start = int(round((slip.time_to - hours_start) * 60))
+                            time_start = f"{hours_start:02d}:{minutes_start:02d}"
+
+                            hours_end = int(slip.time_from)
+                            minutes_end = int(round((slip.time_from - hours_end) * 60))
+                            time_end = f"{hours_end:02d}:{minutes_end:02d}"
                             word_slip_data.append({
                                 "id": slip.id,
                                 "from_date": str(slip.from_date) or '',
                                 "to_date": str(slip.to_date) or '',
-                                "time_to": slip.time_to or '',
-                                "time_from": slip.time_from or '',
+                                "time_to": time_start or '',
+                                "time_from": time_end or '',
                                 "reason": slip.reason or '',
                             })
                         else:
@@ -377,7 +395,7 @@ class AuthAPI(http.Controller):
                             "code": r.code,
                             "status": state,
                             "regis_type": "Tạo cho tôi",
-                            "date_sent": str(r.create_date),
+                            "date_sent": str(date_sent),
                             "type": {
                                 "id": r.type.id,
                                 "name": r.type.name
@@ -400,7 +418,7 @@ class AuthAPI(http.Controller):
                             "code": r.code,
                             "status": state,
                             "regis_type": "Tạo hộ",
-                            "date_sent": str(r.create_date),
+                            "date_sent": str(date_sent),
                             "type": {
                                 "id": r.type.id,
                                 "name": r.type.name
@@ -419,14 +437,22 @@ class AuthAPI(http.Controller):
                  "error": str(e)
                  }), content_type="application/json", status=500)
 
-    @http.route('/api/get_word_slip_id/<int:id>', type='http', auth='none', methods=['GET'], csrf=False)
-    def get_word_slip_id(self, id):
+    @http.route('/api/get_word_slip_id/<int:id>/<int:employee_id>', type='http', auth='none', methods=['GET'], csrf=False)
+    def get_word_slip_id(self, id, employee_id):
         try:
             r = request.env['form.word.slip'].sudo().search([
                 ('id', '=', id)
             ])
             data = []
+            list_employee = [r.employee_id.id] or r.employee_ids.ids
+            check_button_sent = False
+            check_button_done = False
+            if employee_id in list_employee and r.status == 'sent':
+                check_button_sent = True
+            if (r.employee_confirm and employee_id == r.employee_confirm.id and r.status == 'draft') or (r.employee_approval and employee_id == r.employee_approval.id and r.status == 'draft'):
+                check_button_done = True
             if r:
+                date_sent = r.create_date + relativedelta(hours=7)
                 if r.status == 'sent':
                     state = "Nháp"
                 elif r.status == 'draft':
@@ -438,12 +464,20 @@ class AuthAPI(http.Controller):
                 word_slip_data = []
                 for slip in r.word_slip_id:
                     if slip.type.date_and_time == 'time':
+                        hours_start = int(slip.time_to)
+                        minutes_start = int(round((slip.time_to - hours_start) * 60))
+                        time_start = f"{hours_start:02d}:{minutes_start:02d}"
+
+                        hours_end = int(slip.time_from)
+                        minutes_end = int(round((slip.time_from - hours_end) * 60))
+                        time_end = f"{hours_end:02d}:{minutes_end:02d}"
+
                         word_slip_data.append({
                             "id": slip.id,
                             "from_date": str(slip.from_date) or '',
                             "to_date": str(slip.to_date) or '',
-                            "time_to": slip.time_to or '',
-                            "time_from": slip.time_from or '',
+                            "time_to": time_start or '',
+                            "time_from": time_end or '',
                             "reason": slip.reason or '',
                         })
                     else:
@@ -458,10 +492,14 @@ class AuthAPI(http.Controller):
                 if r.regis_type == 'one':
                     data.append({
                         "id": r.id,
+                        "department_id": {
+                            "id": r.department.id,
+                            "name": r.department.name
+                        },
                         "code": r.code,
                         "status": state,
                         "regis_type": "Tạo cho tôi",
-                        "date_sent": str(r.create_date),
+                        "date_sent": str(date_sent),
                         "type": {
                             "id": r.type.id,
                             "name": r.type.name
@@ -470,7 +508,9 @@ class AuthAPI(http.Controller):
                         "employee_id": {
                             "id": r.employee_id.id,
                             "name": r.employee_id.name
-                        }
+                        },
+                        "button_sent": check_button_sent,
+                        "button_done": check_button_done
                     })
                 else:
                     list_employee = []
@@ -481,16 +521,22 @@ class AuthAPI(http.Controller):
                         })
                     data.append({
                         "id": r.id,
+                        "department_id": {
+                            "id": r.department.id,
+                            "name": r.department.name
+                        },
                         "code": r.code,
                         "status": state,
                         "regis_type": "Tạo hộ",
-                        "date_sent": str(r.create_date),
+                        "date_sent": str(date_sent),
                         "type": {
                             "id": r.type.id,
                             "name": r.type.name
                         },
                         "date": word_slip_data,
-                        "employee_id": list_employee
+                        "employee_id": list_employee,
+                        "button_sent": check_button_sent,
+                        "button_done": check_button_done
                     })
 
             return Response(
@@ -712,3 +758,216 @@ class AuthAPI(http.Controller):
                 {"success": False,
                  "error": str(e)
                  }), content_type="application/json", status=500)
+
+    @http.route('/api/create/word_slip', type='http', auth='none', methods=['POST'], csrf=False)
+    def api_create_word_slip(self, **kwargs):
+        try:
+            with request.env.cr.savepoint():
+                data = request.httprequest.get_json()
+
+                # Lấy dữ liệu từ request
+                department_id = data.get('department_id')
+                regis_type = data.get('regis_type')
+                type_slip = data.get('type_slip')
+                employee = data.get('employee')
+                employees = data.get('employees', [])
+                date_data = data.get('date', [])
+
+                # Gộp danh sách employee để tìm công ty
+                list_emp = [employee] if employee else employees
+                if not list_emp:
+                    raise ValueError("Dữ liệu nhân viên không được để trống!")
+                if not department_id:
+                    raise ValueError("Dữ liệu phòng ban không được để trống!")
+                if not regis_type:
+                    raise ValueError("Loại đăng ký không được để trống!")
+                if not type_slip:
+                    raise ValueError("Loại đơn không được để trống!")
+
+                employee_record = request.env['hr.employee'].sudo().search([('id', 'in', list_emp)], limit=1)
+                if not employee_record:
+                    raise ValueError("Không tìm thấy nhân viên phù hợp!")
+                department_record = request.env['hr.department'].sudo().search([('id', '=', department_id)], limit=1)
+                if not department_record:
+                    raise ValueError("Không tìm thấy phòng ban phù hợp!")
+
+                company = employee_record.company_id
+
+                # Xử lý dữ liệu dòng ngày nghỉ
+                date_lines = []
+                for d in date_data:
+                    float_from = 0
+                    float_to = 0
+                    time_from = d.get("time_from"),
+                    time_from = time_from[0]
+                    time_to = d.get("time_to"),
+                    time_to = time_to[0]
+                    if time_from not in (None, '', False):
+                        time_obj = datetime.strptime(time_from, "%H:%M")
+                        float_from = time_obj.hour + time_obj.minute / 60.0
+                    if time_to not in (None, '', False):
+                        time_obj = datetime.strptime(time_to, "%H:%M")
+                        float_to = time_obj.hour + time_obj.minute / 60.0
+                    date_lines.append((0, 0, {
+                        "from_date": str(d.get("from_date")),
+                        "to_date": str(d.get("to_date")),
+                        "start_time": d.get("start_time"),
+                        "end_time": d.get("end_time"),
+                        "time_from": float_from,
+                        "time_to": float_to,
+                        "reason": d.get("reason"),
+                    }))
+
+                # Chuẩn bị dữ liệu tạo bản ghi
+                vals = {
+                    'department': department_id,
+                    'regis_type': regis_type,
+                    'type': type_slip,
+                    'word_slip_id': date_lines,
+                    'employee_id': employee,
+                    'status': 'sent',
+                    'status_lv1': 'sent',
+                    'status_lv2': 'sent',
+                    'company_id': company.id,
+                    'employee_ids': [(6, 0, employees)],
+                }
+
+                # Tạo record
+                record = request.env['form.word.slip'].sudo().create(vals)
+
+                # Trả về kết quả
+                return Response(json.dumps({
+                    "success": True,
+                    "id": record.id
+                }), content_type="application/json", status=200)
+
+        except Exception as e:
+            # Log lỗi cho admin (nếu cần)
+            request.env.cr.rollback()  # Dự phòng rollback toàn bộ transaction
+            return Response(json.dumps({
+                "success": False,
+                "error": str(e)
+            }), content_type="application/json", status=500)
+
+    @http.route('/api/change/status/<int:id>', type='http', auth='none', methods=['PUT'], csrf=False)
+    def api_change_status(self, id):
+        try:
+            record = request.env['form.word.slip'].sudo().search([('id', '=', id)])
+            if not record:
+                raise ValueError("Không tìm thấy bản ghi")
+            else:
+                if not record.check_level:
+                    if record.status == 'sent':
+                        record.status = 'draft'
+                        record.status_lv1 = 'draft'
+                    elif record.status == 'draft':
+                        record.status = 'done'
+                        record.status_lv1 = 'done'
+                else:
+                    if record.status_lv2 == 'sent':
+                        record.status = 'draft'
+                        record.status_lv2 = 'draft'
+                    elif record.status_lv2 == 'draft':
+                        record.status = 'draft'
+                        record.status_lv1 = 'confirm'
+                    elif record.status_lv2 == 'confirm':
+                        record.status = 'done'
+                        record.status_lv1 = 'done'
+
+                # Trả về kết quả
+                return Response(json.dumps({
+                    "success": True,
+                    "id": record.id,
+                    "msg": "Bấm nút thành công",
+                }), content_type="application/json", status=200)
+
+        except Exception as e:
+            # Log lỗi cho admin (nếu cần)
+            request.env.cr.rollback()  # Dự phòng rollback toàn bộ transaction
+            return Response(json.dumps({
+                "success": False,
+                "error": str(e)
+            }), content_type="application/json", status=500)
+
+    @http.route('/api/get_word_slip_user_waiting/<int:id_employee>', type='http', auth='none', methods=['GET'], csrf=False)
+    def get_word_slip_user_waiting(self, id_employee):
+        try:
+            list_records = request.env['form.word.slip'].sudo().search([
+                '&',
+                ('status', '=', 'draft'),
+                '|',
+                ('employee_id', '=', id_employee),
+                ('employee_ids', 'in', id_employee)
+            ])
+            data = []
+            if list_records:
+                for r in list_records:
+                    date_sent = r.create_date + relativedelta(hours=7)
+                    word_slip_data = []
+                    for slip in r.word_slip_id:
+                        if slip.type.date_and_time == 'time':
+                            word_slip_data.append({
+                                "id": slip.id,
+                                "from_date": str(slip.from_date) or '',
+                                "to_date": str(slip.to_date) or '',
+                                "time_to": slip.time_to or '',
+                                "time_from": slip.time_from or '',
+                                "reason": slip.reason or '',
+                            })
+                        else:
+                            word_slip_data.append({
+                                "id": slip.id,
+                                "from_date": str(slip.from_date) or '',
+                                "to_date": str(slip.to_date) or '',
+                                "start_time": "Nửa ca đầu" if slip.start_time == 'first_half' else "Nửa ca sau",
+                                "end_time": "Nửa ca đầu" if slip.end_time == 'first_half' else "Nửa ca sau",
+                                "reason": slip.reason or '',
+                            })
+                    if r.regis_type == 'one':
+                        data.append({
+                            "id": r.id,
+                            "code": r.code,
+                            "status": "Chờ duyệt",
+                            "regis_type": "Tạo cho tôi",
+                            "date_sent": str(date_sent),
+                            "type": {
+                                "id": r.type.id,
+                                "name": r.type.name
+                            },
+                            "date": word_slip_data,
+                            "employee_id": {
+                                "id": r.employee_id.id,
+                                "name": r.employee_id.name
+                            }
+                        })
+                    else:
+                        list_employee = []
+                        for emp in r.employee_ids:
+                            list_employee.append({
+                                'id': emp.id,
+                                'name': emp.name,
+                            })
+                        data.append({
+                            "id": r.id,
+                            "code": r.code,
+                            "status": "Chờ duyệt",
+                            "regis_type": "Tạo hộ",
+                            "date_sent": str(date_sent),
+                            "type": {
+                                "id": r.type.id,
+                                "name": r.type.name
+                            },
+                            "date": word_slip_data,
+                            "employee_id": list_employee
+                        })
+
+            return Response(
+                json.dumps({"success": True, "data": data}),
+                status=200, content_type="application/json"
+            )
+        except Exception as e:
+            return Response(json.dumps(
+                {"success": False,
+                 "error": str(e)
+                 }), content_type="application/json", status=500)
+
