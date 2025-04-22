@@ -9,9 +9,35 @@
         <field name="body_html" type="html">
             <div style="margin: 0px; padding: 0px;">
                 <p style="margin: 0px; padding: 0px; font-size: 13px;">
-                    Dear anh/chị <t t-out="object.approve_people.name or ''"/>
+                    Dear anh/chị <t t-out="object.approve_people.name or ''"/>,
                     <br/>
-                    Có 1 đơn đặt xe đang chờ anh/chị phê duyệt!
+                    Có 1 đơn đặt xe đang chờ anh/chị phê duyệt với thông tin:
+                    <br/>
+                    - Công ty: <t t-out="object.company_id.name"/>
+                    <br/>
+                    - Phòng ban: <t t-out="object.department_id.name"/>
+                    <br/>
+                    - Mục đích sử dụng: <t t-out="object.purpose"/>
+                    <br/>
+                    - Số người đi: <t t-out="object.amount_people"/>
+                    <br/>
+                    - Người liên hệ: <t t-out="object.booking_employee_id.name"/>
+                    <br/>
+                    - Chức vụ người liên hệ: <t t-out="object.booking_employee_id.job_id.name"/>
+                    <br/>
+                    - Số điện thoại người liên hệ: <t t-out="object.phone_number"/>
+                    <br/>
+                    - Điểm khởi hành: <t t-out="object.start_place"/>
+                    <br/>
+                    - Điểm đến: <t t-out="object.end_place"/>
+                    <br/>
+                    - Ngày khởi hành: <t t-out="object.start_date"/>
+                    <br/>
+                    - Ngày kết thúc: <t t-out="object.end_date"/>
+                    <br/>
+                    - Thời gian khởi hành: <t t-out="object.start_time"/>
+                    <br/>
+                    - Thời gian kết thúc: <t t-out="object.end_time"/>
                 </p>
             </div>
         </field>
@@ -26,9 +52,35 @@
         <field name="body_html" type="html">
             <div style="margin: 0px; padding: 0px;">
                 <p style="margin: 0px; padding: 0px; font-size: 13px;">
-                    Dear anh/chị <t t-out="object.competency_employee.name or ''"/>
+                    Dear anh/chị <t t-out="object.competency_employee.name or ''"/>,
                     <br/>
-                    Có 1 đơn đặt xe đang chờ anh/chị xử lý!
+                    Có 1 đơn đặt xe đang chờ anh/chị xử lý với thông tin:
+                    <br/>
+                    - Công ty: <t t-out="object.company_id.name"/>
+                    <br/>
+                    - Phòng ban: <t t-out="object.department_id.name"/>
+                    <br/>
+                    - Mục đích sử dụng: <t t-out="object.purpose"/>
+                    <br/>
+                    - Số người đi: <t t-out="object.amount_people"/>
+                    <br/>
+                    - Người liên hệ: <t t-out="object.booking_employee_id.name"/>
+                    <br/>
+                    - Chức vụ người liên hệ: <t t-out="object.booking_employee_id.job_id.name"/>
+                    <br/>
+                    - Số điện thoại người liên hệ: <t t-out="object.phone_number"/>
+                    <br/>
+                    - Điểm khởi hành: <t t-out="object.start_place"/>
+                    <br/>
+                    - Điểm đến: <t t-out="object.end_place"/>
+                    <br/>
+                    - Ngày khởi hành: <t t-out="object.start_date"/>
+                    <br/>
+                    - Ngày kết thúc: <t t-out="object.end_date"/>
+                    <br/>
+                    - Thời gian khởi hành: <t t-out="object.start_time"/>
+                    <br/>
+                    - Thời gian kết thúc: <t t-out="object.end_time"/>
                 </p>
             </div>
         </field>
@@ -37,15 +89,130 @@
     <record id="template_mail_approved" model="mail.template">
         <field name="name">Gửi mail đơn đặt xe được duyệt</field>
         <field name="model_id" ref="model_book_car"/>
-        <field name="subject">Đơn đặt xe được duyệt</field>
-        <field name="email_to">{{object.approve_people.work_email}}</field>
+        <field name="subject">Đơn đặt xe đã được duyệt</field>
+        <field name="email_to">{{object.booking_employee_id.work_email}}</field>
         <field name="email_from">adminservices@sonha.com.vn</field>
         <field name="body_html" type="html">
             <div style="margin: 0px; padding: 0px;">
                 <p style="margin: 0px; padding: 0px; font-size: 13px;">
-                    Dear anh/chị <t t-out="object.approve_people.name or ''"/>
+                    Dear anh/chị <t t-out="object.employee_id.name or ''"/>,
                     <br/>
                     Đơn đặt xe của anh/chị đã được duyệt!
+                    <br/>
+                    Đơn đặt xe với thông tin:
+                    <br/>
+                    - Công ty: <t t-out="object.company_id.name"/>
+                    <br/>
+                    - Phòng ban: <t t-out="object.department_id.name"/>
+                    <br/>
+                    - Mục đích sử dụng: <t t-out="object.purpose"/>
+                    <br/>
+                    - Số người đi: <t t-out="object.amount_people"/>
+                    <br/>
+                    - Người liên hệ: <t t-out="object.booking_employee_id.name"/>
+                    <br/>
+                    - Chức vụ người liên hệ: <t t-out="object.booking_employee_id.job_id.name"/>
+                    <br/>
+                    - Số điện thoại người liên hệ: <t t-out="object.phone_number"/>
+                    <br/>
+                    - Điểm khởi hành: <t t-out="object.start_place"/>
+                    <br/>
+                    - Điểm đến: <t t-out="object.end_place"/>
+                    <br/>
+                    - Ngày khởi hành: <t t-out="object.start_date"/>
+                    <br/>
+                    - Ngày kết thúc: <t t-out="object.end_date"/>
+                    <br/>
+                    - Thời gian khởi hành: <t t-out="object.start_time"/>
+                    <br/>
+                    - Thời gian kết thúc: <t t-out="object.end_time"/>
+                </p>
+            </div>
+        </field>
+    </record>
+
+    <record id="template_mail_accept_to_driver" model="mail.template">
+        <field name="name">Gửi mail xác nhận chuyến xe đến lái xe</field>
+        <field name="model_id" ref="model_book_car"/>
+        <field name="subject">Xác nhận chuyến xe</field>
+        <field name="email_to">{{object.driver.work_email}}</field>
+        <field name="email_from">adminservices@sonha.com.vn</field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                    Dear anh/chị <t t-out="object.driver.name or ''"/>,
+                    <br/>
+                    Đã xác nhận chuyến xe với thông tin:
+                    <br/>
+                    - Người liên hệ: <t t-out="object.booking_employee_id.name"/>
+                    <br/>
+                    - Số điện thoại người liên hệ: <t t-out="object.phone_number"/>
+                    <br/>
+                    - Điểm khởi hành: <t t-out="object.start_place"/>
+                    <br/>
+                    - Điểm đến: <t t-out="object.end_place"/>
+                    <br/>
+                    - Ngày khởi hành: <t t-out="object.start_date"/>
+                    <br/>
+                    - Ngày kết thúc: <t t-out="object.end_date"/>
+                    <br/>
+                    - Thời gian khởi hành: <t t-out="object.start_time"/>
+                    <br/>
+                    - Thời gian kết thúc: <t t-out="object.end_time"/>
+                </p>
+            </div>
+        </field>
+    </record>
+
+    <record id="template_mail_accept_to_creator" model="mail.template">
+        <field name="name">Gửi mail xác nhận chuyến xe đến người dùng</field>
+        <field name="model_id" ref="model_book_car"/>
+        <field name="subject">Đơn đặt xe đã được xử lý</field>
+        <field name="email_to">{{object.booking_employee_id.work_email}}</field>
+        <field name="email_from">adminservices@sonha.com.vn</field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                    Dear anh/chị <t t-out="object.booking_employee_id.name or ''"/>,
+                    <br/>
+                    <t t-if="object.type == 'exist_car'">
+                        Đơn đặt xe của anh/chị đã được xử lý, thông tin về xe là:
+                        <br/>
+                        - Người lái xe: <t t-out="object.driver.name"/>
+                        <br/>
+                        - Số điện thoại lái xe: <t t-out="object.driver_phone"/>
+                        <br/>
+                        - Biển số xe: <t t-out="object.license_plate"/>
+                    </t>
+                    <t t-if="object.type == 'issuing_card'">
+                        Hiện tại không có xe, mời anh/chị sử dụng thẻ taxi!
+                    </t>
+                    <t t-if="object.type == 'cancel'">
+                        Đơn đặt xe bị hủy với lý do: <t t-out="object.reason"/>
+                    </t>
+                </p>
+            </div>
+        </field>
+    </record>
+
+    <record id="template_mail_edit_driver_infor" model="mail.template">
+        <field name="name">Gửi mail chỉnh sửa thông tin lái xe</field>
+        <field name="model_id" ref="model_book_car"/>
+        <field name="subject">Thông tin lái xe được chỉnh sửa</field>
+        <field name="email_to">{{object.booking_employee_id.work_email}}</field>
+        <field name="email_from">adminservices@sonha.com.vn</field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                    Dear anh/chị <t t-out="object.employee_id.name or ''"/>,
+                    <br/>
+                    Thông tin xe sau khi được chỉnh sửa là:
+                    <br/>
+                    - Người lái xe: <t t-out="object.driver.name"/>
+                    <br/>
+                    - Số điện thoại lái xe: <t t-out="object.driver_phone"/>
+                    <br/>
+                    - Biển số xe: <t t-out="object.license_plate"/>
                 </p>
             </div>
         </field>
