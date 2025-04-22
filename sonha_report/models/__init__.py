@@ -6,3 +6,4 @@ from . import leave_report
 from . import synthetic_leave_report
 from . import sonha_employee_report
 from . import sonha_contract_report
+from . import config_template_report

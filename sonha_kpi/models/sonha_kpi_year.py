@@ -144,16 +144,16 @@ class SonHaKPIYear(models.Model):
         for r in record:
             self.filter_date_year(r)
             self.filter_conversion_data(r)
-            self.validate_kpi_year(r)
+            # self.validate_kpi_year(r)
             # self.is_missing_field(r)
         return record
 
-    def validate_kpi_year(self, record):
-        total_kpi = self.env['sonha.kpi.year'].sudo().search([('year', '=', record.year),
-                                                              ('sonha_kpi', '=', record.sonha_kpi.id)])
-        validate_total = sum(total_kpi.mapped('kpi_year'))
-        if validate_total > 1:
-            raise ValidationError("KPI KH cả năm không được lớn hơn 100%")
+    # def validate_kpi_year(self, record):
+    #     total_kpi = self.env['sonha.kpi.year'].sudo().search([('year', '=', record.year),
+    #                                                           ('sonha_kpi', '=', record.sonha_kpi.id)])
+    #     validate_total = sum(total_kpi.mapped('kpi_year'))
+    #     if validate_total + 0.1 > 1:
+    #         raise ValidationError("KPI KH cả năm không được lớn hơn 100%")
 
     def filter_date_year(self, record):
         if record.sonha_kpi:
