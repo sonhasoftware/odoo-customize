@@ -201,3 +201,7 @@ th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number
 th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.o_percentage_cell.opacity-trigger-hover[data-name="dvdg_kpi"] span.d-block.min-w-0.text-truncate.flex-grow-1.o_list_number_th {
     white-space: pre-line !important;
 }
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="state"] {
+    width: 10% !important;
+}
