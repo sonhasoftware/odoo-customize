@@ -205,6 +205,9 @@ class BookCar(models.Model):
                 r.status_issuing_card = 'issuing'
                 r.type = 'issuing_card'
                 r.list_view_status = r.list_view_status + " → Cấp thẻ"
+                # if r.booking_employee_id.work_email:
+                #     request_template = self.env.ref('sonha_book_car.template_mail_accept_to_creator')
+                #     request_template.send_mail(r.id, force_send=True)
             else:
                 raise ValidationError("Bạn không có quyền thực hiện hành động này!")
 
@@ -226,7 +229,7 @@ class BookCar(models.Model):
 
     def action_return_card(self):
         for r in self:
-            if (r.competency_employee and r.competency_employee.user_id.id == self.env.user.id) or r.booking_employee_id.id == self.env.user.id or self.env.user.id == 2:
+            if (r.competency_employee and r.competency_employee.user_id.id == self.env.user.id) or self.env.user.id == 2:
                 return {
                     'name': 'Nhập thông tin trả thẻ',
                     'type': 'ir.actions.act_window',
