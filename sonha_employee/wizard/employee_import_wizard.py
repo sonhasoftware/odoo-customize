@@ -70,7 +70,7 @@ class EmployeeImportWizard(models.TransientModel):
 
                 self.env['hr.employee'].sudo().create({
                     'name': row['Họ tên'] or '',
-                    'mobile_phone': row['Di động'] or '',
+                    'sonha_number_phone': row['Di động'] or '',
                     'work_email': row['email'] or '',
                     'department_id': department_id.id if department_id else department.id,
                     'job_id': job_id.id if job_id else job.id,
