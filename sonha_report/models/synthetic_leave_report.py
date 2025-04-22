@@ -11,9 +11,4 @@ class SyntheticLeaveReport(models.Model):
     leave = fields.Float(string="Số phép sử dụng")
     total_leave_left = fields.Float(string="Số phép còn lại")
 
-    def create(self, vals):
-        list_record = super(SyntheticLeaveReport, self).create(vals)
-        for record in list_record:
-            record.total_leave_left = record.begin_period - record.leave
-        return list_record
 

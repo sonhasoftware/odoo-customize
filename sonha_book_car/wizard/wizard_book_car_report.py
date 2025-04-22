@@ -5,7 +5,7 @@ class WizardBookCarReport(models.TransientModel):
     _name = 'wizard.book.car.report'
 
     company_id = fields.Many2one('res.company', string="Công ty")
-    department_id = fields.Many2one('hr.department', string="Phòng ban")
+    department_id = fields.Many2one('hr.department', string="Phòng ban", domain="[('company_id', '=', company_id)]")
     start_date = fields.Date("Từ ngày", required=True)
     end_date = fields.Date("Đến ngày", required=True)
     status = fields.Selection([('draft', "Nháp"),

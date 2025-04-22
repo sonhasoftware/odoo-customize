@@ -15,5 +15,8 @@ class WizardNotIssuingCard(models.TransientModel):
             'type': 'cancel',
             'list_view_status': self.parent_id.list_view_status + " → Hủy"
         })
+        # if self.parent_id.booking_employee_id.work_email:
+        #     request_template = self.env.ref('sonha_book_car.template_mail_accept_to_creator')
+        #     request_template.send_mail(self.parent_id.id, force_send=True)
         return {'type': 'ir.actions.act_window_close'}
 

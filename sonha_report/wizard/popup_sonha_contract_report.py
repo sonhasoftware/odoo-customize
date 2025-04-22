@@ -14,10 +14,10 @@ class PopupSonhaContractReport(models.TransientModel):
         self.env['sonha.contract.report'].search([]).sudo().unlink()
         list_records = self.env['hr.contract'].sudo().search([('date_start', '>=', self.from_date),
                                                               ('date_start', '<=', self.to_date)])
-        if self.company_id:
+        if self.company_id and not self.department_id:
             list_records = list_records.filtered(lambda x: x.employee_id.company_id.id == self.company_id.id)
-            if self.department_id:
-                list_records = list_records.filtered(lambda x: x.department_id.id == self.department_id.id)
+        if self.department_id:
+            list_records = list_records.filtered(lambda x: x.department_id.id == self.department_id.id)
         if self.contract_type_id:
             list_records = list_records.filtered(lambda x: x.contract_type_id.id == self.contract_type_id.id)
         if list_records:
