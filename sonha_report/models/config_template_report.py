@@ -7,4 +7,5 @@ class ConfigTemplateReport(models.Model):
     name = fields.Char("Tên báo cáo")
     file = fields.Binary(string="Mẫu báo cáo", attachment=True)
     apply = fields.Many2one('ir.model')
+    key = fields.Char("Key")
 

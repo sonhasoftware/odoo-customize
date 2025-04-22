@@ -84,6 +84,13 @@ class AuthAPI(http.Controller):
             data = []
             if list_records:
                 for r in list_records:
+                    employee_create = []
+                    if r.create_uid:
+                        create_employee = request.env['hr.employee'].sudo().search([('user_id', '=', r.create_uid.id)])
+                        employee_create.append({
+                            "id": create_employee.id,
+                            "name": create_employee.name,
+                        })
                     date_sent = r.create_date + relativedelta(hours=7)
                     word_slip_data = []
                     for slip in r.word_slip_id:
@@ -127,7 +134,8 @@ class AuthAPI(http.Controller):
                             "employee_id": {
                                 "id": r.employee_id.id,
                                 "name": r.employee_id.name
-                            }
+                            },
+                            "employee_create": employee_create
                         })
                     else:
                         list_employee = []
@@ -147,7 +155,8 @@ class AuthAPI(http.Controller):
                                 "name": r.type.name
                             },
                             "date": word_slip_data,
-                            "employee_id": list_employee
+                            "employee_id": list_employee,
+                            "employee_create": employee_create
                         })
 
             return Response(
@@ -353,6 +362,13 @@ class AuthAPI(http.Controller):
             data = []
             if list_records:
                 for r in list_records:
+                    employee_create = []
+                    if r.create_uid:
+                        create_employee = request.env['hr.employee'].sudo().search([('user_id', '=', r.create_uid.id)])
+                        employee_create.append({
+                            "id": create_employee.id,
+                            "name": create_employee.name,
+                        })
                     date_sent = r.create_date + relativedelta(hours=7)
                     if r.status == 'sent':
                         state = "Nháp"
@@ -404,7 +420,8 @@ class AuthAPI(http.Controller):
                             "employee_id": {
                                 "id": r.employee_id.id,
                                 "name": r.employee_id.name
-                            }
+                            },
+                            "employee_create": employee_create
                         })
                     else:
                         list_employee = []
@@ -424,7 +441,8 @@ class AuthAPI(http.Controller):
                                 "name": r.type.name
                             },
                             "date": word_slip_data,
-                            "employee_id": list_employee
+                            "employee_id": list_employee,
+                            "employee_create": employee_create
                         })
 
             return Response(
@@ -443,11 +461,19 @@ class AuthAPI(http.Controller):
             r = request.env['form.word.slip'].sudo().search([
                 ('id', '=', id)
             ])
+            employee_create = []
+            if r.create_uid:
+                create_employee = request.env['hr.employee'].sudo().search([('user_id', '=', r.create_uid.id)])
+                employee_create.append({
+                    "id": create_employee.id,
+                    "name": create_employee.name,
+                })
+            user_id = request.env['hr.employee'].sudo().search([('id', '=', employee_id)]).user_id
             data = []
             list_employee = [r.employee_id.id] or r.employee_ids.ids
             check_button_sent = False
             check_button_done = False
-            if employee_id in list_employee and r.status == 'sent':
+            if ((employee_id in list_employee) or (r.create_uid.id and user_id.id == r.create_uid.id)) and r.status == 'sent':
                 check_button_sent = True
             if (r.employee_confirm and employee_id == r.employee_confirm.id and r.status == 'draft') or (r.employee_approval and employee_id == r.employee_approval.id and r.status == 'draft'):
                 check_button_done = True
@@ -510,7 +536,8 @@ class AuthAPI(http.Controller):
                             "name": r.employee_id.name
                         },
                         "button_sent": check_button_sent,
-                        "button_done": check_button_done
+                        "button_done": check_button_done,
+                        "employee_create": employee_create
                     })
                 else:
                     list_employee = []
@@ -536,7 +563,8 @@ class AuthAPI(http.Controller):
                         "date": word_slip_data,
                         "employee_id": list_employee,
                         "button_sent": check_button_sent,
-                        "button_done": check_button_done
+                        "button_done": check_button_done,
+                        "employee_create": employee_create
                     })
 
             return Response(
@@ -759,8 +787,8 @@ class AuthAPI(http.Controller):
                  "error": str(e)
                  }), content_type="application/json", status=500)
 
-    @http.route('/api/create/word_slip', type='http', auth='none', methods=['POST'], csrf=False)
-    def api_create_word_slip(self, **kwargs):
+    @http.route('/api/create/word_slip/<int:employee_id>', type='http', auth='none', methods=['POST'], csrf=False)
+    def api_create_word_slip(self, employee_id):
         try:
             with request.env.cr.savepoint():
                 data = request.httprequest.get_json()
@@ -772,6 +800,9 @@ class AuthAPI(http.Controller):
                 employee = data.get('employee')
                 employees = data.get('employees', [])
                 date_data = data.get('date', [])
+                if not employee_id:
+                    raise ValueError("Không có dữ liệu người đăng nhập!")
+                user_id = request.env['hr.employee'].sudo().search([('id', '=', employee_id)]).user_id
 
                 # Gộp danh sách employee để tìm công ty
                 list_emp = [employee] if employee else employees
@@ -833,7 +864,7 @@ class AuthAPI(http.Controller):
                 }
 
                 # Tạo record
-                record = request.env['form.word.slip'].sudo().create(vals)
+                record = request.env['form.word.slip'].with_user(user_id).sudo().create(vals)
 
                 # Trả về kết quả
                 return Response(json.dumps({
@@ -902,6 +933,13 @@ class AuthAPI(http.Controller):
             data = []
             if list_records:
                 for r in list_records:
+                    employee_create = []
+                    if r.create_uid:
+                        create_employee = request.env['hr.employee'].sudo().search([('user_id', '=', r.create_uid.id)])
+                        employee_create.append({
+                            "id": create_employee.id,
+                            "name": create_employee.name,
+                        })
                     date_sent = r.create_date + relativedelta(hours=7)
                     word_slip_data = []
                     for slip in r.word_slip_id:
@@ -938,7 +976,8 @@ class AuthAPI(http.Controller):
                             "employee_id": {
                                 "id": r.employee_id.id,
                                 "name": r.employee_id.name
-                            }
+                            },
+                            "employee_create": employee_create
                         })
                     else:
                         list_employee = []
@@ -958,7 +997,8 @@ class AuthAPI(http.Controller):
                                 "name": r.type.name
                             },
                             "date": word_slip_data,
-                            "employee_id": list_employee
+                            "employee_id": list_employee,
+                            "employee_create": employee_create
                         })
 
             return Response(
@@ -970,4 +1010,56 @@ class AuthAPI(http.Controller):
                 {"success": False,
                  "error": str(e)
                  }), content_type="application/json", status=500)
+
+    @http.route('/api/status/cancel/<int:id>', type='http', auth='none', methods=['PUT'], csrf=False)
+    def api_status_cancel(self, id):
+        try:
+            record = request.env['form.word.slip'].sudo().search([('id', '=', id)])
+            if not record:
+                raise ValueError("Không tìm thấy bản ghi")
+            else:
+                record.status = 'cancel'
+                record.status_lv1 = 'cancel'
+                record.status_lv2 = 'cancel'
+
+                # Trả về kết quả
+                return Response(json.dumps({
+                    "success": True,
+                    "id": record.id,
+                    "msg": "Bấm nút thành công",
+                }), content_type="application/json", status=200)
+
+        except Exception as e:
+            # Log lỗi cho admin (nếu cần)
+            request.env.cr.rollback()  # Dự phòng rollback toàn bộ transaction
+            return Response(json.dumps({
+                "success": False,
+                "error": str(e)
+            }), content_type="application/json", status=500)
+
+    @http.route('/api/back/status/<int:id>', type='http', auth='none', methods=['PUT'], csrf=False)
+    def api_back_status(self, id):
+        try:
+            record = request.env['form.word.slip'].sudo().search([('id', '=', id)])
+            if not record:
+                raise ValueError("Không tìm thấy bản ghi")
+            else:
+                record.status = 'sent'
+                record.status_lv1 = 'sent'
+                record.status_lv2 = 'sent'
+
+                # Trả về kết quả
+                return Response(json.dumps({
+                    "success": True,
+                    "id": record.id,
+                    "msg": "Bấm nút thành công",
+                }), content_type="application/json", status=200)
+
+        except Exception as e:
+            # Log lỗi cho admin (nếu cần)
+            request.env.cr.rollback()  # Dự phòng rollback toàn bộ transaction
+            return Response(json.dumps({
+                "success": False,
+                "error": str(e)
+            }), content_type="application/json", status=500)
 
