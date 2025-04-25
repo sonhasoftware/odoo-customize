@@ -1,0 +1,71 @@
+<odoo>
+    <record id="action_dismissal_person" model="ir.actions.act_window">
+        <field name="name">Khác</field>
+        <field name="res_model">dismissal.person</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="view_dismissal_person_tree" model="ir.ui.view">
+        <field name="name">view.dismissal.person.tree</field>
+        <field name="model">dismissal.person</field>
+        <field name="arch" type="xml">
+            <tree string="Danh sách">
+                    <field name="object_discipline"/>
+                    <field name="person_dismissal"/>
+                    <field name="date_discipline"/>
+                    <field name="discipline_number"/>
+                    <field name="form_discipline"/>
+                    <field name="sign_person"/>
+                    <field name="date_sign"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_dismissal_person_form" model="ir.ui.view">
+        <field name="name">view.dismissal.person.form</field>
+        <field name="model">dismissal.person</field>
+        <field name="arch" type="xml">
+            <form string="Khác">
+                <sheet>
+                    <group col="1" string="Thông tin">
+                        <group>
+                            <field name="object_discipline" domain="[('type', '=', 'person')]"/>
+                            <field name="date_discipline"/>
+                        </group>
+                        <group>
+                            <field name="person_dismissal">
+                                <tree editable="bottom">
+                                    <field name="emp_code"/>
+                                    <field name="name"/>
+                                    <field name="job"/>
+                                    <field name="department"/>
+                                </tree>
+                            </field>
+                        </group>
+                        <group>
+                            <field name="reason"/>
+                            <field name="content"/>
+                        </group>
+                    </group>
+                    <group string="Phê duyệt" >
+                        <group>
+                            <field name="discipline_number"/>
+                            <field name="form_discipline" domain="[('type', '=', 'discipline')]"/>
+                            <field name="form_discipline_properties"/>
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                            <field name="sign_person"/>
+                            <field name="title_person_sign"/>
+                        </group>
+                        <group>
+                            <field name="state"/>
+                            <field name="note"/>
+                            <field name="date_sign"/>
+                            <field name="file_desision"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

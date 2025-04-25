@@ -282,6 +282,7 @@ class EmployeeRel(models.Model):
     
     person_reward = fields.Many2one('person.reward')
     person_discipline = fields.Many2one('person.discipline')
+    person_dismissal = fields.Many2one('dismissal.person')
     
     @api.depends('name')
     def get_info_employee(self):

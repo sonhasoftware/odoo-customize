@@ -1,0 +1,45 @@
+<odoo>
+    <record id="action_dismissal_report" model="ir.actions.act_window">
+        <field name="name">Quyết định khác</field>
+        <field name="res_model">dismissal.report</field>
+        <field name="view_mode">tree</field>
+    </record>
+
+    <record id="view_dismissal_report_tree" model="ir.ui.view">
+        <field name="name">dismissal.report.tree.view</field>
+        <field name="model">dismissal.report</field>
+        <field name="arch" type="xml">
+            <tree string="Danh sách">
+                <field name="employee_code"/>
+                <field name="person_discipline"/>
+                <field name="department_id"/>
+                <field name="discipline_number"/>
+                <field name="date_sign"/>
+                <field name="date_start"/>
+                <field name="sign_person"/>
+                <field name="reason"/>
+                <field name="note"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_server_send_dismissal_report" model="ir.actions.server">
+        <field name="name">Xuất báo cáo</field>
+        <field name="model_id" ref="sonha_report.model_dismissal_report"/>
+        <field name="binding_model_id" ref="sonha_report.model_dismissal_report"/>
+        <field name="binding_type">action</field>
+        <field name="state">code</field>
+        <field name="code">
+            action = {
+                "type": "ir.actions.act_window",
+                "res_model": "export.report.reward.discipline",
+                "view_mode": "form",
+                "target": "new",
+                "context": {
+                    "active_model": "dismissal.report",
+                    "active_ids": records.ids,
+                }
+            }
+        </field>
+    </record>
+</odoo>

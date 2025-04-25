@@ -1,0 +1,50 @@
+<odoo>
+    <record id="action_reward_report" model="ir.actions.act_window">
+        <field name="name">Quyết định khen thưởng</field>
+        <field name="res_model">reward.report</field>
+        <field name="view_mode">tree</field>
+    </record>
+
+    <record id="view_reward_report_tree" model="ir.ui.view">
+        <field name="name">reward.report.tree.view</field>
+        <field name="model">reward.report</field>
+        <field name="arch" type="xml">
+            <tree string="Quyết định khen thưởng">
+                <field name="employee_code"/>
+                <field name="person_reward"/>
+                <field name="department_id"/>
+                <field name="person_reward_job"/>
+                <field name="desision_number"/>
+                <field name="sign_date"/>
+                <field name="effective_date"/>
+                <field name="option"/>
+                <field name="title_reward"/>
+                <field name="reason"/>
+                <field name="note"/>
+                <field name="amount"/>
+                <field name="level_reward"/>
+                <field name="sign_person"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_server_send_reward_report" model="ir.actions.server">
+        <field name="name">Xuất báo cáo</field>
+        <field name="model_id" ref="sonha_report.model_reward_report"/>
+        <field name="binding_model_id" ref="sonha_report.model_reward_report"/>
+        <field name="binding_type">action</field>
+        <field name="state">code</field>
+        <field name="code">
+            action = {
+                "type": "ir.actions.act_window",
+                "res_model": "export.report.reward.discipline",
+                "view_mode": "form",
+                "target": "new",
+                "context": {
+                    "active_model": "reward.report",
+                    "active_ids": records.ids,
+                }
+            }
+        </field>
+    </record>
+</odoo>

@@ -20,6 +20,11 @@
               parent="menu_sonha_report"
               sequence="1"/>
 
+    <menuitem id="menu_sonha_report_reward_discipline"
+              name="Báo cáo khen thưởng, kỷ luật"
+              parent="menu_sonha_report"
+              sequence="4"/>
+
     <menuitem id="menu_config_template_report"
               name="Cấu hình báo cáo"
               parent="menu_sonha_report"

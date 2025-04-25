@@ -1,0 +1,48 @@
+<odoo>
+    <record id="action_discipline_report" model="ir.actions.act_window">
+        <field name="name">Quyết định kỷ luật</field>
+        <field name="res_model">discipline.report</field>
+        <field name="view_mode">tree</field>
+    </record>
+
+    <record id="view_discipline_report_tree" model="ir.ui.view">
+        <field name="name">discipline.report.tree.view</field>
+        <field name="model">discipline.report</field>
+        <field name="arch" type="xml">
+            <tree string="Danh sách">
+                <field name="employee_code"/>
+                <field name="person_discipline"/>
+                <field name="department_id"/>
+                <field name="person_discipline_job"/>
+                <field name="discipline_number"/>
+                <field name="date_sign"/>
+                <field name="date_start"/>
+                <field name="form_discipline"/>
+                <field name="date_end"/>
+                <field name="amount"/>
+                <field name="form_discipline_properties"/>
+                <field name="reason"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_server_send_discipline_report" model="ir.actions.server">
+        <field name="name">Xuất báo cáo</field>
+        <field name="model_id" ref="sonha_report.model_discipline_report"/>
+        <field name="binding_model_id" ref="sonha_report.model_discipline_report"/>
+        <field name="binding_type">action</field>
+        <field name="state">code</field>
+        <field name="code">
+            action = {
+                "type": "ir.actions.act_window",
+                "res_model": "export.report.reward.discipline",
+                "view_mode": "form",
+                "target": "new",
+                "context": {
+                    "active_model": "discipline.report",
+                    "active_ids": records.ids,
+                }
+            }
+        </field>
+    </record>
+</odoo>

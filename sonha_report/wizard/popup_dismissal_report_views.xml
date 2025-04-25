@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="popup_dismissal_report_form_view" model="ir.ui.view">
+        <field name="name">popup.dismissal.report.form.view</field>
+        <field name="model">popup.dismissal.report</field>
+        <field name="arch" type="xml">
+            <form string="Quyết định khác">
+                <group>
+                    <field name="from_date"/>
+                    <field name="to_date"/>
+                    <field name="company_id"/>
+                    <field name="department_id"/>
+                    <field name="employee_id"/>
+                    <field name="type"/>
+                </group>
+                <footer>
+                    <button string="Xác nhận" type="object" name="action_confirm" class="oe_highlight"/>
+                    <button string="Cancel" class="oe_link" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_popup_dismissal_report" model="ir.actions.act_window">
+        <field name="name">Quyết định khác</field>
+        <field name="res_model">popup.dismissal.report</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_popup_dismissal_report"
+              name="Quyết định khác"
+              parent="menu_sonha_report_reward_discipline"
+              action="action_popup_dismissal_report"
+              sequence="2"/>
+</odoo>
