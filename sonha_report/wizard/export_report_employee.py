@@ -124,7 +124,7 @@ class ExportReportEmployee(models.TransientModel):
                 sheet.cell(row=row, column=9).value = record.hometown or ''
                 sheet.cell(row=row, column=10).value = record.permanent or ''
                 sheet.cell(row=row, column=11).value = record.permanent or ''
-                sheet.cell(row=row, column=12).value = str(record.sonha_number_phone) or ''
+                sheet.cell(row=row, column=12).value = str(record.sonha_number_phone) if record.sonha_number_phone else ''
                 sheet.cell(row=row, column=13).value = record.number_cccd or ''
                 sheet.cell(row=row, column=14).value = str(record.date_cccd) or ''
                 sheet.cell(row=row, column=15).value = record.place_of_issue or ''
@@ -136,7 +136,7 @@ class ExportReportEmployee(models.TransientModel):
                 sheet.cell(row=row, column=21).value = record.department_id.name or ''
                 sheet.cell(row=row, column=22).value = record.job_id.name or ''
                 sheet.cell(row=row, column=23).value = str(record.onboard) or ''
-                sheet.cell(row=row, column=24).value = str(record.reception_date) or ''
+                sheet.cell(row=row, column=24).value = str(record.reception_date) if record.reception_date else ''
                 sheet.cell(row=row, column=25).value = ''
                 sheet.cell(row=row, column=26).value = ''
                 sheet.cell(row=row, column=27).value = ''
@@ -217,7 +217,7 @@ class ExportReportEmployee(models.TransientModel):
                 count_temporary_contract = len(department_records.filtered(lambda x: "thời vụ" in str(x.contract_id.contract_type_id.name).lower()))
                 count_collaborator_contract = len(department_records.filtered(lambda x: "cộng tác viên" in str(x.contract_id.contract_type_id.name).lower()))
                 contract_type = ['xác định thời hạn', 'không xác định thời hạn', 'thử việc', 'thời vụ', 'cộng tác viên']
-                other_contract = len(department_records.filtered(lambda x: contract not in str(x.contract_id.contract_type_id.name).lower() for contract in contract_type))
+                other_contract = len(department_records.filtered(lambda x: all(contract not in str(x.contract_id.contract_type_id.name).lower() for contract in contract_type)))
 
                 sheet.cell(row=row, column=1).value = stt
                 sheet.cell(row=row, column=2).value = department.company_id.name or ''
@@ -248,7 +248,7 @@ class ExportReportEmployee(models.TransientModel):
                 sheet.cell(row=row, column=27).value = count_temporary_contract
                 sheet.cell(row=row, column=28).value = count_collaborator_contract
                 sheet.cell(row=row, column=29).value = other_contract
-                sheet.cell(row=row, column=29).value = '0'
+                sheet.cell(row=row, column=30).value = ''
 
                 row += 1
                 stt += 1
