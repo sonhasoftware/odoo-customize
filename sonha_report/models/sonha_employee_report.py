@@ -46,3 +46,12 @@ class SonhaEmployeeReport(models.Model):
     seniority_display = fields.Char("Thâm niên")
     sonha_number_phone = fields.Char("Số điện thoại")
     contract_id = fields.Many2one('hr.contract', string="Hợp đồng")
+
+    def get_gender_label(self):
+        return dict(self._fields['gender'].selection).get(self.gender)
+
+    def get_marital_status_label(self):
+        return dict(self._fields['marital_status'].selection).get(self.marital_status)
+
+    def get_religion_label(self):
+        return dict(self._fields['religion'].selection).get(self.religion)

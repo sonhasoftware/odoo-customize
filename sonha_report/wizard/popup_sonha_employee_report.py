@@ -23,7 +23,7 @@ class PopupSonhaEmployeeReport(models.TransientModel):
                 ('date_quit', '>=', self.to_date),
                 '&',
                 ('onboard', '<=', self.to_date),
-                ('status_employee', '!=', 'quit_job'),
+                ('onboard', '>=', self.from_date),
             ])
         else:
             list_records = self.env['hr.employee'].sudo().with_context(active_test=False).search([('onboard', '>=', self.from_date),

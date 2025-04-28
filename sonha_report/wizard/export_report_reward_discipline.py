@@ -22,18 +22,23 @@ class ExportReportRewardDiscipline(models.TransientModel):
         if self.report.key == "tdkl":
             list_record = self.env['discipline.report'].browse(active_ids)
             row = 7
+            row_min = 7
         elif self.report.key == "thklbt":
             list_record = self.env['discipline.report'].browse(active_ids)
             row = 5
+            row_min = 5
         elif self.report.key == "tdkt":
             list_record = self.env['reward.report'].browse(active_ids)
             row = 6
+            row_min = 6
         elif self.report.key == "qdmn":
             list_record = self.env['dismissal.report'].browse(active_ids)
             row = 10
-        elif self.report.key == "qdnv":
+            row_min = 10
+        elif self.report.key == "qdnv" or self.report.key == "qddc":
             list_record = self.env['dismissal.report'].browse(active_ids)
             row = 9
+            row_min = 9
         else:
             raise ValidationError("Chỉ sử dụng báo cáo khen thưởng kỷ luật.")
         file_stream = io.BytesIO(base64.b64decode(self.report.file))
@@ -49,6 +54,7 @@ class ExportReportRewardDiscipline(models.TransientModel):
         )
         center_alignment = Alignment(horizontal='center', vertical='center')
         for record in list_record:
+            # Báo cáo theo dõi kỷ luật
             if self.report.key == "tdkl":
                 sheet.cell(row=row, column=1).value = stt
                 sheet.cell(row=row, column=2).value = record.employee_code or ''
@@ -65,6 +71,7 @@ class ExportReportRewardDiscipline(models.TransientModel):
                 sheet.cell(row=row, column=13).value = record.form_discipline_properties or ''
                 sheet.cell(row=row, column=14).value = record.reason or ''
                 sheet.cell(row=row, column=15).value = ''
+            # Báo cáo theo dõi khen thưởng
             elif self.report.key == "tdkt":
                 sheet.cell(row=row, column=1).value = stt
                 sheet.cell(row=row, column=2).value = record.employee_code or ''
@@ -83,6 +90,7 @@ class ExportReportRewardDiscipline(models.TransientModel):
                 sheet.cell(row=row, column=15).value = record.level_reward.name or ''
                 sheet.cell(row=row, column=16).value = record.sign_person.name or ''
                 sheet.cell(row=row, column=17).value = ''
+            # Báo cáo tổng hợp kỷ luật, bồi thường
             elif self.report.key == "thklbt":
                 sheet.cell(row=row, column=1).value = stt
                 sheet.cell(row=row, column=2).value = record.person_discipline or ''
@@ -92,6 +100,7 @@ class ExportReportRewardDiscipline(models.TransientModel):
                 sheet.cell(row=row, column=6).value = ''
                 sheet.cell(row=row, column=7).value = str(record.discipline_number) or ''
                 sheet.cell(row=row, column=8).value = ''
+            # Báo cáp quyết định miễn nhiệm nhân sự
             elif self.report.key == "qdmn":
                 sheet.cell(row=row, column=1).value = stt
                 sheet.cell(row=row, column=2).value = record.employee_code or ''
@@ -103,6 +112,7 @@ class ExportReportRewardDiscipline(models.TransientModel):
                 sheet.cell(row=row, column=8).value = record.date_start or ''
                 sheet.cell(row=row, column=9).value = record.sign_person.name or ''
                 sheet.cell(row=row, column=10).value = record.note or ''
+            # Báo cáo quyết định nghỉ việc
             elif self.report.key == "qdnv":
                 sheet.cell(row=row, column=1).value = stt
                 sheet.cell(row=row, column=2).value = record.employee_code or ''
@@ -115,6 +125,23 @@ class ExportReportRewardDiscipline(models.TransientModel):
                 sheet.cell(row=row, column=9).value = record.sign_person.name or ''
                 sheet.cell(row=row, column=10).value = record.reason or ''
                 sheet.cell(row=row, column=11).value = record.note or ''
+            # Báo cáo quyết định điều chuyển
+            elif self.report.key == "qddc":
+                sheet.cell(row=row, column=1).value = stt
+                sheet.cell(row=row, column=2).value = record.employee_code or ''
+                sheet.cell(row=row, column=3).value = record.person_discipline or ''
+                sheet.cell(row=row, column=4).value = record.department_id.name or ''
+                sheet.cell(row=row, column=5).value = record.job_id.name or ''
+                sheet.cell(row=row, column=6).value = str(record.date_sign) or ''
+                sheet.cell(row=row, column=7).value = record.discipline_number or ''
+                sheet.cell(row=row, column=8).value = str(record.date_start) or ''
+                sheet.cell(row=row, column=9).value = ''
+                sheet.cell(row=row, column=10).value = ''
+                sheet.cell(row=row, column=11).value = ''
+                sheet.cell(row=row, column=12).value = ''
+                sheet.cell(row=row, column=13).value = ''
+                sheet.cell(row=row, column=14).value = record.sign_person.name or ''
+                sheet.cell(row=row, column=15).value = record.note or ''
 
             row += 1
             stt += 1
@@ -132,7 +159,7 @@ class ExportReportRewardDiscipline(models.TransientModel):
 
 
             # Lưu lại file kết quả
-        for row in sheet.iter_rows(min_row=1, max_row=sheet.max_row, min_col=1, max_col=sheet.max_column):
+        for row in sheet.iter_rows(min_row=row_min, max_row=sheet.max_row, min_col=1, max_col=sheet.max_column):
             for cell in row:
                 cell.border = thin_border
                 cell.alignment = center_alignment
