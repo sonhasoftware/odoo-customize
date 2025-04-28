@@ -12,7 +12,6 @@
             <tree string="Danh sách">
                     <field name="object_discipline"/>
                     <field name="person_dismissal"/>
-                    <field name="date_discipline"/>
                     <field name="discipline_number"/>
                     <field name="form_discipline"/>
                     <field name="sign_person"/>
@@ -30,7 +29,6 @@
                     <group col="1" string="Thông tin">
                         <group>
                             <field name="object_discipline" domain="[('type', '=', 'person')]"/>
-                            <field name="date_discipline"/>
                         </group>
                         <group>
                             <field name="person_dismissal">

@@ -69,6 +69,7 @@ class PopupSonhaEmployeeReport(models.TransientModel):
                     'reason_quit': r.reason_quit,
                     'seniority_display': r.seniority_display,
                     'contract_id': r.contract_id.id,
+                    'address_id': r.address_id.name,
                 }
                 self.env['sonha.employee.report'].sudo().create(vals)
             return {

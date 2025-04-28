@@ -6,7 +6,6 @@ class DismissalPerson(models.Model):
 
     object_discipline = fields.Many2one('object.reward.config', string="Đối tượng", ondelete='cascade')
     person_dismissal = fields.One2many('employee.rel', 'person_dismissal', string="Nhân viên")
-    date_discipline = fields.Date('Ngày vi phạm')
     reason = fields.Char(string="Lý do")
     content = fields.Char(string="Nội dung")
 

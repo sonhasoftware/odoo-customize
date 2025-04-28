@@ -59,7 +59,7 @@ class ExportReportRewardDiscipline(models.TransientModel):
                 sheet.cell(row=row, column=1).value = stt
                 sheet.cell(row=row, column=2).value = record.employee_code or ''
                 sheet.cell(row=row, column=3).value = record.person_discipline or ''
-                sheet.cell(row=row, column=4).value = ''
+                sheet.cell(row=row, column=4).value = record.address or ''
                 sheet.cell(row=row, column=5).value = record.department_id.name or ''
                 sheet.cell(row=row, column=6).value = record.person_discipline_job.name or ''
                 sheet.cell(row=row, column=7).value = record.discipline_number or ''
@@ -76,7 +76,7 @@ class ExportReportRewardDiscipline(models.TransientModel):
                 sheet.cell(row=row, column=1).value = stt
                 sheet.cell(row=row, column=2).value = record.employee_code or ''
                 sheet.cell(row=row, column=3).value = record.person_reward or ''
-                sheet.cell(row=row, column=4).value = ''
+                sheet.cell(row=row, column=4).value = record.address or ''
                 sheet.cell(row=row, column=5).value = record.department_id.name or ''
                 sheet.cell(row=row, column=6).value = record.person_reward_job.name or ''
                 sheet.cell(row=row, column=7).value = str(record.desision_number) or ''
@@ -105,7 +105,7 @@ class ExportReportRewardDiscipline(models.TransientModel):
                 sheet.cell(row=row, column=1).value = stt
                 sheet.cell(row=row, column=2).value = record.employee_code or ''
                 sheet.cell(row=row, column=3).value = record.person_discipline or ''
-                sheet.cell(row=row, column=4).value = ''
+                sheet.cell(row=row, column=4).value = record.address or ''
                 sheet.cell(row=row, column=5).value = record.department_id.name or ''
                 sheet.cell(row=row, column=6).value = record.discipline_number or ''
                 sheet.cell(row=row, column=7).value = record.date_sign or ''
@@ -117,7 +117,7 @@ class ExportReportRewardDiscipline(models.TransientModel):
                 sheet.cell(row=row, column=1).value = stt
                 sheet.cell(row=row, column=2).value = record.employee_code or ''
                 sheet.cell(row=row, column=3).value = record.person_discipline or ''
-                sheet.cell(row=row, column=4).value = ''
+                sheet.cell(row=row, column=4).value = record.address or ''
                 sheet.cell(row=row, column=5).value = record.department_id.name or ''
                 sheet.cell(row=row, column=6).value = record.discipline_number or ''
                 sheet.cell(row=row, column=7).value = record.date_sign or ''

@@ -45,6 +45,7 @@ class PopupDisciplineReport(models.TransientModel):
                     'person_discipline_job': r.job.id,
                     'department_id': r.department.id,
                     'employee_code': r.emp_code,
+                    'address': r.name.address_id.name,
                 }
                 self.env['discipline.report'].sudo().create(vals)
             return {

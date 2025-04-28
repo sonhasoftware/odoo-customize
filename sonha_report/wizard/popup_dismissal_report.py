@@ -43,6 +43,7 @@ class PopupDismissalReport(models.TransientModel):
                     'department_id': r.department.id,
                     'job_id': r.job.id,
                     'employee_code': r.emp_code,
+                    'address': r.name.address_id.name,
                 }
                 self.env['dismissal.report'].sudo().create(vals)
             return {

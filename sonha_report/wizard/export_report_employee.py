@@ -132,7 +132,7 @@ class ExportReportEmployee(models.TransientModel):
                 sheet.cell(row=row, column=17).value = ''
                 sheet.cell(row=row, column=18).value = ''
                 sheet.cell(row=row, column=19).value = record.contract_id.contract_type_id.name or ''
-                sheet.cell(row=row, column=20).value = ''
+                sheet.cell(row=row, column=20).value = record.address_id or ''
                 sheet.cell(row=row, column=21).value = record.department_id.name or ''
                 sheet.cell(row=row, column=22).value = record.job_id.name or ''
                 sheet.cell(row=row, column=23).value = str(record.onboard) or ''
@@ -170,7 +170,7 @@ class ExportReportEmployee(models.TransientModel):
                 sheet.cell(row=row, column=1).value = stt
                 sheet.cell(row=row, column=2).value = record.employee_code or ''
                 sheet.cell(row=row, column=3).value = record.name or ''
-                sheet.cell(row=row, column=4).value = ''
+                sheet.cell(row=row, column=4).value = record.address_id or ''
                 sheet.cell(row=row, column=5).value = record.department_id.name or ''
                 sheet.cell(row=row, column=6).value = record.job_id.name or ''
                 sheet.cell(row=row, column=7).value = 'X' if check_type == 'ctv' else ''
@@ -220,7 +220,7 @@ class ExportReportEmployee(models.TransientModel):
                 other_contract = len(department_records.filtered(lambda x: contract not in str(x.contract_id.contract_type_id.name).lower() for contract in contract_type))
 
                 sheet.cell(row=row, column=1).value = stt
-                sheet.cell(row=row, column=2).value = ''
+                sheet.cell(row=row, column=2).value = department.company_id.name or ''
                 sheet.cell(row=row, column=3).value = department.name or ''
                 sheet.cell(row=row, column=4).value = len(department_records)
                 sheet.cell(row=row, column=5).value = count_male

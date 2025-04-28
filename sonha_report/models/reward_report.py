@@ -22,3 +22,4 @@ class RewardReport(models.Model):
     person_reward_job = fields.Many2one('hr.job', string="Chức vụ")
     department_id = fields.Many2one('hr.department', string="Phòng ban")
     employee_code = fields.Char(string="Mã nhân viên")
+    address = fields.Char(string="Địa chỉ làm việc")
