@@ -23,3 +23,6 @@ class RewardReport(models.Model):
     department_id = fields.Many2one('hr.department', string="Phòng ban")
     employee_code = fields.Char(string="Mã nhân viên")
     address = fields.Char(string="Địa chỉ làm việc")
+
+    def get_option_label(self):
+        return dict(self._fields['option'].selection).get(self.option)

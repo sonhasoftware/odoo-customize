@@ -82,7 +82,7 @@ class ExportReportRewardDiscipline(models.TransientModel):
                 sheet.cell(row=row, column=7).value = str(record.desision_number) or ''
                 sheet.cell(row=row, column=8).value = str(record.sign_date) if record.sign_date else ''
                 sheet.cell(row=row, column=9).value = str(record.effective_date) if record.effective_date else ''
-                sheet.cell(row=row, column=10).value = record.option or ''
+                sheet.cell(row=row, column=10).value = record.get_option_label() or ''
                 sheet.cell(row=row, column=11).value = record.title_reward.name or ''
                 sheet.cell(row=row, column=12).value = record.reason or ''
                 sheet.cell(row=row, column=13).value = record.note or ''
@@ -97,7 +97,7 @@ class ExportReportRewardDiscipline(models.TransientModel):
                 sheet.cell(row=row, column=3).value = record.department_id.name or ''
                 sheet.cell(row=row, column=4).value = record.amount or ''
                 sheet.cell(row=row, column=5).value = record.reason or ''
-                sheet.cell(row=row, column=6).value = ''
+                sheet.cell(row=row, column=6).value = str(record.date_start) if record.date_start else ''
                 sheet.cell(row=row, column=7).value = str(record.discipline_number) or ''
                 sheet.cell(row=row, column=8).value = ''
             # Báo cáp quyết định miễn nhiệm nhân sự
