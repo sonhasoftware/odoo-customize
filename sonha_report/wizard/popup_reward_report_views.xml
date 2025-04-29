@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="popup_reward_report_form_view" model="ir.ui.view">
+        <field name="name">popup.reward.report.form.view</field>
+        <field name="model">popup.reward.report</field>
+        <field name="arch" type="xml">
+            <form string="Quyết định khen thưởng">
+                <group>
+                    <field name="from_date"/>
+                    <field name="to_date"/>
+                    <field name="company_id"/>
+                    <field name="department_id"/>
+                    <field name="employee_id"/>
+                </group>
+                <footer>
+                    <button string="Xác nhận" type="object" name="action_confirm" class="oe_highlight"/>
+                    <button string="Cancel" class="oe_link" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_popup_reward_report" model="ir.actions.act_window">
+        <field name="name">Quyết định khen thưởng</field>
+        <field name="res_model">popup.reward.report</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_popup_reward_report"
+              name="Quyết định khen thưởng"
+              parent="menu_sonha_report_reward_discipline"
+              action="action_popup_reward_report"
+              sequence="1"/>
+</odoo>
