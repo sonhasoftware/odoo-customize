@@ -35,9 +35,9 @@
                     <br/>
                     - Ngày kết thúc: <t t-out="object.end_date"/>
                     <br/>
-                    - Thời gian khởi hành: <t t-out="object.start_time"/>
+                    - Thời gian khởi hành: <t t-out="object.start_time"/>h
                     <br/>
-                    - Thời gian kết thúc: <t t-out="object.end_time"/>
+                    - Thời gian kết thúc: <t t-out="object.end_time"/>h
                 </p>
             </div>
         </field>
@@ -78,9 +78,9 @@
                     <br/>
                     - Ngày kết thúc: <t t-out="object.end_date"/>
                     <br/>
-                    - Thời gian khởi hành: <t t-out="object.start_time"/>
+                    - Thời gian khởi hành: <t t-out="object.start_time"/>h
                     <br/>
-                    - Thời gian kết thúc: <t t-out="object.end_time"/>
+                    - Thời gian kết thúc: <t t-out="object.end_time"/>h
                 </p>
             </div>
         </field>
@@ -123,9 +123,9 @@
                     <br/>
                     - Ngày kết thúc: <t t-out="object.end_date"/>
                     <br/>
-                    - Thời gian khởi hành: <t t-out="object.start_time"/>
+                    - Thời gian khởi hành: <t t-out="object.start_time"/>h
                     <br/>
-                    - Thời gian kết thúc: <t t-out="object.end_time"/>
+                    - Thời gian kết thúc: <t t-out="object.end_time"/>h
                 </p>
             </div>
         </field>
@@ -156,9 +156,9 @@
                     <br/>
                     - Ngày kết thúc: <t t-out="object.end_date"/>
                     <br/>
-                    - Thời gian khởi hành: <t t-out="object.start_time"/>
+                    - Thời gian khởi hành: <t t-out="object.start_time"/>h
                     <br/>
-                    - Thời gian kết thúc: <t t-out="object.end_time"/>
+                    - Thời gian kết thúc: <t t-out="object.end_time"/>h
                 </p>
             </div>
         </field>
