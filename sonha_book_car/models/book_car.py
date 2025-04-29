@@ -12,8 +12,8 @@ class BookCar(models.Model):
     purpose = fields.Text("Mục đích sử dụng", required=True, tracking=True)
     amount_people = fields.Integer("Số người đi", tracking=True)
     phone_number = fields.Char("Số điện thoại liên hệ", required=True, tracking=True)
-    start_place = fields.Text("Điểm khởi hành", tracking=True)
-    end_place = fields.Text("Điểm đến", tracking=True)
+    start_place = fields.Text("Điểm khởi hành", required=True, tracking=True)
+    end_place = fields.Text("Điểm đến", required=True, tracking=True)
     start_date = fields.Date("Ngày khởi hành", required=True, tracking=True)
     end_date = fields.Date("Ngày kết thúc", required=True, tracking=True)
     start_time = fields.Float("Thời gian khởi hành", required=True, tracking=True)
@@ -177,9 +177,9 @@ class BookCar(models.Model):
                 r.status = 'approved'
                 r.type = 'approved'
                 r.list_view_status = r.list_view_status + " → Đã duyệt"
-                # if r.competency_employee.work_email:
-                #     request_template = self.env.ref('sonha_book_car.template_mail_to_competency_employee')
-                #     request_template.send_mail(r.id, force_send=True)
+                if r.competency_employee.work_email:
+                    request_template = self.env.ref('sonha_book_car.template_mail_to_competency_employee')
+                    request_template.send_mail(r.id, force_send=True)
             else:
                 raise ValidationError("Bạn không có quyền thực hiện hành động này!")
 
@@ -205,9 +205,9 @@ class BookCar(models.Model):
                 r.status_issuing_card = 'issuing'
                 r.type = 'issuing_card'
                 r.list_view_status = r.list_view_status + " → Cấp thẻ"
-                # if r.booking_employee_id.work_email:
-                #     request_template = self.env.ref('sonha_book_car.template_mail_accept_to_creator')
-                #     request_template.send_mail(r.id, force_send=True)
+                if r.booking_employee_id.work_email:
+                    request_template = self.env.ref('sonha_book_car.template_mail_accept_to_creator')
+                    request_template.send_mail(r.id, force_send=True)
             else:
                 raise ValidationError("Bạn không có quyền thực hiện hành động này!")
 
@@ -238,7 +238,7 @@ class BookCar(models.Model):
                     'target': 'new',
                     'context': {
                         'default_parent_id': r.id,
-                        'default_return_people': r.employee_id.id,
+                        'default_return_people': r.booking_employee_id.id,
                         'default_department_id': r.department_id.id,
                     },
                 }
@@ -270,9 +270,12 @@ class BookCar(models.Model):
     def unlink(self):
         for r in self:
             if r.status == 'draft' or self.env.user.id == 2:
-                pass
+                if r.employee_id.user_id.id == self.env.user.id or self.env.user.id == 2:
+                    pass
+                else:
+                    raise ValidationError("Chỉ được xóa khi là người tạo đơn!")
             else:
-                raise ValidationError("Chỉ được xóa khi trạng thái là nháp!")
+                raise ValidationError("Chỉ được xóa khi là ở trạng thái nháp!")
         return super(BookCar, self).unlink()
 
     def create(self, vals):
@@ -289,6 +292,9 @@ class BookCar(models.Model):
                 r.status = 'waiting'
                 r.type = 'waiting'
                 r.list_view_status = r.list_view_status + " → Chờ duyệt"
+                if r.approve_people.work_email:
+                    request_template = self.env.ref('sonha_book_car.template_mail_booking_car')
+                    request_template.send_mail(r.id, force_send=True)
             else:
                 raise ValidationError("Bạn không có quyền thực hiện hành động này!")
 
@@ -298,6 +304,9 @@ class BookCar(models.Model):
                 r.status = 'draft'
                 r.type = 'draft'
                 r.list_view_status = "Nháp"
+                if r.booking_employee_id.work_email:
+                    request_template = self.env.ref('sonha_book_car.template_mail_book_car_to_draft')
+                    request_template.send_mail(r.id, force_send=True)
             else:
                 raise ValidationError("Bạn không có quyền thực hiện hành động này!")
 
@@ -355,4 +364,28 @@ class BookCar(models.Model):
                 }
             else:
                 raise ValidationError("Bạn không có quyền thực hiện hành động này!")
+
+    def copy(self, default=None):
+        current_date = datetime.now().date()
+        default = dict(default or {})
+        default.update({
+            'status': 'draft',
+            'status_exist_car': 'approved',
+            'status_issuing_card': 'approved',
+            'driver': None,
+            'driver_phone': '',
+            'license_plate': '',
+            'receive_time': False,
+            'return_people': None,
+            'list_view_status': "Nháp",
+            'reason': "",
+            'reality_start_date': False,
+            'reality_end_date': False,
+            'type': 'draft',
+            'start_date': current_date,
+            'end_date': current_date,
+            'start_time': 0,
+            'end_time': 0,
+        })
+        return super(BookCar, self).copy(default)
 

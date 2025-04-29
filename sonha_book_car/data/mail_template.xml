@@ -95,7 +95,7 @@
         <field name="body_html" type="html">
             <div style="margin: 0px; padding: 0px;">
                 <p style="margin: 0px; padding: 0px; font-size: 13px;">
-                    Dear anh/chị <t t-out="object.employee_id.name or ''"/>,
+                    Dear anh/chị <t t-out="object.booking_employee_id.name or ''"/>,
                     <br/>
                     Đơn đặt xe của anh/chị đã được duyệt!
                     <br/>
@@ -204,7 +204,7 @@
         <field name="body_html" type="html">
             <div style="margin: 0px; padding: 0px;">
                 <p style="margin: 0px; padding: 0px; font-size: 13px;">
-                    Dear anh/chị <t t-out="object.employee_id.name or ''"/>,
+                    Dear anh/chị <t t-out="object.booking_employee_id.name or ''"/>,
                     <br/>
                     Thông tin xe sau khi được chỉnh sửa là:
                     <br/>
@@ -213,6 +213,23 @@
                     - Số điện thoại lái xe: <t t-out="object.driver_phone"/>
                     <br/>
                     - Biển số xe: <t t-out="object.license_plate"/>
+                </p>
+            </div>
+        </field>
+    </record>
+
+    <record id="template_mail_book_car_to_draft" model="mail.template">
+        <field name="name">Gửi mail về nháp cho nhân viên</field>
+        <field name="model_id" ref="model_book_car"/>
+        <field name="subject">Đơn đặt xe đã được đặt về trạng thái nháp</field>
+        <field name="email_to">{{object.booking_employee_id.work_email}}</field>
+        <field name="email_from">adminservices@sonha.com.vn</field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                    Dear anh/chị <t t-out="object.booking_employee_id.name or ''"/>,
+                    <br/>
+                    Đơn đặt của anh/chị đã được đặt lại trạng thái nháp, anh/chị vui lòng kiểm tra lại thông tin!
                 </p>
             </div>
         </field>
