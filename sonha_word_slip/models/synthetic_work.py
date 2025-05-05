@@ -38,6 +38,7 @@ class SyntheticWork(models.Model):
     vacation = fields.Float("Nghỉ mát")
     public_leave = fields.Float("Nghỉ lễ", compute="get_date_work")
     total_work = fields.Float("Tổng công", compute="get_total_work")
+    maternity_leave = fields.Float("Nghỉ vợ sinh")
 
     start_date = fields.Date("Từ ngày")
     end_date = fields.Date("Đến ngày")
@@ -83,10 +84,10 @@ class SyntheticWork(models.Model):
             r.shift_three_crew_four = result['shift_three_crew_four']
             r.toxic_work = result['toxic_work']
 
-    @api.depends('on_leave', 'compensatory_leave', 'public_leave')
+    @api.depends('on_leave', 'compensatory_leave', 'public_leave', 'maternity_leave')
     def get_leave(self):
         for r in self:
-            r.paid_leave = r.on_leave + r.compensatory_leave + r.public_leave + r.filial_leave + r.grandparents_leave
+            r.paid_leave = r.on_leave + r.compensatory_leave + r.public_leave + r.filial_leave + r.grandparents_leave + r.maternity_leave
 
     @api.depends('date_work', 'paid_leave')
     def get_total_work(self):
