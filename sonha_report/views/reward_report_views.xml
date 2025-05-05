@@ -41,6 +41,7 @@
                 "view_mode": "form",
                 "target": "new",
                 "context": {
+                    "default_res_model": env['ir.model']._get('reward.report').id,
                     "active_model": "reward.report",
                     "active_ids": records.ids,
                 }

@@ -11,7 +11,7 @@
                     <field name="license_plate"/>
                 </group>
                 <footer>
-                    <button string="Xác nhận" type="object" name="action_confirm" class="oe_highlight"/>
+                    <button string="Xác nhận" type="object" name="action_confirm" class="oe_highlight" confirm="Bạn có chắc chắn với những thông tin này không?"/>
                     <button string="Hủy" class="oe_link" special="cancel"/>
                 </footer>
             </form>

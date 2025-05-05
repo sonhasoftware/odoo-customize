@@ -13,8 +13,10 @@ from openpyxl import load_workbook
 class ExportReportEmployee(models.TransientModel):
     _name = 'export.report.employee'
 
-    report = fields.Many2one('config.template.report', string="Chọn báo cáo")
+    report = fields.Many2one('config.template.report', string="Chọn báo cáo",
+                             domain="[('apply', '=', res_model)]")
     template_file = fields.Binary("Tệp Excel")
+    res_model = fields.Many2one('ir.model')
 
     def action_export(self):
         active_ids = self.env.context.get('active_ids', [])

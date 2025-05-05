@@ -7,7 +7,7 @@
             <form string="Thông tin xe">
                 <group>
                     <field name="receive_time"/>
-                    <field name="return_people"/>
+                    <field name="return_people" readonly="1"/>
                     <field name="department_id" invisible="1"/>
                 </group>
                 <footer>

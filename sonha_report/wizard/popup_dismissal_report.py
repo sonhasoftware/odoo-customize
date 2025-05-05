@@ -27,7 +27,7 @@ class PopupDismissalReport(models.TransientModel):
             employee_record = employee_record.filtered(lambda x: x.person_dismissal.form_discipline and "miễn nhiệm" in str(x.person_dismissal.form_discipline.name).lower())
         if self.type and self.type == 'quit':
             employee_record = employee_record.filtered(lambda x: x.person_dismissal.form_discipline and "chấm dứt hợp đồng" in str(x.person_dismissal.form_discipline.name).lower())
-        if self.type and self.type == 'quit':
+        if self.type and self.type == 'change':
             employee_record = employee_record.filtered(lambda x: x.person_dismissal.form_discipline and "điều chuyển" in str(x.person_dismissal.form_discipline.name).lower())
         if employee_record:
             for r in employee_record:
