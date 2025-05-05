@@ -36,6 +36,7 @@
                 "view_mode": "form",
                 "target": "new",
                 "context": {
+                    "default_res_model": env['ir.model']._get('dismissal.report').id,
                     "active_model": "dismissal.report",
                     "active_ids": records.ids,
                 }
