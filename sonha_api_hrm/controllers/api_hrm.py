@@ -3,6 +3,7 @@ from odoo.http import request, Response, route
 import json
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+from datetime import timedelta
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -1054,6 +1055,126 @@ class AuthAPI(http.Controller):
                     "id": record.id,
                     "msg": "Bấm nút thành công",
                 }), content_type="application/json", status=200)
+
+        except Exception as e:
+            # Log lỗi cho admin (nếu cần)
+            request.env.cr.rollback()  # Dự phòng rollback toàn bộ transaction
+            return Response(json.dumps({
+                "success": False,
+                "error": str(e)
+            }), content_type="application/json", status=500)
+
+    @http.route('/api/work/detail/<int:employee_id>/<date>', type='http', auth='none', methods=['GET'], csrf=False)
+    def api_work_detail(self, employee_id, date):
+        try:
+            if not employee_id:
+                raise ValueError("Không tìm thấy dữ liệu nhân viên")
+            if not date:
+                raise ValueError("Không tìm thấy dữ liệu ngày")
+            date_obj = datetime.strptime(date, "%d-%m-%Y").date()
+            # date_obj = datetime.strptime(date, "%d-%m-%Y")
+            # new_date_str = date_obj.strftime("%d/%m/%Y")
+            record = request.env['employee.attendance'].sudo().search([
+                ('employee_id', '=', employee_id),
+                ('date', '=', date_obj),
+            ])
+            if not record:
+                raise ValueError("Không tìm thấy bản ghi")
+            else:
+                check_in_plus_7 = record.check_in + timedelta(hours=7) if record.check_in else None
+                check_out_plus_7 = record.check_out + timedelta(hours=7) if record.check_out else None
+                data = {
+                    "employee_id": {
+                        "id": record.employee_id.id,
+                        "name": record.employee_id.name,
+                    },
+                    "department_id": {
+                        "id": record.department_id.id,
+                        "name": record.department_id.name,
+                    },
+                    "date": str(record.date),
+                    "check_in": check_in_plus_7.strftime("%H:%M:%S") if check_in_plus_7 else None,
+                    "check_out": check_out_plus_7.strftime("%H:%M:%S") if check_out_plus_7 else None,
+                    "shift": {
+                        "id": record.shift.id,
+                        "name": record.shift.name,
+                    },
+                    "work_day": record.work_day,
+                    "minutes_late": record.minutes_late,
+                    "minutes_early": record.minutes_early,
+                    "over_time": record.over_time,
+                    "leave": record.leave,
+                    "compensatory": record.compensatory,
+                    "public_leave": record.public_leave,
+                    "c2k3": record.c2k3,
+                    "c3k4": record.c3k4,
+                    "shift_toxic": record.shift_toxic,
+                }
+
+                # Trả về kết quả
+                return Response(
+                    json.dumps({"success": True, "data": data}),
+                    status=200, content_type="application/json"
+                )
+
+        except Exception as e:
+            # Log lỗi cho admin (nếu cần)
+            request.env.cr.rollback()  # Dự phòng rollback toàn bộ transaction
+            return Response(json.dumps({
+                "success": False,
+                "error": str(e)
+            }), content_type="application/json", status=500)
+
+    @http.route('/api/delete_record/<int:record_id>/<int:employee_id>', type='http', auth='none', methods=['DELETE'], csrf=False)
+    def api_delete_record(self, record_id, employee_id):
+        try:
+            record = request.env['form.word.slip'].sudo().search([('id', '=', record_id)])
+            if not record:
+                raise ValueError("Không tìm thấy bản ghi")
+
+            if not employee_id:
+                raise ValueError("Không có dữ liệu user")
+
+            create_employee = request.env['hr.employee'].sudo().search([('user_id', '=', record.create_uid.id)])
+
+            list_emp = [record.employee_id.id] or record.employee_ids.ids
+            if (employee_id in list_emp or employee_id == create_employee.id) and record.status == 'sent':
+                record.sudo().unlink()
+            else:
+                raise ValueError("Chỉ được xóa bản ghi ở trạng thái nháp")
+
+            # Trả về kết quả
+            return Response(json.dumps({
+                "success": True,
+                "msg": "Xóa thành công bản ghi",
+            }), content_type="application/json", status=200)
+
+        except Exception as e:
+            return Response(json.dumps({
+                "success": False,
+                "error": str(e)
+            }), content_type="application/json", status=500)
+
+    @http.route('/api/get/employee_department/<int:department_id>', type='http', auth='none', methods=['GET'], csrf=False)
+    def get_employee_department(self, department_id):
+        try:
+            if not department_id:
+                raise ValueError("Không tìm thấy dữ liệu phòng ban")
+            list_emp = request.env['hr.employee'].sudo().search([('department_id', '=', department_id)])
+            if not list_emp:
+                raise ValueError("Không tìm thấy dữ liệu nhân viên trong phòng ban")
+            data = []
+            for r in list_emp:
+                data.append({
+                    'id': r.id,
+                    'employee_code': r.employee_code,
+                    'name': r.name,
+                })
+                # Trả về kết quả
+            return Response(
+                json.dumps({"success": True, "data": data}),
+                status=200, content_type="application/json"
+            )
 
         except Exception as e:
             # Log lỗi cho admin (nếu cần)

@@ -17,37 +17,38 @@ class PopupSyntheticLeaveReport(models.TransientModel):
         self.env['synthetic.leave.report'].search([]).sudo().unlink()
         list_records = self.env['employee.attendance'].sudo().search([('date', '>=', self.from_date),
                                                                       ('date', '<=', self.to_date)])
-        if self.company_id:
+        if self.company_id and not self.department_id:
             list_records = list_records.filtered(lambda x: x.employee_id.company_id.id == self.company_id.id)
-            if self.department_id:
-                list_records = list_records.filtered(lambda x: x.department_id.id == self.department_id.id)
-                if self.employee_id:
-                    list_records = list_records.filtered(lambda x: x.employee_id.id == self.employee_id.id)
-            # list_records = list_records.filtered(lambda x: x.leave != 0)
-            if list_records:
-                list_emp = list_records.mapped('employee_id')
-                for emp in list_emp:
-                    personal_records = list_records.filtered(lambda x: x.employee_id.id == emp.id)
-                    total_leave_balance_left = self.caculate_begin_period(personal_records[0])
-                    total_leave = sum(personal_records.mapped('leave')) if personal_records else 0
-                    vals = {
-                        'employee_id': emp.id,
-                        'department_id': emp.department_id.id,
-                        'begin_period': total_leave_balance_left,
-                        'leave': total_leave,
-                        'from_date': self.from_date,
-                        'to_date': self.to_date,
-                    }
-                    self.env['synthetic.leave.report'].sudo().create(vals)
-                return {
-                    'type': 'ir.actions.act_window',
-                    'name': 'Báo cáo phép tổng hợp',
-                    'res_model': 'synthetic.leave.report',
-                    'view_mode': 'tree',
-                    'target': 'current',
+        if self.department_id and not self.employee_id:
+            list_records = list_records.filtered(lambda x: x.department_id.id == self.department_id.id)
+        if self.employee_id:
+            list_records = list_records.filtered(lambda x: x.employee_id.id == self.employee_id.id)
+        if list_records:
+            list_emp = list_records.mapped('employee_id')
+            for emp in list_emp:
+                personal_records = list_records.filtered(lambda x: x.employee_id.id == emp.id)
+                total_leave_balance_left = self.caculate_begin_period(personal_records[0])
+                total_leave = sum(personal_records.mapped('leave')) if personal_records else 0
+                leave_left = self.caculate_begin_period(personal_records[-1])
+                vals = {
+                    'employee_id': emp.id,
+                    'department_id': emp.department_id.id,
+                    'begin_period': total_leave_balance_left,
+                    'leave': total_leave,
+                    'from_date': self.from_date,
+                    'to_date': self.to_date,
+                    'total_leave_left': leave_left if personal_records[-1].leave == 0 else leave_left - 1,
                 }
-            else:
-                raise ValidationError("Nhân viên không sử dụng phép trong tháng này!")
+                self.env['synthetic.leave.report'].sudo().create(vals)
+            return {
+                'type': 'ir.actions.act_window',
+                'name': 'Báo cáo phép tổng hợp',
+                'res_model': 'synthetic.leave.report',
+                'view_mode': 'tree',
+                'target': 'current',
+            }
+        else:
+            raise ValidationError("Nhân viên không sử dụng phép trong tháng này!")
 
     def caculate_begin_period(self, record):
         base_timeline = date(2023, 12, 31)
@@ -126,3 +127,4 @@ class PopupSyntheticLeaveReport(models.TransientModel):
                 start_date = end_date
             base_year = base_year + 1
         return total_leave_left
+

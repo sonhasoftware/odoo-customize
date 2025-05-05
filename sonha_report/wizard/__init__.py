@@ -7,3 +7,7 @@ from . import popup_synthetic_leave_report
 from . import popup_sonha_employee_report
 from . import popup_sonha_contract_report
 from . import export_report_employee
+from . import popup_reward_report
+from . import popup_discipline_report
+from . import export_report_reward_discipline
+from . import popup_dismissal_report

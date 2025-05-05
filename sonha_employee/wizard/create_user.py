@@ -26,7 +26,7 @@ class CreateUserWizard(models.TransientModel):
                     'password': "123456",
                     'email': employee.work_email or '',
                     'employee_ids': [(4, employee.id)],
-                    'groups_id': [(6, 0, [self.env.ref('base.group_user').id])],
+                    'groups_id': [(6, 0, [self.env.ref('sonha_employee.group_user_employee').id])],
                 }
                 users_to_create.append(user_vals)
 

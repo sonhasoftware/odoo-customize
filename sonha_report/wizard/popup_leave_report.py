@@ -18,37 +18,35 @@ class PopupLeaveReport(models.TransientModel):
         self.env['leave.report'].search([]).sudo().unlink()
         list_records = self.env['employee.attendance'].sudo().search([('date', '>=', self.from_date),
                                                                       ('date', '<=', self.to_date)])
-        if self.company_id:
+        if self.company_id and not self.department_id:
             list_records = list_records.filtered(lambda x: x.employee_id.company_id.id == self.company_id.id)
-            if self.department_id:
-                list_records = list_records.filtered(lambda x: x.department_id.id == self.department_id.id)
-                if self.employee_id:
-                    list_records = list_records.filtered(lambda x: x.employee_id.id == self.employee_id.id)
-            list_records = list_records.filtered(lambda x: x.leave != 0)
-            if list_records:
-                list_emp = list_records.mapped('employee_id')
-                for emp in list_emp:
-                    personal_records = list_records.filtered(lambda x: x.employee_id.id == emp.id)
-                    if personal_records:
-                        for r in personal_records:
-                            total_leave_balance_left = self.caculate_begin_period(r)
-                            vals = {
-                                'employee_id': r.employee_id.id,
-                                'department_id': r.department_id.id,
-                                'begin_period': total_leave_balance_left,
-                                'leave': r.leave,
-                                'date': r.date,
-                            }
-                            self.env['leave.report'].sudo().create(vals)
-                return {
-                    'type': 'ir.actions.act_window',
-                    'name': 'Báo cáo phép chi tiết',
-                    'res_model': 'leave.report',
-                    'view_mode': 'tree',
-                    'target': 'current',
+        if self.department_id and not self.employee_id:
+            list_records = list_records.filtered(lambda x: x.department_id.id == self.department_id.id)
+        if self.employee_id:
+            list_records = list_records.filtered(lambda x: x.employee_id.id == self.employee_id.id)
+        list_records = list_records.filtered(lambda x: x.leave != 0)
+        if list_records:
+            for r in list_records:
+                total_leave_balance_left = self.caculate_begin_period(r)
+                leave_left = total_leave_balance_left - r.leave
+                vals = {
+                    'employee_id': r.employee_id.id,
+                    'department_id': r.department_id.id,
+                    'begin_period': total_leave_balance_left,
+                    'leave': r.leave,
+                    'date': r.date,
+                    'total_leave_left': leave_left,
                 }
-            else:
-                raise ValidationError("Nhân viên không sử dụng phép trong tháng này!")
+                self.env['leave.report'].sudo().create(vals)
+            return {
+                'type': 'ir.actions.act_window',
+                'name': 'Báo cáo phép chi tiết',
+                'res_model': 'leave.report',
+                'view_mode': 'tree',
+                'target': 'current',
+            }
+        else:
+            raise ValidationError("Nhân viên không sử dụng phép trong tháng này!")
 
 
     def caculate_begin_period(self, record):

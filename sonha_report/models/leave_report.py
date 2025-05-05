@@ -10,11 +10,3 @@ class LeaveReport(models.Model):
     begin_period = fields.Float(string="Số phép khả dụng")
     total_leave_left = fields.Float(string="Số phép còn lại")
 
-    def create(self, vals):
-        list_record = super(LeaveReport, self).create(vals)
-        for record in list_record:
-            if record.begin_period > 0:
-                record.total_leave_left = record.begin_period - record.leave
-            else:
-                record.total_leave_left = 0
-        return list_record

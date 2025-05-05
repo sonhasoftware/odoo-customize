@@ -41,4 +41,16 @@
               parent="menu_discipline"
               action="action_discipline_unit"
               sequence="0"/>
+
+    <!-- Menu con để quản lý khác -->
+    <menuitem id="menu_other_discipline"
+              name="Khác"
+              parent="menu_reward_discipline_root"
+              sequence="1"/>
+
+    <menuitem id="menu_dismissal_person"
+              name="Khác"
+              parent="menu_other_discipline"
+              action="action_dismissal_person"
+              sequence="0"/>
 </odoo>
