@@ -37,6 +37,7 @@
                 "view_mode": "form",
                 "target": "new",
                 "context": {
+                    "default_res_model": env['ir.model']._get('sonha.employee.report').id,
                     "active_model": "sonha.employee.report",
                     "active_ids": records.ids,
                 }

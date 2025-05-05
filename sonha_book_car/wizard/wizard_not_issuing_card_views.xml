@@ -9,7 +9,7 @@
                     <field name="reason"/>
                 </group>
                 <footer>
-                    <button string="Xác nhận" type="object" name="action_confirm" class="oe_highlight"/>
+                    <button string="Xác nhận" type="object" name="action_confirm" class="oe_highlight" confirm="Bạn có chắc chắn muốn hủy đơn với lí do này không?"/>
                     <button string="Hủy" class="oe_link" special="cancel"/>
                 </footer>
             </form>

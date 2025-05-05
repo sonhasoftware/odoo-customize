@@ -7,6 +7,7 @@
             <form string="Chọn mẫu báo cáo">
                 <group>
                     <field name="report"/>
+                    <field name="res_model" invisible="1"/>
                 </group>
                 <footer>
                     <button name="action_export" type="object" string="Xuất báo cáo" class="btn-primary"/>

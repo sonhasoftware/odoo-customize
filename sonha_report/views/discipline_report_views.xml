@@ -39,6 +39,7 @@
                 "view_mode": "form",
                 "target": "new",
                 "context": {
+                    "default_res_model": env['ir.model']._get('discipline.report').id,
                     "active_model": "discipline.report",
                     "active_ids": records.ids,
                 }
