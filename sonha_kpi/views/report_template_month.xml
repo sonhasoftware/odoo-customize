@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <template id="template_report_month">
+    <template id="template_report_month" t-name="sonha_kpi.template_report_month">
         <t t-call="web.html_container">
             <div class="page">
                 <style>
