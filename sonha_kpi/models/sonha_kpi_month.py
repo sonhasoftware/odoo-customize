@@ -53,6 +53,7 @@ class SonHaKPIMonth(models.Model):
     upload_file_name = fields.Char(string="Tên File")
     upload_files = fields.Many2many('ir.attachment', string="Files")
     month_filter = fields.Integer("Tháng", compute="_get_month_filter")
+    is_sent = fields.Boolean('is_sent')
 
     @api.onchange('sonha_kpi')
     def _onchange_kpi_id(self):
