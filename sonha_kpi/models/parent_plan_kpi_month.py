@@ -22,6 +22,33 @@ class ParentKPIMonth(models.Model):
     sonha_kpi = fields.Many2one('company.sonha.kpi', compute="filter_sonha_kpi")
     record_url = fields.Char(string="Record URL", compute="_compute_get_record_url")
     first_mail_date = fields.Date(string="Ngày đầu gửi mail")
+    check_sent = fields.Boolean(compute="get_check_sent")
+    check_approve = fields.Boolean(compute="get_check_approve")
+    check_complete = fields.Boolean(compute="get_check_complete")
+
+    @api.onchange('department_id')
+    def get_check_sent(self):
+        for r in self:
+            if r.department_id.id == self.env.user.employee_id.department_id.id and r.status == 'draft':
+                r.check_sent = True
+            else:
+                r.check_sent = False
+
+    @api.onchange('department_id')
+    def get_check_approve(self):
+        for r in self:
+            if r.department_id.manager_id.id == self.env.user.employee_id.id and r.status == 'waiting':
+                r.check_approve = True
+            else:
+                r.check_approve = False
+
+    @api.onchange('department_id')
+    def get_check_complete(self):
+        for r in self:
+            if r.department_id.manager_id.id == self.env.user.employee_id.id and r.status == 'done':
+                r.check_complete = True
+            else:
+                r.check_complete = False
 
     @api.depends('department_id')
     def _compute_get_record_url(self):

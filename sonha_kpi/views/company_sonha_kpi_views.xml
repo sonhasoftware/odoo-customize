@@ -7,13 +7,14 @@
             <field name="arch" type="xml">
                 <form>
                     <group>
+                        <field name="check_sent" invisible="1"/>
                         <field name="department_id" readonly="1"/>
                         <field name="year" widget="char" readonly="1"/>
                         <field name="done"/>
                         <field name="waiting"/>
                         <field name="cancel"/>
                         <field name="month"/>
-                        <button name="action_sent_hr" type="object" string="Gửi kết quả cho HR" class="oe_highlight" confirm="Bạn có chắc chắn muốn gi kết quả cho Ban Nhân sự - Văn phòng không? Hãy kiểm tra kỹ dữ liệu và tháng bạn đang chọn!"/>/>
+                        <button name="action_sent_hr" type="object" string="Gửi kết quả cho HR" class="oe_highlight" confirm="Bạn có chắc chắn muốn gi kết quả cho Ban Nhân sự - Văn phòng không? Hãy kiểm tra kỹ dữ liệu và tháng bạn đang chọn!" invisible="check_sent != True"/>/>
                     </group>
                     <notebook>
                         <page string="KPI năm" name="dl_appraisal_year">

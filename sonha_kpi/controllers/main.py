@@ -262,34 +262,44 @@ class DataChart(http.Controller):
         month = int(kwargs.get('month')) if kwargs.get('month') else None
         year = int(kwargs.get('year')) if kwargs.get('year') else None
         month_before = month - 1 if month else None
-        result_records = request.env['sonha.kpi.result.month'].sudo().search([('department_id', '=', department_id),
-                                                                             ('year', '=', year)])
-        kpi_records = request.env['report.kpi.month'].sudo().search([('department_id', '=', department_id),
-                                                                     ('year', '=', year)])
-        if month:
-            kpi_records = kpi_records.filtered(lambda x: x.start_date.month == month)
-            result_month_records = result_records.filtered(lambda x: x.start_date.month == month)
-            result_month_before_records = result_records.filtered(lambda x: x.start_date.month == month_before)
-        if result_records:
-            dv_classification = self.calculate_dv_classification(result_month_records, result_month_before_records)
-            tq_classification = self.calculate_tq_classification(result_month_records, result_month_before_records)
-        if kpi_records:
-            start_date = datetime.strptime(str(kpi_records[0].start_date), '%Y-%m-%d')
-            end_date = datetime.strptime(str(kpi_records[0].end_date), '%Y-%m-%d')
-            start_date = start_date.strftime('%d/%m/%Y')
-            end_date = end_date.strftime('%d/%m/%Y')
-            return request.render('sonha_kpi.report_kpi_month_rel_template', {
-                'kpi_records': kpi_records,
-                'converted_start_date': start_date,
-                'converted_end_date': end_date,
-                'dv_classification': dv_classification,
-                'tq_classification': tq_classification
-            })
+        manager = request.env['report.mail.to'].sudo().search([('department_id', '=', department_id)]).receive_emp
+        if request.env.user.has_group('sonha_employee.group_hr_employee') or manager.user_id.id == request.env.user.id:
+            result_records = request.env['sonha.kpi.result.month'].sudo().search([('department_id', '=', department_id),
+                                                                                  ('year', '=', year)])
+            kpi_records = request.env['report.kpi.month'].sudo().search([('department_id', '=', department_id),
+                                                                        ('year', '=', year)])
+            if month:
+                kpi_records = kpi_records.filtered(lambda x: x.start_date.month == month)
+                result_month_records = result_records.filtered(lambda x: x.start_date.month == month)
+                result_month_before_records = result_records.filtered(lambda x: x.start_date.month == month_before)
+            if result_records:
+                dv_classification = self.calculate_dv_classification(result_month_records, result_month_before_records)
+                tq_classification = self.calculate_tq_classification(result_month_records, result_month_before_records)
+            if kpi_records:
+                start_date = datetime.strptime(str(kpi_records[0].start_date), '%Y-%m-%d')
+                end_date = datetime.strptime(str(kpi_records[0].end_date), '%Y-%m-%d')
+                start_date = start_date.strftime('%d/%m/%Y')
+                end_date = end_date.strftime('%d/%m/%Y')
+                check_hr_approve = 1 if request.env.user.has_group('sonha_employee.group_hr_employee') and kpi_records[0].status == 'draft' else 0
+                check_manager_approve = 1 if manager.user_id.id == request.env.user.id and kpi_records[0].status == 'waiting' else 0
+                check_manager_complete = 1 if manager.user_id.id == request.env.user.id and kpi_records[0].status == 'approved' else 0
+                return request.render('sonha_kpi.report_kpi_month_rel_template', {
+                    'kpi_records': kpi_records,
+                    'converted_start_date': start_date,
+                    'converted_end_date': end_date,
+                    'dv_classification': dv_classification,
+                    'tq_classification': tq_classification,
+                    'check_hr_approve': check_hr_approve,
+                    'check_manager_approve': check_manager_approve,
+                    'check_manager_complete': check_manager_complete,
+                })
+            else:
+                return "Chưa có dữ liệu đánh giá!"
         else:
-            return "Chưa có dữ liệu đánh giá!"
+            return "Không có quyền truy cập vào trang này!"
 
 
-    @http.route('/kpi/update_ajax', type='json', auth='none', methods=['POST'], csrf=False)
+    @http.route('/kpi/update_ajax', type='json', auth='user', methods=['POST'], csrf=False)
     def update_kpi_ajax(self, **kwargs):
         data = request.httprequest.get_json()
         for item in data["kpi_data"]:
@@ -310,7 +320,7 @@ class DataChart(http.Controller):
                 kpi_record.sudo().write({field_name: field_value})
                 kpi_report_month.sudo().write({field_name: view_field_value})
 
-    @http.route('/kpi/kpi_approve', type='json', auth='none', csrf=False)
+    @http.route('/kpi/kpi_approve', type='json', auth='user', csrf=False)
     def update_kpi_form_status(self):
         data = request.httprequest.get_json()
         for item in data["approve_data"]:
@@ -334,37 +344,38 @@ class DataChart(http.Controller):
             if kpi_report_month.status == 'waiting':
                 kpi_report_month.sudo().write({'status': 'approved'})
 
-    @http.route('/kpi/hr_approved', type='json', auth='none', csrf=False)
+    @http.route('/kpi/hr_approved', type='json', auth='user', csrf=False)
     def hr_approved(self):
         data = request.httprequest.get_json()
         department_id = int(data["department_id"])
         date = data["date"]
-        month = datetime.strptime(date, '%Y-%m-%d').month
-        year = int(datetime.strptime(date, '%Y-%m-%d').year)
-        base_url = request.env['ir.config_parameter'].sudo().get_param('web.base.url')
-        mail_url = f"{base_url}/kpi/form?department_id={department_id}&month={month}&year={year}"
-        now = datetime.now().date()
-        kpi_records = request.env['report.kpi.month'].sudo().search([('department_id', '=', department_id),
-                                                                    ('year', '=', year)])
-        if month:
-            kpi_records = kpi_records.filtered(lambda x: x.start_date.month == month)
-        for record in kpi_records:
-            record.sudo().write({'url_data_mail': mail_url,
-                                 'mail_turn': '1',
-                                 'status': 'waiting',
-                                 'first_mail_date': now})
-        mail_to = request.env['report.mail.to'].sudo().search([('department_id.id', '=', kpi_records[0].department_id.id)]).receive_emp.work_email
-        cc_emp = request.env['report.mail.to'].sudo().search([('department_id.id', '=', kpi_records[0].department_id.id)])
-        if cc_emp:
-            cc_emails = ', '.join(emp.work_email for emp in cc_emp.cc_to if emp.work_email)
-        if mail_to:
-            template_id = request.env.ref('sonha_kpi.report_kpi_mail_template').sudo()
-            if template_id:
-                template_id.email_to = mail_to
-                template_id.email_cc = cc_emails
-                template_id.sudo().send_mail(kpi_records[0].id, force_send=True)
+        if request.env.user.has_group('sonha_employee.group_hr_employee'):
+            month = datetime.strptime(date, '%Y-%m-%d').month
+            year = int(datetime.strptime(date, '%Y-%m-%d').year)
+            base_url = request.env['ir.config_parameter'].sudo().get_param('web.base.url')
+            mail_url = f"{base_url}/kpi/form?department_id={department_id}&month={month}&year={year}"
+            now = datetime.now().date()
+            kpi_records = request.env['report.kpi.month'].sudo().search([('department_id', '=', department_id),
+                                                                        ('year', '=', year)])
+            if month:
+                kpi_records = kpi_records.filtered(lambda x: x.start_date.month == month)
+            for record in kpi_records:
+                record.sudo().write({'url_data_mail': mail_url,
+                                    'mail_turn': '1',
+                                    'status': 'waiting',
+                                    'first_mail_date': now})
+            mail_to = request.env['report.mail.to'].sudo().search([('department_id.id', '=', kpi_records[0].department_id.id)]).receive_emp.work_email
+            cc_emp = request.env['report.mail.to'].sudo().search([('department_id.id', '=', kpi_records[0].department_id.id)])
+            if cc_emp:
+                cc_emails = ', '.join(emp.work_email for emp in cc_emp.cc_to if emp.work_email)
+            if mail_to:
+                template_id = request.env.ref('sonha_kpi.report_kpi_mail_template').sudo()
+                if template_id:
+                    template_id.email_to = mail_to
+                    template_id.email_cc = cc_emails
+                    template_id.sudo().send_mail(kpi_records[0].id, force_send=True)
 
-    @http.route('/kpi/cancel_kpi_approval', type='json', auth='none', csrf=False)
+    @http.route('/kpi/cancel_kpi_approval', type='json', auth='user', csrf=False)
     def update_cancel_approval(self):
         data = request.httprequest.get_json()
         now = datetime.now().date()
@@ -386,22 +397,26 @@ class DataChart(http.Controller):
         department_id = int(kwargs.get('department_id')) if kwargs.get('department_id') else None
         month = int(kwargs.get('month')) if kwargs.get('month') else None
         year = int(kwargs.get('year')) if kwargs.get('year') else None
-        kpi_records = request.env['parent.kpi.month'].sudo().search([('department_id', '=', department_id),
-                                                                     ('year', '=', year)])
-        if month:
-            kpi_records = kpi_records.plan_kpi_month.filtered(lambda x: x.start_date.month == month)
-        if kpi_records:
-            start_date = datetime.strptime(str(kpi_records[0].start_date), '%Y-%m-%d')
-            end_date = datetime.strptime(str(kpi_records[0].end_date), '%Y-%m-%d')
-            start_date = start_date.strftime('%d/%m/%Y')
-            end_date = end_date.strftime('%d/%m/%Y')
-            return request.render('sonha_kpi.approve_plan_month_template', {
-                'kpi_records': kpi_records,
-                'converted_start_date': start_date,
-                'converted_end_date': end_date
-            })
+        manager = request.env['report.mail.to'].sudo().search([('department_id', '=', department_id)]).receive_emp
+        if manager.user_id.id == request.env.user.id:
+            kpi_records = request.env['parent.kpi.month'].sudo().search([('department_id', '=', department_id),
+                                                                        ('year', '=', year)])
+            if month:
+                kpi_records = kpi_records.plan_kpi_month.filtered(lambda x: x.start_date.month == month)
+            if kpi_records:
+                start_date = datetime.strptime(str(kpi_records[0].start_date), '%Y-%m-%d')
+                end_date = datetime.strptime(str(kpi_records[0].end_date), '%Y-%m-%d')
+                start_date = start_date.strftime('%d/%m/%Y')
+                end_date = end_date.strftime('%d/%m/%Y')
+                return request.render('sonha_kpi.approve_plan_month_template', {
+                    'kpi_records': kpi_records,
+                    'converted_start_date': start_date,
+                    'converted_end_date': end_date
+                })
+            else:
+                return "Chưa có dữ liệu của tháng!"
         else:
-            return "Chưa có dữ liệu của tháng!"
+            return "Bạn không có quyền truy cập màn hình này!"
 
     @http.route('/kpi/approve_next_month', type='http', auth='none', csrf=False)
     def approve_next_month(self):

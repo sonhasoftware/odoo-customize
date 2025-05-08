@@ -17,10 +17,10 @@
                     </h6>
                 </div>
                 <div class="form-header">
-                     <button class="btn btn-primary" id="hr-approve" t-if="kpi_records and kpi_records[0].status == 'draft'">
+                     <button class="btn btn-primary" id="hr-approve" t-if="check_hr_approve == 1">
                          Duyệt
                      </button>
-                    <div class="process-waiting" t-if="kpi_records and kpi_records[0].status == 'waiting'">
+                    <div class="process-waiting" t-if="check_manager_approve == 1">
                         <button class="btn btn-primary" id="manager-approve">
                          Duyệt
                         </button>
@@ -28,13 +28,16 @@
                          Lưu
                         </button>
                     </div>
-                    <div class="process-approved" t-if="kpi_records and kpi_records[0].status == 'approved'">
+                    <div class="process-approved" t-if="check_manager_complete == 1">
                         <button class="btn btn-primary" id="cancel-approval">
                             Hủy duyệt
                         </button>
                         <button class="btn btn-primary" id="approve-next-month">
                             Duyệt kế hoạch tháng sau
                         </button>
+                    </div>
+                    <div>
+
                     </div>
                     <h5 class="status tq-class">
                         Trạng thái: <t t-esc="kpi_records[0].get_status_label()"/>
