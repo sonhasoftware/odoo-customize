@@ -4,7 +4,7 @@
        <record id="report_kpi_mail_template" model="mail.template">
            <field name="name">Mail báo cáo kpi tháng</field>
            <field name="model_id" ref="sonha_kpi.model_report_kpi_month"/>
-           <field name="email_from">admin@example.com</field>
+           <field name="email_from">adminservices@sonha.com.vn</field>
            <field name="email_to">${context.get('email_to')}</field>
            <field name="email_cc">${context.get('email_cc')}</field>
            <field name="subject">Báo cáo kết quả kpi tháng</field>
@@ -20,7 +20,7 @@
        <record id="approve_plan_kpi_year_mail_template" model="mail.template">
            <field name="name">Mail duyệt kế hoạch kpi năm</field>
            <field name="model_id" ref="sonha_kpi.model_parent_kpi_year"/>
-           <field name="email_from">admin@example.com</field>
+           <field name="email_from">adminservices@sonha.com.vn</field>
            <field name="email_to">${context.get('email_to')}</field>
            <field name="subject">Duyệt kế hoạch KPI năm</field>
            <field name="body_html" type="html">
@@ -36,7 +36,7 @@
        <record id="approve_plan_kpi_month_mail_template" model="mail.template">
            <field name="name">Mail duyệt kế hoạch kpi tháng</field>
            <field name="model_id" ref="sonha_kpi.model_parent_kpi_month"/>
-           <field name="email_from">admin@example.com</field>
+           <field name="email_from">adminservices@sonha.com.vn</field>
            <field name="email_to">${context.get('email_to')}</field>
            <field name="subject">Duyệt kế hoạch KPI tháng</field>
            <field name="body_html" type="html">
@@ -52,7 +52,7 @@
        <record id="cancel_approve_plan_kpi_year_mail_template" model="mail.template">
            <field name="name">Mail hoàn duyệt kế hoạch kpi năm</field>
            <field name="model_id" ref="sonha_kpi.model_parent_kpi_year"/>
-           <field name="email_from">admin@example.com</field>
+           <field name="email_from">adminservices@sonha.com.vn</field>
            <field name="email_to">${context.get('email_to')}</field>
            <field name="subject">Hoàn duyệt kế hoạch KPI năm</field>
            <field name="body_html" type="html">
@@ -68,7 +68,7 @@
        <record id="cancel_approve_plan_kpi_month_mail_template" model="mail.template">
            <field name="name">Mail hoàn duyệt kế hoạch kpi tháng</field>
            <field name="model_id" ref="sonha_kpi.model_parent_kpi_month"/>
-           <field name="email_from">admin@example.com</field>
+           <field name="email_from">adminservices@sonha.com.vn</field>
            <field name="email_to">${context.get('email_to')}</field>
            <field name="subject">Hoàn duyệt kế hoạch KPI tháng</field>
            <field name="body_html" type="html">
