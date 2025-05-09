@@ -167,6 +167,13 @@ class FormWordSlip(models.Model):
             return True
 
         for r in self:
+            if self.env.user.id == r.employee_confirm.user_id.id or self.env.user.id == r.employee_approval.user_id.id:
+                r.status = 'done'
+                r.status_lv1 = 'done'
+                r.status_lv2 = 'done'
+            else:
+                raise ValidationError("Bạn không có quyền thực hiện hành động này")
+
             over_time = 0
             for ot in r.word_slip_id:
                 if ot.start_time != ot.end_time:
@@ -184,10 +191,6 @@ class FormWordSlip(models.Model):
                 employees = r.employee_ids or [r.employee_id]
                 for employee in employees:
                     employee.total_compensatory -= over_time
-
-            r.status = 'done'
-            r.status_lv1 = 'done'
-            r.status_lv2 = 'done'
 
     def action_sent(self):
         for r in self:
