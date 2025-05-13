@@ -97,7 +97,7 @@ class HrContract(models.Model):
                 if '[cccd_nc]' in paragraph.text:
                     paragraph.text = paragraph.text.replace('[cccd_nc]', self.employee_id.place_of_issue or '')
                 if '[phone]' in paragraph.text:
-                    paragraph.text = paragraph.text.replace('[phone]', str(self.employee_id.mobile_phone) or '')
+                    paragraph.text = paragraph.text.replace('[phone]', str(self.employee_id.sonha_number_phone) or '')
                 if '[job_position]' in paragraph.text:
                     paragraph.text = paragraph.text.replace('[job_position]', self.job_id.name or '')
                 if '[department]' in paragraph.text:
