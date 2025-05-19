@@ -557,7 +557,7 @@ class EmployeeAttendance(models.Model):
                 else:
                     r.color = 'red'
             else:
-                continue
+                pass
 
             # Xử lý điều kiện đặc biệt cho cuối tuần
             if weekday == 6 or (weekday == 5 and week_number % 2 == 1):
