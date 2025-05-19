@@ -162,7 +162,7 @@ class EmployeeAttendance(models.Model):
                         else:
                             total_overtime += abs(x.end_time - x.start_time)
                     else:
-                        total_overtime += 0
+                        total_overtime += abs(x.end_time - x.start_time)
             if record.weekday == '6' and record.employee_id.company_id.id == 16:
                 record.over_time = total_overtime * 2
             else:
