@@ -28,6 +28,13 @@ class WordSlip(models.Model):
     duration = fields.Float("Ngày", compute="get_duration")
     reason = fields.Text(string="Lý do")
 
+    @api.constrains('time_to', 'time_from', 'word_slip')
+    def validate_time_to_from(self):
+        for record in self:
+            if record.type.date_and_time == 'time' and record.time_to == record.time_from:
+                raise ValidationError("Thời gian bắt đầu và thời gian kết thúc không được trùng nhau!")
+
+
     def check_employee_days_limit(self, data):
         for r in data:
             if r.from_date and r.to_date and r.from_date.month != r.to_date.month:
