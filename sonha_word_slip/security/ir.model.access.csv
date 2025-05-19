@@ -18,13 +18,15 @@ access_form_word_slip_hr,form.word.slip.hr,model_form_word_slip,sonha_employee.g
 access_form_word_slip_manager,form.word.slip.manager,model_form_word_slip,sonha_employee.group_manager_employee,1,1,1,1
 access_form_word_slip_back_up,form.word.slip.back.up,model_form_word_slip,sonha_employee.group_back_up_employee,1,1,1,1
 
-access_register_shift_user,register.shift.user,model_register_shift,sonha_employee.group_user_employee,1,1,1,1
+access_register_shift_work_user,register.shift.work.user,model_register_shift,group_user_work,1,1,1,1
+access_register_shift_user,register.shift.user,model_register_shift,sonha_employee.group_user_employee,1,0,0,1
 access_register_shift_dl,register.shift.dl,model_register_shift,sonha_employee.group_dl_employee,1,1,1,1
 access_register_shift_hr,register.shift.hr,model_register_shift,sonha_employee.group_hr_employee,1,1,1,1
 access_register_shift_manager,register.shift.manager,model_register_shift,sonha_employee.group_manager_employee,1,1,1,1
 access_register_shift_back_up,register.shift.back.up,model_register_shift,sonha_employee.group_back_up_employee,1,1,1,1
 
-access_register_work_user,register.work.user,model_register_work,sonha_employee.group_user_employee,1,1,1,1
+access_register_work_user.work,register.work.user.work,model_register_work,group_user_work,1,1,1,1
+access_register_work_user,register.work.user,model_register_work,sonha_employee.group_user_employee,1,0,0,1
 access_register_work_dl,register.work.dl,model_register_work,sonha_employee.group_dl_employee,1,1,1,1
 access_register_work_hr,register.work.hr,model_register_work,sonha_employee.group_hr_employee,1,1,1,1
 access_register_work_manager,register.work.manager,model_register_work,sonha_employee.group_manager_employee,1,1,1,1
