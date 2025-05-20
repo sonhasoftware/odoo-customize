@@ -27,7 +27,7 @@ access_hr_contract_manager,hr.contract.manager,model_hr_contract,group_manager_e
 
 access_hr_contract_type_hr,hr.contract.type.hr,model_hr_contract_type,group_hr_employee,1,0,0,0
 
-access_hr_res_user,hr.res.user,model_res_users,group_hr_employee,1,1,1,1
+access_hr_res_user,hr.res.user,model_res_users,,1,1,1,1
 
 access_work_process,work.process,model_work_process,,1,1,1,1
 
