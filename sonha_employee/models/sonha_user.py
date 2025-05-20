@@ -6,6 +6,8 @@ from datetime import datetime
 class SonHaResUser(models.Model):
     _inherit = 'res.users'
 
+    device_id = fields.Char("ID thiết bị")
+
     # def create(self, vals):
     #     res = super(SonHaResUser, self).create(vals)
     #     res.action_create_employee()

@@ -39,6 +39,7 @@ class AuthAPI(http.Controller):
                         "id": user.id,
                         "name": user.name,
                         "email": user.email,
+                        "device_id": user.device_id,
                     },
                     "employee": {
                         "id": employee_id.id,
@@ -1179,6 +1180,45 @@ class AuthAPI(http.Controller):
         except Exception as e:
             # Log lỗi cho admin (nếu cần)
             request.env.cr.rollback()  # Dự phòng rollback toàn bộ transaction
+            return Response(json.dumps({
+                "success": False,
+                "error": str(e)
+            }), content_type="application/json", status=500)
+
+    @http.route('/api/device/<int:user_id>', type='http', auth='none', methods=['PUT'], csrf=False)
+    def api_fill_device(self, user_id):
+        try:
+            a = 1
+            b = 2
+            data = request.httprequest.get_json()  # Lấy dữ liệu JSON đúng cách
+            device_id = data.get('device_id')
+
+            if not user_id:
+                return Response(json.dumps({"success": False,
+                                            "error": "Không tìm thấy dữ liệu nhân viên!"}),
+                                content_type="application/json",
+                                status=400)
+            if not device_id:
+                return Response(json.dumps({"success": False,
+                                            "error": "Không tìm thấy dữ liệu thiết bị!"}),
+                                content_type="application/json",
+                                status=400)
+
+            user = request.env['res.users'].sudo().browse(user_id)
+            if not user:
+                return Response(json.dumps({"success": False,
+                                            "error": "Không tìm thấy dữ liệu nhân viên!"}),
+                                content_type="application/json",
+                                status=400)
+            user.write({
+                'device_id': device_id,
+            })
+            return Response(json.dumps({
+                "success": True,
+                "msg": "Cập nhật thiết bị thành công",
+            }), content_type="application/json", status=200)
+
+        except Exception as e:
             return Response(json.dumps({
                 "success": False,
                 "error": str(e)
