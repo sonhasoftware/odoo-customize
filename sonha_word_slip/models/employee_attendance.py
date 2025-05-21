@@ -29,7 +29,8 @@ class EmployeeAttendance(models.Model):
     check_no_out = fields.Datetime("Check không có check_out", compute="_check_no_in_out")
 
     note = fields.Selection([('no_in', "Không có check in"),
-                             ('no_out', "Không có check out")],
+                             ('no_out', "Không có check out"),
+                             ('no_shift', "Không có ca làm việc")],
                             string="Ghi chú",
                             compute="_get_attendance")
     work_day = fields.Float("Ngày công", compute="_get_work_day")
@@ -406,6 +407,9 @@ class EmployeeAttendance(models.Model):
                 r.note = 'no_in'
             elif not r.check_out:
                 r.note = 'no_out'
+
+            if not r.shift:
+                r.note = 'no_shift'
 
             if r.leave > 0 or r.compensatory > 0:
                 r.note = None
