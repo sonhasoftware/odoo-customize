@@ -32,8 +32,8 @@ class ExportReportEmployee(models.TransientModel):
             row = 7
             row_min = 7
         elif self.report.key == "nsct":
-            row = 12
-            row_min = 12
+            row = 7
+            row_min = 7
         elif self.report.key == "nsnv":
             row = 8
             row_min = 8
