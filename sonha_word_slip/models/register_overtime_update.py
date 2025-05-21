@@ -26,7 +26,7 @@ class RegisterOvertimeUpdate(models.Model):
         ('many', 'Tạo hộ')
     ], string="Loại đăng ký", default='one', required=True)
     status = fields.Selection([
-        ('draft', 'Nháp'),
+        ('draft', 'Chờ duyệt'),
         ('done', 'Đã duyệt'),
     ], string='Trạng thái', default='draft', tracking=True)
 
