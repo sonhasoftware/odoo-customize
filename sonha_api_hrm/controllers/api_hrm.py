@@ -45,7 +45,9 @@ class AuthAPI(http.Controller):
                         "id": employee_id.id,
                         "name": employee_id.name,
                         "mail": employee_id.work_email,
-                        "phone_number": employee_id.mobile_phone,
+                        "phone_number": employee_id.sonha_number_phone,
+                        "leave_old": employee_id.old_leave_balance,
+                        "leave_new": employee_id.new_leave_balance,
                         "employee_code": employee_id.employee_code,
                         "department": {
                             "id": employee_id.department_id.id,
