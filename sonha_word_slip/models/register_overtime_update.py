@@ -129,7 +129,7 @@ class RegisterOvertimeUpdate(models.Model):
                 else:
                     r.check_qltt = False
             else:
-                if r.employee_ids[:1].parent_id.user_id.id == self.env.user.id and r.status_lv2 == 'waiting':
+                if r.department_id.manager_id.user_id.id == self.env.user.id and r.status_lv2 == 'waiting':
                     r.check_qltt = True
                 else:
                     r.check_qltt = False
