@@ -1103,7 +1103,7 @@ class AuthAPI(http.Controller):
                         "name": record.shift.name,
                     },
                     "work_day": record.work_day,
-                    "note": record.note,
+                    "note": record.note if record.note else "",
                     "minutes_late": record.minutes_late,
                     "minutes_early": record.minutes_early,
                     "over_time": record.over_time,
@@ -1113,7 +1113,7 @@ class AuthAPI(http.Controller):
                     "c2k3": record.c2k3,
                     "c3k4": record.c3k4,
                     "shift_toxic": record.shift_toxic,
-                    "color": record.color,
+                    "color": record.color if record.color else "",
                 }
 
                 # Trả về kết quả
@@ -1254,7 +1254,7 @@ class AuthAPI(http.Controller):
                         "name": record.shift.name,
                     },
                     "work_day": record.work_day,
-                    "note": record.note,
+                    "note": record.note if record.note else "",
                     "minutes_late": record.minutes_late,
                     "minutes_early": record.minutes_early,
                     "over_time": record.over_time,
@@ -1264,7 +1264,7 @@ class AuthAPI(http.Controller):
                     "c2k3": record.c2k3,
                     "c3k4": record.c3k4,
                     "shift_toxic": record.shift_toxic,
-                    "color": record.color,
+                    "color": record.color if record.color else "",
                 })
             data.append({
                 "employee_id": {
