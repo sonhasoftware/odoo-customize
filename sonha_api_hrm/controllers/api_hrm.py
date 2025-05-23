@@ -1103,6 +1103,7 @@ class AuthAPI(http.Controller):
                         "name": record.shift.name,
                     },
                     "work_day": record.work_day,
+                    "note": record.note,
                     "minutes_late": record.minutes_late,
                     "minutes_early": record.minutes_early,
                     "over_time": record.over_time,
@@ -1112,6 +1113,7 @@ class AuthAPI(http.Controller):
                     "c2k3": record.c2k3,
                     "c3k4": record.c3k4,
                     "shift_toxic": record.shift_toxic,
+                    "color": record.color,
                 }
 
                 # Trả về kết quả
