@@ -230,8 +230,7 @@ class RegisterOvertimeUpdate(models.Model):
                 else:
                     raise ValidationError("Bạn không có quyền thực hiện hành động này")
             else:
-                employee_id = r.employee_ids[:1]
-                if employee_id.parent_id.user_id.id == self.env.user.id:
+                if r.department_id.manager_id.user_id.id == self.env.user.id:
                     r.status = 'done'
                     for employee in r.employee_ids:
                         employee.total_compensatory += over_time
