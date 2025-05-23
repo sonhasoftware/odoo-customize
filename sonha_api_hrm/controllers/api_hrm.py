@@ -1228,3 +1228,67 @@ class AuthAPI(http.Controller):
                 "error": str(e)
             }), content_type="application/json", status=500)
 
+    @http.route('/api/total_work_detail/<int:employee_id>/<int:month>/<int:year>', type='http', auth='none', methods=['GET'], csrf=False)
+    def total_work_detail(self, employee_id, month, year):
+        try:
+            if not employee_id:
+                raise ValueError("Không tìm thấy dữ liệu nhân viên")
+            records = request.env['employee.attendance'].sudo().search([
+                ('employee_id', '=', employee_id),
+                ('month', '=', month),
+                ('year', '=', year),
+            ])
+            if not records:
+                raise ValueError("Không tìm thấy bản ghi")
+            data = []
+            list_detail = []
+            for record in records:
+                check_in_plus_7 = record.check_in + timedelta(hours=7) if record.check_in else None
+                check_out_plus_7 = record.check_out + timedelta(hours=7) if record.check_out else None
+                list_detail.append({
+                    "date": str(record.date),
+                    "check_in": check_in_plus_7.strftime("%H:%M:%S") if check_in_plus_7 else None,
+                    "check_out": check_out_plus_7.strftime("%H:%M:%S") if check_out_plus_7 else None,
+                    "shift": {
+                        "id": record.shift.id,
+                        "name": record.shift.name,
+                    },
+                    "work_day": record.work_day,
+                    "note": record.note,
+                    "minutes_late": record.minutes_late,
+                    "minutes_early": record.minutes_early,
+                    "over_time": record.over_time,
+                    "leave": record.leave,
+                    "compensatory": record.compensatory,
+                    "public_leave": record.public_leave,
+                    "c2k3": record.c2k3,
+                    "c3k4": record.c3k4,
+                    "shift_toxic": record.shift_toxic,
+                    "color": record.color,
+                })
+            data.append({
+                "employee_id": {
+                    "id": records[1].employee_id.id,
+                    "name": records[1].employee_id.name,
+                },
+                "department_id": {
+                    "id": records[1].department_id.id,
+                    "name": records[1].department_id.name,
+                },
+                "list_data": list_detail
+            })
+
+            # Trả về kết quả
+            return Response(
+                json.dumps({"success": True, "data": data}),
+                status=200, content_type="application/json"
+            )
+
+        except Exception as e:
+            # Log lỗi cho admin (nếu cần)
+            request.env.cr.rollback()  # Dự phòng rollback toàn bộ transaction
+            return Response(json.dumps({
+                "success": False,
+                "error": str(e)
+            }), content_type="application/json", status=500)
+
