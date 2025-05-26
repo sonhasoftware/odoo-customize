@@ -67,6 +67,7 @@
                     <field name="work_ids">
                         <tree editable="bottom">
                             <field name="start_date"/>
+                            <field name="department_id"/>
                             <field name="job_id"/>
                             <field name="number"/>
                             <field name="type"/>
