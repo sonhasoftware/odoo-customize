@@ -30,6 +30,7 @@
             <xpath expr="//field[@name='color']" position="after">
                 <field name="send_mail" string="Gửi mail"/>
                 <field name="shift" string="Ca làm việc"/>
+                <field name="over_time"/>
             </xpath>
         </field>
     </record>
