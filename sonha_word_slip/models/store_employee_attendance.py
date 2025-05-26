@@ -29,7 +29,8 @@ class EmployeeAttendanceStore(models.Model):
     check_no_out = fields.Datetime("Check không có check_out")
 
     note = fields.Selection([('no_in', "Không có check in"),
-                             ('no_out', "Không có check out")],
+                             ('no_out', "Không có check out"),
+                             ('no_shift', "Không có ca làm việc")],
                             string="Ghi chú")
     work_day = fields.Float("Ngày công")
     minutes_late = fields.Float("Số phút đi muộn")
