@@ -4,11 +4,9 @@ from odoo.exceptions import UserError, ValidationError
 
 class MDProduct(models.Model):
     _name = 'md.product'
-    _rec_name = 'name'
 
     product_code = fields.Char("Mã vật tư")
     product_type = fields.Many2one('x.material.type', string="Loại vật tư")
-    name = fields.Char("Tên vật tư", size=40)
     product_name = fields.Char("Tên vật tư", size=40)
     product_english_name = fields.Char("Tên vật tư tiếng anh", size=40)
     product_long_name = fields.Char("Tên đầy đủ", size=128)
