@@ -51,15 +51,12 @@ class CompanySonHaKPI(models.Model):
 
     def action_sent_hr(self):
         for r in self:
-            if r.department_id.id == self.env.user.employee_id.department_id.id and r.month != 0:
-                base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
-                r.url =(f"{base_url}/kpi/form?department_id={r.department_id.id}&month={r.month}&year={r.year}")
-                template = self.env.ref('sonha_kpi.template_sent_mail_hr_kpi')
-                template.send_mail(r.id, force_send=True)
-                for record in r.kpi_month_filtered_ids:
-                    record.sudo().write({'is_sent': True})
-            else:
-                raise ValidationError("Bạn không có quyền thực hiện hành động này!")
+            base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+            r.url =(f"{base_url}/kpi/form?department_id={r.department_id.id}&month={r.month}&year={r.year}")
+            template = self.env.ref('sonha_kpi.template_sent_mail_hr_kpi')
+            template.send_mail(r.id, force_send=True)
+            for record in r.kpi_month_filtered_ids:
+                record.sudo().write({'is_sent': True})
 
     @api.depends('kpi_month')
     def _get_data_number_state(self):

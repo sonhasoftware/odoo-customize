@@ -29,7 +29,8 @@ class EmployeeAttendance(models.Model):
     check_no_out = fields.Datetime("Check không có check_out", compute="_check_no_in_out")
 
     note = fields.Selection([('no_in', "Không có check in"),
-                             ('no_out', "Không có check out")],
+                             ('no_out', "Không có check out"),
+                             ('no_shift', "Không có ca làm việc")],
                             string="Ghi chú",
                             compute="_get_attendance")
     work_day = fields.Float("Ngày công", compute="_get_work_day")
@@ -108,7 +109,7 @@ class EmployeeAttendance(models.Model):
                     lambda leave: leave.date_from.date() <= r.date <= leave.date_to.date()):
                 r.public_leave = 1
 
-    @api.depends('employee_id', 'date', 'check_in', 'check_out')
+    @api.depends('employee_id', 'date', 'check_in', 'check_out', 'shift')
     def get_hours_reinforcement(self):
         for record in self:
             total_overtime = 0
@@ -137,7 +138,32 @@ class EmployeeAttendance(models.Model):
                         total_overtime += abs(r.end_time - r.start_time)
             if overtime:
                 for x in overtime:
-                    total_overtime += abs(x.end_time - x.start_time)
+                    if record.check_out and record.check_in:
+                        h_co = (record.shift.end_shift + relativedelta(hours=7)).time()
+                        check_out_start = (h_co.hour + h_co.minute / 60 + h_co.second / 3600)
+                        check_out_end = (h_co.hour + h_co.minute / 60 + h_co.second / 3600) + 0.5
+                        check_out_at = (record.check_out + relativedelta(hours=7)).time()
+                        check_out = (check_out_at.hour + check_out_at.minute / 60 + check_out_at.second / 3600)
+
+                        h_ci = (record.shift.start + relativedelta(hours=7)).time()
+                        check_in_start = (h_ci.hour + h_ci.minute / 60 + h_ci.second / 3600)
+                        check_in_end = (h_ci.hour + h_ci.minute / 60 + h_ci.second / 3600) - 0.5
+                        check_in_at = (record.check_in + relativedelta(hours=7)).time()
+                        check_in = (check_in_at.hour + check_in_at.minute / 60 + check_in_at.second / 3600)
+                        if check_out_start <= x.start_time <= check_out_end:
+                            if x.end_time > check_out:
+                                total_overtime += abs(check_out - x.start_time)
+                            else:
+                                total_overtime += abs(x.end_time - x.start_time)
+                        elif check_in_end <= x.end_time <= check_in_start:
+                            if check_in > x.start_time:
+                                total_overtime += abs(x.end_time - check_in)
+                            else:
+                                total_overtime += abs(x.end_time - x.start_time)
+                        else:
+                            total_overtime += abs(x.end_time - x.start_time)
+                    else:
+                        total_overtime += abs(x.end_time - x.start_time)
             if record.weekday == '6' and record.employee_id.company_id.id == 16:
                 record.over_time = total_overtime * 2
             else:
@@ -382,6 +408,9 @@ class EmployeeAttendance(models.Model):
             elif not r.check_out:
                 r.note = 'no_out'
 
+            if not r.shift:
+                r.note = 'no_shift'
+
             if r.leave > 0 or r.compensatory > 0:
                 r.note = None
 
@@ -532,7 +561,7 @@ class EmployeeAttendance(models.Model):
                 else:
                     r.color = 'red'
             else:
-                continue
+                pass
 
             # Xử lý điều kiện đặc biệt cho cuối tuần
             if weekday == 6 or (weekday == 5 and week_number % 2 == 1):

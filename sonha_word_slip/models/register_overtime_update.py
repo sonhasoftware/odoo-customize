@@ -26,7 +26,7 @@ class RegisterOvertimeUpdate(models.Model):
         ('many', 'Tạo hộ')
     ], string="Loại đăng ký", default='one', required=True)
     status = fields.Selection([
-        ('draft', 'Nháp'),
+        ('draft', 'Chờ duyệt'),
         ('done', 'Đã duyệt'),
     ], string='Trạng thái', default='draft', tracking=True)
 
@@ -129,7 +129,7 @@ class RegisterOvertimeUpdate(models.Model):
                 else:
                     r.check_qltt = False
             else:
-                if r.employee_ids[:1].parent_id.user_id.id == self.env.user.id and r.status_lv2 == 'waiting':
+                if r.department_id.manager_id.user_id.id == self.env.user.id and r.status_lv2 == 'waiting':
                     r.check_qltt = True
                 else:
                     r.check_qltt = False
@@ -194,11 +194,14 @@ class RegisterOvertimeUpdate(models.Model):
                 r.status = 'done'
                 over_time = 0
                 for ot in r.date:
-                    time_ot = ot.end_time - ot.start_time
+                    time_ot = (ot.end_time - ot.start_time) * ot.coefficient
                     over_time += time_ot
                 list_employee = r.employee_ids or [r.employee_id]
                 for employee in list_employee:
-                    employee.total_compensatory += over_time
+                    if employee.department_id.over_time == 'date':
+                        employee.total_compensatory += over_time
+                    else:
+                        pass
             else:
                 raise ValidationError("Bạn không có quyền thực hiện hành động này")
 
@@ -206,14 +209,17 @@ class RegisterOvertimeUpdate(models.Model):
         for r in self:
             over_time = 0
             for ot in r.date:
-                time_ot = ot.end_time - ot.start_time
+                time_ot = (ot.end_time - ot.start_time) * ot.coefficient
                 over_time += time_ot
             list_employee = r.employee_ids or [r.employee_id]
-            if list_employee[0].parent_id.id == self.env.user.employee_id.id or self.env.user.has_group('sonha_employee.group_manager_employee'):
+            if list_employee[-1].parent_id.id == self.env.user.employee_id.id or self.env.user.has_group('sonha_employee.group_manager_employee'):
                 r.status = 'draft'
                 r.status_lv2 = 'draft'
                 for employee in list_employee:
-                    employee.total_compensatory -= over_time
+                    if employee.department_id.over_time == 'date':
+                        employee.total_compensatory += over_time
+                    else:
+                        pass
             else:
                 raise ValidationError('Bạn không có quyền hoàn duyệt đơn này')
 
@@ -221,20 +227,25 @@ class RegisterOvertimeUpdate(models.Model):
         for r in self:
             over_time = 0
             for ot in r.date:
-                time_ot = ot.end_time - ot.start_time
+                time_ot = (ot.end_time - ot.start_time) * ot.coefficient
                 over_time += time_ot
             if r.type == 'one':
                 if r.employee_id.parent_id.user_id.id == self.env.user.id:
                     r.status = 'done'
-                    r.employee_id.total_compensatory += over_time
+                    if r.employee_id.department_id.over_time == 'date':
+                        employee.total_compensatory += over_time
+                    else:
+                        pass
                 else:
                     raise ValidationError("Bạn không có quyền thực hiện hành động này")
             else:
-                employee_id = r.employee_ids[:1]
-                if employee_id.parent_id.user_id.id == self.env.user.id:
+                if r.department_id.manager_id.user_id.id == self.env.user.id:
                     r.status = 'done'
                     for employee in r.employee_ids:
-                        employee.total_compensatory += over_time
+                        if employee.department_id.over_time == 'date':
+                            employee.total_compensatory += over_time
+                        else:
+                            pass
                 else:
                     raise ValidationError("Bạn không có quyền thực hiện hành động này")
 

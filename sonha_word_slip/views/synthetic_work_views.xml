@@ -45,6 +45,7 @@
                         <field name="grandparents_leave"/>
                         <field name="vacation"/>
                         <field name="public_leave"/>
+                        <field name="wedding_leave"/>
                     </group>
                 </sheet>
             </form>

@@ -168,9 +168,7 @@ class FormWordSlip(models.Model):
 
         for r in self:
             if self.env.user.id == r.employee_confirm.user_id.id or self.env.user.id == r.employee_approval.user_id.id:
-                r.status = 'done'
-                r.status_lv1 = 'done'
-                r.status_lv2 = 'done'
+                pass
             else:
                 raise ValidationError("Bạn không có quyền thực hiện hành động này")
 
@@ -191,6 +189,9 @@ class FormWordSlip(models.Model):
                 employees = r.employee_ids or [r.employee_id]
                 for employee in employees:
                     employee.total_compensatory -= over_time
+            r.status = 'done'
+            r.status_lv1 = 'done'
+            r.status_lv2 = 'done'
 
     def action_sent(self):
         for r in self:
@@ -409,7 +410,7 @@ class FormWordSlip(models.Model):
                 rec.employee_confirm = employee_id.employee_approval.id
                 rec.employee_approval = employee_id.employee_approval.parent_id.id if employee_id.employee_approval.parent_id else None
                 
-        if (not department_spec and rec.day_duration <= 3) or (rec.type.key != "NP"):
+        if not department_spec and rec.day_duration <= 3:
             condition = '<=3'
             rec.check_level = False
         else:

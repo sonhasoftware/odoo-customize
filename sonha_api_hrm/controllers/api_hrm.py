@@ -39,12 +39,15 @@ class AuthAPI(http.Controller):
                         "id": user.id,
                         "name": user.name,
                         "email": user.email,
+                        "device_id": user.device_id,
                     },
                     "employee": {
                         "id": employee_id.id,
                         "name": employee_id.name,
                         "mail": employee_id.work_email,
-                        "phone_number": employee_id.mobile_phone,
+                        "phone_number": employee_id.sonha_number_phone,
+                        "leave_old": employee_id.old_leave_balance,
+                        "leave_new": employee_id.new_leave_balance,
                         "employee_code": employee_id.employee_code,
                         "department": {
                             "id": employee_id.department_id.id,
@@ -1100,6 +1103,7 @@ class AuthAPI(http.Controller):
                         "name": record.shift.name,
                     },
                     "work_day": record.work_day,
+                    "note": record.note if record.note else "",
                     "minutes_late": record.minutes_late,
                     "minutes_early": record.minutes_early,
                     "over_time": record.over_time,
@@ -1109,6 +1113,7 @@ class AuthAPI(http.Controller):
                     "c2k3": record.c2k3,
                     "c3k4": record.c3k4,
                     "shift_toxic": record.shift_toxic,
+                    "color": record.color if record.color else "",
                 }
 
                 # Trả về kết quả
@@ -1171,6 +1176,109 @@ class AuthAPI(http.Controller):
                     'name': r.name,
                 })
                 # Trả về kết quả
+            return Response(
+                json.dumps({"success": True, "data": data}),
+                status=200, content_type="application/json"
+            )
+
+        except Exception as e:
+            # Log lỗi cho admin (nếu cần)
+            request.env.cr.rollback()  # Dự phòng rollback toàn bộ transaction
+            return Response(json.dumps({
+                "success": False,
+                "error": str(e)
+            }), content_type="application/json", status=500)
+
+    @http.route('/api/device/<int:user_id>', type='http', auth='none', methods=['PUT'], csrf=False)
+    def api_fill_device(self, user_id):
+        try:
+            a = 1
+            b = 2
+            data = request.httprequest.get_json()  # Lấy dữ liệu JSON đúng cách
+            device_id = data.get('device_id')
+
+            if not user_id:
+                return Response(json.dumps({"success": False,
+                                            "error": "Không tìm thấy dữ liệu nhân viên!"}),
+                                content_type="application/json",
+                                status=400)
+            if not device_id:
+                return Response(json.dumps({"success": False,
+                                            "error": "Không tìm thấy dữ liệu thiết bị!"}),
+                                content_type="application/json",
+                                status=400)
+
+            user = request.env['res.users'].sudo().browse(user_id)
+            if not user:
+                return Response(json.dumps({"success": False,
+                                            "error": "Không tìm thấy dữ liệu nhân viên!"}),
+                                content_type="application/json",
+                                status=400)
+            user.write({
+                'device_id': device_id,
+            })
+            return Response(json.dumps({
+                "success": True,
+                "msg": "Cập nhật thiết bị thành công",
+            }), content_type="application/json", status=200)
+
+        except Exception as e:
+            return Response(json.dumps({
+                "success": False,
+                "error": str(e)
+            }), content_type="application/json", status=500)
+
+    @http.route('/api/total_work_detail/<int:employee_id>/<int:month>/<int:year>', type='http', auth='none', methods=['GET'], csrf=False)
+    def total_work_detail(self, employee_id, month, year):
+        try:
+            if not employee_id:
+                raise ValueError("Không tìm thấy dữ liệu nhân viên")
+            records = request.env['employee.attendance'].sudo().search([
+                ('employee_id', '=', employee_id),
+                ('month', '=', month),
+                ('year', '=', year),
+            ])
+            if not records:
+                raise ValueError("Không tìm thấy bản ghi")
+            data = []
+            list_detail = []
+            for record in records:
+                check_in_plus_7 = record.check_in + timedelta(hours=7) if record.check_in else None
+                check_out_plus_7 = record.check_out + timedelta(hours=7) if record.check_out else None
+                list_detail.append({
+                    "date": str(record.date),
+                    "check_in": check_in_plus_7.strftime("%H:%M:%S") if check_in_plus_7 else None,
+                    "check_out": check_out_plus_7.strftime("%H:%M:%S") if check_out_plus_7 else None,
+                    "shift": {
+                        "id": record.shift.id,
+                        "name": record.shift.name,
+                    },
+                    "work_day": record.work_day,
+                    "note": record.note if record.note else "",
+                    "minutes_late": record.minutes_late,
+                    "minutes_early": record.minutes_early,
+                    "over_time": record.over_time,
+                    "leave": record.leave,
+                    "compensatory": record.compensatory,
+                    "public_leave": record.public_leave,
+                    "c2k3": record.c2k3,
+                    "c3k4": record.c3k4,
+                    "shift_toxic": record.shift_toxic,
+                    "color": record.color if record.color else "",
+                })
+            data.append({
+                "employee_id": {
+                    "id": records[1].employee_id.id,
+                    "name": records[1].employee_id.name,
+                },
+                "department_id": {
+                    "id": records[1].department_id.id,
+                    "name": records[1].department_id.name,
+                },
+                "list_data": list_detail
+            })
+
+            # Trả về kết quả
             return Response(
                 json.dumps({"success": True, "data": data}),
                 status=200, content_type="application/json"

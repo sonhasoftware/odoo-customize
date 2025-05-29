@@ -317,14 +317,18 @@ class WorkProcess(models.Model):
 
     start_date = fields.Date("Ngày bắt đầu")
     job_id = fields.Many2one('hr.job', "Chức vụ")
+    department_id = fields.Many2one('hr.department', "Phòng ban")
     number = fields.Char("Số quyết định")
     type = fields.Char("Loại quyết định")
     note = fields.Text("Ghi chú")
 
     def create(self, vals):
         res = super(WorkProcess, self).create(vals)
-        job_id = res.job_id.id
-        res.employee_id.job_id = job_id
+        if res.job_id:
+            job_id = res.job_id.id
+            res.employee_id.job_id = job_id
+        if res.department_id:
+            res.employee_id.department_id = res.department_id.id
         return res
 
 
