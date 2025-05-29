@@ -1292,3 +1292,29 @@ class AuthAPI(http.Controller):
                 "error": str(e)
             }), content_type="application/json", status=500)
 
+    @http.route('/api/remote/timekeeping', type='http', auth='none', methods=['GET'], csrf=False)
+    def get_remote_timekeeping(self):
+        try:
+            list_records = request.env['remote.timekeeping'].sudo().search([])
+            if not list_records:
+                raise ValueError("Không tìm thấy dữ liệu!")
+            data = []
+            for r in list_records:
+                data.append({
+                    "id": r.id,
+                    "name": r.name,
+                    "bssid": r.bssid,
+                    "latitude": r.latitude,
+                    "longitude": r.longitude,
+                    "radiusInMeters": r.radius,
+                })
+            return Response(
+                json.dumps({"success": True, "data": data}),
+                status=200, content_type="application/json"
+            )
+        except Exception as e:
+            return Response(json.dumps(
+                {"success": False,
+                 "error": str(e)
+                 }), content_type="application/json", status=500)
+
