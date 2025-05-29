@@ -16,10 +16,11 @@ class SonHaKPIResultMonth(models.Model):
     description = fields.Text("Mô tả chi tiêt công việc")
     kpi_month = fields.Many2one('sonha.kpi.month')
 
+    # Điều chỉnh mục đánh giá ( Khối lượng cv: 50%, chất lượng cv: 50%, tuân thủ nội quy và sáng kiến 0%)
     diem_chuan_amount_work = fields.Float("Điểm chuẩn (khối lượng CVTH)", default=50)
-    diem_chuan_matter_work = fields.Float("Điểm chuẩn (Chất lượng CVTH)", default=30)
-    diem_chuan_comply_regulations = fields.Float("Điểm chuẩn (Chấp hành nội quy, quy chế)", default=10)
-    diem_chuan_initiative = fields.Float("Điểm chuẩn (Cải tiến, đề xuất, sáng kiến)", default=10)
+    diem_chuan_matter_work = fields.Float("Điểm chuẩn (Chất lượng CVTH)", default=50)
+    diem_chuan_comply_regulations = fields.Float("Điểm chuẩn (Chấp hành nội quy, quy chế)", default=0)
+    diem_chuan_initiative = fields.Float("Điểm chuẩn (Cải tiến, đề xuất, sáng kiến)", default=0)
 
     kq_hoan_thanh_amount_work = fields.Float("Kết quả hoàn thành ĐVĐG (khối lượng CVTH)")
     kq_hoan_thanh_matter_work = fields.Float("Kết quả hoàn thành ĐVĐG (Chất lượng CVTH)")
