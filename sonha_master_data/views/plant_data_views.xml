@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="plant_data_tree_view" model="ir.ui.view">
+        <field name="name">plant.data.tree.view</field>
+        <field name="model">plant.data</field>
+        <field name="arch" type="xml">
+            <tree string="Quản lý plant" editable="bottom">
+                <field name="product_code_id"/>
+                <field name="plant"/>
+                <field name="purchasing_group"/>
+                <field name="availability_check"/>
+<!--                <field name="special_procurement_type"/>-->
+                <field name="plan_deliver_time"/>
+                <field name="safety_time"/>
+                <field name="safety_stock"/>
+                <field name="co_product"/>
+                <field name="procurement_type"/>
+                <field name="inspection_type_01"/>
+                <field name="inspection_type_z01"/>
+                <field name="inspection_type_04"/>
+                <field name="inspection_type_z04"/>
+                <field name="inspection_type_05"/>
+                <field name="inspection_type_z05"/>
+                <field name="inspection_type_08"/>
+                <field name="inspection_type_z08"/>
+                <field name="inspection_type_10"/>
+                <field name="inspection_type_z10"/>
+                <field name="inspection_type_89"/>
+                <field name="inspection_type_z89"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="plant_data_action" model="ir.actions.act_window">
+        <field name="name">Quản lý plant</field>
+        <field name="res_model">plant.data</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

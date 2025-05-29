@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="uom_characteristic_tree_view" model="ir.ui.view">
+        <field name="name">uom.characteristic.tree.view</field>
+        <field name="model">uom.characteristic</field>
+        <field name="arch" type="xml">
+            <tree string="Đặc điểm đơn vị" editable="bottom">
+                <field name="unit_material"/>
+                <field name="characteristic"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="uom_characteristic_action" model="ir.actions.act_window">
+        <field name="name">Đặc điểm đơn vị</field>
+        <field name="res_model">uom.characteristic</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>
