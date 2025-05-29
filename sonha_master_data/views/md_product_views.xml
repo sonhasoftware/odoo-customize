@@ -8,7 +8,6 @@
                 <field name="product_code"/>
                 <field name="product_type"/>
                 <field name="product_name"/>
-                <field name="name"/>
                 <field name="product_english_name"/>
                 <field name="product_long_name"/>
                 <field name="status"/>
@@ -40,7 +39,6 @@
                             <field name="product_code"/>
                             <field name="product_type"/>
                             <field name="product_name"/>
-                            <field name="name"/>
                             <field name="product_english_name"/>
                             <field name="product_long_name"/>
                         </group>
@@ -148,9 +146,20 @@
             </field>
         </record>
 
+    <record id="view_md_product_search" model="ir.ui.view">
+        <field name="name">form.md.product.search</field>
+        <field name="model">md.product</field>
+        <field name="arch" type="xml">
+            <search string="Search Vật tư">
+                <field name="product_name" string="Tên vật tư"/>
+            </search>
+        </field>
+    </record>
+
     <record id="md_product_action" model="ir.actions.act_window">
         <field name="name">Master Data vật tư</field>
         <field name="res_model">md.product</field>
+        <field name="search_view_id" ref="view_md_product_search"/>
         <field name="view_mode">tree,form</field>
     </record>
 </odoo>
