@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="mrp_controller_tree_view" model="ir.ui.view">
+        <field name="name">mrp.controller.tree.view</field>
+        <field name="model">mrp.controller</field>
+        <field name="arch" type="xml">
+            <tree string="MRP Controller" editable="bottom">
+                <field name="plant" widget="many2many_tags"/>
+                <field name="mrp_controller"/>
+                <field name="mrp_controller_name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="mrp_controller_action" model="ir.actions.act_window">
+        <field name="name">MRP Controller</field>
+        <field name="res_model">mrp.controller</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="sales_data_tree_view" model="ir.ui.view">
+        <field name="name">sales.data.tree.view</field>
+        <field name="model">sales.data</field>
+        <field name="arch" type="xml">
+            <tree string="Thông tin bán hàng" editable="bottom">
+                <field name="product_code_id"/>
+<!--                <field name="sale_organization"/>-->
+<!--                <field name="distribution_chanel"/>-->
+                <field name="sale_unit"/>
+                <field name="deliver_warehouse"/>
+<!--                <field name="tax"/>-->
+<!--                <field name="item_category_group"/>-->
+<!--                <field name="aag_malt"/>-->
+<!--                <field name="mat_group_1"/>-->
+<!--                <field name="mat_group_2"/>-->
+<!--                <field name="mat_group_price"/>-->
+            </tree>
+        </field>
+    </record>
+
+    <record id="sales_data_action" model="ir.actions.act_window">
+        <field name="name">Thông tin bán hàng</field>
+        <field name="res_model">sales.data</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

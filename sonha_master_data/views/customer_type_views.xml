@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="customer_type_tree_view" model="ir.ui.view">
+        <field name="name">customer.type.tree.view</field>
+        <field name="model">customer.type</field>
+        <field name="arch" type="xml">
+            <tree string="Phân loại khách hàng" editable="bottom">
+                <field name="customer_type_code"/>
+                <field name="customer_type_name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="customer_type_action" model="ir.actions.act_window">
+        <field name="name">Phân loại khách hàng</field>
+        <field name="res_model">customer.type</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>
