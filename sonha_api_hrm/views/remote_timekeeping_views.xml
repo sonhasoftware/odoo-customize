@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_remote_timekeeping_tree" model="ir.ui.view">
+        <field name="name">remote.timekeeping.tree</field>
+        <field name="model">remote.timekeeping</field>
+        <field name="arch" type="xml">
+            <tree string="Chấm công từ xa" editable="bottom">
+                <field name="name"/>
+                <field name="bssid"/>
+                <field name="latitude"/>
+                <field name="longitude"/>
+                <field name="radius"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="remote_timekeeping_action" model="ir.actions.act_window">
+        <field name="name">Chấm công từ xa</field>
+        <field name="res_model">remote.timekeeping</field>
+        <field name="view_mode">tree</field>
+    </record>
+
+    <menuitem id="menu_timekeeping"
+              name="Chấm công từ xa"
+              sequence="200"/>
+
+    <menuitem id="menu_remote_timekeeping"
+              name="Chấm công từ xa"
+              parent="menu_timekeeping"
+              action="remote_timekeeping_action"
+              groups="sonha_employee.group_back_up_employee"
+              sequence="1"/>
+
+
+</odoo>
