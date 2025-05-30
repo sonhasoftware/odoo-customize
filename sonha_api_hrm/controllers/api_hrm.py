@@ -40,6 +40,7 @@ class AuthAPI(http.Controller):
                         "name": user.name,
                         "email": user.email,
                         "device_id": user.device_id,
+                        "option_check": user.option_check,
                     },
                     "employee": {
                         "id": employee_id.id,
