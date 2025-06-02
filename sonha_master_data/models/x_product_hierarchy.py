@@ -4,8 +4,8 @@ class XProductxHierarchy(models.Model):
     _name = 'x.product.hierarchy'
     _rec_name = 'x_full_name'
 
-    name = fields.Char("Tên")
-    code = fields.Char('Mã PRH')
+    name = fields.Char("Tên", required=True)
+    code = fields.Char("Mã PRH", required=True)
     level = fields.Integer("Cấp độ")
     x_full_name = fields.Char("Tên đầy đủ", compute="get_full_name", store=True)
 

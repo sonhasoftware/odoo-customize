@@ -24,4 +24,7 @@ from . import account_assignment
 from . import material_price_group
 from . import valuation_class
 from . import overhead_group
+from . import md_supplier
+from . import supplier_type
+from . import supplier_group
 

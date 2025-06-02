@@ -21,6 +21,12 @@
               action="md_product_action"
               sequence="2"/>
 
+    <menuitem id="menu_md_supplier"
+              name="Master Data nhà cung cấp"
+              parent="menu_md"
+              action="md_supplier_action"
+              sequence="3"/>
+
 <!--    <menuitem id="menu_alternative_uom"-->
 <!--              name="Đơn vị tính thay thế"-->
 <!--              parent="menu_md"-->
@@ -44,123 +50,150 @@
               parent="menu_md_root"
               sequence="12"/>
 
+    <menuitem id="menu_config_md_customer"
+              name="Khách hàng"
+              parent="menu_md_config"
+              sequence="1"/>
+
+    <menuitem id="menu_config_md_product"
+              name="Vật tư"
+              parent="menu_md_config"
+              sequence="2"/>
+
+    <menuitem id="menu_config_md_supplier"
+              name="Nhà cung cấp"
+              parent="menu_md_config"
+              sequence="3"/>
+
     <menuitem id="menu_customer_type"
               name="Phân loại khách hàng"
-              parent="menu_md_config"
+              parent="menu_config_md_customer"
               action="customer_type_action"
               sequence="1"/>
 
     <menuitem id="menu_customer_group"
               name="Nhóm khách hàng"
-              parent="menu_md_config"
+              parent="menu_config_md_customer"
               action="customer_group_action"
               sequence="2"/>
 
     <menuitem id="menu_purchasing_group"
               name="Nhóm mua hàng"
-              parent="menu_md_config"
+              parent="menu_config_md_product"
               action="purchasing_group_action"
-              sequence="3"/>
+              sequence="1"/>
 
     <menuitem id="menu_item_category_group"
               name="Nhóm loại hàng"
-              parent="menu_md_config"
+              parent="menu_config_md_product"
               action="item_category_group_action"
-              sequence="4"/>
+              sequence="2"/>
 
     <menuitem id="menu_uom_characteristic"
               name="Đặc điểm đơn vị"
-              parent="menu_md_config"
+              parent="menu_config_md_product"
               action="uom_characteristic_action"
-              sequence="5"/>
+              sequence="3"/>
 
     <menuitem id="menu_mrp_controller"
               name="MRP Controller"
-              parent="menu_md_config"
+              parent="menu_config_md_product"
               action="mrp_controller_action"
-              sequence="6"/>
+              sequence="4"/>
 
     <menuitem id="menu_special_procument_type"
               name="Hình thức cung ứng đặc biệt"
-              parent="menu_md_config"
+              parent="menu_config_md_product"
               action="special_procument_type_action"
-              sequence="7"/>
+              sequence="5"/>
 
     <menuitem id="menu_profit_center"
               name="Trung tâm ghi nhận doanh thu"
-              parent="menu_md_config"
+              parent="menu_config_md_product"
               action="profit_center_action"
-              sequence="8"/>
+              sequence="6"/>
 
     <menuitem id="menu_x_material_type"
               name="Loại sản phẩm"
-              parent="menu_md_config"
+              parent="menu_config_md_product"
               action="x_material_type_action"
-              sequence="9"/>
+              sequence="7"/>
 
     <menuitem id="menu_x_mch_list"
               name="Nhóm mặt hàng"
-              parent="menu_md_config"
+              parent="menu_config_md_product"
               action="x_mch_list_action"
-              sequence="10"/>
+              sequence="8"/>
 
     <menuitem id="menu_x_division"
               name="Lĩnh vực"
-              parent="menu_md_config"
+              parent="menu_config_md_product"
               action="action_x_division"
-              sequence="11"/>
+              sequence="9"/>
 
     <menuitem id="menu_x_product_hierarchy"
               name="Quản lý PRH"
-              parent="menu_md_config"
+              parent="menu_config_md_product"
               action="x_product_hierarchy_action"
-              sequence="12"/>
+              sequence="10"/>
 
     <menuitem id="menu_sale_organization"
               name="Tổ chức mua hàng"
-              parent="menu_md_config"
+              parent="menu_config_md_product"
               action="sale_organization_action"
-              sequence="12"/>
+              sequence="11"/>
 
     <menuitem id="menu_distribution_channel"
               name="Kênh bán hàng"
-              parent="menu_md_config"
+              parent="menu_config_md_product"
               action="distribution_channel_action"
-              sequence="13"/>
+              sequence="12"/>
 
     <menuitem id="menu_tax_classification"
               name="Thuế"
-              parent="menu_md_config"
+              parent="menu_config_md_product"
               action="tax_classification_action"
-              sequence="14"/>
+              sequence="13"/>
 
     <menuitem id="menu_account_assignment"
               name="Nhóm định khoản doanh thu"
-              parent="menu_md_config"
+              parent="menu_config_md_product"
               action="account_assignment_action"
               sequence="14"/>
 
     <menuitem id="menu_material_price_group"
               name="Nhóm giá mặt hàng"
-              parent="menu_md_config"
+              parent="menu_config_md_product"
               action="material_price_group_action"
               sequence="15"/>
 
     <menuitem id="menu_valuation_class"
               name="Lớp định giá"
-              parent="menu_md_config"
+              parent="menu_config_md_product"
               action="valuation_class_action"
-              sequence="16"/>
+              sequence="15"/>
 
     <menuitem id="menu_overhead_group_class"
               name="Nhóm chi phí chung"
-              parent="menu_md_config"
+              parent="menu_config_md_product"
               action="overhead_group_action"
-              sequence="17"/>
+              sequence="16"/>
 
     <menuitem id="menu_md_uom"
               name="Đơn vị tính"
-              parent="menu_md_config"
+              parent="menu_config_md_product"
               action="uom.product_uom_form_action"
-              sequence="18"/>
+              sequence="17"/>
+
+    <menuitem id="menu_supplier_type"
+              name="Loại nhà cung cấp"
+              parent="menu_config_md_supplier"
+              action="supplier_type_action"
+              sequence="1"/>
+
+    <menuitem id="menu_supplier_group"
+              name="Nhóm nhà cung cấp"
+              parent="menu_config_md_supplier"
+              action="supplier_group_action"
+              sequence="2"/>
 </odoo>

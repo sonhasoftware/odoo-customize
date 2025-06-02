@@ -5,8 +5,8 @@ class XMchList(models.Model):
     _name = 'x.mch.list'
     _rec_name = 'x_full_name'
 
-    name = fields.Char("Tên MCH")
-    x_mch_code = fields.Char("Mã MCH")
+    name = fields.Char("Tên MCH", required=True)
+    x_mch_code = fields.Char("Mã MCH", required=True)
     x_parent_id = fields.Many2one('x.mch.list', string="MCH cha")
     child_ids = fields.One2many('x.mch.list', 'x_parent_id', string="MCH con")
     level = fields.Integer("Cấp MCH")

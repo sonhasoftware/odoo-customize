@@ -28,25 +28,17 @@ class PlantData(models.Model):
     inspection_type_89 = fields.Boolean("Loại kiểm tra chất lượng 89")
     inspection_type_z89 = fields.Boolean("Loại kiểm tra chất lượng Z89")
     purchasing_group = fields.Many2one('purchasing.group', string="Nhóm mua hàng")
-    profit_center = fields.Many2one('profit.center', string="Trung tâm ghi nhận doanh thu")
-    mrp_controller = fields.Many2one('mrp.controller', string="Nhóm người lập kế hoạch vật tư",
+    profit_center = fields.Many2one('profit.center', string="Trung tâm ghi nhận doanh thu",
+                                    domain="[('plant', '=', plant)]")
+    mrp_controller = fields.Many2one('mrp.controller', string="Nhóm lập kế hoạch vật tư",
                                      domain="[('plant', 'in', plant)]")
     valuation_class = fields.Many2one('valuation.class', string="Nhóm tài khoản tồn kho",
                                    domain="[('id', 'in', domain_valuation_class)]")
     overhead_group = fields.Many2one('overhead.group', string="Nhóm chi phí chung", domain="[('plant', '=', plant)]")
-    company_id = fields.Many2one('res.company', compute="compute_company", store=True)
     material_type = fields.Many2one('x.material.type', compute="compute_material_type", store=True)
     check_stock = fields.Boolean(compute="compute_material_type", store=True)
     check_shi = fields.Boolean(compute="compute_material_type", store=True)
     domain_valuation_class = fields.Many2many('valuation.class', compute="compute_domain_field", store=True)
-
-    @api.depends('plant')
-    def compute_company(self):
-        for r in self:
-            if r.plant:
-                r.company_id = r.plant.company_id.id
-            else:
-                r.company_id = None
 
     @api.depends('product_code_id.product_type', 'plant')
     def compute_material_type(self):
@@ -83,20 +75,35 @@ class PlantData(models.Model):
             mrp = self.env['mrp.controller'].sudo().search([('mrp_controller', '=', mrp_code)])
             profit_center = self.env['profit.center'].sudo().search([('name', '=', profit_code)])
             r.purchasing_group = purchasing_group.id
-            r.mrp_controller = mrp.id if mrp else None
+            r.mrp_controller = mrp.id
             r.profit_center = profit_center.id
             r.material_type = r.product_code_id.product_type.id if r.product_code_id.product_type else None
-            r.check_stock = True if r.product_code_id.product_type.x_code in ['Z500', 'Z600', 'Z800'] else False
             r.plan_deliver_time = 15 if r.product_code_id.product_type.x_code not in ['Z100', 'Z101', 'Z102', 'Z300'] else 0
-
-    @api.onchange('purchasing_group', 'plant')
-    def onchange_mrp(self):
-        for r in self:
-            if r.purchasing_group and r.purchasing_group.purchasing_group_code == "500" and r.plant and r.plant in ['2201', '2202']:
-                mrp = self.env['mrp.controller'].sudo().search([('mrp_controller', '=', "000")])
-                r.mrp_controller = mrp.id if mrp else None
-            else:
+            if r.product_code_id.product_type.x_code in ['Z500', 'Z600', 'Z800']:
+                r.check_stock = True
+                r.special_procurement_type = None
+                r.plan_deliver_time = 0
+                r.safety_time = 0
+                r.safety_stock = 0
                 r.mrp_controller = None
+                r.co_product = False
+                r.procurement_type = None
+                r.valuation_class = None
+                r.overhead_group = None
+                r.inspection_type_01 = False
+                r.inspection_type_z01 = False
+                r.inspection_type_04 = False
+                r.inspection_type_z04 = False
+                r.inspection_type_05 = False
+                r.inspection_type_z05 = False
+                r.inspection_type_08 = False
+                r.inspection_type_z08 = False
+                r.inspection_type_10 = False
+                r.inspection_type_z10 = False
+                r.inspection_type_89 = False
+                r.inspection_type_z89 = False
+            else:
+                r.check_stock = False
 
     @api.onchange('mrp_controller')
     def onchange_procurement_type(self):
@@ -117,28 +124,28 @@ class PlantData(models.Model):
         for r in self:
             if r.plant and r.plant.plant in group_1:
                 if r.material_type and r.material_type.x_code in ['Z100', 'Z101', 'Z200', 'Z300', 'Z205']:
-                    domain_valuation_class = self.env['valuation.class'].sudo().search([])
-                    r.domain_valuation_class = domain_valuation_class if domain_valuation_class else None
+                    domain_valuation_class = self.env['valuation.class'].sudo().search([('company_ids', 'in', r.plant.company_id.id)])
+                    r.domain_valuation_class = domain_valuation_class
                 elif r.material_type and r.material_type.x_code not in ['Z100', 'Z101', 'Z200', 'Z300', 'Z205']:
-                    domain_valuation_class = self.env['valuation.class'].sudo().search([('company_ids', 'in', r.company_id.id),
+                    domain_valuation_class = self.env['valuation.class'].sudo().search([('company_ids', 'in', r.plant.company_id.id),
                                                                                         ('material_type', 'in', r.material_type.id)])
-                    r.domain_valuation_class = domain_valuation_class if domain_valuation_class else None
+                    r.domain_valuation_class = domain_valuation_class
                 else:
                     r.domain_valuation_class = None
             elif r.plant and r.plant.plant in group_2:
                 if r.material_type and r.material_type.x_code in ['Z100', 'Z101', 'Z102']:
-                    domain_valuation_class = self.env['valuation.class'].sudo().search([])
-                    r.domain_valuation_class = domain_valuation_class if domain_valuation_class else None
+                    domain_valuation_class = self.env['valuation.class'].sudo().search([('company_ids', 'in', r.plant.company_id.id)])
+                    r.domain_valuation_class = domain_valuation_class
                 elif r.material_type and r.material_type.x_code not in ['Z100', 'Z101', 'Z102']:
-                    domain_valuation_class = self.env['valuation.class'].sudo().search([('company_ids', 'in', r.company_id.id),
+                    domain_valuation_class = self.env['valuation.class'].sudo().search([('company_ids', 'in', r.plant.company_id.id),
                                                                                         ('material_type', 'in', r.material_type.id)])
-                    r.domain_valuation_class = domain_valuation_class if domain_valuation_class else None
+                    r.domain_valuation_class = domain_valuation_class
                 else:
                     r.domain_valuation_class = None
             elif r.plant and r.plant.plant not in (group_1 + group_2):
-                domain_valuation_class = self.env['valuation.class'].sudo().search([('company_ids', 'in', r.company_id.id),
+                domain_valuation_class = self.env['valuation.class'].sudo().search([('company_ids', 'in', r.plant.company_id.id),
                                                                                     ('material_type', 'in', r.material_type.id)])
-                r.domain_valuation_class = domain_valuation_class if domain_valuation_class else None
+                r.domain_valuation_class = domain_valuation_class
             else:
                 r.domain_valuation_class = None
 

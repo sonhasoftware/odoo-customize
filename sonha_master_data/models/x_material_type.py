@@ -5,8 +5,8 @@ class XMaterialType(models.Model):
     _name = 'x.material.type'
     _rec_name = 'x_full_name'
 
-    name = fields.Char("Tên")
-    x_code = fields.Char("Mã loại vật tư")
+    name = fields.Char("Tên", required=True)
+    x_code = fields.Char("Mã loại vật tư", required=True)
     x_qty_manage = fields.Boolean(string="Quản lý số lượng")
     x_value_manage = fields.Boolean(string="Quản lý giá trị")
     x_price_type = fields.Selection(string='Loại giá', selection=[('s', 'S'), ('v', 'V')])

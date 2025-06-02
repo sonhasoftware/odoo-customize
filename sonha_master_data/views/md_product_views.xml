@@ -21,31 +21,32 @@
             <field name="arch" type="xml">
                 <form>
                     <header>
-                        <button name="action_approve" string="Duyệt" type="object" class="oe_highlight"/>
                         <field name="status" widget="statusbar"/>
+                        <button name="action_sent" string="Gửi duyệt" type="object" class="oe_highlight" invisible="status != 'draft'"/>
+                        <button name="action_approve" string="Duyệt" type="object" class="oe_highlight" invisible="status != 'waiting'"/>
                     </header>
                     <sheet>
                         <group>
                             <group>
-                                <field name="is_z100"/>
-                                <field name="is_z101"/>
+                                <field name="is_z100" readonly="status != 'draft'"/>
+                                <field name="is_z101" readonly="status != 'draft'"/>
                             </group>
                             <group>
-                                <field name="is_z102"/>
-                                <field name="have_alt_uom"/>
+                                <field name="is_z102" readonly="status != 'draft'"/>
+                                <field name="have_alt_uom" readonly="status != 'draft'"/>
                             </group>
                         </group>
                         <group>
-                            <field name="product_code"/>
-                            <field name="product_type"/>
-                            <field name="product_name"/>
-                            <field name="product_english_name"/>
-                            <field name="product_long_name"/>
+                            <field name="product_code" readonly="1"/>
+                            <field name="product_type" readonly="status != 'draft'"/>
+                            <field name="product_name" readonly="status != 'draft'"/>
+                            <field name="product_english_name" readonly="status != 'draft'"/>
+                            <field name="product_long_name" readonly="status != 'draft'"/>
                         </group>
                         <notebook>
                             <page string="Thông tin cơ bản">
                                 <group>
-                                    <field name="basic_data" string="">
+                                    <field name="basic_data" string="" readonly="status != 'draft'">
                                         <tree editable="bottom" class="md-product">
                                             <field name="old_product_code"/>
                                             <field name="main_unit"/>
@@ -73,7 +74,7 @@
                             </page>
                             <page string="Đơn vị thay thế">
                                 <group>
-                                    <field name="alternative_uom" string="">
+                                    <field name="alternative_uom" string="" readonly="status != 'draft'">
                                         <tree editable="bottom" class="md-product">
                                             <field name="alternative_unit"/>
                                             <field name="unit_measure"/>
@@ -86,13 +87,12 @@
                             </page>
                             <page string="Thông tin plant">
                                 <group>
-                                    <field name="plant_data" string="">
+                                    <field name="plant_data" string="" readonly="status != 'draft'">
                                         <tree editable="bottom" class="md-product">
                                             <field name="check_stock" column_invisible="1"/>
                                             <field name="check_shi" column_invisible="1"/>
-                                            <field name="plant"/>
-                                            <field name="company_id" column_invisible="1"/>
                                             <field name="material_type" column_invisible="1"/>
+                                            <field name="plant"/>
                                             <field name="purchasing_group"/>
                                             <field name="availability_check"/>
                                             <field name="profit_center"/>
@@ -104,6 +104,7 @@
                                             <field name="co_product" readonly="check_stock != False"/>
                                             <field name="procurement_type" readonly="check_stock != False or check_shi != False"/>
                                             <field name="valuation_class" readonly="check_stock != False"/>
+<!--                                            <field name="domain_valuation_class" string="Miền" widget="many2many_tags"/>-->
                                             <field name="overhead_group" readonly="check_stock != False or check_shi != False"/>
                                             <field name="inspection_type_01" readonly="check_stock != False"/>
                                             <field name="inspection_type_z01" readonly="check_stock != False"/>
@@ -124,8 +125,10 @@
                             </page>
                             <page string="Thông tin bán hàng">
                                 <group>
-                                    <field name="sale_data" string="">
+                                    <field name="sale_data" string="" readonly="status != 'draft'">
                                         <tree editable="bottom" class="md-product">
+                                            <field name="mat_type" column_invisible="1"/>
+                                            <field name="company_id" column_invisible="1"/>
                                             <field name="sale_organization"/>
                                             <field name="distribution_chanel"/>
                                             <field name="sale_unit"/>

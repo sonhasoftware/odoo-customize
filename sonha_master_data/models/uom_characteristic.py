@@ -6,6 +6,6 @@ class UomCharacteristic(models.Model):
     _name = 'uom.characteristic'
     _rec_name = 'characteristic'
 
-    unit_material = fields.Many2one('uom.uom', string="Đơn vị")
+    unit_material = fields.Many2one('uom.uom', string="Đơn vị", required=True)
     characteristic = fields.Char("Đặc điểm")
 

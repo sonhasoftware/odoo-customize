@@ -6,8 +6,8 @@ class PurchasingGroup(models.Model):
     _name = 'purchasing.group'
     _rec_name = 'x_full_name'
 
-    purchasing_group_code = fields.Char("Mã nhóm mua hàng")
-    description = fields.Char("Mô tả")
+    purchasing_group_code = fields.Char("Mã nhóm mua hàng", required=True)
+    description = fields.Char("Mô tả", required=True)
     x_full_name = fields.Char("Tên đầy đủ", compute="get_full_name", store=True)
 
     @api.depends('purchasing_group_code', 'description')

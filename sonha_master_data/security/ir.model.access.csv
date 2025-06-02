@@ -49,3 +49,9 @@ access_material_price_group,access.material.price.group,model_material_price_gro
 access_valuation_class,access.valuation.class,model_valuation_class,,1,1,1,1
 
 access_overhead_group,access.overhead.group,model_overhead_group,,1,1,1,1
+
+access_md_supplier,access.md.supplier,model_md_supplier,,1,1,1,1
+
+access_supplier_type,access.supplier.type,model_supplier_type,,1,1,1,1
+
+access_supplier_group,access.supplier.group,model_supplier_group,,1,1,1,1

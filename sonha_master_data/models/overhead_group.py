@@ -6,8 +6,8 @@ class OverheadGroup(models.Model):
     _name = 'overhead.group'
     _rec_name='x_full_name'
 
-    name = fields.Char("Nhóm chi phí chung")
-    description = fields.Char("Diễn giải")
+    name = fields.Char("Nhóm chi phí chung", required=True)
+    description = fields.Char("Diễn giải", required=True)
     company_id = fields.Many2one('res.company', string="Công ty")
     plant = fields.Many2one('stock.warehouse', string="Plant")
 

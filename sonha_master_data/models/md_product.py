@@ -10,7 +10,7 @@ class MDProduct(models.Model):
     product_name = fields.Char("Tên vật tư", size=40)
     product_english_name = fields.Char("Tên vật tư tiếng anh", size=40)
     product_long_name = fields.Char("Tên đầy đủ", size=128)
-    status = fields.Selection([('draft', "Nháp"), ('done', "Đã duyệt")], string="Trạng thái", default='draft')
+    status = fields.Selection([('draft', "Nháp"), ('waiting', "Chờ duyệt"), ('done', "Đã duyệt")], string="Trạng thái", default='draft')
     basic_data = fields.One2many('basic.mat.data', 'product_code_id', string="Thông tin cơ bản")
     alternative_uom = fields.One2many('alternative.uom', 'product_code_id', string="Đơn vị thay thế")
     plant_data = fields.One2many('plant.data', 'product_code_id', string="Thông tin plant")
@@ -37,7 +37,7 @@ class MDProduct(models.Model):
                 r.is_z100 = False
             if r.is_z100 or r.is_z101 or r.is_z102:
                 product_type = self.env['x.material.type'].sudo().search([('x_code', '=', code)])
-                r.product_type = product_type.id if product_type else None
+                r.product_type = product_type.id
             else:
                 r.product_type = None
 
@@ -53,7 +53,31 @@ class MDProduct(models.Model):
         for r in self:
             r.status = 'done'
 
+    def action_sent(self):
+        for r in self:
+            r.status = 'waiting'
 
+    @api.model
+    def _search(self, domain, offset=0, limit=None, order=None, access_rights_uid=None):
+        new_domain = []
+        for dm in domain:
+            if isinstance(dm, (list, tuple)) and len(dm) == 3:
+                field, operator, value = dm
+                if value and isinstance(value, str) and '*' in value and operator == 'ilike':
+                    temp = []
+                    parts = value.split('*')
+                    for part in parts:
+                        if part.strip():
+                            temp.append((field, 'ilike', part.strip()))
+                    if temp:
+                        new_domain += ['&'] * (len(temp) - 1)
+                        new_domain += temp
+                else:
+                    new_domain.append(dm)
+            else:
+                new_domain.append(dm)
+        domain = new_domain
+        return super(MDProduct, self)._search(domain, offset, limit, order, access_rights_uid)
 
 
 

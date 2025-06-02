@@ -59,7 +59,7 @@
 }
 
 .md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="plant"] {
-    width: 70px !important;
+    width: 100px !important;
 }
 
 .md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="purchasing_group"] {
@@ -162,3 +162,42 @@
     width: 150px !important;
 }
 
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="sale_organization"] {
+    width: 150px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="distribution_chanel"] {
+    width: 100px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="sale_unit"] {
+    width: 50px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="deliver_warehouse"] {
+    width: 150px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="tax"] {
+    width: 70px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="item_category_group"] {
+    width: 120px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="aag_malt"] {
+    width: 125px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="mat_group_1"] {
+    width: 105px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="mat_group_2"] {
+    width: 105px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="mat_group_price"] {
+    width: 80px !important;
+}

@@ -74,40 +74,6 @@ class BasicMatData(models.Model):
                 r.x_mch_level_2 = None
                 r.x_mch_level_1 = None
 
-    def create(self, vals):
-        alt_uom = self.env['uom.uom'].sudo().search([('name', '=', "Cây")])
-        characteristic = self.env['uom.characteristic'].sudo().search([('characteristic', '=', "Z_CAY_KG")])
-        list_alt_uom = ['00210001000001', '00220001000001', '00230001000001']
-        res = super(BasicMatData, self).create(vals)
-        if res.malt_prdhier.code in list_alt_uom:
-            vals = {
-                'alternative_unit': alt_uom.id if alt_uom else None,
-                'unit_measure': True,
-                'char_name': characteristic.id if characteristic else None,
-                'product_code_id': res.product_code_id.id,
-            }
-            self.env['alternative.uom'].sudo().create(vals)
-            res.product_code_id.sudo().write({'have_alt_uom': True})
-        return res
-
-    def write(self, vals):
-        alt_uom = self.env['uom.uom'].sudo().search([('name', '=', "Cây")])
-        characteristic = self.env['uom.characteristic'].sudo().search([('characteristic', '=', "Z_CAY_KG")])
-        list_alt_uom = ['00210001000001', '00220001000001', '00230001000001']
-        res = super(BasicMatData, self).write(vals)
-        if 'malt_prdhier' in vals:
-            for r in self:
-                if r.malt_prdhier and r.malt_prdhier.code in list_alt_uom:
-                    self.env['alternative.uom'].search([('product_code_id', '=', r.product_code_id.id)]).sudo().unlink()
-                    vals = {
-                        'alternative_unit': alt_uom.id if alt_uom else None,
-                        'unit_measure': True,
-                        'char_name': characteristic.id if characteristic else None,
-                        'product_code_id': r.product_code_id.id,
-                    }
-                    self.env['alternative.uom'].sudo().create(vals)
-                    r.product_code_id.sudo().write({'have_alt_uom': True})
-        return res
 
 
 

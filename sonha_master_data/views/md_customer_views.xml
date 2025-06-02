@@ -7,9 +7,12 @@
             <tree string="Master Data Khách hàng" editable="bottom">
                 <field name="customer_code"/>
                 <field name="customer_name"/>
+                <field name="cust_phone"/>
                 <field name="address"/>
+                <field name="tax_code"/>
                 <field name="customer_type_id"/>
                 <field name="customer_group_id"/>
+                <field name="company_id"/>
             </tree>
         </field>
     </record>
