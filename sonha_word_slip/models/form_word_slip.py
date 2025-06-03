@@ -410,7 +410,7 @@ class FormWordSlip(models.Model):
                 rec.employee_confirm = employee_id.employee_approval.id
                 rec.employee_approval = employee_id.employee_approval.parent_id.id if employee_id.employee_approval.parent_id else None
                 
-        if not department_spec and rec.day_duration <= 3:
+        if (not department_spec and rec.day_duration <= 3) or rec.type.key == "NP":
             condition = '<=3'
             rec.check_level = False
         else:
