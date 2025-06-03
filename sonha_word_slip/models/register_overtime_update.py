@@ -233,7 +233,7 @@ class RegisterOvertimeUpdate(models.Model):
                 if r.employee_id.parent_id.user_id.id == self.env.user.id:
                     r.status = 'done'
                     if r.employee_id.department_id.over_time == 'date':
-                        employee.total_compensatory += over_time
+                        r.employee.total_compensatory += over_time
                     else:
                         pass
                 else:
