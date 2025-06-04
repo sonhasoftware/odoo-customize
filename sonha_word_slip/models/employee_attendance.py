@@ -59,7 +59,7 @@ class EmployeeAttendance(models.Model):
             if r.shift:
                 r.c2k3 = 1 if r.shift.c2k3 else 0
                 r.c3k4 = 1 if r.shift.c3k4 else 0
-                r.shift_toxic = 1 if r.shift.shift_toxic else 0
+                r.shift_toxic = 1 if r.shift.shift_toxic and r.check_in and r.check_out else 0
 
     @api.depends('employee_id', 'date')
     def _get_time_off(self):
