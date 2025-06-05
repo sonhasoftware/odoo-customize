@@ -70,6 +70,8 @@
                         <field name="using"/>
                         <field name="contract"/>
                         <field name="half_shift"/>
+                        <field name="shift_ot"/>
+                        <field name="type_shift"/>
                         <field name="company_id" widget="many2many_tags"/>
                     </group>
                     <field name="note"/>

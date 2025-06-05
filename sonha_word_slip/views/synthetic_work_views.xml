@@ -25,6 +25,8 @@
                         <group string="Công thời gian">
                             <field name="total_work"/>
                             <field name="date_work"/>
+                            <field name="work_hc"/>
+                            <field name="work_sp"/>
                             <field name="apprenticeship"/>
                             <field name="probationary_period"/>
                             <field name="ot_one_hundred"/>

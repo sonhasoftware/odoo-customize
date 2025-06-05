@@ -41,6 +41,12 @@ class ConfigShift(models.Model):
     c3k4 = fields.Boolean("Ca 3 kíp 4")
     half_shift = fields.Boolean("Nửa ca", default=False)
     shift_toxic = fields.Boolean("Ca độc hại")
+    shift_ot = fields.Boolean("Làm thêm")
+    type_shift = fields.Selection([
+        ('hc', 'Hành chính'),
+        ('sp', 'Sản phẩm'),
+    ], string="Loại ca")
+
 
     #Kiểm tra xem ca có phải ca đêm hay không
     @api.depends('start', 'end_shift')

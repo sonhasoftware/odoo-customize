@@ -46,6 +46,15 @@ class EmployeeAttendance(models.Model):
     c2k3 = fields.Float("Ca 2 kíp 3", compute="get_shift")
     c3k4 = fields.Float("Ca 3 kíp 4", compute="get_shift")
     shift_toxic = fields.Float("Ca độc hại", compute="get_shift")
+    work_hc = fields.Float("Công hành chính", compute="get_work_hc_sp")
+    work_sp = fields.Float("Công Sản phẩm", compute="get_work_hc_sp")
+
+    def get_work_hc_sp(self):
+        for r in self:
+            if r.shift.type_shift == 'sp':
+                r.work_sp = r.work_day
+            else:
+                r.work_hc = r.work_day
 
     @api.depends('shift')
     def get_shift(self):
@@ -59,7 +68,7 @@ class EmployeeAttendance(models.Model):
             if r.shift:
                 r.c2k3 = 1 if r.shift.c2k3 else 0
                 r.c3k4 = 1 if r.shift.c3k4 else 0
-                r.shift_toxic = 1 if r.shift.shift_toxic and r.check_in and r.check_out else 0
+                r.shift_toxic = r.work_day if r.shift.shift_toxic else 0
 
     @api.depends('employee_id', 'date')
     def _get_time_off(self):
