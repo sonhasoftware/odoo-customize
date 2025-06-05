@@ -49,6 +49,7 @@ class EmployeeAttendance(models.Model):
     work_hc = fields.Float("Công hành chính", compute="get_work_hc_sp")
     work_sp = fields.Float("Công Sản phẩm", compute="get_work_hc_sp")
 
+    @api.depends('shift')
     def get_work_hc_sp(self):
         for r in self:
             if r.shift.type_shift == 'sp':
