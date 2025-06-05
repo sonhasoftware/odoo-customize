@@ -58,13 +58,14 @@
                     <tbody>
                         <t t-foreach="kpi_records" t-as="kpi">
                             <tr>
-                                <td class="kpi-department" rowspan="4"><t t-esc="kpi.department_id.id"/></td>
-                                <td rowspan="4" class="work-volume"><t t-esc="kpi.small_items_each_month.small_items_each_month"/></td>
-                                <td rowspan="4" class="start-date"><t t-esc="kpi.start_date"/></td>
+<!--                                Đổi rowspan từ 4 -> còn 2 giảm kích thước nhận xét đánh giá 1 nửa-->
+                                <td class="kpi-department" rowspan="2"><t t-esc="kpi.department_id.id"/></td>
+                                <td rowspan="2" class="work-volume"><t t-esc="kpi.small_items_each_month.small_items_each_month"/></td>
+                                <td rowspan="2" class="start-date"><t t-esc="kpi.start_date"/></td>
                                 <td>Khối lượng công việc thực hiện</td>
                                 <td class="result"><t t-esc="kpi.dv_amount_work * 100"/> %</td>
-                                <td rowspan="4"><t t-esc="kpi.dv_description"/></td>
-                                <td rowspan="4">
+                                <td rowspan="2"><t t-esc="kpi.dv_description"/></td>
+                                <td rowspan="2">
                                     <t t-if="kpi.download_link">
                                         <a t-att-href="kpi.download_link" class="btn btn-secondary">
                                             <i class="fa fa-download"></i>
@@ -78,7 +79,7 @@
                                     <input type="number" t-if="kpi_records and kpi_records[0].status == 'waiting'" class="form-control kpi-input" t-att-data-id="kpi.small_items_each_month.id" data-field="tq_amount_work" t-att-value="kpi.tq_amount_work"/>
                                     <t t-if="kpi_records and kpi_records[0].status == 'approved'" t-esc="kpi.tq_amount_work"/> %
                                 </td>
-                                <td rowspan="4" class="review">
+                                <td rowspan="2" class="review">
                                     <textarea type="text" t-if="kpi_records and kpi_records[0].status == 'waiting'" class="form-control kpi-input" t-att-data-id="kpi.small_items_each_month.id" data-field="tq_description" t-att-value="kpi.tq_description"><t t-esc="kpi.tq_description"/></textarea>
                                     <t t-if="kpi_records and kpi_records[0].status == 'approved'" t-esc="kpi.tq_description"/>
                                 </td>
@@ -91,22 +92,22 @@
                                     <t t-if="kpi_records and kpi_records[0].status == 'approved'" t-esc="kpi.tq_matter_work"/> %
                                 </td>
                             </tr>
-                            <tr>
-                                <td>Chấp hành nội quy, quy chế, kỷ luật lao động</td>
-                                <td class="result"><t t-esc="kpi.dv_comply_regulations * 100"/> %</td>
-                                <td class="custom">
-                                    <input type="number" t-if="kpi_records and kpi_records[0].status == 'waiting'" class="form-control kpi-input" t-att-data-id="kpi.small_items_each_month.id" data-field="tq_comply_regulations" t-att-value="kpi.tq_comply_regulations"/>
-                                    <t t-if="kpi_records and kpi_records[0].status == 'approved'" t-esc="kpi.tq_comply_regulations"/> %
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Cải tiến, đề xuất, sáng kiến</td>
-                                <td class="result"><t t-esc="kpi.dv_initiative * 100"/> %</td>
-                                <td class="custom">
-                                    <input type="number" t-if="kpi_records and kpi_records[0].status == 'waiting'" class="form-control kpi-input" t-att-data-id="kpi.small_items_each_month.id" data-field="tq_initiative" t-att-value="kpi.tq_initiative"/>
-                                    <t t-if="kpi_records and kpi_records[0].status == 'approved'" t-esc="kpi.tq_initiative"/> %
-                                </td>
-                            </tr>
+<!--                            <tr>-->
+<!--                                <td>Chấp hành nội quy, quy chế, kỷ luật lao động</td>-->
+<!--                                <td class="result"><t t-esc="kpi.dv_comply_regulations * 100"/> %</td>-->
+<!--                                <td class="custom">-->
+<!--                                    <input type="number" t-if="kpi_records and kpi_records[0].status == 'waiting'" class="form-control kpi-input" t-att-data-id="kpi.small_items_each_month.id" data-field="tq_comply_regulations" t-att-value="kpi.tq_comply_regulations"/>-->
+<!--                                    <t t-if="kpi_records and kpi_records[0].status == 'approved'" t-esc="kpi.tq_comply_regulations"/> %-->
+<!--                                </td>-->
+<!--                            </tr>-->
+<!--                            <tr>-->
+<!--                                <td>Cải tiến, đề xuất, sáng kiến</td>-->
+<!--                                <td class="result"><t t-esc="kpi.dv_initiative * 100"/> %</td>-->
+<!--                                <td class="custom">-->
+<!--                                    <input type="number" t-if="kpi_records and kpi_records[0].status == 'waiting'" class="form-control kpi-input" t-att-data-id="kpi.small_items_each_month.id" data-field="tq_initiative" t-att-value="kpi.tq_initiative"/>-->
+<!--                                    <t t-if="kpi_records and kpi_records[0].status == 'approved'" t-esc="kpi.tq_initiative"/> %-->
+<!--                                </td>-->
+<!--                            </tr>-->
                         </t>
                     </tbody>
                 </table>
@@ -348,7 +349,7 @@
                     width: 130px;
                 }
                 textarea {
-                    height: 230px !important;
+                    height: 115px !important;
                 }
                 .file {
                     width: 60px !important;

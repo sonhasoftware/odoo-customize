@@ -1,6 +1,7 @@
 from odoo import models, fields
 import datetime
 from dateutil.relativedelta import relativedelta
+from odoo.exceptions import UserError, ValidationError
 
 
 class PopupWizardReportKpiMonthRel(models.TransientModel):
@@ -23,20 +24,24 @@ class PopupWizardReportKpiMonthRel(models.TransientModel):
     year = fields.Integer('Năm', required=True, default=lambda self: self._get_default_year())
 
     def action_confirm(self):
-        month = self.get_month()
-        base_url = '/kpi/form'
-        params = {
-            'department_id': self.department_id.id,
-            'month': month,
-            'year': self.year,
-        }
-        query_string = '&'.join([f"{key}={value}" for key, value in params.items() if value])
+        manager = self.env['report.mail.to'].sudo().search([('department_id', '=', self.department_id.id)]).receive_emp
+        if self.env.user.has_group('sonha_employee.group_hr_employee') or manager.user_id.id == self.env.user.id:
+            month = self.get_month()
+            base_url = '/kpi/form'
+            params = {
+                'department_id': self.department_id.id,
+                'month': month,
+                'year': self.year,
+            }
+            query_string = '&'.join([f"{key}={value}" for key, value in params.items() if value])
 
-        return {
-            'type': 'ir.actions.act_url',
-            'url': f"{base_url}?{query_string}",
-            'target': 'self',
-        }
+            return {
+                'type': 'ir.actions.act_url',
+                'url': f"{base_url}?{query_string}",
+                'target': 'self',
+            }
+        else:
+            raise ValidationError("Bạn không có quyền truy cập vào màn hình này.")
 
     def get_month(self):
         if self.month == 'one':

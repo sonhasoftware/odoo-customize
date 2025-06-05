@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="tax_classification_tree_view" model="ir.ui.view">
+            <field name="name">tax.classification.tree.view</field>
+            <field name="model">tax.classification</field>
+            <field name="arch" type="xml">
+                <tree string="Thuế" editable="bottom">
+                    <field name="code"/>
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="tax_classification_action" model="ir.actions.act_window">
+            <field name="name">Thuế</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tax.classification</field>
+            <field name="view_mode">tree</field>
+        </record>
+    </data>
+</odoo>

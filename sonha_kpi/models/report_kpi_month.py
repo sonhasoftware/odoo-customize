@@ -62,6 +62,18 @@ class ReportKpiMonth(models.Model):
                         template.sudo().send_mail(rc.id, force_send=True)
                         rc.mail_turn = rc.mail_turn + 1
                         duplicate_department.add(rc.department_id.id)
+            if now == (rc.first_mail_date + timedelta(days=5)):
+                rc.status = 'approved'
+                rc.tq_amount_work = rc.dv_amount_work * 100
+                rc.tq_matter_work = rc.dv_matter_work * 100
+                rc.tq_comply_regulations = rc.dv_comply_regulations * 100
+                rc.tq_initiative = rc.dv_initiative * 100
+                record = self.env['sonha.kpi.month'].sudo().search([('id', '=', rc.small_items_each_month.id)])
+                for r in record:
+                    r.sudo().write({'tq_amount_work': rc.dv_amount_work,
+                                    'tq_matter_work': rc.dv_matter_work,
+                                    'tq_comply_regulations': rc.dv_comply_regulations,
+                                    'tq_initiative': rc.dv_initiative})
 
     def get_status_label(self):
         return dict(self._fields['status'].selection).get(self.status)

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="item_category_group_tree_view" model="ir.ui.view">
+        <field name="name">item.category.group.tree.view</field>
+        <field name="model">item.category.group</field>
+        <field name="arch" type="xml">
+            <tree string="Nhóm loại hàng" editable="bottom">
+                <field name="category_group_code"/>
+                <field name="description"/>
+                <field name="note"/>
+                <field name="sale_org" widget="many2many_tags"/>
+                <field name="distb_channel" widget="many2many_tags"/>
+                <field name="mat_type" widget="many2many_tags"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="item_category_group_action" model="ir.actions.act_window">
+        <field name="name">Nhóm loại hàng</field>
+        <field name="res_model">item.category.group</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="md_supplier_tree_view" model="ir.ui.view">
+            <field name="name">md.supplier.tree.view</field>
+            <field name="model">md.supplier</field>
+            <field name="arch" type="xml">
+                <tree string="Nhà cung cấp" editable="bottom">
+                    <field name="name"/>
+                    <field name="supp_full_name"/>
+                    <field name="supp_code"/>
+                    <field name="supp_registration"/>
+                    <field name="supp_job"/>
+                    <field name="supp_phone"/>
+                    <field name="sap_transfer"/>
+                    <field name="tax_code"/>
+                    <field name="represent"/>
+                    <field name="supp_type"/>
+                    <field name="supp_group"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="md_supplier_action" model="ir.actions.act_window">
+            <field name="name">Master data nhà cung cấp</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">md.supplier</field>
+            <field name="view_mode">tree</field>
+        </record>
+    </data>
+</odoo>

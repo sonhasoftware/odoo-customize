@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="customer_group_tree_view" model="ir.ui.view">
+        <field name="name">customer.group.tree.view</field>
+        <field name="model">customer.group</field>
+        <field name="arch" type="xml">
+            <tree string="Nhóm khách hàng" editable="bottom">
+                <field name="customer_group_code"/>
+                <field name="customer_group_name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="customer_group_action" model="ir.actions.act_window">
+        <field name="name">Nhóm khách hàng</field>
+        <field name="res_model">customer.group</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>
