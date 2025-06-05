@@ -68,7 +68,7 @@ class SyntheticWork(models.Model):
                     COALESCE(SUM(c3k4), 0) AS shift_three_crew_four,
                     COALESCE(SUM(shift_toxic), 0) AS toxic_work,
                     COALESCE(SUM(work_hc), 0) AS work_hc,
-                    COALESCE(SUM(work_sp), 0) AS work_sp,
+                    COALESCE(SUM(work_sp), 0) AS work_sp
                 FROM employee_attendance_store
                 WHERE employee_id = %s
                   AND date >= %s
