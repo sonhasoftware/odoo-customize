@@ -43,7 +43,8 @@ class WizardDateRange(models.TransientModel):
                 'public_leave': record.public_leave,
                 'c2k3': record.c2k3,
                 'c3k4': record.c3k4,
-                'shift_toxic': record.shift_toxic,
+                'work_hc': record.work_hc,
+                'work_sp': record.work_sp,
             }
 
             if existing_record:

@@ -45,6 +45,8 @@ class EmployeeAttendanceStore(models.Model):
     c2k3 = fields.Float("Ca 2 kíp 3")
     c3k4 = fields.Float("Ca 3 kíp 4")
     shift_toxic = fields.Float("Ca độc hại")
+    work_hc = fields.Float("Công hành chính")
+    work_sp = fields.Float("Công Sản phẩm")
 
     def copy_to_stored_model(self):
         self.with_delay().copy_data_employee_attendance()
