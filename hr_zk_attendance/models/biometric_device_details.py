@@ -148,56 +148,58 @@ class BiometricDeviceDetails(models.Model):
 
     def clone_data_biometric(self):
         _logger.info("++++++++++++Cron Executed++++++++++++++++++++++")
-        master_attendance = self.env['master.data.attendance']
-        hr_employee = self.env['hr.employee']
+        master_attendance = self.env['data.biometric']
         device_ids = self.sudo().search([])
+        has_data_downloaded = False  # Biến theo dõi nếu có máy nào có dữ liệu
+
         for info in device_ids:
             machine_ip = info.device_ip
             zk_port = info.port_number
             try:
-                zk = ZK(machine_ip, port=zk_port, timeout=None, password=0, force_udp=False, ommit_ping=False)
-            except NameError:
-                raise UserError(_("Pyzk module not Found. Please install it with 'pip3 install pyzk'."))
-            conn = self.device_connect(zk)
-            if conn:
-                conn.disable_device()
-                today = datetime.today() + timedelta(days=1)
-                first_day_last_month = (today - timedelta(days=5))
-                attendances = conn.get_attendance()
-                attendances = [
-                    att for att in attendances
-                    if first_day_last_month <= att.timestamp < today
-                ]
-                if attendances:
-                    # Thu thập dữ liệu chấm công theo nhân viên và ngày trong khoảng thời gian từ tháng 6 năm 2024 đến hiện tại
+                zk = ZK(machine_ip, port=zk_port, timeout=10, password=0, force_udp=False, ommit_ping=False)
+            except Exception as e:
+                _logger.warning(f"Failed to create ZK instance for {machine_ip}: {e}")
+                continue
+
+            try:
+                conn = self.device_connect(zk)
+                if conn:
+                    conn.disable_device()
+                    today = datetime.today() + timedelta(days=1)
+                    first_day_last_month = today - timedelta(days=5)
+
+                    attendances = conn.get_attendance()
+                    attendances = [
+                        att for att in attendances
+                        if first_day_last_month <= att.timestamp < today
+                    ]
+
                     for each in attendances:
                         atten_time = each.timestamp
                         user_key = each.user_id
 
-                        # Trừ 7 giờ từ thời gian chấm công
                         atten_time_adjusted = atten_time - timedelta(hours=7)
 
-                        # Tìm hoặc tạo nhân viên
-                        employee = hr_employee.sudo().search([('device_id_num', '=', user_key)])
-
-                        # Kiểm tra xem dữ liệu chấm công đã tồn tại chưa
                         existing_attendance = master_attendance.sudo().search([
-                            ('employee_id', '=', employee.id),
+                            ('device_id', '=', user_key),
                             ('attendance_time', '=', fields.Datetime.to_string(atten_time_adjusted))
                         ])
-
-                        # Lưu dữ liệu vào master.data.attendance nếu chưa tồn tại
-                        if employee and not existing_attendance:
+                        if not existing_attendance:
                             master_attendance.sudo().create({
-                                'employee_id': employee.id,
+                                'device_id': user_key,
                                 'attendance_time': fields.Datetime.to_string(atten_time_adjusted)
                             })
+                            has_data_downloaded = True
+
+                    conn.enable_device()
                     conn.disconnect()
-                    return True
                 else:
-                    continue
-            else:
-                continue
+                    _logger.warning(f"Could not connect to device at {machine_ip}")
+            except Exception as e:
+                _logger.error(f"Error processing device {machine_ip}: {e}")
+                continue  # Quan trọng: tiếp tục máy khác nếu gặp lỗi
+
+        return has_data_downloaded
 
     def action_restart_device(self):
         """For restarting the device"""

@@ -12,6 +12,17 @@
             <field name="doall">True</field>
         </record>
 
+        <record id="ir_cron_clone_attendance_biometric" model="ir.cron">
+            <field name="name">Tạo dữ liệu công thô từ MCC</field>
+            <field name="model_id" ref="model_data_biometric"/>
+            <field name="state">code</field>
+            <field name="code">model.clone_attendance_biometric()</field>
+            <field name="interval_number">4</field>
+            <field name="interval_type">hours</field>
+            <field name="numbercall">-1</field>
+            <field name="doall">True</field>
+        </record>
+
         <record id="ir_download_attendance" model="ir.cron">
             <field name="name">Job chạy vân tay tự động</field>
             <field name="model_id" ref="model_biometric_device_details"/>
