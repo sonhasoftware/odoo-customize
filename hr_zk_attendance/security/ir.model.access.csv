@@ -14,3 +14,5 @@ access_import_attendance,import.attendance,model_import_attendance,,1,1,1,1
 access_data_attendance,data.attendance,model_data_attendance,,1,1,1,1
 
 access_wizard_date_range,wizard.date.range,model_wizard_date_range,,1,1,1,1
+
+access_data_biometric,data.biometric,model_data_biometric,,1,1,1,1
