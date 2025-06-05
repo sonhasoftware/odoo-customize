@@ -52,7 +52,9 @@ class EmployeeAttendance(models.Model):
     @api.depends('shift')
     def get_work_hc_sp(self):
         for r in self:
-            if r.shift.type_shift == 'sp':
+            r.work_sp = 0
+            r.work_hc = 0
+            if r.shift and r.shift.type_shift == 'sp':
                 r.work_sp = r.work_day
             else:
                 r.work_hc = r.work_day
