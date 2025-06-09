@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="sonha_stock_warehouse_inh" model="ir.ui.view">
+        <field name="name">sonha_stock_warehouse_inh</field>
+        <field name="model">stock.warehouse</field>
+        <field name="inherit_id" ref="stock.view_warehouse"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='code']" position="after">
+                <field name="plant"/>
+                <field name="x_country_id"/>
+                <field name="x_state_id"/>
+                <field name="x_street"/>
+            </xpath>
+        </field>
+    </record>
+    </data>
+</odoo>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="material_price_group_tree_view" model="ir.ui.view">
+            <field name="name">material.price.group.tree.view</field>
+            <field name="model">material.price.group</field>
+            <field name="arch" type="xml">
+                <tree string="Nhóm giá mặt hàng" editable="bottom">
+                    <field name="code"/>
+                    <field name="x_present_note"/>
+                    <field name="x_sap_note"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="material_price_group_action" model="ir.actions.act_window">
+            <field name="name">Nhóm giá mặt hàng</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">material.price.group</field>
+            <field name="view_mode">tree</field>
+        </record>
+    </data>
+</odoo>
