@@ -1,0 +1,203 @@
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover span.d-block.min-w-0.text-truncate.flex-grow-1 {
+    white-space: pre-line !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="old_product_code"] {
+    width: 115px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="main_unit"] {
+    width: 90px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="product_group"] {
+    width: 150px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="material"] {
+    width: 90px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="surface"] {
+    width: 80px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="batch_management"] {
+    width: 70px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="sale_division"] {
+    width: 70px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="malt_prdhier"] {
+    width: 150px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="gross_weight"] {
+    width: 100px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="net_weight"] {
+    width: 100px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="weight_unit"] {
+    width: 100px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="volume"] {
+    width: 75px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="volume_unit"] {
+    width: 100px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="size"] {
+    width: 80px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="plant"] {
+    width: 100px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="purchasing_group"] {
+    width: 100px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="availability_check"] {
+    width: 100px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="profit_center"] {
+    width: 100px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="special_procurement_type"] {
+    width: 100px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.opacity-trigger-hover[data-name="plan_deliver_time"] {
+    width: 100px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.opacity-trigger-hover[data-name="safety_time"] {
+    width: 100px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.opacity-trigger-hover[data-name="safety_stock"] {
+    width: 100px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="mrp_controller"] {
+    width: 140px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="co_product"] {
+    width: 100px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="procurement_type"] {
+    width: 85px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="valuation_class"] {
+    width: 100px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="overhead_group"] {
+    width: 100px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="inspection_type_01"] {
+    width: 100px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="inspection_type_z01"] {
+    width: 100px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="inspection_type_04"] {
+    width: 100px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="inspection_type_z04"] {
+    width: 100px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="inspection_type_05"] {
+    width: 100px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="inspection_type_z05"] {
+    width: 100px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="inspection_type_08"] {
+    width: 100px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="inspection_type_z08"] {
+    width: 100px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="inspection_type_10"] {
+    width: 100px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="inspection_type_z10"] {
+    width: 100px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="inspection_type_89"] {
+    width: 100px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="inspection_type_z89"] {
+    width: 100px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="unit_measure"] {
+    width: 150px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="sale_organization"] {
+    width: 150px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="distribution_chanel"] {
+    width: 100px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="sale_unit"] {
+    width: 50px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="deliver_warehouse"] {
+    width: 150px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="tax"] {
+    width: 70px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="item_category_group"] {
+    width: 120px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="aag_malt"] {
+    width: 125px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="mat_group_1"] {
+    width: 105px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="mat_group_2"] {
+    width: 105px !important;
+}
+
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="mat_group_price"] {
+    width: 80px !important;
+}

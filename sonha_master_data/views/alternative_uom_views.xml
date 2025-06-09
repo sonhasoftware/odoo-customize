@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="alternative_uom_tree_view" model="ir.ui.view">
+        <field name="name">alternative.uom.tree.view</field>
+        <field name="model">alternative.uom</field>
+        <field name="arch" type="xml">
+            <tree string="Đơn vị thay thế" editable="bottom">
+                <field name="product_code_id"/>
+                <field name="alternative_unit"/>
+                <field name="unit_measure"/>
+                <field name="denominator"/>
+                <field name="numerator"/>
+                <field name="char_name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="alternative_uom_action" model="ir.actions.act_window">
+        <field name="name">Đơn vị thay thế</field>
+        <field name="res_model">alternative.uom</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

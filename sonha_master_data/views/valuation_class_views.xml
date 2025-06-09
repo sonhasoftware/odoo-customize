@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="valuation_class_tree_view" model="ir.ui.view">
+            <field name="name">valuation.class.tree.view</field>
+            <field name="model">valuation.class</field>
+            <field name="arch" type="xml">
+                <tree string="Lớp định giá" editable="bottom">
+                    <field name="name"/>
+                    <field name="material_type" widget="many2many_tags"/>
+                    <field name="company_ids" widget="many2many_tags"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="valuation_class_action" model="ir.actions.act_window">
+            <field name="name">Lớp định giá</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">valuation.class</field>
+            <field name="view_mode">tree</field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="x_mch_list_tree_view" model="ir.ui.view">
+            <field name="name">x.mch.list.tree.view</field>
+            <field name="model">x.mch.list</field>
+            <field name="arch" type="xml">
+                <tree string="Nhóm mặt hàng">
+                    <field name="x_mch_code"/>
+                    <field name="name"/>
+                    <field name="x_parent_id"/>
+                    <field name="level"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="x_mch_list_form_view" model="ir.ui.view">
+            <field name="name">x.mch.list.form.view</field>
+            <field name="model">x.mch.list</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <field name="x_mch_code"/>
+                           <field name="name"/>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="x_parent_id"/>
+                            </group>
+                            <group>
+                                <field name="level"/>
+                            </group>
+                        </group>
+                        <group>
+                            <field name="child_ids"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="x_mch_list_action" model="ir.actions.act_window">
+            <field name="name">Nhóm mặt hàng</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">x.mch.list</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="md_product_tree_view" model="ir.ui.view">
+        <field name="name">md.product.tree.view</field>
+        <field name="model">md.product</field>
+        <field name="arch" type="xml">
+            <tree string="Master Data vật tư">
+                <field name="product_code"/>
+                <field name="product_type"/>
+                <field name="product_name"/>
+                <field name="product_english_name"/>
+                <field name="product_long_name"/>
+                <field name="status"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="md_product_form_view" model="ir.ui.view">
+            <field name="name">md.product.form.view</field>
+            <field name="model">md.product</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <field name="status" widget="statusbar"/>
+                        <button name="action_sent" string="Gửi duyệt" type="object" class="oe_highlight" invisible="status != 'draft'"/>
+                        <button name="action_approve" string="Duyệt" type="object" class="oe_highlight" invisible="status != 'waiting'"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="is_z100" readonly="status != 'draft'"/>
+                                <field name="is_z101" readonly="status != 'draft'"/>
+                            </group>
+                            <group>
+                                <field name="is_z102" readonly="status != 'draft'"/>
+                                <field name="have_alt_uom" readonly="status != 'draft'"/>
+                            </group>
+                        </group>
+                        <group>
+                            <field name="product_code" readonly="1"/>
+                            <field name="product_type" readonly="status != 'draft'"/>
+                            <field name="product_name" readonly="status != 'draft'"/>
+                            <field name="product_english_name" readonly="status != 'draft'"/>
+                            <field name="product_long_name" readonly="status != 'draft'"/>
+                        </group>
+                        <notebook>
+                            <page string="Thông tin cơ bản">
+                                <group>
+                                    <field name="basic_data" string="" readonly="status != 'draft'">
+                                        <tree editable="bottom" class="md-product">
+                                            <field name="old_product_code"/>
+                                            <field name="main_unit"/>
+                                            <field name="product_group"/>
+<!--                                            <field name="x_mch_level_1"/>-->
+<!--                                            <field name="x_mch_level_2"/>-->
+<!--                                            <field name="x_mch_level_3"/>-->
+<!--                                            <field name="x_mch_level_4"/>-->
+                                            <field name="material"/>
+                                            <field name="surface"/>
+                                            <field name="batch_management"/>
+                                            <field name="sale_division"/>
+                                            <field name="malt_prdhier"/>
+                                            <field name="gross_weight"/>
+                                            <field name="net_weight"/>
+                                            <field name="weight_unit" required="required_weight_unit != False"/>
+                                            <field name="volume"/>
+                                            <field name="volume_unit" required="required_volume_unit != False"/>
+                                            <field name="size"/>
+                                            <field name="required_weight_unit" column_invisible="1"/>
+                                            <field name="required_volume_unit" column_invisible="1"/>
+                                        </tree>
+                                    </field>
+                                </group>
+                            </page>
+                            <page string="Đơn vị thay thế">
+                                <group>
+                                    <field name="alternative_uom" string="" readonly="status != 'draft'">
+                                        <tree editable="bottom" class="md-product">
+                                            <field name="alternative_unit"/>
+                                            <field name="unit_measure"/>
+                                            <field name="denominator"/>
+                                            <field name="numerator"/>
+                                            <field name="char_name"/>
+                                        </tree>
+                                    </field>
+                                </group>
+                            </page>
+                            <page string="Thông tin plant">
+                                <group>
+                                    <field name="plant_data" string="" readonly="status != 'draft'">
+                                        <tree editable="bottom" class="md-product">
+                                            <field name="check_stock" column_invisible="1"/>
+                                            <field name="check_shi" column_invisible="1"/>
+                                            <field name="material_type" column_invisible="1"/>
+                                            <field name="plant"/>
+                                            <field name="purchasing_group"/>
+                                            <field name="availability_check"/>
+                                            <field name="profit_center"/>
+                                            <field name="special_procurement_type" readonly="check_stock != False or check_shi != False"/>
+                                            <field name="plan_deliver_time" readonly="check_stock != False"/>
+                                            <field name="safety_time" readonly="check_stock != False or check_shi != False"/>
+                                            <field name="safety_stock" readonly="check_stock != False"/>
+                                            <field name="mrp_controller" readonly="check_stock != False or check_shi != False"/>
+                                            <field name="co_product" readonly="check_stock != False"/>
+                                            <field name="procurement_type" readonly="check_stock != False or check_shi != False"/>
+                                            <field name="valuation_class" readonly="check_stock != False"/>
+<!--                                            <field name="domain_valuation_class" string="Miền" widget="many2many_tags"/>-->
+                                            <field name="overhead_group" readonly="check_stock != False or check_shi != False"/>
+                                            <field name="inspection_type_01" readonly="check_stock != False"/>
+                                            <field name="inspection_type_z01" readonly="check_stock != False"/>
+                                            <field name="inspection_type_04" readonly="check_stock != False"/>
+                                            <field name="inspection_type_z04" readonly="check_stock != False"/>
+                                            <field name="inspection_type_05" readonly="check_stock != False"/>
+                                            <field name="inspection_type_z05" readonly="check_stock != False"/>
+                                            <field name="inspection_type_08" readonly="check_stock != False"/>
+                                            <field name="inspection_type_z08" readonly="check_stock != False"/>
+                                            <field name="inspection_type_10" readonly="check_stock != False"/>
+                                            <field name="inspection_type_z10" readonly="check_stock != False"/>
+                                            <field name="inspection_type_89" readonly="check_stock != False"/>
+                                            <field name="inspection_type_z89" readonly="check_stock != False"/>
+                                            <field name="domain_valuation_class" string="Miền"/>
+                                        </tree>
+                                    </field>
+                                </group>
+                            </page>
+                            <page string="Thông tin bán hàng">
+                                <group>
+                                    <field name="sale_data" string="" readonly="status != 'draft'">
+                                        <tree editable="bottom" class="md-product">
+                                            <field name="mat_type" column_invisible="1"/>
+                                            <field name="company_id" column_invisible="1"/>
+                                            <field name="sale_organization"/>
+                                            <field name="distribution_chanel"/>
+                                            <field name="sale_unit"/>
+                                            <field name="deliver_warehouse"/>
+                                            <field name="tax"/>
+                                            <field name="item_category_group"/>
+                                            <field name="aag_malt"/>
+                                            <field name="mat_group_1"/>
+                                            <field name="mat_group_2"/>
+                                            <field name="mat_group_price"/>
+                                        </tree>
+                                    </field>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+    <record id="view_md_product_search" model="ir.ui.view">
+        <field name="name">form.md.product.search</field>
+        <field name="model">md.product</field>
+        <field name="arch" type="xml">
+            <search string="Search Vật tư">
+                <field name="product_name" string="Tên vật tư"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="md_product_action" model="ir.actions.act_window">
+        <field name="name">Master Data vật tư</field>
+        <field name="res_model">md.product</field>
+        <field name="search_view_id" ref="view_md_product_search"/>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="profit_center_tree_view" model="ir.ui.view">
+        <field name="name">profit.center.tree.view</field>
+        <field name="model">profit.center</field>
+        <field name="arch" type="xml">
+            <tree string="Trung tâm ghi nhận doanh thu" editable="bottom">
+                <field name="name"/>
+                <field name="profit_center_name"/>
+                <field name="plant"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="profit_center_action" model="ir.actions.act_window">
+        <field name="name">Trung tâm ghi nhận doanh thu</field>
+        <field name="res_model">profit.center</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>
