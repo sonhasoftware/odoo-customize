@@ -40,6 +40,7 @@ class EmployeeAttendance(models.Model):
     month = fields.Integer("Tháng", compute="_get_month_year", store=True)
     year = fields.Integer("Năm", compute="_get_month_year")
     over_time = fields.Float("Giờ làm thêm", compute="get_hours_reinforcement")
+    over_time_nb = fields.Float("Làm thêm hưởng NB", compute="get_hours_reinforcement")
     leave = fields.Float("Nghỉ phép", compute="_get_time_off")
     compensatory = fields.Float("Nghỉ bù", compute="_get_time_off")
     public_leave = fields.Float("Nghỉ lễ", cumpute="_get_time_off")
@@ -176,10 +177,13 @@ class EmployeeAttendance(models.Model):
                             total_overtime += abs(x.end_time - x.start_time)
                     else:
                         total_overtime += abs(x.end_time - x.start_time)
-            if record.weekday == '6' and record.employee_id.company_id.id == 16:
-                record.over_time = total_overtime * 2
+            if record.shift.type_ot == 'nb':
+                record.over_time_nb = total_overtime * record.shift.coefficient
             else:
-                record.over_time = total_overtime
+                if record.weekday == '6' and record.employee_id.company_id.id == 16:
+                    record.over_time = total_overtime * 2
+                else:
+                    record.over_time = total_overtime
 
     color = fields.Selection([
             ('red', 'Red'),
@@ -476,6 +480,8 @@ class EmployeeAttendance(models.Model):
                                                                     ('end_date', '>=', r.date)])
 
             if r.shift.is_office_hour and (weekday == 6 or (weekday == 5 and week_number % 2 == 1)):
+                r.work_day = 0
+            elif r.shift.shift_ot:
                 r.work_day = 0
             else:
                 if free_time:

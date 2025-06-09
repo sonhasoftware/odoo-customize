@@ -47,6 +47,12 @@ class ConfigShift(models.Model):
         ('sp', 'Sản phẩm'),
     ], string="Loại ca")
 
+    type_ot = fields.Selection([
+        ('hour', 'Giờ'),
+        ('nb', 'Nghỉ bù'),
+    ], string="Làm thêm hưởng")
+
+    coefficient = fields.Float("Hệ số", default=1)
 
     #Kiểm tra xem ca có phải ca đêm hay không
     @api.depends('start', 'end_shift')
