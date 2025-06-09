@@ -47,6 +47,7 @@ class EmployeeAttendanceStore(models.Model):
     shift_toxic = fields.Float("Ca độc hại")
     work_hc = fields.Float("Công hành chính", default=0)
     work_sp = fields.Float("Công Sản phẩm", default=0)
+    over_time_nb = fields.Float("Làm thêm hưởng NB")
 
     def copy_to_stored_model(self):
         self.with_delay().copy_data_employee_attendance()

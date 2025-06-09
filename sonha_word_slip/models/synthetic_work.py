@@ -47,6 +47,8 @@ class SyntheticWork(models.Model):
     work_hc = fields.Float("Công hành chính")
     work_sp = fields.Float("Công Sản phẩm")
 
+    overtime_nb = fields.Float("Giờ làm thêm hưởng nghỉ bù")
+
     month = fields.Integer("Tháng", compute="get_this_month", store=True)
     year = fields.Integer("Năm", compute="get_this_month")
 
@@ -68,7 +70,8 @@ class SyntheticWork(models.Model):
                     COALESCE(SUM(c3k4), 0) AS shift_three_crew_four,
                     COALESCE(SUM(shift_toxic), 0) AS toxic_work,
                     COALESCE(SUM(work_hc), 0) AS work_hc,
-                    COALESCE(SUM(work_sp), 0) AS work_sp
+                    COALESCE(SUM(work_sp), 0) AS work_sp,
+                    COALESCE(SUM(over_time_nb), 0) AS over_time_nb
                 FROM employee_attendance_store
                 WHERE employee_id = %s
                   AND date >= %s
@@ -91,6 +94,7 @@ class SyntheticWork(models.Model):
             r.toxic_work = result['toxic_work']
             r.work_hc = result['work_hc']
             r.work_sp = result['work_sp']
+            r.overtime_nb = result['over_time_nb']
 
     @api.depends('on_leave', 'compensatory_leave', 'public_leave', 'maternity_leave', 'wedding_leave')
     def get_leave(self):
