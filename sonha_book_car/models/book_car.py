@@ -421,8 +421,8 @@ class BookCar(models.Model):
     def validate_date_time(self):
         for r in self:
             now = datetime.now().date()
-            if r.start_date < now:
-                raise ValidationError("Ngày khởi hành phải lớn hơn hoặc bằng ngày hiện tại!")
+            # if r.start_date < now:
+            #     raise ValidationError("Ngày khởi hành phải lớn hơn hoặc bằng ngày hiện tại!")
             if r.start_date > r.end_date:
                 raise ValidationError("Ngày khởi hành phải nhỏ hơn ngày kết thúc!")
             elif r.start_date == r.end_date:

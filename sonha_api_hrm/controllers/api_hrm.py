@@ -40,6 +40,8 @@ class AuthAPI(http.Controller):
                         "name": user.name,
                         "email": user.email,
                         "device_id": user.device_id,
+                        "token": user.token,
+                        "option_check": user.option_check,
                     },
                     "employee": {
                         "id": employee_id.id,
@@ -1192,8 +1194,6 @@ class AuthAPI(http.Controller):
     @http.route('/api/device/<int:user_id>', type='http', auth='none', methods=['PUT'], csrf=False)
     def api_fill_device(self, user_id):
         try:
-            a = 1
-            b = 2
             data = request.httprequest.get_json()  # Lấy dữ liệu JSON đúng cách
             device_id = data.get('device_id')
 
@@ -1220,6 +1220,43 @@ class AuthAPI(http.Controller):
             return Response(json.dumps({
                 "success": True,
                 "msg": "Cập nhật thiết bị thành công",
+            }), content_type="application/json", status=200)
+
+        except Exception as e:
+            return Response(json.dumps({
+                "success": False,
+                "error": str(e)
+            }), content_type="application/json", status=500)
+
+    @http.route('/api/token/<int:user_id>', type='http', auth='none', methods=['PUT'], csrf=False)
+    def api_fill_token(self, user_id):
+        try:
+            data = request.httprequest.get_json()  # Lấy dữ liệu JSON đúng cách
+            token = data.get('token')
+
+            if not user_id:
+                return Response(json.dumps({"success": False,
+                                            "error": "Không tìm thấy dữ liệu nhân viên!"}),
+                                content_type="application/json",
+                                status=400)
+            if not token:
+                return Response(json.dumps({"success": False,
+                                            "error": "Không tìm thấy dữ liệu token!"}),
+                                content_type="application/json",
+                                status=400)
+
+            user = request.env['res.users'].sudo().browse(user_id)
+            if not user:
+                return Response(json.dumps({"success": False,
+                                            "error": "Không tìm thấy dữ liệu nhân viên!"}),
+                                content_type="application/json",
+                                status=400)
+            user.write({
+                'token': token,
+            })
+            return Response(json.dumps({
+                "success": True,
+                "msg": "Cập nhật token thành công",
             }), content_type="application/json", status=200)
 
         except Exception as e:
@@ -1291,4 +1328,30 @@ class AuthAPI(http.Controller):
                 "success": False,
                 "error": str(e)
             }), content_type="application/json", status=500)
+
+    @http.route('/api/remote/timekeeping', type='http', auth='none', methods=['GET'], csrf=False)
+    def get_remote_timekeeping(self):
+        try:
+            list_records = request.env['remote.timekeeping'].sudo().search([])
+            if not list_records:
+                raise ValueError("Không tìm thấy dữ liệu!")
+            data = []
+            for r in list_records:
+                data.append({
+                    "id": r.id,
+                    "name": r.name,
+                    "bssid": r.bssid,
+                    "latitude": r.latitude,
+                    "longitude": r.longitude,
+                    "radiusInMeters": r.radius,
+                })
+            return Response(
+                json.dumps({"success": True, "data": data}),
+                status=200, content_type="application/json"
+            )
+        except Exception as e:
+            return Response(json.dumps(
+                {"success": False,
+                 "error": str(e)
+                 }), content_type="application/json", status=500)
 

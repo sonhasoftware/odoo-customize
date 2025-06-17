@@ -7,6 +7,8 @@ class SonHaResUser(models.Model):
     _inherit = 'res.users'
 
     device_id = fields.Char("ID thiết bị")
+    option_check = fields.Integer("Trạng thái")
+    token = fields.Char("Token")
 
     # def create(self, vals):
     #     res = super(SonHaResUser, self).create(vals)

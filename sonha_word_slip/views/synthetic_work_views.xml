@@ -16,6 +16,7 @@
                         <group string="Công sản phẩm">
                             <field name="workday"/>
                             <field name="hours_reinforcement"/>
+                            <field name="overtime_nb"/>
                             <field name="public_management"/>
                             <field name="ot_management"/>
                             <field name="service"/>
@@ -25,6 +26,8 @@
                         <group string="Công thời gian">
                             <field name="total_work"/>
                             <field name="date_work"/>
+                            <field name="work_hc"/>
+                            <field name="work_sp"/>
                             <field name="apprenticeship"/>
                             <field name="probationary_period"/>
                             <field name="ot_one_hundred"/>

@@ -45,6 +45,9 @@ class EmployeeAttendanceStore(models.Model):
     c2k3 = fields.Float("Ca 2 kíp 3")
     c3k4 = fields.Float("Ca 3 kíp 4")
     shift_toxic = fields.Float("Ca độc hại")
+    work_hc = fields.Float("Công hành chính", default=0)
+    work_sp = fields.Float("Công Sản phẩm", default=0)
+    over_time_nb = fields.Float("Làm thêm hưởng NB")
 
     def copy_to_stored_model(self):
         self.with_delay().copy_data_employee_attendance()
@@ -149,6 +152,8 @@ class EmployeeAttendanceStore(models.Model):
                 'c2k3': record.c2k3,
                 'c3k4': record.c3k4,
                 'shift_toxic': record.shift_toxic,
+                'work_hc': record.work_hc,
+                'work_sp': record.work_sp,
             }
 
             if existing_record:
