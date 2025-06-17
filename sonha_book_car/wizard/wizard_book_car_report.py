@@ -12,12 +12,14 @@ class WizardBookCarReport(models.TransientModel):
                                ('waiting', "Chờ duyệt"),
                                ('approved', "Đã duyệt"),
                                ('exist_car', "Cấp xe"),
+                               ('rent_car', "Thuê xe"),
                                ('issuing_card', "Cấp thẻ"),
                                ('complete', "Hoàn thành"),
                                ('not_complete', "Chưa hoàn thành"),
                                ('cancel', "Hủy")], string="Trạng thái")
     type = fields.Selection([('exist_car', "Cấp xe"),
-                            ('issuing_card', "Cấp thẻ")], string="Loại")
+                             ('rent_car', "Thuê xe"),
+                             ('issuing_card', "Cấp thẻ")], string="Loại")
 
     def action_confirm(self):
         records = self.env['book.car'].sudo().search([('start_date', '>=', self.start_date),
@@ -31,11 +33,17 @@ class WizardBookCarReport(models.TransientModel):
                 records = records.filtered(lambda x: x.status_exist_car == 'done' or x.status_issuing_card == 'done')
             elif self.status == 'not_complete':
                 records = records.filtered(lambda x: ((x.status_exist_car != 'done' and x.status_issuing_card == 'approved') or (x.status_issuing_card != 'done' and x.status_exist_car == 'approved')) and x.status != 'cancel')
+            elif self.status == 'rent_car':
+                records = records.filtered(lambda x: x.type == 'exist_car' and x.is_rent)
+            elif self.status == 'exist_car':
+                records = records.filtered(lambda x: x.type == 'exist_car' and not x.is_rent)
             else:
                 records = records.filtered(lambda x: x.type == self.status)
         if self.type:
             if self.type == 'exist_car':
-                records = records.filtered(lambda x: x.type == 'exist_car')
+                records = records.filtered(lambda x: x.type == 'exist_car' and not x.is_rent)
+            if self.type == 'rent_car':
+                records = records.filtered(lambda x: x.type == 'exist_car' and x.is_rent)
             if self.type == 'issuing_card':
                 records = records.filtered(lambda x: x.type == 'issuing_card')
         return {

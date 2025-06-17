@@ -6,9 +6,12 @@
         <field name="arch" type="xml">
             <form string="Thông tin xe">
                 <group>
-                    <field name="driver"/>
+                    <field name="type"/>
+                    <field name="rent_company" invisible="type != 'rent_car'" required="type != 'non_rent'"/>
+                    <field name="driver" invisible="type != 'non_rent'" required="type != 'rent_car'"/>
                     <field name="driver_phone"/>
                     <field name="license_plate"/>
+                    <field name="company_id" invisible="1"/>
                 </group>
                 <footer>
                     <button string="Xác nhận" type="object" name="action_confirm" class="oe_highlight" confirm="Bạn có chắc chắn với những thông tin này không?"/>
