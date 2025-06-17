@@ -114,6 +114,7 @@ class BookCar(models.Model):
                                                              '&',
                                                              ('company_id', '=', r.company_id.id),
                                                              ('status_exist_car', '=', 'exist'),
+                                                             ('is_rent', '!=', True),
                                                              '|',
                                                              '&',
                                                              ('start_date', '>=', r.start_date),
