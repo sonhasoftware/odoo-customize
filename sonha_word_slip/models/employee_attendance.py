@@ -168,7 +168,7 @@ class EmployeeAttendance(models.Model):
                             hours_end_time_ot = int(x.end_time)
                             minutes_end_time_ot = int((x.end_time - hours_end_time_ot) * 60)
                             end_time_ot = base_date + timedelta(hours=hours_end_time_ot, minutes=minutes_end_time_ot)
-                            if end_time_ot > record.check_out:
+                            if end_time_ot > (record.check_out + relativedelta(hours=7)):
                                 total_overtime += abs(check_out - x.start_time)
                             else:
                                 total_overtime += abs(x.end_time - x.start_time)
@@ -177,7 +177,7 @@ class EmployeeAttendance(models.Model):
                             hours_start_time_ot = int(x.start_time)
                             minutes_start_time_ot = int((x.start_time - hours_start_time_ot) * 60)
                             start_time_ot = base_date + timedelta(hours=hours_start_time_ot, minutes=minutes_start_time_ot)
-                            if record.check_in > start_time_ot:
+                            if (record.check_in + relativedelta(hours=7)) > start_time_ot:
                                 total_overtime += abs(x.end_time - check_in)
                             else:
                                 total_overtime += abs(x.end_time - x.start_time)
