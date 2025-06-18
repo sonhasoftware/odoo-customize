@@ -20,10 +20,20 @@ class AuthAPI(http.Controller):
             data = request.httprequest.get_json()  # Lấy dữ liệu JSON đúng cách
             login = data.get('login')
             password = data.get('password')
+            device_id = data.get('device_id')
 
             if not login or not password:
                 return Response(json.dumps({"success": False, "error": "Thiếu thông tin đăng nhập"}),
                                 content_type="application/json", status=400)
+            user_id = request.env['res.users'].sudo().search([('login', '=', login)])
+            if user_id.devices:
+                pass
+            else:
+                device = request.env['res.users'].sudo().search([('device_id', '=', device_id)])
+                if device and device.login != login:
+                    return Response(json.dumps({"success": False,
+                                                "error": "Thiếu bị này đã được đăng ký cho tài khoản " + device.login}),
+                                    content_type="application/json", status=400)
 
             db = request.env.cr.dbname
             uid = request.session.authenticate(db, login, password)
