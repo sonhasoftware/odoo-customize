@@ -9,6 +9,7 @@ class SonHaResUser(models.Model):
     device_id = fields.Char("ID thiết bị")
     option_check = fields.Integer("Trạng thái")
     token = fields.Char("Token")
+    devices = fields.Boolean("Nhiều thiết bị")
 
     # def create(self, vals):
     #     res = super(SonHaResUser, self).create(vals)
