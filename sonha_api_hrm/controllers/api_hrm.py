@@ -29,7 +29,7 @@ class AuthAPI(http.Controller):
             if user_id.devices:
                 pass
             else:
-                device = request.env['res.users'].sudo().search([('device_id', '=', device_id)])
+                device = request.env['res.users'].sudo().search([('device_id', '=', device_id)], limit=1)
                 if device and device.login != login:
                     return Response(json.dumps({"success": False,
                                                 "error": "Thiếu bị này đã được đăng ký cho tài khoản " + device.login}),
