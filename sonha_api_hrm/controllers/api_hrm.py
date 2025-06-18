@@ -52,7 +52,7 @@ class AuthAPI(http.Controller):
                         "id": user.id,
                         "name": user.name,
                         "email": user.email,
-                        "device_id": user.device_id,
+                        "device_id": user.device_id or "",
                         "token": user.token,
                         "option_check": user.option_check,
                     },
