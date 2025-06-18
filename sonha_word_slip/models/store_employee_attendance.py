@@ -48,6 +48,7 @@ class EmployeeAttendanceStore(models.Model):
     work_hc = fields.Float("Công hành chính", default=0)
     work_sp = fields.Float("Công Sản phẩm", default=0)
     over_time_nb = fields.Float("Làm thêm hưởng NB")
+    times_late = fields.Integer("Đi muộn quá 30p")
 
     def copy_to_stored_model(self):
         self.with_delay().copy_data_employee_attendance()
@@ -154,6 +155,7 @@ class EmployeeAttendanceStore(models.Model):
                 'shift_toxic': record.shift_toxic,
                 'work_hc': record.work_hc,
                 'work_sp': record.work_sp,
+                'times_late': record.times_late,
             }
 
             if existing_record:

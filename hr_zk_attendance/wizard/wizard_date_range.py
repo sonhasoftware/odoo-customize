@@ -46,6 +46,7 @@ class WizardDateRange(models.TransientModel):
                 'work_hc': record.work_hc,
                 'work_sp': record.work_sp,
                 'over_time_nb': record.over_time_nb,
+                'times_late': record.times_late,
             }
 
             if existing_record:

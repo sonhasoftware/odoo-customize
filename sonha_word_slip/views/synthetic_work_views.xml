@@ -36,6 +36,7 @@
                             <field name="paid_leave"/>
                             <field name="number_minutes_late"/>
                             <field name="number_minutes_early"/>
+                            <field name="total_time_late"/>
                         </group>
                     </group>
                     <group>
