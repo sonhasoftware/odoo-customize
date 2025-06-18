@@ -49,6 +49,7 @@ class EmployeeAttendance(models.Model):
     shift_toxic = fields.Float("Ca độc hại", compute="get_shift")
     work_hc = fields.Float("Công hành chính", compute="get_work_hc_sp")
     work_sp = fields.Float("Công Sản phẩm", compute="get_work_hc_sp")
+    times_late = fields.Integer("Đi muộn quá 30p", compute="get_times_late")
 
     @api.depends('shift')
     def get_work_hc_sp(self):
@@ -603,3 +604,12 @@ class EmployeeAttendance(models.Model):
                 r.color = None
             else:
                 pass
+
+    @api.depends('minutes_late', 'minutes_early')
+    def get_times_late(self):
+        for r in self:
+            r.times_late = 0
+            if r.minutes_late >= 31:
+                r.times_late = 1
+            if r.minutes_early >= 31:
+                r.times_late += 1
