@@ -38,6 +38,10 @@
                     - Thời gian khởi hành: <t t-out="object.start_time"/>h
                     <br/>
                     - Thời gian kết thúc: <t t-out="object.end_time"/>h
+                    <br/>
+                    - Vui lòng vào link sau để duyệt đơn đặt xe:
+                    <br/>
+                    <a t-att-href="object.record_link" target="_blank">Link đơn đặt xe</a>
                 </p>
             </div>
         </field>
@@ -81,6 +85,10 @@
                     - Thời gian khởi hành: <t t-out="object.start_time"/>h
                     <br/>
                     - Thời gian kết thúc: <t t-out="object.end_time"/>h
+                    <br/>
+                    - Vui lòng vào link sau để xử lý đơn đặt xe:
+                    <br/>
+                    <a t-att-href="object.record_link" target="_blank">Link đơn đặt xe</a>
                 </p>
             </div>
         </field>
@@ -126,6 +134,10 @@
                     - Thời gian khởi hành: <t t-out="object.start_time"/>h
                     <br/>
                     - Thời gian kết thúc: <t t-out="object.end_time"/>h
+                    <br/>
+                    - Vào link để kiểm tra đơn đặt xe:
+                    <br/>
+                    <a t-att-href="object.record_link" target="_blank">Link đơn đặt xe</a>
                 </p>
             </div>
         </field>
@@ -159,6 +171,10 @@
                     - Thời gian khởi hành: <t t-out="object.start_time"/>h
                     <br/>
                     - Thời gian kết thúc: <t t-out="object.end_time"/>h
+                    <br/>
+                    - Vui lòng vào link sau để kiểm tra thông tin đơn đặt xe:
+                    <br/>
+                    <a t-att-href="object.record_link" target="_blank">Link đơn đặt xe</a>
                 </p>
             </div>
         </field>
@@ -178,7 +194,9 @@
                     <t t-if="object.type == 'exist_car'">
                         Đơn đặt xe của anh/chị đã được xử lý, thông tin về xe là:
                         <br/>
-                        - Người lái xe: <t t-out="object.driver.name"/>
+                        <t t-if="object.is_rent != True">
+                            - Người lái xe: <t t-out="object.driver.name"/>
+                        </t>
                         <br/>
                         - Số điện thoại lái xe: <t t-out="object.driver_phone"/>
                         <br/>
@@ -190,6 +208,10 @@
                     <t t-if="object.type == 'cancel'">
                         Đơn đặt xe bị hủy với lý do: <t t-out="object.reason"/>
                     </t>
+                    <br/>
+                    - Vui lòng vào link sau để kiểm tra thông tin đơn đặt xe:
+                    <br/>
+                    <a t-att-href="object.record_link" target="_blank">Link đơn đặt xe</a>
                 </p>
             </div>
         </field>
@@ -208,11 +230,17 @@
                     <br/>
                     Thông tin xe sau khi được chỉnh sửa là:
                     <br/>
-                    - Người lái xe: <t t-out="object.driver.name"/>
+                    <t t-if="object.is_rent != True">
+                        - Người lái xe: <t t-out="object.driver.name"/>
+                    </t>
                     <br/>
                     - Số điện thoại lái xe: <t t-out="object.driver_phone"/>
                     <br/>
                     - Biển số xe: <t t-out="object.license_plate"/>
+                    <br/>
+                    - Vui lòng vào link sau để kiểm tra lại thông tin đơn đặt xe:
+                    <br/>
+                    <a t-att-href="object.record_link" target="_blank">Link đơn đặt xe</a>
                 </p>
             </div>
         </field>
@@ -230,6 +258,10 @@
                     Dear anh/chị <t t-out="object.booking_employee_id.name or ''"/>,
                     <br/>
                     Đơn đặt của anh/chị đã được đặt lại trạng thái nháp, anh/chị vui lòng kiểm tra lại thông tin!
+                    <br/>
+                    - Vui lòng vào link sau để kiểm tra lại thông tin đơn đặt xe:
+                    <br/>
+                    <a t-att-href="object.record_link" target="_blank">Link đơn đặt xe</a>
                 </p>
             </div>
         </field>

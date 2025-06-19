@@ -21,6 +21,12 @@
               action="config_competency_employee_action"
               sequence="1"/>
 
+    <menuitem id="menu_config_car"
+              name="Cấu hình số lượng xe"
+              parent="menu_config"
+              action="config_car_action"
+              sequence="2"/>
+
     <menuitem id="menu_report"
               name="Báo cáo"
               parent="menu_book_car_root"
