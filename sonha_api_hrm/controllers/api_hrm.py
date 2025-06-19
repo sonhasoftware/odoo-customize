@@ -26,7 +26,7 @@ class AuthAPI(http.Controller):
                 return Response(json.dumps({"success": False, "error": "Thiếu thông tin đăng nhập"}),
                                 content_type="application/json", status=400)
             user_id = request.env['res.users'].sudo().search([('login', '=', login)])
-            if user_id.device_number == 2:
+            if user_id and user_id.device_number == 2:
                 device = request.env['res.users'].sudo().search([('device_id', '=', device_id)], limit=1)
                 if device and device.login != login:
                     return Response(json.dumps({"success": False,
