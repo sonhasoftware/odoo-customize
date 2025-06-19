@@ -30,7 +30,7 @@ class AuthAPI(http.Controller):
                 device = request.env['res.users'].sudo().search([('device_id', '=', device_id)], limit=1)
                 if device and device.login != login:
                     return Response(json.dumps({"success": False,
-                                                "error": "Thiếu bị này đã được đăng ký cho tài khoản " + device.login}),
+                                                "error": "Thiết bị này đã được đăng ký cho tài khoản " + device.login}),
                                     content_type="application/json", status=400)
 
             db = request.env.cr.dbname
@@ -81,6 +81,36 @@ class AuthAPI(http.Controller):
                 return Response(json.dumps({"success": False, "error": "Đăng nhập thất bại"}),
                                 content_type="application/json", status=401)
 
+        except Exception as e:
+            return Response(json.dumps({"success": False, "error": str(e)}), content_type="application/json",
+                            status=500)
+
+    @http.route('/api/attendance_wifi', type='http', auth='none', methods=['POST'], csrf=False)
+    def api_attendance_wifi(self, **kwargs):
+        try:
+            now = datetime.now()
+            data = request.httprequest.get_json()  # Lấy dữ liệu JSON đúng cách
+            device_id_num = data.get('device_id_num')
+            if not device_id_num:
+                return Response(json.dumps({"success": False,
+                                            "error": "Không tồn tại mã chấm công"}),
+                                content_type="application/json", status=400)
+            employee_id = request.env['hr.employee'].sudo().search([('device_id_num', '=', device_id_num)])
+            if not employee_id:
+                return Response(json.dumps({"success": False,
+                                            "error": "Không tìm thấy thông tin nhân viên"}),
+                                content_type="application/json", status=400)
+            now = datetime.now()
+            vals = {
+                'employee_id': employee_id.id,
+                'attendance_time': now,
+                'attendance_type': "Wifi"
+            }
+            request.env['master.data.attendance'].sudo().create(vals)
+            return Response(
+                json.dumps({"success": True}),
+                status=200, content_type="application/json"
+            )
         except Exception as e:
             return Response(json.dumps({"success": False, "error": str(e)}), content_type="application/json",
                             status=500)
