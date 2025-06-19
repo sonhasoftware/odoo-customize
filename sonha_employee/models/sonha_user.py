@@ -11,6 +11,8 @@ class SonHaResUser(models.Model):
     token = fields.Char("Token")
     devices = fields.Boolean("Nhiều thiết bị")
 
+    device_number = fields.Integer("Số cài đặt thiết bị", default=2)
+
     # def create(self, vals):
     #     res = super(SonHaResUser, self).create(vals)
     #     res.action_create_employee()
