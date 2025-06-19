@@ -55,6 +55,7 @@ class AuthAPI(http.Controller):
                         "device_id": user.device_id or "",
                         "token": user.token,
                         "option_check": user.option_check,
+                        "device_number": user.device_number,
                     },
                     "employee": {
                         "id": employee_id.id,
@@ -1209,6 +1210,7 @@ class AuthAPI(http.Controller):
         try:
             data = request.httprequest.get_json()  # Lấy dữ liệu JSON đúng cách
             device_id = data.get('device_id')
+            device_number = data.get('device_number')
 
             if not user_id:
                 return Response(json.dumps({"success": False,
@@ -1229,6 +1231,7 @@ class AuthAPI(http.Controller):
                                 status=400)
             user.write({
                 'device_id': device_id,
+                'device_number': device_number,
             })
             return Response(json.dumps({
                 "success": True,
