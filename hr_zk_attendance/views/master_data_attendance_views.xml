@@ -23,6 +23,7 @@
                 <field name="employee_id"/>
                 <field name="department_id"/>
                 <field name="attendance_time"/>
+                <field name="attendance_type"/>
                 <field name="month"/>
             </tree>
         </field>
