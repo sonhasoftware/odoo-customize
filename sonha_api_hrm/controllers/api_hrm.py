@@ -60,6 +60,7 @@ class AuthAPI(http.Controller):
                         "leave_old": employee_id.old_leave_balance,
                         "leave_new": employee_id.new_leave_balance,
                         "employee_code": employee_id.employee_code,
+                        "device_id_num": employee_id.device_id_num,
                         "department": {
                             "id": employee_id.department_id.id,
                             "name": employee_id.department_id.name,
