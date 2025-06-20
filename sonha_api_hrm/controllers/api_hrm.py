@@ -933,10 +933,16 @@ class AuthAPI(http.Controller):
             if not record:
                 raise ValueError("Không tìm thấy bản ghi")
             else:
+                vals = {}
                 if not record.check_level:
                     if record.status == 'sent':
                         record.status = 'draft'
                         record.status_lv1 = 'draft'
+                        vals = {
+                            'employee_id': record.employee_approval.id,
+                            'user_id': record.employee_approval.user_id.id,
+                            'token': record.employee_approval.user_id.token or "",
+                        }
                     elif record.status == 'draft':
                         record.status = 'done'
                         record.status_lv1 = 'done'
@@ -944,9 +950,19 @@ class AuthAPI(http.Controller):
                     if record.status_lv2 == 'sent':
                         record.status = 'draft'
                         record.status_lv2 = 'draft'
+                        vals = {
+                            'employee_id': record.employee_confirm.id,
+                            'user_id': record.employee_confirm.user_id.id,
+                            'token': record.employee_confirm.user_id.token or "",
+                        }
                     elif record.status_lv2 == 'draft':
                         record.status = 'draft'
                         record.status_lv1 = 'confirm'
+                        vals = {
+                            'employee_id': record.employee_approval.id,
+                            'user_id': record.employee_approval.user_id.id,
+                            'token': record.employee_approval.user_id.token or "",
+                        }
                     elif record.status_lv2 == 'confirm':
                         record.status = 'done'
                         record.status_lv1 = 'done'
@@ -955,6 +971,7 @@ class AuthAPI(http.Controller):
                 return Response(json.dumps({
                     "success": True,
                     "id": record.id,
+                    "data": vals,
                     "msg": "Bấm nút thành công",
                 }), content_type="application/json", status=200)
 
@@ -1396,4 +1413,74 @@ class AuthAPI(http.Controller):
                 {"success": False,
                  "error": str(e)
                  }), content_type="application/json", status=500)
+
+    @http.route('/api/log_notifi', type='http', auth='none', methods=['POST'], csrf=False)
+    def api_log_notifi(self, **kwargs):
+        """
+        API Login để xác thực người dùng và lưu session vào cookie
+        """
+        try:
+            data = request.httprequest.get_json()  # Lấy dữ liệu JSON đúng cách
+            token = data.get('token')
+            title = data.get('title')
+            body = data.get('body')
+            data_field = data.get('data')
+            type = data.get('type')
+            taget_screen = data.get('taget_screen')
+            message_id = data.get('message_id')
+            badge = data.get('badge')
+            datetime_str = data.get('datetime')
+            userid = data.get('userid')
+            employeeid = data.get('employeeid')
+            id_application = data.get('id_application')
+
+            required_fields = [
+                'token',
+                'title',
+                'body',
+                'data_field',
+                'type',
+                'taget_screen',
+                'message_id',
+                'badge',
+                'datetime_str',
+                'userid',
+                'employeeid',
+                'id_application'
+            ]
+
+            # Kiểm tra và trả lỗi nếu thiếu
+            for field_name in required_fields:
+                if not locals().get(field_name):
+                    return Response(
+                        json.dumps({"success": False, "error": f"Thiếu thông tin: {field_name}"}),
+                        content_type="application/json", status=400
+                    )
+
+            datetime_obj = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S")
+
+            vals = {
+                'token': token,
+                'title': title,
+                'body': body,
+                'data': data_field,
+                'type': type,
+                'taget_screen': taget_screen,
+                'message_id': message_id,
+                'badge': badge,
+                'datetime': datetime_obj,
+                'userid': userid,
+                'employeeid': employeeid,
+                'id_application': id_application,
+            }
+            request.env['log.notifi'].sudo().create(vals)
+
+            return Response(json.dumps({
+                "success": True,
+                "msg": "Tạo dữ liệu thành công",
+            }), content_type="application/json", status=200)
+
+        except Exception as e:
+            return Response(json.dumps({"success": False, "error": str(e)}), content_type="application/json",
+                            status=500)
 
