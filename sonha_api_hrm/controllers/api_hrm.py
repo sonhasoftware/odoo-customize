@@ -933,10 +933,16 @@ class AuthAPI(http.Controller):
             if not record:
                 raise ValueError("Không tìm thấy bản ghi")
             else:
+                vals = {}
                 if not record.check_level:
                     if record.status == 'sent':
                         record.status = 'draft'
                         record.status_lv1 = 'draft'
+                        vals = {
+                            'employee_id': record.employee_approval.id,
+                            'user_id': record.employee_approval.user_id.id,
+                            'token': record.employee_approval.user_id.token or "",
+                        }
                     elif record.status == 'draft':
                         record.status = 'done'
                         record.status_lv1 = 'done'
@@ -944,9 +950,19 @@ class AuthAPI(http.Controller):
                     if record.status_lv2 == 'sent':
                         record.status = 'draft'
                         record.status_lv2 = 'draft'
+                        vals = {
+                            'employee_id': record.employee_confirm.id,
+                            'user_id': record.employee_confirm.user_id.id,
+                            'token': record.employee_confirm.user_id.token or "",
+                        }
                     elif record.status_lv2 == 'draft':
                         record.status = 'draft'
                         record.status_lv1 = 'confirm'
+                        vals = {
+                            'employee_id': record.employee_approval.id,
+                            'user_id': record.employee_approval.user_id.id,
+                            'token': record.employee_approval.user_id.token or "",
+                        }
                     elif record.status_lv2 == 'confirm':
                         record.status = 'done'
                         record.status_lv1 = 'done'
@@ -955,6 +971,7 @@ class AuthAPI(http.Controller):
                 return Response(json.dumps({
                     "success": True,
                     "id": record.id,
+                    "data": vals,
                     "msg": "Bấm nút thành công",
                 }), content_type="application/json", status=200)
 
