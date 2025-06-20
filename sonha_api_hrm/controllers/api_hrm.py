@@ -1414,3 +1414,73 @@ class AuthAPI(http.Controller):
                  "error": str(e)
                  }), content_type="application/json", status=500)
 
+    @http.route('/api/log_notifi', type='http', auth='none', methods=['POST'], csrf=False)
+    def api_log_notifi(self, **kwargs):
+        """
+        API Login để xác thực người dùng và lưu session vào cookie
+        """
+        try:
+            data = request.httprequest.get_json()  # Lấy dữ liệu JSON đúng cách
+            token = data.get('token')
+            title = data.get('title')
+            body = data.get('body')
+            data_field = data.get('data')
+            type = data.get('type')
+            taget_screen = data.get('taget_screen')
+            message_id = data.get('message_id')
+            badge = data.get('badge')
+            datetime_str = data.get('datetime')
+            userid = data.get('userid')
+            employeeid = data.get('employeeid')
+            id_application = data.get('id_application')
+
+            required_fields = [
+                'token',
+                'title',
+                'body',
+                'data_field',
+                'type',
+                'taget_screen',
+                'message_id',
+                'badge',
+                'datetime_str',
+                'userid',
+                'employeeid',
+                'id_application'
+            ]
+
+            # Kiểm tra và trả lỗi nếu thiếu
+            for field_name in required_fields:
+                if not locals().get(field_name):
+                    return Response(
+                        json.dumps({"success": False, "error": f"Thiếu thông tin: {field_name}"}),
+                        content_type="application/json", status=400
+                    )
+
+            datetime_obj = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S")
+
+            vals = {
+                'token': token,
+                'title': title,
+                'body': body,
+                'data': data_field,
+                'type': type,
+                'taget_screen': taget_screen,
+                'message_id': message_id,
+                'badge': badge,
+                'datetime': datetime_obj,
+                'userid': userid,
+                'employeeid': employeeid,
+                'id_application': id_application,
+            }
+            request.env['log.notifi'].sudo().create(vals)
+
+            return Response(json.dumps({
+                "success": True,
+                "msg": "Tạo dữ liệu thành công",
+            }), content_type="application/json", status=200)
+
+        except Exception as e:
+            return Response(json.dumps({"success": False, "error": str(e)}), content_type="application/json",
+                            status=500)
+

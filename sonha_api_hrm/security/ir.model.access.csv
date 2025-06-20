@@ -1,3 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 
 access_remote_timekeeping,remote.timekeeping,model_remote_timekeeping,,1,1,1,1
+
+access_log_notifi,log.notifi,model_log_notifi,,1,1,1,1
