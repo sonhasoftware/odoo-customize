@@ -92,23 +92,19 @@ class BookCar(models.Model):
                 f"&action={action_id}"
             )
 
-    def fill_car_estimate(self):
-        now = datetime.now().date()
-        company_id = self.env['hr.employee'].sudo().search([('user_id', '=', self.env.user.id)], limit=1).company_id
-        record = self.env['book.car'].sudo().search([('company_id', '=', company_id.id),
-                                                     ('status_exist_car', '=', 'exist'),
-                                                     ('start_date', '<=', now),
-                                                     ('end_date', '>', now)])
-        number_car = self.env['config.car'].sudo().search([('company_id', '=', company_id.id)])
-        if number_car:
-            number_car_left = number_car.number_of_car - len(record)
-        else:
-            number_car_left = 0
-        return number_car_left if number_car_left > 0 else 0
-
-    @api.depends('start_date', 'end_date')
+    @api.depends('start_date', 'end_date', 'company_id')
     def caculate_car_estimate(self):
         for r in self:
+            if r.company_id:
+                now = datetime.now().date()
+                record = self.env['book.car'].sudo().search(['&',
+                                                             '&',
+                                                             ('company_id', '=', r.company_id.id),
+                                                             ('status_exist_car', '=', 'exist'),
+                                                             '|',
+                                                             ('start_date', '<=', now),
+                                                             ('end_date', '>=', now)])
+                number_car = self.env['config.car'].sudo().search([('company_id', '=', r.company_id.id)])
             if r.start_date and r.end_date:
                 record = self.env['book.car'].sudo().search(['&',
                                                              '&',
@@ -123,11 +119,11 @@ class BookCar(models.Model):
                                                              ('end_date', '>=', r.start_date),
                                                              ('end_date', '<=', r.end_date)])
                 number_car = self.env['config.car'].sudo().search([('company_id', '=', r.company_id.id)])
-                if number_car:
-                    number_car_left = number_car.number_of_car - len(record)
-                else:
-                    number_car_left = 0
-                r.car_estimate = number_car_left if number_car_left > 0 else 0
+            if number_car:
+                number_car_left = number_car.number_of_car - len(record)
+            else:
+                number_car_left = 0
+            r.car_estimate = number_car_left if number_car_left > 0 else 0
 
     @api.depends('status', 'start_date', 'end_date')
     def get_check_creator(self):
