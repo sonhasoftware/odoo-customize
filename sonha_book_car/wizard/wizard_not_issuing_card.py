@@ -4,7 +4,7 @@ from odoo import models, fields, api
 class WizardNotIssuingCard(models.TransientModel):
     _name = 'wizard.not.issuing.card'
 
-    reason = fields.Text("Lý do")
+    reason = fields.Text("Lý do", required=True)
 
     parent_id = fields.Many2one('book.car', string="Parent ID")
 

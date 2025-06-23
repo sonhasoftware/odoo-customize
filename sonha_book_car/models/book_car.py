@@ -68,6 +68,90 @@ class BookCar(models.Model):
     check_process = fields.Boolean("check_process", compute="get_check_process")
     check_exist_car = fields.Boolean("check_exist_car", compute="get_check_exist_car")
     check_return_card = fields.Boolean("check_return_card", compute="get_check_return_card")
+    list_book_car = fields.Many2many('book.car.short', string="Đơn đã được đặt",
+                                     compute="compute_booked_car", store=True)
+    check_creator = fields.Boolean(compute="get_check_creator")
+    car_estimate = fields.Integer("Số lượng xe(ước tính)", default=lambda self: self.fill_car_estimate(),
+                                  compute="caculate_car_estimate", store=True)
+    is_rent = fields.Boolean("Thuê xe")
+    rent_company = fields.Char("Đơn vị thuê")
+    record_link = fields.Char(compute="_compute_record_url", store=True)
+
+    @api.depends('booking_employee_id')
+    def _compute_record_url(self):
+        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+        menu_id = self.env.ref('sonha_book_car.menu_book_car').id
+        action_id = self.env.ref('sonha_book_car.book_car_action').id
+
+        for record in self:
+            record.record_link = (
+                f"{base_url}/web#id={record.id}"
+                f"&model=form.word.slip"
+                f"&view_type=form"
+                f"&menu_id={menu_id}"
+                f"&action={action_id}"
+            )
+
+    def fill_car_estimate(self):
+        now = datetime.now().date()
+        company_id = self.env['hr.employee'].sudo().search([('user_id', '=', self.env.user.id)], limit=1).company_id
+        record = self.env['book.car'].sudo().search([('company_id', '=', company_id.id),
+                                                     ('status_exist_car', '=', 'exist'),
+                                                     ('start_date', '<=', now),
+                                                     ('end_date', '>', now)])
+        number_car = self.env['config.car'].sudo().search([('company_id', '=', company_id.id)])
+        if number_car:
+            number_car_left = number_car.number_of_car - len(record)
+        else:
+            number_car_left = 0
+        return number_car_left if number_car_left > 0 else 0
+
+    @api.depends('start_date', 'end_date')
+    def caculate_car_estimate(self):
+        for r in self:
+            if r.start_date and r.end_date:
+                record = self.env['book.car'].sudo().search(['&',
+                                                             '&',
+                                                             ('company_id', '=', r.company_id.id),
+                                                             ('status_exist_car', '=', 'exist'),
+                                                             ('is_rent', '!=', True),
+                                                             '|',
+                                                             '&',
+                                                             ('start_date', '>=', r.start_date),
+                                                             ('start_date', '<=', r.end_date),
+                                                             '&',
+                                                             ('end_date', '>=', r.start_date),
+                                                             ('end_date', '<=', r.end_date)])
+                number_car = self.env['config.car'].sudo().search([('company_id', '=', r.company_id.id)])
+                if number_car:
+                    number_car_left = number_car.number_of_car - len(record)
+                else:
+                    number_car_left = 0
+                r.car_estimate = number_car_left if number_car_left > 0 else 0
+
+    @api.depends('status', 'start_date', 'end_date')
+    def get_check_creator(self):
+        for r in self:
+            if r.start_date and r.end_date and r.status == 'draft':
+                r.check_creator = True
+            else:
+                r.check_creator = False
+
+    @api.depends('start_date', 'end_date')
+    def compute_booked_car(self):
+        for r in self:
+            if r.start_date and r.end_date:
+                list_record = self.env['book.car.short'].sudo().search(['&',
+                                                                        ('company_id', '=', r.company_id.id),
+                                                                        '|', '|', '|',
+                                                                        ('start_date', '=', r.start_date),
+                                                                        ('book_end_date', '=', r.start_date),
+                                                                        ('start_date', '=', r.end_date),
+                                                                        ('book_end_date', '=', r.end_date)])
+
+                if isinstance(r.id, int):
+                    list_record = list_record.filtered(lambda x: x.book_car.id != r.id)
+                r.list_book_car = list_record
 
     @api.onchange('booking_employee_id')
     def onchange_phone_number(self):
@@ -194,6 +278,7 @@ class BookCar(models.Model):
                     'target': 'new',
                     'context': {
                         'default_parent_id': r.id,
+                        'default_company_id': r.company_id.id,
                     },
                 }
             else:
@@ -271,7 +356,7 @@ class BookCar(models.Model):
         for r in self:
             if r.status == 'draft' or self.env.user.id == 2:
                 if r.employee_id.user_id.id == self.env.user.id or self.env.user.id == 2:
-                    pass
+                    self.env['book.car.short'].sudo().search([('book_car', '=', r.id)]).unlink()
                 else:
                     raise ValidationError("Chỉ được xóa khi là người tạo đơn!")
             else:
@@ -284,6 +369,29 @@ class BookCar(models.Model):
         competency_employee = self.env['config.competency.employee'].sudo().search([('company_id', '=', res.company_id.id)], limit=1)
         res.sudo().write({'employee_id': emp.id if emp else None,
                           'competency_employee': competency_employee.employee_id.id if competency_employee.employee_id else None})
+        self.env['book.car.short'].sudo().create({
+            'company_id': res.company_id.id,
+            'department_id': res.department_id.id,
+            'employee_id': res.employee_id.id,
+            'start_date': res.start_date,
+            'book_end_date': res.end_date,
+            'start_time': res.start_time,
+            'end_time': res.end_time,
+            'book_car': res.id,
+        })
+        return res
+
+    def write(self, vals):
+        res = super(BookCar, self).write(vals)
+        if any(field in vals for field in ['start_date', 'end_date', 'start_time', 'end_time']):
+            for r in self:
+                short = self.env['book.car.short'].sudo().search([('book_car', '=', r.id)])
+                short.sudo().write({
+                    'start_date': r.start_date,
+                    'book_end_date': r.end_date,
+                    'start_time': r.start_time,
+                    'end_time': r.end_time,
+                })
         return res
 
     def action_sent(self):
@@ -356,8 +464,10 @@ class BookCar(models.Model):
                     'view_mode': 'form',
                     'target': 'new',
                     'context': {
+                        'default_type': 'rent_car' if r.is_rent else 'non_rent',
                         'default_parent_id': r.id,
-                        'default_driver': r.driver.id,
+                        'default_driver': r.driver.id if r.driver else None,
+                        'default_rent_company': r.rent_company if r.is_rent else "",
                         'default_driver_phone': r.driver_phone,
                         'default_license_plate': r.license_plate,
                     },
