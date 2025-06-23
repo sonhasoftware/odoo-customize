@@ -71,7 +71,7 @@ class BookCar(models.Model):
     list_book_car = fields.Many2many('book.car.short', string="Đơn đã được đặt",
                                      compute="compute_booked_car", store=True)
     check_creator = fields.Boolean(compute="get_check_creator")
-    car_estimate = fields.Integer("Số lượng xe(ước tính)", default=lambda self: self.fill_car_estimate(),
+    car_estimate = fields.Integer("Số lượng xe(ước tính)",
                                   compute="caculate_car_estimate", store=True)
     is_rent = fields.Boolean("Thuê xe")
     rent_company = fields.Char("Đơn vị thuê")
