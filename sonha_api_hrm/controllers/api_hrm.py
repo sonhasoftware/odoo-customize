@@ -39,6 +39,7 @@ class AuthAPI(http.Controller):
             if uid:
                 user = request.env['res.users'].sudo().browse(uid)
                 employee_id = request.env['hr.employee'].sudo().search([('user_id', '=', user.id)])
+                total_leave = employee_id.old_leave_balance + employee_id.new_leave_balance
 
                 # 🔥 Trả về response có Set-Cookie
                 response = Response(json.dumps({
@@ -58,7 +59,7 @@ class AuthAPI(http.Controller):
                         "mail": employee_id.work_email,
                         "phone_number": employee_id.sonha_number_phone,
                         "leave_old": employee_id.old_leave_balance,
-                        "leave_new": employee_id.new_leave_balance,
+                        "leave_new": total_leave,
                         "employee_code": employee_id.employee_code,
                         "device_id_num": employee_id.device_id_num,
                         "department": {
