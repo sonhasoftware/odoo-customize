@@ -50,11 +50,25 @@
                         </group>
                     </group>
                     <group>
+                        <field name="car_estimate" readonly="1"/>
+                        <field name="check_creator" invisible="1"/>
+                        <field name="list_book_car" invisible="check_creator != True">
+                            <tree>
+                                <field name="department_id"/>
+                                <field name="employee_id"/>
+                                <field name="start_date"/>
+                                <field name="start_time"/>
+                                <field name="book_end_date"/>
+                                <field name="end_time"/>
+                            </tree>
+                        </field>
                         <field name="approve_people" readonly="status != 'draft'"/>
                         <field name="approve_people_job_id" readonly="1"/>
                     </group>
                     <group string="Thông tin xe" invisible="type != 'exist_car'">
-                        <field name="driver" readonly="status != 'draft'"/>
+                        <field name="is_rent" invisible="1"/>
+                        <field name="driver" readonly="status != 'draft'"  invisible="is_rent != False"/>
+                        <field name="rent_company" readonly="status != 'draft'" invisible="is_rent != True"/>
                         <field name="driver_phone" readonly="status != 'draft'"/>
                         <field name="license_plate" readonly="status != 'draft'"/>
                     </group>
