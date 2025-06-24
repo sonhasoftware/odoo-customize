@@ -560,7 +560,7 @@ class DataChart(http.Controller):
             output.read(),
             headers=[
                 ('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'),
-                ('Content-Disposition', 'attachment; filename="KPI_năm.xlsx"')
+                ('Content-Disposition', 'attachment; filename="KPI_nam.xlsx"')
             ]
         )
 
