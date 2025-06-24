@@ -2,6 +2,9 @@ from odoo import http
 from odoo.http import request
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+import xlsxwriter
+import base64
+from io import BytesIO
 
 import json
 
@@ -480,3 +483,183 @@ class DataChart(http.Controller):
             for kpi in parent_kpi_month:
                 if kpi.status == 'done':
                     kpi.sudo().write({'status': 'draft'})
+
+    @http.route(['/kpi/report/export/excel'], type='http', auth='none')
+    def export_kpi_excel(self, department_id=None, year=None, **kwargs):
+        # Lấy dữ liệu từ model report.kpi
+        records = request.env['report.kpi'].sudo().search([
+            ('department_id', '=', int(department_id)),
+            ('year', '=', int(year))
+        ])
+
+        output = BytesIO()
+        workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+        worksheet = workbook.add_worksheet('KPI Report')
+
+        # Format cho tiêu đề
+        header_format = workbook.add_format({'bold': True, 'align': 'center', 'bg_color': '#D9E1F2'})
+        center = workbook.add_format({'align': 'center'})
+        cell_format = workbook.add_format({
+            'border': 1,
+            'align': 'center',
+            'valign': 'vcenter',
+        })
+
+        # Dòng tiêu đề cấp 1 (gộp ô)
+        worksheet.merge_range(0, 0, 1, 0, "Tháng", header_format)
+        worksheet.merge_range(0, 1, 0, 13, "Đơn vị đánh giá", header_format)
+        worksheet.merge_range(0, 14, 0, 26, "Cấp thẩm quyền đánh giá", header_format)
+
+        # Dòng tiêu đề cấp 2
+        headers = [
+            "Khối lượng \n CVTH", "Chất lượng CVTH", "Chấp hành nội quy", "Cải tiến, đề xuất, sáng kiến",
+            "Σ Điểm đạt (trước khi + điểm tiến bộ)", "Ký hiệu (trước khi + điểm tiến bộ)",
+            "Điểm Tiến bộ (+/-)", "Σ Điểm đạt (Đơn vị ĐG)", "Ký hiệu (sau khi + điểm tiến bộ)",
+            "Xếp loại", "Kế hoạch", "Thực hiện",
+            "Khối lượng CVTH", "Chất lượng CVTH", "Chấp hành nội quy", "Cải tiến, đề xuất, sáng kiến",
+            "Σ Điểm đạt (trước khi + điểm tiến bộ)", "Ký hiệu (trước khi + điểm tiến bộ)",
+            "Điểm Tiến bộ (+/-)", "Σ Điểm đạt (Đơn vị ĐG)", "Ký hiệu (sau khi + điểm tiến bộ)",
+            "Xếp loại", "Kế hoạch", "Thực hiện"
+        ]
+        for i, h in enumerate(headers):
+            worksheet.write(1, i + 1, h, header_format)
+
+        # Ghi dữ liệu từ dòng 2 trở đi
+        for row, rec in enumerate(records, start=2):
+            worksheet.write(row, 0, rec.month, cell_format)
+
+            worksheet.write(row, 1, rec.workload or 0.0, cell_format)
+            worksheet.write(row, 2, rec.quality or 0.0, cell_format)
+            worksheet.write(row, 3, rec.discipline or 0.0, cell_format)
+            worksheet.write(row, 4, rec.improvement or 0.0, cell_format)
+            worksheet.write(row, 5, rec.total_points_before or 0.0, cell_format)
+            worksheet.write(row, 6, rec.symbol_before or '', cell_format)
+            worksheet.write(row, 7, rec.progress_points or 0.0, cell_format)
+            worksheet.write(row, 8, rec.total_points_after or 0.0, cell_format)
+            worksheet.write(row, 9, rec.symbol_after or '', cell_format)
+            worksheet.write(row, 10, rec.classification or '', cell_format)
+            worksheet.write(row, 11, f"{rec.plan}%" if rec.plan else '', cell_format)
+            worksheet.write(row, 12, f"{rec.criteria_achievement}%" if rec.criteria_achievement else '', cell_format)
+
+            worksheet.write(row, 13, rec.tq_workload or 0.0, cell_format)
+            worksheet.write(row, 14, rec.tq_quality or 0.0, cell_format)
+            worksheet.write(row, 15, rec.tq_discipline or 0.0, cell_format)
+            worksheet.write(row, 16, rec.tq_improvement or 0.0, cell_format)
+            worksheet.write(row, 17, rec.tq_total_points_before or 0.0, cell_format)
+            worksheet.write(row, 18, rec.tq_symbol_before or '', cell_format)
+            worksheet.write(row, 19, rec.tq_progress_points or 0.0, cell_format)
+            worksheet.write(row, 20, rec.tq_total_points_after or 0.0, cell_format)
+            worksheet.write(row, 21, rec.tq_symbol_after or '', cell_format)
+            worksheet.write(row, 22, rec.tq_classification or '', cell_format)
+            worksheet.write(row, 23, f"{rec.tq_plan}%" if rec.tq_plan else '', cell_format)
+            worksheet.write(row, 24, f"{rec.tq_criteria_achievement}%" if rec.tq_criteria_achievement else '', cell_format)
+
+        workbook.close()
+        output.seek(0)
+        return request.make_response(
+            output.read(),
+            headers=[
+                ('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'),
+                ('Content-Disposition', 'attachment; filename="KPI_năm.xlsx"')
+            ]
+        )
+
+    @http.route(['/kpi/report/month/export/excel'], type='http', auth='none')
+    def export_kpi_month_excel(self, department_id=None, year=None, month=None, **kwargs):
+        # Lấy dữ liệu từ model report.kpi
+        records = request.env['sonha.kpi.result.month'].sudo().search([
+            ('department_id', '=', int(department_id)),
+            ('year', '=', int(year))
+        ])
+
+        records = records.filtered(lambda x: x.start_date.month == int(month))
+
+        output = BytesIO()
+        workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+        worksheet = workbook.add_worksheet('KPI Tháng')
+        header_format = workbook.add_format(
+            {'bold': True, 'align': 'center', 'valign': 'vcenter', 'border': 1, 'text_wrap': True,
+             'bg_color': '#D9F1F1'})
+        cell_format = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'border': 1, 'text_wrap': True})
+        text_format = workbook.add_format({'align': 'left', 'valign': 'top', 'border': 1, 'text_wrap': True})
+
+        # Set column widths
+        worksheet.set_column('A:A', 30)
+        worksheet.set_column('B:B', 40)
+        worksheet.set_column('C:D', 12)
+        worksheet.set_column('E:E', 25)
+        worksheet.set_column('F:F', 10)
+        worksheet.set_column('G:G', 10)
+        worksheet.set_column('H:H', 30)
+        worksheet.set_column('I:J', 12)
+        worksheet.set_column('K:K', 14)
+        worksheet.set_column('L:M', 12)
+        worksheet.set_column('N:N', 14)
+        worksheet.set_column('O:O', 20)
+
+        # Header rows
+        worksheet.merge_range('A1:A2', 'NỘI DUNG CÔNG VIỆC\n(Đã giao ở mục tiêu/ KPIs cả năm)', header_format)
+        worksheet.merge_range('B1:B2', 'NỘI DUNG CÔNG VIỆC CỤ THỂ', header_format)
+        worksheet.merge_range('C1:D1', 'THỜI GIAN THỰC HIỆN', header_format)
+        worksheet.write('C2', 'Bắt đầu', header_format)
+        worksheet.write('D2', 'Hoàn thành', header_format)
+        worksheet.merge_range('E1:E2', 'TIÊU CHÍ ĐÁNH GIÁ RÚT GỌN', header_format)
+        worksheet.merge_range('F1:F2', 'Tỷ trọng', header_format)
+        worksheet.merge_range('G1:G2', 'Điểm chuẩn', header_format)
+        worksheet.merge_range('H1:H2', 'MÔ TẢ CHI TIẾT CÔNG VIỆC/ KIẾN NGHỊ ĐỀ XUẤT CỦA ĐƠN VỊ', header_format)
+        worksheet.merge_range('I1:K1', 'Σ ĐIỂM ĐƠN VỊ ĐÁNH GIÁ', header_format)
+        worksheet.write('I2', 'Kết quả hoàn thành', header_format)
+        worksheet.write('J2', 'Điểm đạt', header_format)
+        worksheet.write('K2', 'Điểm quy đổi theo tỷ trọng', header_format)
+        worksheet.merge_range('L1:N1', 'Σ ĐIỂM CẤP THẨM QUYỀN ĐÁNH GIÁ', header_format)
+        worksheet.write('L2', 'Kết quả hoàn thành', header_format)
+        worksheet.write('M2', 'Điểm đạt', header_format)
+        worksheet.write('N2', 'Điểm quy đổi theo tỷ trọng', header_format)
+        worksheet.merge_range('O1:O2', 'NHẬN XÉT CỦA CẤP CÓ THẨM QUYỀN', header_format)
+
+        row = 2
+        for rec in records:
+            # Merge các cột dùng chung cho cả 2 dòng
+            worksheet.merge_range(row, 0, row + 1, 0, rec.name.name or '', text_format)
+            worksheet.merge_range(row, 1, row + 1, 1, rec.content_detail or '', text_format)
+            worksheet.merge_range(row, 2, row + 1, 2, rec.converted_start_date if rec.converted_start_date else '',
+                                  cell_format)
+            worksheet.merge_range(row, 3, row + 1, 3, rec.converted_end_date if rec.converted_end_date else '',
+                                  cell_format)
+            worksheet.merge_range(row, 5, row + 1, 5, f"{rec.ti_trong * 100}%", cell_format)
+            worksheet.merge_range(row, 7, row + 1, 7, rec.dv_description or '', text_format)
+            worksheet.merge_range(row, 14, row + 1, 14, rec.note or '', text_format)
+
+            # Dòng 1: Khối lượng
+            worksheet.write(row, 4, "Khối lượng công việc thực hiện", cell_format)
+            worksheet.write(row, 6, rec.diem_chuan_amount_work or 0.0, cell_format)
+            worksheet.write(row, 8, f"{rec.kq_hoan_thanh_amount_work * 100}%", cell_format)
+            worksheet.write(row, 9, rec.diem_dat_dv_amount_work or 0.0, cell_format)
+            worksheet.write(row, 10, rec.quy_doi_dv_amount_work or 0.0, cell_format)
+            worksheet.write(row, 11, f"{rec.kq_hoan_thanh_tq_amount_work * 100}%", cell_format)
+            worksheet.write(row, 12, rec.diem_dat_tq_amount_work or 0.0, cell_format)
+            worksheet.write(row, 13, rec.quy_doi_tq_amount_work or 0.0, cell_format)
+
+            # Dòng 2: Chất lượng
+            worksheet.write(row + 1, 4, "Chất lượng công việc thực hiện", cell_format)
+            worksheet.write(row + 1, 6, rec.diem_chuan_matter_work or 0.0, cell_format)
+            worksheet.write(row + 1, 8, f"{rec.kq_hoan_thanh_matter_work * 100}%", cell_format)
+            worksheet.write(row + 1, 9, rec.diem_dat_dv_matter_work or 0.0, cell_format)
+            worksheet.write(row + 1, 10, rec.quy_doi_dv_matter_work or 0.0, cell_format)
+            worksheet.write(row + 1, 11, f"{rec.kq_hoan_thanh_tq_matter_work * 100}%", cell_format)
+            worksheet.write(row + 1, 12, rec.diem_dat_tq_matter_work or 0.0, cell_format)
+            worksheet.write(row + 1, 13, rec.quy_doi_tq_matter_work or 0.0, cell_format)
+
+            row += 2
+
+        workbook.close()
+        output.seek(0)
+        filename = f'KPI_Report_{month}_{year}.xlsx'
+
+        return request.make_response(
+            output.read(),
+            headers=[
+                ('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'),
+                ('Content-Disposition', f'attachment; filename={filename}')
+            ]
+        )
