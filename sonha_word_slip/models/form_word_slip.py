@@ -440,7 +440,7 @@ class FormWordSlip(models.Model):
                     rec.employee_approval = employee_id.employee_approval.parent_id.id if employee_id.employee_approval.parent_id else None
         else:
             # Trường hợp không có bước phê duyệt
-            rec.employee_approval = employee_id.parent_id.id if employee_id.parent_id else employee_id.employee_approval.id
+            rec.employee_approval = employee_id.employee_approval.id if employee_id.employee_approval else employee_id.parent_id.id
         return rec
 
     def get_duration_day(self, rec):
