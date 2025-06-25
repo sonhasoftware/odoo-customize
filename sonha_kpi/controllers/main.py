@@ -623,7 +623,7 @@ class DataChart(http.Controller):
         # Format
         title_format = workbook.add_format({
             'bold': True,
-            'font_size': 17,
+            'font_size': 20,
             'align': 'center',
             'valign': 'vcenter'})
         header_format = workbook.add_format(
@@ -634,14 +634,14 @@ class DataChart(http.Controller):
             'valign': 'vcenter',
             'border': 1,
             'text_wrap': True,
-            'font_size': 13
+            'font_size': 15
         })
         text_format = workbook.add_format({
             'align': 'left',
             'valign': 'top',
             'border': 1,
             'text_wrap': True,
-            'font_size': 13
+            'font_size': 15
         })
 
         wrap_format = workbook.add_format({
@@ -651,7 +651,7 @@ class DataChart(http.Controller):
             'text_wrap': True,  # Cho phép xuống dòng trong ô
             'bg_color': '#D9E1F2',  # Màu nền giống như header_format
             'border': 1,
-            'font_size': 13
+            'font_size': 15
         })
         # Set column widths
         worksheet.set_column('A:A', 30)
