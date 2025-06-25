@@ -366,11 +366,12 @@ class FormWordSlip(models.Model):
                 raise ValidationError("Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc.")
 
             # tìm kiếm các bản ghi theo các điều kiện
-            word_slips = self.env['word.slip'].search([
+            word_slips = self.env['word.slip'].sudo().search([
                 ('type.date_and_time', '=', form_type),
                 ('id', '!=', record.id),
                 ('from_date', '<=', record.to_date),
                 ('to_date', '>=', record.from_date),
+                ('word_slip.status', '!=', 'cancel'),
             ])
             word_slips = word_slips.filtered(
                 lambda x: (x.word_slip.employee_id and x.word_slip.employee_id.id == rec.employee_id.id) or (
