@@ -943,10 +943,27 @@ class AuthAPI(http.Controller):
                             'employee_id': record.employee_approval.id,
                             'user_id': record.employee_approval.user_id.id,
                             'token': record.employee_approval.user_id.token or "",
+                            'create_user_id': record.create_uid.id,
+                            'create_employee_id': record.create_uid.employee_id.id,
+                            'code': record.code or "",
+                            'type': {
+                                'id': record.type.id,
+                                'name': record.type.name,
+                            }
                         }
                     elif record.status == 'draft':
                         record.status = 'done'
                         record.status_lv1 = 'done'
+                        vals = {
+                            'token': record.employee_approval.user_id.token or "",
+                            'create_user_id': record.create_uid.id,
+                            'create_employee_id': record.create_uid.employee_id.id,
+                            'code': record.code or "",
+                            'type': {
+                                'id': record.type.id,
+                                'name': record.type.name,
+                            }
+                        }
                 else:
                     if record.status_lv2 == 'sent':
                         record.status = 'draft'
@@ -955,6 +972,13 @@ class AuthAPI(http.Controller):
                             'employee_id': record.employee_confirm.id,
                             'user_id': record.employee_confirm.user_id.id,
                             'token': record.employee_confirm.user_id.token or "",
+                            'create_user_id': record.create_uid.id,
+                            'create_employee_id': record.create_uid.employee_id.id,
+                            'code': record.code or "",
+                            'type': {
+                                'id': record.type.id,
+                                'name': record.type.name,
+                            }
                         }
                     elif record.status_lv2 == 'draft':
                         record.status = 'draft'
@@ -963,10 +987,27 @@ class AuthAPI(http.Controller):
                             'employee_id': record.employee_approval.id,
                             'user_id': record.employee_approval.user_id.id,
                             'token': record.employee_approval.user_id.token or "",
+                            'create_user_id': record.create_uid.id,
+                            'create_employee_id': record.create_uid.employee_id.id,
+                            'code': record.code or "",
+                            'type': {
+                                'id': record.type.id,
+                                'name': record.type.name,
+                            }
                         }
                     elif record.status_lv2 == 'confirm':
                         record.status = 'done'
                         record.status_lv1 = 'done'
+                        vals = {
+                            'token': record.employee_approval.user_id.token or "",
+                            'create_user_id': record.create_uid.id,
+                            'create_employee_id': record.create_uid.employee_id.id,
+                            'code': record.code or "",
+                            'type': {
+                                'id': record.type.id,
+                                'name': record.type.name,
+                            }
+                        }
 
                 # Trả về kết quả
                 return Response(json.dumps({
@@ -1485,3 +1526,71 @@ class AuthAPI(http.Controller):
             return Response(json.dumps({"success": False, "error": str(e)}), content_type="application/json",
                             status=500)
 
+    @http.route('/api/write/log_notifi/<int:record_id>', type='http', auth='none', methods=['PUT'], csrf=False)
+    def api_write_log_notifi(self, record_id, **kwargs):
+        """
+        API Login để xác thực người dùng và lưu session vào cookie
+        """
+        try:
+            if not record_id:
+                raise ValueError("Không tìm thấy bản ghi")
+            data = request.httprequest.get_json()
+            is_read = data.get('is_read')
+            if not is_read:
+                raise ValueError("Không tìm is_read")
+            record = request.env['log.notifi'].sudo().browse(record_id)
+            if is_read == 1:
+                record.is_read = True
+            return Response(json.dumps({
+                "success": True,
+                "msg": "Cập nhật dữ liệu thành công!",
+            }), content_type="application/json", status=200)
+
+        except Exception as e:
+            return Response(json.dumps({"success": False, "error": str(e)}), content_type="application/json",
+                            status=500)
+
+    @http.route('/api/get/log_notifi/<userid>/<from_date>/<to_date>', type='http', auth='none', methods=['GET'], csrf=False)
+    def api_get_log_notifi(self, userid, from_date, to_date):
+        try:
+            if not userid:
+                raise ValueError("Không tìm thấy dữ liệu userid")
+            if not from_date:
+                raise ValueError("Không tìm thấy dữ liệu from_date")
+            if not to_date:
+                raise ValueError("Không tìm thấy dữ liệu to_date")
+            date_start = datetime.strptime(from_date, "%Y-%m-%d %H:%M:%S")
+            date_end = datetime.strptime(to_date, "%Y-%m-%d %H:%M:%S")
+            logs = request.env['log.notifi'].sudo().search([
+                ('userid', '=', userid),
+                ('datetime', '>=', date_start),
+                ('datetime', '<=', date_end)
+            ])
+            data = []
+            if logs:
+                for log in logs:
+                    data.append({
+                        'token': log.token or "",
+                        'title': log.title or "",
+                        'body': log.body or "",
+                        'data': log.data or "",
+                        'type': log.type or "",
+                        'taget_screen': log.taget_screen or "",
+                        'message_id': log.message_id or "",
+                        'badge': log.badge or "",
+                        'datetime': str(log.datetime) if log.datetime else None,
+                        'userid': log.userid or "",
+                        'is_read': log.is_read,
+                        'employeeid': log.employeeid or "",
+                        'id_application': log.id_application or "",
+                    })
+            return Response(
+                json.dumps({"success": True, "data": data}),
+                status=200, content_type="application/json"
+            )
+
+        except Exception as e:
+            return Response(json.dumps({
+                "success": False,
+                "error": str(e)
+            }), content_type="application/json", status=500)

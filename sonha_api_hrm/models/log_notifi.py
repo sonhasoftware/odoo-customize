@@ -9,11 +9,12 @@ class LogNotifi(models.Model):
     body = fields.Text(string="Body")
     data = fields.Text(string="Data")
     type = fields.Char(string="Type")
-    taget_screen = fields.Char(string="Target Screen")  # Có thể bạn viết sai chính tả từ "target"?
+    taget_screen = fields.Char(string="Target Screen")
     message_id = fields.Char(string="Message ID")
     badge = fields.Integer(string="Badge")
     datetime = fields.Datetime(string="Datetime")
     userid = fields.Char(string="User ID")
+    is_read = fields.Boolean(default=False)
 
     # Không bắt buộc
     employeeid = fields.Char(string="Employee ID")
