@@ -1,0 +1,11 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+
+access_sonha_plan_collaborate,sonha.plan.collaborate,model_plan_collaborate,,1,1,1,1
+
+access_sonha_general_information,sonha.general.information,model_general_information,,1,1,1,1
+
+access_sonha_plan_detail,sonha.plan.detail,model_plan_detail,,1,1,1,1
+
+access_sonha_cost_coverage,sonha.cost.coverage,model_cost_coverage,,1,1,1,1
+
+access_sonha_cost_estimated,sonha.cost.estimated,model_cost_estimated,,1,1,1,1

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="plan_collaborate_form_view" model="ir.ui.view">
+            <field name="name">plan.collaborate.form.view</field>
+            <field name="model">plan.collaborate</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <field name="code"/>
+                        <field name="type_collaborate"/>
+                        <field name="total_price"/>
+                    </group>
+                    <notebook>
+                        <page string="PA Công tác" name="general_information">
+                            <group string="Thông tin chung">
+                                <field name="general_information" string="">
+                                    <tree editable="bottom">
+                                        <field name="employee_id"/>
+                                        <field name="job_id"/>
+                                        <field name="department_id"/>
+                                        <field name="from_to"/>
+                                        <field name="from_date"/>
+                                        <field name="to_date"/>
+                                        <field name="purpose"/>
+                                        <field name="organization"/>
+                                    </tree>
+                                </field>
+                            </group>
+
+                            <group string="Kế hoạch công tác chi tiết">
+                                <field name="plan_detail" string="">
+                                    <tree editable="bottom">
+                                        <field name="time"/>
+                                        <field name="location"/>
+                                        <field name="content"/>
+                                    </tree>
+                                </field>
+                            </group>
+
+                            <group string="Chi phí được đài thọ">
+                                <field name="cost_coverage" string="">
+                                    <tree editable="bottom">
+                                        <field name="category"/>
+                                    </tree>
+                                </field>
+                            </group>
+
+                            <group string="Chi phí dự kiến">
+                                <field name="cost_estimated" string="">
+                                    <tree editable="bottom">
+                                        <field name="category"/>
+                                        <field name="quantity"/>
+                                        <field name="unit_price"/>
+                                        <field name="foreign_currency"/>
+                                        <field name="convert"/>
+                                        <field name="price_vnd"/>
+                                    </tree>
+                                </field>
+                            </group>
+                        </page>
+
+                        <page string="Giấy đi công tác" name="business_paper">
+                            <group>
+                                <group>
+                                    <field name="date"/>
+                                    <field name="employee_id"/>
+                                    <field name="department_id"/>
+                                    <field name="business"/>
+                                    <field name="car"/>
+                                    <field name="self_drive"/>
+                                    <field name="drive"/>
+                                    <field name="sufficient"/>
+                                </group>
+
+                                <group>
+                                    <field name="gender"/>
+                                    <field name="type_collaborate"/>
+                                    <field name="from_date"/>
+                                    <field name="to_date"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </form>
+            </field>
+        </record>
+
+        <record id="plan_collaborate_tree_view" model="ir.ui.view">
+            <field name="name">plan.collaborate.tree.view</field>
+            <field name="model">plan.collaborate</field>
+            <field name="arch" type="xml">
+                <tree string="Kế hoạch công tác">
+                    <field name="code"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_plan_collaborate" model="ir.actions.act_window">
+            <field name="name">Kế hoạch công tác</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">plan.collaborate</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('plan_collaborate_tree_view')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('plan_collaborate_form_view')})]"/>
+        </record>
+
+        <menuitem id="menu_plan_collaborate"
+                  name="Kế hoạch công tác"
+                  sequence="100"/>
+
+        <menuitem id="menu_plan_collaborate_child"
+                  name="Kế hoạch công tác"
+                  parent="menu_plan_collaborate"
+                  action="action_plan_collaborate"
+                  sequence="1"/>
+
+    </data>
+</odoo>
