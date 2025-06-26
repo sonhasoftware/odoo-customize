@@ -944,7 +944,10 @@ class AuthAPI(http.Controller):
                             'employee_id': record.employee_approval.id,
                             'user_id': record.employee_approval.user_id.id,
                             'token': record.employee_approval.user_id.token or "",
-                            'create_user_id': record.create_uid.id,
+                            'create_user_id':  {
+                                'id': record.create_uid.id,
+                                'name': record.create_uid.name,
+                            },
                             'create_employee_id': employee_id.id if employee_id else None,
                             'code': record.code or "",
                             'type': {
@@ -957,7 +960,10 @@ class AuthAPI(http.Controller):
                         record.status_lv1 = 'done'
                         vals = {
                             'token': record.employee_approval.user_id.token or "",
-                            'create_user_id': record.create_uid.id,
+                            'create_user_id':  {
+                                'id': record.create_uid.id,
+                                'name': record.create_uid.name,
+                            },
                             'create_employee_id': employee_id.id if employee_id else None,
                             'code': record.code or "",
                             'type': {
@@ -973,7 +979,10 @@ class AuthAPI(http.Controller):
                             'employee_id': record.employee_confirm.id,
                             'user_id': record.employee_confirm.user_id.id,
                             'token': record.employee_confirm.user_id.token or "",
-                            'create_user_id': record.create_uid.id,
+                            'create_user_id':  {
+                                'id': record.create_uid.id,
+                                'name': record.create_uid.name,
+                            },
                             'create_employee_id': employee_id.id if employee_id else None,
                             'code': record.code or "",
                             'type': {
@@ -988,7 +997,10 @@ class AuthAPI(http.Controller):
                             'employee_id': record.employee_approval.id,
                             'user_id': record.employee_approval.user_id.id,
                             'token': record.employee_approval.user_id.token or "",
-                            'create_user_id': record.create_uid.id,
+                            'create_user_id':  {
+                                'id': record.create_uid.id,
+                                'name': record.create_uid.name,
+                            },
                             'create_employee_id': employee_id.id if employee_id else None,
                             'code': record.code or "",
                             'type': {
@@ -1001,7 +1013,10 @@ class AuthAPI(http.Controller):
                         record.status_lv1 = 'done'
                         vals = {
                             'token': record.employee_approval.user_id.token or "",
-                            'create_user_id': record.create_uid.id,
+                            'create_user_id':  {
+                                'id': record.create_uid.id,
+                                'name': record.create_uid.name,
+                            },
                             'create_employee_id': employee_id.id if employee_id else None,
                             'code': record.code or "",
                             'type': {
