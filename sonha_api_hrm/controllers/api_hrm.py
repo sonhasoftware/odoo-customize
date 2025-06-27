@@ -959,7 +959,7 @@ class AuthAPI(http.Controller):
                         record.status = 'done'
                         record.status_lv1 = 'done'
                         vals = {
-                            'token': record.employee_approval.user_id.token or "",
+                            'token': employee_id.user_id.token or "",
                             'create_user_id':  {
                                 'id': record.create_uid.id,
                                 'name': record.create_uid.name,
@@ -1012,7 +1012,7 @@ class AuthAPI(http.Controller):
                         record.status = 'done'
                         record.status_lv1 = 'done'
                         vals = {
-                            'token': record.employee_approval.user_id.token or "",
+                            'token': employee_id.user_id.token or "",
                             'create_user_id':  {
                                 'id': record.create_uid.id,
                                 'name': record.create_uid.name,
