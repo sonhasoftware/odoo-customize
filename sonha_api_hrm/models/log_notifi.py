@@ -8,7 +8,7 @@ class LogNotifi(models.Model):
     title = fields.Char(string="Title")
     body = fields.Text(string="Body")
     data = fields.Text(string="Data")
-    type = fields.Char(string="Type")
+    type = fields.Integer(string="Type")
     taget_screen = fields.Char(string="Target Screen")
     message_id = fields.Char(string="Message ID")
     badge = fields.Integer(string="Badge")

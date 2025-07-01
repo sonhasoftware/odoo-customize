@@ -1586,6 +1586,7 @@ class AuthAPI(http.Controller):
             if logs:
                 for log in logs:
                     data.append({
+                        'id': log.id,
                         'token': log.token or "",
                         'title': log.title or "",
                         'body': log.body or "",
