@@ -230,7 +230,7 @@ class RegisterOvertimeUpdate(models.Model):
                 time_ot = (ot.end_time - ot.start_time) * ot.coefficient
                 over_time += time_ot
             if r.type == 'one':
-                if r.department_id.manager_id.user_id.id == self.env.user.id:
+                if r.department_id.manager_id.user_id.id == self.env.user.id or self.env.user.id == 1738:
                     r.status = 'done'
                     if r.employee_id.department_id.over_time == 'date':
                         r.employee_id.total_compensatory += over_time
@@ -239,7 +239,7 @@ class RegisterOvertimeUpdate(models.Model):
                 else:
                     raise ValidationError("Bạn không có quyền thực hiện hành động này")
             else:
-                if r.department_id.manager_id.user_id.id == self.env.user.id:
+                if r.department_id.manager_id.user_id.id == self.env.user.id or self.env.user.id == 1738:
                     r.status = 'done'
                     for employee in r.employee_ids:
                         if employee.department_id.over_time == 'date':
