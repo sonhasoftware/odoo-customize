@@ -227,6 +227,7 @@ class AuthAPI(http.Controller):
                     data.append({
                         "id": r.id,
                         "name": r.name,
+                        "type": r.date_and_time
                         })
             return Response(
                 json.dumps({"success": True, "data": data}),
