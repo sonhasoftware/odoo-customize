@@ -126,6 +126,7 @@ class EmployeeAttendance(models.Model):
     @api.depends('employee_id', 'date', 'check_in', 'check_out', 'shift')
     def get_hours_reinforcement(self):
         for record in self:
+            record.over_time_nb = 0
             total_overtime = 0
             ot = self.env['register.overtime'].sudo().search([('employee_id', '=', record.employee_id.id),
                                                               ('start_date', '<=', record.date),
