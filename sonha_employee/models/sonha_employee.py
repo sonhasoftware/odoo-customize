@@ -324,11 +324,11 @@ class WorkProcess(models.Model):
 
     def create(self, vals):
         res = super(WorkProcess, self).create(vals)
-        if res.job_id:
-            job_id = res.job_id.id
+        if res[-1].job_id:
+            job_id = res[-1].job_id.id
             res.employee_id.job_id = job_id
-        if res.department_id:
-            res.employee_id.department_id = res.department_id.id
+        if res[-1].department_id:
+            res.employee_id.department_id = res[-1].department_id.id
         return res
 
 
