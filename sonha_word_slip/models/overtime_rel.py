@@ -59,19 +59,19 @@ class OvertimeRel(models.Model):
                         if is_overlap(time_start, time_end, start_shift, end_shift):
                             raise ValidationError(
                                 "Khoảng thời gian bạn đăng ký đã nằm trong thời gian làm việc của ca!")
-                else:
-                    def is_inside(start1, end1, start2, end2):
-                        return start1 >= start2 and end1 <= end2
-
-                    if start_noon_shift and end_noon_shift:
-                        # Có phân tách giữa ca sáng và chiều (loại trừ giờ nghỉ trưa)
-                        valid = (
-                                is_inside(time_start, time_end, start_shift, start_noon_shift) or
-                                is_inside(time_start, time_end, end_noon_shift, end_shift)
-                        )
-                    else:
-                        # Không có giờ nghỉ trưa → dùng mốc 08:00 – 17:00
-                        valid = is_inside(time_start, time_end, start_shift, end_shift)
-
-                    if not valid:
-                        raise ValidationError("Chỉ được phép đăng ký trong khoảng thời gian của ca")
+                # else:
+                #     def is_inside(start1, end1, start2, end2):
+                #         return start1 >= start2 and end1 <= end2
+                #
+                #     if start_noon_shift and end_noon_shift:
+                #         # Có phân tách giữa ca sáng và chiều (loại trừ giờ nghỉ trưa)
+                #         valid = (
+                #                 is_inside(time_start, time_end, start_shift, start_noon_shift) or
+                #                 is_inside(time_start, time_end, end_noon_shift, end_shift)
+                #         )
+                #     else:
+                #         # Không có giờ nghỉ trưa → dùng mốc 08:00 – 17:00
+                #         valid = is_inside(time_start, time_end, start_shift, end_shift)
+                # 
+                #     if not valid:
+                #         raise ValidationError("Chỉ được phép đăng ký trong khoảng thời gian của ca")
