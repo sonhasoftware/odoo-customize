@@ -153,19 +153,6 @@ class FormWordSlip(models.Model):
                 r.check_sent = False
 
     def multi_approval(self):
-        def deduct_leave(employee, duration):
-            """Trừ phép nhân viên và trả về True nếu thành công, False nếu không đủ phép."""
-            if duration > employee.old_leave_balance + employee.new_leave_balance:
-                raise ValidationError(f"Nhân viên {employee.name} không còn phép nữa!")
-
-            if employee.old_leave_balance >= duration:
-                employee.old_leave_balance -= duration
-            else:
-                duration -= employee.old_leave_balance
-                employee.old_leave_balance = 0
-                employee.new_leave_balance -= duration
-            return True
-
         for r in self:
             if self.env.user.id == r.employee_confirm.user_id.id or self.env.user.id == r.employee_approval.user_id.id:
                 pass
@@ -181,11 +168,7 @@ class FormWordSlip(models.Model):
             if r.status != 'draft':
                 raise ValidationError("Chỉ duyệt được những bản ghi ở trạng thái chờ duyệt!")
 
-            if r.type.key == "NP":
-                employees = r.employee_ids or [r.employee_id]
-                for employee in employees:
-                    deduct_leave(employee, r.duration)
-            elif r.type.key == "NB":
+            if r.type.key == "NB":
                 employees = r.employee_ids or [r.employee_id]
                 for employee in employees:
                     employee.total_compensatory -= over_time
@@ -195,9 +178,25 @@ class FormWordSlip(models.Model):
 
     def action_sent(self):
         for r in self:
+            def deduct_leave(employee, duration):
+                """Trừ phép nhân viên và trả về True nếu thành công, False nếu không đủ phép."""
+                if duration > employee.old_leave_balance + employee.new_leave_balance:
+                    raise ValidationError(f"Nhân viên {employee.name} không còn phép nữa!")
+
+                if employee.old_leave_balance >= duration:
+                    employee.old_leave_balance -= duration
+                else:
+                    duration -= employee.old_leave_balance
+                    employee.old_leave_balance = 0
+                    employee.new_leave_balance -= duration
+                return True
             if not r.word_slip_id:
                 raise ValidationError("Bạn không có dữ liệu ngày!")
             else:
+                if r.type.key == "NP":
+                    employees = r.employee_ids or [r.employee_id]
+                    for employee in employees:
+                        deduct_leave(employee, r.duration)
                 r.status = 'draft'
                 r.status_lv1 = 'draft'
                 r.status_lv2 = 'draft'
@@ -279,18 +278,6 @@ class FormWordSlip(models.Model):
                 raise ValidationError("Bạn không có quyền thực hiện hành động này")
 
     def action_approval(self):
-        def deduct_leave(employee, duration):
-            """Trừ phép của nhân viên."""
-            if duration > employee.old_leave_balance + employee.new_leave_balance:
-                raise ValidationError(f"Nhân viên {employee.name} không còn phép nữa!")
-
-            if employee.old_leave_balance >= duration:
-                employee.old_leave_balance -= duration
-            else:
-                duration -= employee.old_leave_balance
-                employee.old_leave_balance = 0
-                employee.new_leave_balance -= duration
-
         for r in self:
             if r.employee_approval.user_id.id != self.env.user.id:
                 raise ValidationError("Bạn không có quyền thực hiện hành động này")
@@ -304,11 +291,7 @@ class FormWordSlip(models.Model):
                 elif ot.start_time == ot.end_time:
                     over_time += 4
 
-            if r.type.key == "NP":
-                employees = r.employee_ids or [r.employee_id]
-                for employee in employees:
-                    deduct_leave(employee, r.duration)
-            elif r.type.key == "NB":
+            if r.type.key == "NB":
                 employees = r.employee_ids or [r.employee_id]
                 for employee in employees:
                     employee.total_compensatory -= over_time
