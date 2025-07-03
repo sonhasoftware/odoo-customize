@@ -16,6 +16,8 @@ class OvertimeRel(models.Model):
     @api.constrains("date", "start_time", "end_time", "overtime_id")
     def validate_overtime(self):
         for record in self:
+            if record.end_time < record.start_time:
+                raise ValidationError("Thời gian kết thúc không được bé hơn thời gian bắt đầu!")
             hours_start = int(record.start_time)
             minutes_start = int(round((record.start_time - hours_start) * 60))
             time_start = time(hour=hours_start, minute=minutes_start)
