@@ -50,6 +50,16 @@ class EmployeeAttendance(models.Model):
     work_hc = fields.Float("Công hành chính", compute="get_work_hc_sp")
     work_sp = fields.Float("Công Sản phẩm", compute="get_work_hc_sp")
     times_late = fields.Integer("Đi muộn quá 30p", compute="get_times_late")
+    work_calendar = fields.Boolean("Lịch làm việc", compute="get_work_calendar")
+
+    @api.depends('date', 'shift')
+    def get_work_calendar(self):
+        for r in self:
+            r.work_calendar = True
+            weekday = r.date.weekday()
+            week_number = r.date.isocalendar()[1]
+            if r.shift and r.shift.is_office_hour and (weekday == 6 or (weekday == 5 and week_number % 2 == 1)):
+                r.work_calendar = False
 
     @api.depends('shift')
     def get_work_hc_sp(self):

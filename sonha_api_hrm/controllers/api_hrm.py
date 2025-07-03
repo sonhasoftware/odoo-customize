@@ -1232,6 +1232,7 @@ class AuthAPI(http.Controller):
                     "c3k4": record.c3k4,
                     "shift_toxic": record.shift_toxic,
                     "color": record.color if record.color else "",
+                    "work_calendar": record.work_calendar,
                 }
 
                 # Trả về kết quả
