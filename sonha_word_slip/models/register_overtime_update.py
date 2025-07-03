@@ -258,5 +258,3 @@ class RegisterOvertimeUpdate(models.Model):
             if r.status != 'draft':
                 raise ValidationError("chỉ được xóa bản ghi ở trạng thái nháp")
         return super(RegisterOvertimeUpdate, self).unlink()
-
-
