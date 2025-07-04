@@ -173,12 +173,12 @@ class SonHaEmployee(models.Model):
             start_date = today.replace(day=1)
             end_date = (start_date + relativedelta(months=1)) - timedelta(days=1)
             for single_date in (start_date + timedelta(n) for n in range((end_date - start_date).days + 1)):
-                existing_record = self.env['employee.attendance'].search([
+                existing_record = self.env['employee.attendance'].sudo().search([
                     ('employee_id', '=', r.id),
                     ('date', '=', single_date)
                 ])
                 if not existing_record:
-                    self.env['employee.attendance'].create({
+                    self.env['employee.attendance'].sudo().create({
                         'employee_id': r.id,
                         'date': single_date,
                     })
