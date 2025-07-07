@@ -18,11 +18,21 @@ class OvertimeRel(models.Model):
         for record in self:
             if record.end_time < record.start_time:
                 raise ValidationError("Thời gian kết thúc không được bé hơn thời gian bắt đầu!")
-            hours_start = int(record.start_time)
-            minutes_start = int(round((record.start_time - hours_start) * 60))
+            if record.start_time >= 24:
+                start_hours = 0
+            else:
+                start_hours = record.start_time
+
+            if record.end_time >= 24:
+                end_hours = 0
+            else:
+                end_hours = record.end_time
+
+            hours_start = int(start_hours)
+            minutes_start = int(round((start_hours - hours_start) * 60))
             time_start = time(hour=hours_start, minute=minutes_start)
-            hours_end = int(record.end_time)
-            minutes_end = int(round((record.end_time - hours_end) * 60))
+            hours_end = int(end_hours)
+            minutes_end = int(round((end_hours - hours_end) * 60))
             time_end = time(hour=hours_end, minute=minutes_end)
             list_employee = [
                 record.overtime_id.employee_id.id] if record.overtime_id.employee_id else record.overtime_id.employee_ids.ids

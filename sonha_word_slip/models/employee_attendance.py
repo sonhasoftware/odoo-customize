@@ -163,6 +163,8 @@ class EmployeeAttendance(models.Model):
                         total_overtime += abs(r.end_time - r.start_time)
             if overtime:
                 for x in overtime:
+                    if not record.shift:
+                        continue
                     # Giờ ca làm
                     shift_start = (record.shift.start + relativedelta(hours=7)).hour + (
                                 record.shift.start + relativedelta(hours=7)).minute / 60
