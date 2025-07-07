@@ -481,9 +481,10 @@ class EmployeeAttendance(models.Model):
 
             if r.check_out:
                 check_out_time = r.check_out + timedelta(hours=7)
+                if shift_end_time.time() == time(0, 0):
+                    shift_end_time = shift_end_time + timedelta(days=1)
                 if check_out_time < shift_end_time:
-                    minute_early = (datetime.combine(check_out_time.date(),
-                                                     shift_end_time.time()) - check_out_time).total_seconds() / 60
+                    minute_early = (shift_end_time - check_out_time).total_seconds() / 60
                     r.minutes_early = int(minute_early)
             if r.leave > 0 or r.compensatory > 0:
                 r.minutes_early = 0
