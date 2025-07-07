@@ -174,7 +174,7 @@ class EmployeeAttendance(models.Model):
                     ot_end = x.end_time
 
                     # Trường hợp overtime hoàn toàn trước ca
-                    if ot_end == shift_start:
+                    if (shift_start - 0.2) <= ot_end <= shift_start:
                         if record.check_in:
                             check_in_time = (record.check_in + relativedelta(hours=7)).hour + (
                                         record.check_in + relativedelta(hours=7)).minute / 60
@@ -184,7 +184,7 @@ class EmployeeAttendance(models.Model):
                                 total_overtime += actual_end - actual_start
 
                     # Trường hợp overtime hoàn toàn sau ca
-                    elif ot_start == shift_end:
+                    elif shift_end <= ot_start <= (shift_end + 0.2):
                         if record.check_out:
                             check_out_time = (record.check_out + relativedelta(hours=7)).hour + (
                                         record.check_out + relativedelta(hours=7)).minute / 60
