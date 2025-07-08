@@ -39,6 +39,7 @@ class PopupEmployeeAttendanceReport(models.TransientModel):
                     'over_time': r.over_time,
                     'leave': r.leave,
                     'compensatory': r.compensatory,
+                    'over_time_nb': r.over_time_nb,
                 }
                 self.env['employee.attendance.report'].sudo().create(vals)
             return {

@@ -18,11 +18,14 @@ class EmployeeAttendanceReport(models.Model):
     check_out = fields.Datetime(string="Giờ ra")
     shift = fields.Many2one('config.shift', string="Ca làm việc")
     note = fields.Selection([('no_in', "Không có check in"),
-                             ('no_out', "Không có check out")], string="Ghi chú")
+                             ('no_out', "Không có check out"),
+                             ('no_shift', "Không có ca làm việc")],
+                            string="Ghi chú",)
     minutes_late = fields.Float("Số phút đi muộn")
     minutes_early = fields.Float("Số phút về sớm")
     over_time = fields.Float("Giờ làm thêm")
     leave = fields.Float("Nghỉ phép")
     compensatory = fields.Float("Nghỉ bù")
     work_day = fields.Float("Ngày công")
+    over_time_nb = fields.Float("Làm thêm hưởng NB")
 
