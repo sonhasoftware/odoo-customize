@@ -1137,17 +1137,33 @@ class AuthAPI(http.Controller):
     def api_status_cancel(self, id):
         try:
             record = request.env['form.word.slip'].sudo().search([('id', '=', id)])
+            employee_id = request.env['hr.employee'].sudo().search([('user_id', '=', record.create_uid.id)])
+            vals = {}
             if not record:
                 raise ValueError("Không tìm thấy bản ghi")
             else:
                 record.status = 'cancel'
                 record.status_lv1 = 'cancel'
                 record.status_lv2 = 'cancel'
+                vals = {
+                    'token': employee_id.user_id.token or "",
+                    'create_user_id': {
+                        'id': record.create_uid.id,
+                        'name': record.create_uid.name,
+                    },
+                    'create_employee_id': employee_id.id if employee_id else None,
+                    'code': record.code or "",
+                    'type': {
+                        'id': record.type.id,
+                        'name': record.type.name,
+                    }
+                }
 
                 # Trả về kết quả
                 return Response(json.dumps({
                     "success": True,
                     "id": record.id,
+                    "data": vals,
                     "msg": "Bấm nút thành công",
                 }), content_type="application/json", status=200)
 
