@@ -165,11 +165,6 @@ class BookCar(models.Model):
             else:
                 r.driver_phone = ''
 
-    @api.onchange('department_id')
-    def onchange_approve_people(self):
-        for r in self:
-            r.approve_people = r.department_id.manager_id.id if r.department_id.manager_id else None
-
     @api.depends('status', 'employee_id')
     def get_check_sent(self):
         for r in self:
@@ -219,7 +214,8 @@ class BookCar(models.Model):
 
     def default_approve_people(self):
         emp = self.env['hr.employee'].sudo().search([('user_id', '=', self.env.user.id)], limit=1)
-        employee = emp.department_id.manager_id
+        approve_line = self.env['config.approve.line'].sudo().search([('department_id', '=', emp.department_id.id)], limit=1)
+        employee = approve_line.approve_people
         if employee:
             return employee
         else:
@@ -362,9 +358,9 @@ class BookCar(models.Model):
     def create(self, vals):
         res = super(BookCar, self).create(vals)
         emp = self.env['hr.employee'].sudo().search([('user_id', '=', res.create_uid.id)], limit=1)
-        competency_employee = self.env['config.competency.employee'].sudo().search([('company_id', '=', res.company_id.id)], limit=1)
+        competency_employee = self.env['config.approve.line'].sudo().search([('department_id', '=', res.department_id.id)], limit=1)
         res.sudo().write({'employee_id': emp.id if emp else None,
-                          'competency_employee': competency_employee.employee_id.id if competency_employee.employee_id else None})
+                          'competency_employee': competency_employee.competency_employee.id if competency_employee.competency_employee else None})
         self.env['book.car.short'].sudo().create({
             'company_id': res.company_id.id,
             'department_id': res.department_id.id,
