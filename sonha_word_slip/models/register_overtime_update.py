@@ -230,7 +230,7 @@ class RegisterOvertimeUpdate(models.Model):
                 time_ot = (ot.end_time - ot.start_time) * ot.coefficient
                 over_time += time_ot
             if r.type == 'one':
-                if r.employee_id.parent_id.user_id.id == self.env.user.id:
+                if r.department_id.manager_id.user_id.id == self.env.user.id or self.env.user.id == 1738 or r.employee_id.parent_id.user_id.id == self.env.user.id:
                     r.status = 'done'
                     if r.employee_id.department_id.over_time == 'date':
                         r.employee_id.total_compensatory += over_time
@@ -239,7 +239,7 @@ class RegisterOvertimeUpdate(models.Model):
                 else:
                     raise ValidationError("Bạn không có quyền thực hiện hành động này")
             else:
-                if r.department_id.manager_id.user_id.id == self.env.user.id:
+                if r.department_id.manager_id.user_id.id == self.env.user.id or self.env.user.id == 1738 or r.employee_ids[-1].parent_id.user_id.id == self.env.user.id:
                     r.status = 'done'
                     for employee in r.employee_ids:
                         if employee.department_id.over_time == 'date':
@@ -258,5 +258,3 @@ class RegisterOvertimeUpdate(models.Model):
             if r.status != 'draft':
                 raise ValidationError("chỉ được xóa bản ghi ở trạng thái nháp")
         return super(RegisterOvertimeUpdate, self).unlink()
-
-

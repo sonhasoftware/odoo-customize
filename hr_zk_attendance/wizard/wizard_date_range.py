@@ -45,7 +45,8 @@ class WizardDateRange(models.TransientModel):
                 'c3k4': record.c3k4,
                 'work_hc': record.work_hc,
                 'work_sp': record.work_sp,
-                'over_time_nb': record.over_time_nb,
+                'over_time_nb': record.over_time_nb or 0,
+                'times_late': record.times_late or 0,
             }
 
             if existing_record:

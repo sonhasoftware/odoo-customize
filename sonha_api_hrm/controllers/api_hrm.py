@@ -20,10 +20,18 @@ class AuthAPI(http.Controller):
             data = request.httprequest.get_json()  # Lấy dữ liệu JSON đúng cách
             login = data.get('login')
             password = data.get('password')
+            device_id = data.get('device_id')
 
             if not login or not password:
                 return Response(json.dumps({"success": False, "error": "Thiếu thông tin đăng nhập"}),
                                 content_type="application/json", status=400)
+            user_id = request.env['res.users'].sudo().search([('login', '=', login)])
+            if user_id and user_id.device_number != 0:
+                device = request.env['res.users'].sudo().search([('device_id', '=', device_id)], limit=1)
+                if device and device.login != login:
+                    return Response(json.dumps({"success": False,
+                                                "error": "Thiết bị này đã được đăng ký cho tài khoản " + device.login}),
+                                    content_type="application/json", status=400)
 
             db = request.env.cr.dbname
             uid = request.session.authenticate(db, login, password)
@@ -31,6 +39,7 @@ class AuthAPI(http.Controller):
             if uid:
                 user = request.env['res.users'].sudo().browse(uid)
                 employee_id = request.env['hr.employee'].sudo().search([('user_id', '=', user.id)])
+                total_leave = employee_id.old_leave_balance + employee_id.new_leave_balance
 
                 # 🔥 Trả về response có Set-Cookie
                 response = Response(json.dumps({
@@ -39,9 +48,10 @@ class AuthAPI(http.Controller):
                         "id": user.id,
                         "name": user.name,
                         "email": user.email,
-                        "device_id": user.device_id,
+                        "device_id": user.device_id or "",
                         "token": user.token,
                         "option_check": user.option_check,
+                        "device_number": user.device_number,
                     },
                     "employee": {
                         "id": employee_id.id,
@@ -49,8 +59,9 @@ class AuthAPI(http.Controller):
                         "mail": employee_id.work_email,
                         "phone_number": employee_id.sonha_number_phone,
                         "leave_old": employee_id.old_leave_balance,
-                        "leave_new": employee_id.new_leave_balance,
+                        "leave_new": total_leave,
                         "employee_code": employee_id.employee_code,
+                        "device_id_num": employee_id.device_id_num,
                         "department": {
                             "id": employee_id.department_id.id,
                             "name": employee_id.department_id.name,
@@ -72,6 +83,36 @@ class AuthAPI(http.Controller):
                 return Response(json.dumps({"success": False, "error": "Đăng nhập thất bại"}),
                                 content_type="application/json", status=401)
 
+        except Exception as e:
+            return Response(json.dumps({"success": False, "error": str(e)}), content_type="application/json",
+                            status=500)
+
+    @http.route('/api/attendance_wifi', type='http', auth='none', methods=['POST'], csrf=False)
+    def api_attendance_wifi(self, **kwargs):
+        try:
+            now = datetime.now()
+            data = request.httprequest.get_json()  # Lấy dữ liệu JSON đúng cách
+            device_id_num = data.get('device_id_num')
+            if not device_id_num:
+                return Response(json.dumps({"success": False,
+                                            "error": "Không tồn tại mã chấm công"}),
+                                content_type="application/json", status=400)
+            employee_id = request.env['hr.employee'].sudo().search([('device_id_num', '=', device_id_num)])
+            if not employee_id:
+                return Response(json.dumps({"success": False,
+                                            "error": "Không tìm thấy thông tin nhân viên"}),
+                                content_type="application/json", status=400)
+            now = datetime.now()
+            vals = {
+                'employee_id': employee_id.id,
+                'attendance_time': now,
+                'attendance_type': "Wifi"
+            }
+            request.env['master.data.attendance'].sudo().create(vals)
+            return Response(
+                json.dumps({"success": True}),
+                status=200, content_type="application/json"
+            )
         except Exception as e:
             return Response(json.dumps({"success": False, "error": str(e)}), content_type="application/json",
                             status=500)
@@ -186,6 +227,7 @@ class AuthAPI(http.Controller):
                     data.append({
                         "id": r.id,
                         "name": r.name,
+                        "type": r.date_and_time
                         })
             return Response(
                 json.dumps({"success": True, "data": data}),
@@ -890,31 +932,105 @@ class AuthAPI(http.Controller):
     def api_change_status(self, id):
         try:
             record = request.env['form.word.slip'].sudo().search([('id', '=', id)])
+            employee_id = request.env['hr.employee'].sudo().search([('user_id', '=', record.create_uid.id)])
             if not record:
                 raise ValueError("Không tìm thấy bản ghi")
             else:
+                vals = {}
                 if not record.check_level:
                     if record.status == 'sent':
                         record.status = 'draft'
                         record.status_lv1 = 'draft'
+                        vals = {
+                            'employee_id': record.employee_approval.id,
+                            'user_id': record.employee_approval.user_id.id,
+                            'token': record.employee_approval.user_id.token or "",
+                            'create_user_id':  {
+                                'id': record.create_uid.id,
+                                'name': record.create_uid.name,
+                            },
+                            'create_employee_id': employee_id.id if employee_id else None,
+                            'code': record.code or "",
+                            'type': {
+                                'id': record.type.id,
+                                'name': record.type.name,
+                            }
+                        }
                     elif record.status == 'draft':
                         record.status = 'done'
                         record.status_lv1 = 'done'
+                        vals = {
+                            'token': employee_id.user_id.token or "",
+                            'create_user_id':  {
+                                'id': record.create_uid.id,
+                                'name': record.create_uid.name,
+                            },
+                            'create_employee_id': employee_id.id if employee_id else None,
+                            'code': record.code or "",
+                            'type': {
+                                'id': record.type.id,
+                                'name': record.type.name,
+                            }
+                        }
                 else:
                     if record.status_lv2 == 'sent':
                         record.status = 'draft'
                         record.status_lv2 = 'draft'
+                        vals = {
+                            'employee_id': record.employee_confirm.id,
+                            'user_id': record.employee_confirm.user_id.id,
+                            'token': record.employee_confirm.user_id.token or "",
+                            'create_user_id':  {
+                                'id': record.create_uid.id,
+                                'name': record.create_uid.name,
+                            },
+                            'create_employee_id': employee_id.id if employee_id else None,
+                            'code': record.code or "",
+                            'type': {
+                                'id': record.type.id,
+                                'name': record.type.name,
+                            }
+                        }
                     elif record.status_lv2 == 'draft':
                         record.status = 'draft'
                         record.status_lv1 = 'confirm'
+                        vals = {
+                            'employee_id': record.employee_approval.id,
+                            'user_id': record.employee_approval.user_id.id,
+                            'token': record.employee_approval.user_id.token or "",
+                            'create_user_id':  {
+                                'id': record.create_uid.id,
+                                'name': record.create_uid.name,
+                            },
+                            'create_employee_id': employee_id.id if employee_id else None,
+                            'code': record.code or "",
+                            'type': {
+                                'id': record.type.id,
+                                'name': record.type.name,
+                            }
+                        }
                     elif record.status_lv2 == 'confirm':
                         record.status = 'done'
                         record.status_lv1 = 'done'
+                        vals = {
+                            'token': employee_id.user_id.token or "",
+                            'create_user_id':  {
+                                'id': record.create_uid.id,
+                                'name': record.create_uid.name,
+                            },
+                            'create_employee_id': employee_id.id if employee_id else None,
+                            'code': record.code or "",
+                            'type': {
+                                'id': record.type.id,
+                                'name': record.type.name,
+                            }
+                        }
 
                 # Trả về kết quả
                 return Response(json.dumps({
                     "success": True,
                     "id": record.id,
+                    "data": vals,
                     "msg": "Bấm nút thành công",
                 }), content_type="application/json", status=200)
 
@@ -1021,17 +1137,33 @@ class AuthAPI(http.Controller):
     def api_status_cancel(self, id):
         try:
             record = request.env['form.word.slip'].sudo().search([('id', '=', id)])
+            employee_id = request.env['hr.employee'].sudo().search([('user_id', '=', record.create_uid.id)])
+            vals = {}
             if not record:
                 raise ValueError("Không tìm thấy bản ghi")
             else:
                 record.status = 'cancel'
                 record.status_lv1 = 'cancel'
                 record.status_lv2 = 'cancel'
+                vals = {
+                    'token': employee_id.user_id.token or "",
+                    'create_user_id': {
+                        'id': record.create_uid.id,
+                        'name': record.create_uid.name,
+                    },
+                    'create_employee_id': employee_id.id if employee_id else None,
+                    'code': record.code or "",
+                    'type': {
+                        'id': record.type.id,
+                        'name': record.type.name,
+                    }
+                }
 
                 # Trả về kết quả
                 return Response(json.dumps({
                     "success": True,
                     "id": record.id,
+                    "data": vals,
                     "msg": "Bấm nút thành công",
                 }), content_type="application/json", status=200)
 
@@ -1196,6 +1328,7 @@ class AuthAPI(http.Controller):
         try:
             data = request.httprequest.get_json()  # Lấy dữ liệu JSON đúng cách
             device_id = data.get('device_id')
+            device_number = data.get('device_number')
 
             if not user_id:
                 return Response(json.dumps({"success": False,
@@ -1216,6 +1349,7 @@ class AuthAPI(http.Controller):
                                 status=400)
             user.write({
                 'device_id': device_id,
+                'device_number': device_number,
             })
             return Response(json.dumps({
                 "success": True,
@@ -1302,6 +1436,7 @@ class AuthAPI(http.Controller):
                     "c3k4": record.c3k4,
                     "shift_toxic": record.shift_toxic,
                     "color": record.color if record.color else "",
+                    "work_calendar": record.work_calendar,
                 })
             data.append({
                 "employee_id": {
@@ -1355,3 +1490,142 @@ class AuthAPI(http.Controller):
                  "error": str(e)
                  }), content_type="application/json", status=500)
 
+    @http.route('/api/log_notifi', type='http', auth='none', methods=['POST'], csrf=False)
+    def api_log_notifi(self, **kwargs):
+        """
+        API Login để xác thực người dùng và lưu session vào cookie
+        """
+        try:
+            data = request.httprequest.get_json()  # Lấy dữ liệu JSON đúng cách
+            token = data.get('token')
+            title = data.get('title')
+            body = data.get('body')
+            data_field = data.get('data')
+            type = data.get('type')
+            taget_screen = data.get('taget_screen')
+            message_id = data.get('message_id')
+            badge = data.get('badge')
+            datetime_str = data.get('datetime')
+            userid = data.get('userid')
+            employeeid = data.get('employeeid')
+            id_application = data.get('id_application')
+
+            required_fields = [
+                'token',
+                'title',
+                'body',
+                'data_field',
+                'type',
+                'taget_screen',
+                'message_id',
+                'badge',
+                'datetime_str',
+                'userid',
+                'employeeid',
+                'id_application'
+            ]
+
+            # Kiểm tra và trả lỗi nếu thiếu
+            for field_name in required_fields:
+                if not locals().get(field_name):
+                    return Response(
+                        json.dumps({"success": False, "error": f"Thiếu thông tin: {field_name}"}),
+                        content_type="application/json", status=400
+                    )
+
+            datetime_obj = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S")
+
+            vals = {
+                'token': token,
+                'title': title,
+                'body': body,
+                'data': data_field,
+                'type': type,
+                'taget_screen': taget_screen,
+                'message_id': message_id,
+                'badge': badge,
+                'datetime': datetime_obj,
+                'userid': userid,
+                'employeeid': employeeid,
+                'id_application': id_application,
+            }
+            request.env['log.notifi'].sudo().create(vals)
+
+            return Response(json.dumps({
+                "success": True,
+                "msg": "Tạo dữ liệu thành công",
+            }), content_type="application/json", status=200)
+
+        except Exception as e:
+            return Response(json.dumps({"success": False, "error": str(e)}), content_type="application/json",
+                            status=500)
+
+    @http.route('/api/write/log_notifi/<int:record_id>', type='http', auth='none', methods=['PUT'], csrf=False)
+    def api_write_log_notifi(self, record_id, **kwargs):
+        """
+        API Login để xác thực người dùng và lưu session vào cookie
+        """
+        try:
+            if not record_id:
+                raise ValueError("Không tìm thấy bản ghi")
+            data = request.httprequest.get_json()
+            is_read = data.get('is_read')
+            if not is_read:
+                raise ValueError("Không tìm is_read")
+            record = request.env['log.notifi'].sudo().browse(record_id)
+            if is_read == 1:
+                record.is_read = True
+            return Response(json.dumps({
+                "success": True,
+                "msg": "Cập nhật dữ liệu thành công!",
+            }), content_type="application/json", status=200)
+
+        except Exception as e:
+            return Response(json.dumps({"success": False, "error": str(e)}), content_type="application/json",
+                            status=500)
+
+    @http.route('/api/get/log_notifi/<userid>/<from_date>/<to_date>', type='http', auth='none', methods=['GET'], csrf=False)
+    def api_get_log_notifi(self, userid, from_date, to_date):
+        try:
+            if not userid:
+                raise ValueError("Không tìm thấy dữ liệu userid")
+            if not from_date:
+                raise ValueError("Không tìm thấy dữ liệu from_date")
+            if not to_date:
+                raise ValueError("Không tìm thấy dữ liệu to_date")
+            date_start = datetime.strptime(from_date, "%Y-%m-%d %H:%M:%S")
+            date_end = datetime.strptime(to_date, "%Y-%m-%d %H:%M:%S")
+            logs = request.env['log.notifi'].sudo().search([
+                ('userid', '=', userid),
+                ('datetime', '>=', date_start),
+                ('datetime', '<=', date_end)
+            ])
+            data = []
+            if logs:
+                for log in logs:
+                    data.append({
+                        'id': log.id,
+                        'token': log.token or "",
+                        'title': log.title or "",
+                        'body': log.body or "",
+                        'data': log.data or "",
+                        'type': log.type or "",
+                        'taget_screen': log.taget_screen or "",
+                        'message_id': log.message_id or "",
+                        'badge': log.badge or "",
+                        'datetime': str(log.datetime) if log.datetime else None,
+                        'userid': log.userid or "",
+                        'is_read': log.is_read,
+                        'employeeid': log.employeeid or "",
+                        'id_application': log.id_application or "",
+                    })
+            return Response(
+                json.dumps({"success": True, "data": data}),
+                status=200, content_type="application/json"
+            )
+
+        except Exception as e:
+            return Response(json.dumps({
+                "success": False,
+                "error": str(e)
+            }), content_type="application/json", status=500)

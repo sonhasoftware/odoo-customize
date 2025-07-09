@@ -2,6 +2,11 @@ from odoo import http
 from odoo.http import request
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+import xlsxwriter
+import base64
+from io import BytesIO
+import unicodedata
+import re
 
 import json
 
@@ -480,3 +485,256 @@ class DataChart(http.Controller):
             for kpi in parent_kpi_month:
                 if kpi.status == 'done':
                     kpi.sudo().write({'status': 'draft'})
+
+    @http.route(['/kpi/report/export/excel'], type='http', auth='none')
+    def export_kpi_excel(self, department_id=None, year=None, **kwargs):
+        # Lấy dữ liệu từ model report.kpi
+        records = request.env['report.kpi'].sudo().search([
+            ('department_id', '=', int(department_id)),
+            ('year', '=', int(year))
+        ])
+
+        department = request.env['hr.department'].sudo().browse(int(department_id)).name or "Chưa rõ"
+
+        output = BytesIO()
+        workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+        worksheet = workbook.add_worksheet('KPI Report')
+
+        # ✅ Thiết lập in theo chiều ngang và co vừa trang in
+        worksheet.set_landscape()
+        worksheet.fit_to_pages(1, 0)  # 1 page ngang, không giới hạn dọc
+        worksheet.set_paper(9)  # A4
+
+        # Format
+        header_format = workbook.add_format(
+            {'bold': True,
+             'align': 'center',
+             'bg_color': '#D9E1F2',
+             'valign': 'vcenter',
+             'text_wrap': True,
+             'border': 1,
+             'font_size': 13
+             })
+        cell_format = workbook.add_format({
+            'border': 1,
+            'align': 'center',
+            'valign': 'vcenter',
+            'text_wrap': True,
+            'font_size': 13
+        })
+        title_format = workbook.add_format({
+            'bold': True,
+            'align': 'center',
+            'valign': 'vcenter',
+            'font_size': 17
+        })
+        worksheet.set_column('A:A', 10)
+
+        # ✅ Dòng đầu tiên: merge toàn bộ cột, ghi "KPI năm ... phòng ban ..."
+        title = f"KPI năm {year} - Ban {department}"
+        worksheet.merge_range(0, 0, 0, 20, title, title_format)
+
+        # ✅ Dòng tiêu đề cấp 1 và 2 (bắt đầu từ dòng 2)
+        worksheet.merge_range(1, 0, 2, 0, "Tháng", header_format)
+        worksheet.merge_range(1, 1, 1, 10, "Đơn vị đánh giá", header_format)
+        worksheet.merge_range(1, 11, 1, 20, "Cấp thẩm quyền đánh giá", header_format)
+
+        headers = [
+            "Khối lượng\nCVTH", "Chất lượng\nCVTH",
+            "Σ Điểm đạt \n(trước khi + \nđiểm tiến bộ)", "Ký hiệu \n(trước khi + \nđiểm tiến bộ)",
+            "Điểm tiến bộ\n(+/-)", "Σ Điểm đạt\n(Đơn vị ĐG)", "Ký hiệu\n(sau khi + \nđiểm tiến bộ)",
+            "Xếp loại", "Kế hoạch", "Thực hiện",
+            "Khối lượng\nCVTH", "Chất lượng\nCVTH",
+            "Σ Điểm đạt\n(trước khi + \nđiểm tiến bộ)", "Ký hiệu\n(trước khi + \nđiểm tiến bộ)",
+            "Điểm tiến bộ\n(+/-)", "Σ Điểm đạt\n(Đơn vị ĐG)", "Ký hiệu\n(sau khi + \nđiểm tiến bộ)",
+            "Xếp loại", "Kế hoạch", "Thực hiện"
+        ]
+        for i, h in enumerate(headers):
+            worksheet.write(2, i + 1, h, header_format)
+
+        # ✅ Dữ liệu bắt đầu từ dòng 3
+        for row, rec in enumerate(records, start=3):
+            worksheet.write(row, 0, rec.month, cell_format)
+
+            worksheet.write(row, 1, rec.workload or 0.0, cell_format)
+            worksheet.write(row, 2, rec.quality or 0.0, cell_format)
+            worksheet.write(row, 3, rec.total_points_before or 0.0, cell_format)
+            worksheet.write(row, 4, rec.symbol_before or '', cell_format)
+            worksheet.write(row, 5, rec.progress_points or 0.0, cell_format)
+            worksheet.write(row, 6, rec.total_points_after or 0.0, cell_format)
+            worksheet.write(row, 7, rec.symbol_after or '', cell_format)
+            worksheet.write(row, 8, rec.classification or '', cell_format)
+            worksheet.write(row, 9, f"{rec.plan}" if rec.plan else '', cell_format)
+            worksheet.write(row, 10, f"{rec.criteria_achievement}" if rec.criteria_achievement else '', cell_format)
+
+            worksheet.write(row, 11, rec.tq_workload or 0.0, cell_format)
+            worksheet.write(row, 12, rec.tq_quality or 0.0, cell_format)
+            worksheet.write(row, 13, rec.tq_total_points_before or 0.0, cell_format)
+            worksheet.write(row, 14, rec.tq_symbol_before or '', cell_format)
+            worksheet.write(row, 15, rec.tq_progress_points or 0.0, cell_format)
+            worksheet.write(row, 16, rec.tq_total_points_after or 0.0, cell_format)
+            worksheet.write(row, 17, rec.tq_symbol_after or '', cell_format)
+            worksheet.write(row, 18, rec.tq_classification or '', cell_format)
+            worksheet.write(row, 19, f"{rec.tq_plan}" if rec.tq_plan else '', cell_format)
+            worksheet.write(row, 20, f"{rec.tq_criteria_achievement}" if rec.tq_criteria_achievement else '',
+                            cell_format)
+
+        workbook.close()
+        output.seek(0)
+        text = unicodedata.normalize('NFD', department)
+        text = text.encode('ascii', 'ignore').decode('utf-8')
+        text = text.lower()
+        text = re.sub(r'\s+', '_', text)
+        text = re.sub(r'[^\w_]', '', text)
+        filename = f'KPI_nam_{year}_{text}.xlsx'
+
+        return request.make_response(
+            output.read(),
+            headers=[
+                ('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'),
+                ('Content-Disposition', f'attachment; filename={filename}')
+            ]
+        )
+
+    @http.route(['/kpi/report/month/export/excel'], type='http', auth='none')
+    def export_kpi_month_excel(self, department_id=None, year=None, month=None, **kwargs):
+        records = request.env['sonha.kpi.result.month'].sudo().search([
+            ('department_id', '=', int(department_id)),
+            ('year', '=', int(year))
+        ])
+
+        records = records.filtered(lambda x: x.start_date.month == int(month))
+
+        # Lấy tên phòng ban
+        department = request.env['hr.department'].sudo().browse(int(department_id))
+        department_name = department.name or "Không xác định"
+
+        output = BytesIO()
+        workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+        worksheet = workbook.add_worksheet('KPI Tháng')
+
+        # ✅ Cấu hình in ngang, fit trang
+        worksheet.set_landscape()
+        worksheet.fit_to_pages(1, 0)
+        worksheet.set_paper(9)
+        worksheet.center_horizontally()
+        worksheet.set_margins(left=0, right=0, top=0.5, bottom=0.5)
+
+        # Format
+        title_format = workbook.add_format({
+            'bold': True,
+            'font_size': 20,
+            'align': 'center',
+            'valign': 'vcenter'})
+        header_format = workbook.add_format(
+            {'bold': True, 'align': 'center', 'valign': 'vcenter', 'border': 1, 'text_wrap': True,
+             'bg_color': '#D9F1F1'})
+        cell_format = workbook.add_format({
+            'align': 'center',
+            'valign': 'vcenter',
+            'border': 1,
+            'text_wrap': True,
+            'font_size': 15
+        })
+        text_format = workbook.add_format({
+            'align': 'left',
+            'valign': 'top',
+            'border': 1,
+            'text_wrap': True,
+            'font_size': 15
+        })
+
+        wrap_format = workbook.add_format({
+            'bold': True,
+            'align': 'center',
+            'valign': 'vcenter',
+            'text_wrap': True,  # Cho phép xuống dòng trong ô
+            'bg_color': '#D9E1F2',  # Màu nền giống như header_format
+            'border': 1,
+            'font_size': 15
+        })
+        # Set column widths
+        worksheet.set_column('A:A', 30)
+        worksheet.set_column('B:B', 40)
+        worksheet.set_column('C:D', 12)
+        worksheet.set_column('E:E', 25)
+        worksheet.set_column('F:G', 10)
+        worksheet.set_column('H:H', 30)
+        worksheet.set_column('I:J', 12)
+        worksheet.set_column('K:K', 14)
+        worksheet.set_column('L:M', 12)
+        worksheet.set_column('N:N', 14)
+        worksheet.set_column('O:O', 20)
+
+        # ✅ Thêm dòng tiêu đề lớn đầu tiên
+        title = f'KPI tháng {month}/{year} - Ban {department_name}'
+        worksheet.merge_range('A1:O1', title, title_format)
+
+        # Header (bắt đầu từ dòng 2 và 3)
+        worksheet.merge_range('A2:A3', 'NỘI DUNG CÔNG VIỆC\n(Đã giao ở mục tiêu\nKPIs cả năm)', wrap_format)
+        worksheet.merge_range('B2:B3', 'NỘI DUNG CÔNG\nVIỆC CỤ THỂ', wrap_format)
+        worksheet.merge_range('C2:D2', 'THỜI GIAN THỰC HIỆN', wrap_format)
+        worksheet.write('C3', 'Bắt đầu', wrap_format)
+        worksheet.write('D3', 'Hoàn thành', wrap_format)
+        worksheet.merge_range('E2:E3', 'TIÊU CHÍ ĐÁNH\nGIÁ RÚT GỌN', wrap_format)
+        worksheet.merge_range('F2:F3', 'Tỷ trọng', wrap_format)
+        worksheet.merge_range('G2:G3', 'Điểm chuẩn', wrap_format)
+        worksheet.merge_range('H2:H3', 'MÔ TẢ CHI TIẾT CÔNG VIỆC/ KIẾN NGHỊ ĐỀ XUẤT CỦA ĐƠN VỊ', wrap_format)
+        worksheet.merge_range('I2:K2', 'Σ ĐIỂM ĐƠN VỊ\nĐÁNH GIÁ', wrap_format)
+        worksheet.write('I3', 'Kết quả hoàn thành', wrap_format)
+        worksheet.write('J3', 'Điểm đạt', wrap_format)
+        worksheet.write('K3', 'Điểm quy đổi theo tỷ trọng', wrap_format)
+        worksheet.merge_range('L2:N2', 'Σ ĐIỂM CẤP THẨM\nQUYỀN ĐÁNH GIÁ', wrap_format)
+        worksheet.write('L3', 'Kết quả hoàn thành', wrap_format)
+        worksheet.write('M3', 'Điểm đạt', wrap_format)
+        worksheet.write('N3', 'Điểm quy\nđổi theo\ntỷ trọng', wrap_format)
+        worksheet.merge_range('O2:O3', 'NHẬN XÉT\nCỦA CẤP CÓ\nTHẨM QUYỀN', wrap_format)
+
+        # Bắt đầu dữ liệu từ dòng thứ 4 (index = 3)
+        row = 3
+        for rec in records:
+            ti_trong = round(rec.ti_trong * 100, 1)
+            worksheet.merge_range(row, 0, row + 1, 0, rec.name.name or '', text_format)
+            worksheet.merge_range(row, 1, row + 1, 1, rec.content_detail or '', text_format)
+            worksheet.merge_range(row, 2, row + 1, 2, rec.converted_start_date or '', cell_format)
+            worksheet.merge_range(row, 3, row + 1, 3, rec.converted_end_date or '', cell_format)
+            worksheet.merge_range(row, 5, row + 1, 5, f"{ti_trong}%", cell_format)
+            worksheet.merge_range(row, 7, row + 1, 7, rec.dv_description or '', text_format)
+            worksheet.merge_range(row, 14, row + 1, 14, rec.note or '', text_format)
+
+            worksheet.write(row, 4, "Khối lượng \ncông việc \nthực hiện", cell_format)
+            worksheet.write(row, 6, rec.diem_chuan_amount_work or 0.0, cell_format)
+            worksheet.write(row, 8, f"{rec.kq_hoan_thanh_amount_work * 100}%", cell_format)
+            worksheet.write(row, 9, rec.diem_dat_dv_amount_work or 0.0, cell_format)
+            worksheet.write(row, 10, rec.quy_doi_dv_amount_work or 0.0, cell_format)
+            worksheet.write(row, 11, None, cell_format)
+            worksheet.write(row, 12, rec.diem_dat_tq_amount_work or 0.0, cell_format)
+            worksheet.write(row, 13, rec.quy_doi_tq_amount_work or 0.0, cell_format)
+
+            worksheet.write(row + 1, 4, "Chất lượng \ncông việc \nthực hiện", cell_format)
+            worksheet.write(row + 1, 6, rec.diem_chuan_matter_work or 0.0, cell_format)
+            worksheet.write(row + 1, 8, f"{rec.kq_hoan_thanh_matter_work * 100}%", cell_format)
+            worksheet.write(row + 1, 9, rec.diem_dat_dv_matter_work or 0.0, cell_format)
+            worksheet.write(row + 1, 10, rec.quy_doi_dv_matter_work or 0.0, cell_format)
+            worksheet.write(row + 1, 11, None, cell_format)
+            worksheet.write(row + 1, 12, rec.diem_dat_tq_matter_work or 0.0, cell_format)
+            worksheet.write(row + 1, 13, rec.quy_doi_tq_matter_work or 0.0, cell_format)
+
+            row += 2
+
+        workbook.close()
+        output.seek(0)
+        text = unicodedata.normalize('NFD', department_name)
+        text = text.encode('ascii', 'ignore').decode('utf-8')
+        text = text.lower()
+        text = re.sub(r'\s+', '_', text)
+        text = re.sub(r'[^\w_]', '', text)
+        filename = f'KPI_thang_{month}_{year}_{text}.xlsx'
+
+        return request.make_response(
+            output.read(),
+            headers=[
+                ('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'),
+                ('Content-Disposition', f'attachment; filename={filename}')
+            ]
+        )

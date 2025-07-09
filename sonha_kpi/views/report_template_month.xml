@@ -30,6 +30,13 @@
                     }
                 </style>
                 <t t-if="docs">
+                    <t t-set="doc0" t-value="docs[0]" />
+                    <div style="margin-top: 20px;">
+                        <a t-attf-href="/kpi/report/month/export/excel?department_id={{ doc0.department_id.id }}&amp;year={{ doc0.year }}&amp;month={{ doc0.start_date.month }}"
+                           class="btn btn-primary">
+                           📥 Tải Excel
+                    </a>
+                    </div>
                 <table>
                     <thead>
                         <tr>

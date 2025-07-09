@@ -9,6 +9,9 @@ class SonHaResUser(models.Model):
     device_id = fields.Char("ID thiết bị")
     option_check = fields.Integer("Trạng thái")
     token = fields.Char("Token")
+    devices = fields.Boolean("Nhiều thiết bị")
+
+    device_number = fields.Integer("Số cài đặt thiết bị", default=0)
 
     # def create(self, vals):
     #     res = super(SonHaResUser, self).create(vals)

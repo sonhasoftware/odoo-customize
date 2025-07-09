@@ -2,7 +2,7 @@ from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
 import re
 import math
-from datetime import date
+from datetime import date, timedelta
 from dateutil.relativedelta import relativedelta
 
 
@@ -169,6 +169,20 @@ class SonHaEmployee(models.Model):
             self.env['res.users'].sudo().create(user_vals)
             r.user_id = self.env['res.users'].sudo().search(['|', ('login', '=', r.employee_code),
                                                             ('login', '=', r.work_email)], limit=1)
+            today = date.today()
+            start_date = today.replace(day=1)
+            end_date = (start_date + relativedelta(months=1)) - timedelta(days=1)
+            for single_date in (start_date + timedelta(n) for n in range((end_date - start_date).days + 1)):
+                existing_record = self.env['employee.attendance'].sudo().search([
+                    ('employee_id', '=', r.id),
+                    ('date', '=', single_date)
+                ])
+                if not existing_record:
+                    self.env['employee.attendance'].sudo().create({
+                        'employee_id': r.id,
+                        'date': single_date,
+                    })
+
 
     @api.depends('date_birthday', 'birthday')
     def _compute_birth_month(self):
@@ -324,11 +338,11 @@ class WorkProcess(models.Model):
 
     def create(self, vals):
         res = super(WorkProcess, self).create(vals)
-        if res.job_id:
-            job_id = res.job_id.id
+        if res[-1].job_id:
+            job_id = res[-1].job_id.id
             res.employee_id.job_id = job_id
-        if res.department_id:
-            res.employee_id.department_id = res.department_id.id
+        if res[-1].department_id:
+            res.employee_id.department_id = res[-1].department_id.id
         return res
 
 
