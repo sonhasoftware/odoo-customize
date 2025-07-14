@@ -30,6 +30,7 @@ class PopupWizardReport(models.TransientModel):
             if month not in ['Cả năm', 'Qúy 1', 'Qúy 2', 'Qúy 3', 'Qúy 4']:
                 data_filter = self.filter_data(month, result_month)
                 data_before = self.filter_data(month_before, result_month)
+                date = data_filter[-1].start_date if data_filter else None
                 total, symbol_before, total_points_after, symbol_after, classification, progress_points = self.calculate_classification_and_points(
                     data_filter, data_before)
                 total_tq, symbol_before_tq, total_points_after_tq, symbol_after_tq, classification_tq, progress_points_tq = self.calculate_classification_and_points_authorization(
@@ -38,6 +39,7 @@ class PopupWizardReport(models.TransientModel):
                 vals = {
                     'department_id': self.department_id.id,
                     'year': self.year,
+                    'start_date': str(date) if data_filter else None,
                     'month': month + '/' + str(self.year),
                     'workload': round(sum(data_filter.mapped('quy_doi_dv_amount_work')), 1) if data_filter else 0,
                     'quality': str(round(sum(data_filter.mapped('quy_doi_dv_matter_work')), 1)) if data_filter else '',
@@ -46,7 +48,7 @@ class PopupWizardReport(models.TransientModel):
                     'total_points_before': str(round(total, 1)) if total else '',
                     'symbol_before': str(symbol_before) if symbol_before else '',
                     'progress_points': str(progress_points) if progress_points else '',
-                    'total_points_after': str(round(total_points_after, 1)) if total_points_after else '',
+                    'total_points_after': (round(total_points_after, 1)) if total_points_after else '',
                     'symbol_after': str(symbol_after) if symbol_after else '',
                     'classification': str(classification) if classification else '',
                     'plan': "100%" if classification else '',
@@ -59,7 +61,7 @@ class PopupWizardReport(models.TransientModel):
                     'tq_total_points_before': str(round(total_tq, 1)) if total_tq else '',
                     'tq_symbol_before': str(symbol_before_tq) if symbol_before_tq else '',
                     'tq_progress_points': str(progress_points_tq) if progress_points_tq else '',
-                    'tq_total_points_after': str(round(total_points_after_tq, 1)) if total_points_after_tq else '',
+                    'tq_total_points_after': (round(total_points_after_tq, 1)) if total_points_after_tq else '',
                     'tq_symbol_after': str(symbol_after_tq) if symbol_after_tq else '',
                     'tq_classification': str(classification_tq) if classification_tq else '',
                     'tq_plan': "100%" if classification_tq else '',
@@ -68,21 +70,32 @@ class PopupWizardReport(models.TransientModel):
                 month_before = month
                 self.env['report.kpi'].sudo().search([]).create(vals)
             elif month == 'Qúy 1':
+                data_point = self.env['report.kpi'].sudo().search([
+                    ('department_id', '=', self.department_id.id),
+                    ('year', '=', self.year)])
+                data_point = data_point.filtered(lambda x: x.start_date and 1 <= x.start_date.month <= 3)
+                if data_point:
+                    point_after = sum(data_point.mapped('total_points_after')) / len(data_point.mapped('total_points_after'))
+                    tq_point_after = sum(data_point.mapped('tq_total_points_after')) / len(data_point.mapped('tq_total_points_after'))
+                else:
+                    point_after = 0
+                    tq_point_after = 0
+
                 amount_work, matter_work, comply_regulations, initiative, total = self.get_data_quarter_one(result_month)
 
-                if total < 1:
+                if point_after < 1:
                     symbol_month_before = ""
                     classification = ""
-                elif total > 100:
+                elif point_after > 100:
                     symbol_month_before = "A1"
                     classification = "Xuất sắc"
-                elif total > 90:
+                elif point_after > 90:
                     symbol_month_before = "A2"
                     classification = "Tốt"
-                elif total > 75:
+                elif point_after > 75:
                     symbol_month_before = "A3"
                     classification = "Khá"
-                elif total > 65:
+                elif point_after > 65:
                     symbol_month_before = "B"
                     classification = "Hoàn thành"
                 else:
@@ -92,19 +105,19 @@ class PopupWizardReport(models.TransientModel):
                 amount_work_tq, matter_work_tq, comply_regulations_tq, initiative_tq, total_tq = self.get_data_quarter_one_tq(
                     result_month)
 
-                if total_tq < 1:
+                if tq_point_after < 1:
                     symbol_month_before_tq = ""
                     classification_tq = ""
-                elif total_tq > 100:
+                elif tq_point_after > 100:
                     symbol_month_before_tq = "A1"
                     classification_tq = "Xuất sắc"
-                elif total_tq > 90:
+                elif tq_point_after > 90:
                     symbol_month_before_tq = "A2"
                     classification_tq = "Tốt"
-                elif total_tq > 75:
+                elif tq_point_after > 75:
                     symbol_month_before_tq = "A3"
                     classification_tq = "Khá"
-                elif total_tq > 65:
+                elif tq_point_after > 65:
                     symbol_month_before_tq = "B"
                     classification_tq = "Hoàn thành"
                 else:
@@ -121,7 +134,7 @@ class PopupWizardReport(models.TransientModel):
                     'total_points_before': str(round(total, 1)) if total else '',
                     'symbol_before': str(symbol_month_before) if symbol_month_before else '',
                     'progress_points': '',
-                    'total_points_after': str(round(total, 1)) if total else '',
+                    'total_points_after': (round(point_after, 1)) if point_after else '',
                     'symbol_after': str(symbol_month_before) if symbol_month_before else '',
                     'classification': str(classification) if classification else '',
                     'plan': "100%" if classification else '',
@@ -134,7 +147,7 @@ class PopupWizardReport(models.TransientModel):
                     'tq_total_points_before': str(round(total_tq, 1)) if total_tq else '',
                     'tq_symbol_before': str(symbol_month_before_tq) if symbol_month_before_tq else '',
                     'tq_progress_points': '',
-                    'tq_total_points_after': str(round(total_tq, 1)) if total_tq else '',
+                    'tq_total_points_after': (round(tq_point_after, 1)) if tq_point_after else '',
                     'tq_symbol_after': str(symbol_month_before_tq) if symbol_month_before_tq else '',
                     'tq_classification': str(classification_tq) if classification_tq else '',
                     'tq_plan': "100%" if classification_tq else '',
@@ -144,20 +157,32 @@ class PopupWizardReport(models.TransientModel):
                 self.env['report.kpi'].sudo().search([]).create(vals)
 
             elif month == 'Qúy 2':
+                data_point = self.env['report.kpi'].sudo().search([
+                    ('department_id', '=', self.department_id.id),
+                    ('year', '=', self.year)])
+                data_point = data_point.filtered(lambda x: x.start_date and 4 <= x.start_date.month <= 6)
+                if data_point:
+                    point_after = sum(data_point.mapped('total_points_after')) / len(
+                        data_point.mapped('total_points_after'))
+                    tq_point_after = sum(data_point.mapped('tq_total_points_after')) / len(
+                        data_point.mapped('tq_total_points_after'))
+                else:
+                    point_after = 0
+                    tq_point_after = 0
                 amount_work, matter_work, comply_regulations, initiative, total = self.get_data_quarter_two(result_month)
-                if total < 1:
+                if point_after < 1:
                     symbol_month_before = ""
                     classification = ""
-                elif total > 100:
+                elif point_after > 100:
                     symbol_month_before = "A1"
                     classification = "Xuất sắc"
-                elif total > 90:
+                elif point_after > 90:
                     symbol_month_before = "A2"
                     classification = "Tốt"
-                elif total > 75:
+                elif point_after > 75:
                     symbol_month_before = "A3"
                     classification = "Khá"
-                elif total > 65:
+                elif point_after > 65:
                     symbol_month_before = "B"
                     classification = "Hoàn thành"
                 else:
@@ -167,19 +192,19 @@ class PopupWizardReport(models.TransientModel):
                 amount_work_tq, matter_work_tq, comply_regulations_tq, initiative_tq, total_tq = self.get_data_quarter_two_tq(
                     result_month)
 
-                if total_tq < 1:
+                if tq_point_after < 1:
                     symbol_month_before_tq = ""
                     classification_tq = ""
-                elif total_tq > 100:
+                elif tq_point_after > 100:
                     symbol_month_before_tq = "A1"
                     classification_tq = "Xuất sắc"
-                elif total_tq > 90:
+                elif tq_point_after > 90:
                     symbol_month_before_tq = "A2"
                     classification_tq = "Tốt"
-                elif total_tq > 75:
+                elif tq_point_after > 75:
                     symbol_month_before_tq = "A3"
                     classification_tq = "Khá"
-                elif total_tq > 65:
+                elif tq_point_after > 65:
                     symbol_month_before_tq = "B"
                     classification_tq = "Hoàn thành"
                 else:
@@ -196,7 +221,7 @@ class PopupWizardReport(models.TransientModel):
                     'total_points_before': str(round(total, 1)) if total else '',
                     'symbol_before': str(symbol_month_before) if symbol_month_before else '',
                     'progress_points': '',
-                    'total_points_after': str(round(total, 1)) if total else '',
+                    'total_points_after': (round(point_after, 1)) if point_after else '',
                     'symbol_after': str(symbol_month_before) if symbol_month_before else '',
                     'classification': str(classification) if classification else '',
                     'plan': "100%" if classification else '',
@@ -209,7 +234,7 @@ class PopupWizardReport(models.TransientModel):
                     'tq_total_points_before': str(round(total_tq, 1)) if total_tq else '',
                     'tq_symbol_before': str(symbol_month_before_tq) if symbol_month_before_tq else '',
                     'tq_progress_points': '',
-                    'tq_total_points_after': str(round(total_tq, 1)) if total_tq else '',
+                    'tq_total_points_after': (round(tq_point_after, 1)) if tq_point_after else '',
                     'tq_symbol_after': str(symbol_month_before_tq) if symbol_month_before_tq else '',
                     'tq_classification': str(classification_tq) if classification_tq else '',
                     'tq_plan': "100%" if classification_tq else '',
@@ -219,20 +244,32 @@ class PopupWizardReport(models.TransientModel):
                 self.env['report.kpi'].sudo().search([]).create(vals)
 
             elif month == 'Qúy 3':
+                data_point = self.env['report.kpi'].sudo().search([
+                    ('department_id', '=', self.department_id.id),
+                    ('year', '=', self.year)])
+                data_point = data_point.filtered(lambda x: x.start_date and 7 <= x.start_date.month <= 9)
+                if data_point:
+                    point_after = sum(data_point.mapped('total_points_after')) / len(
+                        data_point.mapped('total_points_after'))
+                    tq_point_after = sum(data_point.mapped('tq_total_points_after')) / len(
+                        data_point.mapped('tq_total_points_after'))
+                else:
+                    point_after = 0
+                    tq_point_after = 0
                 amount_work, matter_work, comply_regulations, initiative, total = self.get_data_quarter_three(result_month)
-                if total < 1:
+                if point_after < 1:
                     symbol_month_before = ""
                     classification = ""
-                elif total > 100:
+                elif point_after > 100:
                     symbol_month_before = "A1"
                     classification = "Xuất sắc"
-                elif total > 90:
+                elif point_after > 90:
                     symbol_month_before = "A2"
                     classification = "Tốt"
-                elif total > 75:
+                elif point_after > 75:
                     symbol_month_before = "A3"
                     classification = "Khá"
-                elif total > 65:
+                elif point_after > 65:
                     symbol_month_before = "B"
                     classification = "Hoàn thành"
                 else:
@@ -242,19 +279,19 @@ class PopupWizardReport(models.TransientModel):
                 amount_work_tq, matter_work_tq, comply_regulations_tq, initiative_tq, total_tq = self.get_data_quarter_three_tq(
                     result_month)
 
-                if total_tq < 1:
+                if tq_point_after < 1:
                     symbol_month_before_tq = ""
                     classification_tq = ""
-                elif total_tq > 100:
+                elif tq_point_after > 100:
                     symbol_month_before_tq = "A1"
                     classification_tq = "Xuất sắc"
-                elif total_tq > 90:
+                elif tq_point_after > 90:
                     symbol_month_before_tq = "A2"
                     classification_tq = "Tốt"
-                elif total_tq > 75:
+                elif tq_point_after > 75:
                     symbol_month_before_tq = "A3"
                     classification_tq = "Khá"
-                elif total_tq > 65:
+                elif tq_point_after > 65:
                     symbol_month_before_tq = "B"
                     classification_tq = "Hoàn thành"
                 else:
@@ -271,7 +308,7 @@ class PopupWizardReport(models.TransientModel):
                     'total_points_before': str(round(total, 1)) if total else '',
                     'symbol_before': str(symbol_month_before) if symbol_month_before else '',
                     'progress_points': '',
-                    'total_points_after': str(round(total, 1)) if total else '',
+                    'total_points_after': (round(point_after, 1)) if point_after else '',
                     'symbol_after': str(symbol_month_before) if symbol_month_before else '',
                     'classification': str(classification) if classification else '',
                     'plan': "100%" if classification else '',
@@ -284,7 +321,7 @@ class PopupWizardReport(models.TransientModel):
                     'tq_total_points_before': str(round(total_tq, 1)) if total_tq else '',
                     'tq_symbol_before': str(symbol_month_before_tq) if symbol_month_before_tq else '',
                     'tq_progress_points': '',
-                    'tq_total_points_after': str(round(total_tq, 1)) if total_tq else '',
+                    'tq_total_points_after': (round(tq_point_after, 1)) if tq_point_after else '',
                     'tq_symbol_after': str(symbol_month_before_tq) if symbol_month_before_tq else '',
                     'tq_classification': str(classification_tq) if classification_tq else '',
                     'tq_plan': "100%" if classification_tq else '',
@@ -294,20 +331,32 @@ class PopupWizardReport(models.TransientModel):
                 self.env['report.kpi'].sudo().search([]).create(vals)
 
             elif month == 'Qúy 4':
+                data_point = self.env['report.kpi'].sudo().search([
+                    ('department_id', '=', self.department_id.id),
+                    ('year', '=', self.year)])
+                data_point = data_point.filtered(lambda x: x.start_date and 10 <= x.start_date.month <= 12)
+                if data_point:
+                    point_after = sum(data_point.mapped('total_points_after')) / len(
+                        data_point.mapped('total_points_after'))
+                    tq_point_after = sum(data_point.mapped('tq_total_points_after')) / len(
+                        data_point.mapped('tq_total_points_after'))
+                else:
+                    point_after = 0
+                    tq_point_after = 0
                 amount_work, matter_work, comply_regulations, initiative, total = self.get_data_quarter_four(result_month)
-                if total < 1:
+                if point_after < 1:
                     symbol_month_before = ""
                     classification = ""
-                elif total > 100:
+                elif point_after > 100:
                     symbol_month_before = "A1"
                     classification = "Xuất sắc"
-                elif total > 90:
+                elif point_after > 90:
                     symbol_month_before = "A2"
                     classification = "Tốt"
-                elif total > 75:
+                elif point_after > 75:
                     symbol_month_before = "A3"
                     classification = "Khá"
-                elif total > 65:
+                elif point_after > 65:
                     symbol_month_before = "B"
                     classification = "Hoàn thành"
                 else:
@@ -317,19 +366,19 @@ class PopupWizardReport(models.TransientModel):
                 amount_work_tq, matter_work_tq, comply_regulations_tq, initiative_tq, total_tq = self.get_data_quarter_four_tq(
                     result_month)
 
-                if total_tq < 1:
+                if tq_point_after < 1:
                     symbol_month_before_tq = ""
                     classification_tq = ""
-                elif total_tq > 100:
+                elif tq_point_after > 100:
                     symbol_month_before_tq = "A1"
                     classification_tq = "Xuất sắc"
-                elif total_tq > 90:
+                elif tq_point_after > 90:
                     symbol_month_before_tq = "A2"
                     classification_tq = "Tốt"
-                elif total_tq > 75:
+                elif tq_point_after > 75:
                     symbol_month_before_tq = "A3"
                     classification_tq = "Khá"
-                elif total_tq > 65:
+                elif tq_point_after > 65:
                     symbol_month_before_tq = "B"
                     classification_tq = "Hoàn thành"
                 else:
@@ -346,7 +395,7 @@ class PopupWizardReport(models.TransientModel):
                     'total_points_before': str(round(total, 1)) if total else '',
                     'symbol_before': str(symbol_month_before) if symbol_month_before else '',
                     'progress_points': '',
-                    'total_points_after': str(round(total, 1)) if total else '',
+                    'total_points_after': (round(point_after, 1)) if point_after else '',
                     'symbol_after': str(symbol_month_before) if symbol_month_before else '',
                     'classification': str(classification) if classification else '',
                     'plan': "100%" if classification else '',
@@ -359,7 +408,7 @@ class PopupWizardReport(models.TransientModel):
                     'tq_total_points_before': str(round(total_tq, 1)) if total_tq else '',
                     'tq_symbol_before': str(symbol_month_before_tq) if symbol_month_before_tq else '',
                     'tq_progress_points': '',
-                    'tq_total_points_after': str(round(total_tq, 1)) if total_tq else '',
+                    'tq_total_points_after': (round(tq_point_after, 1)) if tq_point_after else '',
                     'tq_symbol_after': str(symbol_month_before_tq) if symbol_month_before_tq else '',
                     'tq_classification': str(classification_tq) if classification_tq else '',
                     'tq_plan': "100%" if classification_tq else '',
@@ -369,21 +418,32 @@ class PopupWizardReport(models.TransientModel):
                 self.env['report.kpi'].sudo().search([]).create(vals)
 
             else:
+                data_point = self.env['report.kpi'].sudo().search([
+                    ('department_id', '=', self.department_id.id),
+                    ('year', '=', self.year)])
+                if data_point:
+                    point_after = sum(data_point.mapped('total_points_after')) / len(
+                        data_point.mapped('total_points_after'))
+                    tq_point_after = sum(data_point.mapped('tq_total_points_after')) / len(
+                        data_point.mapped('tq_total_points_after'))
+                else:
+                    point_after = 0
+                    tq_point_after = 0
                 amount_work, matter_work, comply_regulations, initiative, total = self.get_data_year(
                     result_month)
-                if total < 1:
+                if point_after < 1:
                     symbol_month_before = ""
                     classification = ""
-                elif total > 100:
+                elif point_after > 100:
                     symbol_month_before = "A1"
                     classification = "Xuất sắc"
-                elif total > 90:
+                elif point_after > 90:
                     symbol_month_before = "A2"
                     classification = "Tốt"
-                elif total > 75:
+                elif point_after > 75:
                     symbol_month_before = "A3"
                     classification = "Khá"
-                elif total > 65:
+                elif point_after > 65:
                     symbol_month_before = "B"
                     classification = "Hoàn thành"
                 else:
@@ -393,19 +453,19 @@ class PopupWizardReport(models.TransientModel):
                 amount_work_tq, matter_work_tq, comply_regulations_tq, initiative_tq, total_tq = self.get_data_year_tq(
                     result_month)
 
-                if total_tq < 1:
+                if tq_point_after < 1:
                     symbol_month_before_tq = ""
                     classification_tq = ""
-                elif total_tq > 100:
+                elif tq_point_after > 100:
                     symbol_month_before_tq = "A1"
                     classification_tq = "Xuất sắc"
-                elif total_tq > 90:
+                elif tq_point_after > 90:
                     symbol_month_before_tq = "A2"
                     classification_tq = "Tốt"
-                elif total_tq > 75:
+                elif tq_point_after > 75:
                     symbol_month_before_tq = "A3"
                     classification_tq = "Khá"
-                elif total_tq > 65:
+                elif tq_point_after > 65:
                     symbol_month_before_tq = "B"
                     classification_tq = "Hoàn thành"
                 else:
@@ -422,7 +482,7 @@ class PopupWizardReport(models.TransientModel):
                     'total_points_before': str(round(total, 1)) if total else '',
                     'symbol_before': str(symbol_month_before) if symbol_month_before else '',
                     'progress_points': '',
-                    'total_points_after': str(round(total, 1)) if total else '',
+                    'total_points_after': (round(point_after, 1)) if point_after else '',
                     'symbol_after': str(symbol_month_before) if symbol_month_before else '',
                     'classification': str(classification) if classification else '',
                     'plan': "100%" if classification else '',
@@ -435,7 +495,7 @@ class PopupWizardReport(models.TransientModel):
                     'tq_total_points_before': str(round(total_tq, 1)) if total_tq else '',
                     'tq_symbol_before': str(symbol_month_before_tq) if symbol_month_before_tq else '',
                     'tq_progress_points': '',
-                    'tq_total_points_after': str(round(total_tq, 1)) if total_tq else '',
+                    'tq_total_points_after': (round(tq_point_after, 1)) if tq_point_after else '',
                     'tq_symbol_after': str(symbol_month_before_tq) if symbol_month_before_tq else '',
                     'tq_classification': str(classification_tq) if classification_tq else '',
                     'tq_plan': "100%" if classification_tq else '',
