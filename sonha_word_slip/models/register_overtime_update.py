@@ -212,7 +212,7 @@ class RegisterOvertimeUpdate(models.Model):
                 time_ot = (ot.end_time - ot.start_time) * ot.coefficient
                 over_time += time_ot
             list_employee = r.employee_ids or [r.employee_id]
-            if list_employee[-1].parent_id.id == self.env.user.employee_id.id or self.env.user.has_group('sonha_employee.group_manager_employee'):
+            if list_employee[-1].parent_id.id == self.env.user.employee_id.id or self.env.user.has_group('sonha_employee.group_manager_employee') or list_employee[-1].employee_approval.id == self.env.user.employee_id.id:
                 r.status = 'draft'
                 r.status_lv2 = 'draft'
                 for employee in list_employee:
