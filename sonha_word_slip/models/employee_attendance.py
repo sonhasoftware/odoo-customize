@@ -501,7 +501,7 @@ class EmployeeAttendance(models.Model):
             weekday = r.date.weekday()
             week_number = r.date.isocalendar()[1]
 
-            if r.shift.is_office_hour and (weekday == 6 or (weekday == 5 and week_number % 2 == 1)):
+            if (r.shift.shift_ot) or (r.shift.is_office_hour and (weekday == 6 or (weekday == 5 and week_number % 2 == 1))):
                 r.minutes_early = 0
                 r.minutes_late = 0
             else:
