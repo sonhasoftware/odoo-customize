@@ -210,7 +210,7 @@ class EmployeeAttendance(models.Model):
             if record.shift.type_ot == 'nb':
                 record.over_time_nb = total_overtime * record.shift.coefficient
             else:
-                if record.weekday == '6' and record.employee_id.company_id.id == 16:
+                if record.weekday == '6' and record.company_id.id == 16:
                     record.over_time = total_overtime * 2
                 else:
                     record.over_time = total_overtime
