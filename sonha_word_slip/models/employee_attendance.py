@@ -166,47 +166,54 @@ class EmployeeAttendance(models.Model):
                     if not record.shift:
                         continue
                     # Giờ ca làm
-                    shift_start = (record.shift.start + relativedelta(hours=7)).hour + (
-                                record.shift.start + relativedelta(hours=7)).minute / 60
-                    shift_end = (record.shift.end_shift + relativedelta(hours=7)).hour + (
-                                record.shift.end_shift + relativedelta(hours=7)).minute / 60
+                    if not record.shift.shift_ot:
+                        shift_start = (record.shift.start + relativedelta(hours=7)).hour + (
+                                    record.shift.start + relativedelta(hours=7)).minute / 60
+                        shift_end = (record.shift.end_shift + relativedelta(hours=7)).hour + (
+                                    record.shift.end_shift + relativedelta(hours=7)).minute / 60
 
-                    # Giờ overtime đăng ký
-                    ot_start = x.start_time
-                    ot_end = x.end_time
+                        # Giờ overtime đăng ký
+                        ot_start = x.start_time
+                        ot_end = x.end_time
 
-                    # Trường hợp overtime hoàn toàn trước ca
-                    if (shift_start - 0.2) <= ot_end <= shift_start:
-                        if record.check_in:
-                            check_in_time = (record.check_in + relativedelta(hours=7)).hour + (
-                                        record.check_in + relativedelta(hours=7)).minute / 60
-                            actual_start = max(ot_start, check_in_time)
-                            actual_end = ot_end
-                            if actual_end > actual_start:
-                                total_overtime += actual_end - actual_start
+                        # Trường hợp overtime hoàn toàn trước ca
+                        if (shift_start - 0.2) <= ot_end <= shift_start:
+                            if record.check_in:
+                                check_in_time = (record.check_in + relativedelta(hours=7)).hour + (
+                                            record.check_in + relativedelta(hours=7)).minute / 60
+                                actual_start = max(ot_start, check_in_time)
+                                actual_end = ot_end
+                                if actual_end > actual_start:
+                                    total_overtime += actual_end - actual_start
 
-                    # Trường hợp overtime hoàn toàn sau ca
-                    elif shift_end <= ot_start <= (shift_end + 0.2):
-                        if record.check_out:
-                            check_out_time = (record.check_out + relativedelta(hours=7)).hour + (
-                                        record.check_out + relativedelta(hours=7)).minute / 60
-                            actual_start = ot_start
-                            actual_end = min(ot_end, check_out_time)
-                            if actual_end > actual_start:
-                                total_overtime += actual_end - actual_start
+                        # Trường hợp overtime hoàn toàn sau ca
+                        elif shift_end <= ot_start <= (shift_end + 0.2):
+                            if record.check_out:
+                                check_out_time = (record.check_out + relativedelta(hours=7)).hour + (
+                                            record.check_out + relativedelta(hours=7)).minute / 60
+                                actual_start = ot_start
+                                actual_end = min(ot_end, check_out_time)
+                                if actual_end > actual_start:
+                                    total_overtime += actual_end - actual_start
 
-                    # Trường hợp overtime nằm trong giờ ca (hoặc chồng 1 phần ca)
+                        # Trường hợp overtime nằm trong giờ ca (hoặc chồng 1 phần ca)
+                        else:
+                            # Có thể là cả trong ca, hoặc chồng trước/giữa/sau → xử lý phần hợp lệ
+                            total_overtime += max(0, min(ot_end,
+                                                         shift_start) - ot_start) if ot_start < shift_start else 0  # phần trước ca (nếu có)
+                            total_overtime += max(0, ot_end - max(ot_start,
+                                                                  shift_end)) if ot_end > shift_end else 0  # phần sau ca (nếu có)
+                            # phần trong ca
+                            inside_start = max(ot_start, shift_start)
+                            inside_end = min(ot_end, shift_end)
+                            if inside_end > inside_start:
+                                total_overtime += inside_end - inside_start
                     else:
-                        # Có thể là cả trong ca, hoặc chồng trước/giữa/sau → xử lý phần hợp lệ
-                        total_overtime += max(0, min(ot_end,
-                                                     shift_start) - ot_start) if ot_start < shift_start else 0  # phần trước ca (nếu có)
-                        total_overtime += max(0, ot_end - max(ot_start,
-                                                              shift_end)) if ot_end > shift_end else 0  # phần sau ca (nếu có)
-                        # phần trong ca
-                        inside_start = max(ot_start, shift_start)
-                        inside_end = min(ot_end, shift_end)
-                        if inside_end > inside_start:
-                            total_overtime += inside_end - inside_start
+                        if record.check_in and record.check_out:
+                            total_overtime += x.end_time - x.start_time
+                        else:
+                            pass
+
             if record.shift.type_ot == 'nb':
                 record.over_time_nb = total_overtime * record.shift.coefficient
                 record.over_time = 0
