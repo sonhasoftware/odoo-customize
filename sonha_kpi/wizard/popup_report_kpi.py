@@ -75,8 +75,13 @@ class PopupWizardReport(models.TransientModel):
                     ('year', '=', self.year)])
                 data_point = data_point.filtered(lambda x: x.start_date and 1 <= x.start_date.month <= 3)
                 if data_point:
-                    point_after = sum(data_point.mapped('total_points_after')) / len(data_point.mapped('total_points_after'))
-                    tq_point_after = sum(data_point.mapped('tq_total_points_after')) / len(data_point.mapped('tq_total_points_after'))
+                    # Lọc bỏ các giá trị 0
+                    point_after_values = [p for p in data_point.mapped('total_points_after') if p != 0]
+                    tq_point_after_values = [p for p in data_point.mapped('tq_total_points_after') if p != 0]
+
+                    point_after = sum(point_after_values) / len(point_after_values) if point_after_values else 0
+                    tq_point_after = sum(tq_point_after_values) / len(
+                        tq_point_after_values) if tq_point_after_values else 0
                 else:
                     point_after = 0
                     tq_point_after = 0
@@ -162,10 +167,13 @@ class PopupWizardReport(models.TransientModel):
                     ('year', '=', self.year)])
                 data_point = data_point.filtered(lambda x: x.start_date and 4 <= x.start_date.month <= 6)
                 if data_point:
-                    point_after = sum(data_point.mapped('total_points_after')) / len(
-                        data_point.mapped('total_points_after'))
-                    tq_point_after = sum(data_point.mapped('tq_total_points_after')) / len(
-                        data_point.mapped('tq_total_points_after'))
+                    # Lọc bỏ các giá trị 0
+                    point_after_values = [p for p in data_point.mapped('total_points_after') if p != 0]
+                    tq_point_after_values = [p for p in data_point.mapped('tq_total_points_after') if p != 0]
+
+                    point_after = sum(point_after_values) / len(point_after_values) if point_after_values else 0
+                    tq_point_after = sum(tq_point_after_values) / len(
+                        tq_point_after_values) if tq_point_after_values else 0
                 else:
                     point_after = 0
                     tq_point_after = 0
@@ -249,10 +257,13 @@ class PopupWizardReport(models.TransientModel):
                     ('year', '=', self.year)])
                 data_point = data_point.filtered(lambda x: x.start_date and 7 <= x.start_date.month <= 9)
                 if data_point:
-                    point_after = sum(data_point.mapped('total_points_after')) / len(
-                        data_point.mapped('total_points_after'))
-                    tq_point_after = sum(data_point.mapped('tq_total_points_after')) / len(
-                        data_point.mapped('tq_total_points_after'))
+                    # Lọc bỏ các giá trị 0
+                    point_after_values = [p for p in data_point.mapped('total_points_after') if p != 0]
+                    tq_point_after_values = [p for p in data_point.mapped('tq_total_points_after') if p != 0]
+
+                    point_after = sum(point_after_values) / len(point_after_values) if point_after_values else 0
+                    tq_point_after = sum(tq_point_after_values) / len(
+                        tq_point_after_values) if tq_point_after_values else 0
                 else:
                     point_after = 0
                     tq_point_after = 0
@@ -336,10 +347,13 @@ class PopupWizardReport(models.TransientModel):
                     ('year', '=', self.year)])
                 data_point = data_point.filtered(lambda x: x.start_date and 10 <= x.start_date.month <= 12)
                 if data_point:
-                    point_after = sum(data_point.mapped('total_points_after')) / len(
-                        data_point.mapped('total_points_after'))
-                    tq_point_after = sum(data_point.mapped('tq_total_points_after')) / len(
-                        data_point.mapped('tq_total_points_after'))
+                    # Lọc bỏ các giá trị 0
+                    point_after_values = [p for p in data_point.mapped('total_points_after') if p != 0]
+                    tq_point_after_values = [p for p in data_point.mapped('tq_total_points_after') if p != 0]
+
+                    point_after = sum(point_after_values) / len(point_after_values) if point_after_values else 0
+                    tq_point_after = sum(tq_point_after_values) / len(
+                        tq_point_after_values) if tq_point_after_values else 0
                 else:
                     point_after = 0
                     tq_point_after = 0
@@ -422,10 +436,13 @@ class PopupWizardReport(models.TransientModel):
                     ('department_id', '=', self.department_id.id),
                     ('year', '=', self.year)])
                 if data_point:
-                    point_after = sum(data_point.mapped('total_points_after')) / len(
-                        data_point.mapped('total_points_after'))
-                    tq_point_after = sum(data_point.mapped('tq_total_points_after')) / len(
-                        data_point.mapped('tq_total_points_after'))
+                    # Lọc bỏ các giá trị 0
+                    point_after_values = [p for p in data_point.mapped('total_points_after') if p != 0]
+                    tq_point_after_values = [p for p in data_point.mapped('tq_total_points_after') if p != 0]
+
+                    point_after = sum(point_after_values) / len(point_after_values) if point_after_values else 0
+                    tq_point_after = sum(tq_point_after_values) / len(
+                        tq_point_after_values) if tq_point_after_values else 0
                 else:
                     point_after = 0
                     tq_point_after = 0
