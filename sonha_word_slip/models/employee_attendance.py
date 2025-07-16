@@ -209,7 +209,10 @@ class EmployeeAttendance(models.Model):
                             if inside_end > inside_start:
                                 total_overtime += inside_end - inside_start
                     else:
-                        total_overtime += x.end_time - x.start_time
+                        if record.check_in and record.check_out:
+                            total_overtime += x.end_time - x.start_time
+                        else:
+                            pass
 
             if record.shift.type_ot == 'nb':
                 record.over_time_nb = total_overtime * record.shift.coefficient
