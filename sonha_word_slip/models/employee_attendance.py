@@ -557,14 +557,14 @@ class EmployeeAttendance(models.Model):
                             elif r.leave > 0:
                                 r.work_day = 1 - r.leave
                             else:
-                                r.work_day = 0.5
+                                r.work_day = 0
                         elif not r.check_in and r.check_out:
                             if r.compensatory > 0:
                                 r.work_day = 1 - r.compensatory
                             elif r.leave > 0:
                                 r.work_day = 1 - r.leave
                             else:
-                                r.work_day = 0.5
+                                r.work_day = 0
                         else:
                             r.work_day = 0
 
