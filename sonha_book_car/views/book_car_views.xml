@@ -66,11 +66,12 @@
                         <field name="approve_people_job_id" readonly="1"/>
                     </group>
                     <group string="Thông tin xe" invisible="type != 'exist_car'">
-                        <field name="is_rent" invisible="1"/>
-                        <field name="driver" readonly="status != 'draft'"  invisible="is_rent != False"/>
-                        <field name="rent_company" readonly="status != 'draft'" invisible="is_rent != True"/>
-                        <field name="driver_phone" readonly="status != 'draft'"/>
-                        <field name="license_plate" readonly="status != 'draft'"/>
+                        <field name="is_rent" readonly="1"/>
+                        <field name="driver" readonly="1"  invisible="is_rent != False"/>
+                        <field name="driver_rent" readonly="1"  invisible="is_rent != False"/>
+                        <field name="rent_company" readonly="1" invisible="is_rent != True"/>
+                        <field name="driver_phone" readonly="1"/>
+                        <field name="license_plate" readonly="1"/>
                     </group>
                     <group string="Thông tin trả thẻ" invisible="status_issuing_card != 'done'">
                         <field name="receive_time" readonly="status != 'draft'"/>

@@ -74,6 +74,7 @@ class BookCar(models.Model):
     car_estimate = fields.Integer("Số lượng xe(ước tính)",
                                   compute="caculate_car_estimate", store=True)
     is_rent = fields.Boolean("Thuê xe")
+    driver_rent = fields.Char("Lái xe")
     rent_company = fields.Char("Đơn vị thuê")
     record_link = fields.Char(compute="_compute_record_url", store=True)
 
@@ -157,14 +158,6 @@ class BookCar(models.Model):
             else:
                 r.phone_number = ''
 
-    @api.onchange('driver')
-    def onchange_driver_phone(self):
-        for r in self:
-            if r.driver.sonha_number_phone:
-                r.driver_phone = r.booking_employee_id.sonha_number_phone
-            else:
-                r.driver_phone = ''
-
     @api.depends('status', 'employee_id')
     def get_check_sent(self):
         for r in self:
@@ -240,12 +233,14 @@ class BookCar(models.Model):
     @api.depends('booking_employee_id.job_id')
     def filter_booking_employee_job(self):
         for r in self:
-            r.booking_employee_job_id = r.booking_employee_id.job_id.id if r.booking_employee_id.job_id else None
+            booking_employee = self.env['hr.employee'].sudo().search([('id', '=', r.booking_employee_id.id)], limit=1)
+            r.booking_employee_job_id = booking_employee.job_id.id if booking_employee.job_id else None
 
     @api.depends('approve_people.job_id')
     def filter_approve_people_job(self):
         for r in self:
-            r.approve_people_job_id = r.approve_people.job_id.id if r.approve_people.job_id else None
+            approve_emp = self.env['hr.employee'].sudo().search([('id', '=', r.approve_people.id)], limit=1)
+            r.approve_people_job_id = approve_emp.job_id.id if approve_emp.job_id else None
 
     def action_approve(self):
         for r in self:
@@ -462,6 +457,7 @@ class BookCar(models.Model):
                         'default_rent_company': r.rent_company if r.is_rent else "",
                         'default_driver_phone': r.driver_phone,
                         'default_license_plate': r.license_plate,
+                        'default_driver_rent': r.driver_rent if r.is_rent else "",
                     },
                 }
             else:
