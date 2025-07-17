@@ -4,7 +4,8 @@ from odoo import models, fields, api
 class WizardExistCar(models.TransientModel):
     _name = 'wizard.exist.car'
 
-    driver = fields.Many2one('hr.employee', string="Lái xe", domain="[('company_id', '=', company_id)]")
+    driver = fields.Many2one('hr.employee', string="Lái xe")
+    driver_rent = fields.Char("Lái xe")
     driver_phone = fields.Char("Số điện thoại lái xe", required=True)
     license_plate = fields.Char("Biển số xe", required=True)
     rent_company = fields.Char("Đơn vị")
@@ -15,6 +16,14 @@ class WizardExistCar(models.TransientModel):
     company_id = fields.Many2one('res.company', string="Công ty")
     parent_id = fields.Many2one('book.car', string="Parent ID")
 
+    @api.onchange('driver')
+    def onchange_driver_phone(self):
+        for r in self:
+            if r.driver.sonha_number_phone:
+                r.driver_phone = r.driver.sonha_number_phone
+            else:
+                r.driver_phone = ''
+
     def action_confirm(self):
         edit_infor = 0
         new_infor = 0
@@ -23,7 +32,8 @@ class WizardExistCar(models.TransientModel):
                 self.parent_id.license_plate and self.parent_id.license_plate != self.license_plate) or (
                 self.parent_id.rent_company and self.parent_id.rent_company != self.rent_company) or (
                 self.parent_id.is_rent and self.type == 'non_rent') or (
-                not self.parent_id.is_rent and self.type == 'rent_car'):
+                not self.parent_id.driver_rent and self.type == 'rent_car') or (
+                self.parent_id.driver_rent and self.parent_id.driver_rent != self.driver_rent):
             edit_infor = 1
         if not self.parent_id.driver and not self.parent_id.driver_phone and not self.parent_id.license_plate and not self.parent_id.rent_company:
             new_infor = 1
