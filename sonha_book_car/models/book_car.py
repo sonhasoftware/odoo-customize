@@ -74,7 +74,8 @@ class BookCar(models.Model):
     car_estimate = fields.Integer("Số lượng xe(ước tính)",
                                   compute="caculate_car_estimate", store=True)
     is_rent = fields.Boolean("Thuê xe")
-    rent_company = fields.Char("Đơn vị thuê")
+    driver_rent = fields.Many2one('hr.employee', "Lái xe")
+    rent_company = fields.Many2one('res.company', "Đơn vị thuê")
     record_link = fields.Char(compute="_compute_record_url", store=True)
 
     @api.depends('booking_employee_id')
@@ -157,19 +158,6 @@ class BookCar(models.Model):
             else:
                 r.phone_number = ''
 
-    @api.onchange('driver')
-    def onchange_driver_phone(self):
-        for r in self:
-            if r.driver.sonha_number_phone:
-                r.driver_phone = r.booking_employee_id.sonha_number_phone
-            else:
-                r.driver_phone = ''
-
-    @api.onchange('department_id')
-    def onchange_approve_people(self):
-        for r in self:
-            r.approve_people = r.department_id.manager_id.id if r.department_id.manager_id else None
-
     @api.depends('status', 'employee_id')
     def get_check_sent(self):
         for r in self:
@@ -219,7 +207,8 @@ class BookCar(models.Model):
 
     def default_approve_people(self):
         emp = self.env['hr.employee'].sudo().search([('user_id', '=', self.env.user.id)], limit=1)
-        employee = emp.department_id.manager_id
+        approve_line = self.env['config.approve.line'].sudo().search([('department_id', '=', emp.department_id.id)], limit=1)
+        employee = approve_line.approve_people
         if employee:
             return employee
         else:
@@ -244,12 +233,14 @@ class BookCar(models.Model):
     @api.depends('booking_employee_id.job_id')
     def filter_booking_employee_job(self):
         for r in self:
-            r.booking_employee_job_id = r.booking_employee_id.job_id.id if r.booking_employee_id.job_id else None
+            booking_employee = self.env['hr.employee'].sudo().search([('id', '=', r.booking_employee_id.id)], limit=1)
+            r.booking_employee_job_id = booking_employee.job_id.id if booking_employee.job_id else None
 
     @api.depends('approve_people.job_id')
     def filter_approve_people_job(self):
         for r in self:
-            r.approve_people_job_id = r.approve_people.job_id.id if r.approve_people.job_id else None
+            approve_emp = self.env['hr.employee'].sudo().search([('id', '=', r.approve_people.id)], limit=1)
+            r.approve_people_job_id = approve_emp.job_id.id if approve_emp.job_id else None
 
     def action_approve(self):
         for r in self:
@@ -362,9 +353,9 @@ class BookCar(models.Model):
     def create(self, vals):
         res = super(BookCar, self).create(vals)
         emp = self.env['hr.employee'].sudo().search([('user_id', '=', res.create_uid.id)], limit=1)
-        competency_employee = self.env['config.competency.employee'].sudo().search([('company_id', '=', res.company_id.id)], limit=1)
+        competency_employee = self.env['config.approve.line'].sudo().search([('department_id', '=', res.department_id.id)], limit=1)
         res.sudo().write({'employee_id': emp.id if emp else None,
-                          'competency_employee': competency_employee.employee_id.id if competency_employee.employee_id else None})
+                          'competency_employee': competency_employee.competency_employee.id if competency_employee.competency_employee else None})
         self.env['book.car.short'].sudo().create({
             'company_id': res.company_id.id,
             'department_id': res.department_id.id,
@@ -463,9 +454,10 @@ class BookCar(models.Model):
                         'default_type': 'rent_car' if r.is_rent else 'non_rent',
                         'default_parent_id': r.id,
                         'default_driver': r.driver.id if r.driver else None,
-                        'default_rent_company': r.rent_company if r.is_rent else "",
+                        'default_rent_company': r.rent_company.id if r.is_rent else "",
                         'default_driver_phone': r.driver_phone,
                         'default_license_plate': r.license_plate,
+                        'default_driver_rent': r.driver_rent.id if r.is_rent else "",
                     },
                 }
             else:
