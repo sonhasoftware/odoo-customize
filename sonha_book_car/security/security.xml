@@ -24,13 +24,14 @@
         <field name="name">Rule user book car</field>
         <field name="model_id" ref="model_book_car"/>
         <field name="domain_force">
-            ['|','|','|','|','|',
+            ['|','|','|','|','|','|',
                 ('employee_id.user_id', '=', user.id),
                 ('employee_id', 'child_of', [emp.id for emp in user.employee_ids]),
                 ('approve_people.user_id', '=', user.id),
                 ('competency_employee.user_id', '=', user.id),
                 ('booking_employee_id.user_id', '=', user.id),
-                ('driver.user_id', '=', user.id)
+                ('driver.user_id', '=', user.id),
+                ('driver_rent.user_id', '=', user.id)
             ]
         </field>
         <field name="groups" eval="[(4, ref('sonha_book_car.group_book_car_user'))]"/>

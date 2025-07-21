@@ -120,10 +120,11 @@
         <field name="arch" type="xml">
             <search string="Search Đặt xe">
                 <filter string="Đặt xe: Bản thân/Chờ duyệt" name="my_record_n_approve_request" domain="[
-                '|','|','|',
+                '|','|','|','|',
                 ('competency_employee.user_id', '=', uid),
                 ('create_uid', '=', uid),
                 ('driver.user_id', '=', uid),
+                ('driver_rent.user_id', '=', uid),
                 '&amp;',
                 ('approve_people.user_id', '=', uid),
                 ('type', '=', 'waiting')]" />
