@@ -248,7 +248,8 @@ class BookCar(models.Model):
                 r.status = 'approved'
                 r.type = 'approved'
                 r.list_view_status = r.list_view_status + " → Đã duyệt"
-                if r.competency_employee.work_email:
+                employee_mail = self.env['hr.employee'].sudo().search([('id', '=', r.competency_employee.id)], limit=1)
+                if employee_mail.work_email:
                     request_template = self.env.ref('sonha_book_car.template_mail_to_competency_employee')
                     request_template.send_mail(r.id, force_send=True)
             else:
@@ -277,7 +278,8 @@ class BookCar(models.Model):
                 r.status_issuing_card = 'issuing'
                 r.type = 'issuing_card'
                 r.list_view_status = r.list_view_status + " → Cấp thẻ"
-                if r.booking_employee_id.work_email:
+                employee_mail = self.env['hr.employee'].sudo().search([('id', '=', r.booking_employee_id.id)], limit=1)
+                if employee_mail.work_email:
                     request_template = self.env.ref('sonha_book_car.template_mail_accept_to_creator')
                     request_template.send_mail(r.id, force_send=True)
             else:
@@ -328,7 +330,7 @@ class BookCar(models.Model):
                     'target': 'new',
                     'context': {
                         'default_parent_id': r.id,
-                        'default_driver': r.driver.id,
+                        'default_driver': r.driver.id if r.driver else r.driver_rent.id,
                         'default_driver_phone': r.driver_phone,
                         'default_license_plate': r.license_plate,
                         'default_reality_start_date': r.start_date,
@@ -387,7 +389,8 @@ class BookCar(models.Model):
                 r.status = 'waiting'
                 r.type = 'waiting'
                 r.list_view_status = r.list_view_status + " → Chờ duyệt"
-                if r.approve_people.work_email:
+                employee_mail = self.env['hr.employee'].sudo().search([('id', '=', r.approve_people.id)], limit=1)
+                if employee_mail.work_email:
                     request_template = self.env.ref('sonha_book_car.template_mail_booking_car')
                     request_template.send_mail(r.id, force_send=True)
             else:
@@ -399,7 +402,8 @@ class BookCar(models.Model):
                 r.status = 'draft'
                 r.type = 'draft'
                 r.list_view_status = "Nháp"
-                if r.booking_employee_id.work_email:
+                employee_mail = self.env['hr.employee'].sudo().search([('id', '=', r.booking_employee_id.id)], limit=1)
+                if employee_mail.work_email:
                     request_template = self.env.ref('sonha_book_car.template_mail_book_car_to_draft')
                     request_template.send_mail(r.id, force_send=True)
             else:
