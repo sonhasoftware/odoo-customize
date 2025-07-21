@@ -9,3 +9,9 @@ access_sonha_plan_detail,sonha.plan.detail,model_plan_detail,,1,1,1,1
 access_sonha_cost_coverage,sonha.cost.coverage,model_cost_coverage,,1,1,1,1
 
 access_sonha_cost_estimated,sonha.cost.estimated,model_cost_estimated,,1,1,1,1
+
+access_sonha_config_approval,sonha.config.approval,model_config_approval,,1,1,1,1
+
+access_sonha_step_step,sonha.step.step,model_step_step,,1,1,1,1
+
+access_sonha_approval_state,sonha.approval.state,model_approval_state,,1,1,1,1

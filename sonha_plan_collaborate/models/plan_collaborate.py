@@ -36,6 +36,34 @@ class PlanCollaborate(models.Model):
 
     cost_estimated = fields.One2many('cost.estimated', 'plan_id', string="Chi phí dự kiến")
 
+    config_id = fields.Many2one('config.approval', string='Chọn bước duyệt')
+    step_ids = fields.One2many('step.step', 'plan_id', string="Các bước duyệt")
+
+    @api.onchange('config_id')
+    def _onchange_config_id(self):
+        if self.config_id:
+            steps = []
+            self.step_ids = [(5, 0, 0)]  # Xoá các bước cũ trước
+
+            for step in self.config_id.step_status:
+                # Lấy employee từ user tạo bản ghi kế hoạch
+                employee = self.env['hr.employee'].sudo().search([
+                    ('user_id', '=', self.create_uid.id)
+                ], limit=1)
+
+                values = {
+                    'status': step.status,
+                    'employee_approval': employee.id,
+                    'plan_id': self.id,
+                }
+                steps.append((0, 0, values))
+
+            self.step_ids = steps
+
+    def create(self, vals):
+        res = super(PlanCollaborate, self).create(vals)
+
+
     def get_code(self):
         for r in self:
             if r.id:

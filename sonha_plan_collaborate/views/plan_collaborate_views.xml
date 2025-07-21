@@ -10,6 +10,13 @@
                         <field name="code"/>
                         <field name="type_collaborate"/>
                         <field name="total_price"/>
+                        <field name="config_id"/>
+                        <field name="step_ids">
+                            <tree editable="bottom">
+                                <field name="status"/>
+                                <field name="employee_approval"/>
+                            </tree>
+                        </field>
                     </group>
                     <notebook>
                         <page string="PA Công tác" name="general_information">
