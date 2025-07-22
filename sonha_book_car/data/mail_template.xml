@@ -234,6 +234,10 @@
                         - Người lái xe: <t t-out="object.driver.name"/>
                     </t>
                     <br/>
+                    <t t-if="object.is_rent != False">
+                        - Người lái xe: <t t-out="object.driver_rent.name"/>
+                    </t>
+                    <br/>
                     - Số điện thoại lái xe: <t t-out="object.driver_phone"/>
                     <br/>
                     - Biển số xe: <t t-out="object.license_plate"/>
