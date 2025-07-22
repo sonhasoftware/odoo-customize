@@ -8,7 +8,6 @@
                 <form>
                     <group>
                         <field name="name"/>
-                        <field name="step"/>
                         <field name="company_id"/>
                         <field name="department_id"/>
                     </group>
@@ -16,7 +15,7 @@
                         <page string="Các bước duyệt" name="general_information">
                             <field name="step_status" string="">
                                 <tree editable="bottom">
-                                    <field name="stt"/>
+                                    <field name="sequence"/>
                                     <field name="status"/>
                                     <field name="approval"/>
                                     <field name="employee_approval"/>

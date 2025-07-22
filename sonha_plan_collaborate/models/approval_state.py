@@ -1,9 +1,9 @@
 from odoo import api, fields, models
 
 
-class ApprovalState(models.Model):
-    _name = 'approval.state'
+class ApprovalStatePlan(models.Model):
+    _name = 'approval.state.plan'
     _description = 'Trạng thái luồng duyệt'
 
-    name = fields.Char("Tên", required=True)
-    code_state = fields.Char(string="Mã trạng thái")
+    name = fields.Char("Tên")
+    code_state = fields.Char("Mã trạng thái")
