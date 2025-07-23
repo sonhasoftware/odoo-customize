@@ -211,6 +211,7 @@ class ExportReportEmployee(models.TransientModel):
                 sheet.cell(row=row, column=17).value = ''
             if self.report.key != "ttc":
                 row += 1
+                sheet.insert_rows(row)
                 stt += 1
         # Báo cáo thông tin chung
         if self.report.key == "ttc":
@@ -280,7 +281,7 @@ class ExportReportEmployee(models.TransientModel):
 
             # Lưu lại file kết quả
         max_lengths = defaultdict(int)
-        for row in sheet.iter_rows(min_row=row_min, max_row=sheet.max_row, min_col=1, max_col=sheet.max_column):
+        for row in sheet.iter_rows(min_row=row_min, max_row=row, min_col=1, max_col=sheet.max_column):
             for cell in row:
                 cell.border = thin_border
                 cell.alignment = center_alignment

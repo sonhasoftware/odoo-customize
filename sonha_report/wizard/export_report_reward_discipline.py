@@ -160,6 +160,7 @@ class ExportReportRewardDiscipline(models.TransientModel):
                 sheet.cell(row=row, column=15).value = record.note or ''
 
             row += 1
+            sheet.insert_rows(row)
             stt += 1
         if self.report.key == "thklbt":
             stt = 1
@@ -171,11 +172,12 @@ class ExportReportRewardDiscipline(models.TransientModel):
                 sheet.cell(row=row, column=11).value = department.name
                 sheet.cell(row=row, column=12).value = count_emp_discipline
                 row += 1
+                sheet.insert_rows(row)
                 stt += 1
 
 
             # Lưu lại file kết quả
-        for row in sheet.iter_rows(min_row=row_min, max_row=sheet.max_row, min_col=1, max_col=sheet.max_column):
+        for row in sheet.iter_rows(min_row=row_min, max_row=row, min_col=1, max_col=sheet.max_column):
             for cell in row:
                 cell.border = thin_border
                 cell.alignment = center_alignment
