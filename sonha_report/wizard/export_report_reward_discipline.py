@@ -22,23 +22,28 @@ class ExportReportRewardDiscipline(models.TransientModel):
         if not active_ids:
             raise ValidationError("Không có bản ghi nào được chọn.")
         if self.report.key == "tdkl":
+            filter_report = self.env['popup.discipline.report'].sudo().search([], order='id desc', limit=1)
             list_record = self.env['discipline.report'].browse(active_ids)
             row = 7
             row_min = 7
         elif self.report.key == "thklbt":
             list_record = self.env['discipline.report'].browse(active_ids)
+            filter_report = self.env['popup.discipline.report'].sudo().search([], order='id desc', limit=1)
             row = 5
             row_min = 5
         elif self.report.key == "tdkt":
             list_record = self.env['reward.report'].browse(active_ids)
+            filter_report = self.env['popup.reward.report'].sudo().search([], order='id desc', limit=1)
             row = 6
             row_min = 6
         elif self.report.key == "qdmn":
             list_record = self.env['dismissal.report'].browse(active_ids)
+            filter_report = self.env['popup.dismissal.report'].sudo().search([], order='id desc', limit=1)
             row = 10
             row_min = 10
         elif self.report.key == "qdnv" or self.report.key == "qddc":
             list_record = self.env['dismissal.report'].browse(active_ids)
+            filter_report = self.env['popup.dismissal.report'].sudo().search([], order='id desc', limit=1)
             row = 9
             row_min = 9
         else:
@@ -55,6 +60,15 @@ class ExportReportRewardDiscipline(models.TransientModel):
             bottom=Side(style='thin')
         )
         center_alignment = Alignment(horizontal='center', vertical='center')
+
+        start_date = filter_report.from_date.strftime('%d/%m/%Y')
+        end_date = filter_report.to_date.strftime('%d/%m/%Y')
+
+        now = datetime.now().date()
+        report_date = now.day
+        report_month = now.month
+        report_year = now.year
+
         for record in list_record:
             # Báo cáo theo dõi kỷ luật
             if self.report.key == "tdkl":
@@ -165,6 +179,16 @@ class ExportReportRewardDiscipline(models.TransientModel):
             for cell in row:
                 cell.border = thin_border
                 cell.alignment = center_alignment
+        for row in sheet.iter_rows(min_row=1, max_row=sheet.max_row, min_col=1, max_col=sheet.max_column):
+            for cell in row:
+                if isinstance(cell.value, str) and '[start_date]' in cell.value:
+                    cell.value = cell.value.replace('[start_date]', start_date)
+                if isinstance(cell.value, str) and '[end_date]' in cell.value:
+                    cell.value = cell.value.replace('[end_date]', end_date)
+                if isinstance(cell.value, str) and '[report_date]' in cell.value:
+                    cell.value = cell.value.replace('[report_date]', str(report_date))
+                    cell.value = cell.value.replace('[report_month]', str(report_month))
+                    cell.value = cell.value.replace('[report_year]', str(report_year))
         output_stream = io.BytesIO()
         wb.save(output_stream)
         output_stream.seek(0)
