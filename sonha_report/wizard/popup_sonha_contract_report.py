@@ -24,18 +24,8 @@ class PopupSonhaContractReport(models.TransientModel):
             list_records = list_records.filtered(lambda x: x.department_id.id == self.department_id.id)
         if self.contract_type_id:
             list_records = list_records.filtered(lambda x: x.contract_type_id.id == self.contract_type_id.id)
-        if self.status and self.status != 'open':
+        if self.status:
             list_records = list_records.filtered(lambda x: x.state == self.status)
-        if self.status and self.status == 'open':
-            open_contract = list_records.filtered(lambda x: x.employee_id.status_employee != 'quit_job' and x.state == 'open')
-            employee_open = open_contract.mapped('employee_id.id')
-            list_contract_open = open_contract.ids
-            list_contract = list_records.filtered(lambda x: x.employee_id.status_employee != 'quit_job').sorted(key=lambda x: x.create_date, reverse=True)
-            for rec in list_contract:
-                if rec.employee_id.id not in employee_open:
-                    list_contract_open.append(rec.id)
-                    employee_open.append(rec.employee_id.id)
-            list_records = list_records.filtered(lambda x: x.id in list_contract_open)
         if list_records:
             for r in list_records:
                 vals = {
