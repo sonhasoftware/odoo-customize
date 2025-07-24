@@ -9,6 +9,10 @@ class PopupSonhaContractReport(models.TransientModel):
     company_id = fields.Many2one('res.company', string="Đơn vị", required=True)
     department_id = fields.Many2one('hr.department', string="Phòng ban", domain="[('company_id', '=', company_id)]")
     contract_type_id = fields.Many2one('hr.contract.type', string="Kiểu hợp đồng")
+    status = fields.Selection([('draft', "Mới"),
+                               ('open', "Đang chạy"),
+                               ('close', "Đã hết hạn"),
+                               ('cancel', "Đã hủy")], string="Trạng thái")
 
     def action_confirm(self):
         self.env['sonha.contract.report'].search([]).sudo().unlink()
@@ -20,6 +24,8 @@ class PopupSonhaContractReport(models.TransientModel):
             list_records = list_records.filtered(lambda x: x.department_id.id == self.department_id.id)
         if self.contract_type_id:
             list_records = list_records.filtered(lambda x: x.contract_type_id.id == self.contract_type_id.id)
+        if self.status:
+            list_records = list_records.filtered(lambda x: x.state == self.status)
         if list_records:
             for r in list_records:
                 vals = {
