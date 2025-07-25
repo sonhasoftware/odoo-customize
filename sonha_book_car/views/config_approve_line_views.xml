@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="config_approve_line_tree_view" model="ir.ui.view">
+        <field name="name">config.approve.line.tree.view</field>
+        <field name="model">config.approve.line</field>
+        <field name="arch" type="xml">
+            <tree string="Cấu hình luồng duyệt" editable="bottom">
+                <field name="department_id"/>
+                <field name="approve_people"/>
+                <field name="competency_employee"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="config_approve_line_action" model="ir.actions.act_window">
+        <field name="name">Cấu hình luồng duyệt</field>
+        <field name="res_model">config.approve.line</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

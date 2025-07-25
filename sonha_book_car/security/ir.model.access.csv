@@ -2,11 +2,12 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 
 access_book_car_user,access.book.car.user,model_book_car,group_book_car_user,1,1,1,1
 access_book_car_manager,access.book.car.manager,model_book_car,group_book_car_manager,1,1,1,1
+access_book_car_approve,access.book.car.approve,model_book_car,group_book_car_approve,1,1,1,1
 
 access_book_car_short,access.book.car.short,model_book_car_short,,1,0,0,0
 
-access_config_competency_employee,access.config.competency.employee,model_config_competency_employee,group_book_car_manager,1,1,1,1
 access_config_car,access.config.car,model_config_car,group_book_car_manager,1,1,1,1
+access_config_approve_line,access.config.approve.line,model_config_approve_line,group_book_car_manager,1,1,1,1
 
 access_wizard_exist_car,access.wizard.exist.car,model_wizard_exist_car,,1,1,1,1
 

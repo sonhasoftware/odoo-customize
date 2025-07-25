@@ -6,12 +6,33 @@
             <field name="model">plan.collaborate</field>
             <field name="arch" type="xml">
                 <form>
-                    <group>
-                        <field name="code"/>
-                        <field name="type_collaborate"/>
-                        <field name="total_price"/>
-                    </group>
-                    <notebook>
+                    <header>
+                        <button name="action_approve_step"
+                                type="object"
+                                string="Duyệt"
+                                class="btn-primary"/>
+
+                        <field name="current_step_label" readonly="1" style="color: green; font-weight: bold; font-size: 20px;" string="Trạng thái hiện tại"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <field name="company_id"/>
+                            <field name="code"/>
+                            <field name="type_collaborate"/>
+                            <field name="total_price"/>
+                            <field name="config_id" domain="[('company_id', '=', company_id)]"/>
+
+                            <field name="step_line_ids">
+                                <tree editable="bottom" delete="0">
+                                    <field name="sequence" readonly="1"/>
+                                    <field name="status" readonly="1"/>
+                                    <field name="domain_employee_ids" column_invisible="1"/>
+                                    <field name="employee_id" domain="[('id', 'in', domain_employee_ids)]"/>
+                                    <field name="status_done" readonly="1"/>
+                                </tree>
+                            </field>
+                        </group>
+                        <notebook>
                         <page string="PA Công tác" name="general_information">
                             <group string="Thông tin chung">
                                 <field name="general_information" string="">
@@ -82,6 +103,7 @@
                             </group>
                         </page>
                     </notebook>
+                    </sheet>
                 </form>
             </field>
         </record>

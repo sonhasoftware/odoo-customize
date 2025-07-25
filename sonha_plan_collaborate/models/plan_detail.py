@@ -5,7 +5,7 @@ class PlanDetail(models.Model):
     _name = 'plan.detail'
 
     time = fields.Date("Thời gian")
-    location = fields.Char("Địa đỉểm")
+    location = fields.Char("Địa điểm")
     content = fields.Text("Nội dung công việc")
 
     plan_id = fields.Many2one('plan.collaborate')
