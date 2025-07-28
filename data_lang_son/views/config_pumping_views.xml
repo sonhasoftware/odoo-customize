@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+
+        <record id="config_pumping_tree_view" model="ir.ui.view">
+            <field name="name">config.pumping.tree.view</field>
+            <field name="model">config.pumping</field>
+            <field name="arch" type="xml">
+                <tree editable="bottom">
+                    <field name="name"/>
+                    <field name="branch_id"/>
+                    <field name="user_id"/>
+                    <field name="date"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_config_pumping" model="ir.actions.act_window">
+            <field name="name">Cấu hình trạm bơm</field>
+            <field name="res_model">config.pumping</field>
+            <field name="view_mode">tree</field>
+        </record>
+
+        <menuitem id="menu_data_lang_son"
+                  name="Nước Lạng Sơn"
+                  sequence="1000"/>
+
+        <menuitem id="menu_config_pumping"
+                  name="Cấu hình trạm bơm"
+                  parent="menu_data_lang_son"
+                  action="action_config_pumping"
+                  sequence="10"/>
+
+    </data>
+</odoo>

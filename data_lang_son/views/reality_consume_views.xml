@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="reality_consume_form_view" model="ir.ui.view">
+            <field name="name">reality.consume.form.view</field>
+            <field name="model">reality.consume</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <field name="branch"/>
+                        <field name="branch_id"/>
+                        <field name="check_invisible" invisible="1"/>
+                        <field name="month" invisible="check_invisible == True"/>
+                        <field name="year" invisible="check_invisible == True"/>
+
+                        <field name="reality_consume_filtered_ids" string="Kế hoạch tiêu thụ">
+                            <tree editable="bottom">
+                                <field name="date"/>
+                                <field name="reality_consume_electric"/>
+                                <field name="reality_consume_water"/>
+                                <field name="revenue"/>
+                                <field name="loss_rate"/>
+                                <field name="no_name"/>
+                            </tree>
+                        </field>
+                    </group>
+                </form>
+            </field>
+        </record>
+
+        <record id="reality_consume_tree_view" model="ir.ui.view">
+            <field name="name">reality.consume.tree.view</field>
+            <field name="model">reality.consume</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="branch"/>
+                    <field name="branch_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_reality_consume" model="ir.actions.act_window">
+            <field name="name">Thực tế tiêu thụ</field>
+            <field name="res_model">reality.consume</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <menuitem id="menu_reality_consume"
+                  name="Thực tế tiêu thụ"
+                  parent="menu_data_lang_son"
+                  action="action_reality_consume"
+                  sequence="2"/>
+
+    </data>
+</odoo>
