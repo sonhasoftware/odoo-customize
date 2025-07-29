@@ -74,7 +74,8 @@ class BookCar(models.Model):
     car_estimate = fields.Integer("Số lượng xe(ước tính)",
                                   compute="caculate_car_estimate", store=True)
     is_rent = fields.Boolean("Thuê xe")
-    driver_rent = fields.Many2one('hr.employee', "Lái xe")
+    driver_rent = fields.Char("Lái xe")
+    driver_rent_car = fields.Many2one('hr.employee', "Lái xe")
     rent_company = fields.Char("Đơn vị thuê")
     company_rent_car = fields.Many2one('res.company', string="Công ty thuê xe")
     record_link = fields.Char(compute="_compute_record_url", store=True)
@@ -331,7 +332,7 @@ class BookCar(models.Model):
                     'target': 'new',
                     'context': {
                         'default_parent_id': r.id,
-                        'default_driver': r.driver.id if r.driver else r.driver_rent.id,
+                        'default_driver': r.driver.id if r.driver else r.driver_rent_car.id,
                         'default_driver_phone': r.driver_phone,
                         'default_license_plate': r.license_plate,
                         'default_reality_start_date': r.start_date,
@@ -462,7 +463,7 @@ class BookCar(models.Model):
                         'default_company_rent_car': r.company_rent_car.id if r.is_rent else "",
                         'default_driver_phone': r.driver_phone,
                         'default_license_plate': r.license_plate,
-                        'default_driver_rent': r.driver_rent.id if r.is_rent else "",
+                        'default_driver_rent_car': r.driver_rent_car.id if r.is_rent else "",
                     },
                 }
             else:

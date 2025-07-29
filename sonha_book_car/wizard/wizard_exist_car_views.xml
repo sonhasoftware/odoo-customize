@@ -9,7 +9,7 @@
                     <field name="type"/>
                     <field name="company_rent_car" invisible="type != 'rent_car'" required="type != 'non_rent'"/>
                     <field name="driver" invisible="type != 'non_rent'" required="type != 'rent_car'"/>
-                    <field name="driver_rent" invisible="type != 'rent_car'" required="type != 'non_rent'"/>
+                    <field name="driver_rent_car" invisible="type != 'rent_car'" required="type != 'non_rent'"/>
                     <field name="driver_phone"/>
                     <field name="license_plate"/>
                     <field name="company_id" invisible="1"/>
