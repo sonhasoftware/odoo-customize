@@ -161,7 +161,7 @@ class BookCar(models.Model):
     @api.depends('status', 'employee_id')
     def get_check_sent(self):
         for r in self:
-            if r.status == 'draft' and (self.env.user.employee_id.id == r.employee_id.id or self.env.user.has_group('sonha_book_car.group_book_car_manager')):
+            if r.status == 'draft' and (r.employee_id.id == self.env.user.employee_id.id or self.env.user.has_group('sonha_book_car.group_book_car_manager')):
                 r.check_sent = True
             else:
                 r.check_sent = False
@@ -169,7 +169,7 @@ class BookCar(models.Model):
     @api.depends('status', 'approve_people')
     def get_check_approve(self):
         for r in self:
-            if r.status == 'waiting' and (self.env.user.employee_id.id == r.approve_people.id or self.env.user.has_group('sonha_book_car.group_book_car_manager')):
+            if r.status == 'waiting' and (r.approve_people.id == self.env.user.employee_id.id or self.env.user.has_group('sonha_book_car.group_book_car_manager')):
                 r.check_approve = True
             else:
                 r.check_approve = False
@@ -177,7 +177,7 @@ class BookCar(models.Model):
     @api.depends('type', 'competency_employee')
     def get_check_process(self):
         for r in self:
-            if r.type == 'approved' and (self.env.user.employee_id.id == r.competency_employee.id or self.env.user.has_group('sonha_book_car.group_book_car_manager')):
+            if r.type == 'approved' and (r.competency_employee.id == self.env.user.employee_id.id or self.env.user.has_group('sonha_book_car.group_book_car_manager')):
                 r.check_process = True
             else:
                 r.check_process = False
@@ -193,7 +193,7 @@ class BookCar(models.Model):
     @api.depends('status_issuing_card', 'competency_employee')
     def get_check_return_card(self):
         for r in self:
-            if r.status_issuing_card == 'issuing' and (self.env.user.employee_id.id == r.competency_employee.id or self.env.user.has_group('sonha_book_car.group_book_car_manager')):
+            if r.status_issuing_card == 'issuing' and (r.competency_employee.id == self.env.user.employee_id.id or self.env.user.has_group('sonha_book_car.group_book_car_manager')):
                 r.check_return_card = True
             else:
                 r.check_return_card = False

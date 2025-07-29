@@ -11,6 +11,7 @@
                     <field name="company_id"/>
                     <field name="department_id"/>
                     <field name="contract_type_id"/>
+                    <field name="status"/>
                 </group>
                 <footer>
                     <button string="Xác nhận" type="object" name="action_confirm" class="oe_highlight"/>
