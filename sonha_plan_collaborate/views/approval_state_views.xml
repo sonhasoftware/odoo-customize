@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+
+        <record id="approval_state_plan_tree_view" model="ir.ui.view">
+            <field name="name">approval.state.plan.tree.view</field>
+            <field name="model">approval.state.plan</field>
+            <field name="arch" type="xml">
+                <tree editable="bottom">
+                    <field name="name"/>
+                    <field name="code_state"/>
+                </tree>
+            </field>
+        </record>
+
+            <record id="action_approval_state" model="ir.actions.act_window">
+            <field name="name">Cấu hình trạng thái</field>
+            <field name="res_model">approval.state.plan</field>
+            <field name="view_mode">tree</field>
+        </record>
+
+
+        <menuitem id="menu_config_approval_state"
+                  name="Cấu hình trạng thái"
+                  parent="menu_plan_collaborate"
+                  action="action_approval_state"
+                  sequence="3"/>
+
+    </data>
+</odoo>

@@ -525,6 +525,17 @@ class EmployeeAttendance(models.Model):
                                                                     ('start_date', '<=', r.date),
                                                                     ('end_date', '>=', r.date)])
 
+            leave_no_work = self.env['word.slip'].sudo().search([
+                ('from_date', '<=', r.date),
+                ('to_date', '>=', r.date),
+                ('word_slip.status', '=', 'done'),
+                ('word_slip.type.key', '=', "KL"),
+            ])
+
+            leave_no_work = leave_no_work.filtered(
+                lambda x: (x.word_slip.employee_id and x.word_slip.employee_id.id == r.employee_id.id) or (
+                            x.word_slip.employee_ids and r.employee_id.id in x.word_slip.employee_ids.ids))
+
             if r.shift.is_office_hour and (weekday == 6 or (weekday == 5 and week_number % 2 == 1)):
                 r.work_day = 0
             elif r.shift.shift_ot:
@@ -556,15 +567,19 @@ class EmployeeAttendance(models.Model):
                                 r.work_day = 1 - r.compensatory
                             elif r.leave > 0:
                                 r.work_day = 1 - r.leave
-                            else:
+                            elif leave_no_work:
                                 r.work_day = 0.5
+                            else:
+                                r.work_day = 0
                         elif not r.check_in and r.check_out:
                             if r.compensatory > 0:
                                 r.work_day = 1 - r.compensatory
                             elif r.leave > 0:
                                 r.work_day = 1 - r.leave
-                            else:
+                            elif leave_no_work:
                                 r.work_day = 0.5
+                            else:
+                                r.work_day = 0
                         else:
                             r.work_day = 0
 

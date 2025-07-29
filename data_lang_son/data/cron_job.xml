@@ -1,0 +1,27 @@
+<odoo>
+    <data>
+        <!-- Scheduled Action for updating attendance -->
+        <record id="ir_cron_reality_consume" model="ir.cron">
+            <field name="name">Tạo dữ liệu thực tế</field>
+            <field name="model_id" ref="model_reality_consume"/>
+            <field name="state">code</field>
+            <field name="code">model.create_reality_consume()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="doall">True</field>
+        </record>
+
+
+        <record id="ir_cron_data_excel" model="ir.cron">
+            <field name="name">Chạy dữ liệu excel</field>
+            <field name="model_id" ref="model_data_excel"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_job_data_excel()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="doall">True</field>
+        </record>
+    </data>
+</odoo>

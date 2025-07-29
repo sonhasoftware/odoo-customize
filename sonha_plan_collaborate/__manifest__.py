@@ -10,6 +10,8 @@
     'data': [
         'security/ir.model.access.csv',
         'views/plan_collaborate_views.xml',
+        'views/config_approval_views.xml',
+        'views/approval_state_views.xml',
     ],
     'installable': True,
     'application': True,

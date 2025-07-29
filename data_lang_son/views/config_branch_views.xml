@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+
+        <record id="config_branch_tree_view" model="ir.ui.view">
+            <field name="name">config.branch.tree.view</field>
+            <field name="model">config.branch</field>
+            <field name="arch" type="xml">
+                <tree editable="bottom">
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_config_branch" model="ir.actions.act_window">
+            <field name="name">Cấu hình chi nhánh</field>
+            <field name="res_model">config.branch</field>
+            <field name="view_mode">tree</field>
+        </record>
+
+        <menuitem id="menu_config_branch"
+                  name="Cấu hình chi nhánh"
+                  parent="menu_data_lang_son"
+                  action="action_config_branch"
+                  sequence="10"/>
+
+    </data>
+</odoo>
