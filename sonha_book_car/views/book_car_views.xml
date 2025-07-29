@@ -69,7 +69,7 @@
                         <field name="is_rent" readonly="1"/>
                         <field name="driver" readonly="1"  invisible="is_rent != False"/>
                         <field name="driver_rent" readonly="1"  invisible="is_rent != True"/>
-                        <field name="rent_company" readonly="1" invisible="is_rent != True"/>
+                        <field name="company_rent_car" readonly="1" invisible="is_rent != True"/>
                         <field name="driver_phone" readonly="1"/>
                         <field name="license_plate" readonly="1"/>
                     </group>

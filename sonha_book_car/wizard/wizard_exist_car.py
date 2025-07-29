@@ -5,10 +5,11 @@ class WizardExistCar(models.TransientModel):
     _name = 'wizard.exist.car'
 
     driver = fields.Many2one('hr.employee', string="Lái xe")
-    driver_rent = fields.Many2one('hr.employee', "Lái xe", domain="[('company_id', '=', rent_company)]")
+    driver_rent = fields.Many2one('hr.employee', "Lái xe", domain="[('company_id', '=', company_rent_car)]")
     driver_phone = fields.Char("Số điện thoại lái xe", required=True)
     license_plate = fields.Char("Biển số xe", required=True)
-    rent_company = fields.Many2one('res.company', "Đơn vị")
+    rent_company = fields.Char("Đơn vị")
+    company_rent_car = fields.Many2one('res.company', "Công ty thuê xe")
     type = fields.Selection([('non_rent', "Xe đơn vị"),
                              ('rent_car', "Thuê xe DVTV")],
                             default='non_rent', required=True, string="Loại")
@@ -30,12 +31,12 @@ class WizardExistCar(models.TransientModel):
         if (self.parent_id.driver and self.parent_id.driver.id != self.driver.id) or (
                 self.parent_id.driver_phone and self.parent_id.driver_phone != self.driver_phone) or (
                 self.parent_id.license_plate and self.parent_id.license_plate != self.license_plate) or (
-                self.parent_id.rent_company and self.parent_id.rent_company.id != self.rent_company.id) or (
+                self.parent_id.company_rent_car and self.parent_id.company_rent_car.id != self.company_rent_car.id) or (
                 self.parent_id.is_rent and self.type == 'non_rent') or (
                 self.parent_id.driver and self.type == 'rent_car') or (
                 self.parent_id.driver_rent and self.parent_id.driver_rent.id != self.driver_rent.id):
             edit_infor = 1
-        if not self.parent_id.driver and not self.parent_id.driver_phone and not self.parent_id.license_plate and not self.parent_id.rent_company:
+        if not self.parent_id.driver and not self.parent_id.driver_phone and not self.parent_id.license_plate and not self.parent_id.company_rent_car:
             new_infor = 1
         parent_status = "Nháp → Chờ duyệt → Đã duyệt"
         status = " → Cấp xe"
@@ -49,7 +50,7 @@ class WizardExistCar(models.TransientModel):
             'status_exist_car': 'exist',
             'type': 'exist_car',
             'list_view_status': new_status,
-            'rent_company': self.rent_company.id if self.type == 'rent_car' else "",
+            'company_rent_car': self.company_rent_car.id if self.type == 'rent_car' else "",
             'driver_rent': self.driver_rent.id if self.type == 'rent_car' else "",
             'is_rent': True if self.type == 'rent_car' else False,
         })

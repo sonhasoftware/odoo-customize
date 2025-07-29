@@ -75,7 +75,8 @@ class BookCar(models.Model):
                                   compute="caculate_car_estimate", store=True)
     is_rent = fields.Boolean("Thuê xe")
     driver_rent = fields.Many2one('hr.employee', "Lái xe")
-    rent_company = fields.Many2one('res.company', "Đơn vị thuê")
+    rent_company = fields.Char("Đơn vị thuê")
+    company_rent_car = fields.Many2one('res.company', string="Công ty thuê xe")
     record_link = fields.Char(compute="_compute_record_url", store=True)
 
     @api.depends('booking_employee_id')
@@ -458,7 +459,7 @@ class BookCar(models.Model):
                         'default_type': 'rent_car' if r.is_rent else 'non_rent',
                         'default_parent_id': r.id,
                         'default_driver': r.driver.id if r.driver else None,
-                        'default_rent_company': r.rent_company.id if r.is_rent else "",
+                        'default_company_rent_car': r.company_rent_car.id if r.is_rent else "",
                         'default_driver_phone': r.driver_phone,
                         'default_license_plate': r.license_plate,
                         'default_driver_rent': r.driver_rent.id if r.is_rent else "",

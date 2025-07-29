@@ -7,7 +7,7 @@
             <form string="Thông tin xe">
                 <group>
                     <field name="type"/>
-                    <field name="rent_company" invisible="type != 'rent_car'" required="type != 'non_rent'"/>
+                    <field name="company_rent_car" invisible="type != 'rent_car'" required="type != 'non_rent'"/>
                     <field name="driver" invisible="type != 'non_rent'" required="type != 'rent_car'"/>
                     <field name="driver_rent" invisible="type != 'rent_car'" required="type != 'non_rent'"/>
                     <field name="driver_phone"/>
