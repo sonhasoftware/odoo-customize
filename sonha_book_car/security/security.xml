@@ -31,7 +31,7 @@
                 ('competency_employee.user_id', '=', user.id),
                 ('booking_employee_id.user_id', '=', user.id),
                 ('driver.user_id', '=', user.id),
-                ('driver_rent.user_id', '=', user.id)
+                ('driver_rent_car.user_id', '=', user.id)
             ]
         </field>
         <field name="groups" eval="[(4, ref('sonha_book_car.group_book_car_user'))]"/>
