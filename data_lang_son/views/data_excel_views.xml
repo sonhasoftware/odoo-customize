@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="data_excel_form_view" model="ir.ui.view">
+            <field name="name">data.excel.form.view</field>
+            <field name="model">data.excel</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <button name="action_confirm" type="object" string="Fill Data" class="oe_highlight"/>
+                        <field name="file"/>
+                    </group>
+                </form>
+            </field>
+        </record>
+
+        <record id="data_excel_tree_view" model="ir.ui.view">
+            <field name="name">data.excel.tree.view</field>
+            <field name="model">data.excel</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="file"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_data_excel" model="ir.actions.act_window">
+            <field name="name">File excel</field>
+            <field name="res_model">data.excel</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <menuitem id="menu_data_excel"
+                  name="File excel"
+                  parent="menu_data_lang_son"
+                  action="action_data_excel"
+                  sequence="100"/>
+
+    </data>
+</odoo>

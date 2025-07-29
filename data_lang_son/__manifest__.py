@@ -14,6 +14,7 @@
         'views/config_branch_views.xml',
         'views/reality_consume_views.xml',
         'views/plan_consume_views.xml',
+        'views/data_excel_views.xml',
         'data/cron_job.xml',
     ],
     'installable': True,
