@@ -235,7 +235,7 @@
                     </t>
                     <br/>
                     <t t-if="object.is_rent != False">
-                        - Người lái xe: <t t-out="object.driver_rent.name"/>
+                        - Người lái xe: <t t-out="object.driver_rent_car.name"/>
                     </t>
                     <br/>
                     - Số điện thoại lái xe: <t t-out="object.driver_phone"/>
