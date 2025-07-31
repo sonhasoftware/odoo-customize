@@ -16,4 +16,4 @@ access_reality_consume_rel,reality.consume.rel,model_reality_consume_rel,,1,1,1,
 
 access_excel_data_lang_son,excel.data.lang.son,model_excel_data_lang_son,,1,1,1,1
 
-access_data_excel,data.excel,model_data_excel,,1,1,1,1
+access_data_excel,data.excel,model_data_excel,group_admin_water,1,1,1,1

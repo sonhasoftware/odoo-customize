@@ -1,4 +1,4 @@
-from odoo import models, fields
+from odoo import models, fields, api
 import base64
 import io
 import pandas as pd
@@ -8,6 +8,12 @@ class DataExcel(models.Model):
     _name = 'data.excel'
 
     file = fields.Binary(string='File')
+    file_name = fields.Char(string="Tên file")
+
+    @api.onchange('file')
+    def _onchange_file_data(self):
+        if self.file and self.file_name:
+            self.display_name = self.file_name
 
     def action_confirm(self):
         data = base64.b64decode(self.file)
