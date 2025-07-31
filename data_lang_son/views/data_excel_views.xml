@@ -18,8 +18,9 @@
             <field name="name">data.excel.tree.view</field>
             <field name="model">data.excel</field>
             <field name="arch" type="xml">
-                <tree>
-                    <field name="file"/>
+                <tree editable="bottom">
+                    <field name="file" filename="file_name"/>
+                    <field name="file_name"/>
                 </tree>
             </field>
         </record>
