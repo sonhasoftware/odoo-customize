@@ -53,6 +53,7 @@
                   name="Cấu hình luồng duyệt"
                   parent="menu_plan_collaborate"
                   action="action_config_approval"
+                  groups="group_admin_plan"
                   sequence="2"/>
 
     </data>

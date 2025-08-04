@@ -36,6 +36,8 @@ class SonHaEmployee(models.Model):
         ('N5', 'N5'),
     ], string='Level', tracking=True)
 
+    score_level = fields.Integer("Số level", compute="get_score_employee")
+
     employee_approval = fields.Many2one('hr.employee', string="Người duyệt")
 
     date = fields.Date('Ngày', tracking=True)
@@ -107,6 +109,25 @@ class SonHaEmployee(models.Model):
     old_leave_balance = fields.Float(string="Phép cũ", readonly=True)
     new_leave_balance = fields.Float(string="Phép mới", readonly=True)
     sonha_number_phone = fields.Char("Số điện thoại")
+
+    @api.depends('level')
+    def get_score_employee(self):
+        for r in self:
+            if r.level:
+                if r.level == 'N5':
+                    r.score_level = 1
+                elif r.level == 'N4':
+                    r.score_level = 2
+                elif r.level == 'N3':
+                    r.score_level = 3
+                elif r.level == 'N2':
+                    r.score_level = 4
+                elif r.level == 'N1':
+                    r.score_level = 5
+                elif r.level == 'N0':
+                    r.score_level = 6
+            else:
+                r.score_level = 0
 
     def update_employee_leave(self):
         """Cập nhật phép hàng tháng và reset phép đầu năm."""

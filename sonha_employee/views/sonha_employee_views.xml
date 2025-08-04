@@ -84,6 +84,7 @@
                 <xpath expr="//page[@name='hr_settings']//field[@name='pin']" position="before">
                     <field name="seniority_display"/>
                     <field name="level"/>
+                    <field name="score_level"/>
                     <field name="employee_approval"/>
                 </xpath>
                 

@@ -2,7 +2,8 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 
 access_sonha_approval_state_plan,sonha.approval.state.plan,model_approval_state_plan,,1,1,1,1
 
-access_sonha_plan_collaborate,sonha.plan.collaborate,model_plan_collaborate,,1,1,1,1
+access_sonha_plan_collaborate_user,sonha.plan.collaborate.user,model_plan_collaborate,group_user_plan,1,1,1,0
+access_sonha_plan_collaborate_admin,sonha.plan.collaborate.admin,model_plan_collaborate,group_admin_plan,1,1,1,1
 
 access_sonha_general_information,sonha.general.information,model_general_information,,1,1,1,1
 
