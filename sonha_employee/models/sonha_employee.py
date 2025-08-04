@@ -30,10 +30,18 @@ class SonHaEmployee(models.Model):
     level = fields.Selection([
         ('N0', 'N0'),
         ('N1', 'N1'),
+        ('N1-', 'N1-'),
         ('N2', 'N2'),
+        ('N2-', 'N2-'),
+        ('N2+', 'N2+'),
         ('N3', 'N3'),
+        ('N3-', 'N3-'),
+        ('N3+', 'N3+'),
         ('N4', 'N4'),
+        ('N4-', 'N4-'),
         ('N5', 'N5'),
+        ('N5-', 'N5-'),
+        ('N6', 'N6'),
     ], string='Level', tracking=True)
 
     score_level = fields.Integer("Số level", compute="get_score_employee")
@@ -114,18 +122,34 @@ class SonHaEmployee(models.Model):
     def get_score_employee(self):
         for r in self:
             if r.level:
-                if r.level == 'N5':
+                if r.level == 'N6':
                     r.score_level = 1
-                elif r.level == 'N4':
+                elif r.level == 'N5':
                     r.score_level = 2
-                elif r.level == 'N3':
+                elif r.level == 'N5-':
+                    r.score_level = 2
+                elif r.level == 'N4':
                     r.score_level = 3
-                elif r.level == 'N2':
+                elif r.level == 'N4-':
+                    r.score_level = 3
+                elif r.level == 'N3':
                     r.score_level = 4
-                elif r.level == 'N1':
+                elif r.level == 'N3+':
+                    r.score_level = 4
+                elif r.level == 'N3-':
+                    r.score_level = 4
+                elif r.level == 'N2':
                     r.score_level = 5
-                elif r.level == 'N0':
+                elif r.level == 'N2+':
+                    r.score_level = 5
+                elif r.level == 'N2-':
+                    r.score_level = 5
+                elif r.level == 'N1-':
                     r.score_level = 6
+                elif r.level == 'N1':
+                    r.score_level = 7
+                else:
+                    r.score_level = 8
             else:
                 r.score_level = 0
 

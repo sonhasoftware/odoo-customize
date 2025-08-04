@@ -133,7 +133,10 @@ class PlanCollaborate(models.Model):
                     # Lấy một dòng bất kỳ có score_level == max_level
                     best_line = lines.filtered(lambda l: l.employee_id.score_level == max_level)[:1]
                     if best_line and best_line.employee_id:
-                        list_employees |= best_line.employee_id.parent_id
+                        if best_line.employee_id.score_level <= 4:
+                            list_employees |= best_line.employee_id.department_id.manager_id
+                        else:
+                            list_employees |= best_line.employee_id.parent_id
 
                 employees = list_employees.filtered(lambda e: e.score_level != 0)
 
