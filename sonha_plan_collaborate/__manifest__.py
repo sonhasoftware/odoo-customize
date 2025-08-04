@@ -8,6 +8,7 @@
     'description': "Công tác Sơn Hà",
     'depends': ['base', 'hr'],
     'data': [
+        'security/security.xml',
         'security/ir.model.access.csv',
         'views/plan_collaborate_views.xml',
         'views/config_approval_views.xml',

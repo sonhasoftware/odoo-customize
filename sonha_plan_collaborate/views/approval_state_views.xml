@@ -24,6 +24,7 @@
                   name="Cấu hình trạng thái"
                   parent="menu_plan_collaborate"
                   action="action_approval_state"
+                  groups="group_admin_plan"
                   sequence="3"/>
 
     </data>

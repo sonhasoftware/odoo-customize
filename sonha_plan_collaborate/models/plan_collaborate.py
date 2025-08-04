@@ -97,20 +97,83 @@ class PlanCollaborate(models.Model):
                 else:
                     record.current_step_label = "Không rõ trạng thái hiện tại"
 
-    @api.onchange('config_id')
-    def _onchange_config_id(self):
-        if self.config_id:
-            self.step_line_ids = [(5, 0, 0)]
-            lines = []
-            for line in self.config_id.step_status.sorted('sequence'):
-                approval_id = self.get_approval_id(line.approval)
+
+    def _apply_config_steps(self):
+        for rec in self:
+            if rec.config_id:
+                rec.step_line_ids = [(5, 0, 0)]
+                lines = []
+                for line in rec.config_id.step_status.sorted('sequence'):
+                    approval_id = rec.get_approval_id(line.approval)
+                    lines.append((0, 0, {
+                        'sequence': line.sequence,
+                        'status': line.status.id,
+                        'approval': line.approval,
+                        'employee_id': approval_id,
+                        'plan_id': rec.id
+                    }))
+                rec.step_line_ids = lines
+            elif rec.general_information and not rec.config_id:
+                rec.step_line_ids = [(5, 0, 0)]
+                # Lấy tất cả các phòng ban từ dòng general_information
+                departments = rec.general_information.mapped('department_id')
+                unique_departments = departments.filtered(lambda d: d)
+                list_employees = rec.env['hr.employee'].browse()  # recordset rỗng
+
+                for dept in departments:  # nên dùng unique list đã lọc
+                    # Lấy các dòng thuộc phòng ban này có employee và score_level
+                    lines = rec.general_information.filtered(
+                        lambda l: l.department_id == dept and l.employee_id and l.employee_id.score_level is not False
+                    )
+                    if not lines:
+                        continue
+
+                    # Tìm score_level cao nhất trong phòng ban
+                    max_level = max(lines.mapped('employee_id.score_level'))
+                    # Lấy một dòng bất kỳ có score_level == max_level
+                    best_line = lines.filtered(lambda l: l.employee_id.score_level == max_level)[:1]
+                    if best_line and best_line.employee_id:
+                        list_employees |= best_line.employee_id.parent_id
+
+                employees = list_employees.filtered(lambda e: e.score_level != 0)
+
+                employee = self.env['hr.employee'].sudo().search([('user_id', '=', rec.create_uid.id)])
+                status = self.env['approval.state.plan'].sudo().search([])
+                draft = status.filtered(lambda x: x.code_state == 'draft')
+                waiting = status.filtered(lambda x: x.code_state == 'waiting')
+                done = status.filtered(lambda x: x.code_state == 'done')
+                # Nhóm theo core_level
+                from collections import defaultdict
+                level_groups = defaultdict(self.env['hr.employee'].browse)  # level -> recordset
+                for emp in employees:
+                    level_groups[emp.score_level] |= emp
+                sorted_levels = sorted(level_groups.keys())
+                lines = []
                 lines.append((0, 0, {
-                    'sequence': line.sequence,
-                    'status': line.status.id,
-                    'approval': line.approval,
-                    'employee_id': approval_id,
+                    'sequence': 0,
+                    'status': draft.id,
+                    'employee_id': employee.id,
+                    'plan_id': rec.id
                 }))
-            self.step_line_ids = lines
+                sequence = 1
+                for level in sorted_levels:
+                    group = level_groups[level]  # recordset các employee có cùng core_level
+                    for emp in group:
+                        lines.append((0, 0, {
+                            'sequence': sequence,
+                            'status': waiting.id if waiting else False,
+                            'employee_id': emp.id,
+                            'plan_id': rec.id
+                        }))
+                    sequence += 1
+
+                # bước cuối done
+                lines.append((0, 0, {
+                    'sequence': sequence,
+                    'status': done.id if done else False,
+                    'plan_id': rec.id
+                }))
+                rec.step_line_ids = lines
 
     def get_approval_id(self, key):
         approval_id = None
@@ -127,76 +190,84 @@ class PlanCollaborate(models.Model):
             approval_id = employee.parent_id.parent_id.parent_id.id
         return approval_id
 
-    def create(self, vals):
-        res = super(PlanCollaborate, self).create(vals)
+    @api.onchange('config_id')
+    def _onchange_config_id(self):
+        self._apply_config_steps()
 
-        if not res.config_id:
-            # Lấy tất cả các phòng ban từ dòng general_information
-            departments = res.general_information.mapped('department_id')
-            unique_departments = departments.filtered(lambda d: d)
-            employee = self.env['hr.employee'].sudo().search([('user_id', '=', res.create_uid.id)])
-            status = self.env['approval.state.plan'].sudo().search([])
-            draft = status.filtered(lambda x: x.code_state == 'draft')
-            waiting = status.filtered(lambda x: x.code_state == 'waiting')
-            done = status.filtered(lambda x: x.code_state == 'done')
-            # Trường hợp không có department, bỏ qua
-            if not unique_departments:
-                return res
-
-            lines = []
-            lines.append((0, 0, {
-                'sequence': 0,
-                'status': draft.id,
-                'employee_id': employee.id,
-            }))
-            sequence = 1
-            for dept in unique_departments:
-                manager = dept.manager_id
-                if not manager:
-                    continue  # Nếu không có người quản lý thì bỏ qua
-
-                lines.append((0, 0, {
-                    'sequence': sequence,
-                    'status': waiting.id,
-                    'employee_id': manager.id,
-                }))
-
-            lines.append((0, 0, {
-                'sequence': sequence + 1,
-                'status': done.id,
-            }))
-
-            res.step_line_ids = lines
-
+    def write(self, vals):
+        res = super(PlanCollaborate, self).write(vals)
+        if 'config_id' in vals or 'general_information' in vals:
+            self._apply_config_steps()
         return res
 
-    # def write(self, vals):
-    #     for record in self:
-    #         if not vals.get('config_id') and not record.config_id:
-    #             # Xóa các bước cũ nếu có
-    #             record.step_line_ids.unlink()
+    def create(self, vals):
+        rec = super(PlanCollaborate, self).create(vals)
+        rec._apply_config_steps()
+        return rec
+
+    # def create(self, vals):
+    #     res = super(PlanCollaborate, self).create(vals)
     #
-    #             # Lấy các phòng ban từ employee_id trong general_information
-    #             departments = record.general_information.mapped('employee_id.department_id')
-    #             unique_departments = departments.filtered(lambda d: d)
+    #     if not res.config_id:
+    #         # Lấy tất cả các phòng ban từ dòng general_information
+    #         departments = res.general_information.mapped('department_id')
+    #         unique_departments = departments.filtered(lambda d: d)
+    #         list_employees = self.env['hr.employee'].browse()  # recordset rỗng
     #
-    #             if not unique_departments:
+    #         for dept in departments:  # nên dùng unique list đã lọc
+    #             # Lấy các dòng thuộc phòng ban này có employee và score_level
+    #             lines = res.general_information.filtered(
+    #                 lambda l: l.department_id == dept and l.employee_id and l.employee_id.score_level is not False
+    #             )
+    #             if not lines:
     #                 continue
     #
-    #             lines = []
-    #             sequence = 0
-    #             for dept in unique_departments:
-    #                 manager = dept.manager_id
-    #                 if not manager:
-    #                     continue  # Bỏ qua nếu phòng không có người quản lý
+    #             # Tìm score_level cao nhất trong phòng ban
+    #             max_level = max(lines.mapped('employee_id.score_level'))
+    #             # Lấy một dòng bất kỳ có score_level == max_level
+    #             best_line = lines.filtered(lambda l: l.employee_id.score_level == max_level)[:1]
+    #             if best_line and best_line.employee_id:
+    #                 list_employees |= best_line.employee_id.parent_id
     #
+    #         employees = list_employees.filtered(lambda e: e.score_level != 0)
+    #
+    #         employee = self.env['hr.employee'].sudo().search([('user_id', '=', res.create_uid.id)])
+    #         status = self.env['approval.state.plan'].sudo().search([])
+    #         draft = status.filtered(lambda x: x.code_state == 'draft')
+    #         waiting = status.filtered(lambda x: x.code_state == 'waiting')
+    #         done = status.filtered(lambda x: x.code_state == 'done')
+    #         # Nhóm theo core_level
+    #         from collections import defaultdict
+    #         level_groups = defaultdict(self.env['hr.employee'].browse)  # level -> recordset
+    #         for emp in employees:
+    #             level_groups[emp.score_level] |= emp
+    #         sorted_levels = sorted(level_groups.keys())
+    #         lines = []
+    #         lines.append((0, 0, {
+    #             'sequence': 0,
+    #             'status': draft.id,
+    #             'employee_id': employee.id,
+    #         }))
+    #         sequence = 1
+    #         for level in sorted_levels:
+    #             group = level_groups[level]  # recordset các employee có cùng core_level
+    #             for emp in group:
     #                 lines.append((0, 0, {
     #                     'sequence': sequence,
-    #                     'employee_id': manager.id,
+    #                     'status': waiting.id if waiting else False,
+    #                     'employee_id': emp.id,
     #                 }))
-    #                 sequence += 1
+    #             sequence += 1
     #
-    #     return super(PlanCollaborate, self).write({'step_line_ids': lines})
+    #         # bước cuối done
+    #         lines.append((0, 0, {
+    #             'sequence': sequence,
+    #             'status': done.id if done else False,
+    #         }))
+    #         res.step_line_ids = lines
+    #
+    #     return res
+
 
     def get_code(self):
         for r in self:
