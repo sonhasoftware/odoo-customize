@@ -258,12 +258,12 @@ class SonHaEmployee(models.Model):
 
         res = super(SonHaEmployee, self).create(vals)
 
-        # company_id = self.env['res.company'].sudo().search([('id', '=', res.company_id.id)])
-        # company_id.max_number += 1
-        # if not company_id.company_code:
-        #     res.employee_code = '0' * company_id.zero_count + str(company_id.max_number)
-        # else:
-        #     res.employee_code = company_id.company_code + '0' * company_id.zero_count + str(company_id.max_number)
+        company_id = self.env['res.company'].sudo().search([('id', '=', res.company_id.id)])
+        company_id.max_number += 1
+        if not company_id.company_code:
+            res.employee_code = '0' * company_id.zero_count + str(company_id.max_number)
+        else:
+            res.employee_code = company_id.company_code + '0' * company_id.zero_count + str(company_id.max_number)
         return res
 
     @api.onchange('status_employee')
@@ -274,27 +274,27 @@ class SonHaEmployee(models.Model):
             else:
                 s.active = True
 
-    # @api.constrains('employee_code')
-    # def check_employee_code(self):
-    #     for record in self:
-    #         conflicting_employee_code = self.search([
-    #             ('employee_code', '=', record.employee_code),
-    #             ('id', '!=', record.id),
-    #         ], limit=1)
-    #
-    #         if conflicting_employee_code:
-    #             raise ValidationError(f"Đã tồn tại nhân viên có mã nhân viên là {record.employee_code}")
+    @api.constrains('employee_code')
+    def check_employee_code(self):
+        for record in self:
+            conflicting_employee_code = self.search([
+                ('employee_code', '=', record.employee_code),
+                ('id', '!=', record.id),
+            ], limit=1)
 
-    # @api.constrains('device_id_num')
-    # def check_device_id_num(self):
-    #     for record in self:
-    #         if record.device_id_num:
-    #             conflicting_device_id_num = self.search([
-    #                 ('device_id_num', '=', record.device_id_num),
-    #                 ('id', '!=', record.id),
-    #             ], limit=1)
-    #             if conflicting_device_id_num:
-    #                 raise ValidationError(f"Đã tồn tại mã chấm công là {record.device_id_num}")
+            if conflicting_employee_code:
+                raise ValidationError(f"Đã tồn tại nhân viên có mã nhân viên là {record.employee_code}")
+
+    @api.constrains('device_id_num')
+    def check_device_id_num(self):
+        for record in self:
+            if record.device_id_num:
+                conflicting_device_id_num = self.search([
+                    ('device_id_num', '=', record.device_id_num),
+                    ('id', '!=', record.id),
+                ], limit=1)
+                if conflicting_device_id_num:
+                    raise ValidationError(f"Đã tồn tại mã chấm công là {record.device_id_num}")
 
 
 class ResCompany(models.Model):
