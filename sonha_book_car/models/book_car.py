@@ -163,7 +163,7 @@ class BookCar(models.Model):
     @api.depends('status', 'employee_id')
     def get_check_sent(self):
         for r in self:
-            if r.status == 'draft' and (r.employee_id.id == self.env.user.employee_id.id or self.env.user.has_group('sonha_book_car.group_book_car_manager')):
+            if r.status == 'draft' and (r.create_uid.id == self.env.user.id or self.env.user.has_group('sonha_book_car.group_book_car_manager')):
                 r.check_sent = True
             else:
                 r.check_sent = False
