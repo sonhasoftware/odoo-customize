@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="product_name_rule_tree_view" model="ir.ui.view">
+            <field name="name">product.name.rule.tree.view</field>
+            <field name="model">product.name.rule</field>
+            <field name="arch" type="xml">
+                <tree string="Quy tắc tên" editable="bottom">
+                    <field name="product_line"/>
+                    <field name="product_stage"/>
+                    <field name="brand"/>
+                    <field name="model"/>
+                    <field name="style"/>
+                    <field name="capacity"/>
+                    <field name="power"/>
+                    <field name="substance"/>
+                    <field name="surface"/>
+                    <field name="diameter"/>
+                    <field name="thickness"/>
+                    <field name="size"/>
+                    <field name="chemical"/>
+                    <field name="color"/>
+                    <field name="other"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="product_name_rule_action" model="ir.actions.act_window">
+            <field name="name">Quy tắc tên</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">product.name.rule</field>
+            <field name="view_mode">tree</field>
+        </record>
+    </data>
+</odoo>

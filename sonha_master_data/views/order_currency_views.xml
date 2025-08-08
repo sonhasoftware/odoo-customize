@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="order_currency_tree_view" model="ir.ui.view">
+        <field name="name">order.currency.tree.view</field>
+        <field name="model">order.currency</field>
+        <field name="arch" type="xml">
+            <tree string="Tiền tệ" editable="bottom">
+                <field name="name"/>
+                <field name="full_name"/>
+                <field name="country"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="order_currency_action" model="ir.actions.act_window">
+        <field name="name">Tiền tệ</field>
+        <field name="res_model">order.currency</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

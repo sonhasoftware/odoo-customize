@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="bp_group_account_tree_view" model="ir.ui.view">
+        <field name="name">bp.group.account.tree.view</field>
+        <field name="model">bp.group.account</field>
+        <field name="arch" type="xml">
+            <tree string="Nhóm BP" editable="bottom">
+                <field name="group_code"/>
+                <field name="group_name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="bp_group_account_action" model="ir.actions.act_window">
+        <field name="name">Nhóm BP</field>
+        <field name="res_model">bp.group.account</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

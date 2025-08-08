@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="sale_office_tree_view" model="ir.ui.view">
+        <field name="name">sale.office.tree.view</field>
+        <field name="model">sale.office</field>
+        <field name="arch" type="xml">
+            <tree string="Chi nhánh" editable="bottom">
+                <field name="branch_code"/>
+                <field name="current_branch_code"/>
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="sale_office_action" model="ir.actions.act_window">
+        <field name="name">Chi nhánh</field>
+        <field name="res_model">sale.office</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

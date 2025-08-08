@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="config_district_tree_view" model="ir.ui.view">
+        <field name="name">config.district.tree.view</field>
+        <field name="model">config.district</field>
+        <field name="arch" type="xml">
+            <tree string="Quận/Huyện" editable="bottom">
+                <field name="state_id"/>
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="config_district_action" model="ir.actions.act_window">
+        <field name="name">Quận/Huyện</field>
+        <field name="res_model">config.district</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

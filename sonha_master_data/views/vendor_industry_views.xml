@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="vendor_industry_tree_view" model="ir.ui.view">
+        <field name="name">vendor.industry.tree.view</field>
+        <field name="model">vendor.industry</field>
+        <field name="arch" type="xml">
+            <tree string="Loại NCC(SX/TM)" editable="bottom">
+                <field name="vendor_type"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="vendor_industry_action" model="ir.actions.act_window">
+        <field name="name">Loại NCC(SX/TM)</field>
+        <field name="res_model">vendor.industry</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>
