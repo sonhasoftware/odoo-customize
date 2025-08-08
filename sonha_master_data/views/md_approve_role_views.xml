@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="md_approve_role_tree_view" model="ir.ui.view">
+        <field name="name">md.approve.role.tree.view</field>
+        <field name="model">md.approve.role</field>
+        <field name="arch" type="xml">
+            <tree string="Vai trò duyệt" editable="bottom">
+                <field name="role"/>
+                <field name="approve_employee"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="md_approve_role_action" model="ir.actions.act_window">
+        <field name="name">Vai trò</field>
+        <field name="res_model">md.approve.role</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

@@ -25,9 +25,10 @@ class BasicMatData(models.Model):
     volume_unit = fields.Many2one('uom.uom', "Đơn vị thể tích",
                                   domain="[('category_id.name', '=', 'Thể tích')]")
     size = fields.Char("Kích thước")
-    product_code_id = fields.Many2one('md.product', string="Mã vật tư")
+    product_code_id = fields.Many2one('declare.md.product', string="Mã vật tư")
     required_weight_unit = fields.Boolean()
     required_volume_unit = fields.Boolean()
+    md_product_id = fields.Many2one('md.product')
 
     @api.onchange('gross_weight', 'net_weight', 'volume')
     def _compute_is_required_x(self):

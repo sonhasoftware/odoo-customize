@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="cus_incoterm_tree_view" model="ir.ui.view">
+        <field name="name">cus.incoterm.tree.view</field>
+        <field name="model">cus.incoterm</field>
+        <field name="arch" type="xml">
+            <tree string="Incoterms" editable="bottom">
+                <field name="code"/>
+                <field name="description"/>
+                <field name="note"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="cus_incoterm_action" model="ir.actions.act_window">
+        <field name="name">Incoterms</field>
+        <field name="res_model">cus.incoterm</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

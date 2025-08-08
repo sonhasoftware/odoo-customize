@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="trading_partner_tree_view" model="ir.ui.view">
+        <field name="name">trading.partner.tree.view</field>
+        <field name="model">trading.partner</field>
+        <field name="arch" type="xml">
+            <tree string="Công ty nội bộ" editable="bottom">
+                <field name="name"/>
+                <field name="trading_partner_name"/>
+                <field name="tax_code"/>
+                <field name="address"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="trading_partner_action" model="ir.actions.act_window">
+        <field name="name">Công ty nội bộ</field>
+        <field name="res_model">trading.partner</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

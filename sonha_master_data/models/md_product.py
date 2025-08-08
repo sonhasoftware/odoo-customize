@@ -10,74 +10,11 @@ class MDProduct(models.Model):
     product_name = fields.Char("Tên vật tư", size=40)
     product_english_name = fields.Char("Tên vật tư tiếng anh", size=40)
     product_long_name = fields.Char("Tên đầy đủ", size=128)
-    status = fields.Selection([('draft', "Nháp"), ('waiting', "Chờ duyệt"), ('done', "Đã duyệt")], string="Trạng thái", default='draft')
-    basic_data = fields.One2many('basic.mat.data', 'product_code_id', string="Thông tin cơ bản")
-    alternative_uom = fields.One2many('alternative.uom', 'product_code_id', string="Đơn vị thay thế")
-    plant_data = fields.One2many('plant.data', 'product_code_id', string="Thông tin plant")
-    sale_data = fields.One2many('sales.data', 'product_code_id', string="Thông tin bán hàng")
-    have_alt_uom = fields.Boolean("Đơn vị tính khác")
-    is_z100 = fields.Boolean("Là thành phẩm sản xuất tại một đơn vị trong tập đoàn")
-    is_z101 = fields.Boolean("Là bán thành phẩm sản xuất tại một đơn vị trong tập đoàn")
-    is_z102 = fields.Boolean("Là thành phẩm sản xuất tại một đơn vị trong tập đoàn loại 2")
-
-    @api.onchange('is_z100', 'is_z101', 'is_z102')
-    def filter_product_type(self):
-        for r in self:
-            if r.is_z100:
-                code = "Z100"
-                r.is_z101 = False
-                r.is_z102 = False
-            if r.is_z101:
-                code = "Z101"
-                r.is_z100 = False
-                r.is_z102 = False
-            if r.is_z102:
-                code = "Z102"
-                r.is_z101 = False
-                r.is_z100 = False
-            if r.is_z100 or r.is_z101 or r.is_z102:
-                product_type = self.env['x.material.type'].sudo().search([('x_code', '=', code)])
-                r.product_type = product_type.id
-            else:
-                r.product_type = None
-
-    def unlink(self):
-        for r in self:
-            self.env['basic.mat.data'].search([('product_code_id', '=', r.id)]).sudo().unlink()
-            self.env['alternative.uom'].search([('product_code_id', '=', r.id)]).sudo().unlink()
-            self.env['plant.data'].search([('product_code_id', '=', r.id)]).sudo().unlink()
-            self.env['sales.data'].search([('product_code_id', '=', r.id)]).sudo().unlink()
-        return super(MDProduct, self).unlink()
-
-    def action_approve(self):
-        for r in self:
-            r.status = 'done'
-
-    def action_sent(self):
-        for r in self:
-            r.status = 'waiting'
-
-    @api.model
-    def _search(self, domain, offset=0, limit=None, order=None, access_rights_uid=None):
-        new_domain = []
-        for dm in domain:
-            if isinstance(dm, (list, tuple)) and len(dm) == 3:
-                field, operator, value = dm
-                if value and isinstance(value, str) and '*' in value and operator == 'ilike':
-                    temp = []
-                    parts = value.split('*')
-                    for part in parts:
-                        if part.strip():
-                            temp.append((field, 'ilike', part.strip()))
-                    if temp:
-                        new_domain += ['&'] * (len(temp) - 1)
-                        new_domain += temp
-                else:
-                    new_domain.append(dm)
-            else:
-                new_domain.append(dm)
-        domain = new_domain
-        return super(MDProduct, self)._search(domain, offset, limit, order, access_rights_uid)
+    basic_data = fields.One2many('basic.mat.data', 'md_product_id', string="Thông tin cơ bản")
+    alternative_uom = fields.One2many('alternative.uom', 'md_product_id', string="Đơn vị thay thế")
+    plant_data = fields.One2many('plant.data', 'md_product_id', string="Thông tin plant")
+    sale_data = fields.One2many('sales.data', 'md_product_id', string="Thông tin bán hàng")
+    declare_product = fields.Many2one('declare.md.product')
 
 
 

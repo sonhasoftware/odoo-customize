@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="sale_district_tree_view" model="ir.ui.view">
+        <field name="name">sale.district.tree.view</field>
+        <field name="model">sale.district</field>
+        <field name="arch" type="xml">
+            <tree string="Vùng kinh doanh" editable="bottom">
+                <field name="code"/>
+                <field name="description"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="sale_district_action" model="ir.actions.act_window">
+        <field name="name">Vùng kinh doanh</field>
+        <field name="res_model">sale.district</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

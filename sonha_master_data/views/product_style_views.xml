@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="product_style_tree_view" model="ir.ui.view">
+            <field name="name">product.style.tree.view</field>
+            <field name="model">product.style</field>
+            <field name="arch" type="xml">
+                <tree string="Kiểu dáng" editable="bottom">
+                    <field name="name"/>
+                    <field name="short_name"/>
+                    <field name="full_name"/>
+                    <field name="note"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="product_style_action" model="ir.actions.act_window">
+            <field name="name">Kiểu dáng</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">product.style</field>
+            <field name="view_mode">tree</field>
+        </record>
+    </data>
+</odoo>

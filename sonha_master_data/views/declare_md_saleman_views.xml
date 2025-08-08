@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="declare_md_saleman_tree_view" model="ir.ui.view">
+            <field name="name">declare.md.saleman.tree.view</field>
+            <field name="model">declare.md.saleman</field>
+            <field name="arch" type="xml">
+                <tree string="Khai báo data NVKD" editable="bottom">
+                    <field name="code"/>
+                    <field name="name"/>
+                    <field name="company_id"/>
+                    <field name="type"/>
+                </tree>
+            </field>
+        </record>
+
+<!--        <record id="declare_md_saleman_form_view" model="ir.ui.view">-->
+<!--            <field name="name">declare.md.saleman.from.view</field>-->
+<!--            <field name="model">declare.md.saleman</field>-->
+<!--            <field name="arch" type="xml">-->
+<!--                <form string="Nhân viên kinh doanh">-->
+<!--                    <header>-->
+<!--                        <field name="status" widget="statusbar"/>-->
+<!--                        <button name="action_sent" string="Gửi duyệt" type="object" class="oe_highlight" invisible="status != 'draft'"/>-->
+<!--                        <button name="action_approve" string="Duyệt" type="object" class="oe_highlight" invisible="status != 'waiting'"/>-->
+<!--                        <button name="to_draft_action" string="Hoàn duyệt" type="object" class="oe_highlight" invisible="status == 'draft'"/>-->
+<!--                    </header>-->
+<!--                    <sheet>-->
+<!--                        <group>-->
+<!--                            <field name="code"/>-->
+<!--                            <field name="name"/>-->
+<!--                            <field name="company_id"/>-->
+<!--                        </group>-->
+<!--                        <notebook>-->
+<!--                            <page string="Quy trình duyệt">-->
+<!--                                <group>-->
+<!--                                    <field name="md_approve_display" string="" readonly="1">-->
+<!--                                        <tree editable="bottom">-->
+<!--                                            <field name="sequence_step"/>-->
+<!--                                            <field name="status"/>-->
+<!--                                            <field name="employee_id"/>-->
+<!--                                            <field name="level"/>-->
+<!--                                        </tree>-->
+<!--                                    </field>-->
+<!--                                </group>-->
+<!--                            </page>-->
+<!--                        </notebook>-->
+<!--                    </sheet>-->
+<!--                </form>-->
+<!--            </field>-->
+<!--        </record>-->
+
+        <record id="declare_md_saleman_action" model="ir.actions.act_window">
+            <field name="name">Khai báo data NVKD</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">declare.md.saleman</field>
+            <field name="view_mode">tree</field>
+        </record>
+    </data>
+</odoo>

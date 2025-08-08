@@ -1,6 +1,4 @@
 from . import md_customer
-from . import customer_type
-from . import customer_group
 from . import md_product
 from . import alternative_uom
 from . import plant_data
@@ -25,6 +23,63 @@ from . import material_price_group
 from . import valuation_class
 from . import overhead_group
 from . import md_supplier
-from . import supplier_type
-from . import supplier_group
+from . import md_stock
+
+from . import product_line
+from . import product_stage
+from . import product_brand
+from . import product_color
+from . import product_capacity
+from . import product_chemical
+from . import product_model
+from . import product_style
+from . import product_substance
+from . import product_name_rule
+from . import product_diameter
+from . import product_size
+from . import product_surface
+from . import product_thickness
+from . import product_other
+
+
+from . import md_approve_rule
+from . import md_approve_step
+from . import md_approve_role
+from . import md_approve_display
+
+from . import config_district
+from . import config_ward
+
+from . import declare_md_customer
+from . import declare_md_supplier
+from . import declare_md_product
+
+from . import bank_country
+from . import bank_data
+from . import trading_partner
+from . import reconciliation_account
+from . import payment_term
+from . import cus_payment_method
+from . import customer_sale
+from . import sale_district
+from . import cus_incoterm
+from . import cus_group
+from . import cus_group_1
+from . import customer_price_group
+from . import shipping_condition
+from . import customer_assignment_group
+from . import sale_office
+from . import vendor_industry
+from . import form_organization
+from . import planning_group
+from . import order_currency
+from . import vendor_purchase
+from . import bp_type
+from . import bp_group_account
+from . import declare_md_saleman
+from . import md_saleman
+from . import emp_relationship
+from . import credit_limit
+from . import company_code
+from . import limit_area
 

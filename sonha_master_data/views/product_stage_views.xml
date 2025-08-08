@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="product_stage_tree_view" model="ir.ui.view">
+            <field name="name">product.stage.tree.view</field>
+            <field name="model">product.stage</field>
+            <field name="arch" type="xml">
+                <tree string="Sản phẩm/Công đoạn" editable="bottom">
+                    <field name="name"/>
+                    <field name="product_line"/>
+                    <field name="full_name"/>
+                    <field name="short_name"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="product_stage_action" model="ir.actions.act_window">
+            <field name="name">Sản phẩm/Công đoạn</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">product.stage</field>
+            <field name="view_mode">tree</field>
+        </record>
+    </data>
+</odoo>

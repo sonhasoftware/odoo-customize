@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="declare_md_customer_tree_view" model="ir.ui.view">
+        <field name="name">declare.md.customer.tree.view</field>
+        <field name="model">declare.md.customer</field>
+        <field name="arch" type="xml">
+            <tree string="Khai báo Data Khách hàng">
+                <field name="id"/>
+                <field name="customer_name"/>
+                <field name="customer_class"/>
+                <field name="cust_phone"/>
+                <field name="address"/>
+                <field name="country_id"/>
+                <field name="state_id"/>
+                <field name="tax_code"/>
+                <field name="bp_type_id"/>
+                <field name="customer_group_id"/>
+                <field name="company_id"/>
+                <field name="status"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="declare_md_customer_form_view" model="ir.ui.view">
+        <field name="name">declare.md.customer.form.view</field>
+        <field name="model">declare.md.customer</field>
+        <field name="arch" type="xml">
+            <form string="Khách hàng">
+                <header>
+                    <field name="status" widget="statusbar"/>
+                    <button name="action_sent" string="Gửi duyệt" type="object" class="oe_highlight" invisible="status != 'draft'"/>
+                    <button name="action_approve" string="Duyệt" type="object" class="oe_highlight" invisible="status != 'waiting'"/>
+                    <button name="to_draft_action" string="Hoàn duyệt" type="object" class="oe_highlight" invisible="status == 'draft'"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="id" string="Mã"/>
+                        <field name="customer_code" readonly="1"/>
+                        <field name="customer_group_id" readonly="status != 'draft'"/>
+                    </group>
+                    <notebook>
+                        <page string="Thông tin khách hàng">
+                            <group string="Thông tin cơ bản">
+                                <group>
+                                    <field name="customer_short_name" readonly="status != 'draft'"/>
+                                    <field name="customer_name" readonly="status != 'draft'"/>
+                                    <field name="search_term" readonly="status != 'draft'"/>
+<!--                                    <field name="name_1"/>-->
+<!--                                    <field name="name_2"/>-->
+<!--                                    <field name="name_3"/>-->
+                                    <field name="customer_class" readonly="status != 'draft'"/>
+                                    <field name="cccd_number" readonly="status != 'draft'" required="check_tax_code != True"/>
+                                    <field name="cust_phone" readonly="status != 'draft'"/>
+                                    <field name="mail_address" readonly="status != 'draft'"/>
+                                    <field name="fax_number" readonly="status != 'draft'"/>
+                                    <field name="tax_code" readonly="status != 'draft'" required="check_cccd_number != True"/>
+                                    <field name="postal_code" readonly="status != 'draft'"/>
+                                    <field name="check_tax_code" invisible="1"/>
+                                    <field name="check_cccd_number" invisible="1"/>
+                                </group>
+                                <group>
+                                    <field name="address" readonly="status != 'draft'"/>
+                                    <field name="search_term_2" readonly="status != 'draft'"/>
+<!--                                    <field name="address_1"/>-->
+<!--                                    <field name="address_2"/>-->
+<!--                                    <field name="address_3"/>-->
+                                    <field name="country_id" readonly="status != 'draft'"/>
+                                    <field name="state_id" readonly="status != 'draft'"/>
+                                    <field name="district_id" readonly="status != 'draft'"/>
+                                    <field name="ward_id" readonly="status != 'draft'"/>
+                                    <field name="language" readonly="status != 'draft'"/>
+                                    <field name="company_id" readonly="status != 'draft'"/>
+                                    <field name="legal_representative" readonly="status != 'draft'"/>
+                                </group>
+                            </group>
+                            <group string="Thông tin ngân hàng">
+                                <group>
+                                    <field name="bank_country_code" readonly="status != 'draft'"/>
+                                    <field name="bank_key" readonly="status != 'draft'"/>
+                                </group>
+                                <group>
+                                    <field name="bank_number" readonly="status != 'draft'"/>
+                                    <field name="bank_owner" readonly="status != 'draft'"/>
+                                </group>
+                            </group>
+                            <group string="Thông tin sale">
+                                <group>
+                                    <field name="bp_type_id" readonly="status != 'draft'"/>
+                                    <field name="sale_man" readonly="status != 'draft'"/>
+                                </group>
+                                <group>
+                                    <field name="region_manager" readonly="status != 'draft'"/>
+                                    <field name="area_manager" readonly="status != 'draft'"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="FI">
+                            <group>
+                                <group>
+                                    <field name="company_code" readonly="status != 'draft'"/>
+                                    <field name="vendor_code" readonly="status != 'draft'"/>
+                                    <field name="trading_partner" readonly="status != 'draft'"/>
+                                    <field name="reconciliation_account" readonly="status != 'draft'"/>
+                                </group>
+                                <group>
+                                    <field name="payment_term" readonly="status != 'draft'"/>
+                                    <field name="payment_method" widget="many2many_tags" readonly="status != 'draft'"/>
+                                    <field name="old_customer_code" readonly="status != 'draft'"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Thông tin bán hàng">
+                            <group>
+                                <field name="customer_sale" string="" readonly="status != 'draft'">
+                                    <tree editable="bottom">
+                                        <field name="company_code"/>
+                                        <field name="sale_organization"/>
+                                        <field name="distribution_channel"/>
+                                        <field name="division"/>
+                                        <field name="sale_district"/>
+                                        <field name="cus_group_1"/>
+                                        <field name="cus_group"/>
+                                        <field name="sale_office"/>
+                                        <field name="currency"/>
+                                        <field name="customer_price_group"/>
+                                        <field name="relevant_settlement"/>
+                                        <field name="plant"/>
+                                        <field name="order_combination"/>
+                                        <field name="shipping_condition"/>
+                                        <field name="pod_relevant"/>
+                                        <field name="incoterm"/>
+                                        <field name="incoterm_more"/>
+                                        <field name="credit_ctrl_area"/>
+                                        <field name="payment_term"/>
+                                        <field name="customer_assignment_group"/>
+                                        <field name="tax_classification"/>
+                                    </tree>
+                                </field>
+                            </group>
+                        </page>
+                        <page string="Thông tin bán hàng part.Funct">
+                            <group>
+                                <field name="customer_sale" string="" readonly="status != 'draft'">
+                                    <tree editable="bottom">
+                                        <field name="sale_organization"/>
+                                        <field name="distribution_channel"/>
+                                        <field name="division"/>
+                                        <field name="sold_to"/>
+                                        <field name="ship_to"/>
+                                        <field name="bill_to"/>
+                                        <field name="payer"/>
+                                        <field name="contract_person"/>
+                                        <field name="sale_employee"/>
+                                    </tree>
+                                </field>
+                            </group>
+                        </page>
+                        <page string="Hạn mức tín dụng">
+                            <group>
+                                <field name="credit_limit" string="" readonly="status != 'draft'">
+                                    <tree editable="bottom">
+                                        <field name="credit_segment"/>
+                                        <field name="credit_limit"/>
+                                        <field name="valid_date"/>
+                                    </tree>
+                                </field>
+                            </group>
+                        </page>
+                        <page string="Mối quan hệ">
+                            <group>
+                                <field name="relationship" string="" readonly="status != 'draft'">
+                                    <tree editable="bottom">
+                                        <field name="emp_relationship_1"/>
+                                        <field name="rel_category"/>
+                                        <field name="emp_relationship_2"/>
+                                    </tree>
+                                </field>
+                            </group>
+                        </page>
+                        <page string="Quy trình duyệt">
+                            <group>
+                                <field name="md_approve_display" string="" readonly="1">
+                                    <tree editable="bottom">
+                                        <field name="sequence_step"/>
+                                        <field name="status"/>
+                                        <field name="employee_id"/>
+                                        <field name="level"/>
+                                    </tree>
+                                </field>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_declare_md_customer_search" model="ir.ui.view">
+        <field name="name">declare.md.customer.search</field>
+        <field name="model">declare.md.customer</field>
+        <field name="arch" type="xml">
+            <search string="Search khai báo data khách hàng">
+                <field name="customer_name" string="Khách hàng"/>
+                <filter string="Trạng thái: Chờ duyệt" name="state_waiting" domain="[
+                ('status', '=', 'waiting'), ('next_approve_employee.user_id', '=', uid)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_custom_multi_approval_customer" model="ir.actions.server">
+        <field name="name">Duyệt nhiều</field>
+        <field name="model_id" ref="model_declare_md_customer"/>
+        <field name="binding_model_id" ref="model_declare_md_customer"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+            action = records.multi_approval()
+        </field>
+    </record>
+
+    <record id="declare_md_customer_action" model="ir.actions.act_window">
+        <field name="name">Khai báo Data Khách hàng</field>
+        <field name="res_model">declare.md.customer</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_declare_md_customer_search"/>
+    </record>
+</odoo>

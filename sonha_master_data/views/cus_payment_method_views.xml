@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="cus_payment_method_tree_view" model="ir.ui.view">
+        <field name="name">cus.payment.method.tree.view</field>
+        <field name="model">cus.payment.method</field>
+        <field name="arch" type="xml">
+            <tree string="Phương thức thanh toán" editable="bottom">
+                <field name="code"/>
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="cus_payment_method_action" model="ir.actions.act_window">
+        <field name="name">Phương thức thanh toán</field>
+        <field name="res_model">cus.payment.method</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>
