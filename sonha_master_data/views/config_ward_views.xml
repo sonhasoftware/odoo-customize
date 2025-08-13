@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="config_ward_tree_view" model="ir.ui.view">
+        <field name="name">config.ward.tree.view</field>
+        <field name="model">config.ward</field>
+        <field name="arch" type="xml">
+            <tree string="Phường/Xã" editable="bottom">
+                <field name="district_id"/>
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="config_ward_action" model="ir.actions.act_window">
+        <field name="name">Phường/Xã</field>
+        <field name="res_model">config.ward</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

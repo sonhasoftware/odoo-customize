@@ -5,7 +5,7 @@ from odoo.exceptions import UserError, ValidationError
 class SalesData(models.Model):
     _name = 'sales.data'
 
-    product_code_id = fields.Many2one('md.product', string="Mã vật tư")
+    product_code_id = fields.Many2one('declare.md.product', string="Mã vật tư")
     sale_organization = fields.Many2one('sale.organization', string="Tổ chức bán hàng",
                                         domain="[('company_id', '=', company_id)]")
     distribution_chanel = fields.Many2one('distribution.channel', string="Kênh bán hàng")
@@ -19,9 +19,12 @@ class SalesData(models.Model):
                                     ('p', "P: Hàng hóa phụ")], string="Nhóm mặt hàng 2")
     mat_group_price = fields.Many2one('material.price.group', string="Nhóm giá mặt hàng")
     item_category_group = fields.Many2one('item.category.group', string="Nhóm loại hàng",
-                                          domain="[('sale_org', 'in', sale_organization), ('distb_channel', 'in', distribution_chanel), ('mat_type', 'in', mat_type)]")
+                                          domain="[('sale_org', 'in', sale_organization), "
+                                                 "('distb_channel', 'in', distribution_chanel), "
+                                                 "('mat_type', 'in', mat_type)]")
     mat_type = fields.Many2one('x.material.type', compute="compute_material_type", store=True)
     company_id = fields.Many2one('res.company', string="Công ty", compute="get_company_id", store=True)
+    md_product_id = fields.Many2one('md.product')
 
     @api.depends('product_code_id.product_type')
     def compute_material_type(self):

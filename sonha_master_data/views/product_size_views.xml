@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="product_size_tree_view" model="ir.ui.view">
+            <field name="name">product.size.tree.view</field>
+            <field name="model">product.size</field>
+            <field name="arch" type="xml">
+                <tree string="Kích thước" editable="bottom">
+                    <field name="name"/>
+<!--                    <field name="product_line"/>-->
+<!--                    <field name="product_stage"/>-->
+                    <field name="note"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="product_size_action" model="ir.actions.act_window">
+            <field name="name">Kích thước</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">product.size</field>
+            <field name="view_mode">tree</field>
+        </record>
+    </data>
+</odoo>

@@ -1,12 +1,8 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 
-access_md_customer,access.md.customer,model_md_customer,,1,1,1,1
+access_md_customer,access.md.customer,model_md_customer,,1,0,0,0
 
-access_customer_type,access.customer.type,model_customer_type,,1,1,1,1
-
-access_customer_group,access.customer.group,model_customer_group,,1,1,1,1
-
-access_md_product,access.md.product,model_md_product,,1,1,1,1
+access_md_product,access.md.product,model_md_product,,1,0,0,0
 
 access_alternative_uom,access.alternative.uom,model_alternative_uom,,1,1,1,1
 
@@ -50,8 +46,71 @@ access_valuation_class,access.valuation.class,model_valuation_class,,1,1,1,1
 
 access_overhead_group,access.overhead.group,model_overhead_group,,1,1,1,1
 
-access_md_supplier,access.md.supplier,model_md_supplier,,1,1,1,1
+access_md_supplier,access.md.supplier,model_md_supplier,,1,0,0,0
 
-access_supplier_type,access.supplier.type,model_supplier_type,,1,1,1,1
+access_md_stock,access.md.stock,model_md_stock,,1,1,1,1
 
-access_supplier_group,access.supplier.group,model_supplier_group,,1,1,1,1
+access_product_line,access.product.line,model_product_line,,1,1,1,1
+access_product_stage,access.product.stage,model_product_stage,,1,1,1,1
+access_product_brand,access.product.brand,model_product_brand,,1,1,1,1
+access_product_color,access.product.color,model_product_color,,1,1,1,1
+access_product_capacity,access.product.capacity,model_product_capacity,,1,1,1,1
+access_product_chemical,access.product.chemical,model_product_chemical,,1,1,1,1
+access_product_model,access.product.model,model_product_model,,1,1,1,1
+access_product_style,access.product.style,model_product_style,,1,1,1,1
+access_product_substance,access.product.substance,model_product_substance,,1,1,1,1
+access_product_name_rule,access.product.name.rule,model_product_name_rule,,1,1,1,1
+
+access_product_diameter,access.product.diameter,model_product_diameter,,1,1,1,1
+access_product_size,access.product.size,model_product_size,,1,1,1,1
+access_product_surface,access.product.surface,model_product_surface,,1,1,1,1
+access_product_thickness,access.product.thickness,model_product_thickness,,1,1,1,1
+access_product_other,access.product.other,model_product_other,,1,1,1,1
+
+
+access_md_approve_rule,access.md.approve.rule,model_md_approve_rule,,1,1,1,1
+access_md_approve_step,access.md.approve.step,model_md_approve_step,,1,1,1,1
+access_md_approve_role,access.md.approve.role,model_md_approve_role,,1,1,1,1
+access_md_approve_display,access.md.approve.display,model_md_approve_display,,1,1,1,1
+
+access_config_district,access.config.district,model_config_district,,1,1,1,1
+access_config_ward,access.config.ward,model_config_ward,,1,1,1,1
+
+access_declare_md_customer,access.declare.md.customer,model_declare_md_customer,,1,1,1,1
+access_declare_md_supplier,access.declare.md.supplier,model_declare_md_supplier,,1,1,1,1
+access_declare_md_product,access.declare.md.product,model_declare_md_product,,1,1,1,1
+
+access_bank_country,access.bank.country,model_bank_country,,1,1,1,1
+access_bank_data,access.bank.data,model_bank_data,,1,1,1,1
+access_trading_partner,access.trading.partner,model_trading_partner,,1,1,1,1
+access_reconciliation_account,access.reconciliation.account,model_reconciliation_account,,1,1,1,1
+access_payment_term,access.payment.term,model_payment_term,,1,1,1,1
+access_cus_payment_method,access.cus.payment.method,model_cus_payment_method,,1,1,1,1
+access_customer_sale,access.customer.sale,model_customer_sale,,1,1,1,1
+access_sale_district,access.sale.district,model_sale_district,,1,1,1,1
+access_cus_incoterm,access.cus.incoterm,model_cus_incoterm,,1,1,1,1
+access_cus_group,access.cus.group,model_cus_group,,1,1,1,1
+access_cus_group_1,access.cus.group.1,model_cus_group_1,,1,1,1,1
+access_customer_price_group,access.customer.price.group,model_customer_price_group,,1,1,1,1
+access_shipping_condition,access.shipping.condition,model_shipping_condition,,1,1,1,1
+access_customer_assignment_group,access.customer.assignment.group,model_customer_assignment_group,,1,1,1,1
+access_sale_office,access.sale.office,model_sale_office,,1,1,1,1
+access_vendor_industry,access.vendor.industry,model_vendor_industry,,1,1,1,1
+access_form_organization,access.form.organization,model_form_organization,,1,1,1,1
+access_planning_group,access.planning.group,model_planning_group,,1,1,1,1
+access_order_currency,access.order.currency,model_order_currency,,1,1,1,1
+access_vendor_purchase,access.vendor.purchase,model_vendor_purchase,,1,1,1,1
+access_bp_type,access.bp.type,model_bp_type,,1,1,1,1
+access_bp_group_account,access.bp.group.account,model_bp_group_account,,1,1,1,1
+access_declare_md_saleman,access.declare.md.saleman,model_declare_md_saleman,,1,1,1,1
+access_md_saleman,access.md.saleman,model_md_saleman,,1,0,0,0
+access_emp_relationship,access.emp.relationship,model_emp_relationship,,1,1,1,1
+access_credit_limit,access.credit.limit,model_credit_limit,,1,1,1,1
+access_company_code,access.company.code,model_company_code,,1,1,1,1
+access_limit_area,access.limit.area,model_limit_area,,1,1,1,1
+
+access_assign_staff,access.assign.staff,model_assign_staff,,1,1,1,1
+
+access_wizard_md_material,access.wizard.md.material,model_wizard_md_material,,1,1,1,1
+access_wizard_import_infor,access.wizard.import.infor,model_wizard_import_infor,,1,1,1,1
+access_wizard_assign_staff,access.wizard.assign.staff,model_wizard_assign_staff,,1,1,1,1

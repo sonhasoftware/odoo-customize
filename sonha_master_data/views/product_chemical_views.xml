@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="product_chemical_tree_view" model="ir.ui.view">
+            <field name="name">product.chemical.tree.view</field>
+            <field name="model">product.chemical</field>
+            <field name="arch" type="xml">
+                <tree string="TP hóa học" editable="bottom">
+                    <field name="name"/>
+                    <field name="note"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="product_chemical_action" model="ir.actions.act_window">
+            <field name="name">TP hóa học</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">product.chemical</field>
+            <field name="view_mode">tree</field>
+        </record>
+    </data>
+</odoo>

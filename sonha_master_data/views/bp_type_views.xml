@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="bp_type_tree_view" model="ir.ui.view">
+        <field name="name">bp.type.tree.view</field>
+        <field name="model">bp.type</field>
+        <field name="arch" type="xml">
+            <tree string="Phân loại BP" editable="bottom">
+                <field name="type_code"/>
+                <field name="type_name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="bp_type_action" model="ir.actions.act_window">
+        <field name="name">Phân loại BP</field>
+        <field name="res_model">bp.type</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="product_model_tree_view" model="ir.ui.view">
+            <field name="name">product.model.tree.view</field>
+            <field name="model">product.model</field>
+            <field name="arch" type="xml">
+                <tree string="Model" editable="bottom">
+                    <field name="name"/>
+                    <field name="note"/>
+<!--                    <field name="product_stage"/>-->
+                </tree>
+            </field>
+        </record>
+
+        <record id="product_model_action" model="ir.actions.act_window">
+            <field name="name">Model</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">product.model</field>
+            <field name="view_mode">tree</field>
+        </record>
+    </data>
+</odoo>

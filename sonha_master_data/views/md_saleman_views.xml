@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="md_saleman_tree_view" model="ir.ui.view">
+            <field name="name">md.saleman.tree.view</field>
+            <field name="model">md.saleman</field>
+            <field name="arch" type="xml">
+                <tree string="Master data NVKD">
+                    <field name="code"/>
+                    <field name="name"/>
+                    <field name="company_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="md_saleman_form_view" model="ir.ui.view">
+            <field name="name">md.saleman.from.view</field>
+            <field name="model">md.saleman</field>
+            <field name="arch" type="xml">
+                <form string="Nhân viên kinh doanh">
+                    <sheet>
+                        <group>
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="company_id"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="md_saleman_action" model="ir.actions.act_window">
+            <field name="name">Master data NVKD</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">md.saleman</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+    </data>
+</odoo>

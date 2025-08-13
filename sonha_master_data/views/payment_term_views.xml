@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="payment_term_tree_view" model="ir.ui.view">
+        <field name="name">payment.term.tree.view</field>
+        <field name="model">payment.term</field>
+        <field name="arch" type="xml">
+            <tree string="Điều khoản thanh toán" editable="bottom">
+                <field name="name"/>
+                <field name="description"/>
+                <field name="recipe"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="payment_term_action" model="ir.actions.act_window">
+        <field name="name">Điều khoản thanh toán</field>
+        <field name="res_model">payment.term</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

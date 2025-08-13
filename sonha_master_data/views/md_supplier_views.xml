@@ -5,27 +5,123 @@
             <field name="name">md.supplier.tree.view</field>
             <field name="model">md.supplier</field>
             <field name="arch" type="xml">
-                <tree string="Nhà cung cấp" editable="bottom">
-                    <field name="name"/>
-                    <field name="supp_full_name"/>
+                <tree string="Nhà cung cấp">
                     <field name="supp_code"/>
-                    <field name="supp_registration"/>
-                    <field name="supp_job"/>
+                    <field name="supp_code"/>
+                    <field name="name"/>
                     <field name="supp_phone"/>
-                    <field name="sap_transfer"/>
+                    <field name="country_id"/>
+                    <field name="state_id"/>
+                    <field name="supp_class"/>
+                    <field name="address"/>
                     <field name="tax_code"/>
-                    <field name="represent"/>
                     <field name="supp_type"/>
-                    <field name="supp_group"/>
+                    <field name="bp_group_account"/>
                 </tree>
             </field>
         </record>
+
+        <record id="md_supplier_form_view" model="ir.ui.view">
+        <field name="name">md.supplier.form.view</field>
+        <field name="model">md.supplier</field>
+        <field name="arch" type="xml">
+            <form string="Nhà cung cấp">
+                <sheet>
+                    <group>
+                        <field name="id" string="Mã"/>
+                        <field name="bp_group_account"/>
+                    </group>
+                    <notebook>
+                        <page string="Thông tin nhà cung cấp">
+                            <group string="Thông tin cơ bản">
+                                <group>
+                                    <field name="name"/>
+                                    <field name="supp_class"/>
+                                    <field name="supp_phone"/>
+                                    <field name="tax_code"/>
+                                    <field name="fax_number"/>
+                                    <field name="mail_address"/>
+                                    <field name="postal_code"/>
+                                </group>
+                                <group>
+                                    <field name="address"/>
+                                    <field name="country_id"/>
+                                    <field name="state_id"/>
+                                    <field name="district_id"/>
+                                    <field name="ward_id"/>
+                                    <field name="language"/>
+                                    <field name="company_id"/>
+                                </group>
+                            </group>
+                            <group string="Thông tin ngân hàng">
+                                <group>
+                                    <field name="bank_country_code"/>
+                                    <field name="bank_key"/>
+                                </group>
+                                <group>
+                                    <field name="bank_number"/>
+                                    <field name="bank_owner"/>
+                                </group>
+                            </group>
+                            <group string="Thông tin sale">
+                                <group>
+                                    <field name="supp_type"/>
+                                    <field name="form_of_org"/>
+                                </group>
+                                <group>
+                                    <field name="industry"/>
+                                    <field name="deposit_proportion"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Vendor FI">
+                            <group>
+                                <group>
+                                    <field name="company_code"/>
+                                    <field name="trading_partner"/>
+                                    <field name="customer_code"/>
+                                    <field name="reconciliation_account"/>
+                                    <field name="planning_group"/>
+                                </group>
+                                <group>
+                                    <field name="payment_term"/>
+                                    <field name="double_invoice"/>
+                                    <field name="payment_method" widget="many2many_tags"/>
+                                    <field name="clear_debt"/>
+                                    <field name="vendor_block"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Nhà cung cấp thanh toán">
+                            <group>
+                                <field name="vendor_purchase" string="">
+                                    <tree editable="bottom">
+                                        <field name="purchasing_org"/>
+                                        <field name="incoterm"/>
+                                        <field name="auto_po"/>
+                                        <field name="indicator"/>
+                                        <field name="purchasing_group"/>
+                                        <field name="plan_del_time"/>
+                                        <field name="order_currency"/>
+                                        <field name="minimum_order"/>
+                                        <field name="representative"/>
+<!--                                        <field name="group_supplier"/>-->
+<!--                                        <field name="price_date_control"/>-->
+                                    </tree>
+                                </field>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
 
         <record id="md_supplier_action" model="ir.actions.act_window">
             <field name="name">Master data nhà cung cấp</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">md.supplier</field>
-            <field name="view_mode">tree</field>
+            <field name="view_mode">tree,form</field>
         </record>
     </data>
 </odoo>

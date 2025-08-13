@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_assign_staff_form" model="ir.ui.view">
+        <field name="name">assign.staff.form</field>
+        <field name="model">wizard.assign.staff</field>
+        <field name="arch" type="xml">
+            <form string="Gán nhân viên">
+                <group>
+                    <field name="assign_staff" string="">
+                        <tree editable="bottom">
+                            <field name="staff"/>
+                            <field name="customer" widget="many2many_tags"/>
+                        </tree>
+                    </field>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Xác nhận" class="btn-primary"/>
+                    <button string="Hủy" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_assign_staff_wizard" model="ir.actions.act_window">
+        <field name="name">Gán nhân viên</field>
+        <field name="res_model">wizard.assign.staff</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

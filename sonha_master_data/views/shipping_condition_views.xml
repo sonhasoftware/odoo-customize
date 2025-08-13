@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="shipping_condition_tree_view" model="ir.ui.view">
+        <field name="name">shipping.condition.tree.view</field>
+        <field name="model">shipping.condition</field>
+        <field name="arch" type="xml">
+            <tree string="Điều kiện vận chuyển" editable="bottom">
+                <field name="code"/>
+                <field name="description"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="shipping_condition_action" model="ir.actions.act_window">
+        <field name="name">Điều kiện vận chuyển</field>
+        <field name="res_model">shipping.condition</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>
