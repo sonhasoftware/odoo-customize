@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="md_approve_rule_tree_view" model="ir.ui.view">
+        <field name="name">md.approve.rule.tree.view</field>
+        <field name="model">md.approve.rule</field>
+        <field name="arch" type="xml">
+            <tree string="Luồng duyệt">
+                <field name="company_ids" widget="many2many_tags"/>
+                <field name="model_apply"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="md_approve_rule_form_view" model="ir.ui.view">
+        <field name="name">md.approve.rule.form.view</field>
+        <field name="model">md.approve.rule</field>
+        <field name="arch" type="xml">
+            <form string="Luồng duyệt">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="company_ids" widget="many2many_tags"/>
+                        </group>
+                        <group>
+                            <field name="model_apply"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="step">
+                            <tree editable="bottom">
+                                <field name="sequence_step"/>
+                                <field name="method"/>
+                                <field name="approve_role" readonly="method != 'role'"/>
+                                <field name="employee_id" readonly="method != 'assign'"/>
+                                <field name="level"/>
+                            </tree>
+                        </field>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="md_approve_rule_action" model="ir.actions.act_window">
+        <field name="name">Luồng duyệt</field>
+        <field name="res_model">md.approve.rule</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

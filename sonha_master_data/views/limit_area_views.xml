@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="limit_area_tree_view" model="ir.ui.view">
+            <field name="name">limit.area.tree.view</field>
+            <field name="model">limit.area</field>
+            <field name="arch" type="xml">
+                <tree string="Vùng hạn mức" editable="bottom">
+                    <field name="area"/>
+                    <field name="description"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="limit_area_action" model="ir.actions.act_window">
+            <field name="name">Vùng hạn mức</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">limit.area</field>
+            <field name="view_mode">tree</field>
+        </record>
+    </data>
+</odoo>

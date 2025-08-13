@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_wizard_md_material_form" model="ir.ui.view">
+        <field name="name">wizard.md.material.form</field>
+        <field name="model">wizard.md.material</field>
+        <field name="arch" type="xml">
+            <form string="Kiểm tra trùng vật tư">
+                <group>
+                    <field name="product_type"/>
+                    <field name="name_pr" invisible="1"/>
+                    <field name="line" invisible="1"/>
+                    <field name="stage" invisible="1"/>
+                    <field name="brand" invisible="1"/>
+                    <field name="model" invisible="1"/>
+                    <field name="style" invisible="1"/>
+                    <field name="capacity" invisible="1"/>
+                    <field name="power" invisible="1"/>
+                    <field name="substance" invisible="1"/>
+                    <field name="surface" invisible="1"/>
+                    <field name="diameter" invisible="1"/>
+                    <field name="thickness" invisible="1"/>
+                    <field name="size" invisible="1"/>
+                    <field name="chemical" invisible="1"/>
+                    <field name="color" invisible="1"/>
+                    <field name="other" invisible="1"/>
+                    <field name="tech_spec" invisible="1"/>
+                    <field name="specific" invisible="1"/>
+                    <field name="country" invisible="1"/>
+                </group>
+                <div class="o_row">
+                    <div class="o_col_1" invisible="line != True">
+                        <label for="product_line"/>
+                        <field name="product_line" style="width: 100%" required="line != False"/>
+                    </div>
+                    <div class="o_col_1" invisible="stage != True">
+                        <label for="product_stage"/>
+                        <field name="product_stage" style="width: 100%" required="stage != False"/>
+                    </div>
+                    <div class="o_col_1" invisible="brand != True">
+                        <label for="product_brand"/>
+                        <field name="product_brand" invisible="brand != True" style="width: 100%"/>
+                    </div>
+                    <div class="o_col_1" invisible="model != True">
+                        <label for="product_model"/>
+                        <field name="product_model" invisible="model != True" style="width: 100%"/>
+                    </div>
+                    <div class="o_col_1" invisible="style != True">
+                        <label for="product_style"/>
+                        <field name="product_style" invisible="style != True" style="width: 100%"/>
+                    </div>
+                    <div class="o_col_1" invisible="capacity != True">
+                        <label for="product_capacity"/>
+                        <field name="product_capacity" invisible="capacity != True" style="width: 100%"/>
+                    </div>
+                    <div class="o_col_1" invisible="power != True">
+                        <label for="product_power"/>
+                        <field name="product_power" invisible="power != True" style="width: 100%"/>
+                    </div>
+                    <div class="o_col_1" invisible="substance != True">
+                        <label for="product_substance"/>
+                        <field name="product_substance" invisible="substance != True" style="width: 100%"/>
+                    </div>
+                    <div class="o_col_1" invisible="surface != True">
+                        <label for="product_surface"/>
+                        <field name="product_surface" invisible="surface != True" style="width: 100%"/>
+                    </div>
+                    <div class="o_col_1" invisible="diameter != True">
+                        <label for="product_diameter"/>
+                        <field name="product_diameter" invisible="diameter != True" style="width: 100%"/>
+                    </div>
+                    <div class="o_col_1" invisible="thickness != True">
+                        <label for="product_thickness"/>
+                        <field name="product_thickness" invisible="thickness != True" style="width: 100%"/>
+                    </div>
+                    <div class="o_col_1" invisible="size != True">
+                        <label for="product_size"/>
+                        <field name="product_size" invisible="size != True" style="width: 100%"/>
+                    </div>
+                    <div class="o_col_1" invisible="chemical != True">
+                        <label for="product_chemical"/>
+                        <field name="product_chemical" invisible="chemical != True" style="width: 100%"/>
+                    </div>
+                    <div class="o_col_1" invisible="tech_spec != True">
+                        <label for="product_tech_spec"/>
+                        <field name="product_tech_spec" invisible="tech_spec != True" style="width: 100%"/>
+                    </div>
+                    <div class="o_col_1" invisible="color != True">
+                        <label for="product_color"/>
+                        <field name="product_color" invisible="color != True" style="width: 100%"/>
+                    </div>
+                    <div class="o_col_1" invisible="other != True">
+                        <label for="product_other"/>
+                        <field name="product_other" invisible="other != True" style="width: 100%"/>
+                    </div>
+                    <div class="o_col_1" invisible="country != True">
+                        <label for="product_country"/>
+                        <field name="product_country" invisible="country != True" style="width: 100%"/>
+                    </div>
+                    <div class="o_col_1" invisible="specific != True">
+                        <label for="product_specific"/>
+                        <field name="product_specific" invisible="specific != True" style="width: 100%"/>
+                    </div>
+                </div>
+                <group>
+                    <field name="product_name" invisible="name_pr != True"/>
+                </group>
+                <group>
+                    <button name="action_confirm" string="Kiểm tra" type="object" class="btn-primary"/>
+                </group>
+                <group>
+                    <field name="declare_product" readonly="1">
+                        <tree>
+                            <field name="product_type"/>
+                            <field name="product_line"/>
+                            <field name="product_stage"/>
+                            <field name="product_name"/>
+                        </tree>
+                    </field>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_wizard_md_material" model="ir.actions.act_window">
+        <field name="name">Kiểm tra trùng</field>
+        <field name="res_model">wizard.md.material</field>
+        <field name="view_mode">form</field>
+    </record>
+
+</odoo>

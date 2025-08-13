@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="bank_data_tree_view" model="ir.ui.view">
+        <field name="name">bank.data.tree.view</field>
+        <field name="model">bank.data</field>
+        <field name="arch" type="xml">
+            <tree string="Ngân hàng" editable="bottom">
+                <field name="bank_country"/>
+                <field name="bank_key"/>
+                <field name="bank_name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="bank_data_action" model="ir.actions.act_window">
+        <field name="name">Ngân hàng</field>
+        <field name="res_model">bank.data</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="md_stock_tree_view" model="ir.ui.view">
+            <field name="name">md.stock.tree.view</field>
+            <field name="model">md.stock</field>
+            <field name="arch" type="xml">
+                <tree string="Kho" editable="bottom">
+                    <field name="stock_code"/>
+                    <field name="name"/>
+                    <field name="company_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="md_stock_action" model="ir.actions.act_window">
+            <field name="name">Master data kho</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">md.stock</field>
+            <field name="view_mode">tree</field>
+        </record>
+    </data>
+</odoo>

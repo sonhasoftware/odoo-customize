@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="cus_group_1_tree_view" model="ir.ui.view">
+        <field name="name">cus.group.1.tree.view</field>
+        <field name="model">cus.group.1</field>
+        <field name="arch" type="xml">
+            <tree string="Nhóm khách hàng 1" editable="bottom">
+                <field name="sale_district"/>
+                <field name="name"/>
+                <field name="cus_group_1_name"/>
+                <field name="province"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="cus_group_1_action" model="ir.actions.act_window">
+        <field name="name">Nhóm khách hàng 1</field>
+        <field name="res_model">cus.group.1</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

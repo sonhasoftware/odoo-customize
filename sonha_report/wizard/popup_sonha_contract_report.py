@@ -27,6 +27,7 @@ class PopupSonhaContractReport(models.TransientModel):
         if self.status:
             list_records = list_records.filtered(lambda x: x.state == self.status)
         if list_records:
+            list_records = list_records.sorted(lambda x: (x.employee_code, x.date_start, x.name))
             for r in list_records:
                 vals = {
                     'name': r.name,

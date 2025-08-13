@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="form_organization_tree_view" model="ir.ui.view">
+        <field name="name">form.organization.tree.view</field>
+        <field name="model">form.organization</field>
+        <field name="arch" type="xml">
+            <tree string="Hình thức sở hữu doanh nghiệp" editable="bottom">
+                <field name="form_of_org"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="form_organization_action" model="ir.actions.act_window">
+        <field name="name">Hình thức sở hữu doanh nghiệp</field>
+        <field name="res_model">form.organization</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

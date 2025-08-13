@@ -1,5 +1,6 @@
 from odoo import fields, models, api
 
+
 class DistributionChannel(models.Model):
     _name = 'distribution.channel'
     _rec_name = 'x_full_name'

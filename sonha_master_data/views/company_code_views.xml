@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="company_code_tree_view" model="ir.ui.view">
+        <field name="name">company.code.tree.view</field>
+        <field name="model">company.code</field>
+        <field name="arch" type="xml">
+            <tree string="Mã công ty" editable="bottom">
+                <field name="code"/>
+                <field name="company_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="company_code_action" model="ir.actions.act_window">
+        <field name="name">Mã công ty</field>
+        <field name="res_model">company.code</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

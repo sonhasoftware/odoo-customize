@@ -5,7 +5,7 @@ from odoo.exceptions import UserError, ValidationError
 class PlantData(models.Model):
     _name = 'plant.data'
 
-    product_code_id = fields.Many2one('md.product', string="Mã vật tư")
+    product_code_id = fields.Many2one('declare.md.product', string="Mã vật tư")
     plant = fields.Many2one('stock.warehouse', string="Kho")
     plan_deliver_time = fields.Integer("Thời gian giao hàng dự kiến")
     safety_time = fields.Integer("Số ngày hoàn thành sx")
@@ -39,6 +39,7 @@ class PlantData(models.Model):
     check_stock = fields.Boolean(compute="compute_material_type", store=True)
     check_shi = fields.Boolean(compute="compute_material_type", store=True)
     domain_valuation_class = fields.Many2many('valuation.class', compute="compute_domain_field", store=True)
+    md_product_id = fields.Many2one('md.product')
 
     @api.depends('product_code_id.product_type', 'plant')
     def compute_material_type(self):

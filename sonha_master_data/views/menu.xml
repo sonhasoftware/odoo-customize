@@ -7,7 +7,24 @@
     <menuitem id="menu_md"
               name="Master Data"
               parent="menu_md_root"
+              sequence="2"/>
+
+    <menuitem id="menu_tool"
+              name="Công cụ"
+              parent="menu_md_root"
+              sequence="2"/>
+
+    <menuitem id="menu_import_infor"
+              name="Import file"
+              parent="menu_tool"
+              action="action_import_infor_wizard"
               sequence="1"/>
+
+    <menuitem id="menu_assign_staff"
+              name="Gán nhân viên"
+              parent="menu_tool"
+              action="action_assign_staff_wizard"
+              sequence="2"/>
 
     <menuitem id="menu_md_customer"
               name="Master Data Khách hàng"
@@ -27,23 +44,57 @@
               action="md_supplier_action"
               sequence="3"/>
 
-<!--    <menuitem id="menu_alternative_uom"-->
-<!--              name="Đơn vị tính thay thế"-->
-<!--              parent="menu_md"-->
-<!--              action="alternative_uom_action"-->
-<!--              sequence="3"/>-->
+    <menuitem id="menu_md_stock"
+              name="Master Data kho"
+              parent="menu_md"
+              action="md_stock_action"
+              sequence="4"/>
 
-<!--    <menuitem id="menu_plant_data"-->
-<!--              name="Quản lý plant"-->
+<!--    <menuitem id="menu_md_saleman"-->
+<!--              name="Master Data NVKD"-->
 <!--              parent="menu_md"-->
-<!--              action="plant_data_action"-->
-<!--              sequence="4"/>-->
-
-<!--    <menuitem id="menu_sales_data"-->
-<!--              name="Thông tin bán hàng"-->
-<!--              parent="menu_md"-->
-<!--              action="sales_data_action"-->
+<!--              action="md_saleman_action"-->
 <!--              sequence="5"/>-->
+
+    <menuitem id="menu_declare"
+              name="Khai báo"
+              parent="menu_md_root"
+              sequence="1"/>
+
+    <menuitem id="menu_declare_md_customer"
+              name="Khai báo data khách hàng"
+              parent="menu_declare"
+              action="declare_md_customer_action"
+              sequence="1"/>
+
+    <menuitem id="menu_declare_md_supplier"
+              name="Khai báo data nhà cung cấp"
+              parent="menu_declare"
+              action="declare_md_supplier_action"
+              sequence="2"/>
+
+    <menuitem id="menu_declare_md_saleman"
+              name="Nhân viên kinh doanh"
+              parent="menu_config_md_customer"
+              action="declare_md_saleman_action"
+              sequence="20"/>
+
+    <menuitem id="menu_declare_product"
+              name="Data vật tư"
+              parent="menu_declare"
+              sequence="4"/>
+
+    <menuitem id="menu_declare_md_product"
+              name="Khai báo Data vật tư"
+              parent="menu_declare_product"
+              action="declare_md_product_action"
+              sequence="1"/>
+
+    <menuitem id="menu_wizard_md_material"
+              name="Kiểm tra trùng data vật tư"
+              parent="menu_declare_product"
+              action="action_wizard_md_material"
+              sequence="2"/>
 
     <menuitem id="menu_md_config"
               name="Danh mục"
@@ -60,22 +111,123 @@
               parent="menu_md_config"
               sequence="2"/>
 
+    <menuitem id="menu_config_general"
+              name="Chung"
+              parent="menu_md_config"
+              sequence="5"/>
+
+    <menuitem id="menu_bp_type"
+              name="Loại BP"
+              parent="menu_config_general"
+              action="bp_type_action"
+              sequence="1"/>
+
+    <menuitem id="menu_bp_group_account"
+              name="Nhóm BP"
+              parent="menu_config_general"
+              action="bp_group_account_action"
+              sequence="2"/>
+
+    <menuitem id="menu_company_code"
+              name="Mã công ty"
+              parent="menu_config_general"
+              action="company_code_action"
+              sequence="3"/>
+
     <menuitem id="menu_config_md_supplier"
               name="Nhà cung cấp"
               parent="menu_md_config"
               sequence="3"/>
 
-    <menuitem id="menu_customer_type"
-              name="Phân loại khách hàng"
+    <menuitem id="menu_bank_country"
+              name="Quốc gia"
               parent="menu_config_md_customer"
-              action="customer_type_action"
-              sequence="1"/>
+              action="bank_country_action"
+              sequence="5"/>
 
-    <menuitem id="menu_customer_group"
+    <menuitem id="menu_bank_data"
+              name="Ngân hàng"
+              parent="menu_config_md_customer"
+              action="bank_data_action"
+              sequence="6"/>
+
+    <menuitem id="menu_trading_partner"
+              name="Công ty nội bộ"
+              parent="menu_config_md_customer"
+              action="trading_partner_action"
+              sequence="7"/>
+
+    <menuitem id="menu_reconciliation_account"
+              name="Tài khoản kế toán"
+              parent="menu_config_md_customer"
+              action="reconciliation_account_action"
+              sequence="8"/>
+
+    <menuitem id="menu_payment_term"
+              name="Điều khoản thanh toán"
+              parent="menu_config_md_customer"
+              action="payment_term_action"
+              sequence="9"/>
+
+    <menuitem id="menu_cus_payment_method"
+              name="Phương thức thanh toán"
+              parent="menu_config_md_customer"
+              action="cus_payment_method_action"
+              sequence="10"/>
+
+    <menuitem id="menu_sale_district"
+              name="Vùng kinh doanh"
+              parent="menu_config_md_customer"
+              action="sale_district_action"
+              sequence="11"/>
+
+    <menuitem id="menu_cus_incoterm"
+              name="Incoterms"
+              parent="menu_config_md_customer"
+              action="cus_incoterm_action"
+              sequence="12"/>
+
+    <menuitem id="menu_cus_group"
               name="Nhóm khách hàng"
               parent="menu_config_md_customer"
-              action="customer_group_action"
-              sequence="2"/>
+              action="cus_group_action"
+              sequence="13"/>
+
+    <menuitem id="menu_cus_group_1"
+              name="Nhóm khách hàng 1"
+              parent="menu_config_md_customer"
+              action="cus_group_1_action"
+              sequence="14"/>
+
+    <menuitem id="menu_customer_price_group"
+              name="Nhóm khách hàng theo giá"
+              parent="menu_config_md_customer"
+              action="customer_price_group_action"
+              sequence="15"/>
+
+    <menuitem id="menu_shipping_condition"
+              name="Điều kện giao hàng"
+              parent="menu_config_md_customer"
+              action="shipping_condition_action"
+              sequence="16"/>
+
+    <menuitem id="menu_customer_assignment_group"
+              name="Hạch toán doanh thu"
+              parent="menu_config_md_customer"
+              action="customer_assignment_group_action"
+              sequence="17"/>
+
+    <menuitem id="menu_sale_office"
+              name="Chi nhánh"
+              parent="menu_config_md_customer"
+              action="sale_office_action"
+              sequence="18"/>
+
+    <menuitem id="menu_limit_area"
+              name="Vùng hạn mức"
+              parent="menu_config_md_customer"
+              action="limit_area_action"
+              sequence="19"/>
 
     <menuitem id="menu_purchasing_group"
               name="Nhóm mua hàng"
@@ -185,15 +337,137 @@
               action="uom.product_uom_form_action"
               sequence="17"/>
 
-    <menuitem id="menu_supplier_type"
-              name="Loại nhà cung cấp"
-              parent="menu_config_md_supplier"
-              action="supplier_type_action"
+    <menuitem id="menu_config_md_product_name"
+              name="Tên vật tư"
+              parent="menu_md_config"
+              sequence="3"/>
+
+    <menuitem id="menu_product_line"
+              name="Dòng sản phẩm"
+              parent="menu_config_md_product_name"
+              action="product_line_action"
               sequence="1"/>
 
-    <menuitem id="menu_supplier_group"
-              name="Nhóm nhà cung cấp"
+    <menuitem id="menu_product_stage"
+              parent="menu_config_md_product_name"
+              action="product_stage_action"
+              sequence="2"/>
+
+    <menuitem id="menu_product_brand"
+              parent="menu_config_md_product_name"
+              action="product_brand_action"
+              sequence="3"/>
+
+    <menuitem id="menu_product_color"
+              parent="menu_config_md_product_name"
+              action="product_color_action"
+              sequence="4"/>
+
+    <menuitem id="menu_product_capacity"
+              parent="menu_config_md_product_name"
+              action="product_capacity_action"
+              sequence="5"/>
+
+    <menuitem id="menu_product_chemical"
+              parent="menu_config_md_product_name"
+              action="product_chemical_action"
+              sequence="6"/>
+
+    <menuitem id="menu_product_model"
+              parent="menu_config_md_product_name"
+              action="product_model_action"
+              sequence="7"/>
+
+    <menuitem id="menu_product_style"
+              parent="menu_config_md_product_name"
+              action="product_style_action"
+              sequence="8"/>
+
+    <menuitem id="menu_product_substance"
+              parent="menu_config_md_product_name"
+              action="product_substance_action"
+              sequence="9"/>
+
+    <menuitem id="menu_product_name_rule"
+              parent="menu_config_md_product_name"
+              action="product_name_rule_action"
+              sequence="10"/>
+
+    <menuitem id="menu_product_diameter"
+              parent="menu_config_md_product_name"
+              action="product_diameter_action"
+              sequence="11"/>
+
+    <menuitem id="menu_product_size"
+              parent="menu_config_md_product_name"
+              action="product_size_action"
+              sequence="12"/>
+
+    <menuitem id="menu_product_surface"
+              parent="menu_config_md_product_name"
+              action="product_surface_action"
+              sequence="13"/>
+
+    <menuitem id="menu_product_thickness"
+              parent="menu_config_md_product_name"
+              action="product_thickness_action"
+              sequence="14"/>
+
+    <menuitem id="menu_product_other"
+              parent="menu_config_md_product_name"
+              action="product_other_action"
+              sequence="15"/>
+
+    <menuitem id="menu_vendor_industry"
+              name="Loại NCC(SX/TM)"
               parent="menu_config_md_supplier"
-              action="supplier_group_action"
+              action="vendor_industry_action"
+              sequence="3"/>
+
+    <menuitem id="menu_form_organization"
+              name="Hình thức sở hữu doanh nghiệp"
+              parent="menu_config_md_supplier"
+              action="form_organization_action"
+              sequence="4"/>
+
+    <menuitem id="menu_planning_group"
+              name="Dự báo dòng tiền"
+              parent="menu_config_md_supplier"
+              action="planning_group_action"
+              sequence="5"/>
+
+    <menuitem id="menu_order_currency"
+              name="Tiền tệ"
+              parent="menu_config_md_supplier"
+              action="order_currency_action"
+              sequence="6"/>
+
+    <menuitem id="menu_config_district"
+              name="Quận/Huyện"
+              parent="menu_config_md_customer"
+              action="config_district_action"
+              sequence="3"/>
+
+    <menuitem id="menu_config_ward"
+              name="Phường/Xã"
+              parent="menu_config_md_customer"
+              action="config_ward_action"
+              sequence="4"/>
+
+    <menuitem id="menu_config_approval"
+              name="Luồng duyệt"
+              parent="menu_md_config"
+              sequence="4"/>
+
+    <menuitem id="menu_md_approve_rule"
+              name="Luồng duyệt"
+              parent="menu_config_approval"
+              action="md_approve_rule_action"
+              sequence="1"/>
+
+    <menuitem id="menu_md_approve_role"
+              name="Vai trò"
+              parent="menu_config_approval"
+              action="md_approve_role_action"
               sequence="2"/>
 </odoo>
