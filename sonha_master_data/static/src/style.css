@@ -58,7 +58,7 @@
     width: 80px !important;
 }
 
-.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="plant"] {
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="sonha_plant"] {
     width: 100px !important;
 }
 
@@ -174,7 +174,7 @@
     width: 50px !important;
 }
 
-.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="deliver_warehouse"] {
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="deliver_plant"] {
     width: 150px !important;
 }
 

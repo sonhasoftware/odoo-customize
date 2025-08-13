@@ -7,7 +7,7 @@
             <tree string="Hình thức cung ứng đặc biệt" editable="bottom">
                 <field name="name"/>
                 <field name="procument_type_name"/>
-                <field name="plant" widget="many2many_tags"/>
+                <field name="sonha_plant" widget="many2many_tags"/>
             </tree>
         </field>
     </record>

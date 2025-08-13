@@ -70,7 +70,7 @@
                                             <field name="check_stock" column_invisible="1"/>
                                             <field name="check_shi" column_invisible="1"/>
                                             <field name="material_type" column_invisible="1"/>
-                                            <field name="plant"/>
+                                            <field name="sonha_plant"/>
                                             <field name="purchasing_group"/>
                                             <field name="availability_check"/>
                                             <field name="profit_center"/>
@@ -109,7 +109,7 @@
                                             <field name="sale_organization"/>
                                             <field name="distribution_chanel"/>
                                             <field name="sale_unit"/>
-                                            <field name="deliver_warehouse"/>
+                                            <field name="deliver_plant"/>
                                             <field name="tax"/>
                                             <field name="item_category_group"/>
                                             <field name="aag_malt"/>

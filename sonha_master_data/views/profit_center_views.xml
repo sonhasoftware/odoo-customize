@@ -7,7 +7,7 @@
             <tree string="Trung tâm ghi nhận doanh thu" editable="bottom">
                 <field name="name"/>
                 <field name="profit_center_name"/>
-                <field name="plant"/>
+                <field name="sonha_plant"/>
             </tree>
         </field>
     </record>

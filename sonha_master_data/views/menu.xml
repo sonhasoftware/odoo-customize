@@ -418,6 +418,11 @@
               action="product_other_action"
               sequence="15"/>
 
+    <menuitem id="menu_sonha_plant"
+              parent="menu_config_md_product_name"
+              action="action_sonha_plant"
+              sequence="16"/>
+
     <menuitem id="menu_vendor_industry"
               name="Loại NCC(SX/TM)"
               parent="menu_config_md_supplier"

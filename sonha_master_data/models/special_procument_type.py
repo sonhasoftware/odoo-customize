@@ -7,4 +7,4 @@ class SpecialProcumentType(models.Model):
 
     name = fields.Char("Loại", required=True)
     procument_type_name = fields.Char("Tên loại hình thức cung ứng", required=True)
-    plant = fields.Many2many('stock.warehouse', string="Plant áp dụng")
+    sonha_plant = fields.Many2many('sonha.plant', string="Plant áp dụng")

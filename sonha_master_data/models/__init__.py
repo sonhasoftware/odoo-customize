@@ -14,7 +14,6 @@ from . import x_material_type
 from . import x_mch_list
 from . import x_division
 from . import x_product_hierarchy
-from . import stock_warehouse
 from . import sale_organization
 from . import distribution_channel
 from . import tax_classification
@@ -82,4 +81,5 @@ from . import emp_relationship
 from . import credit_limit
 from . import company_code
 from . import limit_area
+from . import sonha_plant
 

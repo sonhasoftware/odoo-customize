@@ -6,13 +6,13 @@ class PlantData(models.Model):
     _name = 'plant.data'
 
     product_code_id = fields.Many2one('declare.md.product', string="Mã vật tư")
-    plant = fields.Many2one('stock.warehouse', string="Kho")
+    sonha_plant = fields.Many2one('sonha.plant', string="Kho")
     plan_deliver_time = fields.Integer("Thời gian giao hàng dự kiến")
     safety_time = fields.Integer("Số ngày hoàn thành sx")
     safety_stock = fields.Integer("Tồn kho an toàn")
     availability_check = fields.Selection([('02', "02"), ('kp', "KP")], string="Kiểm tra tồn kho", default='kp')
     special_procurement_type = fields.Many2one('special.procument.type', string="Loại cung ứng đặc biệt",
-                                               domain="[('plant', 'in', plant)]")
+                                               domain="[('sonha_plant', 'in', sonha_plant)]")
     co_product = fields.Boolean("Sản phầm loại 2")
     procurement_type = fields.Selection([('e', "E"), ('f', "F"), ('x', "X")], string="Loại cung ứng")
     inspection_type_01 = fields.Boolean("Loại kiểm tra chất lượng 01")
@@ -29,19 +29,19 @@ class PlantData(models.Model):
     inspection_type_z89 = fields.Boolean("Loại kiểm tra chất lượng Z89")
     purchasing_group = fields.Many2one('purchasing.group', string="Nhóm mua hàng")
     profit_center = fields.Many2one('profit.center', string="Trung tâm ghi nhận doanh thu",
-                                    domain="[('plant', '=', plant)]")
+                                    domain="[('sonha_plant', '=', sonha_plant)]")
     mrp_controller = fields.Many2one('mrp.controller', string="Nhóm lập kế hoạch vật tư",
-                                     domain="[('plant', 'in', plant)]")
+                                     domain="[('sonha_plant', 'in', sonha_plant)]")
     valuation_class = fields.Many2one('valuation.class', string="Nhóm tài khoản tồn kho",
                                    domain="[('id', 'in', domain_valuation_class)]")
-    overhead_group = fields.Many2one('overhead.group', string="Nhóm chi phí chung", domain="[('plant', '=', plant)]")
+    overhead_group = fields.Many2one('overhead.group', string="Nhóm chi phí chung", domain="[('sonha_plant', '=', sonha_plant)]")
     material_type = fields.Many2one('x.material.type', compute="compute_material_type", store=True)
     check_stock = fields.Boolean(compute="compute_material_type", store=True)
     check_shi = fields.Boolean(compute="compute_material_type", store=True)
     domain_valuation_class = fields.Many2many('valuation.class', compute="compute_domain_field", store=True)
     md_product_id = fields.Many2one('md.product')
 
-    @api.depends('product_code_id.product_type', 'plant')
+    @api.depends('product_code_id.product_type', 'sonha_plant')
     def compute_material_type(self):
         group_1 = ['2201', '2202']
         group_2 = ['2101', '2102', '2103']
@@ -50,24 +50,24 @@ class PlantData(models.Model):
             r.procurement_type = None
             mrp_code = None
             profit_code = None
-            if r.product_code_id.product_type and r.plant:
-                if r.product_code_id.product_type.x_code not in ['Z100', 'Z101'] and r.plant.plant in group_1:
-                    profit_code = "220199" if r.plant.plant == "2201" else "220299"
-                if r.product_code_id.product_type.x_code not in ['Z100', 'Z300', 'Z500', 'Z101'] and r.plant.plant in group_1:
+            if r.product_code_id.product_type and r.sonha_plant:
+                if r.product_code_id.product_type.x_code not in ['Z100', 'Z101'] and r.sonha_plant.plant in group_1:
+                    profit_code = "220199" if r.sonha_plant.plant == "2201" else "220299"
+                if r.product_code_id.product_type.x_code not in ['Z100', 'Z300', 'Z500', 'Z101'] and r.sonha_plant.plant in group_1:
                     purchasing_code = "500"
                     mrp_code = "000"
                     r.procurement_type = 'f'
-                if r.product_code_id.product_type.x_code == "Z500" and r.plant.plant in group_1:
+                if r.product_code_id.product_type.x_code == "Z500" and r.sonha_plant.plant in group_1:
                     purchasing_code = "200"
-                if r.product_code_id.product_type.x_code == "Z101" and r.plant.plant in group_1:
+                if r.product_code_id.product_type.x_code == "Z101" and r.sonha_plant.plant in group_1:
                     purchasing_code = "100"
-                if r.product_code_id.product_type.x_code not in ['Z100', 'Z101'] and r.plant.plant in group_2:
+                if r.product_code_id.product_type.x_code not in ['Z100', 'Z101'] and r.sonha_plant.plant in group_2:
                     mrp_code = "000"
                     r.procurement_type = 'f'
-                if r.plant.plant == "1001":
+                if r.sonha_plant.plant == "1001":
                     mrp_code = "000"
                     r.procurement_type = 'f'
-                if r.plant.plant not in (group_1 + group_2):
+                if r.sonha_plant.plant not in (group_1 + group_2):
                     r.check_shi = True
                     r.overhead_group = None
                 else:
@@ -118,33 +118,33 @@ class PlantData(models.Model):
             else:
                 r.procurement_type = None
 
-    @api.depends('material_type', 'plant')
+    @api.depends('material_type', 'sonha_plant')
     def compute_domain_field(self):
         group_1 = ['2201', '2202']
         group_2 = ['2101', '2102', '2103']
         for r in self:
-            if r.plant and r.plant.plant in group_1:
+            if r.sonha_plant and r.sonha_plant.plant in group_1:
                 if r.material_type and r.material_type.x_code in ['Z100', 'Z101', 'Z200', 'Z300', 'Z205']:
-                    domain_valuation_class = self.env['valuation.class'].sudo().search([('company_ids', 'in', r.plant.company_id.id)])
+                    domain_valuation_class = self.env['valuation.class'].sudo().search([('company_ids', 'in', r.sonha_plant.company_id.id)])
                     r.domain_valuation_class = domain_valuation_class
                 elif r.material_type and r.material_type.x_code not in ['Z100', 'Z101', 'Z200', 'Z300', 'Z205']:
-                    domain_valuation_class = self.env['valuation.class'].sudo().search([('company_ids', 'in', r.plant.company_id.id),
+                    domain_valuation_class = self.env['valuation.class'].sudo().search([('company_ids', 'in', r.sonha_plant.company_id.id),
                                                                                         ('material_type', 'in', r.material_type.id)])
                     r.domain_valuation_class = domain_valuation_class
                 else:
                     r.domain_valuation_class = None
-            elif r.plant and r.plant.plant in group_2:
+            elif r.sonha_plant and r.sonha_plant.plant in group_2:
                 if r.material_type and r.material_type.x_code in ['Z100', 'Z101', 'Z102']:
-                    domain_valuation_class = self.env['valuation.class'].sudo().search([('company_ids', 'in', r.plant.company_id.id)])
+                    domain_valuation_class = self.env['valuation.class'].sudo().search([('company_ids', 'in', r.sonha_plant.company_id.id)])
                     r.domain_valuation_class = domain_valuation_class
                 elif r.material_type and r.material_type.x_code not in ['Z100', 'Z101', 'Z102']:
-                    domain_valuation_class = self.env['valuation.class'].sudo().search([('company_ids', 'in', r.plant.company_id.id),
+                    domain_valuation_class = self.env['valuation.class'].sudo().search([('company_ids', 'in', r.sonha_plant.company_id.id),
                                                                                         ('material_type', 'in', r.material_type.id)])
                     r.domain_valuation_class = domain_valuation_class
                 else:
                     r.domain_valuation_class = None
-            elif r.plant and r.plant.plant not in (group_1 + group_2):
-                domain_valuation_class = self.env['valuation.class'].sudo().search([('company_ids', 'in', r.plant.company_id.id),
+            elif r.sonha_plant and r.sonha_plant.plant not in (group_1 + group_2):
+                domain_valuation_class = self.env['valuation.class'].sudo().search([('company_ids', 'in', r.sonha_plant.company_id.id),
                                                                                     ('material_type', 'in', r.material_type.id)])
                 r.domain_valuation_class = domain_valuation_class
             else:
