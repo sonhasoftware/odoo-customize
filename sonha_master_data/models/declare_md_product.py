@@ -385,7 +385,7 @@ class DeclareMDProduct(models.Model):
         self.product_english_name = None
         self.product_long_name = None
 
-    @api.onchange('product_type', 'product_line', 'product_stage')
+    @api.onchange('product_type')
     def onchange_product_type(self):
         self.product_line = None
         self.product_stage = None
