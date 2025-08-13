@@ -14,14 +14,15 @@ class PopupEmployeeAttendanceReport(models.TransientModel):
 
     def action_confirm(self):
         self.env['employee.attendance.report'].search([]).sudo().unlink()
-        list_records = self.env['employee.attendance'].sudo().search([('date', '>=', self.from_date),
+        list_records = self.env['employee.attendance.store'].sudo().search([('date', '>=', self.from_date),
                                                                       ('date', '<=', self.to_date)])
-        if self.company_id and not self.department_id:
-            list_records = list_records.filtered(lambda x: x.employee_id.company_id.id == self.company_id.id)
-        if self.department_id and not self.employee_id:
-            list_records = list_records.filtered(lambda x: x.department_id.id == self.department_id.id)
+
         if self.employee_id:
             list_records = list_records.filtered(lambda x: x.employee_id.id == self.employee_id.id)
+        elif self.department_id:
+            list_records = list_records.filtered(lambda x: x.department_id.id == self.department_id.id)
+        elif self.company_id:
+            list_records = list_records.filtered(lambda x: x.employee_id.company_id.id == self.company_id.id)
         if list_records:
             for r in list_records:
                 vals = {
