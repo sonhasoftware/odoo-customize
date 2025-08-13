@@ -14,6 +14,16 @@
               parent="menu_md_root"
               sequence="2"/>
 
+    <menuitem id="menu_declare"
+              name="Khai báo"
+              parent="menu_md_root"
+              sequence="1"/>
+
+    <menuitem id="menu_md_config"
+              name="Danh mục"
+              parent="menu_md_root"
+              sequence="12"/>
+
     <menuitem id="menu_import_infor"
               name="Import file"
               parent="menu_tool"
@@ -56,11 +66,6 @@
 <!--              action="md_saleman_action"-->
 <!--              sequence="5"/>-->
 
-    <menuitem id="menu_declare"
-              name="Khai báo"
-              parent="menu_md_root"
-              sequence="1"/>
-
     <menuitem id="menu_declare_md_customer"
               name="Khai báo data khách hàng"
               parent="menu_declare"
@@ -72,12 +77,6 @@
               parent="menu_declare"
               action="declare_md_supplier_action"
               sequence="2"/>
-
-    <menuitem id="menu_declare_md_saleman"
-              name="Nhân viên kinh doanh"
-              parent="menu_config_md_customer"
-              action="declare_md_saleman_action"
-              sequence="20"/>
 
     <menuitem id="menu_declare_product"
               name="Data vật tư"
@@ -96,15 +95,16 @@
               action="action_wizard_md_material"
               sequence="2"/>
 
-    <menuitem id="menu_md_config"
-              name="Danh mục"
-              parent="menu_md_root"
-              sequence="12"/>
-
     <menuitem id="menu_config_md_customer"
               name="Khách hàng"
               parent="menu_md_config"
               sequence="1"/>
+
+    <menuitem id="menu_declare_md_saleman"
+              name="Nhân viên kinh doanh"
+              parent="menu_config_md_customer"
+              action="declare_md_saleman_action"
+              sequence="20"/>
 
     <menuitem id="menu_config_md_product"
               name="Vật tư"
