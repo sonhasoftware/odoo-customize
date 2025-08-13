@@ -7,7 +7,7 @@ class DeclareMDProduct(models.Model):
 
     product_code = fields.Char("Mã vật tư")
     product_type = fields.Many2one('x.material.type', string="Loại vật tư")
-    product_name = fields.Char("Tên vật tư", size=40)
+    product_name = fields.Char("Tên vật tư")
     product_english_name = fields.Char("Tên vật tư tiếng anh", compute="get_product_name", store=True)
     product_long_name = fields.Char("Tên đầy đủ", size=128)
     status = fields.Selection([('draft', "Nháp"), ('waiting', "Chờ duyệt"), ('done', "Đã duyệt")],
