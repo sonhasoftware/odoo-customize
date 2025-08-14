@@ -33,7 +33,7 @@
                                     <field name="basic_data" string="">
                                         <tree editable="bottom" class="md-product">
                                             <field name="old_product_code"/>
-                                            <field name="main_unit"/>
+                                            <field name="main_uom"/>
                                             <field name="product_group"/>
                                             <field name="material"/>
                                             <field name="surface"/>
@@ -42,9 +42,9 @@
                                             <field name="malt_prdhier"/>
                                             <field name="gross_weight"/>
                                             <field name="net_weight"/>
-                                            <field name="weight_unit"/>
+                                            <field name="weight_uom"/>
                                             <field name="volume"/>
-                                            <field name="volume_unit"/>
+                                            <field name="volume_uom"/>
                                             <field name="size"/>
                                         </tree>
                                     </field>
@@ -54,7 +54,7 @@
                                 <group>
                                     <field name="alternative_uom" string="">
                                         <tree editable="bottom" class="md-product">
-                                            <field name="alternative_unit"/>
+                                            <field name="alternative_uom"/>
                                             <field name="unit_measure"/>
                                             <field name="denominator"/>
                                             <field name="numerator"/>
@@ -108,7 +108,7 @@
                                             <field name="company_id" column_invisible="1"/>
                                             <field name="sale_organization"/>
                                             <field name="distribution_chanel"/>
-                                            <field name="sale_unit"/>
+                                            <field name="sale_uom"/>
                                             <field name="deliver_plant"/>
                                             <field name="tax"/>
                                             <field name="item_category_group"/>

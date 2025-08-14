@@ -109,6 +109,7 @@ access_credit_limit,access.credit.limit,model_credit_limit,,1,1,1,1
 access_company_code,access.company.code,model_company_code,,1,1,1,1
 access_limit_area,access.limit.area,model_limit_area,,1,1,1,1
 access_sonha_plant,access.sonha.plant,model_sonha_plant,,1,1,1,1
+access_sonha_uom,access.sonha.uom,model_sonha_uom,,1,1,1,1
 
 access_assign_staff,access.assign.staff,model_assign_staff,,1,1,1,1
 

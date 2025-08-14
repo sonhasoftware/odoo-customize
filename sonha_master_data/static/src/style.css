@@ -6,7 +6,7 @@
     width: 115px !important;
 }
 
-.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="main_unit"] {
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="main_uom"] {
     width: 90px !important;
 }
 
@@ -42,7 +42,7 @@
     width: 100px !important;
 }
 
-.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="weight_unit"] {
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="weight_uom"] {
     width: 100px !important;
 }
 
@@ -50,7 +50,7 @@
     width: 75px !important;
 }
 
-.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="volume_unit"] {
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="volume_uom"] {
     width: 100px !important;
 }
 
@@ -170,7 +170,7 @@
     width: 100px !important;
 }
 
-.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="sale_unit"] {
+.md-product th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="sale_uom"] {
     width: 50px !important;
 }
 

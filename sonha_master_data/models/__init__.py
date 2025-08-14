@@ -82,4 +82,5 @@ from . import credit_limit
 from . import company_code
 from . import limit_area
 from . import sonha_plant
+from . import sonha_uom
 

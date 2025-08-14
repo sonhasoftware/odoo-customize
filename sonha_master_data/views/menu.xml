@@ -334,7 +334,7 @@
     <menuitem id="menu_md_uom"
               name="Đơn vị tính"
               parent="menu_config_md_product"
-              action="uom.product_uom_form_action"
+              action="sonha_uom_action"
               sequence="17"/>
 
     <menuitem id="menu_config_md_product_name"

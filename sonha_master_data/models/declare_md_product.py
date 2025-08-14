@@ -147,7 +147,7 @@ class DeclareMDProduct(models.Model):
             if r.employee_id.user_id.id == self.env.uid or self.env.uid == 2:
                 if r.have_alt_uom and not r.alternative_uom:
                     raise ValidationError("Cần khai báo đơn vị thay thế cho vật tư!")
-                if r.basic_data.malt_prdhier.code in list_alt_uom and r.alternative_uom.alternative_unit.name != "Cây":
+                if r.basic_data.malt_prdhier.code in list_alt_uom and r.alternative_uom.alternative_uom.name != "Cây":
                     raise ValidationError("Đơn vị thay thế phải là Cây!")
                 model_id = self.env['ir.model'].sudo().search([('model', '=', 'declare.md.product')], limit=1).id
                 approve_rule = self.env['md.approve.rule'].sudo().search([('model_apply', '=', model_id),

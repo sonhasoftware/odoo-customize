@@ -6,7 +6,7 @@
         <field name="arch" type="xml">
             <tree string="Đơn vị thay thế" editable="bottom">
                 <field name="product_code_id"/>
-                <field name="alternative_unit"/>
+                <field name="alternative_uom"/>
                 <field name="unit_measure"/>
                 <field name="denominator"/>
                 <field name="numerator"/>

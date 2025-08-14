@@ -9,7 +9,7 @@ class SalesData(models.Model):
     sale_organization = fields.Many2one('sale.organization', string="Tổ chức bán hàng",
                                         domain="[('company_id', '=', company_id)]")
     distribution_chanel = fields.Many2one('distribution.channel', string="Kênh bán hàng")
-    sale_unit = fields.Many2one('uom.uom', string="Đơn vị tính")
+    sale_uom = fields.Many2one('sonha.uom', string="Đơn vị tính")
     deliver_plant = fields.Many2one('sonha.plant', string="Kho xuất")
     tax = fields.Many2one('tax.classification', string="Thuế")
     aag_malt = fields.Many2one('account.assignment', string="Nhóm định khoản doanh thu")
@@ -55,7 +55,7 @@ class SalesData(models.Model):
     @api.depends('product_code_id.plant_data.sonha_plant')
     def get_company_id(self):
         for r in self:
-            if r.product_code_id.plant_data.plant:
+            if r.product_code_id.plant_data.sonha_plant:
                 r.company_id = r.product_code_id.plant_data.sonha_plant.company_id.id
             else:
                 r.company_id = None

@@ -5,7 +5,7 @@
         <field name="model">uom.characteristic</field>
         <field name="arch" type="xml">
             <tree string="Đặc điểm đơn vị" editable="bottom">
-                <field name="unit_material"/>
+                <field name="uom"/>
                 <field name="characteristic"/>
             </tree>
         </field>

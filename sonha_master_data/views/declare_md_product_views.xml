@@ -145,7 +145,7 @@
                                     <field name="basic_data" string="" readonly="status != 'draft'">
                                         <tree editable="bottom" class="md-product">
                                             <field name="old_product_code"/>
-                                            <field name="main_unit"/>
+                                            <field name="main_uom"/>
                                             <field name="product_group"/>
 <!--                                            <field name="x_mch_level_1"/>-->
 <!--                                            <field name="x_mch_level_2"/>-->
@@ -158,9 +158,9 @@
                                             <field name="malt_prdhier"/>
                                             <field name="gross_weight"/>
                                             <field name="net_weight"/>
-                                            <field name="weight_unit" required="required_weight_unit != False"/>
+                                            <field name="weight_uom" required="required_weight_unit != False"/>
                                             <field name="volume"/>
-                                            <field name="volume_unit" required="required_volume_unit != False"/>
+                                            <field name="volume_uom" required="required_volume_unit != False"/>
                                             <field name="size"/>
                                             <field name="required_weight_unit" column_invisible="1"/>
                                             <field name="required_volume_unit" column_invisible="1"/>
@@ -172,7 +172,7 @@
                                 <group>
                                     <field name="alternative_uom" string="" readonly="status != 'draft'">
                                         <tree editable="bottom" class="md-product">
-                                            <field name="alternative_unit"/>
+                                            <field name="alternative_uom"/>
                                             <field name="unit_measure"/>
                                             <field name="denominator"/>
                                             <field name="numerator"/>
@@ -226,7 +226,7 @@
                                             <field name="company_id" column_invisible="1"/>
                                             <field name="sale_organization"/>
                                             <field name="distribution_chanel"/>
-                                            <field name="sale_unit"/>
+                                            <field name="sale_uom"/>
                                             <field name="deliver_plant"/>
                                             <field name="tax"/>
                                             <field name="item_category_group"/>

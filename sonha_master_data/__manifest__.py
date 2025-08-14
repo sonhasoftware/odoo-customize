@@ -6,8 +6,7 @@
     'license': 'LGPL-3',
     'depends': [
         'hr',
-        'base',
-        'uom'
+        'base'
     ],
     'data': [
         'security/security.xml',
@@ -82,6 +81,8 @@
         'views/md_saleman_views.xml',
         'views/limit_area_views.xml',
         'views/sonha_plant_views.xml',
+        'views/sonha_uom_views.xml',
+
         'wizard/wizard_md_material_views.xml',
         'wizard/wizard_import_infor_views.xml',
         'wizard/wizard_assign_staff_views.xml',
