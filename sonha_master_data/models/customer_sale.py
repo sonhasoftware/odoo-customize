@@ -29,7 +29,7 @@ class CustomerSale(models.Model):
     customer_assignment_group = fields.Many2one('customer.assignment.group', string="Mã hạch toán doanh thu",
                                                 required=True)
     sale_office = fields.Many2one('sale.office', string="Chi nhánh")
-    plant = fields.Many2one('stock.warehouse', string="Plant")
+    sonha_plant = fields.Many2one('sonha.plant', string="Plant")
     payment_term = fields.Many2one('payment.term', string="Thời hạn thanh toán", required=True)
     md_customer = fields.Many2one('md.customer')
 

@@ -7,5 +7,5 @@ class ProfitCenter(models.Model):
 
     name = fields.Char("Mã", required=True)
     profit_center_name = fields.Char("Tên trung tâm doanh thu", required=True)
-    plant = fields.Many2one('stock.warehouse', string="Plant")
+    sonha_plant = fields.Many2one('sonha.plant', string="Plant")
 

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_sonha_plant_tree" model="ir.ui.view">
+        <field name="name">sonha.plant.tree</field>
+        <field name="model">sonha.plant</field>
+        <field name="arch" type="xml">
+            <tree string="Kho hàng" default_order="create_date desc">
+                <field name="name"/>
+                <field name="plant" />
+                <field name="company_id" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_sonha_plant_form" model="ir.ui.view">
+        <field name="name">sonha.plant.form</field>
+        <field name="model">sonha.plant</field>
+        <field name="arch" type="xml">
+            <form string="Kho hàng">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="plant"/>
+                            </group>
+                            <group>
+                                <field name="company_id"/>
+                            </group>
+                        </group>
+                        <group>
+                            <field name="x_country_id"/>
+                            <field name="x_state_id"/>
+                            <field name="x_street"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sonha_plant" model="ir.actions.act_window">
+        <field name="name">Kho hàng</field>
+        <field name="res_model">sonha.plant</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

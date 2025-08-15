@@ -6,7 +6,7 @@
         <field name="arch" type="xml">
             <tree string="Quản lý plant" editable="bottom">
                 <field name="product_code_id"/>
-                <field name="plant"/>
+                <field name="sonha_plant"/>
                 <field name="purchasing_group"/>
                 <field name="availability_check"/>
 <!--                <field name="special_procurement_type"/>-->

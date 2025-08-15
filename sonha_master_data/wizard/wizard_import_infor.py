@@ -101,7 +101,7 @@ class WizardImportInfor(models.TransientModel):
                         'cus_group': self.env['cus.group'].sudo().search([('sap_code', '=', sheet_3.cell(row=row, column=10).value)], limit=1).id,
                         'sale_office': self.env['sale.office'].sudo().search([('branch_code', '=', sheet_3.cell(row=row, column=11).value)]).id,
                         'customer_price_group': self.env['customer.price.group'].sudo().search([('code', '=', sheet_3.cell(row=row, column=13).value)]).id,
-                        'plant': self.env['stock.warehouse'].sudo().search([('plant', '=', sheet_3.cell(row=row, column=15).value)]).id,
+                        'plant': self.env['sonha.plant'].sudo().search([('plant', '=', sheet_3.cell(row=row, column=15).value)]).id,
                         'shipping_condition': self.env['shipping.condition'].sudo().search([('code', '=', sheet_3.cell(row=row, column=17).value)]).id,
                         'incoterm': self.env['cus.incoterm'].sudo().search([('code', 'ilike', sheet_3.cell(row=row, column=19).value)]).id,
                         'incoterm_more': sheet_3.cell(row=row, column=20).value,

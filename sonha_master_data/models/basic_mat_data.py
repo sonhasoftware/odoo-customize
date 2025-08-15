@@ -6,7 +6,7 @@ class BasicMatData(models.Model):
     _name = 'basic.mat.data'
 
     old_product_code = fields.Char("Mã vật tư cũ", size=18)
-    main_unit = fields.Many2one('uom.uom', string="Đơn vị tính chính")
+    main_uom = fields.Many2one('sonha.uom', string="Đơn vị tính chính")
     product_group = fields.Many2one('x.mch.list', string="Nhóm mặt hàng", domain="[('level', '=', 5)]")
     x_mch_level_1 = fields.Many2one('x.mch.list', string="Nhóm mch cấp 1", compute="filter_mch_all_level", store=True)
     x_mch_level_2 = fields.Many2one('x.mch.list', string="Nhóm mch cấp 2", compute="filter_mch_all_level", store=True)
@@ -19,11 +19,11 @@ class BasicMatData(models.Model):
     malt_prdhier = fields.Many2one('x.product.hierarchy', "Cây cấu trúc hàng hóa cấp 3", domain="[('level', '=', 3)]")
     gross_weight = fields.Char("Trọng lượng grooss")
     net_weight = fields.Char("Trọng lượng net")
-    weight_unit = fields.Many2one('uom.uom', string="Đơn vị trọng lượng",
-                                  domain="[('category_id.name', '=', 'Khối lượng')]")
+    weight_uom = fields.Many2one('sonha.uom', string="Đơn vị trọng lượng",
+                                 domain="[('category', '=', 'mass')]")
     volume = fields.Char("Thể tích")
-    volume_unit = fields.Many2one('uom.uom', "Đơn vị thể tích",
-                                  domain="[('category_id.name', '=', 'Thể tích')]")
+    volume_uom = fields.Many2one('sonha.uom', "Đơn vị thể tích",
+                                 domain="[('category', '=', 'volume')]")
     size = fields.Char("Kích thước")
     product_code_id = fields.Many2one('declare.md.product', string="Mã vật tư")
     required_weight_unit = fields.Boolean()
@@ -53,12 +53,12 @@ class BasicMatData(models.Model):
                 unit = "m³"
             if r.x_mch_level_2 and r.x_mch_level_2.x_mch_code in mch_list_l:
                 unit = "L"
-            volume_unit = self.env['uom.uom'].sudo().search([('name', '=', unit)], limit=1)
+            volume_unit = self.env['sonha.uom'].sudo().search([('name', '=', unit)], limit=1)
             if volume_unit and r.product_group.x_mch_code not in except_mch_list:
-                r.volume_unit = volume_unit.id
+                r.volume_uom = volume_unit.id
                 r.required_volume_unit = True
             else:
-                r.volume_unit = None
+                r.volume_uom = None
                 r.required_volume_unit = False
 
     @api.depends('product_group')

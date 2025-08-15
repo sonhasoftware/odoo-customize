@@ -9,7 +9,7 @@ class OverheadGroup(models.Model):
     name = fields.Char("Nhóm chi phí chung", required=True)
     description = fields.Char("Diễn giải", required=True)
     company_id = fields.Many2one('res.company', string="Công ty")
-    plant = fields.Many2one('stock.warehouse', string="Plant")
+    sonha_plant = fields.Many2one('sonha.plant', string="Plant")
 
     x_full_name = fields.Char("Tên đầy đủ", compute="get_full_name", store=True)
 

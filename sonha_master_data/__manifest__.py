@@ -6,9 +6,7 @@
     'license': 'LGPL-3',
     'depends': [
         'hr',
-        'base',
-        'stock',
-        'uom'
+        'base'
     ],
     'data': [
         'security/security.xml',
@@ -25,7 +23,6 @@
         'views/x_mch_list_views.xml',
         'views/x_division_views.xml',
         'views/x_product_hierarchy_views.xml',
-        'views/stock_warehouse_views.xml',
         'views/sale_organization_views.xml',
         'views/distribution_channel_views.xml',
         'views/tax_classification_views.xml',
@@ -83,6 +80,9 @@
         'views/company_code_views.xml',
         'views/md_saleman_views.xml',
         'views/limit_area_views.xml',
+        'views/sonha_plant_views.xml',
+        'views/sonha_uom_views.xml',
+
         'wizard/wizard_md_material_views.xml',
         'wizard/wizard_import_infor_views.xml',
         'wizard/wizard_assign_staff_views.xml',
