@@ -13,3 +13,4 @@ from . import title_reward_config
 from . import object_reward_config
 from . import hr_department
 from . import dismissal_person
+from . import config_contract

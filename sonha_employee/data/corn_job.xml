@@ -1,5 +1,5 @@
 <odoo>
-    <data noupdate="1">
+    <data noupdate="0">
         <record id="ir_cron_action_to_send_warning_mail" model="ir.cron">
             <field name="name">Gửi mail cảnh báo</field>
             <field name="model_id" ref="model_hr_contract"/>
@@ -21,7 +21,28 @@
             <field name="interval_type">months</field>
             <field name="numbercall">-1</field>
             <field name="nextcall" eval="(datetime.now().replace(day=1, hour=0, minute=0, second=0) + timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        </record>
 
+        <record id="ir_cron_contract_expired" model="ir.cron">
+            <field name="name">Thông báo hợp đồng hết hạn</field>
+            <field name="model_id" ref="model_hr_contract"/>
+            <field name="state">code</field>
+            <field name="code">model.notifi_contract_expired()</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+        </record>
+
+        <record id="ir_cron_contract_extend" model="ir.cron">
+            <field name="name">Auto gia hạn hợp đồng</field>
+            <field name="model_id" ref="model_hr_contract"/>
+            <field name="state">code</field>
+            <field name="code">model.contract_extend()</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
         </record>
     </data>
 </odoo>

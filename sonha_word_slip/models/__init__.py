@@ -16,3 +16,7 @@ from . import register_overtime_update
 from . import overtime_rel
 from . import free_timekeeping
 from . import config_leave
+from . import sonha_area
+from . import sonha_yard
+from . import yard_ball
+

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Tree View -->
+    <record id="view_yard_ball_tree" model="ir.ui.view">
+        <field name="name">view.yard.ball.tree</field>
+        <field name="model">yard.ball</field>
+        <field name="arch" type="xml">
+            <tree string="Đăng ký">
+                <field name="employee_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_yard_ball_form" model="ir.ui.view">
+        <field name="name">yard.ball.form</field>
+        <field name="model">yard.ball</field>
+        <field name="arch" type="xml">
+            <form string="Đăng ký">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="employee_id"/>
+                            <field name="area"/>
+                            <field name="yard"/>
+                            <field name="date_active"/>
+                            <field name="start_active"/>
+                            <field name="end_active"/>
+                        </group>
+                        <group>
+                            <field name="pick_up" widget="boolean_toggle"/>
+                            <field name="start_ball"/>
+                            <field name="end_ball"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+
+    <!-- Action for Config Work -->
+    <record id="action_yard_ball" model="ir.actions.act_window">
+        <field name="name">Piker Ball</field>
+        <field name="res_model">yard.ball</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>
