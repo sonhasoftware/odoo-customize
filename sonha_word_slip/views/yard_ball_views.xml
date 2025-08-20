@@ -17,6 +17,16 @@
         <field name="model">yard.ball</field>
         <field name="arch" type="xml">
             <form string="Đăng ký">
+                <header>
+                    <button name="action_end"
+                            string="Kết thúc"
+                            type="object" class="oe_highlight" invisible="status != 'active'"/>
+                    <button name="action_done"
+                            string="Duyệt"
+                            type="object" class="oe_highlight" invisible="status != 'end'"/>
+
+                    <field name="status" widget="statusbar"/>
+                </header>
                 <sheet>
                     <group>
                         <group>
@@ -24,13 +34,13 @@
                             <field name="area"/>
                             <field name="yard"/>
                             <field name="date_active"/>
-                            <field name="start_active"/>
-                            <field name="end_active"/>
+                            <field name="start_active" widget="float_time"/>
+                            <field name="end_active" widget="float_time"/>
                         </group>
                         <group>
                             <field name="pick_up" widget="boolean_toggle"/>
-                            <field name="start_ball"/>
-                            <field name="end_ball"/>
+                            <field name="start_ball" widget="float_time"/>
+                            <field name="end_ball" widget="float_time"/>
                         </group>
                     </group>
                 </sheet>

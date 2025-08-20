@@ -476,3 +476,337 @@ class AuthAPIHRM(http.Controller):
             return Response(json.dumps(
                 {"success": False, "error": str(e)}
             ), content_type="application/json", status=500)
+
+
+
+
+
+
+
+    # API đặt sân nhặt bóng omni
+    @http.route('/api/create/yard_ball/<int:employee_id>', type='http', auth='none', methods=['POST'], csrf=False)
+    def api_create_yard_ball(self, employee_id):
+        try:
+            with request.env.cr.savepoint():
+                data = request.httprequest.get_json()
+
+                # Lấy dữ liệu từ request
+                employee = data.get('employee_id')
+                area = data.get('area')
+                yard = data.get('yard')
+                date = data.get('date')
+                start_active = data.get('start_active')
+                end_active = data.get('end_active')
+                pick_up = data.get('pick_up')
+                start_ball = data.get('start_ball')
+                end_ball = data.get('end_ball')
+                if not employee_id:
+                    raise ValueError("Không có dữ liệu người đăng nhập!")
+                user_id = request.env['hr.employee'].sudo().search([('id', '=', employee_id)]).user_id
+
+                if not employee:
+                    raise ValueError("Dữ liệu nhân viên không được để trống!")
+                if not area:
+                    raise ValueError("Dữ liệu phòng ban không được để trống!")
+                if not yard:
+                    raise ValueError("Loại đăng ký không được để trống!")
+                if not date:
+                    raise ValueError("Loại đăng ký không được để trống!")
+                if not start_active:
+                    raise ValueError("Loại đăng ký không được để trống!")
+                if not end_active:
+                    raise ValueError("Loại đăng ký không được để trống!")
+
+                float_from_active = 0
+                float_to_active = 0
+                if start_active not in (None, '', False):
+                    time_obj = datetime.strptime(start_active, "%H:%M")
+                    float_from_active = time_obj.hour + time_obj.minute / 60.0
+                if end_active not in (None, '', False):
+                    time_obj = datetime.strptime(end_active, "%H:%M")
+                    float_to_active = time_obj.hour + time_obj.minute / 60.0
+
+                float_from_ball = 0
+                float_to_ball = 0
+                if start_ball not in (None, '', False):
+                    time_obj = datetime.strptime(start_ball, "%H:%M")
+                    float_from_ball = time_obj.hour + time_obj.minute / 60.0
+                if end_ball not in (None, '', False):
+                    time_obj = datetime.strptime(end_ball, "%H:%M")
+                    float_to_ball = time_obj.hour + time_obj.minute / 60.0
+
+                vals = {
+                    'employee_id': employee,
+                    'area': area,
+                    'yard': yard,
+                    'date_active': date,
+                    'start_active': float_from_active,
+                    'end_active': float_to_active,
+                    'pick_up': pick_up,
+                    'start_ball': float_from_ball,
+                    'end_ball': float_to_ball,
+                }
+
+                # Tạo record
+                record = request.env['yard.ball'].with_user(user_id).sudo().create(vals)
+
+                # Trả về kết quả
+                return Response(json.dumps({
+                    "success": True,
+                    "id": record.id
+                }), content_type="application/json", status=200)
+        except Exception as e:
+            # Log lỗi cho admin (nếu cần)
+            request.env.cr.rollback()  # Dự phòng rollback toàn bộ transaction
+            return Response(json.dumps({
+                "success": False,
+                "error": str(e)
+            }), content_type="application/json", status=500)
+
+    @http.route('/api/get_yard_ball/<int:id_employee>', type='http', auth='none', methods=['GET'], csrf=False)
+    def get_yard_ball(self, id_employee):
+        try:
+            list_records = request.env['yard.ball'].sudo().search([
+                '|',
+                ('employee_id', '=', id_employee),
+                ('employee_id.parent_id', '=', id_employee)
+            ])
+            data = []
+            if list_records:
+                for r in list_records:
+                    employee_create = []
+                    if r.create_uid:
+                        create_employee = request.env['hr.employee'].sudo().search([('user_id', '=', r.create_uid.id)])
+                        employee_create.append({
+                            "id": create_employee.id,
+                            "name": create_employee.name,
+                        })
+                    date_sent = r.create_date + relativedelta(hours=7)
+                    if r.status == 'active':
+                        state = "Hoạt động"
+                    elif r.status == 'end':
+                        state = "Kết thúc"
+                    elif r.status == 'done':
+                        state = "Đã duyệt"
+                    hours_start = int(r.start_active)
+                    minutes_start = int(round((r.start_active - hours_start) * 60))
+                    start_active = f"{hours_start:02d}:{minutes_start:02d}"
+
+                    hours_end = int(r.end_active)
+                    minutes_end = int(round((r.end_active - hours_end) * 60))
+                    end_active = f"{hours_end:02d}:{minutes_end:02d}"
+
+                    hours_start_ball = int(r.start_ball)
+                    minutes_start_ball = int(round((r.start_ball - hours_start_ball) * 60))
+                    start_ball = f"{hours_start_ball:02d}:{minutes_start_ball:02d}"
+
+                    hours_end_ball = int(r.end_ball)
+                    minutes_end_ball = int(round((r.end_ball - hours_end_ball) * 60))
+                    end_ball = f"{hours_end_ball:02d}:{minutes_end_ball:02d}"
+
+                    data.append({
+                        "id": r.id,
+                        "status": state,
+                        'employee_id': {
+                            "id": r.employee_id.id,
+                            "name": r.employee_id.name,
+                        },
+                        'area': {
+                            "id": r.area.id,
+                            "name": r.area.area,
+                        },
+                        'yard': {
+                            "id": r.yard.id,
+                            "name": r.yard.yard,
+                        },
+                        'date_active': str(r.date_active),
+                        'start_active': start_active,
+                        'end_active': end_active,
+                        'pick_up': r.pick_up,
+                        'start_ball': start_ball,
+                        'end_ball': end_ball,
+                        "employee_create": employee_create,
+                        "date_sent": str(date_sent),
+                    })
+
+            return Response(
+                json.dumps({"success": True, "data": data}),
+                status=200, content_type="application/json"
+            )
+        except Exception as e:
+            return Response(json.dumps(
+                {"success": False,
+                 "error": str(e)
+                 }), content_type="application/json", status=500)
+
+    @http.route('/api/get_detail_yard_ball/<int:id>/<int:id_employee>', type='http', auth='none', methods=['GET'], csrf=False)
+    def get_detail_yard_ball(self, id, id_employee):
+        try:
+            list_records = request.env['yard.ball'].sudo().browse(id)
+            data = []
+            if list_records:
+                for r in list_records:
+                    employee_create = []
+                    if r.create_uid:
+                        create_employee = request.env['hr.employee'].sudo().search([('user_id', '=', r.create_uid.id)])
+                        employee_create.append({
+                            "id": create_employee.id,
+                            "name": create_employee.name,
+                        })
+                    date_sent = r.create_date + relativedelta(hours=7)
+                    if r.status == 'active':
+                        state = "Hoạt động"
+                    elif r.status == 'end':
+                        state = "Kết thúc"
+                    elif r.status == 'done':
+                        state = "Đã duyệt"
+
+                    button_end = False
+                    button_done = False
+                    if (r.employee_id.id == id_employee or r.employee_id.parent_id.id == id_employee) and (r.status == 'active'):
+                        button_end = True
+                    if r.employee_id.parent_id.id == id_employee and r.status == 'end':
+                        button_done = True
+                    hours_start = int(r.start_active)
+                    minutes_start = int(round((r.start_active - hours_start) * 60))
+                    start_active = f"{hours_start:02d}:{minutes_start:02d}"
+
+                    hours_end = int(r.end_active)
+                    minutes_end = int(round((r.end_active - hours_end) * 60))
+                    end_active = f"{hours_end:02d}:{minutes_end:02d}"
+
+                    hours_start_ball = int(r.start_ball)
+                    minutes_start_ball = int(round((r.start_ball - hours_start_ball) * 60))
+                    start_ball = f"{hours_start_ball:02d}:{minutes_start_ball:02d}"
+
+                    hours_end_ball = int(r.end_ball)
+                    minutes_end_ball = int(round((r.end_ball - hours_end_ball) * 60))
+                    end_ball = f"{hours_end_ball:02d}:{minutes_end_ball:02d}"
+
+                    data.append({
+                        "id": r.id,
+                        "status": state,
+                        'employee_id': {
+                            "id": r.employee_id.id,
+                            "name": r.employee_id.name,
+                        },
+                        'area': {
+                            "id": r.area.id,
+                            "name": r.area.area,
+                        },
+                        'yard': {
+                            "id": r.yard.id,
+                            "name": r.yard.yard,
+                        },
+                        'date_active': str(r.date_active),
+                        'start_active': start_active,
+                        'end_active': end_active,
+                        'pick_up': r.pick_up,
+                        'start_ball': start_ball,
+                        'end_ball': end_ball,
+                        "employee_create": employee_create,
+                        "date_sent": str(date_sent),
+                        "button_end": button_end,
+                        "button_done": button_done,
+                    })
+
+            return Response(
+                json.dumps({"success": True, "data": data}),
+                status=200, content_type="application/json"
+            )
+        except Exception as e:
+            return Response(json.dumps(
+                {"success": False,
+                 "error": str(e)
+                 }), content_type="application/json", status=500)
+
+    @http.route('/api/change_status/yard_ball/<int:id>', type='http', auth='none', methods=['PUT'], csrf=False)
+    def api_change_status_yard_ball(self, id):
+        try:
+            record = request.env['yard.ball'].sudo().browse(id)
+            if not record:
+                raise ValueError("Không tìm thấy bản ghi")
+            if record.status == 'active':
+                record.status = 'end'
+            elif record.status == 'end':
+                record.status = 'done'
+
+            # Trả về kết quả
+            return Response(json.dumps({
+                "success": True,
+                "id": record.id,
+                "msg": "Bấm nút thành công",
+            }), content_type="application/json", status=200)
+
+        except Exception as e:
+            # Log lỗi cho admin (nếu cần)
+            request.env.cr.rollback()  # Dự phòng rollback toàn bộ transaction
+            return Response(json.dumps({
+                "success": False,
+                "error": str(e)
+            }), content_type="application/json", status=500)
+
+    @http.route('/api/update_yard_ball/<int:record_id>', type='http', auth='none', methods=['PUT'], csrf=False)
+    def update_yard_ball(self, record_id):
+        try:
+            data = request.httprequest.get_json()
+
+            employee = data.get('employee_id')
+            area = data.get('area')
+            yard = data.get('yard')
+            date = data.get('date')
+            start_active = data.get('start_active')  # "HH:MM"
+            end_active = data.get('end_active')
+            pick_up = data.get('pick_up')
+            start_ball = data.get('start_ball')
+            end_ball = data.get('end_ball')
+
+            record = request.env['yard.ball'].sudo().browse(record_id)
+            if not record.exists():
+                return {"success": False, "error": "Record not found"}
+
+            # convert ngày
+            date_value = None
+            if date:
+                try:
+                    date_value = datetime.strptime(date, "%Y-%m-%d").date()
+                except Exception:
+                    return {"success": False, "error": f"Invalid date format: {date}, expected YYYY-MM-DD"}
+
+            # Hàm helper convert date + time
+            def combine_datetime(time_str):
+                if not time_str:
+                    return 0.0
+                try:
+                    time_obj = datetime.strptime(time_str, "%H:%M")
+                    return time_obj.hour + time_obj.minute / 60.0
+                except Exception:
+                    return 0.0
+
+            vals = {}
+            if employee: vals['employee_id'] = employee
+            if area: vals['area'] = area
+            if yard: vals['yard'] = yard
+            if date_value: vals['date_active'] = date_value
+            if pick_up: vals['pick_up'] = pick_up
+
+            # convert time fields
+            if start_active: vals['start_active'] = combine_datetime(start_active)
+            if end_active: vals['end_active'] = combine_datetime(end_active)
+            if start_ball: vals['start_ball'] = combine_datetime(start_ball)
+            if end_ball: vals['end_ball'] = combine_datetime(end_ball)
+
+            record.sudo().write(vals)
+
+            return Response(json.dumps({
+                "success": True,
+                "id": record.id,
+                "message": "Cập nhật thành công!",
+            }), content_type="application/json", status=200)
+
+        except Exception as e:
+            request.env.cr.rollback()  # Dự phòng rollback toàn bộ transaction
+            return Response(json.dumps({
+                "success": False,
+                "error": str(e)
+            }), content_type="application/json", status=500)

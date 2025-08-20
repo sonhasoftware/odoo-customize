@@ -15,3 +15,22 @@ class YardBall(models.Model):
     start_ball = fields.Float("Từ")
     end_ball = fields.Float("Đến")
     employee_id = fields.Many2one('hr.employee', string="Nhân viên")
+    status = fields.Selection([
+        ('active', 'Hoạt động'),
+        ('end', 'Kết thúc'),
+        ('done', 'Đã duyệt'),
+    ], string='Trạng thái', default='active')
+
+    def action_end(self):
+        for r in self:
+            if r.employee_id.user_id.id == self.env.user.id or r.employee_id.parent_id.user_id.id == self.env.user.id:
+                r.status = 'end'
+            else:
+                raise ValidationError("Bạn không có quyền thực hiện hành động này!")
+
+    def action_done(self):
+        for r in self:
+            if r.employee_id.parent_id.user_id.id == self.env.user.id:
+                r.status = 'done'
+            else:
+                raise ValidationError("Bạn không có quyền thực hiện hành động này!")
