@@ -87,3 +87,5 @@ access_sonha_area,sonha.area,model_sonha_area,,1,1,1,1
 access_sonha_yard,sonha.yard,model_sonha_yard,,1,1,1,1
 
 access_yard_ball,yard.ball,model_yard_ball,,1,1,1,1
+
+access_config_standard_work,config.standard.work,model_config_standard_work,,1,1,1,1

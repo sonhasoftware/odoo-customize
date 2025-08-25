@@ -49,6 +49,7 @@ class EmployeeAttendanceStore(models.Model):
     work_sp = fields.Float("Công Sản phẩm", default=0)
     over_time_nb = fields.Float("Làm thêm hưởng NB")
     times_late = fields.Integer("Đi muộn quá 30p")
+    actual_work = fields.Float("Công thực tế theo ca")
 
     def copy_to_stored_model(self):
         self.with_delay().copy_data_employee_attendance()
@@ -156,6 +157,7 @@ class EmployeeAttendanceStore(models.Model):
                 'work_hc': record.work_hc,
                 'work_sp': record.work_sp,
                 'times_late': record.times_late,
+                'actual_work': record.actual_work,
             }
 
             if existing_record:

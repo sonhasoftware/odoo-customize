@@ -30,6 +30,7 @@
         'views/sonha_area_views.xml',
         'views/sonha_yard_views.xml',
         'views/yard_ball_views.xml',
+        'views/config_standard_work_views.xml',
         'wizard/timesheet_views.xml',
         'wizard/copy_public_leaves_views.xml',
         'views/menu_views.xml',

@@ -19,4 +19,4 @@ from . import config_leave
 from . import sonha_area
 from . import sonha_yard
 from . import yard_ball
-
+from . import config_standard_work

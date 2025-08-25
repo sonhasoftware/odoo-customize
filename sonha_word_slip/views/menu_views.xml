@@ -44,6 +44,12 @@
               action="action_sonha_yard"
               sequence="20"/>
 
+    <menuitem id="menu_config_standard_work"
+              name="Cấu hình công chuẩn"
+              parent="menu_config"
+              action="action_config_standard_work"
+              sequence="30"/>
+
     <menuitem id="menu_config_leave"
               name="Cấu hình số lượng đơn từ trong tháng"
               parent="menu_config"

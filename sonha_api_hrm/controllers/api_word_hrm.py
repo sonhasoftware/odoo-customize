@@ -3,7 +3,7 @@ from odoo.http import request, Response, route
 import json
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
-from datetime import timedelta
+from datetime import date
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -184,10 +184,26 @@ class AuthAPIHRM(http.Controller):
                  }), content_type="application/json", status=500)
 
     @http.route('/api/get_area_yard', type='http', auth='none', methods=['GET'], csrf=False)
-    def get_area_yard(self):
+    def get_area_yard(self, **kwargs):
         try:
-            data_area = request.env['sonha.area'].sudo().search([])
-            data_yard = request.env['sonha.yard'].sudo().search([])
+            area_id = kwargs.get('area')  # lấy param area
+            yard_id = kwargs.get('yard')
+            # nếu truyền vào khu vực ra list sân, nếu truyền vào sân ra khu vực của sân đó
+
+            if area_id and yard_id:
+                data_yard = request.env['sonha.yard'].sudo().search([('area', '=', int(area_id))])
+                id_area = request.env['sonha.yard'].sudo().search([('id', '=', int(yard_id))])
+                data_area = request.env['sonha.area'].sudo().search([('id', '=', id_area.area.id)])
+            elif area_id:
+                data_yard = request.env['sonha.yard'].sudo().search([('area', '=', int(area_id))])
+                data_area = request.env['sonha.area'].sudo().search([])
+            elif yard_id:
+                id_area = request.env['sonha.yard'].sudo().search([('id', '=', int(yard_id))])
+                data_area = request.env['sonha.area'].sudo().search([('id', '=', id_area.area.id)])
+                data_yard = request.env['sonha.yard'].sudo().search([])
+            else:
+                data_area = request.env['sonha.area'].sudo().search([])
+                data_yard = request.env['sonha.yard'].sudo().search([])
             vals = []
             list_area = []
             list_yard = []
@@ -574,6 +590,13 @@ class AuthAPIHRM(http.Controller):
             data = []
             if list_records:
                 for r in list_records:
+                    button_end = False
+                    button_done = False
+                    if (r.employee_id.id == id_employee or r.employee_id.parent_id.id == id_employee) and (
+                            r.status == 'active'):
+                        button_end = True
+                    if r.employee_id.parent_id.id == id_employee and r.status == 'end':
+                        button_done = True
                     employee_create = []
                     if r.create_uid:
                         create_employee = request.env['hr.employee'].sudo().search([('user_id', '=', r.create_uid.id)])
@@ -627,6 +650,8 @@ class AuthAPIHRM(http.Controller):
                         'end_ball': end_ball,
                         "employee_create": employee_create,
                         "date_sent": str(date_sent),
+                        "button_end": button_end,
+                        "button_done": button_done,
                     })
 
             return Response(
@@ -810,3 +835,73 @@ class AuthAPIHRM(http.Controller):
                 "success": False,
                 "error": str(e)
             }), content_type="application/json", status=500)
+
+    @http.route('/api/get_yard_ball/manager/<int:id_employee>', type='http', auth='none', methods=['GET'], csrf=False)
+    def get_yard_ball_manager(self, id_employee):
+        try:
+            list_records = request.env['yard.ball'].sudo().search([
+                ('status', '=', 'end'),
+                ('pick_up', '=', True),
+                ('employee_id.parent_id', '=', id_employee)
+            ])
+            data = []
+            if list_records:
+                for r in list_records:
+                    employee_create = []
+                    if r.create_uid:
+                        create_employee = request.env['hr.employee'].sudo().search([('user_id', '=', r.create_uid.id)])
+                        employee_create.append({
+                            "id": create_employee.id,
+                            "name": create_employee.name,
+                        })
+                    date_sent = r.create_date + relativedelta(hours=7)
+                    hours_start = int(r.start_active)
+                    minutes_start = int(round((r.start_active - hours_start) * 60))
+                    start_active = f"{hours_start:02d}:{minutes_start:02d}"
+
+                    hours_end = int(r.end_active)
+                    minutes_end = int(round((r.end_active - hours_end) * 60))
+                    end_active = f"{hours_end:02d}:{minutes_end:02d}"
+
+                    hours_start_ball = int(r.start_ball)
+                    minutes_start_ball = int(round((r.start_ball - hours_start_ball) * 60))
+                    start_ball = f"{hours_start_ball:02d}:{minutes_start_ball:02d}"
+
+                    hours_end_ball = int(r.end_ball)
+                    minutes_end_ball = int(round((r.end_ball - hours_end_ball) * 60))
+                    end_ball = f"{hours_end_ball:02d}:{minutes_end_ball:02d}"
+
+                    data.append({
+                        "id": r.id,
+                        "status": "Chờ duyệt",
+                        'employee_id': {
+                            "id": r.employee_id.id,
+                            "name": r.employee_id.name,
+                        },
+                        'area': {
+                            "id": r.area.id,
+                            "name": r.area.area,
+                        },
+                        'yard': {
+                            "id": r.yard.id,
+                            "name": r.yard.yard,
+                        },
+                        'date_active': str(r.date_active),
+                        'start_active': start_active,
+                        'end_active': end_active,
+                        'pick_up': r.pick_up,
+                        'start_ball': start_ball,
+                        'end_ball': end_ball,
+                        "employee_create": employee_create,
+                        "date_sent": str(date_sent),
+                    })
+
+            return Response(
+                json.dumps({"success": True, "data": data}),
+                status=200, content_type="application/json"
+            )
+        except Exception as e:
+            return Response(json.dumps(
+                {"success": False,
+                 "error": str(e)
+                 }), content_type="application/json", status=500)

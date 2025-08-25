@@ -54,6 +54,23 @@ class SyntheticWork(models.Model):
 
     key = fields.Boolean("Khóa công", default=False)
     total_time_late = fields.Integer("Tổng số lần đi muộn/về sớm quá 30p")
+    actual_work = fields.Float("Công thực tế theo ca", readonly=True)
+    standard_work = fields.Float("Công chuẩn", compute='get_standard_work')
+
+    @api.depends('department_id', 'month', 'year')
+    def get_standard_work(self):
+        for r in self:
+            work = self.env['config.standard.work'].sudo().search([
+                ('department_id', '=', r.department_id.id),
+                ('month', '=', r.month),
+                ('year', '=', r.year)])
+            if work:
+                if work.work_apply <= 0:
+                    r.standard_work = work.work_actual
+                else:
+                    r.standard_work = work.work_apply
+            else:
+                r.standard_work = 0
 
     @api.depends('employee_id', 'month')
     def get_date_work(self):
@@ -73,7 +90,8 @@ class SyntheticWork(models.Model):
                     COALESCE(SUM(work_hc), 0) AS work_hc,
                     COALESCE(SUM(work_sp), 0) AS work_sp,
                     COALESCE(SUM(over_time_nb), 0) AS over_time_nb,
-                    COALESCE(SUM(times_late), 0) AS times_late
+                    COALESCE(SUM(times_late), 0) AS times_late,
+                    COALESCE(SUM(actual_work), 0) AS actual_work
                 FROM employee_attendance_store
                 WHERE employee_id = %s
                   AND date >= %s
@@ -98,6 +116,7 @@ class SyntheticWork(models.Model):
             r.work_sp = result['work_sp']
             r.overtime_nb = result['over_time_nb']
             r.total_time_late = result['times_late']
+            r.actual_work = result['actual_work']
 
     @api.depends('on_leave', 'compensatory_leave', 'public_leave', 'maternity_leave', 'wedding_leave')
     def get_leave(self):
