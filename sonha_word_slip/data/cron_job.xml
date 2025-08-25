@@ -34,5 +34,17 @@
             <field name="numbercall">-1</field>
             <field name="doall">True</field>
         </record>
+
+        <record id="ir_cron_compute_standard_work" model="ir.cron">
+            <field name="name">Tạo dữ liệu công chuẩn cho các phòng ban</field>
+            <field name="model_id" ref="model_config_standard_work"/>
+            <field name="state">code</field>
+            <field name="code">model.compute_standard_work()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="doall">True</field>
+        </record>
+
     </data>
 </odoo>

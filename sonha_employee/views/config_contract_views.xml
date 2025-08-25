@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Tree View -->
+    <record id="view_config_contract_tree" model="ir.ui.view">
+        <field name="name">view.config.contract.tree</field>
+        <field name="model">config.contract</field>
+        <field name="arch" type="xml">
+            <tree string="Cấu hình mail hợp đồng" editable="bottom">
+                <field name="company_id"/>
+                <field name="sent_mail"/>
+                <field name="receiver" widget="many2many_tags"/>
+                <field name="cc_mail" widget="many2many_tags"/>
+                <field name="auto"/>
+                <field name="auto_code"/>
+                <field name="file"/>
+            </tree>
+        </field>
+    </record>
+
+
+    <!-- Action for Config Work -->
+    <record id="action_config_contract" model="ir.actions.act_window">
+        <field name="name">Cấu hình mail hợp đồng</field>
+        <field name="res_model">config.contract</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

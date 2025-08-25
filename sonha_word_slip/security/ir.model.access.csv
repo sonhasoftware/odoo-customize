@@ -81,3 +81,11 @@ access_overtime_rel,overtime.rel,model_overtime_rel,,1,1,1,1
 access_free_timekeeping_hr,free.timekeeping.hr,model_free_timekeeping,sonha_employee.group_hr_employee,1,1,1,1
 
 access_config_leave_hr,config.leave.hr,model_config_leave,sonha_employee.group_hr_employee,1,1,1,1
+
+
+access_sonha_area,sonha.area,model_sonha_area,,1,1,1,1
+access_sonha_yard,sonha.yard,model_sonha_yard,,1,1,1,1
+
+access_yard_ball,yard.ball,model_yard_ball,,1,1,1,1
+
+access_config_standard_work,config.standard.work,model_config_standard_work,,1,1,1,1

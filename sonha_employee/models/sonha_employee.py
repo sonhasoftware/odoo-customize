@@ -306,6 +306,10 @@ class ResCompany(models.Model):
     slip = fields.Integer("Đơn từ", default=0)
     shift = fields.Integer("Ca", default=0)
     overtime = fields.Boolean("Làm thêm cấp 2")
+    calender_work = fields.Selection([
+        ('leave', "Nghỉ T7 CN"),
+        ('even', "T7 tuần chẵn"),
+        ('odd', 'T7 tuần lẻ')], default='leave', string="Lịch làm việc")
 
     def _compute_max_number(self):
         for r in self:

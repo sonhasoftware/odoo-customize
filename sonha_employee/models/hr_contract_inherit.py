@@ -1,4 +1,4 @@
-from datetime import datetime, time, timedelta
+from datetime import datetime, time, timedelta, date
 from dateutil.relativedelta import relativedelta
 
 from odoo import models, fields, api, _
@@ -7,6 +7,8 @@ from docx import Document
 import io
 import tempfile
 import os
+from io import BytesIO
+from openpyxl import load_workbook
 
 
 class HrContract(models.Model):
@@ -16,6 +18,7 @@ class HrContract(models.Model):
     contract_type_id = fields.Many2one('hr.contract.type', string="Loại hợp đồng", ondelete='cascade')
     employee_code = fields.Char(string="Mã nhân viên", related='employee_id.employee_code')
     mail = fields.Boolean('mail', default=False)
+    name = fields.Char(required=False)
 
     def action_confirm(self):
         for r in self:
@@ -128,4 +131,120 @@ class HrContract(models.Model):
         finally:
             # Xóa file tạm thời
             os.remove(tmp_file_path)
+
+    def notifi_contract_expired(self):
+        config_ids = self.env['config.contract'].sudo().search([('sent_mail', '=', True)])
+        for config in config_ids:
+            today = date.today()
+            if today.day == 1:
+                start = today.replace(day=15)
+                end = start + relativedelta(months=1)
+                contracts = self.search([
+                    ('company_id', '=', config.company_id.id),
+                    ('date_end', '>=', start),
+                    ('date_end', '<=', end),
+                    ('state', '=', 'open')
+                ])
+
+                if not contracts:
+                    continue
+                attachment = self.export_contracts_to_excel(contracts, start, end, config)
+                mail_values = {
+                    'subject': f'Danh sách hợp đồng sắp hết hạn!',
+                    'body_html': '<p>Kính gửi anh/chị,</p>'
+                                 '<p>Dưới đây là danh sách những nhân sự sắp hết hạn:</p>',
+                    'email_to': ','.join(config.receiver.mapped('work_email')),
+                    'email_cc': ','.join(config.cc_mail.mapped('work_email')),
+                    'attachment_ids': [(4, attachment.id)],
+                }
+                self.env['mail.mail'].create(mail_values).send()
+            elif today.day == 15:
+                start = (today.replace(day=1)) + relativedelta(month=1)
+                end = start + relativedelta(day=-1, month=1)
+                contracts = self.search([
+                    ('company_id', '=', config.company_id.id),
+                    ('date_end', '>=', start),
+                    ('date_end', '<=', end)
+                ])
+
+                if not contracts:
+                    continue
+                attachment = self.export_contracts_to_excel(contracts, start, end, config)
+                mail_values = {
+                    'subject': f'Danh sách hợp đồng sắp hết hạn!',
+                    'body_html': '<p>Kính gửi anh/chị,</p>'
+                                 '<p>Dưới đây là danh sách những nhân sự sắp hết hạn:</p>',
+                    'email_to': ','.join(config.receiver.mapped('work_email')),
+                    'email_cc': ','.join(config.cc_mail.mapped('work_email')),
+                    'attachment_ids': [(4, attachment.id)],
+                }
+                self.env['mail.mail'].create(mail_values).send()
+
+    def contract_extend(self):
+        today = date.today()
+        list_contract = self.env['hr.contract'].sudo().search([('date_start', '=', today),
+                                                               ('state', '=', 'draft')])
+        for con in list_contract:
+            check = self.env['config.contract'].sudo().search([
+                ('company_id', '=', con.employee_id.company_id.id)], limit=1)
+            if check and check.auto:
+                con.state = 'open'
+
+    def export_contracts_to_excel(self, contracts, start_date, end_date, config):
+        # 1. Load template
+
+        # template_path = base64.b64encode(open('/sonha_employee/static/src/template/hdld.xlsx', 'rb').read())
+        #
+        # wb = load_workbook(template_path)
+        # ws = wb.active
+
+        file_data = base64.b64decode(config.file)  # config.file là binary field
+        wb = load_workbook(filename=io.BytesIO(file_data))  # load workbook từ memory
+        ws = wb.active
+
+        current_value = ws['A1'].value
+        if current_value:
+            current_value = current_value.replace('[start_date]', start_date.strftime('%d/%m/%Y'))
+            current_value = current_value.replace('[end_date]', end_date.strftime('%d/%m/%Y'))
+            ws['A1'].value = current_value
+
+        # 3. Fill dữ liệu từ dòng 4
+        row = 4
+        for idx, contract in enumerate(contracts, start=1):
+            ws.cell(row=row, column=1, value=idx)  # STT
+            ws.cell(row=row, column=2, value=contract.name or '')  # Mã HĐ/Số HĐ
+            ws.cell(row=row, column=3, value=contract.employee_id.employee_code or '')  # Mã nhân sự
+            ws.cell(row=row, column=4, value=contract.employee_id.name or '')  # Tên nhân sự
+            ws.cell(row=row, column=5, value=contract.department_id.name or '')  # Phòng ban
+            ws.cell(row=row, column=6, value=contract.job_id.name or '')  # Vị trí
+            ws.cell(row=row, column=7,
+                    value=contract.date_start.strftime('%d/%m/%Y') if contract.date_start else '')  # Hiệu lực từ ngày
+            ws.cell(row=row, column=8,
+                    value=contract.date_end.strftime('%d/%m/%Y') if contract.date_end else '')  # Đến ngày
+            ws.cell(row=row, column=9, value='Đang chạy')  # Tình trạng
+            ws.cell(row=row, column=10, value=contract.contract_type_id.name or '')  # Tên hợp đồng
+            row += 1
+
+        # 4. Xuất file Excel ra attachment
+        output = BytesIO()
+        wb.save(output)
+        output.seek(0)
+
+        attachment = self.env['ir.attachment'].create({
+            'name': f'{start_date.strftime("%d%m%Y")}_{end_date.strftime("%d%m%Y")} DS cảnh báo HĐLĐ.xlsx',
+            'type': 'binary',
+            'datas': base64.b64encode(output.read()),
+            'res_model': 'hr.contract',
+            'res_id': contracts[0].id if contracts else False,
+            'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        })
+        return attachment
+
+    def create(self, vals):
+        res = super(HrContract, self).create(vals)
+        check = self.env['config.contract'].sudo().search([('company_id', '=', res.company_id.id)])
+        if check.auto_code:
+            contract = self.sudo().search([('employee_id', '=', res.employee_id.id)])
+            res.name = f'{res.employee_code}-0{len(contract)}'
+        return res
 

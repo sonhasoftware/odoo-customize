@@ -15,6 +15,8 @@
                     <field name="shift" string="Ca"/>
                     <label for="overtime"/>
                     <field name="overtime" string="Làm thêm"/>
+                    <label for="calender_work"/>
+                    <field name="calender_work" string="Set lịch làm việc"/>
                 </div>
             </xpath>
         </field>

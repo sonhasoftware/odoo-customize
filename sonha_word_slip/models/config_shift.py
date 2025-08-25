@@ -53,6 +53,7 @@ class ConfigShift(models.Model):
     ], string="Làm thêm hưởng")
 
     coefficient = fields.Float("Hệ số", default=1)
+    recent_work = fields.Float("Công hưởng %", default=1)
 
     #Kiểm tra xem ca có phải ca đêm hay không
     @api.depends('start', 'end_shift')

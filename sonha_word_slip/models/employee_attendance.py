@@ -51,6 +51,7 @@ class EmployeeAttendance(models.Model):
     work_sp = fields.Float("Công Sản phẩm", compute="get_work_hc_sp")
     times_late = fields.Integer("Đi muộn quá 30p", compute="get_times_late")
     work_calendar = fields.Boolean("Lịch làm việc", compute="get_work_calendar")
+    actual_work = fields.Float("Công thực tế theo ca", compute="_get_actual_work")
 
     @api.depends('date', 'shift')
     def get_work_calendar(self):
@@ -665,3 +666,11 @@ class EmployeeAttendance(models.Model):
                 r.times_late = 1
             if r.minutes_early >= 31:
                 r.times_late += 1
+
+    @api.depends('shift', 'work_day')
+    def _get_actual_work(self):
+        for r in self:
+            if r.shift and r.work_day:
+                r.actual_work = r.work_day * r.shift.recent_work
+            else:
+                r.actual_work = 0
