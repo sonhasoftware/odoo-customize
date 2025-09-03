@@ -134,11 +134,11 @@ class EmployeeAttendance(models.Model):
                 elif key == "tbd":
                     if slip.start_time and slip.end_time:
                         if slip.start_time != slip.end_time:
-                            r.compensatory = 1
+                            r.vacation = 1
                         else:
-                            r.compensatory = 0.5
+                            r.vacation = 0.5
                     else:
-                        r.compensatory = 0
+                        r.vacation = 0
 
             # Kiểm tra public leave
             if all_public_leaves.filtered(
