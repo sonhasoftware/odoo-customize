@@ -17,6 +17,7 @@
                 <field name="minutes_late"/>
                 <field name="minutes_early"/>
                 <field name="work_day"/>
+                <field name="actual_work"/>
                 <field name="over_time"/>
                 <field name="leave"/>
                 <field name="compensatory"/>

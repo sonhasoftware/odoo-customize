@@ -406,7 +406,7 @@ class AuthAPI(http.Controller):
                 '|',
                 ('employee_id', '=', id_employee),
                 ('employee_ids', 'in', id_employee)
-            ])
+            ], order="create_date desc")
             data = []
             if list_records:
                 for r in list_records:
@@ -1599,7 +1599,7 @@ class AuthAPI(http.Controller):
                 ('userid', '=', userid),
                 ('datetime', '>=', date_start),
                 ('datetime', '<=', date_end)
-            ])
+            ], order="create_date desc")
             data = []
             if logs:
                 for log in logs:
