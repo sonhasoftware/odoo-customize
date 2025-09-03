@@ -123,7 +123,7 @@ class SyntheticWork(models.Model):
     @api.depends('on_leave', 'compensatory_leave', 'public_leave', 'maternity_leave', 'wedding_leave')
     def get_leave(self):
         for r in self:
-            r.paid_leave = r.on_leave + r.compensatory_leave + r.public_leave + r.filial_leave + r.grandparents_leave + r.maternity_leave + r.wedding_leave
+            r.paid_leave = r.on_leave + r.compensatory_leave + r.public_leave + r.filial_leave + r.grandparents_leave + r.maternity_leave + r.wedding_leave + r.vacation
 
     @api.depends('date_work', 'paid_leave')
     def get_total_work(self):
