@@ -448,6 +448,23 @@ class FormWordSlip(models.Model):
                     if emp.total_compensatory < total_duration:
                         raise ValidationError("Nhân viên " + emp.name + " không còn thời gian nghỉ bù")
 
+    @api.constrains('word_slip_id')
+    def validate_word_slip_id(self):
+        for r in self:
+            if not r.word_slip_id:
+                raise ValidationError("Không được để trống ngày!")
+            else:
+                for slip in r.word_slip_id:
+                    if not slip.from_date:
+                        raise ValidationError("Không được để trống trường từ ngày!")
+                    if not slip.to_date:
+                        raise ValidationError("Không được để trống trường đến ngày!")
+                    if not slip.reason:
+                        raise ValidationError("Không được để trống trường lý do!")
+                    if slip.word_slip.type.date_and_time == 'date':
+                        if not slip.start_time or not slip.end_time:
+                            raise ValidationError("Không được để trống ca bắt đầu và ca kết thúc!")
+
     @api.constrains('type', 'word_slip_id')
     def check_type(self):
         for r in self:
