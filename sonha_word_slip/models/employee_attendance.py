@@ -513,7 +513,7 @@ class EmployeeAttendance(models.Model):
 
                     minute_early = (shift_end_in_hours - checkout_hour) * 60
                     r.minutes_early = int(minute_early)
-            if r.leave > 0 or r.compensatory > 0:
+            if r.leave > 0 or r.compensatory > 0 or r.vacation > 0:
                 r.minutes_early = 0
                 r.minutes_late = 0
 
