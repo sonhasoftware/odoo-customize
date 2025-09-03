@@ -91,7 +91,8 @@ class SyntheticWork(models.Model):
                     COALESCE(SUM(work_sp), 0) AS work_sp,
                     COALESCE(SUM(over_time_nb), 0) AS over_time_nb,
                     COALESCE(SUM(times_late), 0) AS times_late,
-                    COALESCE(SUM(actual_work), 0) AS actual_work
+                    COALESCE(SUM(actual_work), 0) AS actual_work,
+                    COALESCE(SUM(vacation), 0) AS vacation
                 FROM employee_attendance_store
                 WHERE employee_id = %s
                   AND date >= %s
@@ -117,6 +118,7 @@ class SyntheticWork(models.Model):
             r.overtime_nb = result['over_time_nb']
             r.total_time_late = result['times_late']
             r.actual_work = result['actual_work']
+            r.vacation = result['vacation']
 
     @api.depends('on_leave', 'compensatory_leave', 'public_leave', 'maternity_leave', 'wedding_leave')
     def get_leave(self):

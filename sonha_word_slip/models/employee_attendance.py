@@ -52,6 +52,7 @@ class EmployeeAttendance(models.Model):
     times_late = fields.Integer("Đi muộn quá 30p", compute="get_times_late")
     work_calendar = fields.Boolean("Lịch làm việc", compute="get_work_calendar")
     actual_work = fields.Float("Công thực tế theo ca", compute="_get_actual_work")
+    vacation = fields.Float("Nghỉ mát", compute="_get_time_off")
 
     @api.depends('date', 'shift')
     def get_work_calendar(self):
@@ -111,7 +112,8 @@ class EmployeeAttendance(models.Model):
 
             # Xử lý word.slip
             for slip in word_slips:
-                type_name = slip.word_slip.type.name.lower()  # Chuyển về chữ thường
+                type_name = slip.word_slip.type.name.lower()
+                key = slip.word_slip.type.key.lower()
                 if type_name == "nghỉ phép":
                     if slip.start_time and slip.end_time:
                         if slip.start_time != slip.end_time:
@@ -121,6 +123,14 @@ class EmployeeAttendance(models.Model):
                     else:
                         r.leave = 0
                 elif type_name == "nghỉ bù":
+                    if slip.start_time and slip.end_time:
+                        if slip.start_time != slip.end_time:
+                            r.compensatory = 1
+                        else:
+                            r.compensatory = 0.5
+                    else:
+                        r.compensatory = 0
+                elif key == "tbd":
                     if slip.start_time and slip.end_time:
                         if slip.start_time != slip.end_time:
                             r.compensatory = 1
@@ -466,7 +476,7 @@ class EmployeeAttendance(models.Model):
             if not r.shift:
                 r.note = 'no_shift'
 
-            if r.leave > 0 or r.compensatory > 0:
+            if r.leave > 0 or r.compensatory > 0 or r.vacation > 0:
                 r.note = None
 
     #Lấy thông tin số phút nhân viên đi muộn hoặc về sớm
