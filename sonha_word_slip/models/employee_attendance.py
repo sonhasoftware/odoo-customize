@@ -97,6 +97,7 @@ class EmployeeAttendance(models.Model):
             r.leave = 0
             r.compensatory = 0
             r.public_leave = 0
+            r.vacation = 0
 
             if not r.employee_id or not r.date:
                 continue
