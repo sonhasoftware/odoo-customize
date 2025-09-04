@@ -246,6 +246,7 @@ class AuthAPIHRM(http.Controller):
             data = []
             if r:
                 list_employee = [r.employee_id.id] or r.employee_ids.ids
+                nv = request.env['hr.employee'].sudo().search([('id', '=', list_employee[-1])])
                 employee_create = []
                 if r.create_uid:
                     create_employee = request.env['hr.employee'].sudo().search([('user_id', '=', r.create_uid.id)])
@@ -270,7 +271,7 @@ class AuthAPIHRM(http.Controller):
 
                     if ((id_employee in list_employee) or (r.create_uid.id and employee_id.user_id.id == r.create_uid.id)) and r.status_lv2 == 'draft':
                         check_button_sent = True
-                    if ((id_employee == list_employee[-1].parent_id.id) or (id_employee == employee_id.department_id.manager_id.id) or (request.env.user.has_group('sonha_employee.group_manager_employee'))) and (r.status_lv2 != ['draft', 'cancel']):
+                    if ((id_employee == nv.parent_id.id) or (id_employee == employee_id.department_id.manager_id.id) or (request.env.user.has_group('sonha_employee.group_manager_employee'))) and (r.status_lv2 != ['draft', 'cancel']):
                         check_button_done = True
                 else:
                     if r.status == 'draft':
@@ -278,7 +279,7 @@ class AuthAPIHRM(http.Controller):
                     elif r.status == 'done':
                         state = "Đã duyệt"
 
-                    if ((id_employee == list_employee[-1].parent_id.id) or (id_employee == employee_id.department_id.manager_id.id)) and r.status == 'draft':
+                    if ((id_employee == nv.parent_id.id) or (id_employee == employee_id.department_id.manager_id.id)) and r.status == 'draft':
                         check_button_done = True
                 word_slip_data = []
                 for rel in r.date:
