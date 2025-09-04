@@ -217,7 +217,7 @@ class RegisterOvertimeUpdate(models.Model):
                 r.status_lv2 = 'draft'
                 for employee in list_employee:
                     if employee.department_id.over_time == 'date':
-                        employee.total_compensatory += over_time
+                        employee.total_compensatory -= over_time
                     else:
                         pass
             else:
