@@ -178,28 +178,29 @@ class EmployeeAttendance(models.Model):
                     if not record.shift:
                         continue
 
-                    # Nếu shift không phải OT đặc biệt
+                    # convert float giờ OT sang datetime theo ngày check_in
+                    base_date = record.check_in.date() if record.check_in else date.today()
+                    base_datetime = datetime.combine(base_date, datetime.min.time())
+
+                    ot_start = base_datetime + timedelta(hours=int(x.start_time),
+                                                         minutes=int((x.start_time % 1) * 60))
+                    ot_end = base_datetime + timedelta(hours=int(x.end_time % 24),
+                                                       minutes=int((x.end_time % 1) * 60))
+
+                    if ot_end <= ot_start:
+                        ot_end += timedelta(days=1)
+
                     if not record.shift.shift_ot:
-                        # Giờ ca làm (full datetime, đã cộng 7h để xử lý timezone)
+                        # Giờ ca làm (datetime)
                         shift_start = record.shift.start + relativedelta(hours=7)
                         shift_end = record.shift.end_shift + relativedelta(hours=7)
-
-                        # Nếu ca kéo qua ngày hôm sau thì cộng thêm 1 ngày cho shift_end
                         if shift_end <= shift_start:
                             shift_end += timedelta(days=1)
 
-                        # Giờ overtime đăng ký (full datetime)
-                        ot_start = x.start_time
-                        ot_end = x.end_time
-                        # Nếu OT qua 0h thì cộng thêm 1 ngày cho end
-                        if ot_end <= ot_start:
-                            ot_end += timedelta(days=1)
-
-                        # Check_in / Check_out
                         check_in_time = record.check_in + relativedelta(hours=7) if record.check_in else None
                         check_out_time = record.check_out + relativedelta(hours=7) if record.check_out else None
 
-                        # ---- Trường hợp overtime hoàn toàn trước ca ----
+                        # ---- OT trước ca ----
                         if (shift_start - timedelta(minutes=12)) <= ot_end <= shift_start:
                             if check_in_time:
                                 actual_start = max(ot_start, check_in_time)
@@ -207,7 +208,7 @@ class EmployeeAttendance(models.Model):
                                 if actual_end > actual_start:
                                     total_overtime += (actual_end - actual_start).total_seconds() / 3600
 
-                        # ---- Trường hợp overtime hoàn toàn sau ca ----
+                        # ---- OT sau ca ----
                         elif shift_end <= ot_start <= (shift_end + timedelta(minutes=12)):
                             if check_out_time:
                                 actual_start = ot_start
@@ -215,32 +216,23 @@ class EmployeeAttendance(models.Model):
                                 if actual_end > actual_start:
                                     total_overtime += (actual_end - actual_start).total_seconds() / 3600
 
-                        # ---- Trường hợp overtime nằm trong/chéo ca ----
+                        # ---- OT chồng/chéo ca ----
                         else:
-                            # phần trước ca (nếu có)
-                            if ot_start < shift_start:
+                            if ot_start < shift_start:  # phần trước ca
                                 total_overtime += max(0, (min(ot_end, shift_start) - ot_start).total_seconds() / 3600)
 
-                            # phần sau ca (nếu có)
-                            if ot_end > shift_end:
+                            if ot_end > shift_end:  # phần sau ca
                                 total_overtime += max(0, (ot_end - max(ot_start, shift_end)).total_seconds() / 3600)
 
-                            # phần trong ca
                             inside_start = max(ot_start, shift_start)
                             inside_end = min(ot_end, shift_end)
                             if inside_end > inside_start:
                                 total_overtime += (inside_end - inside_start).total_seconds() / 3600
 
-                    # Nếu shift là OT đặc biệt
                     else:
                         if record.check_in and record.check_out:
-                            ot_start = x.start_time
-                            ot_end = x.end_time
-                            if ot_end <= ot_start:
-                                ot_end += timedelta(days=1)
-                            total_overtime += (ot_end - ot_start).total_seconds() / 3600
-                        else:
-                            pass
+                            if ot_end > ot_start:
+                                total_overtime += (ot_end - ot_start).total_seconds() / 3600
 
             if record.shift.type_ot == 'nb':
                 record.over_time_nb = total_overtime * record.shift.coefficient
