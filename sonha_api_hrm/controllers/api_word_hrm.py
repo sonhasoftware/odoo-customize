@@ -408,6 +408,32 @@ class AuthAPIHRM(http.Controller):
                 "error": str(e)
             }), content_type="application/json", status=500)
 
+    @http.route('/api/cancel_overtime/<int:id>', type='http', auth='none', methods=['PUT'], csrf=False)
+    def api_cancel_status_overtime(self, id):
+        try:
+            record = request.env['register.overtime.update'].sudo().search([('id', '=', id)])
+            if not record:
+                raise ValueError("Không tìm thấy bản ghi")
+            if not record.type_overtime:
+                record.status = 'cancel'
+            else:
+                record.status_lv2 = 'cancel'
+
+                # Trả về kết quả
+                return Response(json.dumps({
+                    "success": True,
+                    "id": record.id,
+                    "msg": "Bấm nút thành công",
+                }), content_type="application/json", status=200)
+
+        except Exception as e:
+            # Log lỗi cho admin (nếu cần)
+            request.env.cr.rollback()  # Dự phòng rollback toàn bộ transaction
+            return Response(json.dumps({
+                "success": False,
+                "error": str(e)
+            }), content_type="application/json", status=500)
+
     @http.route('/api/get_overtime_manager/<int:id_employee>', type='http', auth='none', methods=['GET'], csrf=False)
     def get_overtime_manager(self, id_employee):
         try:

@@ -28,6 +28,7 @@ class RegisterOvertimeUpdate(models.Model):
     status = fields.Selection([
         ('draft', 'Chờ duyệt'),
         ('done', 'Đã duyệt'),
+        ('cancel', 'Hủy')
     ], string='Trạng thái', default='draft', tracking=True)
 
     status_lv2 = fields.Selection([
