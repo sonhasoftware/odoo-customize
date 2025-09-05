@@ -244,6 +244,7 @@ class AuthAPIHRM(http.Controller):
             ])
             employee_id = request.env['hr.employee'].sudo().search([('id', '=', id_employee)])
             data = []
+            state = ""
             if r:
                 list_employee = [r.employee_id.id] or r.employee_ids.ids
                 nv = request.env['hr.employee'].sudo().search([('id', '=', list_employee[-1])])
@@ -304,7 +305,7 @@ class AuthAPIHRM(http.Controller):
                             "id": r.department_id.id,
                             "name": r.department_id.name,
                         },
-                        "status": state or "",
+                        "status": state,
                         "regis_type": "Tạo cho tôi",
                         "type": "Làm thêm",
                         "date_sent": str(date_sent),
