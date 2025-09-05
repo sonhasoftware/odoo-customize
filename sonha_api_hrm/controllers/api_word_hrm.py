@@ -103,6 +103,7 @@ class AuthAPIHRM(http.Controller):
             data = []
             if list_records:
                 for r in list_records:
+                    state = ""
                     employee_create = []
                     if r.create_uid:
                         create_employee = request.env['hr.employee'].sudo().search([('user_id', '=', r.create_uid.id)])
@@ -535,6 +536,7 @@ class AuthAPIHRM(http.Controller):
             data = []
             if list_records:
                 for r in list_records:
+                    state = ""
                     employee_create = []
                     if r.create_uid:
                         create_employee = request.env['hr.employee'].sudo().search([('user_id', '=', r.create_uid.id)])
