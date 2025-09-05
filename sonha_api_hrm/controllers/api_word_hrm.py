@@ -520,6 +520,100 @@ class AuthAPIHRM(http.Controller):
                 {"success": False, "error": str(e)}
             ), content_type="application/json", status=500)
 
+    @http.route('/api/get_overtime_user/<int:id_employee>', type='http', auth='none', methods=['GET'], csrf=False)
+    def get_overtime_user(self, id_employee):
+        try:
+            list_records = request.env['register.overtime.update'].sudo().search([
+                '|',
+                ('employee_id', '=', id_employee),
+                ('employee_ids', 'in', id_employee),
+                '|',
+                ('status', '=', 'draft'),
+                ('status_lv2', '=', 'waiting'),
+            ], order="create_date desc")
+            data = []
+            if list_records:
+                for r in list_records:
+                    employee_create = []
+                    if r.create_uid:
+                        create_employee = request.env['hr.employee'].sudo().search([('user_id', '=', r.create_uid.id)])
+                        employee_create.append({
+                            "id": create_employee.id,
+                            "name": create_employee.name,
+                        })
+                    date_sent = r.create_date + relativedelta(hours=7)
+                    if r.type_overtime:
+                        if r.status_lv2 == 'draft':
+                            state = "Nháp"
+                        elif r.status_lv2 == 'waiting':
+                            state = "Chờ duyệt cấp 1"
+                        elif r.status_lv2 == 'confirm':
+                            state = "Chờ duyệt cấp 2"
+                        elif r.status_lv2 == 'done':
+                            state = "Đã duyệt"
+                        else:
+                            state = "Hủy"
+                    else:
+                        if r.status == 'draft':
+                            state = "Chờ duyệt"
+                        elif r.status == 'done':
+                            state = "Đã duyệt"
+                    word_slip_data = []
+                    for rel in r.date:
+                        hours_start = int(rel.start_time)
+                        minutes_start = int(round((rel.start_time - hours_start) * 60))
+                        time_start = f"{hours_start:02d}:{minutes_start:02d}"
+
+                        hours_end = int(rel.end_time)
+                        minutes_end = int(round((rel.end_time - hours_end) * 60))
+                        time_end = f"{hours_end:02d}:{minutes_end:02d}"
+                        word_slip_data.append({
+                            "id": rel.id,
+                            "date": str(rel.date) or '',
+                            "time_to": time_start or '',
+                            "time_from": time_end or '',
+                        })
+
+                    if r.type == 'one':
+                        data.append({
+                            "id": r.id,
+                            "status": state,
+                            "type": "Tạo cho tôi",
+                            "date_sent": str(date_sent),
+                            "date": word_slip_data,
+                            "employee_id": {
+                                "id": r.employee_id.id,
+                                "name": r.employee_id.name
+                            },
+                            "employee_create": employee_create
+                        })
+                    else:
+                        list_employee = []
+                        for emp in r.employee_ids:
+                            list_employee.append({
+                                'id': emp.id,
+                                'name': emp.name,
+                            })
+                        data.append({
+                            "id": r.id,
+                            "status": state,
+                            "type": "Tạo hộ",
+                            "date_sent": str(date_sent),
+                            "date": word_slip_data,
+                            "employee_id": list_employee,
+                            "employee_create": employee_create
+                        })
+
+            return Response(
+                json.dumps({"success": True, "data": data}),
+                status=200, content_type="application/json"
+            )
+        except Exception as e:
+            return Response(json.dumps(
+                {"success": False,
+                 "error": str(e)
+                 }), content_type="application/json", status=500)
+
 
 
 
