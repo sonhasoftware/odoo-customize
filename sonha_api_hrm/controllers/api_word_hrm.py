@@ -394,11 +394,11 @@ class AuthAPIHRM(http.Controller):
                 record.status_lv2 = 'draft'
 
                 # Trả về kết quả
-                return Response(json.dumps({
-                    "success": True,
-                    "id": record.id,
-                    "msg": "Bấm nút thành công",
-                }), content_type="application/json", status=200)
+            return Response(json.dumps({
+                "success": True,
+                "id": record.id,
+                "msg": "Bấm nút thành công",
+            }), content_type="application/json", status=200)
 
         except Exception as e:
             # Log lỗi cho admin (nếu cần)
@@ -420,11 +420,11 @@ class AuthAPIHRM(http.Controller):
                 record.status_lv2 = 'cancel'
 
                 # Trả về kết quả
-                return Response(json.dumps({
-                    "success": True,
-                    "id": record.id,
-                    "msg": "Bấm nút thành công",
-                }), content_type="application/json", status=200)
+            return Response(json.dumps({
+                "success": True,
+                "id": record.id,
+                "msg": "Bấm nút thành công",
+            }), content_type="application/json", status=200)
 
         except Exception as e:
             # Log lỗi cho admin (nếu cần)
