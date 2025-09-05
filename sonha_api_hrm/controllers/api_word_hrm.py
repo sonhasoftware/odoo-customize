@@ -304,7 +304,7 @@ class AuthAPIHRM(http.Controller):
                             "id": r.department_id.id,
                             "name": r.department_id.name,
                         },
-                        "status": state,
+                        "status": state or "",
                         "regis_type": "Tạo cho tôi",
                         "type": "Làm thêm",
                         "date_sent": str(date_sent),
