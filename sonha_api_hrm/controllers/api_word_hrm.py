@@ -128,6 +128,8 @@ class AuthAPIHRM(http.Controller):
                             state = "Chờ duyệt"
                         elif r.status == 'done':
                             state = "Đã duyệt"
+                        elif r.status == 'cancel':
+                            state = "Hủy"
                     word_slip_data = []
                     for rel in r.date:
                         hours_start = int(rel.start_time)
@@ -280,6 +282,8 @@ class AuthAPIHRM(http.Controller):
                         state = "Chờ duyệt"
                     elif r.status == 'done':
                         state = "Đã duyệt"
+                    elif r.status == 'cancel':
+                        state = "Hủy"
 
                     if ((id_employee == nv.parent_id.id) or (id_employee == employee_id.department_id.manager_id.id)) and r.status == 'draft':
                         check_button_done = True
@@ -561,6 +565,8 @@ class AuthAPIHRM(http.Controller):
                             state = "Chờ duyệt"
                         elif r.status == 'done':
                             state = "Đã duyệt"
+                        elif r.status == 'cancel':
+                            state = "Hủy"
                     word_slip_data = []
                     for rel in r.date:
                         hours_start = int(rel.start_time)
