@@ -137,6 +137,7 @@ class ExportReportEmployee(models.TransientModel):
                 onboard = record.onboard.strftime('%d/%m/%Y') if record.reception_date else ""
                 date_birthday = record.date_birthday.strftime('%d/%m/%Y') if record.reception_date else ""
                 date_cccd = record.date_birthday.strftime('%d/%m/%Y') if record.reception_date else ""
+                date_quit = record.date_quit.strftime('%d/%m/%Y') if record.date_quit else ""
                 sheet.cell(row=row, column=1).value = stt
                 sheet.cell(row=row, column=2).value = record.employee_code or ''
                 sheet.cell(row=row, column=3).value = record.name or ''
@@ -162,8 +163,8 @@ class ExportReportEmployee(models.TransientModel):
                 sheet.cell(row=row, column=23).value = onboard
                 sheet.cell(row=row, column=24).value = reception_date
                 sheet.cell(row=row, column=25).value = ''
-                sheet.cell(row=row, column=26).value = ''
-                sheet.cell(row=row, column=27).value = ''
+                sheet.cell(row=row, column=26).value = date_quit or ''
+                sheet.cell(row=row, column=27).value = date_quit or ''
                 sheet.cell(row=row, column=28).value = record.reason_quit or ''
                 sheet.cell(row=row, column=29).value = ''
             # Báo cáo nhân viên sinh nhật
