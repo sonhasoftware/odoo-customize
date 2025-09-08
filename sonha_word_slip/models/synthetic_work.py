@@ -56,6 +56,7 @@ class SyntheticWork(models.Model):
     total_time_late = fields.Integer("Tổng số lần đi muộn/về sớm quá 30p")
     actual_work = fields.Float("Công thực tế theo ca", readonly=True)
     standard_work = fields.Float("Công chuẩn", compute='get_standard_work')
+    fine = fields.Float("Tiền phạt")
 
     @api.depends('department_id', 'month', 'year')
     def get_standard_work(self):

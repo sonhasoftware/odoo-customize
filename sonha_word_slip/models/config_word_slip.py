@@ -17,3 +17,5 @@ class ConfigWordSlip(models.Model):
         ('date', 'Chọn ngày'),
     ], string='Dữ liệu cho kiểu nghỉ')
     key = fields.Char('Key')
+
+    fine = fields.Float('Tiền phạt')
