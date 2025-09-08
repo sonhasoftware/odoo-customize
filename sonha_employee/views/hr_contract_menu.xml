@@ -18,4 +18,10 @@
               groups="group_hr_employee"
               sequence="1"/>
 
+    <menuitem id="menu_config_contract"
+              name="Cấu hình mail hợp đồng"
+              parent="menu_hr_contract_root"
+              action="action_config_contract"
+              sequence="2"/>
+
 </odoo>

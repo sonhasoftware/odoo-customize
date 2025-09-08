@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Tree View -->
+    <record id="view_sonha_area_tree" model="ir.ui.view">
+        <field name="name">view.sonha.area.tree</field>
+        <field name="model">sonha.area</field>
+        <field name="arch" type="xml">
+            <tree string="Danh sách khu vực" editable="bottom">
+                <field name="area"/>
+            </tree>
+        </field>
+    </record>
+
+
+    <!-- Action for Config Work -->
+    <record id="action_sonha_area" model="ir.actions.act_window">
+        <field name="name">Danh sách khu vực</field>
+        <field name="res_model">sonha.area</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

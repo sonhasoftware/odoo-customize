@@ -28,6 +28,7 @@ class RegisterOvertimeUpdate(models.Model):
     status = fields.Selection([
         ('draft', 'Chờ duyệt'),
         ('done', 'Đã duyệt'),
+        ('cancel', 'Hủy')
     ], string='Trạng thái', default='draft', tracking=True)
 
     status_lv2 = fields.Selection([
@@ -217,7 +218,7 @@ class RegisterOvertimeUpdate(models.Model):
                 r.status_lv2 = 'draft'
                 for employee in list_employee:
                     if employee.department_id.over_time == 'date':
-                        employee.total_compensatory += over_time
+                        employee.total_compensatory -= over_time
                     else:
                         pass
             else:

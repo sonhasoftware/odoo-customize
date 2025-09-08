@@ -32,6 +32,24 @@
               groups="sonha_employee.group_hr_employee"
               sequence="3"/>
 
+    <menuitem id="menu_area"
+              name="Danh sách khu vực"
+              parent="menu_config"
+              action="action_sonha_area"
+              sequence="10"/>
+
+    <menuitem id="menu_yard"
+              name="Danh sách sân"
+              parent="menu_config"
+              action="action_sonha_yard"
+              sequence="20"/>
+
+    <menuitem id="menu_config_standard_work"
+              name="Cấu hình công chuẩn"
+              parent="menu_config"
+              action="action_config_standard_work"
+              sequence="30"/>
+
     <menuitem id="menu_config_leave"
               name="Cấu hình số lượng đơn từ trong tháng"
               parent="menu_config"
@@ -84,6 +102,12 @@
               parent="menu_form_word"
               action="action_register_overtime_update"
               sequence="4"/>
+
+    <menuitem id="menu_yard_ball"
+              name="Đăng ký sân"
+              parent="menu_form_word"
+              action="action_yard_ball"
+              sequence="5"/>
 
     <menuitem id="menu_synthetic_work"
               name="Bảng công tổng hợp"

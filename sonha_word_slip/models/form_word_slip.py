@@ -436,17 +436,34 @@ class FormWordSlip(models.Model):
             day_duration = 0
         return day_duration
 
-    # @api.constrains('employee_id')
-    # def check_word_slip_id(self):
-    #     for r in self:
-    #         total_duration = 0
-    #         list_employees = r.employee_id or r.employee_ids
-    #         if r.word_slip_id and r.type.name.lower() == "nghỉ bù":
-    #             for slip in r.word_slip_id:
-    #                 total_duration += slip.duration * 8
-    #             for emp in list_employees:
-    #                 if emp.total_compensatory < total_duration:
-    #                     raise ValidationError("Nhân viên " + emp.name + " không còn thời gian nghỉ bù")
+    @api.constrains('employee_id')
+    def check_word_slip_id(self):
+        for r in self:
+            total_duration = 0
+            list_employees = r.employee_id or r.employee_ids
+            if r.word_slip_id and r.type.name.lower() == "nghỉ bù":
+                for slip in r.word_slip_id:
+                    total_duration += slip.duration * 8
+                for emp in list_employees:
+                    if emp.total_compensatory < total_duration:
+                        raise ValidationError("Nhân viên " + emp.name + " không còn thời gian nghỉ bù")
+
+    @api.constrains('word_slip_id')
+    def validate_word_slip_id(self):
+        for r in self:
+            if not r.word_slip_id:
+                raise ValidationError("Không được để trống ngày!")
+            else:
+                for slip in r.word_slip_id:
+                    if not slip.from_date:
+                        raise ValidationError("Không được để trống trường từ ngày!")
+                    if not slip.to_date:
+                        raise ValidationError("Không được để trống trường đến ngày!")
+                    if not slip.reason:
+                        raise ValidationError("Không được để trống trường lý do!")
+                    if slip.word_slip.type.date_and_time == 'date':
+                        if not slip.start_time or not slip.end_time:
+                            raise ValidationError("Không được để trống ca bắt đầu và ca kết thúc!")
 
     @api.constrains('type', 'word_slip_id')
     def check_type(self):

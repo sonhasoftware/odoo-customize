@@ -24,7 +24,9 @@
                             <field name="toxic_work"/>
                         </group>
                         <group string="Công thời gian">
+                            <field name="standard_work"/>
                             <field name="total_work"/>
+                            <field name="actual_work"/>
                             <field name="date_work"/>
                             <field name="work_hc"/>
                             <field name="work_sp"/>
@@ -37,6 +39,7 @@
                             <field name="number_minutes_late"/>
                             <field name="number_minutes_early"/>
                             <field name="total_time_late"/>
+                            <field name="fine"/>
                         </group>
                     </group>
                     <group>

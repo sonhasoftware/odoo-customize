@@ -52,6 +52,7 @@
                         <field name="minutes_rest"/>
                         <field name="to_rest"/>
                         <field name="is_office_hour"/>
+                        <field name="recent_work" widget="percentage"/>
                         <field name="c2k3"/>
                         <field name="c3k4"/>
                         <field name="shift_toxic"/>

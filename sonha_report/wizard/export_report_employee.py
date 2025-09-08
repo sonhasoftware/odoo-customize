@@ -100,9 +100,9 @@ class ExportReportEmployee(models.TransientModel):
                 total_emp = str(len(active_ids))
                 sheet.cell(row=5, column=3).value = sheet.cell(row=5, column=3).value.replace('[total_emp]', total_emp)
                 reception_date = record.reception_date.strftime('%d/%m/%Y') if record.reception_date else ""
-                onboard = record.onboard.strftime('%d/%m/%Y') if record.reception_date else ""
-                date_birthday = record.date_birthday.strftime('%d/%m/%Y') if record.reception_date else ""
-                date_cccd = record.date_birthday.strftime('%d/%m/%Y') if record.reception_date else ""
+                onboard = record.onboard.strftime('%d/%m/%Y') if record.onboard else ""
+                date_birthday = record.date_birthday.strftime('%d/%m/%Y') if record.date_birthday else ""
+                date_cccd = record.date_cccd.strftime('%d/%m/%Y') if record.date_cccd else ""
                 sheet.cell(row=row, column=1).value = stt
                 sheet.cell(row=row, column=2).value = record.device_id_num or ''
                 sheet.cell(row=row, column=3).value = record.employee_code or ''

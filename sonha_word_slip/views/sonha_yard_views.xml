@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Tree View -->
+    <record id="view_sonha_yard_tree" model="ir.ui.view">
+        <field name="name">view.sonha.yard.tree</field>
+        <field name="model">sonha.yard</field>
+        <field name="arch" type="xml">
+            <tree string="Danh sách sân" editable="bottom">
+                <field name="yard"/>
+                <field name="area"/>
+            </tree>
+        </field>
+    </record>
+
+
+    <!-- Action for Config Work -->
+    <record id="action_sonha_yard" model="ir.actions.act_window">
+        <field name="name">Danh sách sân</field>
+        <field name="res_model">sonha.yard</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

@@ -15,6 +15,7 @@
         'views/hr_department_views.xml',
         'views/hr_contract_view.xml',
         'views/hr_contract_config_view.xml',
+        'views/config_contract_views.xml',
         'views/hr_contract_menu.xml',
         'views/form_config_view.xml',
         'views/level_config_view.xml',
