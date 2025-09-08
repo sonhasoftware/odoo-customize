@@ -39,6 +39,7 @@
                             <field name="number_minutes_late"/>
                             <field name="number_minutes_early"/>
                             <field name="total_time_late"/>
+                            <field name="fine"/>
                         </group>
                     </group>
                     <group>
