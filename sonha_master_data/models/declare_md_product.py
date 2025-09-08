@@ -7,7 +7,7 @@ class DeclareMDProduct(models.Model):
 
     product_code = fields.Char("Mã vật tư")
     product_type = fields.Many2one('x.material.type', string="Loại vật tư")
-    product_name = fields.Char("Tên vật tư", size=40)
+    product_name = fields.Char("Tên vật tư")
     product_english_name = fields.Char("Tên vật tư tiếng anh", compute="get_product_name", store=True)
     product_long_name = fields.Char("Tên đầy đủ", size=128)
     status = fields.Selection([('draft', "Nháp"), ('waiting', "Chờ duyệt"), ('done', "Đã duyệt")],
@@ -147,7 +147,7 @@ class DeclareMDProduct(models.Model):
             if r.employee_id.user_id.id == self.env.uid or self.env.uid == 2:
                 if r.have_alt_uom and not r.alternative_uom:
                     raise ValidationError("Cần khai báo đơn vị thay thế cho vật tư!")
-                if r.basic_data.malt_prdhier.code in list_alt_uom and r.alternative_uom.alternative_unit.name != "Cây":
+                if r.basic_data.malt_prdhier.code in list_alt_uom and r.alternative_uom.alternative_uom.name != "Cây":
                     raise ValidationError("Đơn vị thay thế phải là Cây!")
                 model_id = self.env['ir.model'].sudo().search([('model', '=', 'declare.md.product')], limit=1).id
                 approve_rule = self.env['md.approve.rule'].sudo().search([('model_apply', '=', model_id),
@@ -385,7 +385,7 @@ class DeclareMDProduct(models.Model):
         self.product_english_name = None
         self.product_long_name = None
 
-    @api.onchange('product_type', 'product_line', 'product_stage')
+    @api.onchange('product_type')
     def onchange_product_type(self):
         self.product_line = None
         self.product_stage = None

@@ -124,7 +124,7 @@
                                         <field name="currency"/>
                                         <field name="customer_price_group"/>
                                         <field name="relevant_settlement"/>
-                                        <field name="plant"/>
+                                        <field name="sonha_plant"/>
                                         <field name="order_combination"/>
                                         <field name="shipping_condition"/>
                                         <field name="pod_relevant"/>

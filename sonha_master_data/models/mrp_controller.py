@@ -6,7 +6,7 @@ class MRPController(models.Model):
     _name = 'mrp.controller'
     _rec_name = 'x_full_name'
 
-    plant = fields.Many2many('stock.warehouse', string="Kho")
+    sonha_plant = fields.Many2many('sonha.plant', string="Kho")
     mrp_controller = fields.Char("MRP Controller", required=True)
     mrp_controller_name = fields.Char("Tên MRP Controller", required=True)
     x_full_name = fields.Char("Tên đầy đủ", compute="get_full_name", store=True)

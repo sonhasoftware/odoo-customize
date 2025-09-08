@@ -5,7 +5,7 @@
         <field name="model">mrp.controller</field>
         <field name="arch" type="xml">
             <tree string="MRP Controller" editable="bottom">
-                <field name="plant" widget="many2many_tags"/>
+                <field name="sonha_plant" widget="many2many_tags"/>
                 <field name="mrp_controller"/>
                 <field name="mrp_controller_name"/>
             </tree>

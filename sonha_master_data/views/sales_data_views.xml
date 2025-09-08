@@ -8,8 +8,8 @@
                 <field name="product_code_id"/>
 <!--                <field name="sale_organization"/>-->
 <!--                <field name="distribution_chanel"/>-->
-                <field name="sale_unit"/>
-                <field name="deliver_warehouse"/>
+                <field name="sale_uom"/>
+                <field name="deliver_plant"/>
 <!--                <field name="tax"/>-->
 <!--                <field name="item_category_group"/>-->
 <!--                <field name="aag_malt"/>-->
