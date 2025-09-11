@@ -53,6 +53,8 @@ class EmployeeAttendance(models.Model):
     work_calendar = fields.Boolean("Lịch làm việc", compute="get_work_calendar")
     actual_work = fields.Float("Công thực tế theo ca", compute="_get_actual_work")
     vacation = fields.Float("Nghỉ mát", compute="_get_time_off")
+    forgot_time = fields.Integer("Quên CI/CO", compute="_get_forgot_time")
+    work_eat = fields.Integer("Công ăn", compute="_get_work_eat")
 
     @api.depends('date', 'shift')
     def get_work_calendar(self):
@@ -703,9 +705,8 @@ class EmployeeAttendance(models.Model):
             else:
                 pass
 
-            # Xử lý điều kiện đặc biệt cho cuối tuần
             if weekday == 6 or (weekday == 5 and week_number % 2 == 1):
-                if tong_cong == 0:
+                if tong_cong == 0 or r.employee_id.company_id.calender_work != 'odd':
                     r.color = None
                 elif r.over_time != 0:
                     if r.minutes_late == 0 and r.minutes_early == 0:
@@ -717,6 +718,8 @@ class EmployeeAttendance(models.Model):
                 r.color = None
             else:
                 pass
+            if (r.employee_id.company_id.calender_work != 'odd' and (weekday == 6 or weekday == 5)):
+                r.color = None
 
     @api.depends('minutes_late', 'minutes_early')
     def get_times_late(self):
@@ -734,3 +737,17 @@ class EmployeeAttendance(models.Model):
                 r.actual_work = r.work_day * r.shift.recent_work
             else:
                 r.actual_work = 0
+
+    @api.depends('note')
+    def _get_forgot_time(self):
+        for r in self:
+            r.forgot_time = 0
+            if r.note == 'no_in' or r.note == 'no_out':
+                r.forgot_time = 1
+
+    @api.depends('work_day')
+    def _get_work_eat(self):
+        for r in self:
+            r.work_eat = 0
+            if r.work_day >= 1:
+                r.work_eat = 1

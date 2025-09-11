@@ -50,6 +50,8 @@
                         <field name="employee_id" domain="[('user_id', '=', uid)]" readonly="status != 'sent'" options="{'no_create': True, 'no_open': True}" invisible="regis_type == 'many'" required="regis_type == 'one'"/>
                         <field name="employee_ids" domain="[('department_id', '=', department),('user_id', '!=', uid)]" readonly="status != 'sent'" options="{'no_create': True, 'no_open': True}" invisible="regis_type == 'one'" required="regis_type == 'many'" widget="many2many_tags"/>
                         <field name="duration"/>
+                        <field name="employee_confirm" readonly="1"/>
+                        <field name="employee_approval" readonly="1"/>
                     </group>
                 </sheet>
                 <div class="oe_chatter">

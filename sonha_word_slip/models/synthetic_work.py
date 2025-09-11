@@ -56,7 +56,12 @@ class SyntheticWork(models.Model):
     total_time_late = fields.Integer("Tổng số lần đi muộn/về sớm quá 30p")
     actual_work = fields.Float("Công thực tế theo ca", readonly=True)
     standard_work = fields.Float("Công chuẩn", compute='get_standard_work')
-    fine = fields.Float("Tiền phạt")
+    forgot_time = fields.Float("Số lần quên CI/CO")
+    late_fine = fields.Float("Vi phạm đi muộn (VNĐ)", compute="_get_late_fine", digits=(16, 0))
+    early_fine = fields.Float("Vi phạm về sớm (VNĐ)", compute="_get_early_fine", digits=(16, 0))
+    forgot_fine = fields.Float("Vi phạm quên CI/CO (VNĐ)", compute="_get_forgot_fine", digits=(16, 0))
+    total_fine = fields.Float("Tổng vi phạm (VNĐ)", compute="_get_total_fine", digits=(16, 0))
+    work_eat = fields.Integer("Công ăn")
 
     @api.depends('department_id', 'month', 'year')
     def get_standard_work(self):
@@ -93,14 +98,16 @@ class SyntheticWork(models.Model):
                     COALESCE(SUM(over_time_nb), 0) AS over_time_nb,
                     COALESCE(SUM(times_late), 0) AS times_late,
                     COALESCE(SUM(actual_work), 0) AS actual_work,
-                    COALESCE(SUM(vacation), 0) AS vacation
+                    COALESCE(SUM(vacation), 0) AS vacation,
+                    COALESCE(SUM(forgot_time), 0) AS forgot_time,
+                    COALESCE(SUM(work_eat), 0) AS work_eat
                 FROM employee_attendance_store
                 WHERE employee_id = %s
                   AND date >= %s
                   AND date <= %s
             """
 
-            self.env.cr.execute(query, (r.employee_id.id, r.start_date, r.end_date))
+            self.env.cr.execute(query, (r.employee_id.id, r.start_date or None, r.end_date or None))
             result = self.env.cr.dictfetchone()
 
             # Gán các giá trị từ kết quả truy vấn
@@ -120,6 +127,8 @@ class SyntheticWork(models.Model):
             r.total_time_late = result['times_late']
             r.actual_work = result['actual_work']
             r.vacation = result['vacation']
+            r.forgot_time = result['forgot_time']
+            r.work_eat = result['work_eat']
 
     @api.depends('on_leave', 'compensatory_leave', 'public_leave', 'maternity_leave', 'wedding_leave')
     def get_leave(self):
@@ -178,4 +187,24 @@ class SyntheticWork(models.Model):
                     'start_date': str(start_current),
                     'end_date': str(end_current),
                 })
+
+    @api.depends('number_minutes_late')
+    def _get_late_fine(self):
+        for r in self:
+            r.late_fine = r.number_minutes_late * 5000
+
+    @api.depends('number_minutes_early')
+    def _get_early_fine(self):
+        for r in self:
+            r.early_fine = r.number_minutes_early * 5000
+
+    @api.depends('forgot_time')
+    def _get_forgot_fine(self):
+        for r in self:
+            r.forgot_fine = r.forgot_time * 100000
+
+    @api.depends('forgot_fine', 'early_fine', 'late_fine')
+    def _get_total_fine(self):
+        for r in self:
+            r.total_fine = r.forgot_fine + r.early_fine + r.late_fine
 
