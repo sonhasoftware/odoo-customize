@@ -948,13 +948,13 @@ class AuthAPIHRM(http.Controller):
             if area: vals['area'] = area
             if yard: vals['yard'] = yard
             if date_value: vals['date_active'] = date_value
-            if pick_up: vals['pick_up'] = pick_up
+            vals['pick_up'] = True if pick_up else False
 
             # convert time fields
             if start_active: vals['start_active'] = combine_datetime(start_active)
             if end_active: vals['end_active'] = combine_datetime(end_active)
-            if start_ball: vals['start_ball'] = combine_datetime(start_ball)
-            if end_ball: vals['end_ball'] = combine_datetime(end_ball)
+            vals['start_ball'] = combine_datetime(start_ball) if start_ball else None
+            vals['end_ball'] = combine_datetime(end_ball) if end_ball else None
 
             record.sudo().write(vals)
 
