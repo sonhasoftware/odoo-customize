@@ -66,6 +66,14 @@ class FormWordSlip(models.Model):
     month = fields.Integer("Tháng", compute="get_month_leave", store=True)
     all_dates = fields.Text(string="Khoảng ngày", compute="_compute_all_dates", store=True)
 
+    @api.onchange('regis_type')
+    def _onchange_register_type(self):
+        if self.regis_type == 'one':
+            self.employee_id = self.env.user.employee_id.id
+            self.employee_ids = [(5, 0, 0)]
+        elif self.regis_type == 'many':
+            self.employee_id = False
+
     @api.depends('word_slip_id')
     def _compute_all_dates(self):
         for record in self:

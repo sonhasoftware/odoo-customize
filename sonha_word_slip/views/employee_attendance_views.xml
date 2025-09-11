@@ -16,6 +16,7 @@
                 <field name="note"/>
                 <field name="minutes_late"/>
                 <field name="minutes_early"/>
+                <field name="forgot_time"/>
                 <field name="work_day"/>
                 <field name="actual_work"/>
                 <field name="over_time"/>

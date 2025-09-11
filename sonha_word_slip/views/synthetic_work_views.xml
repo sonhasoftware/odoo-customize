@@ -30,29 +30,39 @@
                             <field name="date_work"/>
                             <field name="work_hc"/>
                             <field name="work_sp"/>
+                            <field name="work_eat"/>
                             <field name="apprenticeship"/>
                             <field name="probationary_period"/>
                             <field name="ot_one_hundred"/>
                             <field name="ot_one_hundred_fifty"/>
                             <field name="ot_three_hundred"/>
                             <field name="paid_leave"/>
+                            <field name="forgot_time"/>
                             <field name="number_minutes_late"/>
                             <field name="number_minutes_early"/>
                             <field name="total_time_late"/>
-                            <field name="fine"/>
                         </group>
                     </group>
                     <group>
-                        <field name="shift_two_crew_three"/>
-                        <field name="shift_three_crew_four"/>
-                        <field name="on_leave"/>
-                        <field name="compensatory_leave"/>
-                        <field name="maternity_leave"/>
-                        <field name="filial_leave"/>
-                        <field name="grandparents_leave"/>
-                        <field name="vacation"/>
-                        <field name="public_leave"/>
-                        <field name="wedding_leave"/>
+                        <group>
+                            <field name="shift_two_crew_three"/>
+                            <field name="shift_three_crew_four"/>
+                            <field name="on_leave"/>
+                            <field name="compensatory_leave"/>
+                            <field name="maternity_leave"/>
+                            <field name="filial_leave"/>
+                            <field name="grandparents_leave"/>
+                            <field name="vacation"/>
+                            <field name="public_leave"/>
+                            <field name="wedding_leave"/>
+                        </group>
+
+                        <group>
+                            <field name="late_fine" widget="float" options="{'precision': 0}"/>
+                            <field name="early_fine" widget="float" options="{'precision': 0}"/>
+                            <field name="forgot_fine" widget="float" options="{'precision': 0}"/>
+                            <field name="total_fine" widget="float" options="{'precision': 0}"/>
+                        </group>
                     </group>
                 </sheet>
             </form>
