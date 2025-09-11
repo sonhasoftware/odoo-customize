@@ -11,7 +11,7 @@ class PopupWordSlipReport(models.TransientModel):
                                  domain="[('id', 'in', allowed_company_ids)]")
     department_id = fields.Many2one('hr.department', string="Phòng ban", domain="[('company_id', '=', company_id)]")
     employee_id = fields.Many2many('hr.employee', string="Nhân viên")
-    employee_domain = fields.Binary()
+    employee_domain = fields.Binary(compute="_compute_employee_domain")
 
     slip_type = fields.Many2one('config.word.slip', string="Loại đơn")
     status = fields.Selection([('sent', "Nháp"),

@@ -4,7 +4,8 @@ from odoo import models, fields, api
 class WordSlipReport(models.Model):
     _name = 'word.slip.report'
 
-    employee_ids = fields.Many2many('hr.employee', string="Tên nhân viên")
+    employee_ids = fields.Many2many('hr.employee', 'word_slip_report_hr_employee_rel',
+                                    'word_slip_report_id', 'employee_id', string="Tên nhân viên")
     department_id = fields.Many2one('hr.department', string="Phòng ban")
     slip_code = fields.Char("Mã đơn")
     slip_type = fields.Many2one('config.word.slip', string="Loại đơn")
