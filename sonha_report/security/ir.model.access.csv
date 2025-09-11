@@ -45,3 +45,6 @@ access_dismissal_report,access.dismissal.report,model_dismissal_report,,1,1,1,1
 access_popup_dismissal_report,access.popup.dismissal.report,model_popup_dismissal_report,,1,1,1,1
 
 access_export_report_reward_discipline,access.export.report.reward.discipline,model_export_report_reward_discipline,,1,1,1,1
+
+access_word_slip_report,access.word.slip.report,model_word_slip_report,,1,1,1,1
+access_popup_word_slip_report,access.popup.word.slip.report,model_popup_word_slip_report,,1,1,1,1
