@@ -7,7 +7,8 @@ class PopupWordSlipReport(models.TransientModel):
 
     from_date = fields.Date("Từ ngày", required=True)
     to_date = fields.Date("Đến ngày", required=True)
-    company_id = fields.Many2one('res.company', string="Đơn vị", required=True)
+    company_id = fields.Many2one('res.company', string="Đơn vị", required=True,
+                                 domain="[('id', 'in', allowed_company_ids)]")
     department_id = fields.Many2one('hr.department', string="Phòng ban", domain="[('company_id', '=', company_id)]")
     employee_id = fields.Many2many('hr.employee', string="Nhân viên")
     employee_domain = fields.Binary(compute="_compute_employee_domain")
@@ -18,7 +19,7 @@ class PopupWordSlipReport(models.TransientModel):
                                ('done', "Đã duyệt"),
                                ('cancel', "Hủy")], string="Trạng thái")
 
-    @api.depends("company_id", "department_id")
+    @api.onchange("company_id", "department_id")
     def _compute_employee_domain(self):
         for rec in self:
             domain = []
@@ -45,17 +46,34 @@ class PopupWordSlipReport(models.TransientModel):
             list_records = list_records.filtered(lambda x: x.status == self.status)
         if list_records:
             for r in list_records:
-                create_emp = self.env['hr.employee'].sudo().search([('user_id', '=', r.create_uid.id)])
+                from_date = []
+                to_date = []
+                for child in r.word_slip_id:
+                    if child.from_date:
+                        if child.time_to:
+                            from_date.append(f"{child.from_date.strftime('%d/%m/%Y')} {round(child.time_to, 2)}h")
+                        if child.start_time == 'first_half':
+                            from_date.append(f"{child.from_date.strftime('%d/%m/%Y')} (Nửa ca đầu)")
+                        if child.start_time == 'second_half':
+                            from_date.append(f"{child.from_date.strftime('%d/%m/%Y')} (Nửa ca sau)")
+                    if child.to_date:
+                        if child.time_from:
+                            to_date.append(f"{child.to_date.strftime('%d/%m/%Y')} {round(child.time_from, 2)}h")
+                        if child.end_time == 'first_half':
+                            to_date.append(f"{child.to_date.strftime('%d/%m/%Y')} (Nửa ca đầu)")
+                        if child.end_time == 'second_half':
+                            to_date.append(f"{child.to_date.strftime('%d/%m/%Y')} (Nửa ca sau)")
+                list_emp = r.employee_ids.ids or [r.employee_id.id]
                 vals = {
-                    'employee_id': r.employee_id.id,
-                    'employee_ids': [(6, 0, r.employee_ids.ids)],
+                    'employee_ids': [(6, 0, list_emp)],
                     'department_id': r.department.id,
                     'slip_code': r.code,
                     'slip_type': r.type.id,
-                    'all_date': r.all_dates,
+                    'from_date': ",\n".join(from_date) if from_date else "Không có dữ liệu",
+                    'to_date': ",\n".join(to_date) if to_date else "Không có dữ liệu",
                     'status': r.status,
                     'duration': r.duration,
-                    'create_emp': create_emp.id,
+                    'create_employee': r.create_uid.id,
                     'slip_create_date': r.create_date,
                     }
                 self.env['word.slip.report'].sudo().create(vals)

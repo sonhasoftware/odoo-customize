@@ -7,12 +7,12 @@
             <tree string="Báo cáo đơn từ">
                 <field name="slip_code"/>
                 <field name="department_id"/>
-                <field name="create_emp"/>
-                <field name="employee_id"/>
+                <field name="create_employee"/>
                 <field name="employee_ids" widget="many2many_tags"/>
                 <field name="slip_create_date"/>
+                <field name="from_date"/>
+                <field name="to_date"/>
                 <field name="slip_type"/>
-                <field name="all_date"/>
                 <field name="status"/>
                 <field name="duration"/>
             </tree>
