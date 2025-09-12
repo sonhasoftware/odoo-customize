@@ -32,7 +32,7 @@ class PopupWordSlipReport(models.TransientModel):
     def action_confirm(self):
         self.env['word.slip.report'].search([]).sudo().unlink()
         list_records = self.env['word.slip'].sudo().search([('from_date', '>=', self.from_date),
-                                                           ('to_date', '<=', self.to_date)]).word_slip
+                                                           ('from_date', '<=', self.to_date)]).word_slip
 
         if self.company_id and not self.department_id and not self.employee_id:
             list_records = list_records.filtered(lambda x: x.company_id.id == self.company_id.id)
