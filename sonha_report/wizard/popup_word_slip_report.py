@@ -50,18 +50,18 @@ class PopupWordSlipReport(models.TransientModel):
                 to_date = []
                 for child in r.word_slip_id:
                     if child.from_date:
-                        if child.time_to:
+                        if child.time_to and child.type.date_and_time == 'time':
                             from_date.append(f"{child.from_date.strftime('%d/%m/%Y')} {round(child.time_to, 2)}h")
-                        if child.start_time == 'first_half':
+                        if child.start_time == 'first_half' and child.type.date_and_time == 'date':
                             from_date.append(f"{child.from_date.strftime('%d/%m/%Y')} (Nửa ca đầu)")
-                        if child.start_time == 'second_half':
+                        if child.start_time == 'second_half' and child.type.date_and_time == 'date':
                             from_date.append(f"{child.from_date.strftime('%d/%m/%Y')} (Nửa ca sau)")
                     if child.to_date:
-                        if child.time_from:
+                        if child.time_from and child.type.date_and_time == 'time':
                             to_date.append(f"{child.to_date.strftime('%d/%m/%Y')} {round(child.time_from, 2)}h")
-                        if child.end_time == 'first_half':
+                        if child.end_time == 'first_half' and child.type.date_and_time == 'date':
                             to_date.append(f"{child.to_date.strftime('%d/%m/%Y')} (Nửa ca đầu)")
-                        if child.end_time == 'second_half':
+                        if child.end_time == 'second_half' and child.type.date_and_time == 'date':
                             to_date.append(f"{child.to_date.strftime('%d/%m/%Y')} (Nửa ca sau)")
                 list_emp = r.employee_ids.ids or [r.employee_id.id]
                 vals = {
