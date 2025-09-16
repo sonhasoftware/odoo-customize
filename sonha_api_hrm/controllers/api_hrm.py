@@ -1613,7 +1613,7 @@ class AuthAPI(http.Controller):
                         'taget_screen': log.taget_screen or "",
                         'message_id': log.message_id or "",
                         'badge': log.badge or "",
-                        'datetime': str(log.datetime) if log.datetime else None,
+                        'datetime': str(log.datetime + relativedelta(hours=7)) if log.datetime else None,
                         'userid': log.userid or "",
                         'is_read': log.is_read,
                         'employeeid': log.employeeid or "",
