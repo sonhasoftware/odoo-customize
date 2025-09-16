@@ -4,7 +4,7 @@
         <field name="name">popup.employee.shift.report.form.view</field>
         <field name="model">popup.employee.shift.report</field>
         <field name="arch" type="xml">
-            <form string="Báo cáo công chi tiết">
+            <form string="Báo cáo ca làm việc">
                 <group>
                     <field name="from_date"/>
                     <field name="to_date"/>
@@ -21,7 +21,7 @@
     </record>
 
     <record id="action_popup_employee_shift_report" model="ir.actions.act_window">
-        <field name="name">Báo cáo công chi tiết</field>
+        <field name="name">Báo cáo ca làm việc</field>
         <field name="res_model">popup.employee.shift.report</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
