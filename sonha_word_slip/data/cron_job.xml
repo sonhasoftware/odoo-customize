@@ -46,5 +46,16 @@
             <field name="doall">True</field>
         </record>
 
+        <record id="ir_cron_noti_miss_work" model="ir.cron">
+            <field name="name">Thông báo thiếu dữ liệu công</field>
+            <field name="model_id" ref="model_employee_attendance"/>
+            <field name="state">code</field>
+            <field name="code">model.noti_miss_work()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="doall">True</field>
+        </record>
+
     </data>
 </odoo>
