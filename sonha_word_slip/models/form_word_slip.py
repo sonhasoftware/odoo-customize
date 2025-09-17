@@ -1,6 +1,8 @@
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from datetime import datetime, time, timedelta, date
+import requests
+import json
 
 
 class FormWordSlip(models.Model):
@@ -115,12 +117,66 @@ class FormWordSlip(models.Model):
             else:
                 r.check_cancel = False
 
+    def send_fcm_notification(self, title, content, token, user_id, type, employee_id, application_id, data_text, screen="/notification", badge=1):
+        url = "https://apibaohanh.sonha.com.vn/api/thongbaohrm/send-fcm"
+
+        payload = {
+            "title": title,
+            "content": content,
+            "badge": badge,
+            "token": token,
+            "application_id": application_id,
+            "user_id": user_id,
+            "screen": screen,
+        }
+
+        headers = {
+            "Content-Type": "application/json",
+        }
+
+        try:
+            response = requests.post(url, data=json.dumps(payload), headers=headers, timeout=30)
+            response.raise_for_status()
+            res_json = json.loads(response.text)
+            message_id = res_json.get("messageId")
+            if response.status_code == 200:
+               self.env['log.notifi'].sudo().create({
+                   'badge': badge,
+                   'token': token,
+                   'title': title,
+                   'type': type,
+                   'taget_screen': screen,
+                   'message_id': message_id,
+                   'id_application': str(application_id),
+                   'userid': str(user_id),
+                   'employeeid': str(employee_id) or "",
+                   'body': content,
+                   'datetime': str(datetime.now()),
+                   'data': data_text
+               })
+        except Exception as e:
+            return {"error": str(e)}
+
+    def action_noti(self, record):
+        user_id = self.env['res.users'].sudo().search([('id', '=', record.create_uid.id)])
+        data_text = str(record.id) + "#" + str(user_id.id) + "#" + str(user_id.employee_id.id) + "#" + str(record.code) + "#2#" + str(user_id.name)
+        self.send_fcm_notification(
+            title="Sơn Hà HRM",
+            content="Đơn từ " + str(record.code) + " của bạn bị từ chối!",
+            token=user_id.token,
+            user_id=user_id.id,
+            type=2,
+            employee_id=user_id.employee_id.id,
+            application_id=str(record.id),
+            data_text=data_text
+        )
+
     def action_cancel(self):
         for r in self:
             r.status = 'cancel'
             r.status_lv1 = 'cancel'
             r.status_lv2 = 'cancel'
-
+            self.action_noti(r)
 
     @api.onchange('type')
     def get_check_invisible_type(self):
@@ -213,6 +269,21 @@ class FormWordSlip(models.Model):
                 else:
                     template = self.env.ref('sonha_word_slip.template_sent_mail_manager_slip_lv2')
                 template.send_mail(r.id, force_send=True)
+            self.action_noti_manager(r)
+
+    def action_noti_manager(self, record):
+        data_text = str(record.id) + "#" + str(record.employee_approval.user_id.id) + "#" + str(record.employee_approval.id) + "#" + str(
+            record.code) + "#1#" + str(record.employee_approval.user_id.name)
+        self.send_fcm_notification(
+            title="Sơn Hà HRM",
+            content="Đơn từ " + str(record.code) + " cần bạn duyệt!",
+            token=record.employee_approval.user_id.token,
+            user_id=record.employee_approval.user_id.id,
+            type=1,
+            employee_id=record.employee_approval.id,
+            application_id=str(record.id),
+            data_text=data_text
+        )
 
     @api.depends('employee_id', 'type')
     def get_code_slip(self):
@@ -307,6 +378,22 @@ class FormWordSlip(models.Model):
             setattr(r, status_level, 'done')
             r.status = 'done'
             r.button_done = False
+            self.noti_user_done(r)
+
+    def noti_user_done(self, record):
+        user_id = self.env['res.users'].sudo().search([('id', '=', record.create_uid.id)])
+        data_text = str(record.id) + "#" + str(user_id.id) + "#" + str(user_id.employee_id.id) + "#" + str(
+            record.code) + "#2#" + str(user_id.name)
+        self.send_fcm_notification(
+            title="Sơn Hà HRM",
+            content="Đơn từ " + str(record.code) + " của bạn đã được phê duyệt!",
+            token=user_id.token,
+            user_id=user_id.id,
+            type=2,
+            employee_id=user_id.employee_id.id,
+            application_id=str(record.id),
+            data_text=data_text
+        )
 
     # hàm check validate
     def validate_record_overlap(self, record, word_slips, form_type):

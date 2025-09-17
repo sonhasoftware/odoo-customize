@@ -1,6 +1,8 @@
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from datetime import datetime, time, timedelta, date
+import requests
+import json
 
 
 class RegisterOvertimeUpdate(models.Model):
@@ -149,12 +151,65 @@ class RegisterOvertimeUpdate(models.Model):
                 else:
                     r.type_overtime = False
 
-    # def create(self, vals):
-    #     res = super(RegisterOvertimeUpdate, self).create(vals)
-    #     if not res.type_overtime:
-    #         template = self.env.ref('sonha_word_slip.template_sent_mail_manager_ot')
-    #         template.send_mail(res.id, force_send=True)
-    #     return res
+    def send_fcm_notification(self, title, content, token, user_id, type, employee_id, application_id, data_text, screen="/notification", badge=1):
+        url = "https://apibaohanh.sonha.com.vn/api/thongbaohrm/send-fcm"
+
+        payload = {
+            "title": title,
+            "content": content,
+            "badge": badge,
+            "token": token,
+            "application_id": application_id,
+            "user_id": user_id,
+            "screen": screen,
+        }
+
+        headers = {
+            "Content-Type": "application/json",
+        }
+
+        try:
+            response = requests.post(url, data=json.dumps(payload), headers=headers, timeout=30)
+            response.raise_for_status()
+            res_json = json.loads(response.text)
+            message_id = res_json.get("messageId")
+            if response.status_code == 200:
+               self.env['log.notifi'].sudo().create({
+                   'badge': badge,
+                   'token': token,
+                   'title': title,
+                   'type': type,
+                   'taget_screen': screen,
+                   'message_id': message_id,
+                   'id_application': str(application_id),
+                   'userid': str(user_id),
+                   'employeeid': str(employee_id) or "",
+                   'body': content,
+                   'datetime': str(datetime.now()),
+                   'data': data_text
+               })
+        except Exception as e:
+            return {"error": str(e)}
+
+    def action_noti_manager(self, record):
+        employee_id = record.employee_ids or [record.employee_id]
+        employee = self.env['hr.employee'].sudo().search([('id', '=', employee_id[-1].parent_id.id)])
+        data_text = str(record.id) + "#" + str(employee.user_id.id) + "#" + str(employee.id) + "#4#" + str(employee.user_id.name)
+        self.send_fcm_notification(
+            title="Sơn Hà HRM",
+            content="Bạn có đơn làm thêm cần được phê duyệt!",
+            token=employee.user_id.token,
+            user_id=employee.user_id.id,
+            type=4,
+            employee_id=employee.id,
+            application_id=str(record.id),
+            data_text=data_text
+        )
+
+    def create(self, vals):
+        res = super(RegisterOvertimeUpdate, self).create(vals)
+        self.action_noti_manager(res)
+        return res
 
     @api.onchange('employee_id', 'employee_ids', 'status_lv2', 'type_overtime')
     def get_user(self):
@@ -249,6 +304,21 @@ class RegisterOvertimeUpdate(models.Model):
                             pass
                 else:
                     raise ValidationError("Bạn không có quyền thực hiện hành động này")
+            self.action_noti_user(r)
+
+    def action_noti_user(self, record):
+        user_id = self.env['res.users'].sudo().search([('id', '=', record.create_uid.id)])
+        data_text = str(record.id) + "#" + str(user_id.id) + "#" + str(user_id.employee_id.id) + "#5#" + str(user_id.name)
+        self.send_fcm_notification(
+            title="Sơn Hà HRM",
+            content="Đơn làm thêm của bạn đã được phê duyệt!",
+            token=user_id.token,
+            user_id=user_id.id,
+            type=5,
+            employee_id=user_id.employee_id.id,
+            application_id=str(record.id),
+            data_text=data_text
+        )
 
     def action_back_confirm(self):
         for r in self:
