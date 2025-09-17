@@ -77,6 +77,7 @@ class AuthAPIHRM(http.Controller):
 
                 # Tạo record
                 record = request.env['register.overtime.update'].with_user(user_id).sudo().create(vals)
+                request.env['register.overtime.update'].sudo().action_noti_manager(record)
 
                 # Trả về kết quả
                 return Response(json.dumps({
@@ -365,13 +366,16 @@ class AuthAPIHRM(http.Controller):
                 raise ValueError("Không tìm thấy bản ghi")
             if not record.type_overtime:
                 record.status = 'done'
+                request.env['register.overtime.update'].sudo().action_noti_user(record)
             else:
                 if record.status_lv2 == 'draft':
                     record.status_lv2 = 'waiting'
+                    request.env['register.overtime.update'].sudo().action_noti_manager(record)
                 elif record.status_lv2 == 'waiting':
                     record.status_lv2 = 'confirm'
                 elif record.status_lv2 == 'confirm':
                     record.status_lv2 = 'done'
+                    request.env['register.overtime.update'].sudo().action_noti_user(record)
 
             # Trả về kết quả
             return Response(json.dumps({
