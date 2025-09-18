@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_hang_hoa_vat_tu_form" model="ir.ui.view">
+        <field name="name">hang.hoa.vat.tu.form</field>
+        <field name="model">hang.hoa.vat.tu</field>
+        <field name="arch" type="xml">
+            <form string="Đơn từ">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="vector"/>
+                        <button name="complete_approval" string="Đối chiếu" type="object" class="oe_highlight"/>
+                        <button name="complete_vector" string="Sinh vector" type="object" class="oe_highlight"/>
+                        <field name="data_rel">
+                            <tree>
+                                <field name="code"/>
+                                <field name="name"/>
+                                <field name="ti_le"/>
+                            </tree>
+                        </field>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_hang_hoa_vat_tu_tree" model="ir.ui.view">
+        <field name="name">hang.hoa.vat.tu.tree</field>
+        <field name="model">hang.hoa.vat.tu</field>
+        <field name="arch" type="xml">
+            <tree string="Vật tư">
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_hang_hoa_vat_tu" model="ir.actions.act_window">
+        <field name="name">Hàng hóa vật tư</field>
+        <field name="res_model">hang.hoa.vat.tu</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

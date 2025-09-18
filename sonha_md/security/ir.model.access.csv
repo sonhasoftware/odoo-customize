@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+
+access_sonha_md,sonha.md,model_sonha_md,,1,1,1,1
+
+access_data_md,data.md,model_data_md,,1,1,1,1
+
+access_hang_hoa_vat_tu,hang.hoa.vat.tu,model_hang_hoa_vat_tu,,1,1,1,1
