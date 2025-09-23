@@ -820,8 +820,10 @@ class EmployeeAttendance(models.Model):
     def queue_job_miss_work(self):
         today = date.today()
         today_str = today.strftime("%d/%m/%y")
-        list_record = self.sudo().search([('date', '=', today),
-                                          ('note', '!=', None)])
+
+        list_record = self.sudo().search([('date', '=', today)])
+
+        list_record = list_record.filtered(lambda x: bool(x.note) and x.note in ('no_in', 'no_out', 'no_shift'))
         for r in list_record:
             self.send_fcm_notification(
                 title="Sơn Hà HRM",
