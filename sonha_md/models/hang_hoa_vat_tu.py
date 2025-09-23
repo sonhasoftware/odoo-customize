@@ -20,27 +20,15 @@ class HangHoaVatTu(models.Model):
     vector = fields.Text("Vector")   # Lưu JSON string của embedding
     data_rel = fields.One2many('data.md', 'vat_tu', string="Dữ liệu")
 
-    # --------- Normalize & domain-specific mapping ----------
-
+    # --------- Normalize ----------
     def _normalize_text(self, text):
-        """
-        - remove accents
-        - lowercase
-        - separate letters and numbers with spaces
-        - keep decimals but normalize spacing
-        """
         if not text:
             return ""
-        # remove accents
         t = unicodedata.normalize("NFKD", text)
         t = "".join([c for c in t if not unicodedata.combining(c)])
         t = t.lower().strip()
-
-        # separate letters/numbers: "XB0201" -> "xb 0201"
         t = re.sub(r'([A-Za-z])([0-9])', r'\1 \2', t)
         t = re.sub(r'([0-9])([A-Za-z])', r'\1 \2', t)
-
-        # replace non-alnum (except dot) with space
         t = re.sub(r'[^a-z0-9\.]+', ' ', t)
         t = re.sub(r'\s+', ' ', t).strip()
         return t
@@ -62,16 +50,14 @@ class HangHoaVatTu(models.Model):
             return 0.0
         return float(np.dot(v1, v2) / denom)
 
-    # --------- Numeric similarity: compare numeric tokens with tolerance ----------
+    # --------- Numeric similarity ----------
     def _numeric_similarity(self, s1, s2):
-        # find numbers (integers or floats)
         nums1 = re.findall(r'\d+(?:\.\d+)?', s1)
         nums2 = re.findall(r'\d+(?:\.\d+)?', s2)
         if not nums1 and not nums2:
             return 0.0
         if not nums1 or not nums2:
             return 0.0
-        # match each number in shorter list to best in longer list
         matched = 0
         used = set()
         for n1 in nums1:
@@ -100,7 +86,7 @@ class HangHoaVatTu(models.Model):
                 if closeness > best:
                     best = closeness
                     best_i = i
-            if best_i is not None and best > 0.6:  # threshold to count as match
+            if best_i is not None and best > 0.6:
                 matched += 1
                 used.add(best_i)
         total = max(len(nums1), len(nums2))
@@ -119,56 +105,38 @@ class HangHoaVatTu(models.Model):
         uni = len(a | b)
         return inter / uni if uni > 0 else 0.0
 
-    # --------- hybrid similarity combining multiple signals ----------
-    def _hybrid_similarity(self, s1, s2, weights=None, use_semantic=True):
-        """
-        weights: dict with keys: token_set, partial, seq, numeric, char_ngram, semantic
-        returns score in 0..100
-        """
+    # --------- hybrid similarity ----------
+    def _hybrid_similarity(self, s1, s2, v1=None, v2=None, weights=None, use_semantic=True):
         if weights is None:
             weights = {
-                'token_set': 0.5,   # rapidfuzz token_set_ratio
-                'partial': 0.15,     # rapidfuzz partial_ratio
-                'seq': 0.15,         # SequenceMatcher
-                'numeric': 0.4,     # numeric matching
-                'char_ngram': 0.15,  # char ngram jaccard
-                'semantic': 0.15,    # embedding cosine
+                'token_set': 0.5,
+                'partial': 0.15,
+                'seq': 0.15,
+                'numeric': 0.4,
+                'char_ngram': 0.15,
+                'semantic': 0.15,
             }
 
-        # normalize original strings
         t1 = self._normalize_text(s1)
         t2 = self._normalize_text(s2)
 
-        # token-based scores (rapidfuzz returns 0..100)
         try:
             token_set = fuzz.token_set_ratio(t1, t2) / 100.0
             partial = fuzz.partial_ratio(t1, t2) / 100.0
-            seq = SequenceMatcher(None, t1, t2).ratio()  # 0..1
+            seq = SequenceMatcher(None, t1, t2).ratio()
         except Exception:
             token_set = partial = seq = 0.0
 
-        # numeric score 0..1
         numeric = self._numeric_similarity(s1, s2)
-
-        # char ngram
         char_ng = self._char_ngram_jaccard(t1, t2, n=3)
 
-        # semantic via embedding (0..1)
         semantic = 0.0
-        if use_semantic:
-            # try use stored vectors first to save time
-            v1 = None; v2 = None
-            # We cannot access recs here; we'll just encode on the fly
+        if use_semantic and v1 is not None and v2 is not None:
             try:
-                emb1 = MODEL.encode(t1)
-                emb2 = MODEL.encode(t2)
-                semantic = float(np.dot(emb1, emb2) / (norm(emb1) * norm(emb2)))
-                if np.isnan(semantic):
-                    semantic = 0.0
+                semantic = self._cosine_from_vectors(v1, v2)
             except Exception:
                 semantic = 0.0
 
-        # combine weighted
         total = (weights['token_set'] * token_set +
                  weights['partial'] * partial +
                  weights['seq'] * seq +
@@ -176,39 +144,48 @@ class HangHoaVatTu(models.Model):
                  weights['char_ngram'] * char_ng +
                  weights['semantic'] * semantic)
 
-        # scale to 0..100
         return round(total * 100, 2)
 
-    # --------- Main button (giữ cấu trúc tạo data.md) ----------
+    # --------- Main button ----------
     def complete_approval(self):
         for rec in self:
             if not rec.name:
                 continue
 
+            # Sinh vector cho vật tư hiện tại nếu chưa có
             if not rec.vector:
                 try:
-                    v = self._encode_text(rec.name)
-                    rec.vector = json.dumps(v)
+                    v1 = self._encode_text(rec.name)
+                    rec.vector = json.dumps(v1)
                 except Exception:
                     rec.vector = False
+                    v1 = None
+            else:
+                v1 = json.loads(rec.vector)
 
             rec.data_rel.unlink()
             result_vals = []
-            sonha_records = self.env['sonha.md'].sudo().search([])
+            sonha_records = self.env['sonha.md'].sudo().search([('vector', '!=', False)])
 
             for xy in sonha_records:
                 if not xy.name:
                     continue
+                try:
+                    v2 = json.loads(xy.vector)
+                except Exception:
+                    v2 = None
 
                 try:
-                    sim_percent = self._hybrid_similarity(rec.name, xy.name, use_semantic=True)
+                    sim_percent = self._hybrid_similarity(
+                        rec.name, xy.name, v1=v1, v2=v2, use_semantic=True
+                    )
                 except Exception:
                     sim_percent = 0.0
 
                 if sim_percent > 0:
                     result_vals.append({
                         'vat_tu': rec.id,
-                        'code': getattr(xy, 'code', ''),
+                        'code': xy.code or '',
                         'name': xy.name,
                         'ti_le': sim_percent,
                     })
@@ -216,3 +193,10 @@ class HangHoaVatTu(models.Model):
             result_vals.sort(key=lambda x: x['ti_le'], reverse=True)
             if result_vals:
                 self.env['data.md'].sudo().create(result_vals)
+
+    def complete_vector(self):
+        """Sinh vector cho các record chưa có vector"""
+        for rec in self.env['sonha.md'].sudo().search([('vector', '=', False)]):
+            if rec.name:
+                emb = MODEL.encode(rec.name).tolist()
+                rec.vector = json.dumps(emb)
