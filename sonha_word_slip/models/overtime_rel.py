@@ -1,6 +1,6 @@
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 from dateutil.relativedelta import relativedelta
 
 
@@ -42,7 +42,9 @@ class OvertimeRel(models.Model):
                     ('employee_id', '=', employee)])
                 check_in_out = self.env['master.data.attendance'].sudo().search([
                     ('employee_id', '=', employee)])
-                check_in_out = check_in_out.filtered(lambda x: x.attendance_time.date() == record.date)
+                check_in_out = check_in_out.filtered(
+                    lambda x: (x.attendance_time + timedelta(hours=7)).date() == record.date
+                )
                 shift = data.shift
                 if not shift:
                     raise ValidationError("Không thể tạo bản ghi khi bạn chưa có ca làm việc")
