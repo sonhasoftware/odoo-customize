@@ -22,6 +22,7 @@
         'views/discipline_report_views.xml',
         'views/dismissal_report_views.xml',
         'views/word_slip_report_views.xml',
+        'views/overtime_report_views.xml',
         'views/menu_report_views.xml',
         'wizard/popup_master_data_report_views.xml',
         'wizard/popup_employee_attendance_report_views.xml',
@@ -36,7 +37,10 @@
         'wizard/popup_discipline_report_views.xml',
         'wizard/popup_dismissal_report_views.xml',
         'wizard/popup_word_slip_report_views.xml',
+        'wizard/popup_overtime_report_views.xml',
         'wizard/export_report_reward_discipline.xml',
+
+        'data/cron_job.xml',
     ],
 
     'installable': True,

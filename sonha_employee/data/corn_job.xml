@@ -44,5 +44,17 @@
             <field name="interval_type">days</field>
             <field name="numbercall">-1</field>
         </record>
+
+        <record id="cron_update_leave_milestone" model="ir.cron">
+            <field name="name">Cập nhật ngày mốc và số phép mốc</field>
+            <field name="model_id" ref="model_hr_employee"/>
+            <field name="state">code</field>
+            <field name="code">model.update_leave_milestone()</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="nextcall" eval="datetime.now().replace(hour=0, minute=0, second=0)"/>
+        </record>
     </data>
 </odoo>

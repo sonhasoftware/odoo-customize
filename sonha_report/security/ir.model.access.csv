@@ -48,3 +48,8 @@ access_export_report_reward_discipline,access.export.report.reward.discipline,mo
 
 access_word_slip_report,access.word.slip.report,model_word_slip_report,,1,1,1,1
 access_popup_word_slip_report,access.popup.word.slip.report,model_popup_word_slip_report,,1,1,1,1
+
+access_overtime_report,access.overtime.report,model_overtime_report,,1,1,1,1
+access_popup_overtime_report,access.popup.overtime.report,model_popup_overtime_report,,1,1,1,1
+
+access_leave_left,access.leave.left,model_leave_left,,1,1,1,1
