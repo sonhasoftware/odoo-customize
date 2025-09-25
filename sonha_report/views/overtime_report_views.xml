@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="overtime_report_tree_view" model="ir.ui.view">
+        <field name="name">overtime.report.tree.view</field>
+        <field name="model">overtime.report</field>
+        <field name="arch" type="xml">
+            <tree string="Báo cáo làm thêm">
+                <field name="department_id"/>
+                <field name="create_emp"/>
+                <field name="employee_ids" widget="many2many_tags"/>
+                <field name="overtime_create_date"/>
+                <field name="type"/>
+                <field name="all_time"/>
+                <field name="status"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="overtime_report_action" model="ir.actions.act_window">
+        <field name="name">Báo cáo làm thêm</field>
+        <field name="res_model">overtime.report</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

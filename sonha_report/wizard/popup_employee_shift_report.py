@@ -6,11 +6,21 @@ class PopupEmployeeShiftReport(models.TransientModel):
 
     from_date = fields.Date(string="Từ ngày", required=True)
     to_date = fields.Date(string="Đến ngày", required=True)
-    company_id = fields.Many2one('res.company', string="Đơn vị", required=True)
+    company_id = fields.Many2one('res.company', string="Đơn vị", required=True,
+                                 domain="[('id', 'in', allowed_company_ids)]")
     department_id = fields.Many2one('hr.department', string="Phòng ban", domain="[('company_id', '=', company_id)]")
-    employee_id = fields.Many2one('hr.employee', string="Nhân viên",
-                                  domain="[('department_id', '=', department_id), ('company_id', '=', company_id)]")
+    employee_id = fields.Many2one('hr.employee', string="Nhân viên")
+    employee_domain = fields.Binary(compute="_compute_employee_domain")
 
+    @api.onchange("company_id", "department_id")
+    def _compute_employee_domain(self):
+        for rec in self:
+            domain = []
+            if rec.department_id:
+                domain = [("department_id", "=", rec.department_id.id)]
+            elif rec.company_id:
+                domain = [("company_id", "=", rec.company_id.id)]
+            rec.employee_domain = domain
 
     def action_confirm(self):
         self.env['employee.shift.report'].search([]).sudo().unlink()

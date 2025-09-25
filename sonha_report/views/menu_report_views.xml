@@ -15,6 +15,11 @@
               parent="menu_sonha_report"
               sequence="3"/>
 
+    <menuitem id="menu_sonha_report_slip"
+              name="Báo cáo đơn từ"
+              parent="menu_sonha_report"
+              sequence="2"/>
+
     <menuitem id="menu_sonha_report_employee"
               name="Báo cáo nhân viên"
               parent="menu_sonha_report"

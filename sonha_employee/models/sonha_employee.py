@@ -118,6 +118,22 @@ class SonHaEmployee(models.Model):
     new_leave_balance = fields.Float(string="Phép mới", readonly=True)
     sonha_number_phone = fields.Char("Số điện thoại")
 
+    leave_milestone_date = fields.Date("Mốc thời gian phép", readonly=True)
+    leave_milestone = fields.Float("Số phép mốc", readonly=True)
+
+    def update_leave_milestone(self):
+        today = date.today()
+        start_date = today.replace(day=1)
+        list_records = self.env['hr.employee'].sudo().search([('leave_milestone_date', '=', False)])
+        for emp in list_records:
+            used_leave = self.env['employee.attendance'].sudo().search([('employee_id', '=', emp.id),
+                                                                        ('date', '>=', start_date),
+                                                                        ('date', '<=', today)])
+            count = sum(used_leave.filtered(lambda x: x.leave != 0).mapped('leave'))
+            leave_milestone = emp.new_leave_balance + emp.old_leave_balance + count
+            emp.sudo().write({'leave_milestone_date': start_date,
+                              'leave_milestone': leave_milestone})
+
     @api.depends('level')
     def get_score_employee(self):
         for r in self:

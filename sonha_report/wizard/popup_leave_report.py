@@ -13,6 +13,17 @@ class PopupLeaveReport(models.TransientModel):
     employee_id = fields.Many2one('hr.employee', string="Nhân viên",
                                   domain="[('department_id', '=', department_id), ('company_id', '=', company_id)]")
 
+    @api.constrains('from_date', 'to_date')
+    def validate_from_to_date(self):
+        now = datetime.now().date()
+        for r in self:
+            if r.from_date and r.to_date:
+                if r.from_date.month != r.to_date.month or r.from_date.year != r.to_date.year:
+                    raise ValidationError("Chỉ được chọn ngày trong cùng 1 tháng!")
+                if r.from_date > r.to_date:
+                    raise ValidationError("Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc!")
+            if r.from_date and r.from_date > now:
+                raise ValidationError("Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày hiện tại!")
 
     def action_confirm(self):
         self.env['leave.report'].search([]).sudo().unlink()
@@ -26,18 +37,43 @@ class PopupLeaveReport(models.TransientModel):
             list_records = list_records.filtered(lambda x: x.employee_id.id == self.employee_id.id)
         list_records = list_records.filtered(lambda x: x.leave != 0)
         if list_records:
-            for r in list_records:
-                total_leave_balance_left = self.caculate_begin_period(r)
-                leave_left = total_leave_balance_left - r.leave
-                vals = {
-                    'employee_id': r.employee_id.id,
-                    'department_id': r.department_id.id,
-                    'begin_period': total_leave_balance_left,
-                    'leave': r.leave,
-                    'date': r.date,
-                    'total_leave_left': leave_left,
-                }
-                self.env['leave.report'].sudo().create(vals)
+            eliminated_employee = []
+            list_employee = list_records.employee_id
+            for emp in list_employee:
+                if emp.leave_milestone_date and self.from_date >= emp.leave_milestone_date:
+                    # old_leave_left = self.caculate_begin_period(emp)
+                    old_leave_left, total_leave = self.env['popup.synthetic.leave.report'].re_calculate_leave_left(emp, self.from_date)
+                    if self.from_date.day != 1:
+                        start_date = self.from_date.replace(day=1)
+                        end_date = self.from_date + relativedelta(days=-1)
+                        used_leave = self.env['popup.synthetic.leave.report'].calculate_used_leave(emp, start_date, end_date)
+                        old_leave_left = old_leave_left - used_leave
+                    employee_record = list_records.filtered(lambda x: x.employee_id.id == emp.id)
+                    for rec in employee_record:
+                        new_leave_left = old_leave_left - rec.leave
+                        vals = {
+                            'employee_id': rec.employee_id.id,
+                            'department_id': rec.department_id.id,
+                            'begin_period': old_leave_left,
+                            'leave': rec.leave,
+                            'date': rec.date,
+                            'total_leave_left': new_leave_left,
+                        }
+                        self.env['leave.report'].sudo().create(vals)
+                        old_leave_left = new_leave_left
+                else:
+                    eliminated_employee.append(emp.name)
+            if eliminated_employee:
+                employee_name = ', '.join(eliminated_employee)
+                self.env['bus.bus']._sendone(
+                    (self._cr.dbname, 'res.partner', self.env.user.partner_id.id),
+                    'simple_notification',
+                    {
+                        'title': "Cảnh báo!",
+                        'message': f"Không tìm thấy mốc thời gian phép của nhân viên {employee_name} hoặc mốc thời gian lớn hơn thời gian chọn báo cáo",
+                        'sticky': False,
+                    }
+                )
             return {
                 'type': 'ir.actions.act_window',
                 'name': 'Báo cáo phép chi tiết',
@@ -47,86 +83,6 @@ class PopupLeaveReport(models.TransientModel):
             }
         else:
             raise ValidationError("Nhân viên không sử dụng phép trong tháng này!")
-
-
-    def caculate_begin_period(self, record):
-        base_timeline = date(2023, 12, 31)
-        base_leave_balance = 4
-        old_leave_balance = base_leave_balance
-        begin_date = record.date
-        base_year = base_timeline.year
-        begin_year = begin_date.year
-        if begin_date >= base_timeline:
-            start_date = base_timeline
-            if base_timeline.month <= 6:
-                total_leave_left = self.caculate_leave_balance_left(start_date, begin_date, old_leave_balance, record)
-                return total_leave_left
-            else:
-                if base_year < begin_year:
-                    caculate_date = start_date.replace(year=base_year, month=12, day=31)
-                    end_date = caculate_date + relativedelta(days=1)
-                else:
-                    end_date = begin_date
-                    caculate_date = begin_date
-                used_leave = self.env['employee.attendance'].sudo().search([('date', '>=', start_date),
-                                                                            ('date', '<', end_date),
-                                                                            ('employee_id', '=', record.employee_id.id)])
-                total_used_leave = sum(used_leave.mapped('leave')) if used_leave else 0
-                months_difference = caculate_date.month - start_date.month
-                total_leave_left = old_leave_balance + months_difference - total_used_leave
-                if base_year < begin_year:
-                    start_date = end_date
-                    old_leave_balance = total_leave_left + 1
-                    total_leave_left = self.caculate_leave_balance_left(start_date, begin_date, old_leave_balance, record)
-                return total_leave_left
-        else:
-            return 0
-
-
-
-    def caculate_leave_balance_left(self, start_date, begin_date, old_leave_balance, record):
-        base_year = start_date.year
-        begin_year = begin_date.year
-        while base_year <= begin_year:
-            if base_year < begin_year:
-                end_date = start_date.replace(year=base_year, month=7, day=1)
-                caculate_date_1 = start_date.replace(year=base_year, month=6, day=30)
-            else:
-                if begin_date.month <= 6:
-                    end_date = begin_date
-                    caculate_date_1 = begin_date
-                else:
-                    end_date = start_date.replace(year=base_year, month=7, day=1)
-                    caculate_date_1 = start_date.replace(year=base_year, month=6, day=30)
-            used_leave = self.env['employee.attendance'].sudo().search([('date', '>=', start_date),
-                                                                        ('date', '<', end_date),
-                                                                        ('employee_id', '=', record.employee_id.id)])
-            total_used_leave = sum(used_leave.mapped('leave')) if used_leave else 0
-            months_difference = caculate_date_1.month - start_date.month
-            total_leave_left = old_leave_balance + months_difference - total_used_leave
-            if base_year < begin_year or begin_date.month > 6:
-                if total_leave_left >= 6:
-                    total_leave_left = 7
-                if base_year < begin_year:
-                    caculate_date_2 = start_date.replace(year=base_year, month=12, day=31)
-                    end_date = caculate_date_2 + relativedelta(days=1)
-                else:
-                    if begin_date.month > 6:
-                        caculate_date_2 = begin_date
-                        end_date = begin_date
-                start_date = caculate_date_1 + relativedelta(days=1)
-                used_leave = self.env['employee.attendance'].sudo().search([('date', '>=', start_date),
-                                                                            ('date', '<', end_date),
-                                                                            ('employee_id', '=', record.employee_id.id)])
-                total_used_leave = sum(used_leave.mapped('leave')) if used_leave else 0
-                months_difference = caculate_date_2.month - start_date.month
-                total_leave_left = total_leave_left + months_difference - total_used_leave
-                old_leave_balance = total_leave_left + 1
-                start_date = end_date
-            base_year = base_year + 1
-        return total_leave_left
-
-
 
 
 
