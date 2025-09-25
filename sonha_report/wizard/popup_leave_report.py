@@ -60,6 +60,7 @@ class PopupLeaveReport(models.TransientModel):
                             'total_leave_left': new_leave_left,
                         }
                         self.env['leave.report'].sudo().create(vals)
+                        old_leave_left = new_leave_left
                 else:
                     eliminated_employee.append(emp.name)
             if eliminated_employee:
