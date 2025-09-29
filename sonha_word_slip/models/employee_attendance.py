@@ -222,27 +222,37 @@ class EmployeeAttendance(models.Model):
 
                         # Trường hợp overtime hoàn toàn trước ca
                         if ot_end <= shift_start:
-                            if record.check_in:
-                                check_in_time = _dt_to_float_local(record.check_in)
-                                actual_start = max(ot_start, check_in_time)
-                                actual_end = ot_end
-                                if record.check_out:
-                                    check_out_time = _dt_to_float_local(record.check_out)
-                                    actual_end = min(actual_end, check_out_time)
-                                if actual_end > actual_start:
-                                    total_overtime += actual_end - actual_start
-
-                        # Trường hợp overtime hoàn toàn sau ca
-                        elif shift_end <= ot_start <= (shift_end + 0.2):
-                            if record.check_out:
-                                check_out_time = _dt_to_float_local(record.check_out)
-                                actual_start = ot_start
-                                actual_end = min(ot_end, check_out_time)
+                            gap = shift_start - ot_end
+                            if gap >= 1:  # Nếu cách ca >= 4 tiếng -> tính toàn bộ OT (ví dụ 0h–2h, ca 8h)
+                                total_overtime += ot_end - ot_start
+                            else:
+                                # logic chuẩn như cũ (6h–8h sát ca thì check check_in/check_out)
                                 if record.check_in:
                                     check_in_time = _dt_to_float_local(record.check_in)
-                                    actual_start = max(actual_start, check_in_time)
-                                if actual_end > actual_start:
-                                    total_overtime += actual_end - actual_start
+                                    actual_start = max(ot_start, check_in_time)
+                                    actual_end = ot_end
+                                    if record.check_out:
+                                        check_out_time = _dt_to_float_local(record.check_out)
+                                        actual_end = min(actual_end, check_out_time)
+                                    if actual_end > actual_start:
+                                        total_overtime += actual_end - actual_start
+
+                        # --- Trường hợp overtime hoàn toàn sau ca ---
+                        elif shift_end <= ot_start:
+                            gap = ot_start - shift_end
+                            if gap >= 1:  # Nếu cách ca >= 4 tiếng -> tính toàn bộ OT
+                                total_overtime += ot_end - ot_start
+                            else:
+                                # logic chuẩn như cũ (OT ngay sau ca thì check check_in/check_out)
+                                if record.check_out:
+                                    check_out_time = _dt_to_float_local(record.check_out)
+                                    actual_start = ot_start
+                                    actual_end = min(ot_end, check_out_time)
+                                    if record.check_in:
+                                        check_in_time = _dt_to_float_local(record.check_in)
+                                        actual_start = max(actual_start, check_in_time)
+                                    if actual_end > actual_start:
+                                        total_overtime += actual_end - actual_start
 
                         # Trường hợp overtime nằm trong giờ ca (hoặc chồng 1 phần ca)
                         else:
