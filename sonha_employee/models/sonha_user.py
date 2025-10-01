@@ -7,7 +7,11 @@ class SonHaResUser(models.Model):
     _inherit = 'res.users'
 
     device_id = fields.Char("ID thiết bị")
-    option_check = fields.Integer("Trạng thái")
+    option_check = fields.Integer("Trạng thái", help='1.location, '
+                                                     '2.BSSID wifi, '
+                                                     '3. BSSID wifi và location, '
+                                                     '4. API wifi, '
+                                                     '5. API Wifi và Location')
     token = fields.Char("Token")
     devices = fields.Boolean("Nhiều thiết bị")
 
