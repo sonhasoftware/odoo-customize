@@ -42,13 +42,12 @@ class OvertimeRel(models.Model):
                     ('employee_id', '=', employee)])
                 check_in_out = self.env['master.data.attendance'].sudo().search([
                     ('employee_id', '=', employee)])
-                check_in_out = check_in_out.filtered(
-                    lambda x: (x.attendance_time + timedelta(hours=7)).date() == record.date
-                )
+                check_in_out = check_in_out.filtered(lambda x: x.attendance_time.date() == record.date)
+                not_check_in_out = data.filtered(lambda x: x.check_in.date() == record.date or x.check_out.date() == record.date)
                 shift = data.shift
                 if not shift:
                     raise ValidationError("Không thể tạo bản ghi khi bạn chưa có ca làm việc")
-                if not check_in_out:
+                if not check_in_out and not not_check_in_out:
                     raise ValidationError("Không thể tạo bản ghi do không có dữ liệu check_in check_out!")
                 start_shift = (shift.start + relativedelta(hours=7)).time()
                 start_noon_shift = shift.from_rest if shift.from_rest else False
