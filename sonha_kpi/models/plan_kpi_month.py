@@ -34,6 +34,8 @@ class PlanKPIMonth(models.Model):
             raise ValidationError("Dữ liệu năm phải là một năm hợp lệ")
 
     def validate_start_end_date(self, record):
+        if record.start_date and record.plan_kpi_month and record.start_date.month != record.plan_kpi_month.month:
+            raise ValidationError("Thời gian bắt đầu, kết thúc phải nằm trong tháng đã chọn")
         if record.start_date and record.end_date and record.kpi_year.start_date <= record.start_date <= record.kpi_year.end_date and record.kpi_year.start_date <= record.end_date <= record.kpi_year.end_date:
             pass
         else:
@@ -46,6 +48,16 @@ class PlanKPIMonth(models.Model):
                     'sticky': False,
                 }
             )
+
+    def validate_percentage_year(self, record):
+        if record.plan_kpi_month and record.kpi_year:
+            record_month = ['ti_le_monh_one', 'ti_le_monh_two', 'ti_le_monh_three', 'ti_le_monh_four',
+                            'ti_le_monh_five', 'ti_le_monh_six', 'ti_le_monh_seven', 'ti_le_monh_eight',
+                            'ti_le_monh_nigh', 'ti_le_monh_ten', 'ti_le_monh_eleven', 'ti_le_monh_twenty']
+            if record.kpi_year[record_month[record.plan_kpi_month.month - 1]] != 0:
+                pass
+            else:
+                raise ValidationError(f"Hạng mục lớn {record.kpi_year.name} không có kế hoạch cho tháng {record.start_date.month}!")
 
     def validate_create_write(self, record):
         if record.kpi_year:
@@ -76,4 +88,5 @@ class PlanKPIMonth(models.Model):
             self.filter_department_year(r)
             self.validate_kpi_year(r)
             self.validate_start_end_date(r)
+            self.validate_percentage_year(r)
         return record
