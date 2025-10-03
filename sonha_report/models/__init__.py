@@ -10,3 +10,7 @@ from . import config_template_report
 from . import reward_report
 from . import discipline_report
 from . import dismissal_report
+from . import word_slip_report
+from . import overtime_report
+
+from . import leave_left

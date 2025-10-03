@@ -11,8 +11,8 @@ class EmployeeShiftReport(models.Model):
                                 ('1', "Thứ ba"),
                                 ('2', "Thứ tư"),
                                 ('3', "Thứ năm"),
-                                ('4', "Thứ 6"),
-                                ('5', "Thứ 7"),
-                                ('6', "Chủ Nhật")], string="Thứ")
+                                ('4', "Thứ sáu"),
+                                ('5', "Thứ bảy"),
+                                ('6', "Chủ nhật")], string="Thứ")
     date = fields.Date(string="Ngày")
     shift = fields.Many2one('config.shift', string="Ca làm việc")

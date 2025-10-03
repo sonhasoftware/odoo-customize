@@ -11,3 +11,5 @@ from . import popup_reward_report
 from . import popup_discipline_report
 from . import export_report_reward_discipline
 from . import popup_dismissal_report
+from . import popup_word_slip_report
+from . import popup_overtime_report
