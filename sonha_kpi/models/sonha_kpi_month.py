@@ -199,7 +199,8 @@ class SonHaKPIMonth(models.Model):
     # Sửa để chỉ những kpi năm nào đã có bản ghi công việc nhỏ mới ảnh hưởng đến tỉ trọng
     def calculating_density(self, r):
         number = 0
-        month_record = self.env['sonha.kpi.month'].sudo().search([('sonha_kpi', '=', r.sonha_kpi.id)])
+        month_record = self.env['sonha.kpi.month'].sudo().search([('sonha_kpi', '=', r.sonha_kpi.id),
+                                                                  ('state', '!=', 'cancel')])
         if month_record:
             exist_month = month_record.filtered(lambda x: x.start_date.month == r.start_date.month)
             if exist_month:
@@ -295,7 +296,8 @@ class SonHaKPIMonth(models.Model):
 
     # Tính lại tỉ trọng khi thêm
     def re_calculating_density(self, record):
-        exist_month = self.env['sonha.kpi.month'].sudo().search([('sonha_kpi', '=', record.sonha_kpi.id)])
+        exist_month = self.env['sonha.kpi.month'].sudo().search([('sonha_kpi', '=', record.sonha_kpi.id),
+                                                                 ('state', '!=', 'cancel')])
         if exist_month:
             records = exist_month.filtered(lambda x: x.start_date.month == record.start_date.month)
             if records:

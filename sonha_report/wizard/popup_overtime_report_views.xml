@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="popup_employee_shift_report_form_view" model="ir.ui.view">
-        <field name="name">popup.employee.shift.report.form.view</field>
-        <field name="model">popup.employee.shift.report</field>
+    <record id="popup_overtime_report_form_view" model="ir.ui.view">
+        <field name="name">popup.overtime.report.form.view</field>
+        <field name="model">popup.overtime.report</field>
         <field name="arch" type="xml">
-            <form string="Báo cáo ca làm việc">
+            <form string="Báo cáo làm thêm">
                 <group>
                     <field name="from_date"/>
                     <field name="to_date"/>
                     <field name="company_id"/>
                     <field name="department_id"/>
                     <field name="employee_domain" invisible="1"/>
-                    <field name="employee_id" domain="employee_domain"/>
+                    <field name="employee_ids" domain="employee_domain" widget="many2many_tags"/>
+                    <field name="status"/>
                 </group>
                 <footer>
                     <button string="Xác nhận" type="object" name="action_confirm" class="oe_highlight"/>
@@ -21,16 +22,16 @@
         </field>
     </record>
 
-    <record id="action_popup_employee_shift_report" model="ir.actions.act_window">
-        <field name="name">Báo cáo ca làm việc</field>
-        <field name="res_model">popup.employee.shift.report</field>
+    <record id="action_overtime_work_report" model="ir.actions.act_window">
+        <field name="name">Báo cáo làm thêm</field>
+        <field name="res_model">popup.overtime.report</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
     </record>
 
-    <menuitem id="menu_popup_employee_shift_report"
-              name="Báo cáo ca làm việc"
-              parent="menu_sonha_report_sonha"
-              action="action_popup_employee_shift_report"
+    <menuitem id="menu_popup_overtime_report"
+              name="Báo cáo làm thêm"
+              parent="menu_sonha_report_slip"
+              action="action_overtime_work_report"
               sequence="4"/>
 </odoo>
