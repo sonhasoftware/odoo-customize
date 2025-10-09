@@ -41,23 +41,23 @@ class PopupWizardReport(models.TransientModel):
                     'year': self.year,
                     'start_date': str(date) if data_filter else None,
                     'month': month + '/' + str(self.year),
-                    'workload': round(sum(data_filter.mapped('quy_doi_dv_amount_work')), 2) if data_filter else 0,
-                    'quality': str(round(sum(data_filter.mapped('quy_doi_dv_matter_work')), 2)) if data_filter else '',
-                    'discipline': str(round(sum(data_filter.mapped('quy_doi_dv_comply_regulations')), 2)) if data_filter else '',
-                    'improvement': str(round(sum(data_filter.mapped('quy_doi_dv_initiative')), 2)) if data_filter else '',
-                    'total_points_before': str(round(total, 2)) if total else '',
+                    'workload': round(sum(data_filter.mapped('quy_doi_dv_amount_work')), 1) if data_filter else 0,
+                    'quality': str(round(sum(data_filter.mapped('quy_doi_dv_matter_work')), 1)) if data_filter else '',
+                    'discipline': str(round(sum(data_filter.mapped('quy_doi_dv_comply_regulations')), 1)) if data_filter else '',
+                    'improvement': str(round(sum(data_filter.mapped('quy_doi_dv_initiative')), 1)) if data_filter else '',
+                    'total_points_before': str(round(total, 1)) if total else '',
                     'symbol_before': str(symbol_before) if symbol_before else '',
                     'progress_points': str(progress_points) if progress_points else '',
-                    'total_points_after': (round(total_points_after, 2)) if total_points_after else '',
+                    'total_points_after': (round(total_points_after, 1)) if total_points_after else '',
                     'symbol_after': str(symbol_after) if symbol_after else '',
                     'classification': str(classification) if classification else '',
                     'plan': "100%" if classification else '',
-                    'criteria_achievement': str(round(total, 2)) + "%" if total else '',
+                    'criteria_achievement': str(round(total, 1)) + "%" if total else '',
 
-                    'tq_workload': round(sum(data_filter.mapped('quy_doi_tq_amount_work')), 2) if data_filter else 0,
-                    'tq_quality': str(round(sum(data_filter.mapped('quy_doi_tq_matter_work')), 2)) if data_filter else '',
-                    'tq_discipline': str(round(sum(data_filter.mapped('quy_doi_tq_comply_regulations')), 2)) if data_filter else '',
-                    'tq_improvement': str(round(sum(data_filter.mapped('quy_doi_tq_initiative')), 2)) if data_filter else '',
+                    'tq_workload': round(sum(data_filter.mapped('quy_doi_tq_amount_work')), 1) if data_filter else 0,
+                    'tq_quality': str(round(sum(data_filter.mapped('quy_doi_tq_matter_work')), 1)) if data_filter else '',
+                    'tq_discipline': str(round(sum(data_filter.mapped('quy_doi_tq_comply_regulations')), 1)) if data_filter else '',
+                    'tq_improvement': str(round(sum(data_filter.mapped('quy_doi_tq_initiative')), 1)) if data_filter else '',
                     'tq_total_points_before': str(round(total_tq, 2)) if total_tq else '',
                     'tq_symbol_before': str(symbol_before_tq) if symbol_before_tq else '',
                     'tq_progress_points': str(progress_points_tq) if progress_points_tq else '',
@@ -65,7 +65,7 @@ class PopupWizardReport(models.TransientModel):
                     'tq_symbol_after': str(symbol_after_tq) if symbol_after_tq else '',
                     'tq_classification': str(classification_tq) if classification_tq else '',
                     'tq_plan': "100%" if classification_tq else '',
-                    'tq_criteria_achievement': str(round(total_tq, 2)) + "%" if total_tq else '',
+                    'tq_criteria_achievement': str(round(total_tq, 1)) + "%" if total_tq else '',
                 }
                 month_before = month
                 self.env['report.kpi'].sudo().search([]).create(vals)
@@ -132,31 +132,31 @@ class PopupWizardReport(models.TransientModel):
                     'department_id': self.department_id.id,
                     'year': self.year,
                     'month': month + '/' + str(self.year),
-                    'workload': round(amount_work, 2) if amount_work else 0,
-                    'quality': str(round(matter_work, 2)) if matter_work else '',
+                    'workload': round(amount_work, 1) if amount_work else 0,
+                    'quality': str(round(matter_work, 1)) if matter_work else '',
                     'discipline': str(round(comply_regulations, 2)) if comply_regulations else '',
-                    'improvement': str(round(initiative, 2)) if initiative else '',
-                    'total_points_before': str(round(total, 2)) if total else '',
+                    'improvement': str(round(initiative, 1)) if initiative else '',
+                    'total_points_before': str(round(total, 1)) if total else '',
                     'symbol_before': str(symbol_month_before) if symbol_month_before else '',
                     'progress_points': '',
-                    'total_points_after': (round(point_after, 2)) if point_after else '',
+                    'total_points_after': (round(point_after, 1)) if point_after else '',
                     'symbol_after': str(symbol_month_before) if symbol_month_before else '',
                     'classification': str(classification) if classification else '',
                     'plan': "100%" if classification else '',
-                    'criteria_achievement': str(round(total, 2)) + "%" if total else '',
+                    'criteria_achievement': str(round(total, 1)) + "%" if total else '',
 
-                    'tq_workload': (round(amount_work_tq, 2)) if amount_work_tq else 0,
-                    'tq_quality': str(round(matter_work_tq, 2)) if matter_work_tq else '',
-                    'tq_discipline': str(round(comply_regulations_tq, 2)) if comply_regulations_tq else '',
-                    'tq_improvement': str(round(initiative_tq, 2)) if initiative_tq else '',
-                    'tq_total_points_before': str(round(total_tq, 2)) if total_tq else '',
+                    'tq_workload': (round(amount_work_tq, 1)) if amount_work_tq else 0,
+                    'tq_quality': str(round(matter_work_tq, 1)) if matter_work_tq else '',
+                    'tq_discipline': str(round(comply_regulations_tq, 1)) if comply_regulations_tq else '',
+                    'tq_improvement': str(round(initiative_tq, 1)) if initiative_tq else '',
+                    'tq_total_points_before': str(round(total_tq, 1)) if total_tq else '',
                     'tq_symbol_before': str(symbol_month_before_tq) if symbol_month_before_tq else '',
                     'tq_progress_points': '',
-                    'tq_total_points_after': (round(tq_point_after, 2)) if tq_point_after else '',
+                    'tq_total_points_after': (round(tq_point_after, 1)) if tq_point_after else '',
                     'tq_symbol_after': str(symbol_month_before_tq) if symbol_month_before_tq else '',
                     'tq_classification': str(classification_tq) if classification_tq else '',
                     'tq_plan': "100%" if classification_tq else '',
-                    'tq_criteria_achievement': str(round(total_tq, 2)) + "%" if total_tq else '',
+                    'tq_criteria_achievement': str(round(total_tq, 1)) + "%" if total_tq else '',
 
                 }
                 self.env['report.kpi'].sudo().search([]).create(vals)
@@ -222,31 +222,31 @@ class PopupWizardReport(models.TransientModel):
                     'department_id': self.department_id.id,
                     'year': self.year,
                     'month': month + '/' + str(self.year),
-                    'workload': (round(amount_work, 2)) if amount_work else 0,
-                    'quality': str(round(matter_work, 2)) if matter_work else '',
-                    'discipline': str(round(comply_regulations, 2)) if comply_regulations else '',
-                    'improvement': str(round(initiative, 2)) if initiative else '',
-                    'total_points_before': str(round(total, 2)) if total else '',
+                    'workload': (round(amount_work, 1)) if amount_work else 0,
+                    'quality': str(round(matter_work, 1)) if matter_work else '',
+                    'discipline': str(round(comply_regulations, 1)) if comply_regulations else '',
+                    'improvement': str(round(initiative, 1)) if initiative else '',
+                    'total_points_before': str(round(total, 1)) if total else '',
                     'symbol_before': str(symbol_month_before) if symbol_month_before else '',
                     'progress_points': '',
-                    'total_points_after': (round(point_after, 2)) if point_after else '',
+                    'total_points_after': (round(point_after, 1)) if point_after else '',
                     'symbol_after': str(symbol_month_before) if symbol_month_before else '',
                     'classification': str(classification) if classification else '',
                     'plan': "100%" if classification else '',
-                    'criteria_achievement': str(round(total, 2)) + "%" if total else '',
+                    'criteria_achievement': str(round(total, 1)) + "%" if total else '',
 
-                    'tq_workload': (round(amount_work_tq, 2)) if amount_work_tq else 0,
-                    'tq_quality': str(round(matter_work_tq, 2)) if matter_work_tq else '',
-                    'tq_discipline': str(round(comply_regulations_tq, 2)) if comply_regulations_tq else '',
-                    'tq_improvement': str(round(initiative_tq, 2)) if initiative_tq else '',
-                    'tq_total_points_before': str(round(total_tq, 2)) if total_tq else '',
+                    'tq_workload': (round(amount_work_tq, 1)) if amount_work_tq else 0,
+                    'tq_quality': str(round(matter_work_tq, 1)) if matter_work_tq else '',
+                    'tq_discipline': str(round(comply_regulations_tq, 1)) if comply_regulations_tq else '',
+                    'tq_improvement': str(round(initiative_tq, 1)) if initiative_tq else '',
+                    'tq_total_points_before': str(round(total_tq, 1)) if total_tq else '',
                     'tq_symbol_before': str(symbol_month_before_tq) if symbol_month_before_tq else '',
                     'tq_progress_points': '',
-                    'tq_total_points_after': (round(tq_point_after, 2)) if tq_point_after else '',
+                    'tq_total_points_after': (round(tq_point_after, 1)) if tq_point_after else '',
                     'tq_symbol_after': str(symbol_month_before_tq) if symbol_month_before_tq else '',
                     'tq_classification': str(classification_tq) if classification_tq else '',
                     'tq_plan': "100%" if classification_tq else '',
-                    'tq_criteria_achievement': str(round(total_tq, 2)) + "%" if total_tq else '',
+                    'tq_criteria_achievement': str(round(total_tq, 1)) + "%" if total_tq else '',
 
                 }
                 self.env['report.kpi'].sudo().search([]).create(vals)
@@ -312,31 +312,31 @@ class PopupWizardReport(models.TransientModel):
                     'department_id': self.department_id.id,
                     'year': self.year,
                     'month': month + '/' + str(self.year),
-                    'workload': (round(amount_work, 2)) if amount_work else 0,
-                    'quality': str(round(matter_work, 2)) if matter_work else '',
-                    'discipline': str(round(comply_regulations, 2)) if comply_regulations else '',
-                    'improvement': str(round(initiative, 2)) if initiative else '',
-                    'total_points_before': str(round(total, 2)) if total else '',
+                    'workload': (round(amount_work, 1)) if amount_work else 0,
+                    'quality': str(round(matter_work, 1)) if matter_work else '',
+                    'discipline': str(round(comply_regulations, 1)) if comply_regulations else '',
+                    'improvement': str(round(initiative, 1)) if initiative else '',
+                    'total_points_before': str(round(total, 1)) if total else '',
                     'symbol_before': str(symbol_month_before) if symbol_month_before else '',
                     'progress_points': '',
-                    'total_points_after': (round(point_after, 2)) if point_after else '',
+                    'total_points_after': (round(point_after, 1)) if point_after else '',
                     'symbol_after': str(symbol_month_before) if symbol_month_before else '',
                     'classification': str(classification) if classification else '',
                     'plan': "100%" if classification else '',
-                    'criteria_achievement': str(round(total, 2)) + "%" if total else '',
+                    'criteria_achievement': str(round(total, 1)) + "%" if total else '',
 
-                    'tq_workload': (round(amount_work_tq, 2)) if amount_work_tq else 0,
-                    'tq_quality': str(round(matter_work_tq, 2)) if matter_work_tq else '',
-                    'tq_discipline': str(round(comply_regulations_tq, 2)) if comply_regulations_tq else '',
-                    'tq_improvement': str(round(initiative_tq, 2)) if initiative_tq else '',
-                    'tq_total_points_before': str(round(total_tq, 2)) if total_tq else '',
+                    'tq_workload': (round(amount_work_tq, 1)) if amount_work_tq else 0,
+                    'tq_quality': str(round(matter_work_tq, 1)) if matter_work_tq else '',
+                    'tq_discipline': str(round(comply_regulations_tq, 1)) if comply_regulations_tq else '',
+                    'tq_improvement': str(round(initiative_tq, 1)) if initiative_tq else '',
+                    'tq_total_points_before': str(round(total_tq, 1)) if total_tq else '',
                     'tq_symbol_before': str(symbol_month_before_tq) if symbol_month_before_tq else '',
                     'tq_progress_points': '',
-                    'tq_total_points_after': (round(tq_point_after, 2)) if tq_point_after else '',
+                    'tq_total_points_after': (round(tq_point_after, 1)) if tq_point_after else '',
                     'tq_symbol_after': str(symbol_month_before_tq) if symbol_month_before_tq else '',
                     'tq_classification': str(classification_tq) if classification_tq else '',
                     'tq_plan': "100%" if classification_tq else '',
-                    'tq_criteria_achievement': str(round(total_tq, 2)) + "%" if total_tq else '',
+                    'tq_criteria_achievement': str(round(total_tq, 1)) + "%" if total_tq else '',
 
                 }
                 self.env['report.kpi'].sudo().search([]).create(vals)
@@ -402,31 +402,31 @@ class PopupWizardReport(models.TransientModel):
                     'department_id': self.department_id.id,
                     'year': self.year,
                     'month': month + '/' + str(self.year),
-                    'workload': (round(amount_work, 2)) if amount_work else 0,
-                    'quality': str(round(matter_work, 2)) if matter_work else '',
-                    'discipline': str(round(comply_regulations, 2)) if comply_regulations else '',
-                    'improvement': str(round(initiative, 2)) if initiative else '',
-                    'total_points_before': str(round(total, 2)) if total else '',
+                    'workload': (round(amount_work, 1)) if amount_work else 0,
+                    'quality': str(round(matter_work, 1)) if matter_work else '',
+                    'discipline': str(round(comply_regulations, 1)) if comply_regulations else '',
+                    'improvement': str(round(initiative, 1)) if initiative else '',
+                    'total_points_before': str(round(total, 1)) if total else '',
                     'symbol_before': str(symbol_month_before) if symbol_month_before else '',
                     'progress_points': '',
-                    'total_points_after': (round(point_after, 2)) if point_after else '',
+                    'total_points_after': (round(point_after, 1)) if point_after else '',
                     'symbol_after': str(symbol_month_before) if symbol_month_before else '',
                     'classification': str(classification) if classification else '',
                     'plan': "100%" if classification else '',
-                    'criteria_achievement': str(round(total, 2)) + "%" if total else '',
+                    'criteria_achievement': str(round(total, 1)) + "%" if total else '',
 
-                    'tq_workload': (round(amount_work_tq, 2)) if amount_work_tq else 0,
-                    'tq_quality': str(round(matter_work_tq, 2)) if matter_work_tq else '',
-                    'tq_discipline': str(round(comply_regulations_tq, 2)) if comply_regulations_tq else '',
-                    'tq_improvement': str(round(initiative_tq, 2)) if initiative_tq else '',
-                    'tq_total_points_before': str(round(total_tq, 2)) if total_tq else '',
+                    'tq_workload': (round(amount_work_tq, 1)) if amount_work_tq else 0,
+                    'tq_quality': str(round(matter_work_tq, 1)) if matter_work_tq else '',
+                    'tq_discipline': str(round(comply_regulations_tq, 1)) if comply_regulations_tq else '',
+                    'tq_improvement': str(round(initiative_tq, 1)) if initiative_tq else '',
+                    'tq_total_points_before': str(round(total_tq, 1)) if total_tq else '',
                     'tq_symbol_before': str(symbol_month_before_tq) if symbol_month_before_tq else '',
                     'tq_progress_points': '',
-                    'tq_total_points_after': (round(tq_point_after, 2)) if tq_point_after else '',
+                    'tq_total_points_after': (round(tq_point_after, 1)) if tq_point_after else '',
                     'tq_symbol_after': str(symbol_month_before_tq) if symbol_month_before_tq else '',
                     'tq_classification': str(classification_tq) if classification_tq else '',
                     'tq_plan': "100%" if classification_tq else '',
-                    'tq_criteria_achievement': str(round(total_tq, 2)) + "%" if total_tq else '',
+                    'tq_criteria_achievement': str(round(total_tq, 1)) + "%" if total_tq else '',
 
                 }
                 self.env['report.kpi'].sudo().search([]).create(vals)
@@ -492,31 +492,31 @@ class PopupWizardReport(models.TransientModel):
                     'department_id': self.department_id.id,
                     'year': self.year,
                     'month': month + '/' + str(self.year),
-                    'workload': (round(amount_work, 2)) if amount_work else 0,
-                    'quality': str(round(matter_work, 2)) if matter_work else '',
-                    'discipline': str(round(comply_regulations, 2)) if comply_regulations else '',
-                    'improvement': str(round(initiative, 2)) if initiative else '',
-                    'total_points_before': str(round(total, 2)) if total else '',
+                    'workload': (round(amount_work, 1)) if amount_work else 0,
+                    'quality': str(round(matter_work, 1)) if matter_work else '',
+                    'discipline': str(round(comply_regulations, 1)) if comply_regulations else '',
+                    'improvement': str(round(initiative, 1)) if initiative else '',
+                    'total_points_before': str(round(total, 1)) if total else '',
                     'symbol_before': str(symbol_month_before) if symbol_month_before else '',
                     'progress_points': '',
-                    'total_points_after': (round(point_after, 2)) if point_after else '',
+                    'total_points_after': (round(point_after, 1)) if point_after else '',
                     'symbol_after': str(symbol_month_before) if symbol_month_before else '',
                     'classification': str(classification) if classification else '',
                     'plan': "100%" if classification else '',
-                    'criteria_achievement': str(round(total, 2)) + "%" if total else '',
+                    'criteria_achievement': str(round(total, 1)) + "%" if total else '',
 
-                    'tq_workload': (round(amount_work_tq, 2)) if amount_work_tq else 0,
-                    'tq_quality': str(round(matter_work_tq, 2)) if matter_work_tq else '',
-                    'tq_discipline': str(round(comply_regulations_tq, 2)) if comply_regulations_tq else '',
-                    'tq_improvement': str(round(initiative_tq, 2)) if initiative_tq else '',
-                    'tq_total_points_before': str(round(total_tq, 2)) if total_tq else '',
+                    'tq_workload': (round(amount_work_tq, 1)) if amount_work_tq else 0,
+                    'tq_quality': str(round(matter_work_tq, 1)) if matter_work_tq else '',
+                    'tq_discipline': str(round(comply_regulations_tq, 1)) if comply_regulations_tq else '',
+                    'tq_improvement': str(round(initiative_tq, 1)) if initiative_tq else '',
+                    'tq_total_points_before': str(round(total_tq, 1)) if total_tq else '',
                     'tq_symbol_before': str(symbol_month_before_tq) if symbol_month_before_tq else '',
                     'tq_progress_points': '',
-                    'tq_total_points_after': (round(tq_point_after, 2)) if tq_point_after else '',
+                    'tq_total_points_after': (round(tq_point_after, 1)) if tq_point_after else '',
                     'tq_symbol_after': str(symbol_month_before_tq) if symbol_month_before_tq else '',
                     'tq_classification': str(classification_tq) if classification_tq else '',
                     'tq_plan': "100%" if classification_tq else '',
-                    'tq_criteria_achievement': str(round(total_tq, 2)) + "%" if total_tq else '',
+                    'tq_criteria_achievement': str(round(total_tq, 1)) + "%" if total_tq else '',
 
                 }
                 self.env['report.kpi'].sudo().search([]).create(vals)
@@ -699,31 +699,31 @@ class PopupWizardReport(models.TransientModel):
         month_three = result_month.filtered(lambda x: x.start_date.month == 3)
         if month_one:
             if sum(month_one.mapped('quy_doi_tq_amount_work')) > 0:
-                number_amount_work.append(sum(month_one.mapped('quy_doi_tq_amount_work')))
+                number_amount_work.append(round(sum(month_one.mapped('quy_doi_tq_amount_work')), 1))
             if sum(month_one.mapped('quy_doi_tq_matter_work')) > 0:
-                number_matter_work.append(sum(month_one.mapped('quy_doi_tq_matter_work')))
+                number_matter_work.append(round(sum(month_one.mapped('quy_doi_tq_matter_work')), 1))
             if sum(month_one.mapped('quy_doi_tq_comply_regulations')) > 0:
-                number_comply_regulations.append(sum(month_one.mapped('quy_doi_tq_comply_regulations')))
+                number_comply_regulations.append(round(sum(month_one.mapped('quy_doi_tq_comply_regulations')), 1))
             if sum(month_one.mapped('quy_doi_tq_initiative')) > 0:
-                number_initiative.append(sum(month_one.mapped('quy_doi_tq_initiative')))
+                number_initiative.append(round(sum(month_one.mapped('quy_doi_tq_initiative')), 1))
         if month_two:
             if sum(month_two.mapped('quy_doi_tq_amount_work')) > 0:
-                number_amount_work.append(sum(month_two.mapped('quy_doi_tq_amount_work')))
+                number_amount_work.append(round(sum(month_two.mapped('quy_doi_tq_amount_work')), 1))
             if sum(month_two.mapped('quy_doi_tq_matter_work')) > 0:
-                number_matter_work.append(sum(month_two.mapped('quy_doi_tq_matter_work')))
+                number_matter_work.append(round(sum(month_two.mapped('quy_doi_tq_matter_work')), 1))
             if sum(month_two.mapped('quy_doi_tq_comply_regulations')) > 0:
-                number_comply_regulations.append(sum(month_two.mapped('quy_doi_tq_comply_regulations')))
+                number_comply_regulations.append(round(sum(month_two.mapped('quy_doi_tq_comply_regulations')), 1))
             if sum(month_two.mapped('quy_doi_tq_initiative')) > 0:
-                number_initiative.append(sum(month_two.mapped('quy_doi_tq_initiative')))
+                number_initiative.append(round(sum(month_two.mapped('quy_doi_tq_initiative')), 1))
         if month_three:
             if sum(month_three.mapped('quy_doi_tq_amount_work')) > 0:
-                number_amount_work.append(sum(month_three.mapped('quy_doi_tq_amount_work')))
+                number_amount_work.append(round(sum(month_three.mapped('quy_doi_tq_amount_work')), 1))
             if sum(month_three.mapped('quy_doi_tq_matter_work')) > 0:
-                number_matter_work.append(sum(month_three.mapped('quy_doi_tq_matter_work')))
+                number_matter_work.append(round(sum(month_three.mapped('quy_doi_tq_matter_work')), 1))
             if sum(month_three.mapped('quy_doi_tq_comply_regulations')) > 0:
-                number_comply_regulations.append(sum(month_three.mapped('quy_doi_tq_comply_regulations')))
+                number_comply_regulations.append(round(sum(month_three.mapped('quy_doi_tq_comply_regulations')), 1))
             if sum(month_three.mapped('quy_doi_tq_initiative')) > 0:
-                number_initiative.append(sum(month_three.mapped('quy_doi_tq_initiative')))
+                number_initiative.append(round(sum(month_three.mapped('quy_doi_tq_initiative')), 1))
         if len(number_amount_work) > 0:
             amount_work = sum(number_amount_work) / len(number_amount_work)
         else:
@@ -758,31 +758,31 @@ class PopupWizardReport(models.TransientModel):
         month_three = result_month.filtered(lambda x: x.start_date.month == 6)
         if month_one:
             if sum(month_one.mapped('quy_doi_tq_amount_work')) > 0:
-                number_amount_work.append(sum(month_one.mapped('quy_doi_tq_amount_work')))
+                number_amount_work.append(round(sum(month_one.mapped('quy_doi_tq_amount_work')), 1))
             if sum(month_one.mapped('quy_doi_tq_matter_work')) > 0:
-                number_matter_work.append(sum(month_one.mapped('quy_doi_tq_matter_work')))
+                number_matter_work.append(round(sum(month_one.mapped('quy_doi_tq_matter_work')), 1))
             if sum(month_one.mapped('quy_doi_tq_comply_regulations')) > 0:
-                number_comply_regulations.append(sum(month_one.mapped('quy_doi_tq_comply_regulations')))
+                number_comply_regulations.append(round(sum(month_one.mapped('quy_doi_tq_comply_regulations')), 1))
             if sum(month_one.mapped('quy_doi_tq_initiative')) > 0:
-                number_initiative.append(sum(month_one.mapped('quy_doi_tq_initiative')))
+                number_initiative.append(round(sum(month_one.mapped('quy_doi_tq_initiative')), 1))
         if month_two:
             if sum(month_two.mapped('quy_doi_tq_amount_work')) > 0:
-                number_amount_work.append(sum(month_two.mapped('quy_doi_tq_amount_work')))
+                number_amount_work.append(round(sum(month_two.mapped('quy_doi_tq_amount_work')), 1))
             if sum(month_two.mapped('quy_doi_tq_matter_work')) > 0:
-                number_matter_work.append(sum(month_two.mapped('quy_doi_tq_matter_work')))
+                number_matter_work.append(round(sum(month_two.mapped('quy_doi_tq_matter_work')), 1))
             if sum(month_two.mapped('quy_doi_tq_comply_regulations')) > 0:
-                number_comply_regulations.append(sum(month_two.mapped('quy_doi_tq_comply_regulations')))
+                number_comply_regulations.append(round(sum(month_two.mapped('quy_doi_tq_comply_regulations')), 1))
             if sum(month_two.mapped('quy_doi_tq_initiative')) > 0:
-                number_initiative.append(sum(month_two.mapped('quy_doi_tq_initiative')))
+                number_initiative.append(round(sum(month_two.mapped('quy_doi_tq_initiative')), 1))
         if month_three:
             if sum(month_three.mapped('quy_doi_tq_amount_work')) > 0:
-                number_amount_work.append(sum(month_three.mapped('quy_doi_tq_amount_work')))
+                number_amount_work.append(round(sum(month_three.mapped('quy_doi_tq_amount_work')), 1))
             if sum(month_three.mapped('quy_doi_tq_matter_work')) > 0:
-                number_matter_work.append(sum(month_three.mapped('quy_doi_tq_matter_work')))
+                number_matter_work.append(round(sum(month_three.mapped('quy_doi_tq_matter_work')), 1))
             if sum(month_three.mapped('quy_doi_tq_comply_regulations')) > 0:
-                number_comply_regulations.append(sum(month_three.mapped('quy_doi_tq_comply_regulations')))
+                number_comply_regulations.append(round(sum(month_three.mapped('quy_doi_tq_comply_regulations')), 1))
             if sum(month_three.mapped('quy_doi_tq_initiative')) > 0:
-                number_initiative.append(sum(month_three.mapped('quy_doi_tq_initiative')))
+                number_initiative.append(round(sum(month_three.mapped('quy_doi_tq_initiative')), 1))
         if len(number_amount_work) > 0:
             amount_work = sum(number_amount_work) / len(number_amount_work)
         else:
@@ -817,31 +817,31 @@ class PopupWizardReport(models.TransientModel):
         month_three = result_month.filtered(lambda x: x.start_date.month == 9)
         if month_one:
             if sum(month_one.mapped('quy_doi_tq_amount_work')) > 0:
-                number_amount_work.append(sum(month_one.mapped('quy_doi_tq_amount_work')))
+                number_amount_work.append(round(sum(month_one.mapped('quy_doi_tq_amount_work')), 1))
             if sum(month_one.mapped('quy_doi_tq_matter_work')) > 0:
-                number_matter_work.append(sum(month_one.mapped('quy_doi_tq_matter_work')))
+                number_matter_work.append(round(sum(month_one.mapped('quy_doi_tq_matter_work')), 1))
             if sum(month_one.mapped('quy_doi_tq_comply_regulations')) > 0:
-                number_comply_regulations.append(sum(month_one.mapped('quy_doi_tq_comply_regulations')))
+                number_comply_regulations.append(round(sum(month_one.mapped('quy_doi_tq_comply_regulations')), 1))
             if sum(month_one.mapped('quy_doi_tq_initiative')) > 0:
-                number_initiative.append(sum(month_one.mapped('quy_doi_tq_initiative')))
+                number_initiative.append(round(sum(month_one.mapped('quy_doi_tq_initiative')), 1))
         if month_two:
             if sum(month_two.mapped('quy_doi_tq_amount_work')) > 0:
-                number_amount_work.append(sum(month_two.mapped('quy_doi_tq_amount_work')))
+                number_amount_work.append(round(sum(month_two.mapped('quy_doi_tq_amount_work')), 1))
             if sum(month_two.mapped('quy_doi_tq_matter_work')) > 0:
-                number_matter_work.append(sum(month_two.mapped('quy_doi_tq_matter_work')))
+                number_matter_work.append(round(sum(month_two.mapped('quy_doi_tq_matter_work')), 1))
             if sum(month_two.mapped('quy_doi_tq_comply_regulations')) > 0:
-                number_comply_regulations.append(sum(month_two.mapped('quy_doi_tq_comply_regulations')))
+                number_comply_regulations.append(round(sum(month_two.mapped('quy_doi_tq_comply_regulations')), 1))
             if sum(month_two.mapped('quy_doi_tq_initiative')) > 0:
-                number_initiative.append(sum(month_two.mapped('quy_doi_tq_initiative')))
+                number_initiative.append(round(sum(month_two.mapped('quy_doi_tq_initiative')), 1))
         if month_three:
             if sum(month_three.mapped('quy_doi_tq_amount_work')) > 0:
-                number_amount_work.append(sum(month_three.mapped('quy_doi_tq_amount_work')))
+                number_amount_work.append(round(sum(month_three.mapped('quy_doi_tq_amount_work')), 1))
             if sum(month_three.mapped('quy_doi_tq_matter_work')) > 0:
-                number_matter_work.append(sum(month_three.mapped('quy_doi_tq_matter_work')))
+                number_matter_work.append(round(sum(month_three.mapped('quy_doi_tq_matter_work')), 1))
             if sum(month_three.mapped('quy_doi_tq_comply_regulations')) > 0:
-                number_comply_regulations.append(sum(month_three.mapped('quy_doi_tq_comply_regulations')))
+                number_comply_regulations.append(round(sum(month_three.mapped('quy_doi_tq_comply_regulations')), 1))
             if sum(month_three.mapped('quy_doi_tq_initiative')) > 0:
-                number_initiative.append(sum(month_three.mapped('quy_doi_tq_initiative')))
+                number_initiative.append(round(sum(month_three.mapped('quy_doi_tq_initiative')), 1))
         if len(number_amount_work) > 0:
             amount_work = sum(number_amount_work) / len(number_amount_work)
         else:
@@ -876,31 +876,31 @@ class PopupWizardReport(models.TransientModel):
         month_three = result_month.filtered(lambda x: x.start_date.month == 12)
         if month_one:
             if sum(month_one.mapped('quy_doi_tq_amount_work')) > 0:
-                number_amount_work.append(sum(month_one.mapped('quy_doi_tq_amount_work')))
+                number_amount_work.append(round(sum(month_one.mapped('quy_doi_tq_amount_work')), 1))
             if sum(month_one.mapped('quy_doi_tq_matter_work')) > 0:
-                number_matter_work.append(sum(month_one.mapped('quy_doi_tq_matter_work')))
+                number_matter_work.append(round(sum(month_one.mapped('quy_doi_tq_matter_work')), 1))
             if sum(month_one.mapped('quy_doi_tq_comply_regulations')) > 0:
-                number_comply_regulations.append(sum(month_one.mapped('quy_doi_tq_comply_regulations')))
+                number_comply_regulations.append(round(sum(month_one.mapped('quy_doi_tq_comply_regulations')), 1))
             if sum(month_one.mapped('quy_doi_tq_initiative')) > 0:
-                number_initiative.append(sum(month_one.mapped('quy_doi_tq_initiative')))
+                number_initiative.append(round(sum(month_one.mapped('quy_doi_tq_initiative')), 1))
         if month_two:
             if sum(month_two.mapped('quy_doi_tq_amount_work')) > 0:
-                number_amount_work.append(sum(month_two.mapped('quy_doi_tq_amount_work')))
+                number_amount_work.append(round(sum(month_two.mapped('quy_doi_tq_amount_work')), 1))
             if sum(month_two.mapped('quy_doi_tq_matter_work')) > 0:
-                number_matter_work.append(sum(month_two.mapped('quy_doi_tq_matter_work')))
+                number_matter_work.append(round(sum(month_two.mapped('quy_doi_tq_matter_work')), 1))
             if sum(month_two.mapped('quy_doi_tq_comply_regulations')) > 0:
-                number_comply_regulations.append(sum(month_two.mapped('quy_doi_tq_comply_regulations')))
+                number_comply_regulations.append(round(sum(month_two.mapped('quy_doi_tq_comply_regulations')), 1))
             if sum(month_two.mapped('quy_doi_tq_initiative')) > 0:
-                number_initiative.append(sum(month_two.mapped('quy_doi_tq_initiative')))
+                number_initiative.append(round(sum(month_two.mapped('quy_doi_tq_initiative')), 1))
         if month_three:
             if sum(month_three.mapped('quy_doi_tq_amount_work')) > 0:
-                number_amount_work.append(sum(month_three.mapped('quy_doi_tq_amount_work')))
+                number_amount_work.append(round(sum(month_three.mapped('quy_doi_tq_amount_work')), 1))
             if sum(month_three.mapped('quy_doi_tq_matter_work')) > 0:
-                number_matter_work.append(sum(month_three.mapped('quy_doi_tq_matter_work')))
+                number_matter_work.append(round(sum(month_three.mapped('quy_doi_tq_matter_work')), 1))
             if sum(month_three.mapped('quy_doi_tq_comply_regulations')) > 0:
-                number_comply_regulations.append(sum(month_three.mapped('quy_doi_tq_comply_regulations')))
+                number_comply_regulations.append(round(sum(month_three.mapped('quy_doi_tq_comply_regulations')), 1))
             if sum(month_three.mapped('quy_doi_tq_initiative')) > 0:
-                number_initiative.append(sum(month_three.mapped('quy_doi_tq_initiative')))
+                number_initiative.append(round(sum(month_three.mapped('quy_doi_tq_initiative')), 1))
         if len(number_amount_work) > 0:
             amount_work = sum(number_amount_work) / len(number_amount_work)
         else:
@@ -935,31 +935,31 @@ class PopupWizardReport(models.TransientModel):
         month_three = result_month.filtered(lambda x: x.start_date.month == 3)
         if month_one:
             if sum(month_one.mapped('quy_doi_dv_amount_work')) > 0:
-                number_amount_work.append(sum(month_one.mapped('quy_doi_dv_amount_work')))
+                number_amount_work.append(round(sum(month_one.mapped('quy_doi_dv_amount_work')), 1))
             if sum(month_one.mapped('quy_doi_dv_matter_work')) > 0:
-                number_matter_work.append(sum(month_one.mapped('quy_doi_dv_matter_work')))
+                number_matter_work.append(round(sum(month_one.mapped('quy_doi_dv_matter_work')), 1))
             if sum(month_one.mapped('quy_doi_dv_comply_regulations')) > 0:
-                number_comply_regulations.append(sum(month_one.mapped('quy_doi_dv_comply_regulations')))
+                number_comply_regulations.append(round(sum(month_one.mapped('quy_doi_dv_comply_regulations')), 1))
             if sum(month_one.mapped('quy_doi_dv_initiative')) > 0:
-                number_initiative.append(sum(month_one.mapped('quy_doi_dv_initiative')))
+                number_initiative.append(round(sum(month_one.mapped('quy_doi_dv_initiative')), 1))
         if month_two:
             if sum(month_two.mapped('quy_doi_dv_amount_work')) > 0:
-                number_amount_work.append(sum(month_two.mapped('quy_doi_dv_amount_work')))
+                number_amount_work.append(round(sum(month_two.mapped('quy_doi_dv_amount_work')), 1))
             if sum(month_two.mapped('quy_doi_dv_matter_work')) > 0:
-                number_matter_work.append(sum(month_two.mapped('quy_doi_dv_matter_work')))
+                number_matter_work.append(round(sum(month_two.mapped('quy_doi_dv_matter_work')), 1))
             if sum(month_two.mapped('quy_doi_dv_comply_regulations')) > 0:
-                number_comply_regulations.append(sum(month_two.mapped('quy_doi_dv_comply_regulations')))
+                number_comply_regulations.append(round(sum(month_two.mapped('quy_doi_dv_comply_regulations')), 1))
             if sum(month_two.mapped('quy_doi_dv_initiative')) > 0:
-                number_initiative.append(sum(month_two.mapped('quy_doi_dv_initiative')))
+                number_initiative.append(round(sum(month_two.mapped('quy_doi_dv_initiative')), 1))
         if month_three:
             if sum(month_three.mapped('quy_doi_dv_amount_work')) > 0:
-                number_amount_work.append(sum(month_three.mapped('quy_doi_dv_amount_work')))
+                number_amount_work.append(round(sum(month_three.mapped('quy_doi_dv_amount_work')), 1))
             if sum(month_three.mapped('quy_doi_dv_matter_work')) > 0:
-                number_matter_work.append(sum(month_three.mapped('quy_doi_dv_matter_work')))
+                number_matter_work.append(round(sum(month_three.mapped('quy_doi_dv_matter_work')), 1))
             if sum(month_three.mapped('quy_doi_dv_comply_regulations')) > 0:
-                number_comply_regulations.append(sum(month_three.mapped('quy_doi_dv_comply_regulations')))
+                number_comply_regulations.append(round(sum(month_three.mapped('quy_doi_dv_comply_regulations')), 1))
             if sum(month_three.mapped('quy_doi_dv_initiative')) > 0:
-                number_initiative.append(sum(month_three.mapped('quy_doi_dv_initiative')))
+                number_initiative.append(round(sum(month_three.mapped('quy_doi_dv_initiative')), 1))
         if len(number_amount_work) > 0:
             amount_work = sum(number_amount_work) / len(number_amount_work)
         else:
@@ -994,31 +994,31 @@ class PopupWizardReport(models.TransientModel):
         month_three = result_month.filtered(lambda x: x.start_date.month == 6)
         if month_one:
             if sum(month_one.mapped('quy_doi_dv_amount_work')) > 0:
-                number_amount_work.append(sum(month_one.mapped('quy_doi_dv_amount_work')))
+                number_amount_work.append(round(sum(month_one.mapped('quy_doi_dv_amount_work')), 1))
             if sum(month_one.mapped('quy_doi_dv_matter_work')) > 0:
-                number_matter_work.append(sum(month_one.mapped('quy_doi_dv_matter_work')))
+                number_matter_work.append(round(sum(month_one.mapped('quy_doi_dv_matter_work')), 1))
             if sum(month_one.mapped('quy_doi_dv_comply_regulations')) > 0:
-                number_comply_regulations.append(sum(month_one.mapped('quy_doi_dv_comply_regulations')))
+                number_comply_regulations.append(round(sum(month_one.mapped('quy_doi_dv_comply_regulations')), 1))
             if sum(month_one.mapped('quy_doi_dv_initiative')) > 0:
-                number_initiative.append(sum(month_one.mapped('quy_doi_dv_initiative')))
+                number_initiative.append(round(sum(month_one.mapped('quy_doi_dv_initiative')), 1))
         if month_two:
             if sum(month_two.mapped('quy_doi_dv_amount_work')) > 0:
-                number_amount_work.append(sum(month_two.mapped('quy_doi_dv_amount_work')))
+                number_amount_work.append(round(sum(month_two.mapped('quy_doi_dv_amount_work')), 1))
             if sum(month_two.mapped('quy_doi_dv_matter_work')) > 0:
-                number_matter_work.append(sum(month_two.mapped('quy_doi_dv_matter_work')))
+                number_matter_work.append(round(sum(month_two.mapped('quy_doi_dv_matter_work')), 1))
             if sum(month_two.mapped('quy_doi_dv_comply_regulations')) > 0:
-                number_comply_regulations.append(sum(month_two.mapped('quy_doi_dv_comply_regulations')))
+                number_comply_regulations.append(round(sum(month_two.mapped('quy_doi_dv_comply_regulations')), 1))
             if sum(month_two.mapped('quy_doi_dv_initiative')) > 0:
-                number_initiative.append(sum(month_two.mapped('quy_doi_dv_initiative')))
+                number_initiative.append(round(sum(month_two.mapped('quy_doi_dv_initiative')), 1))
         if month_three:
             if sum(month_three.mapped('quy_doi_dv_amount_work')) > 0:
-                number_amount_work.append(sum(month_three.mapped('quy_doi_dv_amount_work')))
+                number_amount_work.append(round(sum(month_three.mapped('quy_doi_dv_amount_work')), 1))
             if sum(month_three.mapped('quy_doi_dv_matter_work')) > 0:
-                number_matter_work.append(sum(month_three.mapped('quy_doi_dv_matter_work')))
+                number_matter_work.append(round(sum(month_three.mapped('quy_doi_dv_matter_work')), 1))
             if sum(month_three.mapped('quy_doi_dv_comply_regulations')) > 0:
-                number_comply_regulations.append(sum(month_three.mapped('quy_doi_dv_comply_regulations')))
+                number_comply_regulations.append(round(sum(month_three.mapped('quy_doi_dv_comply_regulations')), 1))
             if sum(month_three.mapped('quy_doi_dv_initiative')) > 0:
-                number_initiative.append(sum(month_three.mapped('quy_doi_dv_initiative')))
+                number_initiative.append(round(sum(month_three.mapped('quy_doi_dv_initiative')), 1))
         if len(number_amount_work) > 0:
             amount_work = sum(number_amount_work) / len(number_amount_work)
         else:
@@ -1065,31 +1065,31 @@ class PopupWizardReport(models.TransientModel):
         month_three = result_month.filtered(lambda x: x.start_date.month == 9)
         if month_one:
             if sum(month_one.mapped('quy_doi_dv_amount_work')) > 0:
-                number_amount_work.append(sum(month_one.mapped('quy_doi_dv_amount_work')))
+                number_amount_work.append(round(sum(month_one.mapped('quy_doi_dv_amount_work')), 1))
             if sum(month_one.mapped('quy_doi_dv_matter_work')) > 0:
-                number_matter_work.append(sum(month_one.mapped('quy_doi_dv_matter_work')))
+                number_matter_work.append(round(sum(month_one.mapped('quy_doi_dv_matter_work')), 1))
             if sum(month_one.mapped('quy_doi_dv_comply_regulations')) > 0:
-                number_comply_regulations.append(sum(month_one.mapped('quy_doi_dv_comply_regulations')))
+                number_comply_regulations.append(round(sum(month_one.mapped('quy_doi_dv_comply_regulations')), 1))
             if sum(month_one.mapped('quy_doi_dv_initiative')) > 0:
-                number_initiative.append(sum(month_one.mapped('quy_doi_dv_initiative')))
+                number_initiative.append(round(sum(month_one.mapped('quy_doi_dv_initiative')), 1))
         if month_two:
             if sum(month_two.mapped('quy_doi_dv_amount_work')) > 0:
-                number_amount_work.append(sum(month_two.mapped('quy_doi_dv_amount_work')))
+                number_amount_work.append(round(sum(month_two.mapped('quy_doi_dv_amount_work')), 1))
             if sum(month_two.mapped('quy_doi_dv_matter_work')) > 0:
-                number_matter_work.append(sum(month_two.mapped('quy_doi_dv_matter_work')))
+                number_matter_work.append(round(sum(month_two.mapped('quy_doi_dv_matter_work')), 1))
             if sum(month_two.mapped('quy_doi_dv_comply_regulations')) > 0:
-                number_comply_regulations.append(sum(month_two.mapped('quy_doi_dv_comply_regulations')))
+                number_comply_regulations.append(round(sum(month_two.mapped('quy_doi_dv_comply_regulations')), 1))
             if sum(month_two.mapped('quy_doi_dv_initiative')) > 0:
-                number_initiative.append(sum(month_two.mapped('quy_doi_dv_initiative')))
+                number_initiative.append(round(sum(month_two.mapped('quy_doi_dv_initiative')), 1))
         if month_three:
             if sum(month_three.mapped('quy_doi_dv_amount_work')) > 0:
-                number_amount_work.append(sum(month_three.mapped('quy_doi_dv_amount_work')))
+                number_amount_work.append(round(sum(month_three.mapped('quy_doi_dv_amount_work')), 1))
             if sum(month_three.mapped('quy_doi_dv_matter_work')) > 0:
-                number_matter_work.append(sum(month_three.mapped('quy_doi_dv_matter_work')))
+                number_matter_work.append(round(sum(month_three.mapped('quy_doi_dv_matter_work')), 1))
             if sum(month_three.mapped('quy_doi_dv_comply_regulations')) > 0:
-                number_comply_regulations.append(sum(month_three.mapped('quy_doi_dv_comply_regulations')))
+                number_comply_regulations.append(round(sum(month_three.mapped('quy_doi_dv_comply_regulations')), 1))
             if sum(month_three.mapped('quy_doi_dv_initiative')) > 0:
-                number_initiative.append(sum(month_three.mapped('quy_doi_dv_initiative')))
+                number_initiative.append(round(sum(month_three.mapped('quy_doi_dv_initiative')), 1))
         if len(number_amount_work) > 0:
             amount_work = sum(number_amount_work) / len(number_amount_work)
         else:
@@ -1136,31 +1136,31 @@ class PopupWizardReport(models.TransientModel):
         month_three = result_month.filtered(lambda x: x.start_date.month == 12)
         if month_one:
             if sum(month_one.mapped('quy_doi_dv_amount_work')) > 0:
-                number_amount_work.append(sum(month_one.mapped('quy_doi_dv_amount_work')))
+                number_amount_work.append(round(sum(month_one.mapped('quy_doi_dv_amount_work')), 1))
             if sum(month_one.mapped('quy_doi_dv_matter_work')) > 0:
-                number_matter_work.append(sum(month_one.mapped('quy_doi_dv_matter_work')))
+                number_matter_work.append(round(sum(month_one.mapped('quy_doi_dv_matter_work')), 1))
             if sum(month_one.mapped('quy_doi_dv_comply_regulations')) > 0:
-                number_comply_regulations.append(sum(month_one.mapped('quy_doi_dv_comply_regulations')))
+                number_comply_regulations.append(round(sum(month_one.mapped('quy_doi_dv_comply_regulations')), 1))
             if sum(month_one.mapped('quy_doi_dv_initiative')) > 0:
-                number_initiative.append(sum(month_one.mapped('quy_doi_dv_initiative')))
+                number_initiative.append(round(sum(month_one.mapped('quy_doi_dv_initiative')), 1))
         if month_two:
             if sum(month_two.mapped('quy_doi_dv_amount_work')) > 0:
-                number_amount_work.append(sum(month_two.mapped('quy_doi_dv_amount_work')))
+                number_amount_work.append(round(sum(month_two.mapped('quy_doi_dv_amount_work')), 1))
             if sum(month_two.mapped('quy_doi_dv_matter_work')) > 0:
-                number_matter_work.append(sum(month_two.mapped('quy_doi_dv_matter_work')))
+                number_matter_work.append(round(sum(month_two.mapped('quy_doi_dv_matter_work')), 1))
             if sum(month_two.mapped('quy_doi_dv_comply_regulations')) > 0:
-                number_comply_regulations.append(sum(month_two.mapped('quy_doi_dv_comply_regulations')))
+                number_comply_regulations.append(round(sum(month_two.mapped('quy_doi_dv_comply_regulations')), 1))
             if sum(month_two.mapped('quy_doi_dv_initiative')) > 0:
-                number_initiative.append(sum(month_two.mapped('quy_doi_dv_initiative')))
+                number_initiative.append(round(sum(month_two.mapped('quy_doi_dv_initiative')), 1))
         if month_three:
             if sum(month_three.mapped('quy_doi_dv_amount_work')) > 0:
-                number_amount_work.append(sum(month_three.mapped('quy_doi_dv_amount_work')))
+                number_amount_work.append(round(sum(month_three.mapped('quy_doi_dv_amount_work')), 1))
             if sum(month_three.mapped('quy_doi_dv_matter_work')) > 0:
-                number_matter_work.append(sum(month_three.mapped('quy_doi_dv_matter_work')))
+                number_matter_work.append(round(sum(month_three.mapped('quy_doi_dv_matter_work')), 1))
             if sum(month_three.mapped('quy_doi_dv_comply_regulations')) > 0:
-                number_comply_regulations.append(sum(month_three.mapped('quy_doi_dv_comply_regulations')))
+                number_comply_regulations.append(round(sum(month_three.mapped('quy_doi_dv_comply_regulations')), 1))
             if sum(month_three.mapped('quy_doi_dv_initiative')) > 0:
-                number_initiative.append(sum(month_three.mapped('quy_doi_dv_initiative')))
+                number_initiative.append(round(sum(month_three.mapped('quy_doi_dv_initiative')), 1))
         if len(number_amount_work) > 0:
             amount_work = sum(number_amount_work) / len(number_amount_work)
         else:
@@ -1198,16 +1198,16 @@ class PopupWizardReport(models.TransientModel):
         return amount_work, matter_work, comply_regulations, initiative, total
 
     def calculate_classification_and_points_authorization(self, data_filter, data_before):
-        workload = round(sum(data_filter.mapped('quy_doi_tq_amount_work')), 2) if data_filter else 0
-        quality = round(sum(data_filter.mapped('quy_doi_tq_matter_work')), 2) if data_filter else 0
-        discipline = round(sum(data_filter.mapped('quy_doi_tq_comply_regulations')), 2) if data_filter else 0
-        improvement = round(sum(data_filter.mapped('quy_doi_tq_initiative')), 2) if data_filter else 0
+        workload = round(sum(data_filter.mapped('quy_doi_tq_amount_work')), 1) if data_filter else 0
+        quality = round(sum(data_filter.mapped('quy_doi_tq_matter_work')), 1) if data_filter else 0
+        discipline = round(sum(data_filter.mapped('quy_doi_tq_comply_regulations')), 1) if data_filter else 0
+        improvement = round(sum(data_filter.mapped('quy_doi_tq_initiative')), 1) if data_filter else 0
         total = workload + quality + discipline + improvement
 
-        workload_before = round(sum(data_before.mapped('quy_doi_tq_amount_work')), 2) if data_before else 0
-        quality_before = round(sum(data_before.mapped('quy_doi_tq_matter_work')), 2) if data_before else 0
-        discipline_before = round(sum(data_before.mapped('quy_doi_tq_comply_regulations')), 2) if data_before else 0
-        improvement_before = round(sum(data_before.mapped('quy_doi_tq_initiative')), 2) if data_before else 0
+        workload_before = round(sum(data_before.mapped('quy_doi_tq_amount_work')), 1) if data_before else 0
+        quality_before = round(sum(data_before.mapped('quy_doi_tq_matter_work')), 1) if data_before else 0
+        discipline_before = round(sum(data_before.mapped('quy_doi_tq_comply_regulations')), 1) if data_before else 0
+        improvement_before = round(sum(data_before.mapped('quy_doi_tq_initiative')), 1) if data_before else 0
         total_before = workload_before + quality_before + discipline_before + improvement_before
 
         rating_table = {
@@ -1272,16 +1272,16 @@ class PopupWizardReport(models.TransientModel):
         return total, symbol_before, total_points_after, symbol_after, classification, progress_points
 
     def calculate_classification_and_points(self, data_filter, data_before):
-        workload = round(sum(data_filter.mapped('quy_doi_dv_amount_work')), 2) if data_filter else 0
-        quality = round(sum(data_filter.mapped('quy_doi_dv_matter_work')), 2) if data_filter else 0
-        discipline = round(sum(data_filter.mapped('quy_doi_dv_comply_regulations')), 2) if data_filter else 0
-        improvement = round(sum(data_filter.mapped('quy_doi_dv_initiative')), 2) if data_filter else 0
+        workload = round(sum(data_filter.mapped('quy_doi_dv_amount_work')), 1) if data_filter else 0
+        quality = round(sum(data_filter.mapped('quy_doi_dv_matter_work')), 1) if data_filter else 0
+        discipline = round(sum(data_filter.mapped('quy_doi_dv_comply_regulations')), 1) if data_filter else 0
+        improvement = round(sum(data_filter.mapped('quy_doi_dv_initiative')), 1) if data_filter else 0
         total = workload + quality + discipline + improvement
 
-        workload_before = round(sum(data_before.mapped('quy_doi_dv_amount_work')), 2) if data_before else 0
-        quality_before = round(sum(data_before.mapped('quy_doi_dv_matter_work')), 2) if data_before else 0
-        discipline_before = round(sum(data_before.mapped('quy_doi_dv_comply_regulations')), 2) if data_before else 0
-        improvement_before = round(sum(data_before.mapped('quy_doi_dv_initiative')), 2) if data_before else 0
+        workload_before = round(sum(data_before.mapped('quy_doi_dv_amount_work')), 1) if data_before else 0
+        quality_before = round(sum(data_before.mapped('quy_doi_dv_matter_work')), 1) if data_before else 0
+        discipline_before = round(sum(data_before.mapped('quy_doi_dv_comply_regulations')), 1) if data_before else 0
+        improvement_before = round(sum(data_before.mapped('quy_doi_dv_initiative')), 1) if data_before else 0
         total_before = workload_before + quality_before + discipline_before + improvement_before
 
         rating_table = {
@@ -1355,31 +1355,31 @@ class PopupWizardReport(models.TransientModel):
         month_three = result_month.filtered(lambda x: x.start_date.month == 3)
         if month_one:
             if sum(month_one.mapped('quy_doi_dv_amount_work')) > 0:
-                number_amount_work.append(sum(month_one.mapped('quy_doi_dv_amount_work')))
+                number_amount_work.append(round(sum(month_one.mapped('quy_doi_dv_amount_work')), 1))
             if sum(month_one.mapped('quy_doi_dv_matter_work')) > 0:
-                number_matter_work.append(sum(month_one.mapped('quy_doi_dv_matter_work')))
+                number_matter_work.append(round(sum(month_one.mapped('quy_doi_dv_matter_work')), 1))
             if sum(month_one.mapped('quy_doi_dv_comply_regulations')) > 0:
-                number_comply_regulations.append(sum(month_one.mapped('quy_doi_dv_comply_regulations')))
+                number_comply_regulations.append(round(sum(month_one.mapped('quy_doi_dv_comply_regulations')), 1))
             if sum(month_one.mapped('quy_doi_dv_initiative')) > 0:
-                number_initiative.append(sum(month_one.mapped('quy_doi_dv_initiative')))
+                number_initiative.append(round(sum(month_one.mapped('quy_doi_dv_initiative')), 1))
         if month_two:
             if sum(month_two.mapped('quy_doi_dv_amount_work')) > 0:
-                number_amount_work.append(sum(month_two.mapped('quy_doi_dv_amount_work')))
+                number_amount_work.append(round(sum(month_two.mapped('quy_doi_dv_amount_work')), 1))
             if sum(month_two.mapped('quy_doi_dv_matter_work')) > 0:
-                number_matter_work.append(sum(month_two.mapped('quy_doi_dv_matter_work')))
+                number_matter_work.append(round(sum(month_two.mapped('quy_doi_dv_matter_work')), 1))
             if sum(month_two.mapped('quy_doi_dv_comply_regulations')) > 0:
-                number_comply_regulations.append(sum(month_two.mapped('quy_doi_dv_comply_regulations')))
+                number_comply_regulations.append(round(sum(month_two.mapped('quy_doi_dv_comply_regulations')), 1))
             if sum(month_two.mapped('quy_doi_dv_initiative')) > 0:
-                number_initiative.append(sum(month_two.mapped('quy_doi_dv_initiative')))
+                number_initiative.append(round(sum(month_two.mapped('quy_doi_dv_initiative')), 1))
         if month_three:
             if sum(month_three.mapped('quy_doi_dv_amount_work')) > 0:
-                number_amount_work.append(sum(month_three.mapped('quy_doi_dv_amount_work')))
+                number_amount_work.append(round(sum(month_three.mapped('quy_doi_dv_amount_work')), 1))
             if sum(month_three.mapped('quy_doi_dv_matter_work')) > 0:
-                number_matter_work.append(sum(month_three.mapped('quy_doi_dv_matter_work')))
+                number_matter_work.append(round(sum(month_three.mapped('quy_doi_dv_matter_work')), 1))
             if sum(month_three.mapped('quy_doi_dv_comply_regulations')) > 0:
-                number_comply_regulations.append(sum(month_three.mapped('quy_doi_dv_comply_regulations')))
+                number_comply_regulations.append(round(sum(month_three.mapped('quy_doi_dv_comply_regulations')), 1))
             if sum(month_three.mapped('quy_doi_dv_initiative')) > 0:
-                number_initiative.append(sum(month_three.mapped('quy_doi_dv_initiative')))
+                number_initiative.append(round(sum(month_three.mapped('quy_doi_dv_initiative')), 1))
         if len(number_amount_work) > 0:
             amount_work = sum(number_amount_work) / len(number_amount_work)
         else:
