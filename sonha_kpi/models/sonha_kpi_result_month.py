@@ -110,16 +110,16 @@ class SonHaKPIResultMonth(models.Model):
         if r.diem_chuan_amount_work and r.kq_hoan_thanh_amount_work:
             diem_dat_dv_amount_work = r.diem_chuan_amount_work * r.kq_hoan_thanh_amount_work
             r.diem_dat_dv_amount_work = diem_dat_dv_amount_work
-            r.quy_doi_dv_amount_work = round(diem_dat_dv_amount_work * r.ti_trong, 2)
+            r.quy_doi_dv_amount_work = diem_dat_dv_amount_work * r.ti_trong
         if r.diem_chuan_matter_work and r.kq_hoan_thanh_matter_work:
             diem_dat_dv_matter_work = r.diem_chuan_matter_work * r.kq_hoan_thanh_matter_work
             r.diem_dat_dv_matter_work = diem_dat_dv_matter_work
-            r.quy_doi_dv_matter_work = round(diem_dat_dv_matter_work * r.ti_trong, 2)
+            r.quy_doi_dv_matter_work = diem_dat_dv_matter_work * r.ti_trong
         if r.diem_chuan_comply_regulations and r.kq_hoan_thanh_comply_regulations:
             diem_dat_dv_comply_regulations = r.diem_chuan_comply_regulations * r.kq_hoan_thanh_comply_regulations
             r.diem_dat_dv_comply_regulations = diem_dat_dv_comply_regulations
-            r.quy_doi_dv_comply_regulations = round(diem_dat_dv_comply_regulations * r.ti_trong, 2)
+            r.quy_doi_dv_comply_regulations = diem_dat_dv_comply_regulations * r.ti_trong
         if r.diem_chuan_initiative and r.kq_hoan_thanh_initiative:
             diem_dat_dv_initiative = r.diem_chuan_initiative * r.kq_hoan_thanh_initiative
             r.diem_dat_dv_initiative = diem_dat_dv_initiative
-            r.quy_doi_dv_initiative = round(diem_dat_dv_initiative * r.ti_trong, 2)
+            r.quy_doi_dv_initiative = diem_dat_dv_initiative * r.ti_trong
