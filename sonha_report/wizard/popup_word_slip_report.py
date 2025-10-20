@@ -63,7 +63,7 @@ class PopupWordSlipReport(models.TransientModel):
                             to_date.append(f"{child.to_date.strftime('%d/%m/%Y')} (Nửa ca đầu)")
                         if child.end_time == 'second_half' and child.type.date_and_time == 'date':
                             to_date.append(f"{child.to_date.strftime('%d/%m/%Y')} (Nửa ca sau)")
-                list_emp = r.employee_ids.ids or [r.employee_id.id]
+                list_emp = r.employee_ids.ids or ([r.employee_id.id] if r.employee_id else [])
                 vals = {
                     'employee_ids': [(6, 0, list_emp)],
                     'department_id': r.department.id,
