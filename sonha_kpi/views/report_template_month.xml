@@ -28,6 +28,15 @@
                     .custom{
                         text-align: left;
                     }
+                    .total-class {
+                        display: flex;
+                        justify-content: space-between;
+                        margin: 25px;
+                    }
+                    .sum{
+                        background-color: #66FF66;
+                        padding: 10px;
+                    }
                 </style>
                 <t t-if="docs">
                     <t t-set="doc0" t-value="docs[0]" />
@@ -119,6 +128,39 @@
                 <t t-else="">
                     <h1>Không có dữ liệu để hiển thị</h1>
                 </t>
+                <div class="total-class">
+                    <t t-set="months" t-value="set([d.start_date.month for d in docs])"/>
+                    <t t-if="len(months) == 1">
+                        <div class="sum">
+                            <t t-set="total_points" t-value="round(sum(docs.mapped('quy_doi_dv_amount_work')) + sum(docs.mapped('quy_doi_dv_matter_work')), 1)"/>
+                            <t t-if="total_points > 100" t-set="classification" t-value="'Xuất sắc'"/>
+                            <t t-elif="total_points > 90" t-set="classification" t-value="'Tốt'"/>
+                            <t t-elif="total_points > 75" t-set="classification" t-value="'Khá'"/>
+                            <t t-elif="total_points > 65" t-set="classification" t-value="'Hoàn thành'"/>
+                            <t t-elif="1 > total_points" t-set="classification" t-value=""/>
+                            <t t-else="">
+                                <t t-set="classification" t-value="'Cần cố gắng'"/>
+                            </t>
+                            <h4>Đơn vị đánh giá</h4>
+                            <h5>Tổng điểm: <t t-esc="total_points"/></h5>
+                            <h5>Xếp loại: <t t-esc="classification"/></h5>
+                        </div>
+                        <div class="sum">
+                            <t t-set="tq_total_points" t-value="round(sum(docs.mapped('quy_doi_tq_amount_work')) + sum(docs.mapped('quy_doi_tq_matter_work')), 1)"/>
+                            <t t-if="tq_total_points > 100" t-set="tq_classification" t-value="'Xuất sắc'"/>
+                            <t t-elif="tq_total_points > 90" t-set="tq_classification" t-value="'Tốt'"/>
+                            <t t-elif="tq_total_points > 75" t-set="tq_classification" t-value="'Khá'"/>
+                            <t t-elif="tq_total_points > 65" t-set="tq_classification" t-value="'Hoàn thành'"/>
+                            <t t-elif="1 > tq_total_points" t-set="tq_classification" t-value=""/>
+                            <t t-else="">
+                                <t t-set="tq_classification" t-value="'Cần cố gắng'"/>
+                            </t>
+                            <h4>Cấp thẩm quyền đánh giá</h4>
+                            <h5>Tổng điểm: <t t-esc="tq_total_points"/></h5>
+                            <h5>Xếp loại: <t t-esc="tq_classification"/></h5>
+                        </div>
+                    </t>
+                </div>
             </div>
         </t>
     </template>
