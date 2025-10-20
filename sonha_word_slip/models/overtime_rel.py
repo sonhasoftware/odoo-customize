@@ -42,7 +42,7 @@ class OvertimeRel(models.Model):
                     ('employee_id', '=', employee)])
                 check_in_out = self.env['master.data.attendance'].sudo().search([
                     ('employee_id', '=', employee)])
-                check_in_out = check_in_out.filtered(lambda x: x.attendance_time.date() == record.date)
+                check_in_out = check_in_out.filtered(lambda x: (x.attendance_time + relativedelta(hours=7)).date() == record.date)
                 not_check_in_out = data.filtered(lambda x: (x.check_in and x.check_in.date() == record.date) or (x.check_out and x.check_out.date() == record.date))
                 shift = data.shift
                 if not shift:
