@@ -29,12 +29,12 @@
                     <group>
 <!--                        <field name="competency_employee"/>-->
                         <field name="type" invisible="1"/>
-                        <field name="company_id" readonly="1"/>
-                        <field name="department_id" readonly="1"/>
+                        <field name="company_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="department_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                         <field name="purpose" readonly="status != 'draft'"/>
                         <field name="amount_people" readonly="status != 'draft'"/>
-                        <field name="booking_employee_id" readonly="status != 'draft'"/>
-                        <field name="booking_employee_job_id" readonly="1"/>
+                        <field name="booking_employee_id" readonly="status != 'draft'" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="booking_employee_job_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                         <field name="phone_number" readonly="status != 'draft'"/>
                     </group>
                     <group>
@@ -62,14 +62,14 @@
                                 <field name="end_time"/>
                             </tree>
                         </field>
-                        <field name="approve_people" readonly="status != 'draft'"/>
-                        <field name="approve_people_job_id" readonly="1"/>
+                        <field name="approve_people" readonly="status != 'draft'" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="approve_people_job_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                     </group>
                     <group string="Thông tin xe" invisible="type != 'exist_car'">
                         <field name="is_rent" readonly="1"/>
-                        <field name="driver" readonly="1"  invisible="is_rent != False"/>
-                        <field name="driver_rent_car" readonly="1"  invisible="is_rent != True"/>
-                        <field name="company_rent_car" readonly="1" invisible="is_rent != True"/>
+                        <field name="driver" readonly="1" options="{'no_create': True, 'no_open': True}" invisible="is_rent != False"/>
+                        <field name="driver_rent_car" readonly="1" options="{'no_create': True, 'no_open': True}" invisible="is_rent != True"/>
+                        <field name="company_rent_car" readonly="1" options="{'no_create': True, 'no_open': True}" invisible="is_rent != True"/>
                         <field name="driver_phone" readonly="1"/>
                         <field name="license_plate" readonly="1"/>
                     </group>
