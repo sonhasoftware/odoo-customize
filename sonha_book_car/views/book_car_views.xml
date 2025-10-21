@@ -29,8 +29,8 @@
                     <group>
 <!--                        <field name="competency_employee"/>-->
                         <field name="type" invisible="1"/>
-                        <field name="company_id" readonly="1"/>
-                        <field name="department_id" readonly="1"/>
+                        <field name="company_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="department_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                         <field name="purpose" readonly="status != 'draft'"/>
                         <field name="amount_people" readonly="status != 'draft'"/>
                         <field name="booking_employee_id" readonly="status != 'draft'" options="{'no_create': True, 'no_open': True}"/>
