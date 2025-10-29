@@ -426,13 +426,12 @@ class WorkProcess(models.Model):
 
     def write(self, vals):
         res = super(WorkProcess, self).write(vals)
-        if 'job_id' in vals or 'department_id' in vals:
-            for r in self:
-                if r.job_id:
-                    job_id = r.job_id.id
-                    r.employee_id.job_id = job_id
-                if r.department_id:
-                    r.employee_id.department_id = r.department_id.id
+        for r in self:
+            if 'job_id' in vals:
+                job_id = r.job_id.id
+                r.employee_id.job_id = job_id
+            if 'department_id' in vals:
+                r.employee_id.department_id = r.department_id.id
         return res
 
     def unlink(self):

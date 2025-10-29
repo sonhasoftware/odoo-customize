@@ -1,33 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <record id="work_process_form_view" model="ir.ui.view">
-        <field name="name">work.process.form.view</field>
-        <field name="model">work.process</field>
-        <field name="arch" type="xml">
-            <form>
-                <sheet>
-                    <group>
-                        <group>
-                            <field name="start_date"/>
-                        </group>
-                        <group>
-                            <field name="number"/>
-                        </group>
-                    </group>
-                    <group>
-                        <field name="type"/>
-                        <field name="employee_id"/>
-                        <field name="job_id"/>
-                        <field name="department_id"/>
-                    </group>
-                    <group>
-                        <field name="note"/>
-                    </group>
-                </sheet>
-            </form>
-        </field>
-    </record>
-
     <record id="work_process_tree_view" model="ir.ui.view">
         <field name="name">work.process.tree.view</field>
         <field name="model">work.process</field>
@@ -50,9 +22,6 @@
         <field name="arch" type="xml">
             <search string="Search quá trình công tác">
                 <field name="employee_id" string="Nhân viên"/>
-                <group expand="0" string="Group By">
-                    <filter string="Nhân viên" name="group_employee" context="{'group_by':'employee_id'}"/>
-                </group>
             </search>
         </field>
     </record>
@@ -60,14 +29,13 @@
     <record id="work_process_action" model="ir.actions.act_window">
         <field name="name">Quá trình công tác</field>
         <field name="res_model">work.process</field>
-        <field name="context">{"search_default_group_employee": 1}</field>
         <field name="search_view_id" ref="work_process_search_view"/>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">tree</field>
     </record>
 
     <menuitem id="menu_work_process"
               name="Quá trình công tác"
               parent="hr.menu_hr_root"
               action="work_process_action"
-              sequence="40"/>
+              sequence="41"/>
 </odoo>

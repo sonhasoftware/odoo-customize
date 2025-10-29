@@ -27,5 +27,5 @@
               parent="hr.menu_hr_root"
               action="action_employee_import_wizard"
               groups="group_back_up_employee"
-              sequence="41"/>
+              sequence="42"/>
 </odoo>
