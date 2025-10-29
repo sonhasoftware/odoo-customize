@@ -66,16 +66,16 @@
                     <field name="status_employee"/>
                     <field name="date_quit" invisible="status_employee != 'quit_job'"/>
                     <field name="reason_quit" invisible="status_employee != 'quit_job'"/>
-                    <field name="work_ids">
-                        <tree editable="bottom">
-                            <field name="start_date"/>
-                            <field name="department_id"/>
-                            <field name="job_id"/>
-                            <field name="number"/>
-                            <field name="type"/>
-                            <field name="note"/>
-                        </tree>
-                    </field>
+<!--                    <field name="work_ids">-->
+<!--                        <tree editable="bottom">-->
+<!--                            <field name="start_date"/>-->
+<!--                            <field name="department_id"/>-->
+<!--                            <field name="job_id"/>-->
+<!--                            <field name="number"/>-->
+<!--                            <field name="type"/>-->
+<!--                            <field name="note"/>-->
+<!--                        </tree>-->
+<!--                    </field>-->
                     <field name="resource_id" />
                 </xpath>
 

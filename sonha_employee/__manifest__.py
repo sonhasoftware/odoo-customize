@@ -30,6 +30,7 @@
         'views/dismissal_person_views.xml',
         'views/res_company_view.xml',
         'views/res_user_views.xml',
+        'views/work_process_views.xml',
         'views/reward_discipline_menu.xml',
         'wizard/employee_import_wizard_views.xml',
         'wizard/create_user_wizard_view.xml',
