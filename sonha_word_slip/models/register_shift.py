@@ -39,3 +39,42 @@ class RegisterShift(models.Model):
             else:
                 raise ValidationError("Bạn không có quyền thực hiện hành động này")
 
+    def create(self, vals):
+        res = super(RegisterShift, self).create(vals)
+        self.explode_to_shift(res.employee_id, res.register_rel)
+        return res
+
+    def write(self, vals):
+        res = super(RegisterShift, self).write(vals)
+        for rec in self:
+            self.explode_to_shift(rec.employee_id, rec.register_rel)
+        return res
+
+    def unlink(self):
+        for r in self:
+            self.env['rel.ca'].sudo().search([('key_register_shift', '=', r.id)]).unlink()
+        return super(RegisterShift, self).unlink()
+
+    def explode_to_shift(self, employee_id=None, register_rel=None):
+        model = self.env['rel.ca'].sudo()
+
+        if not register_rel or not employee_id:
+            return
+
+        for r in register_rel:
+            if not r.date or not r.shift or not r.company_id:
+                continue
+
+            model.search([('key', '=', r.id)]).unlink()
+
+            model.create({
+                'employee_id': employee_id.id,
+                'department_id': r.register_shift.department_id.id,
+                'company_id': r.company_id.id,
+                'date': r.date,
+                'shift_id': r.shift.id,
+                'key': r.id,
+                'key_register_shift': r.register_shift.id
+            })
+
+

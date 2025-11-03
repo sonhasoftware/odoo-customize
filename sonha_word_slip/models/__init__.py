@@ -22,3 +22,5 @@ from . import yard_ball
 from . import config_standard_work
 from . import rel_don_tu
 from . import ton_phep
+from . import rel_lam_them
+from . import rel_ca
