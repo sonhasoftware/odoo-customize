@@ -23,6 +23,7 @@
         'views/dismissal_report_views.xml',
         'views/word_slip_report_views.xml',
         'views/overtime_report_views.xml',
+        'views/dashboard_action.xml',
         'views/menu_report_views.xml',
         'wizard/popup_master_data_report_views.xml',
         'wizard/popup_employee_attendance_report_views.xml',
@@ -42,6 +43,13 @@
 
         'data/cron_job.xml',
     ],
+
+    'assets': {
+        'web.assets_backend': [
+            'sonha_report/static/src/components/employee_greet_dashboard.js',
+            'sonha_report/static/src/components/employee_greet_dashboard.xml',
+        ],
+    },
 
     'installable': True,
     'application': True,
