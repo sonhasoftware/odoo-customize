@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_sonha_md_tree" model="ir.ui.view">
+        <field name="name">Sơn Hà MD</field>
+        <field name="model">sonha.md</field>
+        <field name="arch" type="xml">
+            <tree string="Vật tư" editable="bottom">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="vector"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_sonha_md" model="ir.actions.act_window">
+        <field name="name">Sơn Hà MD</field>
+        <field name="res_model">sonha.md</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

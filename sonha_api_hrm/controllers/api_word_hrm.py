@@ -77,6 +77,7 @@ class AuthAPIHRM(http.Controller):
 
                 # Tạo record
                 record = request.env['register.overtime.update'].with_user(user_id).sudo().create(vals)
+                request.env['register.overtime.update'].sudo().action_noti_manager(record)
 
                 # Trả về kết quả
                 return Response(json.dumps({
@@ -365,13 +366,16 @@ class AuthAPIHRM(http.Controller):
                 raise ValueError("Không tìm thấy bản ghi")
             if not record.type_overtime:
                 record.status = 'done'
+                request.env['register.overtime.update'].sudo().action_noti_user(record)
             else:
                 if record.status_lv2 == 'draft':
                     record.status_lv2 = 'waiting'
+                    request.env['register.overtime.update'].sudo().action_noti_manager(record)
                 elif record.status_lv2 == 'waiting':
                     record.status_lv2 = 'confirm'
                 elif record.status_lv2 == 'confirm':
                     record.status_lv2 = 'done'
+                    request.env['register.overtime.update'].sudo().action_noti_user(record)
 
             # Trả về kết quả
             return Response(json.dumps({
@@ -948,13 +952,13 @@ class AuthAPIHRM(http.Controller):
             if area: vals['area'] = area
             if yard: vals['yard'] = yard
             if date_value: vals['date_active'] = date_value
-            if pick_up: vals['pick_up'] = pick_up
+            vals['pick_up'] = True if pick_up else False
 
             # convert time fields
             if start_active: vals['start_active'] = combine_datetime(start_active)
             if end_active: vals['end_active'] = combine_datetime(end_active)
-            if start_ball: vals['start_ball'] = combine_datetime(start_ball)
-            if end_ball: vals['end_ball'] = combine_datetime(end_ball)
+            vals['start_ball'] = combine_datetime(start_ball) if start_ball else None
+            vals['end_ball'] = combine_datetime(end_ball) if end_ball else None
 
             record.sudo().write(vals)
 

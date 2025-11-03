@@ -10,7 +10,7 @@
                     <label for="device_id"/>
                     <field name="device_id" string="Thiết bị"/>
                     <label for="option_check"/>
-                    <field name="option_check" string="Option check"/>
+                    <field name="option_check" string="Kiểu CC"/>
                     <label for="device_number"/>
                     <field name="device_number" string="Số cài đặt thiết bị"/>
                 </div>

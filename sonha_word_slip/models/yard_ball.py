@@ -50,7 +50,7 @@ class YardBall(models.Model):
     @api.constrains('start_ball', 'end_ball', 'start_active', 'end_active')
     def check_validate_leave(self):
         for r in self:
-            if r.end_ball <= r.start_ball:
+            if r.end_ball and r.start_ball and r.end_ball <= r.start_ball:
                 raise ValidationError("Thời gian kết thúc nhặt bóng không được bé hơn thời gian bắt đầu!")
             if r.end_active <= r.start_active:
                 raise ValidationError("Thời gian kết thúc hoạt động không được bé hơn thời gian bắt đầu!")

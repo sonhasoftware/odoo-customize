@@ -51,6 +51,8 @@ class EmployeeAttendanceStore(models.Model):
     times_late = fields.Integer("Đi muộn quá 30p")
     actual_work = fields.Float("Công thực tế theo ca")
     vacation = fields.Float("Nghỉ mát")
+    forgot_time = fields.Integer("Quên CI/CO")
+    work_eat = fields.Integer("Công ăn")
 
     def copy_to_stored_model(self):
         self.with_delay().copy_data_employee_attendance()
@@ -160,6 +162,8 @@ class EmployeeAttendanceStore(models.Model):
                 'times_late': record.times_late,
                 'actual_work': record.actual_work,
                 'vacation': record.vacation,
+                'forgot_time': record.forgot_time,
+                'work_eat': record.work_eat,
             }
 
             if existing_record:

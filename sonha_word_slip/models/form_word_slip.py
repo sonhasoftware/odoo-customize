@@ -1,6 +1,9 @@
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from datetime import datetime, time, timedelta, date
+import requests
+import json
+from uuid import uuid4
 
 
 class FormWordSlip(models.Model):
@@ -65,6 +68,17 @@ class FormWordSlip(models.Model):
     duration = fields.Float("Số ngày nghỉ phép", compute="get_duration_leave")
     month = fields.Integer("Tháng", compute="get_month_leave", store=True)
     all_dates = fields.Text(string="Khoảng ngày", compute="_compute_all_dates", store=True)
+    temp_key = fields.Char(string="Temporary Key", readonly=True, copy=False, default="dltam")
+
+    phep_ton = fields.Text("Phép tồn", compute="_onchange_phep_ton_preview")
+
+    @api.onchange('regis_type')
+    def _onchange_register_type(self):
+        if self.regis_type == 'one':
+            self.employee_id = self.env.user.employee_id.id
+            self.employee_ids = [(5, 0, 0)]
+        elif self.regis_type == 'many':
+            self.employee_id = False
 
     @api.depends('word_slip_id')
     def _compute_all_dates(self):
@@ -107,12 +121,66 @@ class FormWordSlip(models.Model):
             else:
                 r.check_cancel = False
 
+    def send_fcm_notification(self, title, content, token, user_id, type, employee_id, application_id, data_text, screen="/notification", badge=1):
+        url = "https://apibaohanh.sonha.com.vn/api/thongbaohrm/send-fcm"
+
+        payload = {
+            "title": title,
+            "content": content,
+            "badge": badge,
+            "token": token,
+            "application_id": application_id,
+            "user_id": user_id,
+            "screen": screen,
+        }
+
+        headers = {
+            "Content-Type": "application/json",
+        }
+
+        try:
+            response = requests.post(url, data=json.dumps(payload), headers=headers, timeout=30)
+            response.raise_for_status()
+            res_json = json.loads(response.text)
+            message_id = res_json.get("messageId")
+            if response.status_code == 200:
+               self.env['log.notifi'].sudo().create({
+                   'badge': badge,
+                   'token': token,
+                   'title': title,
+                   'type': type,
+                   'taget_screen': screen,
+                   'message_id': message_id,
+                   'id_application': str(application_id),
+                   'userid': str(user_id),
+                   'employeeid': str(employee_id) or "",
+                   'body': content,
+                   'datetime': str(datetime.now()),
+                   'data': data_text
+               })
+        except Exception as e:
+            return {"error": str(e)}
+
+    def action_noti(self, record):
+        user_id = self.env['res.users'].sudo().search([('id', '=', record.create_uid.id)])
+        data_text = str(record.id) + "#" + str(user_id.id) + "#" + str(user_id.employee_id.id) + "#" + str(record.code) + "#2#" + str(user_id.name)
+        self.send_fcm_notification(
+            title="Sơn Hà HRM",
+            content="Đơn từ " + str(record.code) + " của bạn bị từ chối!",
+            token=user_id.token,
+            user_id=user_id.id,
+            type=2,
+            employee_id=user_id.employee_id.id,
+            application_id=str(record.id),
+            data_text=data_text
+        )
+
     def action_cancel(self):
         for r in self:
             r.status = 'cancel'
             r.status_lv1 = 'cancel'
             r.status_lv2 = 'cancel'
-
+            self.action_noti(r)
 
     @api.onchange('type')
     def get_check_invisible_type(self):
@@ -205,6 +273,21 @@ class FormWordSlip(models.Model):
                 else:
                     template = self.env.ref('sonha_word_slip.template_sent_mail_manager_slip_lv2')
                 template.send_mail(r.id, force_send=True)
+            self.action_noti_manager(r)
+
+    def action_noti_manager(self, record):
+        data_text = str(record.id) + "#" + str(record.employee_approval.user_id.id) + "#" + str(record.employee_approval.id) + "#" + str(
+            record.code) + "#1#" + str(record.employee_approval.user_id.name)
+        self.send_fcm_notification(
+            title="Sơn Hà HRM",
+            content="Đơn từ " + str(record.code) + " cần bạn duyệt!",
+            token=record.employee_approval.user_id.token,
+            user_id=record.employee_approval.user_id.id,
+            type=1,
+            employee_id=record.employee_approval.id,
+            application_id=str(record.id),
+            data_text=data_text
+        )
 
     @api.depends('employee_id', 'type')
     def get_code_slip(self):
@@ -299,6 +382,22 @@ class FormWordSlip(models.Model):
             setattr(r, status_level, 'done')
             r.status = 'done'
             r.button_done = False
+            self.noti_user_done(r)
+
+    def noti_user_done(self, record):
+        user_id = self.env['res.users'].sudo().search([('id', '=', record.create_uid.id)])
+        data_text = str(record.id) + "#" + str(user_id.id) + "#" + str(user_id.employee_id.id) + "#" + str(
+            record.code) + "#2#" + str(user_id.name)
+        self.send_fcm_notification(
+            title="Sơn Hà HRM",
+            content="Đơn từ " + str(record.code) + " của bạn đã được phê duyệt!",
+            token=user_id.token,
+            user_id=user_id.id,
+            type=2,
+            employee_id=user_id.employee_id.id,
+            application_id=str(record.id),
+            data_text=data_text
+        )
 
     # hàm check validate
     def validate_record_overlap(self, record, word_slips, form_type):
@@ -424,6 +523,9 @@ class FormWordSlip(models.Model):
         else:
             # Trường hợp không có bước phê duyệt
             rec.employee_approval = employee_id.employee_approval.id if employee_id.employee_approval else employee_id.parent_id.id
+
+        self.explode_to_leave(rec.employee_id, rec.employee_ids, rec.word_slip_id)
+
         return rec
 
     def get_duration_day(self, rec):
@@ -481,4 +583,76 @@ class FormWordSlip(models.Model):
                 # check validate
                 self.process_word_slip_validation(record)
                 self.env['word.slip'].sudo().check_employee_days_limit(record.word_slip_id)
+
+        for rec in self:
+
+            rec.explode_to_leave(rec.employee_id, rec.employee_ids, rec.word_slip_id)
+
         return res
+
+    def explode_to_leave(self, employee_id=None, employee_ids=None, word_slip_id=None):
+        """Sinh bản ghi vào bảng rel.don.tu theo từng nhân viên và từng ngày"""
+        model = self.env['rel.don.tu']
+
+        # Hợp nhất employee_id (nếu có) và employee_ids (nếu có)
+        employees = []
+        if employee_id:
+            employees.append(employee_id)
+        if employee_ids:
+            employees += employee_ids
+
+        if not employees or not word_slip_id:
+            return
+
+        for rec in word_slip_id:
+            if not rec.from_date or not rec.to_date:
+                continue
+
+            # Xóa dữ liệu cũ trước khi tạo mới để tránh trùng lặp
+            model.search([('key', '=', rec.id)]).unlink()
+
+            # Tính loại nghỉ (0.5 hoặc 1 ngày)
+            leave = 0
+            if rec.type.key == 'NP':
+                leave = 0.5 if rec.start_time == rec.end_time else 1
+
+            # Sinh dữ liệu từng ngày, từng nhân viên
+            current_date = rec.from_date
+            while current_date <= rec.to_date:
+                for emp in employees:
+                    model.create({
+                        'employee_id': emp.id,
+                        'date': current_date,
+                        'leave': leave,
+                        'type_leave': rec.type.id,
+                        'key': rec.id,  # dùng rec.id để liên kết lại
+                    })
+                    self.env.cr.execute("SELECT * FROM public.fn_ton_phep(%s,%s)", (emp.id, rec.word_slip.temp_key))
+                    self.env.cr.dictfetchall()
+                current_date += timedelta(days=1)
+
+    @api.depends('employee_id', 'employee_ids', 'word_slip_id')
+    def _onchange_phep_ton_preview(self):
+        for r in self:
+            if not (r.employee_id or r.employee_ids) or not r.word_slip_id:
+                r.phep_ton = False
+                continue
+
+            employees = []
+            if r.employee_id:
+                employees.append(r.employee_id)
+            if r.employee_ids:
+                employees += r.employee_ids
+            info_lines = []
+            for emp in employees:
+                total_leave = 0
+                for slip in r.word_slip_id:
+                    if slip.type.key == 'NP':
+                        if slip.start_time == slip.end_time:
+                            total_leave += 0.5
+                        else:
+                            total_leave += 1
+
+                ton = emp.old_leave_balance + emp.new_leave_balance - total_leave
+                info_lines.append(f"{emp.name}: còn {ton} phép (tạm tính)")
+            r.phep_ton = "\n".join(info_lines)

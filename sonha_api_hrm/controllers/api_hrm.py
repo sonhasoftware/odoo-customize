@@ -956,6 +956,7 @@ class AuthAPI(http.Controller):
                                 'name': record.type.name,
                             }
                         }
+                        request.env['form.word.slip'].sudo().action_noti_manager(record)
                     elif record.status == 'draft':
                         record.status = 'done'
                         record.status_lv1 = 'done'
@@ -972,6 +973,7 @@ class AuthAPI(http.Controller):
                                 'name': record.type.name,
                             }
                         }
+                        request.env['form.word.slip'].sudo().noti_user_done(record)
                 else:
                     if record.status_lv2 == 'sent':
                         record.status = 'draft'
@@ -991,6 +993,7 @@ class AuthAPI(http.Controller):
                                 'name': record.type.name,
                             }
                         }
+                        request.env['form.word.slip'].sudo().action_noti_manager(record)
                     elif record.status_lv2 == 'draft':
                         record.status = 'draft'
                         record.status_lv1 = 'confirm'
@@ -1009,6 +1012,7 @@ class AuthAPI(http.Controller):
                                 'name': record.type.name,
                             }
                         }
+                        request.env['form.word.slip'].sudo().action_noti_manager(record)
                     elif record.status_lv2 == 'confirm':
                         record.status = 'done'
                         record.status_lv1 = 'done'
@@ -1025,6 +1029,7 @@ class AuthAPI(http.Controller):
                                 'name': record.type.name,
                             }
                         }
+                        request.env['form.word.slip'].sudo().noti_user_done(record)
 
                 # Trả về kết quả
                 return Response(json.dumps({
@@ -1158,6 +1163,7 @@ class AuthAPI(http.Controller):
                         'name': record.type.name,
                     }
                 }
+                request.env['form.word.slip'].sudo().action_noti(record)
 
                 # Trả về kết quả
                 return Response(json.dumps({
@@ -1613,7 +1619,7 @@ class AuthAPI(http.Controller):
                         'taget_screen': log.taget_screen or "",
                         'message_id': log.message_id or "",
                         'badge': log.badge or "",
-                        'datetime': str(log.datetime) if log.datetime else None,
+                        'datetime': str(log.datetime + relativedelta(hours=7)) if log.datetime else None,
                         'userid': log.userid or "",
                         'is_read': log.is_read,
                         'employeeid': log.employeeid or "",
