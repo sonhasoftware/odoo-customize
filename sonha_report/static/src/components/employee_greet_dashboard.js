@@ -69,8 +69,9 @@ export class EmployeeInOutDashboard extends owl.Component {
     async getContractData() {
         const params = new URLSearchParams({
             company_id: this.state.company_id,
+            year: this.state.year,
         });
-        const response = await fetch(`/get_employee_contract_data?${params.toString()}`);
+        const response = await fetch(`/get_employee_as_contract_data?${params.toString()}`);
         return await response.json();
     }
 
