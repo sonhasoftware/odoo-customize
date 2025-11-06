@@ -9,6 +9,7 @@
     'depends': ['base', 'hr'],
     'data': [
         'security/ir.model.access.csv',
+        'views/employee_report_views.xml',
         'views/config_template_views.xml',
         'views/master_data_report_views.xml',
         'views/employee_attendance_report_views.xml',
@@ -16,13 +17,12 @@
         'views/employee_shift_report_views.xml',
         'views/leave_report_views.xml',
         'views/synthetic_leave_report_views.xml',
-        'views/sonha_employee_report_views.xml',
-        'views/sonha_contract_report_views.xml',
         'views/reward_report_views.xml',
         'views/discipline_report_views.xml',
         'views/dismissal_report_views.xml',
         'views/word_slip_report_views.xml',
         'views/overtime_report_views.xml',
+        'views/dashboard_action.xml',
         'views/menu_report_views.xml',
         'wizard/popup_master_data_report_views.xml',
         'wizard/popup_employee_attendance_report_views.xml',
@@ -42,6 +42,13 @@
 
         'data/cron_job.xml',
     ],
+
+    'assets': {
+        'web.assets_backend': [
+            'sonha_report/static/src/components/employee_greet_dashboard.js',
+            'sonha_report/static/src/components/employee_greet_dashboard.xml',
+        ],
+    },
 
     'installable': True,
     'application': True,
