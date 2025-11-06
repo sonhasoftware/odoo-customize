@@ -21,7 +21,7 @@ class PopupSonhaEmployeeReport(models.TransientModel):
 
     def default_employee_id(self):
         emp = self.env['hr.employee'].sudo().search([('user_id', '=', self.env.user.id)], limit=1)
-        if emp:
+        if emp and not (self.env.user.has_group('sonha_employee.group_hr_employee') or self.env.user.has_group('sonha_employee.group_back_up_employee')):
             return emp
         else:
             return None
