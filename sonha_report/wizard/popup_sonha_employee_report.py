@@ -52,7 +52,7 @@ class PopupSonhaEmployeeReport(models.TransientModel):
                 domain = [('company_id', 'in', self.env.user.company_ids.ids)]
             if rec.department_id:
                 domain.append(("department_id", "=", rec.department_id.id))
-            elif rec.company_id:
+            if rec.company_id:
                 domain.append(("company_id", "=", rec.company_id.id))
             rec.employee_domain = domain
 
