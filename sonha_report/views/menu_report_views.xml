@@ -2,7 +2,7 @@
 <odoo>
     <menuitem id="menu_sonha_report"
               name="Báo cáo"
-              action="master_data_report_action"
+              action="action_owl_employee_report_greet_dashboard"
               sequence="11"/>
 
     <menuitem id="menu_sonha_report_sonha"

@@ -90,3 +90,8 @@ class OvertimeRel(models.Model):
                 #
                 #     if not valid:
                 #         raise ValidationError("Chỉ được phép đăng ký trong khoảng thời gian của ca")
+
+    def unlink(self):
+        for r in self:
+            self.env['rel.lam.them'].sudo().search([('key', '=', r.id)]).unlink()
+        return super(OvertimeRel, self).unlink()
