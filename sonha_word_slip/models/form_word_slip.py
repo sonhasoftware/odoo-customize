@@ -327,7 +327,7 @@ class FormWordSlip(models.Model):
             elif r.status == 'done' and r.type.key == 'NB':
                 employees = r.employee_ids or [r.employee_id]
                 for employee in employees:
-                    employee.total_compensatory += over_time
+                    employee.total_compensatory -= over_time
             else:
                 pass
             r.status = 'sent'

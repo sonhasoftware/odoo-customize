@@ -1,0 +1,16 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+
+access_dk_loai_vb,dk.loai.vb,model_dk_loai_vb,,1,1,1,1
+access_dk_xu_ly,dk.xu.ly,model_dk_xu_ly,,1,1,1,1
+
+
+access_dk_vb_h,dk.vb.h,model_dk_vb_h,group_user_van_ban,1,1,1,0
+access_dk_vb_h_admin,dk.vb.h.admin,model_dk_vb_h,group_admin_van_ban,1,1,1,0
+
+access_dk_vb_d,dk.vb.d,model_dk_vb_d,group_user_van_ban,1,1,1,1
+access_dk_vb_d_admin,dk.vb.d.admin,model_dk_vb_d,group_admin_van_ban,1,1,1,1
+
+access_dk_vb_th,dk.vb.th,model_dk_vb_th,,1,1,1,1
+
+
+access_wizard_dk_vb_tu_choi,wizard.dk.vb.tu.choi,model_wizard_dk_vb_tu_choi,,1,1,1,1

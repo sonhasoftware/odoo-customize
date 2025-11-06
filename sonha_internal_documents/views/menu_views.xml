@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <menuitem id="menu_dang_ky_van_ban"
+              name="Đăng ký văn bản"
+              sequence="11"/>
+
+    <menuitem
+            id="menu_dk_vb"
+            name="Đăng ký văn bản"
+            action="action_dk_vb_h"
+            parent="menu_dang_ky_van_ban"
+            sequence="1"/>
+
+    <menuitem
+            id="menu_cau_hinh"
+            name="Danh mục cấu hình"
+            parent="menu_dang_ky_van_ban"
+            groups="group_admin_van_ban"
+            sequence="2"/>
+
+    <menuitem
+            id="menu_dk_loai_vb"
+            name="Cấu hình loại văn bản"
+            action="action_dk_loai_vb"
+            parent="menu_cau_hinh"
+            sequence="1"/>
+
+    <menuitem
+            id="menu_dk_xu_ly"
+            name="Cấu hình luồng xử lý"
+            action="action_dk_xu_ly"
+            parent="menu_cau_hinh"
+            sequence="2"/>
+</odoo>
