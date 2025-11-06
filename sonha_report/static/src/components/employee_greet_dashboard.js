@@ -166,6 +166,8 @@ export class EmployeeInOutDashboard extends owl.Component {
             return `rgba(${Math.abs(r)}, ${Math.abs(g)}, ${Math.abs(b)}, 0.8)`;
         }
 
+        const backgroundColor = labels.map((l) => colorFromString(l));
+
         this.pieChart = new Chart(this.pieChartRef.el, {
             type: "pie",
             data: {
@@ -174,7 +176,7 @@ export class EmployeeInOutDashboard extends owl.Component {
                     {
                         label: "Hợp đồng",
                         data,
-                        backgroundColor: labels.map((l) => colorFromString(l)),
+                        backgroundColor,
                     },
                 ],
             },
@@ -182,14 +184,119 @@ export class EmployeeInOutDashboard extends owl.Component {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { position: "bottom" },
+                    legend: {
+                        position: "bottom",
+                        // Thêm sự kiện click legend
+                        onClick: (evt, legendItem, legend) => {
+                            const chart = legend.chart;
+                            const index = legendItem.index;
+                            const meta = chart.getDatasetMeta(0);
+
+                            // Đảo ngược trạng thái ẩn/hiện
+                            meta.data[index].hidden = !meta.data[index].hidden;
+
+                            // Cập nhật biểu đồ
+                            chart.update();
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => {
+                                const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                const percent = ((ctx.parsed / total) * 100).toFixed(1);
+                                return `${ctx.label}: ${ctx.parsed} (${percent}%)`;
+                            },
+                        },
+                    },
                     title: {
                         display: true,
                         text: "Tỷ lệ nhân viên theo loại hợp đồng",
                     },
+                    datalabels: {
+                        anchor: "center",
+                        align: "center",
+                        color: "#ffffff",
+                        font: { weight: "bold", size: 12 },
+                        formatter: (value, ctx) => {
+                            const chart = ctx.chart;
+                            const dataset = chart.data.datasets[0];
+                            const meta = chart.getDatasetMeta(0);
+                            const element = meta.data[ctx.dataIndex];
+
+                            // Nếu phần tử bị ẩn (do click legend), không hiển thị label
+                            if (!element || element.hidden) return "";
+
+                            const startAngle = element.startAngle;
+                            const endAngle = element.endAngle;
+                            const angle = endAngle - startAngle;
+
+                            // Tính tỷ lệ diện tích tương đối của miếng
+                            const areaRatio = angle / (2 * Math.PI);
+
+                            // Nếu miếng quá nhỏ (<5% diện tích vòng tròn) → không hiện label
+                            if (areaRatio < 0.05) return "";
+
+                            // Tính phần trăm
+                            const total = dataset.data.reduce((a, b) => a + b, 0);
+                            const percent = ((value / total) * 100).toFixed(1);
+
+                            return percent + "%";
+                        },
+                        clamp: true,
+                        clip: false,
+                    },
                 },
+                // Thêm animation để cập nhật mượt mà
+                animation: {
+                    animateRotate: true,
+                    animateScale: true
+                }
             },
+            plugins: [ChartDataLabels],
         });
+
+        // Thêm sự kiện sau khi render để xử lý cập nhật data labels
+        this.pieChart.options.animation.onComplete = () => {
+            this.updatePieChartDataLabels();
+        };
+    }
+
+    // Hàm cập nhật data labels cho pie chart
+    updatePieChartDataLabels() {
+        if (!this.pieChart) return;
+
+        const chart = this.pieChart;
+        const meta = chart.getDatasetMeta(0);
+        const dataset = chart.data.datasets[0];
+
+        // Cập nhật lại tất cả data labels
+        chart.data.datasets[0].datalabels = {
+            ...chart.data.datasets[0].datalabels,
+            formatter: (value, ctx) => {
+                const element = meta.data[ctx.dataIndex];
+
+                // Nếu phần tử bị ẩn, không hiển thị label
+                if (!element || element.hidden) return "";
+
+                const startAngle = element.startAngle;
+                const endAngle = element.endAngle;
+                const angle = endAngle - startAngle;
+
+                // Tính tỷ lệ diện tích tương đối của miếng
+                const areaRatio = angle / (2 * Math.PI);
+
+                // Nếu miếng quá nhỏ (<5% diện tích vòng tròn) → không hiện label
+                if (areaRatio < 0.05) return "";
+
+                // Tính phần trăm
+                const total = dataset.data.reduce((a, b) => a + b, 0);
+                const percent = ((value / total) * 100).toFixed(1);
+
+                return percent + "%";
+            }
+        };
+
+        chart.update();
     }
 
     // -------------------- BIỂU ĐỒ TỔNG SỐ NHÂN VIÊN --------------------
@@ -218,6 +325,13 @@ export class EmployeeInOutDashboard extends owl.Component {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
+                    datalabels: {
+                        anchor: "end",
+                        align: "top",
+                        formatter: (value) => (value > 0 ? value : ""),
+                        color: "#333",
+                        font: { weight: "bold" },
+                    },
                     legend: { display: false },
                     title: {
                         display: true,
@@ -229,6 +343,7 @@ export class EmployeeInOutDashboard extends owl.Component {
                     y: { beginAtZero: true, title: { display: true, text: "Số nhân viên" } },
                 },
             },
+            plugins: [ChartDataLabels],
         });
     }
 }
