@@ -12,10 +12,6 @@ access_leave_report,access.leave.report,model_leave_report,,1,1,1,1
 
 access_synthetic_leave_report,access.synthetic.leave.report,model_synthetic_leave_report,,1,1,1,1
 
-access_sonha_employee_report,access.sonha.employee.report,model_sonha_employee_report,,1,1,1,1
-
-access_sonha_contract_report,access.sonha.contract.report,model_sonha_contract_report,,1,1,1,1
-
 access_popup_master_data_report,access.popup.master.data.report,model_popup_master_data_report,,1,1,1,1
 
 access_popup_employee_attendance_report,access.popup.employee.attendance.report,model_popup_employee_attendance_report,,1,1,1,1
@@ -53,3 +49,5 @@ access_overtime_report,access.overtime.report,model_overtime_report,,1,1,1,1
 access_popup_overtime_report,access.popup.overtime.report,model_popup_overtime_report,,1,1,1,1
 
 access_leave_left,access.leave.left,model_leave_left,,1,1,1,1
+
+access_employee_report,access.employee.report,model_employee_report,,1,1,1,1

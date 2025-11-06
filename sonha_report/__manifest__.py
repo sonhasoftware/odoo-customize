@@ -9,6 +9,7 @@
     'depends': ['base', 'hr'],
     'data': [
         'security/ir.model.access.csv',
+        'views/employee_report_views.xml',
         'views/config_template_views.xml',
         'views/master_data_report_views.xml',
         'views/employee_attendance_report_views.xml',
@@ -16,8 +17,6 @@
         'views/employee_shift_report_views.xml',
         'views/leave_report_views.xml',
         'views/synthetic_leave_report_views.xml',
-        'views/sonha_employee_report_views.xml',
-        'views/sonha_contract_report_views.xml',
         'views/reward_report_views.xml',
         'views/discipline_report_views.xml',
         'views/dismissal_report_views.xml',
