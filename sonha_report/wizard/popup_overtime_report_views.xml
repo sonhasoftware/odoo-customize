@@ -9,10 +9,10 @@
                     <field name="from_date"/>
                     <field name="to_date"/>
                     <field name="company_id"/>
-                    <field name="department_id"/>
+                    <field name="department_domain" invisible="1"/>
+                    <field name="department_id" domain="department_domain"/>
                     <field name="employee_domain" invisible="1"/>
-                    <field name="employee_ids" domain="employee_domain" widget="many2many_tags"/>
-                    <field name="status"/>
+                    <field name="employee_id" domain="employee_domain"/>
                 </group>
                 <footer>
                     <button string="Xác nhận" type="object" name="action_confirm" class="oe_highlight"/>
