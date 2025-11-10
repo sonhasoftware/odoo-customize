@@ -96,7 +96,7 @@ class RegisterWork(models.Model):
         if not self.employee_id or not self.start_date or not self.end_date:
             return
 
-        model.search([('key_register_work', '=', self.id)]).unlink()
+        model.search([('key_form', '=', self.id)]).unlink()
 
         current_date = self.start_date
         while current_date <= self.end_date:
@@ -107,7 +107,8 @@ class RegisterWork(models.Model):
                     'company_id': self.company_id.id,
                     'date': current_date,
                     'shift_id': self.shift.id,
-                    'key_register_work': self.id,
+                    'key_form': self.id,
+                    'type': 'dang_ky_ca'
                 })
             current_date += timedelta(days=1)
 
@@ -119,7 +120,7 @@ class RegisterWork(models.Model):
 
     def unlink(self):
         for r in self:
-            self.env['rel.ca'].sudo().search([('key_register_work', '=', r.id)]).unlink()
+            self.env['rel.ca'].sudo().search([('key_form', '=', r.id)]).unlink()
         return super(RegisterWork, self).unlink()
 
 
