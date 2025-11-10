@@ -9,7 +9,8 @@
                     <field name="from_date"/>
                     <field name="to_date"/>
                     <field name="company_id"/>
-                    <field name="department_id"/>
+                    <field name="department_domain" invisible="1"/>
+                    <field name="department_id" domain="department_domain"/>
                     <field name="employee_domain" invisible="1"/>
                     <field name="employee_id" domain="employee_domain"/>
                 </group>
@@ -30,7 +31,7 @@
 
     <menuitem id="menu_popup_employee_shift_report"
               name="Báo cáo ca làm việc"
-              parent="menu_sonha_report_sonha"
+              parent="menu_sonha_report_slip"
               action="action_popup_employee_shift_report"
               sequence="4"/>
 </odoo>
