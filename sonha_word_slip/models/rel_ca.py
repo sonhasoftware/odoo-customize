@@ -11,5 +11,6 @@ class RelCa(models.Model):
     shift_id = fields.Many2one('config.shift', string="Ca", store=True)
 
     key = fields.Many2one('register.shift.rel', string="Key ngày", store=True)
-    key_register_shift = fields.Many2one('register.shift', string="Key đổi ca", store=True)
-    key_register_work = fields.Many2one('register.work', string="Key đăng ký ca", store=True)
+    key_form = fields.Integer(string="Key ca", store=True)
+    type = fields.Selection([('dang_ky_ca', "Đăng ký ca"),
+                             ('doi_ca', "Đổi ca")], string="Loại", store=True)

@@ -52,7 +52,7 @@ class RegisterShift(models.Model):
 
     def unlink(self):
         for r in self:
-            self.env['rel.ca'].sudo().search([('key_register_shift', '=', r.id)]).unlink()
+            self.env['rel.ca'].sudo().search([('key_form', '=', r.id)]).unlink()
         return super(RegisterShift, self).unlink()
 
     def explode_to_shift(self, employee_id=None, register_rel=None):
@@ -74,7 +74,8 @@ class RegisterShift(models.Model):
                 'date': r.date,
                 'shift_id': r.shift.id,
                 'key': r.id,
-                'key_register_shift': r.register_shift.id
+                'key_form': r.register_shift.id,
+                'type': 'doi_ca'
             })
 
 
