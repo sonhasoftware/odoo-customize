@@ -7,10 +7,14 @@ class PopupSonhaContractReport(models.TransientModel):
 
     from_date = fields.Date(string="Từ ngày", required=True)
     to_date = fields.Date(string="Đến ngày", required=True)
-    company_id = fields.Many2one('res.company', string="Đơn vị", required=True)
-    department_id = fields.Many2one('hr.department', string="Phòng ban")
+    company_id = fields.Many2one('res.company', string="Đơn vị",
+                                 domain="[('id', 'in', allowed_company_ids)]",
+                                 default=lambda self: self.env.user.company_id, required=True)
+    department_id = fields.Many2one('hr.department', string="Phòng ban",
+                                    default=lambda self: self.default_department())
     department_domain = fields.Binary(compute="_compute_department_domain")
-    employee_id = fields.Many2one('hr.employee', string="Nhân viên")
+    employee_id = fields.Many2one('hr.employee', string="Nhân viên",
+                                  default=lambda self: self.default_employee_id())
     employee_domain = fields.Binary(compute="_compute_employee_domain")
     contract_type_id = fields.Many2one('hr.contract.type', string="Kiểu hợp đồng")
     status = fields.Selection([('draft', "Mới"),
@@ -20,10 +24,25 @@ class PopupSonhaContractReport(models.TransientModel):
     working_status = fields.Selection([('working', "Đang làm việc"),
                                        ('quit_job', "Nghỉ việc")], string="Trạng thái làm việc")
 
+    def default_employee_id(self):
+        emp = self.env['hr.employee'].sudo().search([('user_id', '=', self.env.user.id)], limit=1)
+        if emp and not (self.env.user.has_group('sonha_employee.group_hr_employee') or self.env.user.has_group('sonha_employee.group_back_up_employee')):
+            return emp
+        else:
+            return None
+
+    def default_department(self):
+        emp = self.env['hr.employee'].sudo().search([('user_id', '=', self.env.user.id)], limit=1)
+        department_id = emp.department_id
+        if department_id:
+            return department_id
+        else:
+            return None
+
     @api.onchange("company_id")
     def _compute_department_domain(self):
         for rec in self:
-            domain = []
+            domain = [('company_id', 'in', self.env.user.company_ids.ids)]
             if rec.company_id:
                 domain = [("company_id", "=", rec.company_id.id)]
             rec.department_domain = domain
@@ -31,11 +50,13 @@ class PopupSonhaContractReport(models.TransientModel):
     @api.onchange("company_id", "department_id")
     def _compute_employee_domain(self):
         for rec in self:
-            domain = []
+            domain = [('company_id', 'in', self.env.user.company_ids.ids), ('id', 'child_of', self.env.user.employee_id.id)]
+            if self.env.user.has_group('sonha_employee.group_hr_employee') or self.env.user.has_group('sonha_employee.group_back_up_employee'):
+                domain = [('company_id', 'in', self.env.user.company_ids.ids)]
             if rec.department_id:
-                domain = [("department_id", "=", rec.department_id.id)]
-            elif rec.company_id:
-                domain = [("company_id", "=", rec.company_id.id)]
+                domain.append(("department_id", "=", rec.department_id.id))
+            if rec.company_id:
+                domain.append(("company_id", "=", rec.company_id.id))
             rec.employee_domain = domain
 
     def action_confirm(self):
