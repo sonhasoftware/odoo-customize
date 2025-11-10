@@ -33,6 +33,9 @@ class LeaveLeft(models.Model):
     leave_t12 = fields.Float("Phép sử dụng tháng 12")
 
     def update_employee_leave_left(self):
+        self.with_delay().cron_jon()
+
+    def cron_jon(self):
         list_employee = self.env['hr.employee'].sudo().search([])
         for emp in list_employee:
             self.env['popup.synthetic.leave.report'].calculate_total_leave_left(emp)

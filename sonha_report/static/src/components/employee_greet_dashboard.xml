@@ -1,0 +1,27 @@
+<t t-name="employee_inout_dashboard_template">
+    <div class="o_employee_dashboard" style="padding: 16px; overflow-y: auto; max-height: 100vh;">
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px;">
+            <label>Chọn công ty: </label>
+            <select t-model="state.company_id" t-on-change="applyFilters" style="width: 300px;">
+                <t t-foreach="state.companies" t-as="c" t-key="c.id">
+                    <option t-att-value="c.id" t-esc="c.name"/>
+                </t>
+            </select>
+
+            <label style="margin-left: 12px;">Năm:</label>
+            <input type="number" t-model="state.year" min="1000" max="2100" style="width: 80px;" t-on-change="applyFilters"/>
+        </div>
+
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 30%; max-width: 30%; min-height:500px; max-height:600px;">
+                <canvas t-ref="barChart" style="width:100%; height:500px;"></canvas>
+            </div>
+            <div style="flex: 1; min-width: 35%; max-width: 35%; min-height:500px; max-height:600px;">
+                <canvas t-ref="pieChart" style="width:100%; height:400px;"></canvas>
+            </div>
+            <div style="flex: 1; min-width: 30%; max-width: 30%; min-height:500px; max-height:600px;">
+                <canvas t-ref="totalEmployeeChart"></canvas>
+            </div>
+        </div>
+    </div>
+</t>

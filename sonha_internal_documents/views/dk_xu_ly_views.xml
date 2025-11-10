@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_dk_xu_ly_tree" model="ir.ui.view">
+        <field name="name">dk.xu.ly.tree</field>
+        <field name="model">dk.xu.ly</field>
+        <field name="arch" type="xml">
+            <tree string="Cấu hình luồng xử lý" editable="bottom">
+                <field name="ma"/>
+                <field name="ten"/>
+                <field name="stt"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_dk_xu_ly" model="ir.actions.act_window">
+        <field name="name">Cấu hình luồng xử lý</field>
+        <field name="res_model">dk.xu.ly</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

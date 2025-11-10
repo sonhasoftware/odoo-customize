@@ -45,3 +45,6 @@ access_import_leave,import.leave,model_import_leave,,1,1,1,1
 
 access_config_contract,config.contract,model_config_contract,,1,1,1,1
 
+access_res_user_van_ban_user,res.user.van.ban.user,model_res_users,sonha_internal_documents.group_user_van_ban,1,1,1,1
+access_res_user_van_ban_admin,res.user.van.ban.admin,model_res_users,sonha_internal_documents.group_admin_van_ban,1,1,1,1
+

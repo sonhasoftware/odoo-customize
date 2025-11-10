@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="emp_employee_report_tree_view" model="ir.ui.view">
+        <field name="name">emp.employee.report.tree.view</field>
+        <field name="model">employee.report</field>
+        <field name="arch" type="xml">
+            <tree string="Báo cáo nhân viên">
+<!--                <field name="id_ns"/>-->
+                <field name="ma_cham_cong"/>
+                <field name="ma_nhan_vien"/>
+                <field name="ten_nhan_vien"/>
+                <field name="ngay_vao_cong_ty"/>
+                <field name="ngay_vao"/>
+                <field name="thang_vao"/>
+                <field name="nam_vao"/>
+                <field name="ngay_tiep_nhan"/>
+<!--                <field name="phong_ban_id"/>-->
+                <field name="phong_ban"/>
+                <field name="chuc_vu"/>
+                <field name="don_vi"/>
+                <field name="gioi_tinh"/>
+                <field name="ngay_sinh"/>
+                <field name="tinh_trang_hon_nhan"/>
+                <field name="do_tuoi"/>
+                <field name="dan_toc"/>
+                <field name="ton_giao"/>
+                <field name="nguyen_quan"/>
+                <field name="dia_chi_thuong_tru"/>
+                <field name="noi_o_hien_tai"/>
+                <field name="sdt"/>
+                <field name="so_cccd"/>
+                <field name="ngay_cap"/>
+                <field name="noi_cap"/>
+                <field name="ma_so_thue"/>
+                <field name="bac_nhan_su"/>
+                <field name="so_nam_tham_nien"/>
+                <field name="so_thang_tham_nien"/>
+                <field name="tham_nien"/>
+                <field name="trinh_do_vi_tinh"/>
+                <field name="trinh_do_van_hoa"/>
+                <field name="ngoai_ngu"/>
+                <field name="trinh_do_ngoai_ngu"/>
+                <field name="ten_hd"/>
+                <field name="nhom_luong"/>
+                <field name="khoi_me"/>
+                <field name="khoi_con"/>
+                <field name="co_xd_thoi_han"/>
+                <field name="hd_thu_viec"/>
+                <field name="hd_thoi_vu"/>
+                <field name="cong_tac_vien"/>
+                <field name="khac"/>
+                <field name="trang_thai_lam_viec"/>
+                <field name="ngay_nghi_viec"/>
+                <field name="ngay_nghi"/>
+                <field name="thang_nghi"/>
+                <field name="nam_nghi"/>
+                <field name="email"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="sonha_contract_employee_report_tree_view" model="ir.ui.view">
+        <field name="name">contract.employee.report.tree.view</field>
+        <field name="model">employee.report</field>
+        <field name="arch" type="xml">
+            <tree string="Báo cáo nhân viên">
+<!--                <field name="id_ns"/>-->
+                <field name="ma_cham_cong"/>
+                <field name="ma_nhan_vien"/>
+                <field name="ten_nhan_vien"/>
+                <field name="ngay_vao_cong_ty"/>
+                <field name="ngay_vao"/>
+                <field name="thang_vao"/>
+                <field name="nam_vao"/>
+                <field name="ngay_tiep_nhan"/>
+<!--                <field name="phong_ban_id"/>-->
+                <field name="phong_ban"/>
+                <field name="chuc_vu"/>
+                <field name="don_vi"/>
+                <field name="gioi_tinh"/>
+                <field name="ngay_sinh"/>
+                <field name="tinh_trang_hon_nhan"/>
+                <field name="do_tuoi"/>
+                <field name="dan_toc"/>
+                <field name="ton_giao"/>
+                <field name="nguyen_quan"/>
+                <field name="dia_chi_thuong_tru"/>
+                <field name="noi_o_hien_tai"/>
+                <field name="sdt"/>
+                <field name="so_cccd"/>
+                <field name="ngay_cap"/>
+                <field name="noi_cap"/>
+                <field name="ma_so_thue"/>
+                <field name="bac_nhan_su"/>
+                <field name="so_nam_tham_nien"/>
+                <field name="so_thang_tham_nien"/>
+                <field name="tham_nien"/>
+                <field name="trinh_do_vi_tinh"/>
+                <field name="trinh_do_van_hoa"/>
+                <field name="ngoai_ngu"/>
+                <field name="trinh_do_ngoai_ngu"/>
+                <field name="ten_hd"/>
+<!--                <field name="hop_dong_id"/>-->
+                <field name="tt_hd"/>
+                <field name="nhom_luong"/>
+                <field name="khoi_me"/>
+                <field name="khoi_con"/>
+                <field name="trang_thai_lam_viec"/>
+                <field name="ngay_nghi_viec"/>
+                <field name="ngay_nghi"/>
+                <field name="thang_nghi"/>
+                <field name="nam_nghi"/>
+                <field name="email"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="emp_employee_report_action" model="ir.actions.act_window">
+        <field name="name">Báo cáo biến động nhân sự</field>
+        <field name="res_model">employee.report</field>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="emp_employee_report_tree_view"/>
+    </record>
+
+    <record id="contract_employee_report_tree_view" model="ir.actions.act_window">
+        <field name="name">Báo cáo hợp đồng</field>
+        <field name="res_model">employee.report</field>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="sonha_contract_employee_report_tree_view"/>
+    </record>
+</odoo>

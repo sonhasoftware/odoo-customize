@@ -52,6 +52,8 @@
                         <field name="duration"/>
                         <field name="employee_confirm" readonly="1"/>
                         <field name="employee_approval" readonly="1"/>
+
+                        <field name="phep_ton" readonly="1"/>
                     </group>
                 </sheet>
                 <div class="oe_chatter">

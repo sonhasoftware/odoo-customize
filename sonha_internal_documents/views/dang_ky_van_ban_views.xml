@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_dk_vb_h_tree" model="ir.ui.view">
+        <field name="name">dk.vb.h.tree</field>
+        <field name="model">dk.vb.h</field>
+        <field name="arch" type="xml">
+            <tree string="Đăng ký văn bản">
+                <field name="chung_tu"/>
+                <field name="ngay_ct"/>
+                <field name="ngay_ht"/>
+                <field name="id_loai_vb"/>
+                <field name="dvcs"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_dk_vb_h_form" model="ir.ui.view">
+        <field name="name">dk.vb.h.from</field>
+        <field name="model">dk.vb.h</field>
+        <field name="arch" type="xml">
+            <form string="Đăng ký văn bản">
+                <header>
+                    <button name="action_confirm" string="Xin phê duyệt" type="object" class="btn-primary" invisible="check_write == True or create_uid != uid"/>
+                    <field name="status" widget="statusbar" />
+                    <field name="create_uid" invisible="1"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="check_write" invisible="1"/>
+                            <field name="ngay_ct" readonly="check_write == True"/>
+                            <field name="chung_tu" readonly="check_write == True"/>
+                            <field name="id_loai_vb" readonly="check_write == True"/>
+                        </group>
+                        <group>
+                            <field name="ngay_ht" readonly="check_write == True"/>
+                            <field name="dvcs" readonly="check_write == True"/>
+                            <field name="file" filename="file_name" string="Đính kèm tập tin" readonly="check_write == True"/>
+                            <field name="file_name" invisible="1"/>
+                        </group>
+                        <b>Nội dung chi tiết hồ sơ các đơn vị đăng ký</b>
+                        <field name="noi_dung" widget="html" readonly="check_write == True" placeholder="Nội dung chi tiết hồ sơ các đơn vị đăng ký"/>
+                        <b>Tiến trình xử lý</b>
+                        <field name="dk_vb_d" readonly="check_write == True" string="Luồng duyệt">
+                            <tree editable="bottom" decoration-success="is_approved == True">
+                                <field name="is_approved" column_invisible="True"/>
+                                <field name="user_duyet"/>
+                                <field name="xu_ly"/>
+                                <field name="sn_duyet"/>
+                                <field name="ngay_duyet"/>
+                                <field name="tu_choi"/>
+                                <field name="can_approve" column_invisible="True"/>
+                                <button name="action_confirm" string="Duyệt" type="object" class="btn-primary" invisible="can_approve != True"/>
+                                <button name="action_cancel" type="object" string="Từ chối" class="btn-danger" invisible="can_approve != True"/>
+                            </tree>
+                        </field>
+                        <group>
+                            <field name="tn_pb" readonly="check_write == True"/>
+                            <field name="tn_bdh" readonly="check_write == True"/>
+                            <field name="tn_ct" readonly="check_write == True"/>
+                        </group>
+
+                        <group>
+                            <field name="sn_pb" readonly="tn_pb != True or check_write == True"/>
+                            <field name="sn_bdh" readonly="tn_bdh != True or check_write == True"/>
+                            <field name="sn_ct" readonly="tn_ct != True or check_write == True"/>
+                        </group>
+                        <field name="file" filename="file_name" string="Đính kèm tập tin" readonly="check_write == True"/>
+                        <field name="file_name" invisible="1"/>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dk_vb_h" model="ir.actions.act_window">
+        <field name="name">Đăng ký văn bản</field>
+        <field name="res_model">dk.vb.h</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

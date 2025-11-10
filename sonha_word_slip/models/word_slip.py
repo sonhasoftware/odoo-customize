@@ -1,6 +1,8 @@
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from dateutil.relativedelta import relativedelta
+from datetime import timedelta
+from uuid import uuid4
 
 
 class WordSlip(models.Model):
@@ -27,6 +29,8 @@ class WordSlip(models.Model):
     type = fields.Many2one('config.word.slip', related='word_slip.type')
     duration = fields.Float("Ngày", compute="get_duration")
     reason = fields.Text(string="Lý do")
+
+    temp_key = fields.Char(string="Temporary Key", readonly=True, copy=False, default=lambda self: str(uuid4()))
 
     @api.constrains('time_to', 'time_from', 'word_slip')
     def validate_time_to_from(self):

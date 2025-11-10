@@ -392,7 +392,7 @@ class DepartmentRel(models.Model):
 class WorkProcess(models.Model):
     _name = 'work.process'
 
-    employee_id = fields.Many2one('hr.employee')
+    employee_id = fields.Many2one('hr.employee', required=True)
 
     start_date = fields.Date("Ngày bắt đầu")
     job_id = fields.Many2one('hr.job', "Chức vụ")
@@ -401,14 +401,44 @@ class WorkProcess(models.Model):
     type = fields.Char("Loại quyết định")
     note = fields.Text("Ghi chú")
 
+    old_job_id = fields.Many2one('hr.job', "Chức vụ cũ")
+    old_department_id = fields.Many2one('hr.department', "Phòng ban cũ")
+
+    # def create(self, vals):
+    #     res = super(WorkProcess, self).create(vals)
+    #     if res[-1].job_id:
+    #         job_id = res[-1].job_id.id
+    #         res.employee_id.job_id = job_id
+    #     if res[-1].department_id:
+    #         res.employee_id.department_id = res[-1].department_id.id
+    #     return res
+
     def create(self, vals):
         res = super(WorkProcess, self).create(vals)
-        if res[-1].job_id:
-            job_id = res[-1].job_id.id
+        if res.job_id:
+            job_id = res.job_id.id
+            res.old_job_id = res.employee_id.job_id.id if res.employee_id.job_id else None
             res.employee_id.job_id = job_id
-        if res[-1].department_id:
-            res.employee_id.department_id = res[-1].department_id.id
+        if res.department_id:
+            res.old_department_id = res.employee_id.department_id.id if res.employee_id.department_id else None
+            res.employee_id.department_id = res.department_id.id
         return res
+
+    def write(self, vals):
+        res = super(WorkProcess, self).write(vals)
+        for r in self:
+            if 'job_id' in vals:
+                job_id = r.job_id.id
+                r.employee_id.job_id = job_id
+            if 'department_id' in vals:
+                r.employee_id.department_id = r.department_id.id
+        return res
+
+    def unlink(self):
+        for r in self:
+            r.employee_id.department_id = r.old_department_id.id if r.old_department_id else None
+            r.employee_id.job_id = r.old_job_id.id if r.old_job_id else None
+        return super(WorkProcess, self).unlink()
 
 
 class Resources(models.Model):

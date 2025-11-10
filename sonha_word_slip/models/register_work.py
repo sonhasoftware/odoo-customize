@@ -46,6 +46,7 @@ class RegisterWork(models.Model):
         list_record = super(RegisterWork, self).create(vals)
         for record in list_record:
             self.sudo().create_distribute_shift(record)
+            record.explore_to_work()
         return list_record
 
     def create_distribute_shift(self, record):
@@ -88,3 +89,37 @@ class RegisterWork(models.Model):
                 if overlapping_records:
                     raise ValidationError(
                         f"Nhân viên {employee.name} đã có ca trong thời gian bạn chọn. Vui lòng chọn khoảng thời gian khác.")
+
+    def explore_to_work(self):
+        model = self.env['rel.ca'].sudo()
+
+        if not self.employee_id or not self.start_date or not self.end_date:
+            return
+
+        model.search([('key_register_work', '=', self.id)]).unlink()
+
+        current_date = self.start_date
+        while current_date <= self.end_date:
+            for emp in self.employee_id:
+                model.create({
+                    'employee_id': emp.id,
+                    'department_id': self.department_id.id,
+                    'company_id': self.company_id.id,
+                    'date': current_date,
+                    'shift_id': self.shift.id,
+                    'key_register_work': self.id,
+                })
+            current_date += timedelta(days=1)
+
+    def write(self, vals):
+        res = super(RegisterWork, self).write(vals)
+        for rec in self:
+            rec.explore_to_work()
+        return res
+
+    def unlink(self):
+        for r in self:
+            self.env['rel.ca'].sudo().search([('key_register_work', '=', r.id)]).unlink()
+        return super(RegisterWork, self).unlink()
+
+

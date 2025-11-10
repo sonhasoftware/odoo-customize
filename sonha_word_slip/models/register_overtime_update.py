@@ -209,6 +209,46 @@ class RegisterOvertimeUpdate(models.Model):
     def create(self, vals):
         res = super(RegisterOvertimeUpdate, self).create(vals)
         self.action_noti_manager(res)
+        self.explode_to_overtime(res.employee_id, res.employee_ids, res.date)
+        return res
+
+    def explode_to_overtime(self, employee_id=None, employee_ids=None, overtime_id=None):
+        model = self.env['rel.lam.them'].sudo()
+
+        employees = []
+        if employee_id:
+            employees.append(employee_id)
+        if employee_ids:
+            employees += employee_ids
+
+        if not employees or not overtime_id:
+            return
+
+        for r in overtime_id:
+            if not r.date or not r.start_time or not r.end_time:
+                continue
+
+            model.search([('key', '=', r.id)]).unlink()
+
+            time_amount = r.end_time - r.start_time
+
+            for emp in employees:
+                model.create({
+                    'employee_id': emp.id,
+                    'department_id': r.overtime_id.department_id.id,
+                    'company_id': r.overtime_id.company_id.id,
+                    'date': r.date,
+                    'start_time': r.start_time,
+                    'end_time': r.end_time,
+                    'time_amount': time_amount,
+                    'key': r.id,
+                    'key_form': r.overtime_id.id,
+                })
+
+    def write(self, vals):
+        res = super(RegisterOvertimeUpdate, self).write(vals)
+        for rec in self:
+            rec.explode_to_overtime(rec.employee_id, rec.employee_ids, rec.date)
         return res
 
     @api.onchange('employee_id', 'employee_ids', 'status_lv2', 'type_overtime')
@@ -328,4 +368,5 @@ class RegisterOvertimeUpdate(models.Model):
         for r in self:
             if r.status != 'draft':
                 raise ValidationError("chỉ được xóa bản ghi ở trạng thái nháp")
+            self.env['rel.lam.them'].sudo().search([('key_form', '=', r.id)]).unlink()
         return super(RegisterOvertimeUpdate, self).unlink()

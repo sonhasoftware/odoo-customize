@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="action_owl_employee_report_greet_dashboard" model="ir.actions.client">
+        <field name="name">EmployeeInOutDashboard</field>
+        <field name="tag">employee.inout_dashboard</field>
+    </record>
+
+<!--    <menuitem id="menu_owl_employee_dashboard"-->
+<!--              name="Biểu đồ"-->
+<!--              parent="menu_sonha_report"-->
+<!--              action="action_owl_employee_report_greet_dashboard"-->
+<!--              sequence="0"/>-->
+</odoo>
