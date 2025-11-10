@@ -625,10 +625,11 @@ class FormWordSlip(models.Model):
                         'date': current_date,
                         'leave': leave,
                         'type_leave': rec.type.id,
-                        'key': rec.id,  # dùng rec.id để liên kết lại
+                        'key': rec.id,
+                        'key_form': rec.word_slip.id
                     })
-                    self.env.cr.execute("SELECT * FROM public.fn_ton_phep(%s,%s)", (emp.id, rec.word_slip.temp_key))
-                    self.env.cr.dictfetchall()
+                    # self.env.cr.execute("SELECT * FROM public.fn_ton_phep(%s,%s)", (emp.id, rec.word_slip.temp_key))
+                    # self.env.cr.dictfetchall()
                 current_date += timedelta(days=1)
 
     @api.depends('employee_id', 'employee_ids', 'word_slip_id')
