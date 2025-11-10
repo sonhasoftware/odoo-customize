@@ -5,11 +5,24 @@
               sequence="11"/>
 
     <menuitem
-            id="menu_dk_vb"
+            id="menu_van_ban"
             name="Đăng ký văn bản"
-            action="action_dk_vb_h"
             parent="menu_dang_ky_van_ban"
             sequence="1"/>
+
+    <menuitem
+            id="menu_dk_vb"
+            name="Văn bản chờ duyệt"
+            action="action_dk_vb_h"
+            parent="menu_van_ban"
+            sequence="1"/>
+
+    <menuitem
+            id="menu_dk_vb_all"
+            name="Toàn bộ văn bản"
+            action="action_van_ban_all"
+            parent="menu_van_ban"
+            sequence="2"/>
 
     <menuitem
             id="menu_cau_hinh"

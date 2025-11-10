@@ -82,5 +82,13 @@
         <field name="name">Đăng ký văn bản</field>
         <field name="res_model">dk.vb.h</field>
         <field name="view_mode">tree,form</field>
+        <field name="context">{'show_all': False}</field>
+    </record>
+
+    <record id="action_van_ban_all" model="ir.actions.act_window">
+        <field name="name">Tất cả văn bản</field>
+        <field name="res_model">dk.vb.h</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'show_all': True}</field>
     </record>
 </odoo>

@@ -50,25 +50,27 @@ class DKVanBanH(models.Model):
                     r.sap_xep = 1
 
     def _search(self, args, offset=0, limit=None, order=None, access_rights_uid=None):
-        nguoi_dung = self.env.uid
-        if self.env.user.has_group('sonha_internal_documents.group_admin_van_ban'):
-            quyen = 1
+        context = self.env.context or {}
+        show_all = context.get('show_all', False)
+
+        # Nếu show_all=True thì bỏ qua custom filter => hiển thị tất cả
+        if not show_all:
+            check = 1
         else:
-            quyen = 2
+            check = 2
+        nguoi_dung = self.env.uid
+        quyen = 1 if self.env.user.has_group('sonha_internal_documents.group_admin_van_ban') else 2
 
         # Gọi function PostgreSQL
-        query = "SELECT * FROM fn_lay_vb_duyet(%s, %s)"
-        self.env.cr.execute(query, (nguoi_dung, quyen))
+        query = "SELECT * FROM fn_lay_vb_duyet(%s, %s, %s)"
+        self.env.cr.execute(query, (nguoi_dung, quyen, check))
         rows = self.env.cr.dictfetchall()
 
-        # Lấy danh sách id từ function
         ids = [row["id"] for row in rows if "id" in row]
-
-        # Trả domain ép buộc Odoo chỉ lấy các bản ghi này
-        new_domain = args + [("id", "in", ids)] if ids else [("id", "=", 0)]
+        args = args + [("id", "in", ids)] if ids else [("id", "=", 0)]
 
         return super(DKVanBanH, self)._search(
-            new_domain,
+            args,
             offset=offset,
             limit=limit,
             order=order,
