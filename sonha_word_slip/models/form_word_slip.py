@@ -524,7 +524,7 @@ class FormWordSlip(models.Model):
             # Trường hợp không có bước phê duyệt
             rec.employee_approval = employee_id.employee_approval.id if employee_id.employee_approval else employee_id.parent_id.id
 
-        # self.explode_to_leave(rec.employee_id, rec.employee_ids, rec.word_slip_id)
+        self.explode_to_leave(rec.employee_id, rec.employee_ids, rec.word_slip_id)
 
         return rec
 
@@ -584,76 +584,75 @@ class FormWordSlip(models.Model):
                 self.process_word_slip_validation(record)
                 self.env['word.slip'].sudo().check_employee_days_limit(record.word_slip_id)
 
-        # for rec in self:
-        #
-        #     rec.explode_to_leave(rec.employee_id, rec.employee_ids, rec.word_slip_id)
+        for rec in self:
+
+            rec.explode_to_leave(rec.employee_id, rec.employee_ids, rec.word_slip_id)
 
         return res
 
-    # def explode_to_leave(self, employee_id=None, employee_ids=None, word_slip_id=None):
-    #     """Sinh bản ghi vào bảng rel.don.tu theo từng nhân viên và từng ngày"""
-    #     model = self.env['rel.don.tu']
-    #
-    #     # Hợp nhất employee_id (nếu có) và employee_ids (nếu có)
-    #     employees = []
-    #     if employee_id:
-    #         employees.append(employee_id)
-    #     if employee_ids:
-    #         employees += employee_ids
-    #
-    #     if not employees or not word_slip_id:
-    #         return
-    #
-    #     for rec in word_slip_id:
-    #         if not rec.from_date or not rec.to_date:
-    #             continue
-    #
-    #         # Xóa dữ liệu cũ trước khi tạo mới để tránh trùng lặp
-    #         model.search([('key', '=', rec.id)]).unlink()
-    #
-    #         # Tính loại nghỉ (0.5 hoặc 1 ngày)
-    #         leave = 0
-    #         if rec.type.key == 'NP':
-    #             leave = 0.5 if rec.start_time == rec.end_time else 1
-    #
-    #         # Sinh dữ liệu từng ngày, từng nhân viên
-    #         current_date = rec.from_date
-    #         while current_date <= rec.to_date:
-    #             for emp in employees:
-    #                 model.create({
-    #                     'employee_id': emp.id,
-    #                     'date': current_date,
-    #                     'leave': leave,
-    #                     'type_leave': rec.type.id,
-    #                     'key': rec.id,  # dùng rec.id để liên kết lại
-    #                 })
-    #                 self.env.cr.execute("SELECT * FROM public.fn_ton_phep(%s,%s)", (emp.id, rec.word_slip.temp_key))
-    #                 self.env.cr.dictfetchall()
-    #             current_date += timedelta(days=1)
+    def explode_to_leave(self, employee_id=None, employee_ids=None, word_slip_id=None):
+        """Sinh bản ghi vào bảng rel.don.tu theo từng nhân viên và từng ngày"""
+        model = self.env['rel.don.tu']
+
+        # Hợp nhất employee_id (nếu có) và employee_ids (nếu có)
+        employees = []
+        if employee_id:
+            employees.append(employee_id)
+        if employee_ids:
+            employees += employee_ids
+
+        if not employees or not word_slip_id:
+            return
+
+        for rec in word_slip_id:
+            if not rec.from_date or not rec.to_date:
+                continue
+
+            # Xóa dữ liệu cũ trước khi tạo mới để tránh trùng lặp
+            model.search([('key', '=', rec.id)]).unlink()
+
+            # Tính loại nghỉ (0.5 hoặc 1 ngày)
+            leave = 0
+            if rec.type.key == 'NP':
+                leave = 0.5 if rec.start_time == rec.end_time else 1
+
+            # Sinh dữ liệu từng ngày, từng nhân viên
+            current_date = rec.from_date
+            while current_date <= rec.to_date:
+                for emp in employees:
+                    model.create({
+                        'employee_id': emp.id,
+                        'date': current_date,
+                        'leave': leave,
+                        'type_leave': rec.type.id,
+                        'key': rec.id,  # dùng rec.id để liên kết lại
+                    })
+                    self.env.cr.execute("SELECT * FROM public.fn_ton_phep(%s,%s)", (emp.id, rec.word_slip.temp_key))
+                    self.env.cr.dictfetchall()
+                current_date += timedelta(days=1)
 
     @api.depends('employee_id', 'employee_ids', 'word_slip_id')
     def _onchange_phep_ton_preview(self):
-        pass
-        # for r in self:
-        #     if not (r.employee_id or r.employee_ids) or not r.word_slip_id:
-        #         r.phep_ton = False
-        #         continue
-        #
-        #     employees = []
-        #     if r.employee_id:
-        #         employees.append(r.employee_id)
-        #     if r.employee_ids:
-        #         employees += r.employee_ids
-        #     info_lines = []
-        #     for emp in employees:
-        #         total_leave = 0
-        #         for slip in r.word_slip_id:
-        #             if slip.type.key == 'NP':
-        #                 if slip.start_time == slip.end_time:
-        #                     total_leave += 0.5
-        #                 else:
-        #                     total_leave += 1
-        #
-        #         ton = emp.old_leave_balance + emp.new_leave_balance - total_leave
-        #         info_lines.append(f"{emp.name}: còn {ton} phép (tạm tính)")
-        #     r.phep_ton = "\n".join(info_lines)
+        for r in self:
+            if not (r.employee_id or r.employee_ids) or not r.word_slip_id:
+                r.phep_ton = False
+                continue
+
+            employees = []
+            if r.employee_id:
+                employees.append(r.employee_id)
+            if r.employee_ids:
+                employees += r.employee_ids
+            info_lines = []
+            for emp in employees:
+                total_leave = 0
+                for slip in r.word_slip_id:
+                    if slip.type.key == 'NP':
+                        if slip.start_time == slip.end_time:
+                            total_leave += 0.5
+                        else:
+                            total_leave += 1
+
+                ton = emp.old_leave_balance + emp.new_leave_balance - total_leave
+                info_lines.append(f"{emp.name}: còn {ton} phép (tạm tính)")
+            r.phep_ton = "\n".join(info_lines)
