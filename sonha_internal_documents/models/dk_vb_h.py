@@ -6,6 +6,7 @@ from odoo.exceptions import UserError, ValidationError
 
 class DKVanBanH(models.Model):
     _name = 'dk.vb.h'
+    _order = 'sap_xep,ngay_ct'
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
     ngay_ct = fields.Date(string="Ngày làm đơn", store=True, default=fields.Date.today, required=True, tracking=True)
@@ -15,7 +16,7 @@ class DKVanBanH(models.Model):
 
     id_loai_vb = fields.Many2one('dk.loai.vb', string="Loại VB", store=True, required=True, tracking=True)
 
-    noi_dung = fields.Html("Nội dung chi tiết hồ sơ các đơn vị đăng ký", store=True, required=True)
+    noi_dung = fields.Html("Nội dung chi tiết hồ sơ các đơn vị đăng ký", store=True, required=True, tracking=False)
 
     tn_pb = fields.Boolean(string="Tổng ngày PB", store=True, tracking=True)
     sn_pb = fields.Float(string="Số ngày PB", store=True, tracking=True)
@@ -32,11 +33,52 @@ class DKVanBanH(models.Model):
     file_name = fields.Char(string="Tên file")
     check_write = fields.Boolean('Kiểm tra', default=False)
     nguoi_tu_choi = fields.Many2one('res.users', string="Người từ chối")
+    sap_xep = fields.Integer(string="Sắp xếp", store=True, compute='get_trang_thai_tam')
     status = fields.Selection([
         ('reject', "Từ chối"),
         ('draft', "Nháp"),
         ('done', "Đã xin phê duyệt"),
-    ], string='Tình trạng hôn nhân', tracking=True, default='draft')
+    ], string='Trạng thái', tracking=True, default='draft')
+
+    @api.depends('dk_vb_d')
+    def get_trang_thai_tam(self):
+        for r in self:
+            for rec in r.dk_vb_d:
+                if not rec.is_approved and rec.user_duyet == self.env.uid:
+                    r.sap_xep = 2
+                else:
+                    r.sap_xep = 1
+
+    def _search(self, args, offset=0, limit=None, order=None, access_rights_uid=None):
+        nguoi_dung = self.env.uid
+        if self.env.user.has_group('sonha_internal_documents.group_admin_van_ban'):
+            quyen = 1
+        else:
+            quyen = 2
+
+        # Gọi function PostgreSQL
+        query = "SELECT * FROM fn_lay_vb_duyet(%s, %s)"
+        self.env.cr.execute(query, (nguoi_dung, quyen))
+        rows = self.env.cr.dictfetchall()
+
+        # Lấy danh sách id từ function
+        ids = [row["id"] for row in rows if "id" in row]
+
+        # Trả domain ép buộc Odoo chỉ lấy các bản ghi này
+        new_domain = args + [("id", "in", ids)] if ids else [("id", "=", 0)]
+
+        return super(DKVanBanH, self)._search(
+            new_domain,
+            offset=offset,
+            limit=limit,
+            order=order,
+            access_rights_uid=access_rights_uid,
+        )
+
+    @api.model
+    def search_count(self, args):
+        ids = self._search(args)
+        return len(ids)
 
     @api.constrains('tn_pb', 'tn_ct', 'tn_bdh', 'sn_pb', 'sn_bdh', 'sn_ct')
     def validate_ngay(self):
@@ -47,6 +89,19 @@ class DKVanBanH(models.Model):
                 raise ValidationError("Số ngày BDH không được bé hơn hoặc hoặc không")
             if r.tn_ct and r.sn_ct <= 0:
                 raise ValidationError("Số ngày CT/PCT không được bé hơn hoặc hoặc không")
+
+    @api.constrains('dk_vb_d')
+    def validate_chi_tiet(self):
+        for r in self:
+            if not r.dk_vb_d:
+                raise ValidationError("Luồng xử lý không được để trống!")
+            for rec in r.dk_vb_d:
+                if not rec.user_duyet:
+                    raise ValidationError("Người duyệt không được để trống!")
+                if not rec.xu_ly:
+                    raise ValidationError("Tiến trình xử lý không được để trống!")
+                if rec.sn_duyet <= 0:
+                    raise ValidationError("Số ngày duyệt không được bé hơn hoặc hoặc không")
 
     @api.depends('sn_pb', 'sn_bdh', 'sn_ct', 'ngay_ct', 'dk_vb_d')
     def get_ngay_hoan_thanh(self):
@@ -78,7 +133,7 @@ class DKVanBanH(models.Model):
     def action_confirm(self):
         Mail = self.env['mail.mail']
         for r in self:
-            recipients = None
+            recipients = []
             if r.nguoi_tu_choi:
                 recipients.append(r.nguoi_tu_choi.employee_id)
             else:

@@ -50,9 +50,9 @@ class WizardDKVBTuChoi(models.TransientModel):
 
         # Gán thông tin
         rec.is_approved = False
-        rec.tu_choi = self.reason
+        rec.tu_choi += f"{self.reason}\n"
         rec.dk_vb_h.nguoi_tu_choi = self.env.user.id
         rec.dk_vb_h.check_write = False
         rec.dk_vb_h.status = 'reject'
 
-        return {'type': 'ir.actions.act_window_close'}
+        return True

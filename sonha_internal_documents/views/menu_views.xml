@@ -15,7 +15,6 @@
             id="menu_cau_hinh"
             name="Danh mục cấu hình"
             parent="menu_dang_ky_van_ban"
-            groups="group_admin_van_ban"
             sequence="2"/>
 
     <menuitem

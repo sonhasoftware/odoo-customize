@@ -37,6 +37,10 @@ class DKVanBanD(models.Model):
                 rec.can_approve = False
                 continue
 
+            if rec.dk_vb_h.check_write == False:
+                rec.can_approve = False
+                continue
+
             # Nếu không phải người duyệt dòng này → ẩn nút
             if not rec.user_duyet or rec.user_duyet.id != rec.env.uid:
                 rec.can_approve = False
@@ -126,6 +130,17 @@ class DKVanBanD(models.Model):
             }
 
     def fill_ngay_bd_duyet(self, rec):
-        list_rec = self.sudo().search([('dk_vb_h', '=', rec.dk_vb_h.id)])
+        list_rec = self.sudo().search([('dk_vb_h', '=', rec.dk_vb_h.id),
+                                       ('is_approved', '=', False)])
+        if rec.xu_ly.stt == 1 and rec.dk_vb_h.tn_pb:
+            list_rec = self.sudo().search([('dk_vb_h', '=', rec.dk_vb_h.id),
+                                           ('is_approved', '=', False),
+                                           ('xu_ly.stt', '!=', 1)])
+        if rec.xu_ly.stt == 2 and rec.dk_vb_h.tn_bdh:
+            list_rec = self.sudo().search([('dk_vb_h', '=', rec.dk_vb_h.id),
+                                           ('is_approved', '=', False),
+                                           ('xu_ly.stt', '=', 3)])
+        if rec.xu_ly.stt == 3 and rec.dk_vb_h.tn_ct:
+            return
         for r in list_rec:
             r.ngay_bd_duyet = datetime.datetime.now()

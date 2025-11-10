@@ -20,26 +20,27 @@
         <field name="arch" type="xml">
             <form string="Đăng ký văn bản">
                 <header>
-                    <button name="action_confirm" string="Xin phê duyệt" type="object" class="btn-primary" invisible="check_write == True"/>
+                    <button name="action_confirm" string="Xin phê duyệt" type="object" class="btn-primary" invisible="check_write == True or create_uid != uid"/>
                     <field name="status" widget="statusbar" />
+                    <field name="create_uid" invisible="1"/>
                 </header>
                 <sheet>
                     <group>
                         <group>
                             <field name="check_write" invisible="1"/>
-                            <field name="chung_tu" readonly="check_write == True"/>
                             <field name="ngay_ct" readonly="check_write == True"/>
-                            <field name="dvcs" readonly="check_write == True"/>
+                            <field name="chung_tu" readonly="check_write == True"/>
                             <field name="id_loai_vb" readonly="check_write == True"/>
                         </group>
                         <group>
                             <field name="ngay_ht" readonly="check_write == True"/>
+                            <field name="dvcs" readonly="check_write == True"/>
+                            <field name="file" filename="file_name" string="Đính kèm tập tin" readonly="check_write == True"/>
+                            <field name="file_name" invisible="1"/>
                         </group>
-                        <div>
-                            <b>Nội dung chi tiết hồ sơ các đơn vị đăng ký</b>
+                        <b>Nội dung chi tiết hồ sơ các đơn vị đăng ký</b>
                         <field name="noi_dung" widget="html" readonly="check_write == True" placeholder="Nội dung chi tiết hồ sơ các đơn vị đăng ký"/>
-                        </div>
-
+                        <b>Tiến trình xử lý</b>
                         <field name="dk_vb_d" readonly="check_write == True" string="Luồng duyệt">
                             <tree editable="bottom" decoration-success="is_approved == True">
                                 <field name="is_approved" column_invisible="True"/>
