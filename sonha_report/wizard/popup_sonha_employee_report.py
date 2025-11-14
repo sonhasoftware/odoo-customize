@@ -136,6 +136,7 @@ class PopupSonhaEmployeeReport(models.TransientModel):
                     'nam_nghi': row["nam_nghi"],
                     'email': row["email"],
                     'nghi_lam': row["nghi_lam"],
+                    'state': 'employee',
                 })
             return {
                     'type': 'ir.actions.act_window',

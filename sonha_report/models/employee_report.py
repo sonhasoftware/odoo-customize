@@ -65,3 +65,6 @@ class EmployeeReport(models.Model):
     nam_nghi = fields.Char(string="Năm nghỉ")
     email = fields.Char(string="Email")
     nghi_lam = fields.Char(string="Nghỉ làm")
+
+    state = fields.Selection([('employee', "Nhân sự"),
+                              ('contract', "Hợp đồng")], string="trạng thái")
