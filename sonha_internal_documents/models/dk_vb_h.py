@@ -2,6 +2,8 @@ from odoo import api, fields, models, _
 import datetime
 from dateutil.relativedelta import relativedelta
 from odoo.exceptions import UserError, ValidationError
+from openai import OpenAI
+import google.generativeai as genai
 
 
 class DKVanBanH(models.Model):
@@ -9,14 +11,14 @@ class DKVanBanH(models.Model):
     _order = 'sap_xep,ngay_ct'
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
-    ngay_ct = fields.Date(string="Ngày làm đơn", store=True, default=fields.Date.today, required=True, tracking=True)
-    chung_tu = fields.Char(string="Số đơn", store=True, required=True, tracking=True)
+    ngay_ct = fields.Date(string="Ngày lập văn bản", store=True, default=fields.Date.today, required=True, tracking=True)
+    chung_tu = fields.Char(string="Số văn bản", store=True, required=True, tracking=True)
     ngay_ht = fields.Date(string="Ngày hoàn thành", store=True, compute="get_ngay_hoan_thanh")
     dvcs = fields.Many2one('res.company', "Đơn vị", default=lambda self: self.env.company, readonly=False, store=True, required=True, tracking=True)
 
     id_loai_vb = fields.Many2one('dk.loai.vb', string="Loại VB", store=True, required=True, tracking=True)
 
-    noi_dung = fields.Html("Nội dung chi tiết hồ sơ các đơn vị đăng ký", store=True, required=True, tracking=False)
+    noi_dung = fields.Html("Nội dung chi tiết văn bản các đơn vị đăng ký", store=True, required=True, tracking=False)
 
     tn_pb = fields.Boolean(string="Tổng ngày PB", store=True, tracking=True)
     sn_pb = fields.Float(string="Số ngày PB", store=True, tracking=True)
@@ -39,6 +41,7 @@ class DKVanBanH(models.Model):
         ('draft', "Nháp"),
         ('done', "Đã xin phê duyệt"),
     ], string='Trạng thái', tracking=True, default='draft')
+    noi_dung_tom_tat = fields.Text("Tóm tắt văn bản")
 
     @api.depends('dk_vb_d')
     def get_trang_thai_tam(self):
@@ -49,33 +52,33 @@ class DKVanBanH(models.Model):
                 else:
                     r.sap_xep = 1
 
-    def _search(self, args, offset=0, limit=None, order=None, access_rights_uid=None):
-        context = self.env.context or {}
-        show_all = context.get('show_all', False)
-
-        # Nếu show_all=True thì bỏ qua custom filter => hiển thị tất cả
-        if not show_all:
-            check = 1
-        else:
-            check = 2
-        nguoi_dung = self.env.uid
-        quyen = 1 if self.env.user.has_group('sonha_internal_documents.group_admin_van_ban') else 2
-
-        # Gọi function PostgreSQL
-        query = "SELECT * FROM fn_lay_vb_duyet(%s, %s, %s)"
-        self.env.cr.execute(query, (nguoi_dung, quyen, check))
-        rows = self.env.cr.dictfetchall()
-
-        ids = [row["id"] for row in rows if "id" in row]
-        args = args + [("id", "in", ids)] if ids else [("id", "=", 0)]
-
-        return super(DKVanBanH, self)._search(
-            args,
-            offset=offset,
-            limit=limit,
-            order=order,
-            access_rights_uid=access_rights_uid,
-        )
+    # def _search(self, args, offset=0, limit=None, order=None, access_rights_uid=None):
+    #     context = self.env.context or {}
+    #     show_all = context.get('show_all', False)
+    #
+    #     # Nếu show_all=True thì bỏ qua custom filter => hiển thị tất cả
+    #     if not show_all:
+    #         check = 1
+    #     else:
+    #         check = 2
+    #     nguoi_dung = self.env.uid
+    #     quyen = 1 if self.env.user.has_group('sonha_internal_documents.group_admin_van_ban') else 2
+    #
+    #     # Gọi function PostgreSQL
+    #     query = "SELECT * FROM fn_lay_vb_duyet(%s, %s, %s)"
+    #     self.env.cr.execute(query, (nguoi_dung, quyen, check))
+    #     rows = self.env.cr.dictfetchall()
+    #
+    #     ids = [row["id"] for row in rows if "id" in row]
+    #     args = args + [("id", "in", ids)] if ids else [("id", "=", 0)]
+    #
+    #     return super(DKVanBanH, self)._search(
+    #         args,
+    #         offset=offset,
+    #         limit=limit,
+    #         order=order,
+    #         access_rights_uid=access_rights_uid,
+    #     )
 
     @api.model
     def search_count(self, args):
@@ -134,7 +137,14 @@ class DKVanBanH(models.Model):
 
     def action_confirm(self):
         Mail = self.env['mail.mail']
+        api_key = self.env['ir.config_parameter'].sudo().get_param("gemini.api_key")
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel("gemini-2.0-flash")
         for r in self:
+            # genai.configure(api_key=api_key)
+            prompt = f"Tóm tắt ngắn gọn nội dung sau bằng tiếng Việt:\n\n{r.noi_dung}"
+            response = model.generate_content(prompt)
+            r.noi_dung_tom_tat = response.text
             recipients = []
             if r.nguoi_tu_choi:
                 recipients.append(r.nguoi_tu_choi.employee_id)
@@ -167,6 +177,8 @@ class DKVanBanH(models.Model):
                         nhằm đảm bảo tiến độ công việc.</p>
 
                         <p><b>Thông tin đơn phê duyệt:</b><br/>
+                        • <b>Tóm tắt văn bản:</b><br/>
+                        <p>{response.text}</p>
                         • <b>Người gửi:</b> {sender_name}<br/>
                         • <b>Số văn bản:</b> {document_no}<br/>
                         • <b>Loại đơn:</b> <b>{document_type}</b><br/>
@@ -182,11 +194,48 @@ class DKVanBanH(models.Model):
                     'email_to': partner.work_email,
                 }
                 Mail.sudo().create(mail_values).sudo().send()
-            list_rec_d = self.env['dk.vb.d'].sudo().search([('dk_vb_h', '=', r.id),
-                                                            ('is_approved', '=', False)])
+            pending_records = self.env['dk.vb.d'].sudo().search([
+                ('dk_vb_h', '=', r.id),
+                ('is_approved', '=', False)
+            ])
 
-            for d in list_rec_d:
-                d.ngay_bd_duyet = datetime.datetime.now()
+            if pending_records:
+                # Lấy số bước nhỏ nhất còn đang pending
+                min_stt = min(pending_records.mapped('xu_ly.stt'))
+
+                # Tìm tất cả người duyệt thuộc bước nhỏ nhất này
+                list_rec_d = pending_records.filtered(lambda x: x.xu_ly.stt == min_stt)
+
+                # Cập nhật ngày bắt đầu duyệt
+                for d in list_rec_d:
+                    d.ngay_bd_duyet = datetime.datetime.now()
 
             r.check_write = True
             r.status = 'done'
+
+    def func_xu_ly_duyet(self, r):
+        api_key = self.env['ir.config_parameter'].sudo().get_param("gemini.api_key")
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel("gemini-2.0-flash")
+        prompt = f"Tóm tắt ngắn gọn nội dung sau bằng tiếng Việt:\n\n{r.noi_dung}"
+        response = model.generate_content(prompt)
+        r.noi_dung_tom_tat = response.text
+
+        pending_records = self.env['dk.vb.d'].sudo().search([
+            ('dk_vb_h', '=', r.id),
+            ('is_approved', '=', False)
+        ])
+
+        if pending_records:
+            # Lấy số bước nhỏ nhất còn đang pending
+            min_stt = min(pending_records.mapped('xu_ly.stt'))
+
+            # Tìm tất cả người duyệt thuộc bước nhỏ nhất này
+            list_rec_d = pending_records.filtered(lambda x: x.xu_ly.stt == min_stt)
+
+            # Cập nhật ngày bắt đầu duyệt
+            for d in list_rec_d:
+                d.ngay_bd_duyet = datetime.datetime.now()
+
+        r.check_write = True
+        r.status = 'done'

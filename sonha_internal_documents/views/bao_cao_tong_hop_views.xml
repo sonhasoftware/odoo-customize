@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_bao_cao_tong_hop_tree" model="ir.ui.view">
+        <field name="name">bao.cao.tong.hop.tree</field>
+        <field name="model">bao.cao.tong.hop</field>
+        <field name="arch" type="xml">
+            <tree string="Báo cáo tổng hợp" create="0" edit="0" decoration-danger="mau == 1">
+                <field name="ngay_ct" optional="show"/>
+                <field name="chung_tu" optional="show"/>
+                <field name="ngay_ht" optional="show"/>
+                <field name="ten_nguoi_tao" optional="show"/>
+                <field name="ket_thuc" optional="hide"/>
+                <field name="mau" optional="hide"/>
+                <field name="tt_don" optional="show"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_bao_cao_tong_hop" model="ir.actions.act_window">
+        <field name="name">Báo cáo tổng hợp văn bản</field>
+        <field name="res_model">bao.cao.tong.hop</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

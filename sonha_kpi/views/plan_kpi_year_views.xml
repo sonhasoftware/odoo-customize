@@ -81,7 +81,7 @@
         <menuitem id="menu_plan_kpi"
                   name="Đăng ký KPI"
                   parent="sonha_kpi.menu_sonha_kpi"
-                  sequence="1"/>
+                  sequence="2"/>
 
         <menuitem id="menu_plan_kpi_year"
                   name="KPI Năm"
