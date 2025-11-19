@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="sonha_shift_report_tree_view" model="ir.ui.view">
+        <field name="name">sonha.shift.report.tree.view</field>
+        <field name="model">sonha.word.report</field>
+        <field name="arch" type="xml">
+            <tree string="Báo cáo ca làm việc">
+                <field name="ma_ns"/>
+                <field name="ten_ns"/>
+<!--                <field name="bo_phan_id"/>-->
+                <field name="ten_bp"/>
+                <field name="ngay"/>
+                <field name="ca_id"/>
+                <field name="ten_ca"/>
+<!--                <field name="key_form"/>-->
+                <field name="loai_don"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="sonha_overtime_report_tree_view" model="ir.ui.view">
+        <field name="name">sonha.overtime.report.tree.view</field>
+        <field name="model">sonha.word.report</field>
+        <field name="arch" type="xml">
+            <tree string="Báo cáo ca làm việc">
+                <field name="ma_ns"/>
+                <field name="ten_ns"/>
+<!--                <field name="bo_phan_id"/>-->
+                <field name="ten_bp"/>
+                <field name="ngay"/>
+                <field name="gio_bd"/>
+                <field name="gio_kt"/>
+                <field name="so_gio_lt"/>
+                <field name="tt_don"/>
+            </tree>
+        </field>
+    </record>
+
+
+</odoo>

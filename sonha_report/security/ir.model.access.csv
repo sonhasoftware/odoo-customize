@@ -6,7 +6,7 @@ access_employee_attendance_report,access.employee.attendance.report,model_employ
 
 access_synthetic_work_report,access.synthetic.work.report,model_synthetic_work_report,,1,1,1,1
 
-access_employee_shift_report,access.employee.shift.report,model_employee_shift_report,,1,1,1,1
+access_sonha_word_report,access.sonha.word.report,model_sonha_word_report,,1,1,1,1
 
 access_leave_report,access.leave.report,model_leave_report,,1,1,1,1
 
@@ -45,7 +45,6 @@ access_export_report_reward_discipline,access.export.report.reward.discipline,mo
 access_word_slip_report,access.word.slip.report,model_word_slip_report,,1,1,1,1
 access_popup_word_slip_report,access.popup.word.slip.report,model_popup_word_slip_report,,1,1,1,1
 
-access_overtime_report,access.overtime.report,model_overtime_report,,1,1,1,1
 access_popup_overtime_report,access.popup.overtime.report,model_popup_overtime_report,,1,1,1,1
 
 access_leave_left,access.leave.left,model_leave_left,,1,1,1,1

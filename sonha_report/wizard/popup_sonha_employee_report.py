@@ -37,9 +37,17 @@ class PopupSonhaEmployeeReport(models.TransientModel):
     @api.onchange("company_id")
     def _compute_department_domain(self):
         for rec in self:
-            domain = [('company_id', 'in', self.env.user.company_ids.ids)]
+            domain = [
+                ('company_id', 'in', self.env.user.company_ids.ids),
+                '|',
+                ('manager_id.user_id', '=', self.env.user.id),
+                ('id', '=', self.env.user.employee_id.department_id.id)
+            ]
+            if self.env.user.has_group('sonha_employee.group_hr_employee') or self.env.user.has_group(
+                    'sonha_employee.group_back_up_employee'):
+                domain = [('company_id', 'in', self.env.user.company_ids.ids)]
             if rec.company_id:
-                domain = [("company_id", "=", rec.company_id.id)]
+                domain.append(("company_id", "=", rec.company_id.id))
             rec.department_domain = domain
 
     @api.onchange("company_id", "department_id")
@@ -59,8 +67,12 @@ class PopupSonhaEmployeeReport(models.TransientModel):
     def action_confirm(self):
         self.env['employee.report'].sudo().search([]).unlink()
         company_id = self.company_id.id if self.company_id else 0
-        department_id = self.department_id.id if self.department_id else 0
-        employee_id = self.employee_id.id if self.employee_id else 0
+        if self.env.user.has_group('sonha_employee.group_hr_employee') or self.env.user.has_group('sonha_employee.group_back_up_employee'):
+            department_id = self.department_id.id if self.department_id else 0
+            employee_id = self.employee_id.id if self.employee_id else 0
+        else:
+            department_id = self.department_id.id if self.department_id else self.env.user.employee_id.department_id.id
+            employee_id = self.employee_id.id if self.employee_id else self.env.user.employee_id.id
         start_date = self.from_date if self.from_date else date.today()
         end_date = self.to_date if self.to_date else date.today()
         status_employee = ''
@@ -124,6 +136,7 @@ class PopupSonhaEmployeeReport(models.TransientModel):
                     'nam_nghi': row["nam_nghi"],
                     'email': row["email"],
                     'nghi_lam': row["nghi_lam"],
+                    'state': 'employee',
                 })
             return {
                     'type': 'ir.actions.act_window',

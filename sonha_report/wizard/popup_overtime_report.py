@@ -1,5 +1,6 @@
 from odoo import models, fields, api
 from odoo.exceptions import UserError, ValidationError
+from datetime import date
 
 
 class PopupOvertimeReport(models.TransientModel):
@@ -7,55 +8,97 @@ class PopupOvertimeReport(models.TransientModel):
 
     from_date = fields.Date("Từ ngày", required=True)
     to_date = fields.Date("Đến ngày", required=True)
-    company_id = fields.Many2one('res.company', string="Đơn vị", required=True,
-                                 domain="[('id', 'in', allowed_company_ids)]")
+    company_id = fields.Many2one('res.company', string="Đơn vị",
+                                 domain="[('id', 'in', allowed_company_ids)]",
+                                 default=lambda self: self.env.user.company_id, required=True)
     department_id = fields.Many2one('hr.department', string="Phòng ban",
-                                    domain="[('company_id', '=', company_id)]")
-    employee_ids = fields.Many2many('hr.employee', string="Tên nhân viên")
+                                    default=lambda self: self.default_department())
+    employee_id = fields.Many2one('hr.employee', string="Nhân viên",
+                                  default=lambda self: self.default_employee_id())
+    department_domain = fields.Binary(compute="_compute_department_domain")
     employee_domain = fields.Binary(compute="_compute_employee_domain")
-    status = fields.Selection([('draft', "Chờ duyệt"),
-                               ('done', "Đã duyệt"),
-                               ('cancel', "Hủy")], string="Trạng thái")
+
+    def default_employee_id(self):
+        emp = self.env['hr.employee'].sudo().search([('user_id', '=', self.env.user.id)], limit=1)
+        if emp and not (self.env.user.has_group('sonha_employee.group_hr_employee') or self.env.user.has_group(
+                'sonha_employee.group_back_up_employee')):
+            return emp
+        else:
+            return None
+
+    def default_department(self):
+        emp = self.env['hr.employee'].sudo().search([('user_id', '=', self.env.user.id)], limit=1)
+        department_id = emp.department_id
+        if department_id:
+            return department_id
+        else:
+            return None
+
+    @api.onchange("company_id")
+    def _compute_department_domain(self):
+        for rec in self:
+            domain = [
+                ('company_id', 'in', self.env.user.company_ids.ids),
+                '|',
+                ('manager_id.user_id', '=', self.env.user.id),
+                ('id', '=', self.env.user.employee_id.department_id.id)
+            ]
+            if self.env.user.has_group('sonha_employee.group_hr_employee') or self.env.user.has_group(
+                    'sonha_employee.group_back_up_employee'):
+                domain = [('company_id', 'in', self.env.user.company_ids.ids)]
+            if rec.company_id:
+                domain.append(("company_id", "=", rec.company_id.id))
+            rec.department_domain = domain
 
     @api.onchange("company_id", "department_id")
     def _compute_employee_domain(self):
         for rec in self:
-            domain = []
+            domain = [('company_id', 'in', self.env.user.company_ids.ids),
+                      ('id', 'child_of', self.env.user.employee_id.id)]
+            if self.env.user.has_group('sonha_employee.group_hr_employee') or self.env.user.has_group(
+                    'sonha_employee.group_back_up_employee'):
+                domain = [('company_id', 'in', self.env.user.company_ids.ids)]
             if rec.department_id:
-                domain = [("department_id", "=", rec.department_id.id)]
-            elif rec.company_id:
-                domain = [("company_id", "=", rec.company_id.id)]
+                domain.append(("department_id", "=", rec.department_id.id))
+            if rec.company_id:
+                domain.append(("company_id", "=", rec.company_id.id))
             rec.employee_domain = domain
 
     def action_confirm(self):
-        self.env['overtime.report'].search([]).sudo().unlink()
-        list_records = self.env['overtime.rel'].sudo().search([('date', '>=', self.from_date),
-                                                               ('date', '<=', self.to_date)]).overtime_id
-        if self.company_id and not self.department_id and not self.employee_ids:
-            list_records = list_records.filtered(lambda x: x.company_id.id == self.company_id.id)
-        if self.department_id and not self.employee_ids:
-            list_records = list_records.filtered(lambda x: x.department.id == self.department_id.id)
-        if self.employee_ids:
-            list_records = list_records.filtered(lambda x: x.employee_id.id in self.employee_ids.ids or bool(set(x.employee_ids.ids) & set(self.employee_ids.ids)))
-        if self.status:
-            list_records = list_records.filtered(lambda x: x.status == self.status)
-        if list_records:
-            for r in list_records:
-                list_emp = r.employee_ids.ids or [r.employee_id.id]
+        self.env['sonha.word.report'].search([]).sudo().unlink()
+        company_id = self.company_id.id if self.company_id else 0
+        if self.env.user.has_group('sonha_employee.group_hr_employee') or self.env.user.has_group('sonha_employee.group_back_up_employee'):
+            department_id = self.department_id.id if self.department_id else 0
+            employee_id = self.employee_id.id if self.employee_id else 0
+        else:
+            department_id = self.department_id.id if self.department_id else self.env.user.employee_id.department_id.id
+            employee_id = self.employee_id.id if self.employee_id else self.env.user.employee_id.id
+        from_date = self.from_date if self.from_date else date.today()
+        to_date = self.to_date if self.to_date else date.today()
+        query = "SELECT * FROM public.fn_bao_cao_lam_them(%s, %s, %s, %s, %s)"
+        self.env.cr.execute(query, (company_id, from_date, to_date, department_id, employee_id))
+        rows = self.env.cr.dictfetchall()
+        if rows:
+            for r in rows:
                 vals = {
-                    'department_id': r.department_id.id,
-                    'create_emp': r.create_uid.id,
-                    'overtime_create_date': r.create_date,
-                    'all_time': r.all_times,
-                    'status': r.status,
-                    'employee_ids': [(6, 0, list_emp)],
-                    'type': r.type,
+                    'ns_id': r["ns_id"],
+                    'ma_ns': r["ma_ns"],
+                    'ten_ns': r["ten_ns"],
+                    'bo_phan_id': r["bo_phan_id"],
+                    'ten_bp': r["ten_bp"],
+                    'ngay': r["ngay"],
+                    'key_form': r["key_form"],
+                    'gio_bd': r["gio_bd"],
+                    'gio_kt': r["gio_kt"],
+                    'so_gio_lt': r["so_gio_lt"],
+                    'tt_don': r["tt_don"],
                 }
-                self.env['overtime.report'].sudo().create(vals)
+                self.env['sonha.word.report'].sudo().create(vals)
             return {
                 'type': 'ir.actions.act_window',
                 'name': 'Báo cáo làm thêm',
-                'res_model': 'overtime.report',
+                'res_model': 'sonha.word.report',
+                'views': [(self.env.ref('sonha_report.sonha_overtime_report_tree_view').id, 'tree')],
                 'view_mode': 'tree',
                 'target': 'current',
             }
