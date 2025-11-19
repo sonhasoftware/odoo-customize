@@ -1,0 +1,20 @@
+<odoo>
+
+    <!-- Action client -->
+    <record id="action_sonha_welcome" model="ir.actions.client">
+        <field name="name">Welcome</field>
+        <field name="tag">welcome_image_client</field>
+    </record>
+
+    <menuitem id="menu_sonha_welcome"
+              name=" "
+              action="action_sonha_welcome"
+              sequence="1"/>
+
+    <!-- Gắn menu vào action -->
+<!--    <menuitem id="menu_sonha_welcome_action"-->
+<!--              parent="menu_sonha_welcome"-->
+<!--              action="action_sonha_welcome"-->
+<!--              sequence="1"/>-->
+
+</odoo>

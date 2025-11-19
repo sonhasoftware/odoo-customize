@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_bao_cao_van_ban_tree" model="ir.ui.view">
+        <field name="name">bao.cao.van.ban.tree</field>
+        <field name="model">bao.cao.van.ban</field>
+        <field name="arch" type="xml">
+            <tree string="Báo cáo văn bản" create="0" edit="0" decoration-danger="mau == 1">
+                <field name="ngay_ct" optional="show"/>
+                <field name="chung_tu" optional="show"/>
+                <field name="ngay_ht" optional="hide"/>
+                <field name="nguoi_tao" optional="hide"/>
+                <field name="ten_nguoi_tao" optional="hide"/>
+                <field name="user_duyet" optional="hide"/>
+                <field name="ten_nguoi_duyet" optional="show"/>
+                <field name="is_approved" optional="hide"/>
+                <field name="xu_ly" optional="hide"/>
+                <field name="stt_xu_ly" optional="hide"/>
+                <field name="ten_xu_ly" optional="show"/>
+                <field name="dl_vb_h" optional="hide"/>
+                <field name="ngay_bd_duyet" optional="show"/>
+                <field name="ngay_duyet" optional="show"/>
+                <field name="sn_duyet" optional="show"/>
+                <field name="ngay_yc_ht" optional="hide"/>
+                <field name="ngay_duyet00" optional="hide"/>
+                <field name="tt_don" optional="show"/>
+                <field name="mau" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_bao_cao_van_ban" model="ir.actions.act_window">
+        <field name="name">Báo cáo văn bản</field>
+        <field name="res_model">bao.cao.van.ban</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

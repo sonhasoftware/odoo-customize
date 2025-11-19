@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <menuitem id="menu_dang_ky_van_ban"
-              name="Đăng ký văn bản"
+              name="Luồng xử lý văn bản"
               sequence="11"/>
 
     <menuitem
             id="menu_van_ban"
-            name="Đăng ký văn bản"
+            name="Luồng xử lý văn bản"
             parent="menu_dang_ky_van_ban"
             sequence="1"/>
 
@@ -26,7 +26,7 @@
 
     <menuitem
             id="menu_cau_hinh"
-            name="Danh mục cấu hình"
+            name="Danh mục cấu hình văn bản"
             parent="menu_dang_ky_van_ban"
             sequence="2"/>
 
@@ -42,5 +42,25 @@
             name="Cấu hình luồng xử lý"
             action="action_dk_xu_ly"
             parent="menu_cau_hinh"
+            sequence="2"/>
+
+    <menuitem
+            id="menu_bao_cao"
+            name="Báo cáo văn bản"
+            parent="menu_dang_ky_van_ban"
+            sequence="3"/>
+
+    <menuitem
+            id="menu_bao_cao_van_ban"
+            name="Báo cáo văn bản"
+            parent="menu_bao_cao"
+            action="action_popup_bao_cao"
+            sequence="1"/>
+
+    <menuitem
+            id="menu_bao_cao_tong_hop"
+            name="Báo cáo tổng hợp văn bản"
+            parent="menu_bao_cao"
+            action="action_popup_tong_hop"
             sequence="2"/>
 </odoo>
