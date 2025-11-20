@@ -12,6 +12,7 @@ class OvertimeRel(models.Model):
     end_time = fields.Float("Thời gian kết thúc", required=True)
     coefficient = fields.Float("Hệ số", default=1)
     overtime_id = fields.Many2one('register.overtime.update')
+    reason = fields.Char("Lý do")
 
     @api.constrains("date", "start_time", "end_time", "overtime_id")
     def validate_overtime(self):
