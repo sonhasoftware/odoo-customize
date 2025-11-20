@@ -66,6 +66,7 @@ class RegisterOvertimeUpdate(models.Model):
                     raise ValidationError("Không được để trống thời gian bắt đầu")
                 if not rec.end_time:
                     raise ValidationError("Không được để trống thời gian kết thúc")
+                
     @api.depends('employee_id', 'employee_ids')
     def _compute_record_url(self):
         base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
