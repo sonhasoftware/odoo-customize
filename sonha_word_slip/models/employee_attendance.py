@@ -825,7 +825,7 @@ class EmployeeAttendance(models.Model):
             return {"error": str(e)}
 
     def noti_miss_work(self):
-        self.with_delay().queue_job_miss_work()
+        self.queue_job_miss_work()
 
     def queue_job_miss_work(self):
         today = date.today()
