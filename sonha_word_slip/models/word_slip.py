@@ -122,3 +122,8 @@ class WordSlip(models.Model):
                             r.duration = 0.5 * day_duration
                         elif r.start_time == 'first_half' and r.end_time == 'second_half':
                             r.duration = 1 * day_duration
+
+    def unlink(self):
+        for r in self:
+            self.env['rel.don.tu'].sudo().search([('key', '=', r.id)]).unlink()
+        return super(WordSlip, self).unlink()
