@@ -68,7 +68,7 @@ div#noi_dung_tom_tat_0 {
     width: 100% !important;
 }
 
-div[name="noi_dung_tom_tat_0"] .o_readonly {
+div[name="noi_dung_tom_tat"] .o_readonly {
     border: 2px solid #007bff !important;
     border-radius: 6px !important;
     background-color: #ffffff !important;
