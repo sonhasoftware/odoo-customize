@@ -2,6 +2,7 @@ from odoo import http
 from odoo.http import request, Response, route
 import json
 from datetime import datetime
+import base64
 from dateutil.relativedelta import relativedelta
 from datetime import timedelta
 import logging
@@ -119,6 +120,26 @@ class APIVanBan(http.Controller):
                 so_ngay_pb = data.get('so_ngay_pb')
                 so_ngay_bdh = data.get('so_ngay_bdh')
                 so_ngay_ct = data.get('so_ngay_ct')
+                data_file = data.get('danh_sach_file', [])
+                required_fields = {
+                    'ngay_lam_don': ngay_lam_don,
+                    'so_don': so_don,
+                    'loai_van_ban': loai_van_ban,
+                    'don_vi': don_vi,
+                    'noi_dung': noi_dung,
+                    'luong_xu_ly': data_xu_ly,
+                    'tong_ngay_bp': tong_ngay_bp,
+                    'tong_ngay_bdh': tong_ngay_bdh,
+                    'tong_ngay_ct': tong_ngay_ct,
+                    'so_ngay_pb': so_ngay_pb,
+                    'so_ngay_bdh': so_ngay_bdh,
+                    'so_ngay_ct': so_ngay_ct,
+                }
+
+                # Chạy vòng lặp check toàn bộ
+                for field, value in required_fields.items():
+                    if value is None or value == "" or value == []:
+                        raise ValueError(f"Thiếu dữ liệu '{field}' trong body API!")
                 if not user_id:
                     raise ValueError("Không có dữ liệu người đăng nhập!")
                 user_id = request.env['res.users'].sudo().search([('id', '=', user_id)])
@@ -128,6 +149,12 @@ class APIVanBan(http.Controller):
                         "user_duyet": int(d.get("nguoi_duyet")),
                         "xu_ly": int(d.get("tien_trinh")),
                         "sn_duyet": d.get("sn_duyet") if d.get("sn_duyet") else None,
+                    }))
+                date_file = []
+                for f in data_file:
+                    date_file.append((0, 0, {
+                        "file": str(f.get("file")),
+                        "file_name": str(f.get("ten_file"))
                     }))
 
                 # Chuẩn bị dữ liệu tạo bản ghi
@@ -143,7 +170,8 @@ class APIVanBan(http.Controller):
                     'sn_bdh': so_ngay_bdh,
                     'tn_ct': tong_ngay_ct,
                     'sn_ct': so_ngay_ct,
-                    'dk_vb_d': date_lines
+                    'dk_vb_d': date_lines,
+                    'file_ids': date_file
                 }
 
                 # Tạo record
@@ -156,8 +184,7 @@ class APIVanBan(http.Controller):
                 }), content_type="application/json", status=200)
 
         except Exception as e:
-            # Log lỗi cho admin (nếu cần)
-            request.env.cr.rollback()  # Dự phòng rollback toàn bộ transaction
+            request.env.cr.rollback()
             return Response(json.dumps({
                 "success": False,
                 "error": str(e)
@@ -182,6 +209,10 @@ class APIVanBan(http.Controller):
             data = []
             date_lines = []
             for d in record.dk_vb_d:
+                if d.ngay_duyet:
+                    sttus  = "Đã duyệt"
+                else:
+                    sttus = "Chưa duyệt"
                 date_lines.append({
                     'id': d.id,
                     'nguoi_duyet': {
@@ -195,6 +226,14 @@ class APIVanBan(http.Controller):
                     'sn_duyet': d.sn_duyet,
                     'ngay_duyet': str(d.ngay_duyet),
                     'tu_choi': d.tu_choi or "",
+                    'trang_thai_tien_trinh': sttus,
+                })
+
+            data_file = []
+            for f in record.file_ids:
+                data_file.append({
+                    'ten': f.file_name,
+                    'file_base64': f.base64,
                 })
 
             if record.check_write == True or record.create_uid.id != user_id.id:
@@ -217,6 +256,7 @@ class APIVanBan(http.Controller):
                 'ngay_hoan_thanh': str(record.ngay_ht) or "",
                 'noi_dung': record.noi_dung,
                 'tien_trinh_xu_ly': date_lines,
+                'danh_sach_file': data_file,
                 'tong_ngay_pb': record.tn_pb,
                 'so_ngay_pb': record.sn_pb,
                 'tong_ngay_bdh': record.tn_bdh,
@@ -245,9 +285,9 @@ class APIVanBan(http.Controller):
                 raise ValueError("Không tìm thấy dữ liệu nhân viên đang đăng nhập!")
             data = []
             if user.has_group('sonha_internal_documents.group_admin_van_ban'):
-                records = request.env['dk.vb.h'].with_context(show_all=True).sudo().search([])
+                records = request.env['dk.vb.h'].with_context(show_all=True).sudo().search([], order="id desc")
             else:
-                records = request.env['dk.vb.h'].with_context(show_all=True).sudo().search([('create_uid', '=', user.id)])
+                records = request.env['dk.vb.h'].with_context(show_all=True).sudo().search([('create_uid', '=', user.id)], order="id desc")
 
             for r in records:
                 if r.status == 'reject':
@@ -291,7 +331,7 @@ class APIVanBan(http.Controller):
             request.env.cr.execute(query, (user_id, 2, 1))
             rows = request.env.cr.dictfetchall()
             ids = [row['id'] for row in rows if 'id' in row]
-            records = request.env['dk.vb.h'].sudo().search([('id', 'in', ids)])
+            records = request.env['dk.vb.h'].sudo().search([('id', 'in', ids)], order="id desc")
             data = []
 
             for r in records:
