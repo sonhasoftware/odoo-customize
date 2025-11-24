@@ -2,7 +2,6 @@ from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from datetime import datetime, time, timedelta, date
 import requests
-import inspect
 import json
 from uuid import uuid4
 
@@ -587,7 +586,7 @@ class FormWordSlip(models.Model):
 
         for rec in self:
 
-            rec.explode_to_leave(rec)
+            rec.explode_to_leave_write(rec)
 
         return res
 
@@ -665,12 +664,91 @@ class FormWordSlip(models.Model):
         """, {'form_word_slip_id': form_word_slip_id.id})
         employee_ids = [r[0] for r in self.env.cr.fetchall()]
         for emp_id in employee_ids:
-            pass
-            # self.env.cr.execute(
-            #     "SELECT * FROM public.fn_ton_phep(%s, %s)",
-            #     (emp_id, form_word_slip_id.temp_key)
-            # )
-            # self.env.cr.dictfetchall()
+            self.env.cr.execute(
+                "SELECT * FROM public.fn_ton_phep(%s, %s)",
+                (emp_id, form_word_slip_id.temp_key)
+            )
+            self.env.cr.dictfetchall()
+
+    def explode_to_leave_write(self, form_word_slip_id=None):
+        """Sinh bản ghi vào bảng rel.don.tu theo từng nhân viên và từng ngày"""
+        model = self.env['rel.don.tu']
+
+        for rec in form_word_slip_id.word_slip_id:
+            model.search([('key', '=', rec.id)]).unlink()
+
+        self.env.cr.execute("""
+            INSERT INTO rel_don_tu (
+                employee_id,
+                date,
+                leave,
+                type_leave,
+                status,
+                key_type_leave,
+                key,
+                key_form,
+                create_uid,
+                create_date
+            )
+            SELECT
+                sub.employee_id,
+                sub.date,
+                sub.leave,
+                sub.type_leave,
+                sub.status,
+                sub.key_type_leave,
+                sub.key,
+                sub.key_form,
+                sub.create_uid,
+                sub.create_date
+            FROM (
+                SELECT
+                    CASE
+                        WHEN fws.regis_type = 'one' THEN fws.employee_id
+                        ELSE rel.slip_rel
+                    END AS employee_id,
+                    gs.day::date AS date,
+                    CASE 
+                        WHEN cfw.key = 'NP' THEN  
+                            CASE 
+                                WHEN ws.start_time = ws.end_time THEN 0.5 
+                                ELSE 1 
+                            END
+                        ELSE 0
+                    END AS leave,
+                    cfw.id AS type_leave,
+                    CASE
+                        WHEN fws.check_level = true THEN fws.status_lv1
+                        ELSE fws.status_lv2
+                    END AS status,
+                    cfw.key AS key_type_leave,
+                    ws.id AS key,
+                    ws.word_slip AS key_form,
+                    1 AS create_uid,
+                    NOW() AS create_date
+                FROM (
+                    SELECT *
+                    FROM word_slip
+                    WHERE word_slip = %(form_word_slip_id)s
+                ) ws
+                JOIN form_word_slip fws ON ws.word_slip = fws.id
+                LEFT JOIN ir_employee_slip_rel rel 
+                    ON rel.employee_slip_rel = fws.id
+                    AND fws.regis_type = 'many'
+                LEFT JOIN config_word_slip cfw ON fws.type = cfw.id
+                JOIN generate_series(ws.from_date::date, ws.to_date::date, '1 day') AS gs(day) ON TRUE
+                WHERE ws.from_date IS NOT NULL
+                AND ws.to_date IS NOT NULL
+            ) AS sub
+            RETURNING employee_id;
+        """, {'form_word_slip_id': form_word_slip_id.id})
+        employee_ids = [r[0] for r in self.env.cr.fetchall()]
+        for emp_id in employee_ids:
+            self.env.cr.execute(
+                "SELECT * FROM public.fn_ton_phep(%s, %s)",
+                (emp_id, form_word_slip_id.temp_key)
+            )
+            self.env.cr.dictfetchall()
 
     @api.depends('employee_id', 'employee_ids', 'word_slip_id')
     def _onchange_phep_ton_preview(self):

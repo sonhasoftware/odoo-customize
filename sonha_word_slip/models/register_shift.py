@@ -47,7 +47,7 @@ class RegisterShift(models.Model):
     def write(self, vals):
         res = super(RegisterShift, self).write(vals)
         for rec in self:
-            self.explode_to_shift(rec)
+            self.explode_to_shift_write(rec)
         return res
 
     def unlink(self):
@@ -56,6 +56,31 @@ class RegisterShift(models.Model):
         return super(RegisterShift, self).unlink()
 
     def explode_to_shift(self, register_shift=None):
+        model = self.env['rel.ca'].sudo()
+        for r in register_shift.register_rel:
+            model.search([('key', '=', r.id), ('type', '=', 'doi_ca')]).unlink()
+        query = """INSERT INTO rel_ca(employee_id, department_id, company_id, date, shift_id, key, key_form, type)
+                            SELECT
+                                rs.employee_id AS employee_id,
+                                rs.department_id AS department_id,
+                                rsr.company_id AS company_id,
+                                rsr.date::date AS date,
+                                rsr.shift AS shift_id,
+                                rsr.id AS key,
+                                rsr.register_shift AS key_form,
+                                'doi_ca' AS type
+                            FROM (
+                                SELECT *
+                                FROM register_shift_rel
+                                WHERE register_shift = %(register_shift)s
+                            ) rsr
+                            JOIN register_shift rs ON rsr.register_shift = rs.id
+                            WHERE rsr.shift IS NOT NULL
+                            AND rsr.date IS NOT NULL
+                            AND rsr.company_id IS NOT NULL;"""
+        self.env.cr.execute(query, {'register_shift': register_shift.id})
+
+    def explode_to_shift_write(self, register_shift=None):
         model = self.env['rel.ca'].sudo()
         for r in register_shift.register_rel:
             model.search([('key', '=', r.id), ('type', '=', 'doi_ca')]).unlink()

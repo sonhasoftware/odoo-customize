@@ -265,10 +265,63 @@ class RegisterOvertimeUpdate(models.Model):
                     AND ovr.end_time > 0;
                 """, {'overtime_id': overtime_id.id})
 
+    def explode_to_overtime_write(self, overtime_id=None):
+        model = self.env['rel.lam.them'].sudo()
+        for r in overtime_id.date:
+            model.search([('key', '=', r.id)]).unlink()
+
+        self.env.cr.execute("""
+                    INSERT INTO rel_lam_them(
+                        employee_id, 
+                        department_id, 
+                        date, 
+                        start_time, 
+                        end_time, 
+                        status, 
+                        type, 
+                        time_amount, 
+                        key, 
+                        key_form, 
+                        create_uid, 
+                        create_date
+                    )
+                    SELECT
+                        CASE
+                            WHEN rov.type = 'one' THEN rov.employee_id
+                            ELSE rel.overtime_rel
+                        END AS emp_id,
+                        rov.department_id AS department_id,
+                        ovr.date::date AS date,
+                        ovr.start_time AS start_time,
+                        ovr.end_time AS end_time,
+                        CASE
+                            WHEN rov.type = 'one' THEN rov.status
+                            ELSE rov.status_lv2
+                        END AS status,
+                        rov.type AS type,
+                        ovr.end_time - ovr.start_time AS time_amount,
+                        ovr.id AS key,
+                        ovr.overtime_id AS key_form,
+                        1 AS create_uid,
+                        NOW() AS create_date
+                    FROM (
+                        SELECT *
+                        FROM overtime_rel
+                        WHERE overtime_id = %(overtime_id)s
+                    ) ovr
+                    JOIN register_overtime_update rov ON ovr.overtime_id = rov.id
+                    LEFT JOIN ir_employee_overtime_rel rel 
+                        ON rel.employee_overtime_rel = rov.id
+                        AND rov.type != 'one'
+                    WHERE ovr.date IS NOT NULL
+                    AND ovr.start_time > 0
+                    AND ovr.end_time > 0;
+                """, {'overtime_id': overtime_id.id})
+
     def write(self, vals):
         res = super(RegisterOvertimeUpdate, self).write(vals)
         for rec in self:
-            rec.explode_to_overtime(rec)
+            rec.explode_to_overtime_write(rec)
         return res
 
     @api.onchange('employee_id', 'employee_ids', 'status_lv2', 'type_overtime')
@@ -366,19 +419,19 @@ class RegisterOvertimeUpdate(models.Model):
                     raise ValidationError("Bạn không có quyền thực hiện hành động này")
             self.action_noti_user(r)
 
-    def action_noti_user(self, record):
-        user_id = self.env['res.users'].sudo().search([('id', '=', record.create_uid.id)])
-        data_text = str(record.id) + "#" + str(user_id.id) + "#" + str(user_id.employee_id.id) + "#5#" + str(user_id.name)
-        self.send_fcm_notification(
-            title="Sơn Hà HRM",
-            content="Đơn làm thêm của bạn đã được phê duyệt!",
-            token=user_id.token,
-            user_id=user_id.id,
-            type=5,
-            employee_id=user_id.employee_id.id,
-            application_id=str(record.id),
-            data_text=data_text
-        )
+    # def action_noti_user(self, record):
+    #     user_id = self.env['res.users'].sudo().search([('id', '=', record.create_uid.id)])
+    #     data_text = str(record.id) + "#" + str(user_id.id) + "#" + str(user_id.employee_id.id) + "#5#" + str(user_id.name)
+    #     self.send_fcm_notification(
+    #         title="Sơn Hà HRM",
+    #         content="Đơn làm thêm của bạn đã được phê duyệt!",
+    #         token=user_id.token,
+    #         user_id=user_id.id,
+    #         type=5,
+    #         employee_id=user_id.employee_id.id,
+    #         application_id=str(record.id),
+    #         data_text=data_text
+    #     )
 
     def action_back_confirm(self):
         for r in self:
