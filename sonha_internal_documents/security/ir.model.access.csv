@@ -10,5 +10,16 @@ access_dk_vb_d,dk.vb.d,model_dk_vb_d,,1,1,1,1
 
 access_dk_vb_th,dk.vb.th,model_dk_vb_th,,1,1,1,1
 
+access_bao_cao_van_ban,bao.cao.van.ban,model_bao_cao_van_ban,,1,1,1,1
+
+access_bao_cao_tong_hop,bao.cao.tong.hop,model_bao_cao_tong_hop,,1,1,1,1
+
 
 access_wizard_dk_vb_tu_choi,wizard.dk.vb.tu.choi,model_wizard_dk_vb_tu_choi,,1,1,1,1
+
+access_popup_bao_cao,popup.bao.cao,model_popup_bao_cao,,1,1,1,1
+
+access_popup_tong_hop,popup.tong.hop,model_popup_tong_hop,,1,1,1,1
+
+
+access_danh_sach_file,danh.sach.file,model_danh_sach_file,,1,1,1,1

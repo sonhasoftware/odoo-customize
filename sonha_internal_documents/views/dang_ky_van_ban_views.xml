@@ -4,7 +4,7 @@
         <field name="name">dk.vb.h.tree</field>
         <field name="model">dk.vb.h</field>
         <field name="arch" type="xml">
-            <tree string="Đăng ký văn bản">
+            <tree string="Luồng xử lý văn bản">
                 <field name="chung_tu"/>
                 <field name="ngay_ct"/>
                 <field name="ngay_ht"/>
@@ -18,7 +18,7 @@
         <field name="name">dk.vb.h.from</field>
         <field name="model">dk.vb.h</field>
         <field name="arch" type="xml">
-            <form string="Đăng ký văn bản">
+            <form string="Luồng xử lý văn bản">
                 <header>
                     <button name="action_confirm" string="Xin phê duyệt" type="object" class="btn-primary" invisible="check_write == True or create_uid != uid"/>
                     <field name="status" widget="statusbar" />
@@ -35,10 +35,15 @@
                         <group>
                             <field name="ngay_ht" readonly="check_write == True"/>
                             <field name="dvcs" readonly="check_write == True"/>
-                            <field name="file" filename="file_name" string="Đính kèm tập tin" readonly="check_write == True"/>
-                            <field name="file_name" invisible="1"/>
+                            <field name="file_ids">
+                                <tree editable="bottom">
+                                    <field name="file" filename="file_name"/>
+                                    <field name="file_name"/>
+                                </tree>
+                            </field>
+
                         </group>
-                        <b>Nội dung chi tiết hồ sơ các đơn vị đăng ký</b>
+                        <b>Nội dung chi tiết văn bản các đơn vị đăng ký</b>
                         <field name="noi_dung" widget="html" readonly="check_write == True" placeholder="Nội dung chi tiết hồ sơ các đơn vị đăng ký"/>
                         <b>Tiến trình xử lý</b>
                         <field name="dk_vb_d" readonly="check_write == True" string="Luồng duyệt">
@@ -79,7 +84,7 @@
     </record>
 
     <record id="action_dk_vb_h" model="ir.actions.act_window">
-        <field name="name">Đăng ký văn bản</field>
+        <field name="name">Luồng xử lý văn bản</field>
         <field name="res_model">dk.vb.h</field>
         <field name="view_mode">tree,form</field>
         <field name="context">{'show_all': False}</field>

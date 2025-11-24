@@ -30,6 +30,7 @@
                                 <field name="start_time" widget="float_time"/>
                                 <field name="end_time" widget="float_time"/>
                                 <field name="coefficient"/>
+                                <field name="reason"/>
                             </tree>
                         </field>
                         <field name="employee_id" options="{'no_create': True, 'no_open': True}" invisible="type == 'many'" domain="[('user_id', '=', uid)]" readonly="status != 'draft' or status_lv2 != 'draft'" required="type == 'one'"/>

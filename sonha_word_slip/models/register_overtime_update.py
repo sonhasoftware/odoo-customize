@@ -52,6 +52,21 @@ class RegisterOvertimeUpdate(models.Model):
     all_times = fields.Text(string="Thời gian", compute="_compute_all_times", store=True)
     record_url = fields.Char(string="Record URL", compute="_compute_record_url")
 
+    @api.constrains('date')
+    def _check_overtime_conflict(self):
+        for r in self:
+            if not r.date:
+                raise ValidationError("Dữ liệu ngày giờ không được để trống!")
+            for rec in r.date:
+                if not rec.reason:
+                    raise ValidationError("Không được để trống lý do")
+                if not rec.date:
+                    raise ValidationError("Không được để trống ngày")
+                if not rec.start_time:
+                    raise ValidationError("Không được để trống thời gian bắt đầu")
+                if not rec.end_time:
+                    raise ValidationError("Không được để trống thời gian kết thúc")
+
     @api.depends('employee_id', 'employee_ids')
     def _compute_record_url(self):
         base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_popup_tong_hop_form" model="ir.ui.view">
+        <field name="name">popup.tong.hop.form</field>
+        <field name="model">popup.tong.hop</field>
+        <field name="arch" type="xml">
+            <form string="Chọn khoảng thời gian báo cáo" create="false" edit="true">
+                <group>
+                    <field name="start_date"/>
+                    <field name="end_date"/>
+                </group>
+                <footer>
+                    <button string="Xác nhận" type="object" name="action_confirm" class="btn-primary"/>
+                    <button string="Hủy" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action cho wizard -->
+    <record id="action_popup_tong_hop" model="ir.actions.act_window">
+        <field name="name">Chọn khoảng thời gian báo cáo</field>
+        <field name="res_model">popup.tong.hop</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

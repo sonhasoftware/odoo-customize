@@ -13,7 +13,11 @@
         'views/dang_ky_van_ban_views.xml',
         'views/dk_loai_vb_views.xml',
         'views/dk_xu_ly_views.xml',
+        'views/bao_cao_van_ban_views.xml',
+        'views/bao_cao_tong_hop_views.xml',
         'wizard/wizard_dk_vb_tu_choi_view.xml',
+        'wizard/popup_bao_cao_views.xml',
+        'wizard/popup_tong_hop_views.xml',
         'views/menu_views.xml',
     ],
     'assets': {

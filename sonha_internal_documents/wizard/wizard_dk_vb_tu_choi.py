@@ -50,9 +50,20 @@ class WizardDKVBTuChoi(models.TransientModel):
 
         # Gán thông tin
         rec.is_approved = False
-        rec.tu_choi += f"{self.reason}\n"
+        old_value = rec.tu_choi or ""
+        rec.tu_choi = old_value + f"{self.reason}\n"
         rec.dk_vb_h.nguoi_tu_choi = self.env.user.id
         rec.dk_vb_h.check_write = False
         rec.dk_vb_h.status = 'reject'
 
-        return True
+        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+        menu_id = self.env.ref('sonha_internal_documents.menu_dk_vb_all').id
+        action_id = self.env.ref('sonha_internal_documents.action_van_ban_all').id
+
+        url = f"{base_url}/web#id={rec.dk_vb_h.id}&menu_id={menu_id}&action={action_id}&model=dk.vb.h&view_type=form"
+
+        return {
+            'type': 'ir.actions.act_url',
+            'url': url,
+        }
+

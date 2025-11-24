@@ -71,7 +71,6 @@ class DKVanBanD(models.Model):
     def create(self, vals):
         recs = super(DKVanBanD, self).create(vals)
         for rec in recs:
-            rec.ngay_bd_duyet = rec.dk_vb_h.ngay_ct
             self.fill_data_tong_hop(rec)
         return recs
 
@@ -113,8 +112,77 @@ class DKVanBanD(models.Model):
     def action_confirm(self):
         for r in self:
             r.ngay_duyet = datetime.datetime.now()
-            r.is_approved = True
             self.fill_ngay_bd_duyet(r)
+            r.is_approved = True
+
+            current_stt = r.xu_ly.stt
+
+            # Tìm tất cả người duyệt của cùng bước hiện tại (chưa duyệt)
+            remaining_in_step = self.sudo().search([
+                ('dk_vb_h', '=', r.dk_vb_h.id),
+                ('xu_ly.stt', '=', current_stt),
+                ('is_approved', '=', False),
+                ('id', '!=', r.id)
+            ])
+            if remaining_in_step:
+                recipients = []
+            else:
+                next_stt = current_stt + 1
+                next_step_records = self.sudo().search([
+                    ('dk_vb_h', '=', r.dk_vb_h.id),
+                    ('xu_ly.stt', '=', next_stt),
+                    ('is_approved', '=', False)
+                ])
+                recipients = next_step_records.mapped('user_duyet.employee_ids')
+            base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+
+            if recipients:
+                link = f"{base_url}/web#id={r.id}&model=dk.vb.h&view_type=form"
+                sender_name = r.create_uid.name if r.create_uid else ""
+                document_no = r.chung_tu or ""
+                document_type = r.id_loai_vb.ten or ""
+                send_date = r.create_date.strftime("%d/%m/%Y") if r.create_date else ""
+                for partner in recipients:
+                    subject = f"Hồ sơ cần Anh/Chị phê duyệt"
+
+                    body = f"""
+                            <p>Kính gửi Anh/Chị {partner.name},</p>
+
+                            <p>Hệ thống xin thông báo hiện đang có 
+                            <b>{document_type}</b> đang chờ Anh/Chị xem xét và phê duyệt.</p>
+
+                            <p>Anh/Chị vui lòng truy cập vào hệ thống để kiểm tra và xử lý đơn trong thời gian sớm nhất,
+                            nhằm đảm bảo tiến độ công việc.</p>
+
+                            <p><b>Thông tin đơn phê duyệt:</b><br/>
+                            • <b>Tóm tắt văn bản:</b><br/>
+                            <p>{r.noi_dung_tom_tat}</p>
+                            • <b>Người gửi:</b> {sender_name}<br/>
+                            • <b>Số văn bản:</b> {document_no}<br/>
+                            • <b>Loại đơn:</b> <b>{document_type}</b><br/>
+                            • <b>Ngày gửi:</b> {send_date}<br/>
+                            • <b>Link phê duyệt:</b> <a href="{link}">Nhấn vào đây để xem văn bản</a></p>
+
+                            <p>Trân trọng,<br/>
+                            Hệ thống Quản lý Văn bản</p>
+                        """
+                    mail_values = {
+                        'subject': subject,
+                        'body_html': body,
+                        'email_to': partner.work_email,
+                    }
+                    self.env['mail.mail'].sudo().create(mail_values).sudo().send()
+
+            menu_id = self.env.ref('sonha_internal_documents.menu_dk_vb_all').id
+            action_id = self.env.ref('sonha_internal_documents.action_van_ban_all').id
+
+            url = f"{base_url}/web#id={r.dk_vb_h.id}&menu_id={menu_id}&action={action_id}&model=dk.vb.h&view_type=form"
+
+            return {
+                'type': 'ir.actions.act_url',
+                'url': url,
+                'target': 'self',
+            }
 
     def action_cancel(self):
         for r in self:
@@ -130,17 +198,26 @@ class DKVanBanD(models.Model):
             }
 
     def fill_ngay_bd_duyet(self, rec):
-        list_rec = self.sudo().search([('dk_vb_h', '=', rec.dk_vb_h.id),
-                                       ('is_approved', '=', False)])
-        if rec.xu_ly.stt == 1 and rec.dk_vb_h.tn_pb:
-            list_rec = self.sudo().search([('dk_vb_h', '=', rec.dk_vb_h.id),
-                                           ('is_approved', '=', False),
-                                           ('xu_ly.stt', '!=', 1)])
-        if rec.xu_ly.stt == 2 and rec.dk_vb_h.tn_bdh:
-            list_rec = self.sudo().search([('dk_vb_h', '=', rec.dk_vb_h.id),
-                                           ('is_approved', '=', False),
-                                           ('xu_ly.stt', '=', 3)])
-        if rec.xu_ly.stt == 3 and rec.dk_vb_h.tn_ct:
-            return
-        for r in list_rec:
-            r.ngay_bd_duyet = datetime.datetime.now()
+        current_stt = rec.xu_ly.stt
+
+        # Tìm tất cả người duyệt của cùng bước hiện tại (chưa duyệt)
+        remaining_in_step = self.sudo().search([
+            ('dk_vb_h', '=', rec.dk_vb_h.id),
+            ('xu_ly.stt', '=', current_stt),
+            ('is_approved', '=', False),
+            ('id', '!=', rec.id)
+        ])
+
+        # Nếu vẫn còn người chưa duyệt trong bước này -> dừng
+        if remaining_in_step:
+            next_step_records = []
+        else:
+            next_stt = current_stt + 1
+            next_step_records = self.sudo().search([
+                ('dk_vb_h', '=', rec.dk_vb_h.id),
+                ('xu_ly.stt', '=', next_stt),
+                ('is_approved', '=', False)
+            ])
+
+            for r in next_step_records:
+                r.ngay_bd_duyet = datetime.datetime.now()
