@@ -42,6 +42,7 @@ class DKVanBanH(models.Model):
         ('done', "Đã xin phê duyệt"),
     ], string='Trạng thái', tracking=True, default='draft')
     noi_dung_tom_tat = fields.Text("Tóm tắt văn bản")
+    file_ids = fields.One2many('danh.sach.file', "parent_id", string="Danh sách file")
 
     @api.depends('dk_vb_d')
     def get_trang_thai_tam(self):

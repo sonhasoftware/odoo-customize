@@ -35,8 +35,13 @@
                         <group>
                             <field name="ngay_ht" readonly="check_write == True"/>
                             <field name="dvcs" readonly="check_write == True"/>
-                            <field name="file" filename="file_name" string="Đính kèm tập tin" readonly="check_write == True"/>
-                            <field name="file_name" invisible="1"/>
+                            <field name="file_ids">
+                                <tree editable="bottom">
+                                    <field name="file" filename="file_name"/>
+                                    <field name="file_name"/>
+                                </tree>
+                            </field>
+
                         </group>
                         <b>Nội dung chi tiết văn bản các đơn vị đăng ký</b>
                         <field name="noi_dung" widget="html" readonly="check_write == True" placeholder="Nội dung chi tiết hồ sơ các đơn vị đăng ký"/>
