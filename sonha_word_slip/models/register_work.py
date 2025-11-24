@@ -46,7 +46,7 @@ class RegisterWork(models.Model):
         list_record = super(RegisterWork, self).create(vals)
         for record in list_record:
             self.sudo().create_distribute_shift(record)
-            record.explore_to_work()
+            self.explore_to_work(record)
         return list_record
 
     def create_distribute_shift(self, record):
@@ -90,37 +90,65 @@ class RegisterWork(models.Model):
                     raise ValidationError(
                         f"Nhân viên {employee.name} đã có ca trong thời gian bạn chọn. Vui lòng chọn khoảng thời gian khác.")
 
-    def explore_to_work(self):
+    def explore_to_work(self, register_work=None):
         model = self.env['rel.ca'].sudo()
+        model.search([('key_form', '=', self.id), ('type', '=', 'dang_ky_ca')]).unlink()
+        query = """INSERT INTO rel_ca(employee_id, department_id, company_id, date, shift_id, key_form, type)
+                            SELECT
+                                rel.register_work_id AS employee_id,
+                                rw.department_id AS department_id,
+                                rw.company_id AS company_id,
+                                gs.day::date AS date,
+                                rw.shift AS shift_id,
+                                rw.id AS key_form,
+                                'dang_ky_ca' AS type
+                            FROM (
+                                SELECT *
+                                FROM register_work
+                                WHERE id = %(register_work)s
+                            ) rw
+                            LEFT JOIN register_work_rel rel 
+                                ON rel.register_work = rw.id
+                            JOIN generate_series(rw.start_date::date, rw.end_date::date, '1 day') AS gs(day) ON TRUE
+                            WHERE rw.start_date IS NOT NULL
+                            AND rw.end_date IS NOT NULL
+                            AND rel.register_work_id IS NOT NULL;"""
+        self.env.cr.execute(query, {'register_work': register_work.id})
 
-        if not self.employee_id or not self.start_date or not self.end_date:
-            return
-
-        model.search([('key_form', '=', self.id)]).unlink()
-
-        current_date = self.start_date
-        while current_date <= self.end_date:
-            for emp in self.employee_id:
-                model.create({
-                    'employee_id': emp.id,
-                    'department_id': self.department_id.id,
-                    'company_id': self.company_id.id,
-                    'date': current_date,
-                    'shift_id': self.shift.id,
-                    'key_form': self.id,
-                    'type': 'dang_ky_ca'
-                })
-            current_date += timedelta(days=1)
+    def explore_to_work_write(self, register_work=None):
+        model = self.env['rel.ca'].sudo()
+        model.search([('key_form', '=', self.id), ('type', '=', 'dang_ky_ca')]).unlink()
+        query = """INSERT INTO rel_ca(employee_id, department_id, company_id, date, shift_id, key_form, type)
+                            SELECT
+                                rel.register_work_id AS employee_id,
+                                rw.department_id AS department_id,
+                                rw.company_id AS company_id,
+                                gs.day::date AS date,
+                                rw.shift AS shift_id,
+                                rw.id AS key_form,
+                                'dang_ky_ca' AS type
+                            FROM (
+                                SELECT *
+                                FROM register_work
+                                WHERE id = %(register_work)s
+                            ) rw
+                            LEFT JOIN register_work_rel rel 
+                                ON rel.register_work = rw.id
+                            JOIN generate_series(rw.start_date::date, rw.end_date::date, '1 day') AS gs(day) ON TRUE
+                            WHERE rw.start_date IS NOT NULL
+                            AND rw.end_date IS NOT NULL
+                            AND rel.register_work_id IS NOT NULL;"""
+        self.env.cr.execute(query, {'register_work': register_work.id})
 
     def write(self, vals):
         res = super(RegisterWork, self).write(vals)
         for rec in self:
-            rec.explore_to_work()
+            self.explore_to_work_write(rec)
         return res
 
     def unlink(self):
         for r in self:
-            self.env['rel.ca'].sudo().search([('key_form', '=', r.id)]).unlink()
+            self.env['rel.ca'].sudo().search([('key_form', '=', r.id), ('type', '=', 'dang_ky_ca')]).unlink()
         return super(RegisterWork, self).unlink()
 
 

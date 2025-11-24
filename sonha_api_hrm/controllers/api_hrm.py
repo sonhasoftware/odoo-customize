@@ -33,6 +33,11 @@ class AuthAPI(http.Controller):
                                                 "error": "Thiết bị này đã được đăng ký cho tài khoản " + device.login}),
                                     content_type="application/json", status=400)
 
+            if user_id.has_group("sonha_internal_documents.group_user_van_ban") or user_id.has_group("sonha_internal_documents.group_admin_van_ban"):
+                quyen_van_ban = True
+            else:
+                quyen_van_ban = False
+
             db = request.env.cr.dbname
             uid = request.session.authenticate(db, login, password)
 
@@ -52,6 +57,7 @@ class AuthAPI(http.Controller):
                         "token": user.token,
                         "option_check": user.option_check,
                         "device_number": user.device_number,
+                        "quyen_van_ban": quyen_van_ban,
                     },
                     "employee": {
                         "id": employee_id.id,

@@ -233,7 +233,7 @@ class APIVanBan(http.Controller):
             for f in record.file_ids:
                 data_file.append({
                     'ten': f.file_name,
-                    'file_base64': f.base64,
+                    'file_base64': base64.b64encode(f.file).decode('utf-8') if f.file else False,
                 })
 
             if record.check_write == True or record.create_uid.id != user_id.id:
