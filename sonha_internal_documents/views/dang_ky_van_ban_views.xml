@@ -31,6 +31,7 @@
                             <field name="ngay_ct" readonly="check_write == True"/>
                             <field name="chung_tu" readonly="check_write == True"/>
                             <field name="id_loai_vb" readonly="check_write == True"/>
+                            <field name="noi_dung_tom_tat" readonly="1"/>
                         </group>
                         <group>
                             <field name="ngay_ht" readonly="check_write == True"/>
