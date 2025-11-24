@@ -56,17 +56,5 @@
             <field name="numbercall">-1</field>
             <field name="doall">True</field>
         </record>
-
-        <record id="ir_cron_decay_data" model="ir.cron">
-            <field name="name">Phân rã tất cả dữ liệu đơn từ</field>
-            <field name="model_id" ref="model_rel_don_tu"/>
-            <field name="state">code</field>
-            <field name="code">model.phan_ra_all()</field>
-            <field name="interval_number">1</field>
-            <field name="interval_type">days</field>
-            <field name="numbercall">1</field>
-            <field name="doall">True</field>
-        </record>
-
     </data>
 </odoo>
