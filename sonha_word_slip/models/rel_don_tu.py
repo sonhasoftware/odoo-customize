@@ -73,7 +73,7 @@ class RelDonTu(models.Model):
     def phan_ra_lam_them(self):
         self.env['rel.lam.them'].sudo().search([]).unlink()
         query = """INSERT INTO rel_lam_them(
-                        employee_id, department_id, date, start_time, end_time, status, type, time_amount, key, key_form, create_uid, create_date
+                        employee_id, department_id, date, start_time, end_time, status, status_lv2, type, time_amount, key, key_form, create_uid, create_date
                     )
                     SELECT
                         CASE
@@ -84,10 +84,8 @@ class RelDonTu(models.Model):
                         ovr.date::date AS date,
                         ovr.start_time AS start_time,
                         ovr.end_time AS end_time,
-                        CASE
-                            WHEN rov.type = 'one' THEN rov.status
-                            ELSE rov.status_lv2
-                        END AS status,
+                        rov.status AS status,
+                        rov.status_lv2 AS status_lv2,
                         rov.type AS type,
                         ovr.end_time - ovr.start_time AS time_amount,
                         ovr.id AS key,

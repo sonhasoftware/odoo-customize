@@ -24,6 +24,12 @@ class RelLamThem(models.Model):
     ], string="Loại đăng ký", store=True)
 
     status = fields.Selection([
+        ('draft', 'Chờ duyệt'),
+        ('done', 'Đã duyệt'),
+        ('cancel', 'Hủy'),
+    ], string='Trạng thái', store=True)
+
+    status_lv2 = fields.Selection([
         ('draft', 'Nháp'),
         ('waiting', 'Chờ duyệt'),
         ('confirm', 'Chờ duyệt'),

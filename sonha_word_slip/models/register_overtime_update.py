@@ -224,7 +224,8 @@ class RegisterOvertimeUpdate(models.Model):
                         date, 
                         start_time, 
                         end_time, 
-                        status, 
+                        status,
+                        status_lv2, 
                         type, 
                         time_amount, 
                         key, 
@@ -241,10 +242,8 @@ class RegisterOvertimeUpdate(models.Model):
                         ovr.date::date AS date,
                         ovr.start_time AS start_time,
                         ovr.end_time AS end_time,
-                        CASE
-                            WHEN rov.type = 'one' THEN rov.status
-                            ELSE rov.status_lv2
-                        END AS status,
+                        rov.status AS status,
+                        rov.status_lv2 AS status_lv2,
                         rov.type AS type,
                         ovr.end_time - ovr.start_time AS time_amount,
                         ovr.id AS key,
@@ -277,7 +276,8 @@ class RegisterOvertimeUpdate(models.Model):
                         date, 
                         start_time, 
                         end_time, 
-                        status, 
+                        status,
+                        status_lv2, 
                         type, 
                         time_amount, 
                         key, 
@@ -294,10 +294,8 @@ class RegisterOvertimeUpdate(models.Model):
                         ovr.date::date AS date,
                         ovr.start_time AS start_time,
                         ovr.end_time AS end_time,
-                        CASE
-                            WHEN rov.type = 'one' THEN rov.status
-                            ELSE rov.status_lv2
-                        END AS status,
+                        rov.status AS status,
+                        rov.status_lv2 AS status_lv2,
                         rov.type AS type,
                         ovr.end_time - ovr.start_time AS time_amount,
                         ovr.id AS key,
@@ -419,19 +417,19 @@ class RegisterOvertimeUpdate(models.Model):
                     raise ValidationError("Bạn không có quyền thực hiện hành động này")
             self.action_noti_user(r)
 
-    # def action_noti_user(self, record):
-    #     user_id = self.env['res.users'].sudo().search([('id', '=', record.create_uid.id)])
-    #     data_text = str(record.id) + "#" + str(user_id.id) + "#" + str(user_id.employee_id.id) + "#5#" + str(user_id.name)
-    #     self.send_fcm_notification(
-    #         title="Sơn Hà HRM",
-    #         content="Đơn làm thêm của bạn đã được phê duyệt!",
-    #         token=user_id.token,
-    #         user_id=user_id.id,
-    #         type=5,
-    #         employee_id=user_id.employee_id.id,
-    #         application_id=str(record.id),
-    #         data_text=data_text
-    #     )
+    def action_noti_user(self, record):
+        user_id = self.env['res.users'].sudo().search([('id', '=', record.create_uid.id)])
+        data_text = str(record.id) + "#" + str(user_id.id) + "#" + str(user_id.employee_id.id) + "#5#" + str(user_id.name)
+        self.send_fcm_notification(
+            title="Sơn Hà HRM",
+            content="Đơn làm thêm của bạn đã được phê duyệt!",
+            token=user_id.token,
+            user_id=user_id.id,
+            type=5,
+            employee_id=user_id.employee_id.id,
+            application_id=str(record.id),
+            data_text=data_text
+        )
 
     def action_back_confirm(self):
         for r in self:
