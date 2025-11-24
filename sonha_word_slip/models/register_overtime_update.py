@@ -224,46 +224,117 @@ class RegisterOvertimeUpdate(models.Model):
     def create(self, vals):
         res = super(RegisterOvertimeUpdate, self).create(vals)
         self.action_noti_manager(res)
-        self.explode_to_overtime(res.employee_id, res.employee_ids, res.date)
+        self.explode_to_overtime(res)
         return res
 
-    def explode_to_overtime(self, employee_id=None, employee_ids=None, overtime_id=None):
+    def explode_to_overtime(self, overtime_id=None):
         model = self.env['rel.lam.them'].sudo()
-
-        employees = []
-        if employee_id:
-            employees.append(employee_id)
-        if employee_ids:
-            employees += employee_ids
-
-        if not employees or not overtime_id:
-            return
-
-        for r in overtime_id:
-            if not r.date or not r.start_time or not r.end_time:
-                continue
-
+        for r in overtime_id.date:
             model.search([('key', '=', r.id)]).unlink()
 
-            time_amount = r.end_time - r.start_time
+        self.env.cr.execute("""
+                    INSERT INTO rel_lam_them(
+                        employee_id, 
+                        department_id, 
+                        date, 
+                        start_time, 
+                        end_time, 
+                        status,
+                        status_lv2, 
+                        type, 
+                        time_amount, 
+                        key, 
+                        key_form, 
+                        create_uid, 
+                        create_date
+                    )
+                    SELECT
+                        CASE
+                            WHEN rov.type = 'one' THEN rov.employee_id
+                            ELSE rel.overtime_rel
+                        END AS emp_id,
+                        rov.department_id AS department_id,
+                        ovr.date::date AS date,
+                        ovr.start_time AS start_time,
+                        ovr.end_time AS end_time,
+                        rov.status AS status,
+                        rov.status_lv2 AS status_lv2,
+                        rov.type AS type,
+                        ovr.end_time - ovr.start_time AS time_amount,
+                        ovr.id AS key,
+                        ovr.overtime_id AS key_form,
+                        1 AS create_uid,
+                        NOW() AS create_date
+                    FROM (
+                        SELECT *
+                        FROM overtime_rel
+                        WHERE overtime_id = %(overtime_id)s
+                    ) ovr
+                    JOIN register_overtime_update rov ON ovr.overtime_id = rov.id
+                    LEFT JOIN ir_employee_overtime_rel rel 
+                        ON rel.employee_overtime_rel = rov.id
+                        AND rov.type != 'one'
+                    WHERE ovr.date IS NOT NULL
+                    AND ovr.start_time > 0
+                    AND ovr.end_time > 0;
+                """, {'overtime_id': overtime_id.id})
 
-            for emp in employees:
-                model.create({
-                    'employee_id': emp.id,
-                    'department_id': r.overtime_id.department_id.id,
-                    'company_id': r.overtime_id.company_id.id,
-                    'date': r.date,
-                    'start_time': r.start_time,
-                    'end_time': r.end_time,
-                    'time_amount': time_amount,
-                    'key': r.id,
-                    'key_form': r.overtime_id.id,
-                })
+    def explode_to_overtime_write(self, overtime_id=None):
+        model = self.env['rel.lam.them'].sudo()
+        for r in overtime_id.date:
+            model.search([('key', '=', r.id)]).unlink()
+
+        self.env.cr.execute("""
+                    INSERT INTO rel_lam_them(
+                        employee_id, 
+                        department_id, 
+                        date, 
+                        start_time, 
+                        end_time, 
+                        status,
+                        status_lv2, 
+                        type, 
+                        time_amount, 
+                        key, 
+                        key_form, 
+                        create_uid, 
+                        create_date
+                    )
+                    SELECT
+                        CASE
+                            WHEN rov.type = 'one' THEN rov.employee_id
+                            ELSE rel.overtime_rel
+                        END AS emp_id,
+                        rov.department_id AS department_id,
+                        ovr.date::date AS date,
+                        ovr.start_time AS start_time,
+                        ovr.end_time AS end_time,
+                        rov.status AS status,
+                        rov.status_lv2 AS status_lv2,
+                        rov.type AS type,
+                        ovr.end_time - ovr.start_time AS time_amount,
+                        ovr.id AS key,
+                        ovr.overtime_id AS key_form,
+                        1 AS create_uid,
+                        NOW() AS create_date
+                    FROM (
+                        SELECT *
+                        FROM overtime_rel
+                        WHERE overtime_id = %(overtime_id)s
+                    ) ovr
+                    JOIN register_overtime_update rov ON ovr.overtime_id = rov.id
+                    LEFT JOIN ir_employee_overtime_rel rel 
+                        ON rel.employee_overtime_rel = rov.id
+                        AND rov.type != 'one'
+                    WHERE ovr.date IS NOT NULL
+                    AND ovr.start_time > 0
+                    AND ovr.end_time > 0;
+                """, {'overtime_id': overtime_id.id})
 
     def write(self, vals):
         res = super(RegisterOvertimeUpdate, self).write(vals)
         for rec in self:
-            rec.explode_to_overtime(rec.employee_id, rec.employee_ids, rec.date)
+            rec.explode_to_overtime_write(rec)
         return res
 
     @api.onchange('employee_id', 'employee_ids', 'status_lv2', 'type_overtime')

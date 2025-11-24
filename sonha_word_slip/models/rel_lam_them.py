@@ -17,3 +17,22 @@ class RelLamThem(models.Model):
 
     key = fields.Many2one('overtime.rel', string="Key ngày", store=True)
     key_form = fields.Many2one('register.overtime.update', string="Key", store=True)
+
+    type = fields.Selection([
+        ('one', 'Tạo cho tôi'),
+        ('many', 'Tạo hộ')
+    ], string="Loại đăng ký", store=True)
+
+    status = fields.Selection([
+        ('draft', 'Chờ duyệt'),
+        ('done', 'Đã duyệt'),
+        ('cancel', 'Hủy'),
+    ], string='Trạng thái', store=True)
+
+    status_lv2 = fields.Selection([
+        ('draft', 'Nháp'),
+        ('waiting', 'Chờ duyệt'),
+        ('confirm', 'Chờ duyệt'),
+        ('done', 'Đã duyệt'),
+        ('cancel', 'Hủy'),
+    ], string='Trạng thái', store=True)
