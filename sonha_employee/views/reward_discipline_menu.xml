@@ -3,7 +3,7 @@
 <odoo>
     <!-- Menu cha cho khen thưởng, kỷ luật -->
     <menuitem id="menu_reward_discipline_root"
-              name="Khen thưởng, Kỷ luật"
+              name="Quyết định"
               parent="hr.menu_hr_root"
               sequence="40"/>
 
@@ -52,5 +52,16 @@
               name="Khác"
               parent="menu_other_discipline"
               action="action_dismissal_person"
+              sequence="0"/>
+
+    <menuitem id="menu_work_process_root"
+              name="Quá trình công tác"
+              parent="menu_reward_discipline_root"
+              sequence="2"/>
+
+    <menuitem id="menu_work_process"
+              name="Quá trình công tác"
+              parent="menu_work_process_root"
+              action="work_process_action"
               sequence="0"/>
 </odoo>
