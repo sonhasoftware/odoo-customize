@@ -106,6 +106,17 @@
         </field>
     </record>
 
+    <record id="action_explode_all_word_slip" model="ir.actions.server">
+        <field name="name">Phân rã đơn từ</field>
+        <field name="model_id" ref="model_form_word_slip"/>
+        <field name="binding_model_id" ref="model_form_word_slip"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+            action = env['rel.don.tu'].phan_ra_all()
+        </field>
+    </record>
+
 
     <record id="action_form_word_slip" model="ir.actions.act_window">
         <field name="name">Đơn từ</field>

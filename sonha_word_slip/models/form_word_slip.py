@@ -217,6 +217,7 @@ class FormWordSlip(models.Model):
             if r.status != 'sent':
                 raise ValidationError("Chỉ được xóa khi trạng thái là nháp!")
             self.env['word.slip'].sudo().search([('word_slip.id', '=', r.id)]).unlink()
+            self.env['rel.don.tu'].sudo().search([('key_form', '=', r.id)]).unlink()
         return super(FormWordSlip, self).unlink()
 
     @api.depends('employee_id')
@@ -552,8 +553,7 @@ class FormWordSlip(models.Model):
         else:
             # Trường hợp không có bước phê duyệt
             rec.employee_approval = employee_id.employee_approval.id if employee_id.employee_approval else employee_id.parent_id.id
-
-        self.explode_to_leave(rec.employee_id, rec.employee_ids, rec.word_slip_id)
+        self.explode_to_leave(rec)
 
         return rec
 
@@ -615,51 +615,169 @@ class FormWordSlip(models.Model):
 
         for rec in self:
 
-            rec.explode_to_leave(rec.employee_id, rec.employee_ids, rec.word_slip_id)
+            rec.explode_to_leave_write(rec)
 
         return res
 
-    def explode_to_leave(self, employee_id=None, employee_ids=None, word_slip_id=None):
+    def explode_to_leave(self, form_word_slip_id=None):
         """Sinh bản ghi vào bảng rel.don.tu theo từng nhân viên và từng ngày"""
         model = self.env['rel.don.tu']
 
-        # Hợp nhất employee_id (nếu có) và employee_ids (nếu có)
-        employees = []
-        if employee_id:
-            employees.append(employee_id)
-        if employee_ids:
-            employees += employee_ids
-
-        if not employees or not word_slip_id:
-            return
-
-        for rec in word_slip_id:
-            if not rec.from_date or not rec.to_date:
-                continue
-
-            # Xóa dữ liệu cũ trước khi tạo mới để tránh trùng lặp
+        for rec in form_word_slip_id.word_slip_id:
             model.search([('key', '=', rec.id)]).unlink()
 
-            # Tính loại nghỉ (0.5 hoặc 1 ngày)
-            leave = 0
-            if rec.type.key == 'NP':
-                leave = 0.5 if rec.start_time == rec.end_time else 1
+        self.env.cr.execute("""
+            INSERT INTO rel_don_tu (
+                employee_id,
+                date,
+                leave,
+                type_leave,
+                status,
+                key_type_leave,
+                key,
+                key_form,
+                create_uid,
+                create_date
+            )
+            SELECT
+                sub.employee_id,
+                sub.date,
+                sub.leave,
+                sub.type_leave,
+                sub.status,
+                sub.key_type_leave,
+                sub.key,
+                sub.key_form,
+                sub.create_uid,
+                sub.create_date
+            FROM (
+                SELECT
+                    CASE
+                        WHEN fws.regis_type = 'one' THEN fws.employee_id
+                        ELSE rel.slip_rel
+                    END AS employee_id,
+                    gs.day::date AS date,
+                    CASE 
+                        WHEN cfw.key = 'NP' THEN  
+                            CASE 
+                                WHEN ws.start_time = ws.end_time THEN 0.5 
+                                ELSE 1 
+                            END
+                        ELSE 0
+                    END AS leave,
+                    cfw.id AS type_leave,
+                    CASE
+                        WHEN fws.check_level = true THEN fws.status_lv1
+                        ELSE fws.status_lv2
+                    END AS status,
+                    cfw.key AS key_type_leave,
+                    ws.id AS key,
+                    ws.word_slip AS key_form,
+                    1 AS create_uid,
+                    NOW() AS create_date
+                FROM (
+                    SELECT *
+                    FROM word_slip
+                    WHERE word_slip = %(form_word_slip_id)s
+                ) ws
+                JOIN form_word_slip fws ON ws.word_slip = fws.id
+                LEFT JOIN ir_employee_slip_rel rel 
+                    ON rel.employee_slip_rel = fws.id
+                    AND fws.regis_type = 'many'
+                LEFT JOIN config_word_slip cfw ON fws.type = cfw.id
+                JOIN generate_series(ws.from_date::date, ws.to_date::date, '1 day') AS gs(day) ON TRUE
+                WHERE ws.from_date IS NOT NULL
+                AND ws.to_date IS NOT NULL
+            ) AS sub
+            RETURNING employee_id;
+        """, {'form_word_slip_id': form_word_slip_id.id})
+        employee_ids = [r[0] for r in self.env.cr.fetchall()]
+        for emp_id in employee_ids:
+            self.env.cr.execute(
+                "SELECT * FROM public.fn_ton_phep(%s, %s)",
+                (emp_id, form_word_slip_id.temp_key)
+            )
+            self.env.cr.dictfetchall()
 
-            # Sinh dữ liệu từng ngày, từng nhân viên
-            current_date = rec.from_date
-            while current_date <= rec.to_date:
-                for emp in employees:
-                    model.create({
-                        'employee_id': emp.id,
-                        'date': current_date,
-                        'leave': leave,
-                        'type_leave': rec.type.id,
-                        'key': rec.id,
-                        'key_form': rec.word_slip.id
-                    })
-                    self.env.cr.execute("SELECT * FROM public.fn_ton_phep(%s,%s)", (emp.id, rec.word_slip.temp_key))
-                    self.env.cr.dictfetchall()
-                current_date += timedelta(days=1)
+    def explode_to_leave_write(self, form_word_slip_id=None):
+        """Sinh bản ghi vào bảng rel.don.tu theo từng nhân viên và từng ngày"""
+        model = self.env['rel.don.tu']
+
+        for rec in form_word_slip_id.word_slip_id:
+            model.search([('key', '=', rec.id)]).unlink()
+
+        self.env.cr.execute("""
+            INSERT INTO rel_don_tu (
+                employee_id,
+                date,
+                leave,
+                type_leave,
+                status,
+                key_type_leave,
+                key,
+                key_form,
+                create_uid,
+                create_date
+            )
+            SELECT
+                sub.employee_id,
+                sub.date,
+                sub.leave,
+                sub.type_leave,
+                sub.status,
+                sub.key_type_leave,
+                sub.key,
+                sub.key_form,
+                sub.create_uid,
+                sub.create_date
+            FROM (
+                SELECT
+                    CASE
+                        WHEN fws.regis_type = 'one' THEN fws.employee_id
+                        ELSE rel.slip_rel
+                    END AS employee_id,
+                    gs.day::date AS date,
+                    CASE 
+                        WHEN cfw.key = 'NP' THEN  
+                            CASE 
+                                WHEN ws.start_time = ws.end_time THEN 0.5 
+                                ELSE 1 
+                            END
+                        ELSE 0
+                    END AS leave,
+                    cfw.id AS type_leave,
+                    CASE
+                        WHEN fws.check_level = true THEN fws.status_lv1
+                        ELSE fws.status_lv2
+                    END AS status,
+                    cfw.key AS key_type_leave,
+                    ws.id AS key,
+                    ws.word_slip AS key_form,
+                    1 AS create_uid,
+                    NOW() AS create_date
+                FROM (
+                    SELECT *
+                    FROM word_slip
+                    WHERE word_slip = %(form_word_slip_id)s
+                ) ws
+                JOIN form_word_slip fws ON ws.word_slip = fws.id
+                LEFT JOIN ir_employee_slip_rel rel 
+                    ON rel.employee_slip_rel = fws.id
+                    AND fws.regis_type = 'many'
+                LEFT JOIN config_word_slip cfw ON fws.type = cfw.id
+                JOIN generate_series(ws.from_date::date, ws.to_date::date, '1 day') AS gs(day) ON TRUE
+                WHERE ws.from_date IS NOT NULL
+                AND ws.to_date IS NOT NULL
+            ) AS sub
+            RETURNING employee_id;
+        """, {'form_word_slip_id': form_word_slip_id.id})
+        employee_ids = [r[0] for r in self.env.cr.fetchall()]
+        for emp_id in employee_ids:
+            self.env.cr.execute(
+                "SELECT * FROM public.fn_ton_phep(%s, %s)",
+                (emp_id, form_word_slip_id.temp_key)
+            )
+            self.env.cr.dictfetchall()
 
     @api.depends('employee_id', 'employee_ids', 'word_slip_id')
     def _onchange_phep_ton_preview(self):

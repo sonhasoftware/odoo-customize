@@ -26,6 +26,22 @@ class RegisterShiftRel(models.Model):
                     rec.register_shift.employee_id, rec.date, rec.date
                 )
         return res
+    @api.constrains('date')
+    def validate_register_shift_date(self):
+        for r in self:
+            register_shift = self.env['register.shift'].sudo().search([('employee_id', '=', r.register_shift.employee_id.id),
+                                                                       ('id', '!=', r.register_shift.id)])
+            list_date = register_shift.mapped('register_rel')
+            for rec in list_date:
+                if rec.date == r.date:
+                    date = r.date.strftime('%d/%m/%Y')
+                    raise ValidationError(f"Bạn đã có đơn đổi ca cho ngày {date} rồi!")
+            form = self.env['register.shift.rel'].sudo().search([('register_shift', '=', r.register_shift.id),
+                                                                 ('id', '!=', r.id)])
+            for rec in form:
+                if rec.date == r.date:
+                    date = r.date.strftime('%d/%m/%Y')
+                    raise ValidationError(f"Bạn đã có đơn đổi ca cho ngày {date} rồi!")
 
     def unlink(self):
         for rec in self:

@@ -31,7 +31,10 @@
                             <field name="ngay_ct" readonly="check_write == True"/>
                             <field name="chung_tu" readonly="check_write == True"/>
                             <field name="id_loai_vb" readonly="check_write == True"/>
-                            <field name="noi_dung_tom_tat" readonly="1"/>
+                            <div colspan="2">
+                                <b>Nội dung tóm tắt</b>
+                                <field name="noi_dung_tom_tat" widget="html" readonly="1" placeholder="Nội dung tóm tắt"/>
+                            </div>
                         </group>
                         <group>
                             <field name="ngay_ht" readonly="check_write == True"/>
