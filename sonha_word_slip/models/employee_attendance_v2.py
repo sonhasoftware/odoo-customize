@@ -329,8 +329,10 @@ class EmployeeAttendanceV2(models.Model):
                 r.month = None
                 r.year = None
 
-    # tạo bản ghi tháng trước -> logic giữ nguyên (giữ như tiện ích admin)
     def update_attendance_data_v2(self):
+        self.with_delay().create_data_attendance()
+
+    def create_data_attendance(self):
         # STEP 1 — Lấy danh sách nhân viên
         self.env.cr.execute("""
             SELECT id 
