@@ -24,3 +24,4 @@ from . import rel_don_tu
 from . import ton_phep
 from . import rel_lam_them
 from . import rel_ca
+from . import employee_attendance_v2

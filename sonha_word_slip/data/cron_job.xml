@@ -12,6 +12,17 @@
             <field name="doall">True</field>
         </record>
 
+        <record id="ir_cron_calculate_attendance_v2" model="ir.cron">
+            <field name="name">Tạp dữ liệu bảng công chi tiết (mới)</field>
+            <field name="model_id" ref="model_employee_attendance_v2"/>
+            <field name="state">code</field>
+            <field name="code">model.update_attendance_data_v2()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">months</field>
+            <field name="numbercall">-1</field>
+            <field name="doall">True</field>
+        </record>
+
         <record id="ir_cron_calculate_synthetic" model="ir.cron">
             <field name="name">Bảng công tổng hợp</field>
             <field name="model_id" ref="model_synthetic_work"/>

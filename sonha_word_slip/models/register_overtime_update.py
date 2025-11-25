@@ -301,6 +301,7 @@ class RegisterOvertimeUpdate(models.Model):
     def action_done(self):
         for r in self:
             if r.check_manager:
+                prev_status = r.status
                 r.status_lv2 = 'done'
                 r.status = 'done'
                 over_time = 0
@@ -313,11 +314,16 @@ class RegisterOvertimeUpdate(models.Model):
                         employee.total_compensatory += over_time
                     else:
                         pass
+                # gọi recompute chỉ khi chuyển sang done (hoặc luôn vì ta vừa cộng bù)
+                # Nếu trước đó chưa phải done thì apply recompute
+                if prev_status != 'done':
+                    self._recompute_overtime_for_record(r)
             else:
                 raise ValidationError("Bạn không có quyền thực hiện hành động này")
 
     def action_back_status(self):
         for r in self:
+            prev_status = r.status
             over_time = 0
             for ot in r.date:
                 time_ot = (ot.end_time - ot.start_time) * ot.coefficient
@@ -331,11 +337,14 @@ class RegisterOvertimeUpdate(models.Model):
                         employee.total_compensatory -= over_time
                     else:
                         pass
+                if prev_status == 'done':
+                    self._recompute_overtime_for_record(r)
             else:
                 raise ValidationError('Bạn không có quyền hoàn duyệt đơn này')
 
     def action_confirm(self):
         for r in self:
+            prev_status = r.status
             over_time = 0
             for ot in r.date:
                 time_ot = (ot.end_time - ot.start_time) * ot.coefficient
@@ -360,6 +369,9 @@ class RegisterOvertimeUpdate(models.Model):
                 else:
                     raise ValidationError("Bạn không có quyền thực hiện hành động này")
             self.action_noti_user(r)
+            # nếu chuyển sang done từ trạng thái khác -> recompute
+            if prev_status != 'done':
+                self._recompute_overtime_for_record(r)
 
     def action_noti_user(self, record):
         user_id = self.env['res.users'].sudo().search([('id', '=', record.create_uid.id)])
@@ -377,7 +389,11 @@ class RegisterOvertimeUpdate(models.Model):
 
     def action_back_confirm(self):
         for r in self:
+            prev_status = r.status
             r.status = 'draft'
+            # nếu trước đó là done -> undo -> recompute
+            if prev_status == 'done':
+                self._recompute_overtime_for_record(r)
 
     def unlink(self):
         for r in self:
@@ -385,3 +401,22 @@ class RegisterOvertimeUpdate(models.Model):
                 raise ValidationError("chỉ được xóa bản ghi ở trạng thái nháp")
             self.env['rel.lam.them'].sudo().search([('key_form', '=', r.id)]).unlink()
         return super(RegisterOvertimeUpdate, self).unlink()
+
+    def _recompute_overtime_for_record(self, rec):
+        employees = rec.employee_ids or (rec.employee_id and [rec.employee_id]) or []
+        if not employees:
+            return
+
+        for line in rec.date:
+            if not line.date:
+                continue
+
+            date_from = line.date
+            date_to = line.date
+
+            for emp in employees:
+                self.env['employee.attendance'].sudo().recompute_for_employee(
+                    emp,
+                    date_from,
+                    date_to
+                )
