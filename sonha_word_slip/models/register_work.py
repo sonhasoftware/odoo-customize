@@ -46,7 +46,7 @@ class RegisterWork(models.Model):
         list_record = super(RegisterWork, self).create(vals)
         for record in list_record:
             self.sudo().create_distribute_shift(record)
-            record.explore_to_work()
+            self.explore_to_work(record)
             employees = record.employee_ids
             if employees:
                 for emp in employees:
@@ -151,7 +151,7 @@ class RegisterWork(models.Model):
     def write(self, vals):
         res = super(RegisterWork, self).write(vals)
         for rec in self:
-            rec.explore_to_work()
+            self.explore_to_work(rec)
             employees = rec.employee_ids
             if employees:
                 for emp in employees:
