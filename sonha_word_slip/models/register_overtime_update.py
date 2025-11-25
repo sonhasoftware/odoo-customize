@@ -486,7 +486,7 @@ class RegisterOvertimeUpdate(models.Model):
             date_to = line.date
 
             for emp in employees:
-                self.env['employee.attendance'].sudo().recompute_for_employee(
+                self.env['employee.attendance.v2'].sudo().recompute_for_employee(
                     emp,
                     date_from,
                     date_to

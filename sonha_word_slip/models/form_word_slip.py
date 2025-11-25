@@ -187,7 +187,7 @@ class FormWordSlip(models.Model):
             current = line.from_date
             while current <= line.to_date:
                 for emp in employees:
-                    self.env['employee.attendance'].sudo().recompute_for_employee(
+                    self.env['employee.attendance.v2'].sudo().recompute_for_employee(
                         emp,
                         current,
                         current
