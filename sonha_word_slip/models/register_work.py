@@ -46,7 +46,15 @@ class RegisterWork(models.Model):
         list_record = super(RegisterWork, self).create(vals)
         for record in list_record:
             self.sudo().create_distribute_shift(record)
-            self.explore_to_work(record)
+            record.explore_to_work()
+            employees = record.employee_ids
+            if employees:
+                for emp in employees:
+                    self.env['employee.attendance.v2'].sudo().recompute_for_employee(
+                        emp,
+                        record.start_date,
+                        record.end_date
+                    )
         return list_record
 
     def create_distribute_shift(self, record):
@@ -143,12 +151,29 @@ class RegisterWork(models.Model):
     def write(self, vals):
         res = super(RegisterWork, self).write(vals)
         for rec in self:
-            self.explore_to_work_write(rec)
+            rec.explore_to_work()
+            employees = rec.employee_ids
+            if employees:
+                for emp in employees:
+                    self.env['employee.attendance.v2'].sudo().recompute_for_employee(
+                        emp,
+                        rec.start_date,
+                        rec.end_date
+                    )
         return res
 
     def unlink(self):
         for r in self:
-            self.env['rel.ca'].sudo().search([('key_form', '=', r.id), ('type', '=', 'dang_ky_ca')]).unlink()
+            self.env['rel.ca'].sudo().search([('key_form', '=', r.id)]).unlink()
+            employees = r.employee_ids
+            if employees:
+                for emp in employees:
+                    self.env['employee.attendance.v2'].sudo().recompute_for_employee(
+                        emp,
+                        r.start_date,
+                        r.end_date
+                    )
         return super(RegisterWork, self).unlink()
+
 
 

@@ -175,11 +175,33 @@ class FormWordSlip(models.Model):
             data_text=data_text
         )
 
+    def _recompute_word_slip_for_record(self, rec):
+        employees = rec.employee_ids or (rec.employee_id and [rec.employee_id]) or []
+        if not employees:
+            return
+
+        for line in rec.word_slip_id:
+            if not line.from_date or not line.to_date:
+                continue
+
+            current = line.from_date
+            while current <= line.to_date:
+                for emp in employees:
+                    self.env['employee.attendance.v2'].sudo().recompute_for_employee(
+                        emp,
+                        current,
+                        current
+                    )
+                current += timedelta(days=1)
+
     def action_cancel(self):
         for r in self:
+            prev_status = r.status
             r.status = 'cancel'
             r.status_lv1 = 'cancel'
             r.status_lv2 = 'cancel'
+            if prev_status == 'done':
+                self._recompute_word_slip_for_record(r)
             self.action_noti(r)
 
     @api.onchange('type')
@@ -228,6 +250,8 @@ class FormWordSlip(models.Model):
             else:
                 raise ValidationError("Bạn không có quyền thực hiện hành động này")
 
+            prev_status = r.status
+
             over_time = 0
             for ot in r.word_slip_id:
                 if ot.start_time != ot.end_time:
@@ -244,6 +268,8 @@ class FormWordSlip(models.Model):
             r.status = 'done'
             r.status_lv1 = 'done'
             r.status_lv2 = 'done'
+            if prev_status != 'done':
+                self._recompute_word_slip_for_record(r)
 
     def action_sent(self):
         for r in self:
@@ -366,6 +392,7 @@ class FormWordSlip(models.Model):
             if r.employee_approval.user_id.id != self.env.user.id:
                 raise ValidationError("Bạn không có quyền thực hiện hành động này")
 
+            prev_status = r.status
             # Xác định cấp duyệt
             status_level = "status_lv2" if r.check_level else "status_lv1"
             over_time = 0
@@ -384,6 +411,8 @@ class FormWordSlip(models.Model):
             r.status = 'done'
             r.button_done = False
             self.noti_user_done(r)
+            if prev_status != 'done':
+                self._recompute_word_slip_for_record(r)
 
     def noti_user_done(self, record):
         user_id = self.env['res.users'].sudo().search([('id', '=', record.create_uid.id)])
@@ -493,7 +522,7 @@ class FormWordSlip(models.Model):
             elif employee_id.employee_approval and not employee_id.parent_id:
                 rec.employee_confirm = employee_id.employee_approval.id
                 rec.employee_approval = employee_id.employee_approval.parent_id.id if employee_id.employee_approval.parent_id else None
-                
+
         if (not department_spec and rec.day_duration <= 3) or rec.type.key != "NP":
             condition = '<=3'
             rec.check_level = False

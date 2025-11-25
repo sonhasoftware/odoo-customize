@@ -96,3 +96,7 @@ access_ton_phep,rel.ton.phep,model_ton_phep,,1,1,1,1
 
 access_rel_lam_them,rel.lam.them,model_rel_lam_them,,1,1,1,1
 access_rel_ca,rel.ca,model_rel_ca,,1,1,1,1
+
+
+
+access_employee_attendance_v2,employee.attendance.v2,model_employee_attendance_v2,,1,1,1,1
