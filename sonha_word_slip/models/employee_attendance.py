@@ -399,7 +399,7 @@ class EmployeeAttendance(models.Model):
     def _get_time_in_out(self):
         for r in self:
             # Nếu không có shift, gán giá trị mặc định và bỏ qua
-            if not r.shift:
+            if not r.shift or not r.shift.start or not r.shift.end_shift:
                 r.time_check_in = None
                 r.time_check_out = None
                 continue
