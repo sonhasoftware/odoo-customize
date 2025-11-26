@@ -907,15 +907,16 @@ class EmployeeAttendanceV2(models.Model):
             domain.append(('date', '>=', fields.Date.to_date(date_from)))
         if date_to:
             domain.append(('date', '<=', fields.Date.to_date(date_to)))
-        recs = self.search(domain)
-        if recs:
+        list_recs = self.search(domain)
+        if list_recs:
+            for recs in list_recs:
             # ghi lại để force recompute store fields
-            recs.sudo().write({'date': recs.date})  # ghi lại trường date để kích hoạt recompute store
-            # hoặc gọi recompute cụ thể
-            recs._get_shift_employee()
-            recs._get_time_off()
-            recs.get_hours_reinforcement()
-            recs._get_time_in_out()
-            recs._get_check_in_out()
-            recs._get_work_day()
+                recs.sudo().write({'date': recs.date})  # ghi lại trường date để kích hoạt recompute store
+                # hoặc gọi recompute cụ thể
+                recs._get_shift_employee()
+                recs._get_time_off()
+                recs.get_hours_reinforcement()
+                recs._get_time_in_out()
+                recs._get_check_in_out()
+                recs._get_work_day()
         return True
