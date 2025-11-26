@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="decision_type_tree_view" model="ir.ui.view">
+        <field name="name">decision.type.tree.view</field>
+        <field name="model">decision.type</field>
+        <field name="arch" type="xml">
+            <tree string="Loại quyết định" editable="bottom">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="type"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="decision_type_action" model="ir.actions.act_window">
+        <field name="name">Loại quyết định</field>
+        <field name="res_model">decision.type</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>
