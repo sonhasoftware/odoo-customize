@@ -394,15 +394,17 @@ class WorkProcess(models.Model):
 
     employee_id = fields.Many2one('hr.employee', required=True)
 
-    start_date = fields.Date("Ngày bắt đầu")
-    job_id = fields.Many2one('hr.job', "Chức vụ")
-    department_id = fields.Many2one('hr.department', "Phòng ban")
-    number = fields.Char("Số quyết định")
+    start_date = fields.Date("Ngày", required=True, default=lambda self: fields.Date.today())
+    job_id = fields.Many2one('hr.job', "Chức vụ", required=True)
+    department_id = fields.Many2one('hr.department', "Phòng ban", required=True)
+    number = fields.Char("Số quyết định", required=True)
     type = fields.Char("Loại quyết định")
+    decision_type = fields.Many2one('decision.type', string="Loại quyết định", required=True)
     note = fields.Text("Ghi chú")
 
     old_job_id = fields.Many2one('hr.job', "Chức vụ cũ")
     old_department_id = fields.Many2one('hr.department', "Phòng ban cũ")
+    old_date = fields.Date("Ngày cũ")
 
     # def create(self, vals):
     #     res = super(WorkProcess, self).create(vals)
@@ -413,6 +415,12 @@ class WorkProcess(models.Model):
     #         res.employee_id.department_id = res[-1].department_id.id
     #     return res
 
+    @api.onchange('employee_id')
+    def onchange_employee_id(self):
+        for r in self:
+            r.job_id = r.employee_id.job_id.id if r.employee_id.job_id else None
+            r.department_id = r.employee_id.department_id.id if r.employee_id.department_id else None
+
     def create(self, vals):
         res = super(WorkProcess, self).create(vals)
         if res.job_id:
@@ -422,6 +430,9 @@ class WorkProcess(models.Model):
         if res.department_id:
             res.old_department_id = res.employee_id.department_id.id if res.employee_id.department_id else None
             res.employee_id.department_id = res.department_id.id
+        res.old_date = res.employee_id.reception_date if res.employee_id.reception_date else None
+        if res.decision_type.type and res.decision_type.type.lower() == 'tn':
+            res.employee_id.reception_date = res.start_date if res.start_date else None
         return res
 
     def write(self, vals):
@@ -432,13 +443,28 @@ class WorkProcess(models.Model):
                 r.employee_id.job_id = job_id
             if 'department_id' in vals:
                 r.employee_id.department_id = r.department_id.id
+            if 'decision_type' in vals or 'start_date' in vals:
+                if r.decision_type.type and r.decision_type.type.lower() == 'tn':
+                    r.employee_id.reception_date = r.start_date if r.start_date else None
+                else:
+                    r.employee_id.reception_date = r.old_date if r.old_date else None
         return res
 
     def unlink(self):
         for r in self:
             r.employee_id.department_id = r.old_department_id.id if r.old_department_id else None
             r.employee_id.job_id = r.old_job_id.id if r.old_job_id else None
+            if r.decision_type.type and r.decision_type.type.lower() == 'tn':
+                r.employee_id.reception_date = r.old_date if r.old_date else None
         return super(WorkProcess, self).unlink()
+
+
+class DecisionType(models.Model):
+    _name = 'decision.type'
+
+    code = fields.Char(string="Mã", store=True, required=True)
+    name = fields.Char(string="Tên quyết định", store=True, required=True)
+    type = fields.Char(string="Loại quyết định", store=True)
 
 
 class Resources(models.Model):
