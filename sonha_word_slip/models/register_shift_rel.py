@@ -12,10 +12,11 @@ class RegisterShiftRel(models.Model):
 
     def create(self, vals):
         rec = super(RegisterShiftRel, self).create(vals)
-        if rec.register_shift and rec.register_shift.employee_id:
-            self.env['employee.attendance.v2'].sudo().recompute_for_employee(
-                rec.register_shift.employee_id, rec.date, rec.date
-            )
+        for r in rec:
+            if r.register_shift and r.register_shift.employee_id:
+                self.env['employee.attendance.v2'].sudo().recompute_for_employee(
+                    r.register_shift.employee_id, r.date, r.date
+                )
         return rec
 
     def write(self, vals):
