@@ -36,4 +36,10 @@
               parent="menu_reward_discipline_config_root"
               action="config_title_action"
               sequence="4"/>
+
+    <menuitem id="menu_decision_type"
+              name="Loại quyết định"
+              parent="menu_reward_discipline_config_root"
+              action="decision_type_action"
+              sequence="4"/>
 </odoo>

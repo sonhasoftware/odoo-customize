@@ -22,6 +22,7 @@
         'views/object_config_view.xml',
         'views/state_config_view.xml',
         'views/title_config_view.xml',
+        'views/decision_type_views.xml',
         'views/reward_discipline_config_menu.xml',
         'views/reward_unit_view.xml',
         'views/reward_person_view.xml',

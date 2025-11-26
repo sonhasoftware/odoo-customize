@@ -10,7 +10,8 @@
                 <field name="job_id"/>
                 <field name="department_id"/>
                 <field name="number"/>
-                <field name="type"/>
+<!--                <field name="type"/>-->
+                <field name="decision_type"/>
                 <field name="note"/>
             </tree>
         </field>
@@ -32,10 +33,4 @@
         <field name="search_view_id" ref="work_process_search_view"/>
         <field name="view_mode">tree</field>
     </record>
-
-    <menuitem id="menu_work_process"
-              name="Quá trình công tác"
-              parent="hr.menu_hr_root"
-              action="work_process_action"
-              sequence="41"/>
 </odoo>
