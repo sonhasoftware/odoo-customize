@@ -47,7 +47,7 @@ class RegisterWork(models.Model):
         for record in list_record:
             self.sudo().create_distribute_shift(record)
             self.explore_to_work(record)
-            employees = record.employee_ids
+            employees = record.employee_id
             if employees:
                 for emp in employees:
                     self.env['employee.attendance.v2'].sudo().recompute_for_employee(
@@ -152,7 +152,7 @@ class RegisterWork(models.Model):
         res = super(RegisterWork, self).write(vals)
         for rec in self:
             self.explore_to_work(rec)
-            employees = rec.employee_ids
+            employees = rec.employee_id
             if employees:
                 for emp in employees:
                     self.env['employee.attendance.v2'].sudo().recompute_for_employee(
@@ -165,7 +165,7 @@ class RegisterWork(models.Model):
     def unlink(self):
         for r in self:
             self.env['rel.ca'].sudo().search([('key_form', '=', r.id)]).unlink()
-            employees = r.employee_ids
+            employees = r.employee_id
             if employees:
                 for emp in employees:
                     self.env['employee.attendance.v2'].sudo().recompute_for_employee(
