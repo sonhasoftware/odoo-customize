@@ -793,14 +793,14 @@ class FormWordSlip(models.Model):
                 employees += r.employee_ids
             info_lines = []
             for emp in employees:
-                total_leave = 0
-                for slip in r.word_slip_id:
-                    if slip.type.key == 'NP':
-                        if slip.start_time == slip.end_time:
-                            total_leave += 0.5
-                        else:
-                            total_leave += 1
-
-                ton = emp.old_leave_balance + emp.new_leave_balance - total_leave
+                self.env.cr.execute(
+                    "SELECT * FROM public.fn_ton_phep(%s, %s)",
+                    (emp._origin.id, 'dltam')
+                )
+                rows = self.env.cr.dictfetchall()
+                if rows:
+                    ton = rows[0].get('ton')
+                else:
+                    ton = 0
                 info_lines.append(f"{emp.name}: còn {ton} phép (tạm tính)")
             r.phep_ton = "\n".join(info_lines)
