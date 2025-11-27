@@ -50,7 +50,11 @@ class DKVanBanH(models.Model):
         stt = self.sudo().search([('dvcs', '=', r.dvcs.id),
                             ('ngay_ct', '=', r.ngay_ct)])
         so_ban_ghi = len(stt)
-        r.chung_tu = r.dvcs.company_code + "-" + str(r.ngay_ct.day) + "/" + str(r.ngay_ct.month) + "-" + str(so_ban_ghi)
+        if so_ban_ghi < 10:
+            so = "0"+str(so_ban_ghi)
+        else:
+            so = str(so_ban_ghi)
+        r.chung_tu = r.dvcs.company_code + "." + str(r.ngay_ct.day) + str(r.ngay_ct.month) + "." + so
 
     def create(self, vals):
         rec = super(DKVanBanH, self).create(vals)
