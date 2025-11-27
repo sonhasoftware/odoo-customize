@@ -299,7 +299,8 @@ class DKVanBanD(models.Model):
                 ('xu_ly.stt', '=', next_stt),
                 ('is_approved', '=', False)
             ])
-            recipients = next_step_records.mapped('user_duyet.employee_ids')
+            users = next_step_records.mapped('user_duyet')
+            recipients = self.env['hr.employee'].sudo().search([('user_id', 'in', users.ids)])
         base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
 
         if recipients:
