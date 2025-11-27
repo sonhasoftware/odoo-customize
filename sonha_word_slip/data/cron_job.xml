@@ -67,5 +67,16 @@
             <field name="numbercall">-1</field>
             <field name="doall">True</field>
         </record>
+
+        <record id="ir_cron_them_phep" model="ir.cron">
+            <field name="name">HR thêm phép hàng tháng, reset phép cũ</field>
+            <field name="model_id" ref="model_form_word_slip"/>
+            <field name="state">code</field>
+            <field name="code">model.call_fn_them_phep()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="doall">True</field>
+        </record>
     </data>
 </odoo>
