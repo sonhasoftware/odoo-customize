@@ -376,6 +376,7 @@ class APIVanBan(http.Controller):
                 record.ngay_duyet = datetime.now()
                 record.is_approved = True
                 record.fill_ngay_bd_duyet(record)
+                record.sent_mail_noti(record)
                 # Trả về kết quả
                 return Response(json.dumps({
                     "success": True,
@@ -404,6 +405,7 @@ class APIVanBan(http.Controller):
             record.dk_vb_h.nguoi_tu_choi = record.user_duyet.id
             record.dk_vb_h.check_write = False
             record.dk_vb_h.status = 'reject'
+            record.sent_mail_user_reject(record)
 
             # Trả về kết quả
             return Response(json.dumps({

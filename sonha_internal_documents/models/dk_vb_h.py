@@ -241,6 +241,57 @@ class DKVanBanH(models.Model):
             for d in list_rec_d:
                 d.ngay_bd_duyet = datetime.datetime.now()
 
+        recipients = []
+        if r.nguoi_tu_choi:
+            recipients.append(r.nguoi_tu_choi.employee_id)
+        else:
+            # gửi mail cho list user có stt là 1
+            list_stt_1 = self.env['dk.vb.d'].sudo().search([
+                ('dk_vb_h', '=', r.id),
+                ('xu_ly.stt', '=', 1),
+                ('is_approved', '=', False)
+            ])
+            recipients = list_stt_1.mapped('user_duyet.employee_ids')
+
+        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+        link = f"{base_url}/web#id={r.id}&model=dk.vb.h&view_type=form"
+        sender_name = r.create_uid.name if r.create_uid else ""
+        document_no = r.chung_tu or ""
+        document_type = r.id_loai_vb.ten or ""
+        send_date = r.create_date.strftime("%d/%m/%Y") if r.create_date else ""
+
+        for partner in recipients:
+            subject = f"Hồ sơ cần Anh/Chị phê duyệt"
+
+            body = f"""
+                    <p>Kính gửi Anh/Chị {partner.name},</p>
+
+                    <p>Hệ thống xin thông báo hiện đang có 
+                    <b>{document_type}</b> đang chờ Anh/Chị xem xét và phê duyệt.</p>
+
+                    <p>Anh/Chị vui lòng truy cập vào hệ thống để kiểm tra và xử lý đơn trong thời gian sớm nhất,
+                    nhằm đảm bảo tiến độ công việc.</p>
+
+                    <p><b>Thông tin đơn phê duyệt:</b><br/>
+                    • <b>Tóm tắt văn bản:</b><br/>
+                    <p>{response.text}</p>
+                    • <b>Người gửi:</b> {sender_name}<br/>
+                    • <b>Số văn bản:</b> {document_no}<br/>
+                    • <b>Loại đơn:</b> <b>{document_type}</b><br/>
+                    • <b>Ngày gửi:</b> {send_date}<br/>
+                    • <b>Link phê duyệt:</b> <a href="{link}">Nhấn vào đây để xem văn bản</a></p>
+
+                    <p>Trân trọng,<br/>
+                    Hệ thống Quản lý Văn bản</p>
+                """
+            mail_values = {
+                'subject': subject,
+                'body_html': body,
+                'email_to': partner.work_email,
+            }
+            self.env['mail.mail'].sudo().create(mail_values).sudo().send()
+            self.noti_user_action(r, partner)
+
         r.check_write = True
         r.status = 'done'
 
