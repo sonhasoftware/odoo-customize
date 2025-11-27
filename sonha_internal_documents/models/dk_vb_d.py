@@ -2,6 +2,8 @@ from odoo import api, fields, models, _
 import datetime
 from dateutil.relativedelta import relativedelta
 from odoo.exceptions import UserError, ValidationError
+import requests
+import json
 
 
 class DKVanBanD(models.Model):
@@ -172,6 +174,7 @@ class DKVanBanD(models.Model):
                         'email_to': partner.work_email,
                     }
                     self.env['mail.mail'].sudo().create(mail_values).sudo().send()
+                    self.noti_manager_action(r, partner)
 
             menu_id = self.env.ref('sonha_internal_documents.menu_dk_vb_all').id
             action_id = self.env.ref('sonha_internal_documents.action_van_ban_all').id
@@ -221,3 +224,210 @@ class DKVanBanD(models.Model):
 
             for r in next_step_records:
                 r.ngay_bd_duyet = datetime.datetime.now()
+
+    def send_fcm_notification(self, title, content, token, user_id, type, employee_id, application_id, data_text, screen="/notification", badge=1):
+        url = "https://apibaohanh.sonha.com.vn/api/thongbaohrm/send-fcm"
+
+        payload = {
+            "title": title,
+            "content": content,
+            "badge": badge,
+            "token": token,
+            "application_id": application_id,
+            "user_id": user_id,
+            "screen": screen,
+        }
+
+        headers = {
+            "Content-Type": "application/json",
+        }
+
+        try:
+            response = requests.post(url, data=json.dumps(payload), headers=headers, timeout=30)
+            response.raise_for_status()
+            res_json = json.loads(response.text)
+            message_id = res_json.get("messageId")
+            if response.status_code == 200:
+               self.env['log.notifi'].sudo().create({
+                   'badge': badge,
+                   'token': token,
+                   'title': title,
+                   'type': type,
+                   'taget_screen': screen,
+                   'message_id': message_id,
+                   'id_application': str(application_id),
+                   'userid': str(user_id),
+                   'employeeid': str(employee_id) or "",
+                   'body': content,
+                   'datetime': str(datetime.datetime.now()),
+                   'data': data_text
+               })
+        except Exception as e:
+            return {"error": str(e)}
+
+    def noti_manager_action(self, record, employee_id):
+        employee_id = self.env['hr.employee'].sudo().search([('id', '=', employee_id.id)])
+        data_text = str(record.id) + "#" + str(employee_id.user_id.id) + "#" + str(employee_id.id) + "#" + str(
+            record.chung_tu) + "#6#" + str(employee_id.user_id.name)
+        self.send_fcm_notification(
+            title="Sơn Hà Văn Bản",
+            content="Văn bản " + str(record.chung_tu) + " đang chờ Anh/Chị xem xét và phê duyệt!",
+            token=employee_id.user_id.token,
+            user_id=employee_id.user_id.id,
+            type=6,
+            employee_id=employee_id.id,
+            application_id=str(record.id),
+            data_text=data_text
+        )
+
+    def sent_mail_noti(self, r):
+        current_stt = r.xu_ly.stt
+
+        # Tìm tất cả người duyệt của cùng bước hiện tại (chưa duyệt)
+        remaining_in_step = self.sudo().search([
+            ('dk_vb_h', '=', r.dk_vb_h.id),
+            ('xu_ly.stt', '=', current_stt),
+            ('is_approved', '=', False),
+            ('id', '!=', r.id)
+        ])
+        if remaining_in_step:
+            recipients = []
+        else:
+            next_stt = current_stt + 1
+            next_step_records = self.sudo().search([
+                ('dk_vb_h', '=', r.dk_vb_h.id),
+                ('xu_ly.stt', '=', next_stt),
+                ('is_approved', '=', False)
+            ])
+            recipients = next_step_records.mapped('user_duyet.employee_ids')
+        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+
+        if recipients:
+            link = f"{base_url}/web#id={r.id}&model=dk.vb.h&view_type=form"
+            sender_name = r.create_uid.name if r.create_uid else ""
+            document_no = r.chung_tu or ""
+            document_type = r.id_loai_vb.ten or ""
+            send_date = r.create_date.strftime("%d/%m/%Y") if r.create_date else ""
+            for partner in recipients:
+                subject = f"Hồ sơ cần Anh/Chị phê duyệt"
+
+                body = f"""
+                        <p>Kính gửi Anh/Chị {partner.name},</p>
+
+                        <p>Hệ thống xin thông báo hiện đang có 
+                        <b>{document_type}</b> đang chờ Anh/Chị xem xét và phê duyệt.</p>
+
+                        <p>Anh/Chị vui lòng truy cập vào hệ thống để kiểm tra và xử lý đơn trong thời gian sớm nhất,
+                        nhằm đảm bảo tiến độ công việc.</p>
+
+                        <p><b>Thông tin đơn phê duyệt:</b><br/>
+                        • <b>Tóm tắt văn bản:</b><br/>
+                        <p>{r.noi_dung_tom_tat}</p>
+                        • <b>Người gửi:</b> {sender_name}<br/>
+                        • <b>Số văn bản:</b> {document_no}<br/>
+                        • <b>Loại đơn:</b> <b>{document_type}</b><br/>
+                        • <b>Ngày gửi:</b> {send_date}<br/>
+                        • <b>Link phê duyệt:</b> <a href="{link}">Nhấn vào đây để xem văn bản</a></p>
+
+                        <p>Trân trọng,<br/>
+                        Hệ thống Quản lý Văn bản</p>
+                    """
+                mail_values = {
+                    'subject': subject,
+                    'body_html': body,
+                    'email_to': partner.work_email,
+                }
+                self.env['mail.mail'].sudo().create(mail_values).sudo().send()
+                self.noti_manager_action(r, partner)
+
+    def sent_mail_user_reject(self, rec):
+        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+        link = f"{base_url}/web#id={rec.dk_vb_h.id}&model=dk.vb.h&view_type=form"
+        sender_name = rec.dk_vb_h.create_uid.name if rec.create_uid else ""
+        partner = self.env['hr.employee'].sudo().search([('user_id', '=', rec.dk_vb_h.create_uid.id)])
+        document_no = rec.dk_vb_h.chung_tu or ""
+        document_type = rec.dk_vb_h.id_loai_vb.ten or ""
+        send_date = datetime.today().strftime("%d/%m/%Y")
+        subject = f"Hồ sơ của Anh/Chị từ chối!"
+
+        body = f"""
+                        <p>Kính gửi Anh/Chị {sender_name},</p>
+
+                        <p>Hệ thống xin thông báo hiện đang có 
+                        <b>{document_type} đã bị từ chối.</b></p>
+
+                        <p>Anh/Chị vui lòng truy cập vào hệ thống để xem chi tiết và thực hiện các điều chỉnh cần thiết (nếu có).</p>
+
+                        <p><b>Thông tin hồ sơ bị từ chối:</b><br/>
+                        • <b>Người gửi:</b> {self.env.user.name}<br/>
+                        • <b>Số văn bản:</b> {document_no}<br/>
+                        • <b>Loại đơn:</b> <b>{document_type}</b><br/>
+                        • <b>Ngày gửi:</b> {send_date}<br/>
+                        • <b>Link phê duyệt:</b> <a href="{link}">Nhấn vào đây để xem văn bản</a></p>
+
+                        <p>Trân trọng,<br/>
+                        Hệ thống Quản lý Văn bản</p>
+                    """
+        mail_values = {
+            'subject': subject,
+            'body_html': body,
+            'email_to': partner.work_email if partner and partner.work_email else "",
+        }
+        self.env['mail.mail'].sudo().create(mail_values).sudo().send()
+        self.noti_user_reject(rec, partner)
+
+    def send_fcm_notification(self, title, content, token, user_id, type, employee_id, application_id, data_text, screen="/notification", badge=1):
+        url = "https://apibaohanh.sonha.com.vn/api/thongbaohrm/send-fcm"
+
+        payload = {
+            "title": title,
+            "content": content,
+            "badge": badge,
+            "token": token,
+            "application_id": application_id,
+            "user_id": user_id,
+            "screen": screen,
+        }
+
+        headers = {
+            "Content-Type": "application/json",
+        }
+
+        try:
+            response = requests.post(url, data=json.dumps(payload), headers=headers, timeout=30)
+            response.raise_for_status()
+            res_json = json.loads(response.text)
+            message_id = res_json.get("messageId")
+            if response.status_code == 200:
+               self.env['log.notifi'].sudo().create({
+                   'badge': badge,
+                   'token': token,
+                   'title': title,
+                   'type': type,
+                   'taget_screen': screen,
+                   'message_id': message_id,
+                   'id_application': str(application_id),
+                   'userid': str(user_id),
+                   'employeeid': str(employee_id) or "",
+                   'body': content,
+                   'datetime': str(datetime.datetime.now()),
+                   'data': data_text
+               })
+        except Exception as e:
+            return {"error": str(e)}
+
+    def noti_user_reject(self, record, employee_id):
+        employee_id = self.env['hr.employee'].sudo().search([('id', '=', employee_id.id)])
+        data_text = str(record.id) + "#" + str(employee_id.user_id.id) + "#" + str(employee_id.id) + "#" + str(
+            record.chung_tu) + "#6#" + str(employee_id.user_id.name)
+        self.send_fcm_notification(
+            title="Sơn Hà Văn Bản",
+            content="Văn bản " + str(record.chung_tu) + " đã bị từ chối!",
+            token=employee_id.user_id.token,
+            user_id=employee_id.user_id.id,
+            type=7,
+            employee_id=employee_id.id,
+            application_id=str(record.id),
+            data_text=data_text
+        )
+
