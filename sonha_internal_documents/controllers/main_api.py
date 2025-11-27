@@ -109,7 +109,6 @@ class APIVanBan(http.Controller):
 
                 # Lấy dữ liệu từ request
                 ngay_lam_don = data.get('ngay_lam_don')
-                so_don = data.get('so_don')
                 loai_van_ban = data.get('loai_van_ban')
                 don_vi = data.get('don_vi')
                 noi_dung = data.get('noi_dung')
@@ -123,7 +122,6 @@ class APIVanBan(http.Controller):
                 data_file = data.get('danh_sach_file', [])
                 required_fields = {
                     'ngay_lam_don': ngay_lam_don,
-                    'so_don': so_don,
                     'loai_van_ban': loai_van_ban,
                     'don_vi': don_vi,
                     'noi_dung': noi_dung,
@@ -160,7 +158,6 @@ class APIVanBan(http.Controller):
                 # Chuẩn bị dữ liệu tạo bản ghi
                 vals = {
                     'ngay_ct': str(ngay_lam_don),
-                    'chung_tu': so_don,
                     'dvcs': int(don_vi),
                     'id_loai_vb': int(loai_van_ban),
                     'noi_dung': noi_dung,
