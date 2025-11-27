@@ -241,9 +241,8 @@ class DKVanBanH(models.Model):
             for d in list_rec_d:
                 d.ngay_bd_duyet = datetime.datetime.now()
 
-        recipients = []
         if r.nguoi_tu_choi:
-            recipients.append(r.nguoi_tu_choi.employee_id)
+            users = r.nguoi_tu_choi.id
         else:
             # gửi mail cho list user có stt là 1
             list_stt_1 = self.env['dk.vb.d'].sudo().search([
@@ -251,7 +250,8 @@ class DKVanBanH(models.Model):
                 ('xu_ly.stt', '=', 1),
                 ('is_approved', '=', False)
             ])
-            recipients = list_stt_1.mapped('user_duyet.employee_ids')
+            users = list_stt_1.mapped('user_duyet')
+        recipients = self.env['hr.employee'].sudo().search([('user_id', 'in', users.ids)])
 
         base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
         link = f"{base_url}/web#id={r.id}&model=dk.vb.h&view_type=form"
