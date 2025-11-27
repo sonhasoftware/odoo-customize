@@ -804,3 +804,11 @@ class FormWordSlip(models.Model):
                     ton = 0
                 info_lines.append(f"{emp.name}: còn {ton} phép (tạm tính)")
             r.phep_ton = "\n".join(info_lines)
+
+    def call_fn_them_phep(self):
+        today = datetime.now().date()
+        if today.day not in (1, 16):
+            return
+        self.env.cr.execute("CALL fn_them_phep();")
+
+

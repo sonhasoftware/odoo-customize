@@ -14,7 +14,7 @@ class DKVanBanH(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
     ngay_ct = fields.Date(string="Ngày lập văn bản", store=True, default=fields.Date.today, required=True, tracking=True)
-    chung_tu = fields.Char(string="Số văn bản", store=True, required=True, tracking=True)
+    chung_tu = fields.Char(string="Số văn bản", store=True, tracking=True)
     ngay_ht = fields.Date(string="Ngày hoàn thành", store=True, compute="get_ngay_hoan_thanh")
     dvcs = fields.Many2one('res.company', "Đơn vị", default=lambda self: self.env.company, readonly=False, store=True, required=True, tracking=True)
 
@@ -45,6 +45,17 @@ class DKVanBanH(models.Model):
     ], string='Trạng thái', tracking=True, default='draft')
     noi_dung_tom_tat = fields.Html("Tóm tắt văn bản")
     file_ids = fields.One2many('danh.sach.file', "parent_id", string="Danh sách file")
+
+    def auto_create_chung_tu(self, r):
+        stt = self.sudo().search([('dvcs', '=', r.dvcs.id),
+                            ('ngay_ct', '=', r.ngay_ct)])
+        so_ban_ghi = len(stt)
+        r.chung_tu = r.dvcs.company_code + "-" + str(r.ngay_ct.day) + "/" + str(r.ngay_ct.month) + "-" + str(so_ban_ghi)
+
+    def create(self, vals):
+        rec = super(DKVanBanH, self).create(vals)
+        self.auto_create_chung_tu(rec)
+        return rec
 
     @api.depends('dk_vb_d')
     def get_trang_thai_tam(self):
