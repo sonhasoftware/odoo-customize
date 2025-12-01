@@ -4,13 +4,14 @@
         <field name="name">leave.report.ct.tree.view</field>
         <field name="model">leave.report</field>
         <field name="arch" type="xml">
-            <tree string="Báo cáo phép chi tiết">
+            <tree string="Báo cáo phép chi tiết" decoration-danger="in_dam == 1" decoration-bf="in_dam == 1">
                 <field name="ma_ns"/>
                 <field name="ten_ns"/>
                 <field name="chung_tu"/>
                 <field name="ngay"/>
                 <field name="phep_them"/>
                 <field name="phep_su_dung"/>
+                <field name="in_dam" column_invisible="1"/>
             </tree>
         </field>
     </record>
