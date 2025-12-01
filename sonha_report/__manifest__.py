@@ -38,8 +38,6 @@
         'wizard/popup_word_slip_report_views.xml',
         'wizard/popup_overtime_report_views.xml',
         'wizard/export_report_reward_discipline.xml',
-
-        'data/cron_job.xml',
     ],
 
     'assets': {
