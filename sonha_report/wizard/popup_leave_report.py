@@ -8,81 +8,100 @@ class PopupLeaveReport(models.TransientModel):
 
     from_date = fields.Date(string="Từ ngày", required=True)
     to_date = fields.Date(string="Đến ngày", required=True)
-    company_id = fields.Many2one('res.company', string="Đơn vị", required=True)
-    department_id = fields.Many2one('hr.department', string="Phòng ban", domain="[('company_id', '=', company_id)]")
+    company_id = fields.Many2one('res.company', string="Đơn vị",
+                                 domain="[('id', 'in', allowed_company_ids)]",
+                                 default=lambda self: self.env.user.company_id, required=True)
+    department_id = fields.Many2one('hr.department', string="Phòng ban",
+                                    default=lambda self: self.default_department())
     employee_id = fields.Many2one('hr.employee', string="Nhân viên",
-                                  domain="[('department_id', '=', department_id), ('company_id', '=', company_id)]")
+                                  default=lambda self: self.default_employee_id())
+    department_domain = fields.Binary(compute="_compute_department_domain")
+    employee_domain = fields.Binary(compute="_compute_employee_domain")
 
-    @api.constrains('from_date', 'to_date')
-    def validate_from_to_date(self):
-        now = datetime.now().date()
-        for r in self:
-            if r.from_date and r.to_date:
-                if r.from_date.month != r.to_date.month or r.from_date.year != r.to_date.year:
-                    raise ValidationError("Chỉ được chọn ngày trong cùng 1 tháng!")
-                if r.from_date > r.to_date:
-                    raise ValidationError("Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc!")
-            if r.from_date and r.from_date > now:
-                raise ValidationError("Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày hiện tại!")
+    def default_employee_id(self):
+        emp = self.env['hr.employee'].sudo().search([('user_id', '=', self.env.user.id)], limit=1)
+        if emp and not (self.env.user.has_group('sonha_employee.group_hr_employee') or self.env.user.has_group(
+                'sonha_employee.group_back_up_employee')):
+            return emp
+        else:
+            return None
+
+    def default_department(self):
+        emp = self.env['hr.employee'].sudo().search([('user_id', '=', self.env.user.id)], limit=1)
+        department_id = emp.department_id
+        if department_id:
+            return department_id
+        else:
+            return None
+
+    @api.onchange("company_id")
+    def _compute_department_domain(self):
+        for rec in self:
+            domain = [
+                ('company_id', 'in', self.env.user.company_ids.ids),
+                '|',
+                ('manager_id.user_id', '=', self.env.user.id),
+                ('id', '=', self.env.user.employee_id.department_id.id)
+            ]
+            if self.env.user.has_group('sonha_employee.group_hr_employee') or self.env.user.has_group(
+                    'sonha_employee.group_back_up_employee'):
+                domain = [('company_id', 'in', self.env.user.company_ids.ids)]
+            if rec.company_id:
+                domain.append(("company_id", "=", rec.company_id.id))
+            rec.department_domain = domain
+
+    @api.onchange("company_id", "department_id")
+    def _compute_employee_domain(self):
+        for rec in self:
+            domain = [('company_id', 'in', self.env.user.company_ids.ids),
+                      ('id', 'child_of', self.env.user.employee_id.id)]
+            if self.env.user.has_group('sonha_employee.group_hr_employee') or self.env.user.has_group(
+                    'sonha_employee.group_back_up_employee'):
+                domain = [('company_id', 'in', self.env.user.company_ids.ids)]
+            if rec.department_id:
+                domain.append(("department_id", "=", rec.department_id.id))
+            if rec.company_id:
+                domain.append(("company_id", "=", rec.company_id.id))
+            rec.employee_domain = domain
 
     def action_confirm(self):
         self.env['leave.report'].search([]).sudo().unlink()
-        list_records = self.env['employee.attendance'].sudo().search([('date', '>=', self.from_date),
-                                                                      ('date', '<=', self.to_date)])
-        if self.company_id and not self.department_id:
-            list_records = list_records.filtered(lambda x: x.employee_id.company_id.id == self.company_id.id)
-        if self.department_id and not self.employee_id:
-            list_records = list_records.filtered(lambda x: x.department_id.id == self.department_id.id)
-        if self.employee_id:
-            list_records = list_records.filtered(lambda x: x.employee_id.id == self.employee_id.id)
-        list_records = list_records.filtered(lambda x: x.leave != 0)
-        if list_records:
-            eliminated_employee = []
-            list_employee = list_records.employee_id
-            for emp in list_employee:
-                if emp.leave_milestone_date and self.from_date >= emp.leave_milestone_date:
-                    # old_leave_left = self.caculate_begin_period(emp)
-                    old_leave_left, total_leave = self.env['popup.synthetic.leave.report'].re_calculate_leave_left(emp, self.from_date)
-                    if self.from_date.day != 1:
-                        start_date = self.from_date.replace(day=1)
-                        end_date = self.from_date + relativedelta(days=-1)
-                        used_leave = self.env['popup.synthetic.leave.report'].calculate_used_leave(emp, start_date, end_date)
-                        old_leave_left = old_leave_left - used_leave
-                    employee_record = list_records.filtered(lambda x: x.employee_id.id == emp.id)
-                    for rec in employee_record:
-                        new_leave_left = old_leave_left - rec.leave
-                        vals = {
-                            'employee_id': rec.employee_id.id,
-                            'department_id': rec.department_id.id,
-                            'begin_period': old_leave_left,
-                            'leave': rec.leave,
-                            'date': rec.date,
-                            'total_leave_left': new_leave_left,
-                        }
-                        self.env['leave.report'].sudo().create(vals)
-                        old_leave_left = new_leave_left
-                else:
-                    eliminated_employee.append(emp.name)
-            if eliminated_employee:
-                employee_name = ', '.join(eliminated_employee)
-                self.env['bus.bus']._sendone(
-                    (self._cr.dbname, 'res.partner', self.env.user.partner_id.id),
-                    'simple_notification',
-                    {
-                        'title': "Cảnh báo!",
-                        'message': f"Không tìm thấy mốc thời gian phép của nhân viên {employee_name} hoặc mốc thời gian lớn hơn thời gian chọn báo cáo",
-                        'sticky': False,
-                    }
-                )
+        company_id = self.company_id.id if self.company_id else 0
+        if self.env.user.has_group('sonha_employee.group_hr_employee') or self.env.user.has_group(
+                'sonha_employee.group_back_up_employee'):
+            department_id = self.department_id.id if self.department_id else 0
+            employee_id = self.employee_id.id if self.employee_id else 0
+        else:
+            department_id = self.department_id.id if self.department_id else self.env.user.employee_id.department_id.id
+            employee_id = self.employee_id.id if self.employee_id else self.env.user.employee_id.id
+        from_date = self.from_date if self.from_date else date.today()
+        to_date = self.to_date if self.to_date else date.today()
+        query = "SELECT * FROM public.fn_bao_cao_nxt_phep_ct(%s, %s, %s, %s, %s)"
+        self.env.cr.execute(query, (company_id, from_date, to_date, department_id, employee_id))
+        rows = self.env.cr.dictfetchall()
+        if rows:
+            for r in rows:
+                vals = {
+                    'ns_id': r["ns_id"],
+                    'ma_ns': r["ma_ns"],
+                    'ten_ns': r["ten_ns"],
+                    'ngay': r["ngay"],
+                    'chung_tu': r["chung_tu"],
+                    'phep_them': r["phep_them"],
+                    'phep_su_dung': r["phep_su_dung"],
+                    'in_dam': r["in_dam"]
+                }
+                self.env['leave.report'].sudo().create(vals)
             return {
                 'type': 'ir.actions.act_window',
                 'name': 'Báo cáo phép chi tiết',
                 'res_model': 'leave.report',
+                'views': [(self.env.ref('sonha_report.leave_report_ct_tree_view').id, 'tree')],
                 'view_mode': 'tree',
                 'target': 'current',
             }
         else:
-            raise ValidationError("Nhân viên không sử dụng phép trong tháng này!")
+            raise ValidationError("Không tìm thấy dữ liệu!")
 
 
 
