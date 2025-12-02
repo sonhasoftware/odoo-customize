@@ -602,6 +602,8 @@ class FormWordSlip(models.Model):
                 employee_id,
                 date,
                 leave,
+                time_from,
+                time_to,
                 type_leave,
                 status,
                 key_type_leave,
@@ -614,6 +616,8 @@ class FormWordSlip(models.Model):
                 sub.employee_id,
                 sub.date,
                 sub.leave,
+                sub.time_from,
+                sub.time_to,
                 sub.type_leave,
                 sub.status,
                 sub.key_type_leave,
@@ -636,6 +640,8 @@ class FormWordSlip(models.Model):
                             END
                         ELSE 0
                     END AS leave,
+                    ws.time_to AS time_from,
+                    ws.time_from AS time_to,
                     cfw.id AS type_leave,
                     CASE
                         WHEN fws.check_level = true THEN fws.status_lv1
@@ -682,6 +688,8 @@ class FormWordSlip(models.Model):
                 employee_id,
                 date,
                 leave,
+                time_from,
+                time_to,
                 type_leave,
                 status,
                 key_type_leave,
@@ -694,6 +702,8 @@ class FormWordSlip(models.Model):
                 sub.employee_id,
                 sub.date,
                 sub.leave,
+                sub.time_from,
+                sub.time_to,
                 sub.type_leave,
                 sub.status,
                 sub.key_type_leave,
@@ -716,6 +726,8 @@ class FormWordSlip(models.Model):
                             END
                         ELSE 0
                     END AS leave,
+                    ws.time_to AS time_from,
+                    ws.time_from AS time_to,
                     cfw.id AS type_leave,
                     CASE
                         WHEN fws.check_level = true THEN fws.status_lv1
