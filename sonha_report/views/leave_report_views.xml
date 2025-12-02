@@ -23,10 +23,10 @@
             <tree string="Báo cáo phép tổng hợp">
                 <field name="ma_ns"/>
                 <field name="ten_ns"/>
-                <field name="ton_dau"/>
-                <field name="nhap"/>
-                <field name="xuat"/>
-                <field name="ton_cuoi"/>
+                <field name="ton_dau" string="Phép đầu kỳ"/>
+                <field name="nhap" string="Phép thêm"/>
+                <field name="xuat" string="Phép sử dụng"/>
+                <field name="ton_cuoi" string="Phép cuối kỳ"/>
             </tree>
         </field>
     </record>
