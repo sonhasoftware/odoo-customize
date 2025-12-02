@@ -10,14 +10,19 @@
               parent="menu_sonha_report"
               sequence="2"/>
 
-    <menuitem id="menu_sonha_report_leave"
-              name="Báo cáo nghỉ phép"
+    <menuitem id="menu_sonha_report_word_slip"
+              name="Báo cáo đơn từ"
               parent="menu_sonha_report"
+              sequence="2"/>
+
+    <menuitem id="menu_sonha_report_leave"
+              name="Báo cáo phép"
+              parent="menu_sonha_report_word_slip"
               sequence="3"/>
 
     <menuitem id="menu_sonha_report_slip"
               name="Báo cáo đơn từ"
-              parent="menu_sonha_report"
+              parent="menu_sonha_report_word_slip"
               sequence="2"/>
 
     <menuitem id="menu_sonha_report_employee"
@@ -26,7 +31,7 @@
               sequence="1"/>
 
     <menuitem id="menu_sonha_report_reward_discipline"
-              name="Báo cáo khen thưởng, kỷ luật"
+              name="Báo cáo khác"
               parent="menu_sonha_report"
               sequence="4"/>
 

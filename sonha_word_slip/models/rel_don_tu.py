@@ -15,6 +15,8 @@ class RelDonTu(models.Model):
     key_type_leave = fields.Char(related='type_leave.key', string="Key loại đơn", store=True)
     key = fields.Many2one('word.slip', string="Key ngày", store=True)
     key_char = fields.Char(string="Key", store=True)
+    time_from = fields.Float(string="Thời gian bắt đầu", store=True)
+    time_to = fields.Float(string="Thời gian kết thúc", store=True)
 
     key_form = fields.Many2one('form.word.slip', string="Key", store=True)
     key_form_char = fields.Char(string="Key", store=True)
@@ -105,7 +107,18 @@ class RelDonTu(models.Model):
     def phan_ra_don_tu(self):
         self.env['rel.don.tu'].sudo().search([]).unlink()
         query = """INSERT INTO rel_don_tu(
-                        employee_id, date, leave, type_leave, status, key_type_leave, key, key_form, create_uid, create_date
+                        employee_id, 
+                        date, 
+                        leave, 
+                        time_from, 
+                        time_to, 
+                        type_leave, 
+                        status, 
+                        key_type_leave, 
+                        key, 
+                        key_form, 
+                        create_uid, 
+                        create_date
                     )
                         SELECT
                             CASE
@@ -121,6 +134,8 @@ class RelDonTu(models.Model):
                                     END
                                 ELSE 0
                             END AS leave,
+                            ws.time_to AS time_from,
+                            ws.time_from AS time_to,
                             cfw.id AS type_leave,
                             CASE
                                 WHEN fws.check_level = true THEN fws.status_lv1
