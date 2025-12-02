@@ -203,6 +203,10 @@ class FormWordSlip(models.Model):
             if prev_status == 'done':
                 self._recompute_word_slip_for_record(r)
             self.action_noti(r)
+            if r.type.key == 'NP':
+                employees = r.employee_ids or [r.employee_id]
+                for emp in employees:
+                    emp.new_leave_balance += r.duration
 
     @api.onchange('type')
     def get_check_invisible_type(self):
@@ -347,11 +351,7 @@ class FormWordSlip(models.Model):
                 r.status_lv1 = 'sent'
             else:
                 r.status_lv2 = 'sent'
-            if r.status != 'sent' and r.type.key == 'NP':
-                employees = r.employee_ids or [r.employee_id]
-                for emp in employees:
-                    emp.new_leave_balance += r.duration
-            elif r.status == 'done' and r.type.key == 'NB':
+            if r.status == 'done' and r.type.key == 'NB':
                 employees = r.employee_ids or [r.employee_id]
                 for employee in employees:
                     employee.total_compensatory -= over_time
