@@ -594,6 +594,7 @@ class EmployeeAttendanceV2(models.Model):
                         r.check_out = co
 
     # Lấy thông tin xem nhân viên có check-in hay check-out hay không
+    @api.depends('shift', 'check_out', 'check_in')
     def _get_attendance(self):
         for r in self:
             if (not r.check_in and not r.check_out) or (r.check_in and r.check_out):
@@ -610,6 +611,7 @@ class EmployeeAttendanceV2(models.Model):
                 r.note = None
 
     # Lấy thông tin số phút nhân viên đi muộn hoặc về sớm
+    @api.depends('check_out', 'check_in', 'employee_id')
     def _get_minute_late_early(self):
         for r in self:
             # Khởi tạo giá trị mặc định
