@@ -804,10 +804,11 @@ class FormWordSlip(models.Model):
             if r.employee_ids:
                 employees += r.employee_ids
             info_lines = []
+            date_pr = r.word_slip_id[0].from_date
             for emp in employees:
                 self.env.cr.execute(
-                    "SELECT * FROM public.fn_ton_phep(%s, %s)",
-                    (emp._origin.id, 'dltam')
+                    "SELECT * FROM public.fn_ton_phep(%s, %s, %s)",
+                    (emp._origin.id, 'dltam', str(date_pr))
                 )
                 rows = self.env.cr.dictfetchall()
                 if rows:
