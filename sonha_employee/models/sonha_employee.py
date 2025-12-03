@@ -464,8 +464,8 @@ class WorkProcess(models.Model):
                     r.employee_id.reception_date = r.old_date if r.old_date else None
             if r.decision_type.type == "NV":
                 r.employee_id.status_employee = 'quit_job'
-                r.employee_id.date_quit = str(res.start_date)
-                r.employee_id.reason_quit = res.note
+                r.employee_id.date_quit = str(r.start_date)
+                r.employee_id.reason_quit = r.note
             if r.decision_type.type != "NV":
                 r.employee_id.status_employee = 'working'
                 r.employee_id.date_quit = None
