@@ -470,6 +470,8 @@ class WorkProcess(models.Model):
                 r.employee_id.status_employee = 'working'
                 r.employee_id.date_quit = None
                 r.employee_id.reason_quit = None
+            if r.decision_type.type == "TN":
+                r.employee_id.reception_date = str(r.start_date)
         return res
 
     def unlink(self):
