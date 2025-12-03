@@ -457,11 +457,11 @@ class WorkProcess(models.Model):
                 r.employee_id.job_id = job_id
             if 'department_id' in vals:
                 r.employee_id.department_id = r.department_id.id
-            if 'decision_type' in vals or 'start_date' in vals:
-                if r.decision_type.type and r.decision_type.type.lower() == 'tn':
-                    r.employee_id.reception_date = r.start_date if r.start_date else None
-                else:
-                    r.employee_id.reception_date = r.old_date if r.old_date else None
+            # if 'decision_type' in vals or 'start_date' in vals:
+            #     if r.decision_type.type and r.decision_type.type.lower() == 'tn':
+            #         r.employee_id.reception_date = r.start_date if r.start_date else None
+            #     else:
+            #         r.employee_id.reception_date = r.old_date if r.old_date else None
             if r.decision_type.type == "NV":
                 r.employee_id.status_employee = 'quit_job'
                 r.employee_id.date_quit = str(r.start_date)
