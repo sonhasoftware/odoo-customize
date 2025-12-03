@@ -443,6 +443,10 @@ class WorkProcess(models.Model):
             res.employee_id.reception_date = res.start_date if res.start_date else None
         if res.decision_type.type == "TN":
             res.employee_id.reception_date = str(res.start_date)
+        if res.decision_type.type == "NV":
+            res.employee_id.status_employee = 'quit_job'
+            res.employee_id.date_quit = str(res.start_date)
+            res.employee_id.reason_quit = res.note
         return res
 
     def write(self, vals):
