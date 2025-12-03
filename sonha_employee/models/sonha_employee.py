@@ -280,6 +280,14 @@ class SonHaEmployee(models.Model):
             res.employee_code = '0' * company_id.zero_count + str(company_id.max_number)
         else:
             res.employee_code = company_id.company_code + '0' * company_id.zero_count + str(company_id.max_number)
+        self.env['work.process'].create({
+            'employee_id': res.id,
+            'start_date': str(res.onboard),
+            'job_id': res.job_id.id,
+            'department_id': res.department_id.id,
+            'number': res.employee_code,
+            'decision_type': 6,
+        })
         return res
 
     @api.onchange('status_employee')
@@ -433,6 +441,8 @@ class WorkProcess(models.Model):
         res.old_date = res.employee_id.reception_date if res.employee_id.reception_date else None
         if res.decision_type.type and res.decision_type.type.lower() == 'tn':
             res.employee_id.reception_date = res.start_date if res.start_date else None
+        if res.decision_type.type == "TN":
+            res.employee_id.reception_date = str(res.start_date)
         return res
 
     def write(self, vals):
