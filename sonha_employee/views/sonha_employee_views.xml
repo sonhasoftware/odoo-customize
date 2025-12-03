@@ -63,7 +63,7 @@
 <!--        kế thừa thêm field vào page hr setting (page 3)-->
                 <xpath expr="//page[@name='hr_settings']//field[@name='user_id']" position="after">
                     <field name="shift"/>
-                    <field name="status_employee" readonly="1"/>
+                    <field name="status_employee"/>
                     <field name="date_quit" invisible="status_employee != 'quit_job'" readonly="1"/>
                     <field name="reason_quit" invisible="status_employee != 'quit_job'" readonly="1"/>
 <!--                    <field name="work_ids">-->
