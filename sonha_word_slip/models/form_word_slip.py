@@ -698,10 +698,11 @@ class FormWordSlip(models.Model):
             RETURNING employee_id;
         """, {'form_word_slip_id': form_word_slip_id.id})
         employee_ids = [r[0] for r in self.env.cr.fetchall()]
+        date_pr = form_word_slip_id.word_slip_id[0].from_date
         for emp_id in employee_ids:
             self.env.cr.execute(
-                "SELECT * FROM public.fn_ton_phep(%s, %s)",
-                (emp_id, form_word_slip_id.temp_key)
+                "SELECT * FROM public.fn_ton_phep(%s, %s, %s)",
+                (emp_id, form_word_slip_id.temp_key, str(date_pr))
             )
             self.env.cr.dictfetchall()
 
@@ -784,10 +785,11 @@ class FormWordSlip(models.Model):
             RETURNING employee_id;
         """, {'form_word_slip_id': form_word_slip_id.id})
         employee_ids = [r[0] for r in self.env.cr.fetchall()]
+        date_pr = form_word_slip_id.word_slip_id[0].from_date
         for emp_id in employee_ids:
             self.env.cr.execute(
-                "SELECT * FROM public.fn_ton_phep(%s, %s)",
-                (emp_id, form_word_slip_id.temp_key)
+                "SELECT * FROM public.fn_ton_phep(%s, %s, %s)",
+                (emp_id, form_word_slip_id.temp_key, str(date_pr))
             )
             self.env.cr.dictfetchall()
 
