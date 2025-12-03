@@ -277,25 +277,9 @@ class FormWordSlip(models.Model):
 
     def action_sent(self):
         for r in self:
-            def deduct_leave(employee, duration):
-                """Trừ phép nhân viên và trả về True nếu thành công, False nếu không đủ phép."""
-                if duration > employee.old_leave_balance + employee.new_leave_balance:
-                    raise ValidationError(f"Nhân viên {employee.name} không còn phép nữa!")
-
-                if employee.old_leave_balance >= duration:
-                    employee.old_leave_balance -= duration
-                else:
-                    duration -= employee.old_leave_balance
-                    employee.old_leave_balance = 0
-                    employee.new_leave_balance -= duration
-                return True
             if not r.word_slip_id:
                 raise ValidationError("Bạn không có dữ liệu ngày!")
             else:
-                if r.type.key == "NP":
-                    employees = r.employee_ids or [r.employee_id]
-                    for employee in employees:
-                        deduct_leave(employee, r.duration)
                 r.status = 'draft'
                 r.status_lv1 = 'draft'
                 r.status_lv2 = 'draft'
