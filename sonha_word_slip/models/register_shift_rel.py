@@ -10,6 +10,23 @@ class RegisterShiftRel(models.Model):
     register_shift = fields.Many2one('register.shift')
     company_id = fields.Many2one('res.company', string="Công ty", required=True, default=lambda self: self.env.company)
 
+    def create(self, vals):
+        rec = super(RegisterShiftRel, self).create(vals)
+        for r in rec:
+            if r.register_shift and r.register_shift.employee_id:
+                self.env['employee.attendance.v2'].sudo().recompute_for_employee(
+                    r.register_shift.employee_id, r.date, r.date
+                )
+        return rec
+
+    def write(self, vals):
+        res = super(RegisterShiftRel, self).write(vals)
+        for rec in self:
+            if rec.register_shift.employee_id:
+                self.env['employee.attendance.v2'].sudo().recompute_for_employee(
+                    rec.register_shift.employee_id, rec.date, rec.date
+                )
+        return res
     @api.constrains('date')
     def validate_register_shift_date(self):
         for r in self:
@@ -28,6 +45,10 @@ class RegisterShiftRel(models.Model):
                     raise ValidationError(f"Bạn đã có đơn đổi ca cho ngày {date} rồi!")
 
     def unlink(self):
-        for r in self:
-            self.env['rel.ca'].sudo().search([('key', '=', r.id)]).unlink()
+        for rec in self:
+            if rec.register_shift.employee_id:
+                self.env['employee.attendance.v2'].sudo().recompute_for_employee(
+                    rec.register_shift.employee_id, rec.date, rec.date
+                )
+                self.env['rel.ca'].sudo().search([('key', '=', rec.id)]).unlink()
         return super(RegisterShiftRel, self).unlink()

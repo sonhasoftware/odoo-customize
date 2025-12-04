@@ -109,7 +109,6 @@ class APIVanBan(http.Controller):
 
                 # Lấy dữ liệu từ request
                 ngay_lam_don = data.get('ngay_lam_don')
-                so_don = data.get('so_don')
                 loai_van_ban = data.get('loai_van_ban')
                 don_vi = data.get('don_vi')
                 noi_dung = data.get('noi_dung')
@@ -123,7 +122,6 @@ class APIVanBan(http.Controller):
                 data_file = data.get('danh_sach_file', [])
                 required_fields = {
                     'ngay_lam_don': ngay_lam_don,
-                    'so_don': so_don,
                     'loai_van_ban': loai_van_ban,
                     'don_vi': don_vi,
                     'noi_dung': noi_dung,
@@ -160,7 +158,6 @@ class APIVanBan(http.Controller):
                 # Chuẩn bị dữ liệu tạo bản ghi
                 vals = {
                     'ngay_ct': str(ngay_lam_don),
-                    'chung_tu': so_don,
                     'dvcs': int(don_vi),
                     'id_loai_vb': int(loai_van_ban),
                     'noi_dung': noi_dung,
@@ -233,7 +230,7 @@ class APIVanBan(http.Controller):
             for f in record.file_ids:
                 data_file.append({
                     'ten': f.file_name,
-                    'file_base64': f.base64,
+                    'file_base64': base64.b64encode(f.file).decode('utf-8') if f.file else False,
                 })
 
             if record.check_write == True or record.create_uid.id != user_id.id:
@@ -376,6 +373,7 @@ class APIVanBan(http.Controller):
                 record.ngay_duyet = datetime.now()
                 record.is_approved = True
                 record.fill_ngay_bd_duyet(record)
+                record.sent_mail_noti(record)
                 # Trả về kết quả
                 return Response(json.dumps({
                     "success": True,
@@ -404,6 +402,7 @@ class APIVanBan(http.Controller):
             record.dk_vb_h.nguoi_tu_choi = record.user_duyet.id
             record.dk_vb_h.check_write = False
             record.dk_vb_h.status = 'reject'
+            record.sent_mail_user_reject(record)
 
             # Trả về kết quả
             return Response(json.dumps({

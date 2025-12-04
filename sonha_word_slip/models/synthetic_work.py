@@ -101,7 +101,7 @@ class SyntheticWork(models.Model):
                     COALESCE(SUM(vacation), 0) AS vacation,
                     COALESCE(SUM(forgot_time), 0) AS forgot_time,
                     COALESCE(SUM(work_eat), 0) AS work_eat
-                FROM employee_attendance_store
+                FROM employee_attendance_v2
                 WHERE employee_id = %s
                   AND date >= %s
                   AND date <= %s

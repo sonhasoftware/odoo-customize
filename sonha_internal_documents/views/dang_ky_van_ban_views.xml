@@ -29,7 +29,7 @@
                         <group>
                             <field name="check_write" invisible="1"/>
                             <field name="ngay_ct" readonly="check_write == True"/>
-                            <field name="chung_tu" readonly="check_write == True"/>
+                            <field name="chung_tu" readonly="1"/>
                             <field name="id_loai_vb" readonly="check_write == True"/>
                             <div colspan="2">
                                 <b>Nội dung tóm tắt</b>

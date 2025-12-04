@@ -280,15 +280,23 @@ class SonHaEmployee(models.Model):
             res.employee_code = '0' * company_id.zero_count + str(company_id.max_number)
         else:
             res.employee_code = company_id.company_code + '0' * company_id.zero_count + str(company_id.max_number)
+        self.env['work.process'].create({
+            'employee_id': res.id,
+            'start_date': str(res.onboard),
+            'job_id': res.job_id.id,
+            'department_id': res.department_id.id,
+            'number': res.employee_code,
+            'decision_type': 6,
+        })
         return res
 
-    @api.onchange('status_employee')
-    def onchange_status_employee(self):
-        for s in self:
-            if s.status_employee == 'quit_job':
-                s.active = False
-            else:
-                s.active = True
+    # @api.onchange('status_employee')
+    # def onchange_status_employee(self):
+    #     for s in self:
+    #         if s.status_employee == 'quit_job':
+    #             s.active = False
+    #         else:
+    #             s.active = True
 
     @api.constrains('employee_code')
     def check_employee_code(self):
@@ -433,6 +441,12 @@ class WorkProcess(models.Model):
         res.old_date = res.employee_id.reception_date if res.employee_id.reception_date else None
         if res.decision_type.type and res.decision_type.type.lower() == 'tn':
             res.employee_id.reception_date = res.start_date if res.start_date else None
+        if res.decision_type.type == "TN":
+            res.employee_id.reception_date = str(res.start_date)
+        if res.decision_type.type == "NV":
+            res.employee_id.status_employee = 'quit_job'
+            res.employee_id.date_quit = str(res.start_date)
+            res.employee_id.reason_quit = res.note
         return res
 
     def write(self, vals):
@@ -443,11 +457,24 @@ class WorkProcess(models.Model):
                 r.employee_id.job_id = job_id
             if 'department_id' in vals:
                 r.employee_id.department_id = r.department_id.id
-            if 'decision_type' in vals or 'start_date' in vals:
-                if r.decision_type.type and r.decision_type.type.lower() == 'tn':
-                    r.employee_id.reception_date = r.start_date if r.start_date else None
-                else:
-                    r.employee_id.reception_date = r.old_date if r.old_date else None
+            # if 'decision_type' in vals or 'start_date' in vals:
+            #     if r.decision_type.type and r.decision_type.type.lower() == 'tn':
+            #         r.employee_id.reception_date = r.start_date if r.start_date else None
+            #     else:
+            #         r.employee_id.reception_date = r.old_date if r.old_date else None
+            if r.decision_type.type == "NV":
+                r.employee_id.status_employee = 'quit_job'
+                r.employee_id.date_quit = str(r.start_date)
+                r.employee_id.reason_quit = r.note
+            if r.decision_type.type != "NV" and r.decision_type.type != "TN":
+                r.employee_id.status_employee = 'working'
+                r.employee_id.date_quit = None
+                r.employee_id.reason_quit = None
+            if r.decision_type.type == "TN":
+                r.employee_id.reception_date = str(r.start_date)
+                r.employee_id.status_employee = 'working'
+                r.employee_id.date_quit = None
+                r.employee_id.reason_quit = None
         return res
 
     def unlink(self):

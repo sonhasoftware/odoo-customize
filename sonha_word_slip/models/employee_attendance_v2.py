@@ -1,62 +1,73 @@
+# -*- coding: utf-8 -*-
 from dateutil.relativedelta import relativedelta
-from odoo import api, fields, models
+from odoo import api, fields, models, _
 from datetime import datetime, time, timedelta, date
 import requests
 import json
 
 
-class EmployeeAttendance(models.Model):
-    _name = 'employee.attendance'
-    _description = 'Employee Attendance'
+class EmployeeAttendanceV2(models.Model):
+    _name = 'employee.attendance.v2'
+    _description = 'Bảng công chi tiết'
 
     employee_id = fields.Many2one('hr.employee', string='Nhân viên', required=True, store=True)
-    department_id = fields.Many2one('hr.department', string='Phòng ban', compute="_get_department_id", store=True)
+    department_id = fields.Many2one('hr.department', string='Phòng ban',
+                                    compute="_get_department_id", store=True)
     date = fields.Date(string='Ngày', required=True, store=True)
     weekday = fields.Selection([
-        ('0', 'Thứ hai'),
-        ('1', 'Thứ ba'),
-        ('2', 'Thứ tư'),
-        ('3', 'Thứ năm'),
-        ('4', 'Thứ sáu'),
-        ('5', 'Thứ bảy'),
+        ('0', 'Thứ hai'), ('1', 'Thứ ba'), ('2', 'Thứ tư'),
+        ('3', 'Thứ năm'), ('4', 'Thứ sáu'), ('5', 'Thứ bảy'),
         ('6', 'Chủ nhật')
     ], string="Thứ", compute="_compute_weekday", store=True)
-    check_in = fields.Datetime(string='Giờ vào', compute="_get_check_in_out")
-    check_out = fields.Datetime(string='Giờ ra', compute="_get_check_in_out")
-    duration = fields.Float("Giờ công", compute="_get_duration")
-    shift = fields.Many2one('config.shift', compute="_get_shift_employee", string="Ca làm việc")
-    time_check_in = fields.Datetime("Thời gian phải vào", compute="_get_time_in_out")
-    time_check_out = fields.Datetime("Thời gian phải ra", compute="_get_time_in_out")
-    check_no_in = fields.Datetime("Check không có check_in", compute="_check_no_in_out")
-    check_no_out = fields.Datetime("Check không có check_out", compute="_check_no_in_out")
 
-    note = fields.Selection([('no_in', "Không có check in"),
-                             ('no_out', "Không có check out"),
-                             ('no_shift', "Không có ca làm việc")],
-                            string="Ghi chú",
-                            compute="_get_attendance")
-    work_day = fields.Float("Ngày công", compute="_get_work_day")
-    minutes_late = fields.Float("Số phút đi muộn", compute="_get_minute_late_early")
-    minutes_early = fields.Float("Số phút về sớm", compute="_get_minute_late_early")
+    check_in = fields.Datetime(string='Giờ vào', compute="_get_check_in_out", store=True)
+    check_out = fields.Datetime(string='Giờ ra', compute="_get_check_in_out", store=True)
+    duration = fields.Float("Giờ công", compute="_get_duration", store=True)
+
+    shift = fields.Many2one('config.shift', string="Ca làm việc",
+                            compute="_get_shift_employee", store=True)
+    time_check_in = fields.Datetime("Thời gian phải vào", compute="_get_time_in_out", store=True)
+    time_check_out = fields.Datetime("Thời gian phải ra", compute="_get_time_in_out", store=True)
+    check_no_in = fields.Datetime("Check không có check_in", compute="_check_no_in_out", store=True)
+    check_no_out = fields.Datetime("Check không có check_out", compute="_check_no_in_out", store=True)
+
+    note = fields.Selection([
+        ('no_in', "Không có check in"),
+        ('no_out', "Không có check out"),
+        ('no_shift', "Không có ca làm việc")
+    ], string="Ghi chú", compute="_get_attendance", store=True)
+
+    work_day = fields.Float("Ngày công", compute="_get_work_day", store=True)
+    minutes_late = fields.Float("Số phút đi muộn", compute="_get_minute_late_early", store=True)
+    minutes_early = fields.Float("Số phút về sớm", compute="_get_minute_late_early", store=True)
 
     month = fields.Integer("Tháng", compute="_get_month_year", store=True)
-    year = fields.Integer("Năm", compute="_get_month_year")
-    over_time = fields.Float("Giờ làm thêm", compute="get_hours_reinforcement")
-    over_time_nb = fields.Float("Làm thêm hưởng NB", compute="get_hours_reinforcement")
-    leave = fields.Float("Nghỉ phép", compute="_get_time_off")
-    compensatory = fields.Float("Nghỉ bù", compute="_get_time_off")
-    public_leave = fields.Float("Nghỉ lễ", cumpute="_get_time_off")
-    c2k3 = fields.Float("Ca 2 kíp 3", compute="get_shift")
-    c3k4 = fields.Float("Ca 3 kíp 4", compute="get_shift")
-    shift_toxic = fields.Float("Ca độc hại", compute="get_shift")
-    work_hc = fields.Float("Công hành chính", compute="get_work_hc_sp")
-    work_sp = fields.Float("Công Sản phẩm", compute="get_work_hc_sp")
-    times_late = fields.Integer("Đi muộn quá 30p", compute="get_times_late")
-    work_calendar = fields.Boolean("Lịch làm việc", compute="get_work_calendar")
-    actual_work = fields.Float("Công thực tế theo ca", compute="_get_actual_work")
-    vacation = fields.Float("Nghỉ mát", compute="_get_time_off")
-    forgot_time = fields.Integer("Quên CI/CO", compute="_get_forgot_time")
-    work_eat = fields.Integer("Công ăn", compute="_get_work_eat")
+    year = fields.Integer("Năm", compute="_get_month_year", store=True)
+
+    over_time = fields.Float("Giờ làm thêm", compute="get_hours_reinforcement", store=True)
+    over_time_nb = fields.Float("Làm thêm hưởng NB", compute="get_hours_reinforcement", store=True)
+
+    leave = fields.Float("Nghỉ phép", compute="_get_time_off", store=True)
+    compensatory = fields.Float("Nghỉ bù", compute="_get_time_off", store=True)
+    public_leave = fields.Float("Nghỉ lễ", compute="_get_time_off", store=True)
+    vacation = fields.Float("Nghỉ mát", compute="_get_time_off", store=True)
+
+    c2k3 = fields.Float("Ca 2 kíp 3", compute="get_shift", store=True)
+    c3k4 = fields.Float("Ca 3 kíp 4", compute="get_shift", store=True)
+    shift_toxic = fields.Float("Ca độc hại", compute="get_shift", store=True)
+
+    work_hc = fields.Float("Công hành chính", compute="get_work_hc_sp", store=True)
+    work_sp = fields.Float("Công Sản phẩm", compute="get_work_hc_sp", store=True)
+
+    times_late = fields.Integer("Đi muộn quá 30p", compute="get_times_late", store=True)
+    work_calendar = fields.Boolean("Lịch làm việc", compute="get_work_calendar", store=True)
+
+    actual_work = fields.Float("Công thực tế theo ca", compute="_get_actual_work", store=True)
+
+    forgot_time = fields.Integer("Quên CI/CO", compute="_get_forgot_time", store=True)
+    work_eat = fields.Integer("Công ăn", compute="_get_work_eat", store=True)
+
+    color = fields.Selection([('red', 'Red'), ('green', 'Green')], string="Màu", compute="_compute_color")
 
     @api.depends('date', 'shift')
     def get_work_calendar(self):
@@ -113,7 +124,9 @@ class EmployeeAttendance(models.Model):
                 ('word_slip.status', '=', 'done')
             ])
 
-            word_slips = word_slips.filtered(lambda x: (x.word_slip.employee_id and x.word_slip.employee_id.id == r.employee_id.id) or (x.word_slip.employee_ids and r.employee_id.id in x.word_slip.employee_ids.ids))
+            word_slips = word_slips.filtered(
+                lambda x: (x.word_slip.employee_id and x.word_slip.employee_id.id == r.employee_id.id) or (
+                            x.word_slip.employee_ids and r.employee_id.id in x.word_slip.employee_ids.ids))
 
             # Xử lý word.slip
             for slip in word_slips:
@@ -318,13 +331,6 @@ class EmployeeAttendance(models.Model):
                 else:
                     record.over_time = total_overtime
 
-    color = fields.Selection([
-            ('red', 'Red'),
-            ('green', 'Green'),
-        ],
-        string="Màu", compute="_compute_color"
-    )
-
     @api.depends('date')
     def _get_month_year(self):
         for r in self:
@@ -345,25 +351,62 @@ class EmployeeAttendance(models.Model):
 
     # tạo ra bản ghi cho từng nhân viên trong các ngày của tháng
 
-    def update_attendance_data(self):
-        employees = self.env['hr.employee'].search([('id', '!=', 1)])
-        current_date = datetime.now()
-        start_date = current_date.replace(day=1) + timedelta(hours=7) - relativedelta(months=1)
+    def update_attendance_data_v2(self):
+        self.with_delay().create_data_attendance()
+
+    def create_data_attendance(self):
+        # STEP 1 — Lấy danh sách nhân viên
+        self.env.cr.execute("""
+            SELECT id 
+            FROM hr_employee 
+            WHERE id != 1
+        """)
+        employee_ids = [row[0] for row in self.env.cr.fetchall()]
+
+        # STEP 2 — Tính khoảng thời gian
+        now = datetime.now()
+        start_date = now.replace(day=1).date() - relativedelta(months=1)
         end_date = (start_date + relativedelta(months=2)) - timedelta(days=1)
 
-        for employee in employees:
-            for single_date in (start_date + timedelta(n) for n in range((end_date - start_date).days + 1)):
-                existing_record = self.env['employee.attendance'].search([
-                    ('employee_id', '=', employee.id),
-                    ('date', '=', single_date)
-                ])
-                if not existing_record:
-                    self.env['employee.attendance'].create({
-                        'employee_id': employee.id,
-                        'date': single_date,
-                    })
+        # STEP 3 — Lấy bản ghi đã tồn tại để bỏ qua
+        self.env.cr.execute("""
+            SELECT employee_id, date 
+            FROM employee_attendance_v2
+            WHERE date BETWEEN %s AND %s
+        """, (start_date, end_date))
 
-    #lấy thông tin ca của nhân viên để điền vào trường ca
+        existing = {(row[0], row[1]) for row in self.env.cr.fetchall()}
+
+        # STEP 4 — Tạo list insert
+        values = []
+        cur = start_date
+        while cur <= end_date:
+            for emp_id in employee_ids:
+                if (emp_id, cur) not in existing:
+                    values.append(f"({emp_id}, '{cur}')")
+            cur += timedelta(days=1)
+
+        # STEP 5 — Insert bằng batch SQL
+        if values:
+            batch_size = 5000
+            for i in range(0, len(values), batch_size):
+                batch = values[i:i + batch_size]
+                sql = """
+                    INSERT INTO employee_attendance_v2 (employee_id, date)
+                    VALUES %s
+                """ % ",".join(batch)
+                self.env.cr.execute(sql)
+
+        # STEP 6 — RECOMPUTE cho từng employee từng ngày
+        Attendance = self.env['employee.attendance.v2'].sudo()
+        cur = start_date
+        while cur <= end_date:
+            for emp_id in employee_ids:
+                emp = self.env['hr.employee'].browse(emp_id)
+                Attendance.recompute_for_employee(emp, cur, cur)
+            cur += timedelta(days=1)
+
+    # lấy thông tin ca của nhân viên để điền vào trường ca
     @api.depends('date', 'employee_id')
     def _get_shift_employee(self):
         for r in self:
@@ -394,12 +437,12 @@ class EmployeeAttendance(models.Model):
             elif r.employee_id.shift:
                 r.shift = r.employee_id.shift.id
 
-    #Lấy thông tin giờ phải check-in và giờ check-out của nhân viên
+    # Lấy thông tin giờ phải check-in và giờ check-out của nhân viên
     @api.depends('shift')
     def _get_time_in_out(self):
         for r in self:
             # Nếu không có shift, gán giá trị mặc định và bỏ qua
-            if not r.shift or not r.shift.start or not r.shift.end_shift:
+            if not r.shift:
                 r.time_check_in = None
                 r.time_check_out = None
                 continue
@@ -426,9 +469,10 @@ class EmployeeAttendance(models.Model):
                                                                     ('start_date', '<=', r.date),
                                                                     ('end_date', '>=', r.date)])
             overtime_update = self.env['overtime.rel'].sudo().search([('date', '=', r.date),
-                                                               ('overtime_id.status', '=', 'done')])
-            overtime_update = overtime_update.filtered(lambda x: (x.overtime_id.employee_id and x.overtime_id.employee_id.id == r.employee_id.id)
-                                                   or (x.overtime_id.employee_ids and r.employee_id.id in x.overtime_id.employee_ids.ids))
+                                                                      ('overtime_id.status', '=', 'done')])
+            overtime_update = overtime_update.filtered(
+                lambda x: (x.overtime_id.employee_id and x.overtime_id.employee_id.id == r.employee_id.id)
+                          or (x.overtime_id.employee_ids and r.employee_id.id in x.overtime_id.employee_ids.ids))
             if overtime:
                 for ot in overtime:
                     start = int(ot.start_time)
@@ -451,7 +495,7 @@ class EmployeeAttendance(models.Model):
             r.time_check_in = time_check_in
             r.time_check_out = time_check_out
 
-   #Lấy ra thông tin số giờ cần có mặt theo ca
+    # Lấy ra thông tin số giờ cần có mặt theo ca
     @api.depends('shift')
     def _get_duration(self):
         for r in self:
@@ -467,7 +511,7 @@ class EmployeeAttendance(models.Model):
             else:
                 r.duration = 0
 
-    #Lấy giờ mốc để tách giờ check-in và giờ check-out của nhân viên
+    # Lấy giờ mốc để tách giờ check-in và giờ check-out của nhân viên
     @api.depends('shift', 'duration', 'time_check_in', 'time_check_out')
     def _check_no_in_out(self):
         for r in self:
@@ -478,7 +522,7 @@ class EmployeeAttendance(models.Model):
                 r.check_no_in = r.time_check_in + timedelta(minutes=r.shift.earliest + r.shift.latest)
                 r.check_no_out = r.time_check_out - timedelta(hours=duration, minutes=r.shift.latest_out)
 
-    #Lấy thông tin check-in và check-out của nhân viên
+    # Lấy thông tin check-in và check-out của nhân viên
     @api.depends('employee_id', 'time_check_in', 'time_check_out', 'check_no_in', 'check_no_out')
     def _get_check_in_out(self):
         def calculate_time(input_time, date, default_time):
@@ -507,8 +551,10 @@ class EmployeeAttendance(models.Model):
             )
 
             # Tách dữ liệu check_in và check_out
-            attendance_ci = [a['attendance_time'] for a in attendance_times if a['attendance_time'] and r.check_no_in and a['attendance_time'] <= r.check_no_in]
-            attendance_co = [a['attendance_time'] for a in attendance_times if a['attendance_time'] and r.check_no_out and a['attendance_time'] >= r.check_no_out]
+            attendance_ci = [a['attendance_time'] for a in attendance_times if
+                             a['attendance_time'] and r.check_no_in and a['attendance_time'] <= r.check_no_in]
+            attendance_co = [a['attendance_time'] for a in attendance_times if
+                             a['attendance_time'] and r.check_no_out and a['attendance_time'] >= r.check_no_out]
 
             check_in = attendance_ci[0] if attendance_ci else None
             check_out = attendance_co[-1] if attendance_co else None
@@ -526,7 +572,7 @@ class EmployeeAttendance(models.Model):
 
             in_outs = in_outs.filtered(
                 lambda x: (x.word_slip.employee_id and x.word_slip.employee_id.id == r.employee_id.id) or (
-                            x.word_slip.employee_ids and r.employee_id.id in x.word_slip.employee_ids.ids))
+                        x.word_slip.employee_ids and r.employee_id.id in x.word_slip.employee_ids.ids))
 
             for in_out in in_outs:
                 if in_out and in_out.time_to:
@@ -547,7 +593,8 @@ class EmployeeAttendance(models.Model):
                     elif check_out and check_out < co and r.check_no_out and r.time_check_out and r.check_no_out <= co <= r.time_check_out:
                         r.check_out = co
 
-    #Lấy thông tin xem nhân viên có check-in hay check-out hay không
+    # Lấy thông tin xem nhân viên có check-in hay check-out hay không
+    @api.depends('shift', 'check_out', 'check_in')
     def _get_attendance(self):
         for r in self:
             if (not r.check_in and not r.check_out) or (r.check_in and r.check_out):
@@ -563,7 +610,8 @@ class EmployeeAttendance(models.Model):
             if r.leave > 0 or r.compensatory > 0 or r.vacation > 0:
                 r.note = None
 
-    #Lấy thông tin số phút nhân viên đi muộn hoặc về sớm
+    # Lấy thông tin số phút nhân viên đi muộn hoặc về sớm
+    @api.depends('check_out', 'check_in', 'employee_id')
     def _get_minute_late_early(self):
         for r in self:
             # Khởi tạo giá trị mặc định
@@ -579,7 +627,8 @@ class EmployeeAttendance(models.Model):
             if r.check_in:
                 check_in_time = r.check_in + timedelta(hours=7)
                 if check_in_time.time() > shift_start_time.time():
-                    minute_late = (check_in_time - datetime.combine(check_in_time.date(), shift_start_time.time())).total_seconds() / 60
+                    minute_late = (check_in_time - datetime.combine(check_in_time.date(),
+                                                                    shift_start_time.time())).total_seconds() / 60
                     r.minutes_late = int(minute_late)
 
             if r.check_out:
@@ -603,13 +652,14 @@ class EmployeeAttendance(models.Model):
             weekday = r.date.weekday()
             week_number = r.date.isocalendar()[1]
 
-            if (r.shift.shift_ot) or (r.shift.is_office_hour and (weekday == 6 or (weekday == 5 and week_number % 2 == 1))):
+            if (r.shift.shift_ot) or (
+                    r.shift.is_office_hour and (weekday == 6 or (weekday == 5 and week_number % 2 == 1))):
                 r.minutes_early = 0
                 r.minutes_late = 0
             else:
                 pass
 
-    #Lấy thông tin ngày công của nhân viên
+    # Lấy thông tin ngày công của nhân viên
     @api.depends('check_in', 'check_out', 'shift')
     def _get_work_day(self):
         for r in self:
@@ -629,7 +679,7 @@ class EmployeeAttendance(models.Model):
 
             leave_no_work = leave_no_work.filtered(
                 lambda x: (x.word_slip.employee_id and x.word_slip.employee_id.id == r.employee_id.id) or (
-                            x.word_slip.employee_ids and r.employee_id.id in x.word_slip.employee_ids.ids))
+                        x.word_slip.employee_ids and r.employee_id.id in x.word_slip.employee_ids.ids))
 
             if r.shift.is_office_hour and (weekday == 6 or (weekday == 5 and week_number % 2 == 1)):
                 r.work_day = 0
@@ -678,7 +728,6 @@ class EmployeeAttendance(models.Model):
                         else:
                             r.work_day = 0
 
-
     # tính thứ cho ngày
     @api.depends('date')
     def _compute_weekday(self):
@@ -690,7 +739,7 @@ class EmployeeAttendance(models.Model):
                 r.weekday = None
 
     # tính màu cho danh sách
-    @api.depends('date','check_in','check_out', 'minutes_late', 'minutes_early')
+    @api.depends('date', 'check_in', 'check_out', 'minutes_late', 'minutes_early')
     def _compute_color(self):
         today = date.today()
         for r in self:
@@ -784,7 +833,8 @@ class EmployeeAttendance(models.Model):
             if r.work_day >= 1:
                 r.work_eat = 1
 
-    def send_fcm_notification(self, title, content, token, user_id, type, employee_id, application_id, screen="/notification", badge=1):
+    def send_fcm_notification(self, title, content, token, user_id, type, employee_id, application_id,
+                              screen="/notification", badge=1):
         url = "https://apibaohanh.sonha.com.vn/api/thongbaohrm/send-fcm"
 
         payload = {
@@ -807,19 +857,19 @@ class EmployeeAttendance(models.Model):
             res_json = json.loads(response.text)
             message_id = res_json.get("messageId")
             if response.status_code == 200:
-               self.env['log.notifi'].sudo().create({
-                   'badge': badge,
-                   'token': token,
-                   'title': title,
-                   'type': type,
-                   'taget_screen': screen,
-                   'message_id': message_id,
-                   'id_application': str(application_id),
-                   'userid': str(user_id),
-                   'employeeid': str(employee_id),
-                   'body': content,
-                   'datetime': str(datetime.now())
-               })
+                self.env['log.notifi'].sudo().create({
+                    'badge': badge,
+                    'token': token,
+                    'title': title,
+                    'type': type,
+                    'taget_screen': screen,
+                    'message_id': message_id,
+                    'id_application': str(application_id),
+                    'userid': str(user_id),
+                    'employeeid': str(employee_id),
+                    'body': content,
+                    'datetime': str(datetime.now())
+                })
             return response.json()
         except Exception as e:
             return {"error": str(e)}
@@ -844,3 +894,31 @@ class EmployeeAttendance(models.Model):
                 employee_id=r.employee_id.id,
                 application_id=0,
             )
+
+    def recompute_for_employee(self, employee, date_from=None, date_to=None):
+        """Helper: gọi từ model khác (vd word.slip.write/create/unlink) để
+           recompute các employee.attendance liên quan.
+           - employee: record or id
+           - date_from/date_to: optional date range (datetime.date or str)
+        """
+        if not employee:
+            return
+        emp_id = employee.id if hasattr(employee, 'id') else int(employee)
+        domain = [('employee_id', '=', emp_id)]
+        if date_from:
+            domain.append(('date', '>=', fields.Date.to_date(date_from)))
+        if date_to:
+            domain.append(('date', '<=', fields.Date.to_date(date_to)))
+        list_recs = self.search(domain)
+        if list_recs:
+            for recs in list_recs:
+            # ghi lại để force recompute store fields
+                recs.sudo().write({'date': recs.date})  # ghi lại trường date để kích hoạt recompute store
+                # hoặc gọi recompute cụ thể
+                recs._get_shift_employee()
+                recs._get_time_off()
+                recs.get_hours_reinforcement()
+                recs._get_time_in_out()
+                recs._get_check_in_out()
+                recs._get_work_day()
+        return True

@@ -1,6 +1,8 @@
 from datetime import datetime
 
 from odoo import models, fields, api
+import requests
+import json
 
 
 class WizardDKVBTuChoi(models.TransientModel):
@@ -47,6 +49,7 @@ class WizardDKVBTuChoi(models.TransientModel):
             'email_to': partner.work_email if partner and partner.work_email else "",
         }
         self.env['mail.mail'].sudo().create(mail_values).sudo().send()
+        self.noti_user_reject(rec, partner)
 
         # Gán thông tin
         rec.is_approved = False
@@ -66,4 +69,59 @@ class WizardDKVBTuChoi(models.TransientModel):
             'type': 'ir.actions.act_url',
             'url': url,
         }
+
+    def send_fcm_notification(self, title, content, token, user_id, type, employee_id, application_id, data_text, screen="/notification", badge=1):
+        url = "https://apibaohanh.sonha.com.vn/api/thongbaohrm/send-fcm"
+
+        payload = {
+            "title": title,
+            "content": content,
+            "badge": badge,
+            "token": token,
+            "application_id": application_id,
+            "user_id": user_id,
+            "screen": screen,
+        }
+
+        headers = {
+            "Content-Type": "application/json",
+        }
+
+        try:
+            response = requests.post(url, data=json.dumps(payload), headers=headers, timeout=30)
+            response.raise_for_status()
+            res_json = json.loads(response.text)
+            message_id = res_json.get("messageId")
+            if response.status_code == 200:
+               self.env['log.notifi'].sudo().create({
+                   'badge': badge,
+                   'token': token,
+                   'title': title,
+                   'type': type,
+                   'taget_screen': screen,
+                   'message_id': message_id,
+                   'id_application': str(application_id),
+                   'userid': str(user_id),
+                   'employeeid': str(employee_id) or "",
+                   'body': content,
+                   'datetime': str(datetime.now()),
+                   'data': data_text
+               })
+        except Exception as e:
+            return {"error": str(e)}
+
+    def noti_user_reject(self, record, employee_id):
+        employee_id = self.env['hr.employee'].sudo().search([('id', '=', employee_id.id)])
+        data_text = str(record.id) + "#" + str(employee_id.user_id.id) + "#" + str(employee_id.id) + "#" + str(
+            record.chung_tu) + "#6#" + str(employee_id.user_id.name)
+        self.send_fcm_notification(
+            title="Sơn Hà Văn Bản",
+            content="Văn bản " + str(record.chung_tu) + " đã bị từ chối!",
+            token=employee_id.user_id.token,
+            user_id=employee_id.user_id.id,
+            type=7,
+            employee_id=employee_id.id,
+            application_id=str(record.id),
+            data_text=data_text
+        )
 

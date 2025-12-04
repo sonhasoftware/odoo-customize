@@ -12,6 +12,17 @@
             <field name="doall">True</field>
         </record>
 
+        <record id="ir_cron_calculate_attendance_v2" model="ir.cron">
+            <field name="name">Tạp dữ liệu bảng công chi tiết (mới)</field>
+            <field name="model_id" ref="model_employee_attendance_v2"/>
+            <field name="state">code</field>
+            <field name="code">model.update_attendance_data_v2()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">months</field>
+            <field name="numbercall">-1</field>
+            <field name="doall">True</field>
+        </record>
+
         <record id="ir_cron_calculate_synthetic" model="ir.cron">
             <field name="name">Bảng công tổng hợp</field>
             <field name="model_id" ref="model_synthetic_work"/>
@@ -51,6 +62,17 @@
             <field name="model_id" ref="model_employee_attendance"/>
             <field name="state">code</field>
             <field name="code">model.noti_miss_work()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="doall">True</field>
+        </record>
+
+        <record id="ir_cron_them_phep" model="ir.cron">
+            <field name="name">HR thêm phép hàng tháng, reset phép cũ</field>
+            <field name="model_id" ref="model_form_word_slip"/>
+            <field name="state">code</field>
+            <field name="code">model.call_fn_them_phep()</field>
             <field name="interval_number">1</field>
             <field name="interval_type">days</field>
             <field name="numbercall">-1</field>

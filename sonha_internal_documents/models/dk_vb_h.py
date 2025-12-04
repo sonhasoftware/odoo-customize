@@ -4,6 +4,8 @@ from dateutil.relativedelta import relativedelta
 from odoo.exceptions import UserError, ValidationError
 from openai import OpenAI
 import google.generativeai as genai
+import requests
+import json
 
 
 class DKVanBanH(models.Model):
@@ -12,7 +14,7 @@ class DKVanBanH(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
     ngay_ct = fields.Date(string="Ngày lập văn bản", store=True, default=fields.Date.today, required=True, tracking=True)
-    chung_tu = fields.Char(string="Số văn bản", store=True, required=True, tracking=True)
+    chung_tu = fields.Char(string="Số văn bản", store=True, tracking=True)
     ngay_ht = fields.Date(string="Ngày hoàn thành", store=True, compute="get_ngay_hoan_thanh")
     dvcs = fields.Many2one('res.company', "Đơn vị", default=lambda self: self.env.company, readonly=False, store=True, required=True, tracking=True)
 
@@ -43,6 +45,21 @@ class DKVanBanH(models.Model):
     ], string='Trạng thái', tracking=True, default='draft')
     noi_dung_tom_tat = fields.Html("Tóm tắt văn bản")
     file_ids = fields.One2many('danh.sach.file', "parent_id", string="Danh sách file")
+
+    def auto_create_chung_tu(self, r):
+        stt = self.sudo().search([('dvcs', '=', r.dvcs.id),
+                            ('ngay_ct', '=', r.ngay_ct)])
+        so_ban_ghi = len(stt)
+        if so_ban_ghi < 10:
+            so = "0"+str(so_ban_ghi)
+        else:
+            so = str(so_ban_ghi)
+        r.chung_tu = r.dvcs.company_code + "." + str(r.ngay_ct.day) + str(r.ngay_ct.month) + "." + so
+
+    def create(self, vals):
+        rec = super(DKVanBanH, self).create(vals)
+        self.auto_create_chung_tu(rec)
+        return rec
 
     @api.depends('dk_vb_d')
     def get_trang_thai_tam(self):
@@ -195,6 +212,7 @@ class DKVanBanH(models.Model):
                     'email_to': partner.work_email,
                 }
                 Mail.sudo().create(mail_values).sudo().send()
+                self.noti_user_action(r, partner)
             pending_records = self.env['dk.vb.d'].sudo().search([
                 ('dk_vb_h', '=', r.id),
                 ('is_approved', '=', False)
@@ -238,5 +256,111 @@ class DKVanBanH(models.Model):
             for d in list_rec_d:
                 d.ngay_bd_duyet = datetime.datetime.now()
 
+        if r.nguoi_tu_choi:
+            users = r.nguoi_tu_choi.id
+        else:
+            # gửi mail cho list user có stt là 1
+            list_stt_1 = self.env['dk.vb.d'].sudo().search([
+                ('dk_vb_h', '=', r.id),
+                ('xu_ly.stt', '=', 1),
+                ('is_approved', '=', False)
+            ])
+            users = list_stt_1.mapped('user_duyet')
+        recipients = self.env['hr.employee'].sudo().search([('user_id', 'in', users.ids)])
+
+        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+        link = f"{base_url}/web#id={r.id}&model=dk.vb.h&view_type=form"
+        sender_name = r.create_uid.name if r.create_uid else ""
+        document_no = r.chung_tu or ""
+        document_type = r.id_loai_vb.ten or ""
+        send_date = r.create_date.strftime("%d/%m/%Y") if r.create_date else ""
+
+        for partner in recipients:
+            subject = f"Hồ sơ cần Anh/Chị phê duyệt"
+
+            body = f"""
+                    <p>Kính gửi Anh/Chị {partner.name},</p>
+
+                    <p>Hệ thống xin thông báo hiện đang có 
+                    <b>{document_type}</b> đang chờ Anh/Chị xem xét và phê duyệt.</p>
+
+                    <p>Anh/Chị vui lòng truy cập vào hệ thống để kiểm tra và xử lý đơn trong thời gian sớm nhất,
+                    nhằm đảm bảo tiến độ công việc.</p>
+
+                    <p><b>Thông tin đơn phê duyệt:</b><br/>
+                    • <b>Tóm tắt văn bản:</b><br/>
+                    <p>{response.text}</p>
+                    • <b>Người gửi:</b> {sender_name}<br/>
+                    • <b>Số văn bản:</b> {document_no}<br/>
+                    • <b>Loại đơn:</b> <b>{document_type}</b><br/>
+                    • <b>Ngày gửi:</b> {send_date}<br/>
+                    • <b>Link phê duyệt:</b> <a href="{link}">Nhấn vào đây để xem văn bản</a></p>
+
+                    <p>Trân trọng,<br/>
+                    Hệ thống Quản lý Văn bản</p>
+                """
+            mail_values = {
+                'subject': subject,
+                'body_html': body,
+                'email_to': partner.work_email,
+            }
+            self.env['mail.mail'].sudo().create(mail_values).sudo().send()
+            self.noti_user_action(r, partner)
+
         r.check_write = True
         r.status = 'done'
+
+    def send_fcm_notification(self, title, content, token, user_id, type, employee_id, application_id, data_text, screen="/notification", badge=1):
+        url = "https://apibaohanh.sonha.com.vn/api/thongbaohrm/send-fcm"
+
+        payload = {
+            "title": title,
+            "content": content,
+            "badge": badge,
+            "token": token,
+            "application_id": application_id,
+            "user_id": user_id,
+            "screen": screen,
+        }
+
+        headers = {
+            "Content-Type": "application/json",
+        }
+
+        try:
+            response = requests.post(url, data=json.dumps(payload), headers=headers, timeout=30)
+            response.raise_for_status()
+            res_json = json.loads(response.text)
+            message_id = res_json.get("messageId")
+            if response.status_code == 200:
+               self.env['log.notifi'].sudo().create({
+                   'badge': badge,
+                   'token': token,
+                   'title': title,
+                   'type': type,
+                   'taget_screen': screen,
+                   'message_id': message_id,
+                   'id_application': str(application_id),
+                   'userid': str(user_id),
+                   'employeeid': str(employee_id) or "",
+                   'body': content,
+                   'datetime': str(datetime.datetime.now()),
+                   'data': data_text
+               })
+        except Exception as e:
+            return {"error": str(e)}
+
+    def noti_user_action(self, record, employee_id):
+        employee_id = self.env['hr.employee'].sudo().search([('id', '=', employee_id.id)])
+        data_text = str(record.id) + "#" + str(employee_id.user_id.id) + "#" + str(employee_id.id) + "#" + str(
+            record.chung_tu) + "#6#" + str(employee_id.user_id.name)
+        self.send_fcm_notification(
+            title="Sơn Hà Văn Bản",
+            content="Văn bản " + str(record.chung_tu) + " đang chờ Anh/Chị xem xét và phê duyệt!",
+            token=employee_id.user_id.token,
+            user_id=employee_id.user_id.id,
+            type=6,
+            employee_id=employee_id.id,
+            application_id=str(record.id),
+            data_text=data_text
+        )

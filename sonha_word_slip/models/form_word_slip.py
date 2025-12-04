@@ -175,12 +175,38 @@ class FormWordSlip(models.Model):
             data_text=data_text
         )
 
+    def _recompute_word_slip_for_record(self, rec):
+        employees = rec.employee_ids or (rec.employee_id and [rec.employee_id]) or []
+        if not employees:
+            return
+
+        for line in rec.word_slip_id:
+            if not line.from_date or not line.to_date:
+                continue
+
+            current = line.from_date
+            while current <= line.to_date:
+                for emp in employees:
+                    self.env['employee.attendance.v2'].sudo().recompute_for_employee(
+                        emp,
+                        current,
+                        current
+                    )
+                current += timedelta(days=1)
+
     def action_cancel(self):
         for r in self:
+            prev_status = r.status
             r.status = 'cancel'
             r.status_lv1 = 'cancel'
             r.status_lv2 = 'cancel'
+            if prev_status == 'done':
+                self._recompute_word_slip_for_record(r)
             self.action_noti(r)
+            if r.type.key == 'NP':
+                employees = r.employee_ids or [r.employee_id]
+                for emp in employees:
+                    emp.new_leave_balance += r.duration
 
     @api.onchange('type')
     def get_check_invisible_type(self):
@@ -228,6 +254,8 @@ class FormWordSlip(models.Model):
             else:
                 raise ValidationError("Bạn không có quyền thực hiện hành động này")
 
+            prev_status = r.status
+
             over_time = 0
             for ot in r.word_slip_id:
                 if ot.start_time != ot.end_time:
@@ -244,28 +272,14 @@ class FormWordSlip(models.Model):
             r.status = 'done'
             r.status_lv1 = 'done'
             r.status_lv2 = 'done'
+            if prev_status != 'done':
+                self._recompute_word_slip_for_record(r)
 
     def action_sent(self):
         for r in self:
-            def deduct_leave(employee, duration):
-                """Trừ phép nhân viên và trả về True nếu thành công, False nếu không đủ phép."""
-                if duration > employee.old_leave_balance + employee.new_leave_balance:
-                    raise ValidationError(f"Nhân viên {employee.name} không còn phép nữa!")
-
-                if employee.old_leave_balance >= duration:
-                    employee.old_leave_balance -= duration
-                else:
-                    duration -= employee.old_leave_balance
-                    employee.old_leave_balance = 0
-                    employee.new_leave_balance -= duration
-                return True
             if not r.word_slip_id:
                 raise ValidationError("Bạn không có dữ liệu ngày!")
             else:
-                if r.type.key == "NP":
-                    employees = r.employee_ids or [r.employee_id]
-                    for employee in employees:
-                        deduct_leave(employee, r.duration)
                 r.status = 'draft'
                 r.status_lv1 = 'draft'
                 r.status_lv2 = 'draft'
@@ -321,11 +335,7 @@ class FormWordSlip(models.Model):
                 r.status_lv1 = 'sent'
             else:
                 r.status_lv2 = 'sent'
-            if r.status != 'sent' and r.type.key == 'NP':
-                employees = r.employee_ids or [r.employee_id]
-                for emp in employees:
-                    emp.new_leave_balance += r.duration
-            elif r.status == 'done' and r.type.key == 'NB':
+            if r.status == 'done' and r.type.key == 'NB':
                 employees = r.employee_ids or [r.employee_id]
                 for employee in employees:
                     employee.total_compensatory -= over_time
@@ -366,6 +376,7 @@ class FormWordSlip(models.Model):
             if r.employee_approval.user_id.id != self.env.user.id:
                 raise ValidationError("Bạn không có quyền thực hiện hành động này")
 
+            prev_status = r.status
             # Xác định cấp duyệt
             status_level = "status_lv2" if r.check_level else "status_lv1"
             over_time = 0
@@ -384,6 +395,8 @@ class FormWordSlip(models.Model):
             r.status = 'done'
             r.button_done = False
             self.noti_user_done(r)
+            if prev_status != 'done':
+                self._recompute_word_slip_for_record(r)
 
     def noti_user_done(self, record):
         user_id = self.env['res.users'].sudo().search([('id', '=', record.create_uid.id)])
@@ -493,7 +506,7 @@ class FormWordSlip(models.Model):
             elif employee_id.employee_approval and not employee_id.parent_id:
                 rec.employee_confirm = employee_id.employee_approval.id
                 rec.employee_approval = employee_id.employee_approval.parent_id.id if employee_id.employee_approval.parent_id else None
-                
+
         if (not department_spec and rec.day_duration <= 3) or rec.type.key != "NP":
             condition = '<=3'
             rec.check_level = False
@@ -669,10 +682,11 @@ class FormWordSlip(models.Model):
             RETURNING employee_id;
         """, {'form_word_slip_id': form_word_slip_id.id})
         employee_ids = [r[0] for r in self.env.cr.fetchall()]
+        date_pr = form_word_slip_id.word_slip_id[0].from_date
         for emp_id in employee_ids:
             self.env.cr.execute(
-                "SELECT * FROM public.fn_ton_phep(%s, %s)",
-                (emp_id, form_word_slip_id.temp_key)
+                "SELECT * FROM public.fn_ton_phep(%s, %s, %s)",
+                (emp_id, form_word_slip_id.temp_key, str(date_pr))
             )
             self.env.cr.dictfetchall()
 
@@ -755,10 +769,11 @@ class FormWordSlip(models.Model):
             RETURNING employee_id;
         """, {'form_word_slip_id': form_word_slip_id.id})
         employee_ids = [r[0] for r in self.env.cr.fetchall()]
+        date_pr = form_word_slip_id.word_slip_id[0].from_date
         for emp_id in employee_ids:
             self.env.cr.execute(
-                "SELECT * FROM public.fn_ton_phep(%s, %s)",
-                (emp_id, form_word_slip_id.temp_key)
+                "SELECT * FROM public.fn_ton_phep(%s, %s, %s)",
+                (emp_id, form_word_slip_id.temp_key, str(date_pr))
             )
             self.env.cr.dictfetchall()
 
@@ -775,15 +790,24 @@ class FormWordSlip(models.Model):
             if r.employee_ids:
                 employees += r.employee_ids
             info_lines = []
+            date_pr = r.word_slip_id[0].from_date
             for emp in employees:
-                total_leave = 0
-                for slip in r.word_slip_id:
-                    if slip.type.key == 'NP':
-                        if slip.start_time == slip.end_time:
-                            total_leave += 0.5
-                        else:
-                            total_leave += 1
-
-                ton = emp.old_leave_balance + emp.new_leave_balance - total_leave
+                self.env.cr.execute(
+                    "SELECT * FROM public.fn_ton_phep(%s, %s, %s)",
+                    (emp._origin.id, 'dltam', str(date_pr))
+                )
+                rows = self.env.cr.dictfetchall()
+                if rows:
+                    ton = rows[0].get('ton')
+                else:
+                    ton = 0
                 info_lines.append(f"{emp.name}: còn {ton} phép (tạm tính)")
             r.phep_ton = "\n".join(info_lines)
+
+    def call_fn_them_phep(self):
+        today = datetime.now().date()
+        if today.day not in (1, 16):
+            return
+        self.env.cr.execute("CALL fn_them_phep();")
+
+

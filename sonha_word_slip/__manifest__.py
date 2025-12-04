@@ -19,6 +19,7 @@
         'views/register_work_views.xml',
         'views/register_overtime_views.xml',
         'views/employee_attendance_views.xml',
+        'views/employee_attendance_v2_views.xml',
         'views/synthetic_work_views.xml',
         'views/config_reason_views.xml',
         'views/button_copy.xml',
