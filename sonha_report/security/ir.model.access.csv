@@ -1,16 +1,16 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 
-access_master_data_report,access.master.data.report,model_master_data_report,,1,0,0,0
+access_master_data_report,access.master.data.report,model_master_data_report,,1,1,0,0
 
-access_employee_attendance_report,access.employee.attendance.report,model_employee_attendance_report,,1,0,0,0
+access_employee_attendance_report,access.employee.attendance.report,model_employee_attendance_report,,1,1,0,0
 
-access_synthetic_work_report,access.synthetic.work.report,model_synthetic_work_report,,1,0,0,0
+access_synthetic_work_report,access.synthetic.work.report,model_synthetic_work_report,,1,1,0,0
 
-access_sonha_word_report,access.sonha.word.report,model_sonha_word_report,,1,0,0,0
+access_sonha_word_report,access.sonha.word.report,model_sonha_word_report,,1,1,0,0
 
-access_leave_report,access.leave.report,model_leave_report,,1,0,0,0
+access_leave_report,access.leave.report,model_leave_report,,1,1,0,0
 
-access_synthetic_leave_report,access.synthetic.leave.report,model_synthetic_leave_report,,1,0,0,0
+access_synthetic_leave_report,access.synthetic.leave.report,model_synthetic_leave_report,,1,1,0,0
 
 access_popup_master_data_report,access.popup.master.data.report,model_popup_master_data_report,,1,1,1,1
 
@@ -29,24 +29,24 @@ access_popup_sonha_employee_report,access.popup.sonha.employee.report,model_popu
 access_popup_sonha_contract_report,access.popup.sonha.contract.report,model_popup_sonha_contract_report,,1,1,1,1
 
 access_popup_reward_report,access.popup.reward.report,model_popup_reward_report,,1,1,1,1
-access_reward_report,access.reward.report,model_reward_report,,1,0,0,0
+access_reward_report,access.reward.report,model_reward_report,,1,1,0,0
 
-access_discipline_report,access.discipline.report,model_discipline_report,,1,0,0,0
+access_discipline_report,access.discipline.report,model_discipline_report,,1,1,0,0
 access_popup_discipline_report,access.popup.discipline.report,model_popup_discipline_report,,1,1,1,1
 
 access_config_template_report,access.config.template.report,model_config_template_report,,1,1,1,1
 access_export_report_employee,access.export.report.employee,model_export_report_employee,,1,1,1,1
 
-access_dismissal_report,access.dismissal.report,model_dismissal_report,,1,0,0,0
+access_dismissal_report,access.dismissal.report,model_dismissal_report,,1,1,0,0
 access_popup_dismissal_report,access.popup.dismissal.report,model_popup_dismissal_report,,1,1,1,1
 
 access_export_report_reward_discipline,access.export.report.reward.discipline,model_export_report_reward_discipline,,1,1,1,1
 
-access_word_slip_report,access.word.slip.report,model_word_slip_report,,1,0,0,0
+access_word_slip_report,access.word.slip.report,model_word_slip_report,,1,1,0,0
 access_popup_word_slip_report,access.popup.word.slip.report,model_popup_word_slip_report,,1,1,1,1
 
 access_popup_overtime_report,access.popup.overtime.report,model_popup_overtime_report,,1,1,1,1
 
 access_leave_left,access.leave.left,model_leave_left,,1,1,1,1
 
-access_employee_report,access.employee.report,model_employee_report,,1,0,0,0
+access_employee_report,access.employee.report,model_employee_report,,1,1,0,0
