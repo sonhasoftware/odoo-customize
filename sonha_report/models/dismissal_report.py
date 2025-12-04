@@ -16,4 +16,5 @@ class DismissalReport(models.Model):
     employee_code = fields.Char(string="Mã nhân viên")
     job_id = fields.Many2one('hr.job', string="Chức vụ")
     address = fields.Char(string="Địa chỉ làm việc")
+    employee_id = fields.Many2one('hr.employee', string="Nhân viên")
 

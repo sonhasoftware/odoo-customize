@@ -8,11 +8,11 @@
                 <group>
                     <field name="from_date"/>
                     <field name="to_date"/>
-                    <field name="company_id"/>
+                    <field name="company_id" options="{'no_create': True}"/>
                     <field name="department_domain" invisible="1"/>
-                    <field name="department_id" domain="department_domain"/>
+                    <field name="department_id" domain="department_domain" options="{'no_create': True}"/>
                     <field name="employee_domain" invisible="1"/>
-                    <field name="employee_id" domain="employee_domain"/>
+                    <field name="employee_id" domain="employee_domain" options="{'no_create': True}"/>
                     <field name="contract_type_id"/>
                     <field name="status"/>
                     <field name="working_status"/>
