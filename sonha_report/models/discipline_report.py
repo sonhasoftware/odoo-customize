@@ -27,3 +27,4 @@ class DisciplineReport(models.Model):
     department_id = fields.Many2one('hr.department', string="Phòng ban")
     employee_code = fields.Char(string="Mã nhân viên")
     address = fields.Char(string="Địa chỉ làm việc")
+    employee_id = fields.Many2one('hr.employee', string="Nhân viên")
