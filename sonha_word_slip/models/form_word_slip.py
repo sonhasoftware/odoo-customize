@@ -792,16 +792,19 @@ class FormWordSlip(models.Model):
             info_lines = []
             date_pr = r.word_slip_id[0].from_date
             for emp in employees:
-                self.env.cr.execute(
-                    "SELECT * FROM public.fn_ton_phep(%s, %s, %s)",
-                    (emp._origin.id, 'dltam', str(date_pr))
-                )
-                rows = self.env.cr.dictfetchall()
-                if rows:
-                    ton = rows[0].get('ton')
+                if date_pr and emp._origin.id:
+                    self.env.cr.execute(
+                        "SELECT * FROM public.fn_ton_phep(%s, %s, %s)",
+                        (emp._origin.id, 'dltam', str(date_pr))
+                    )
+                    rows = self.env.cr.dictfetchall()
+                    if rows:
+                        ton = rows[0].get('ton')
+                    else:
+                        ton = 0
+                    info_lines.append(f"{emp.name}: còn {ton} phép (tạm tính)")
                 else:
-                    ton = 0
-                info_lines.append(f"{emp.name}: còn {ton} phép (tạm tính)")
+                    pass
             r.phep_ton = "\n".join(info_lines)
 
     def call_fn_them_phep(self):
