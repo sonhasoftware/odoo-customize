@@ -11,8 +11,7 @@ class EmployeeAttendanceV2(models.Model):
     _description = 'Bảng công chi tiết'
 
     employee_id = fields.Many2one('hr.employee', string='Nhân viên', required=True, store=True)
-    department_id = fields.Many2one('hr.department', string='Phòng ban',
-                                    compute="_get_department_id", store=True)
+    department_id = fields.Many2one('hr.department', string='Phòng ban', related='employee_id.department_id', store=True)
     date = fields.Date(string='Ngày', required=True, store=True)
     weekday = fields.Selection([
         ('0', 'Thứ hai'), ('1', 'Thứ ba'), ('2', 'Thứ tư'),
@@ -340,14 +339,6 @@ class EmployeeAttendanceV2(models.Model):
             else:
                 r.month = None
                 r.year = None
-
-    @api.depends('employee_id', 'employee_id.department_id')
-    def _get_department_id(self):
-        for r in self:
-            if r.employee_id.department_id:
-                r.department_id = r.employee_id.department_id.id
-            else:
-                r.department_id = None
 
     # tạo ra bản ghi cho từng nhân viên trong các ngày của tháng
 
