@@ -6,8 +6,8 @@ from dateutil.relativedelta import relativedelta
 class PopupLeaveReport(models.TransientModel):
     _name = 'popup.leave.report'
 
-    from_date = fields.Date(string="Từ ngày", required=True)
-    to_date = fields.Date(string="Đến ngày", required=True)
+    from_date = fields.Date(string="Từ ngày", default=lambda self: self.default_from_date(), required=True)
+    to_date = fields.Date(string="Đến ngày", default=lambda self: self.default_to_date(), required=True)
     company_id = fields.Many2one('res.company', string="Đơn vị",
                                  domain="[('id', 'in', allowed_company_ids)]",
                                  default=lambda self: self.env.user.company_id, required=True)
@@ -27,6 +27,15 @@ class PopupLeaveReport(models.TransientModel):
             if rec.to_date < min_date:
                 raise ValidationError("Đến ngày không được trước 01/11/2025!")
 
+    def default_from_date(self):
+        now = datetime.today().date()
+        from_date = now.replace(day=1)
+        return from_date
+
+    def default_to_date(self):
+        now = datetime.today().date()
+        to_date = (now.replace(day=1) + relativedelta(months=1)) - timedelta(days=1)
+        return to_date
 
     def default_employee_id(self):
         emp = self.env['hr.employee'].sudo().search([('user_id', '=', self.env.user.id)], limit=1)
@@ -77,13 +86,8 @@ class PopupLeaveReport(models.TransientModel):
     def action_confirm(self):
         self.env['leave.report'].search([]).sudo().unlink()
         company_id = self.company_id.id if self.company_id else 0
-        if self.env.user.has_group('sonha_employee.group_hr_employee') or self.env.user.has_group(
-                'sonha_employee.group_back_up_employee'):
-            department_id = self.department_id.id if self.department_id else 0
-            employee_id = self.employee_id.id if self.employee_id else 0
-        else:
-            department_id = self.department_id.id if self.department_id else self.env.user.employee_id.department_id.id
-            employee_id = self.employee_id.id if self.employee_id else self.env.user.employee_id.id
+        department_id = self.department_id.id if self.department_id else 0
+        employee_id = self.employee_id.id if self.employee_id else 0
         from_date = self.from_date if self.from_date else date.today()
         to_date = self.to_date if self.to_date else date.today()
         query = "SELECT * FROM public.fn_bao_cao_nxt_phep_ct(%s, %s, %s, %s, %s)"

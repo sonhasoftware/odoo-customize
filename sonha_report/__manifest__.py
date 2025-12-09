@@ -8,6 +8,7 @@
     'description': "Báo cáo Sơn Hà",
     'depends': ['base', 'hr'],
     'data': [
+        'security/security.xml',
         'security/ir.model.access.csv',
         'views/employee_report_views.xml',
         'views/config_template_views.xml',
