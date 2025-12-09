@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="rule_user_employee_report" model="ir.rule">
+        <field name="name">Rule user employee report</field>
+        <field name="model_id" ref="model_employee_report"/>
+        <field name="domain_force">[('id_ns.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_user_employee'))]"/>
+    </record>
+
+    <record id="rule_dl_employee_report" model="ir.rule">
+        <field name="name">Rule DL employee report</field>
+        <field name="model_id" ref="model_employee_report"/>
+         <field name="domain_force">['|', ('id_ns.user_id', '=', user.id), ('id_ns', 'child_of', [emp.id for emp in user.employee_ids])] </field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_dl_employee'))]"/>
+    </record>
+
+    <record id="rule_hr_employee_report" model="ir.rule">
+        <field name="name">Rule HR employee report</field>
+        <field name="model_id" ref="model_employee_report"/>
+        <field name="domain_force">['|', ('id_ns.company_id', '=', user.company_id.id), ('id_ns.company_id', 'in', user.company_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_hr_employee'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_user_employee_attendance_report" model="ir.rule">
+        <field name="name">Rule user employee attendance report</field>
+        <field name="model_id" ref="model_employee_attendance_report"/>
+        <field name="domain_force">[('employee_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_user_employee'))]"/>
+    </record>
+
+    <record id="rule_dl_employee_attendance_report" model="ir.rule">
+        <field name="name">Rule DL employee attendance report</field>
+        <field name="model_id" ref="model_employee_attendance_report"/>
+         <field name="domain_force">['|', ('employee_id.user_id', '=', user.id), ('employee_id', 'child_of', [emp.id for emp in user.employee_ids])] </field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_dl_employee'))]"/>
+    </record>
+
+    <record id="rule_hr_employee_attendance_report" model="ir.rule">
+        <field name="name">Rule HR employee attendance report</field>
+        <field name="model_id" ref="model_employee_attendance_report"/>
+        <field name="domain_force">['|', ('employee_id.company_id', '=', user.company_id.id), ('employee_id.company_id', 'in', user.company_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_hr_employee'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_user_master_data_report" model="ir.rule">
+        <field name="name">Rule user master data report</field>
+        <field name="model_id" ref="model_master_data_report"/>
+        <field name="domain_force">[('employee_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_user_employee'))]"/>
+    </record>
+
+    <record id="rule_dl_master_data_report" model="ir.rule">
+        <field name="name">Rule DL master data report</field>
+        <field name="model_id" ref="model_master_data_report"/>
+         <field name="domain_force">['|', ('employee_id.user_id', '=', user.id), ('employee_id', 'child_of', [emp.id for emp in user.employee_ids])] </field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_dl_employee'))]"/>
+    </record>
+
+    <record id="rule_hr_master_data_report" model="ir.rule">
+        <field name="name">Rule HR master data report</field>
+        <field name="model_id" ref="model_master_data_report"/>
+        <field name="domain_force">['|', ('employee_id.company_id', '=', user.company_id.id), ('employee_id.company_id', 'in', user.company_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_hr_employee'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_user_synthetic_work_report" model="ir.rule">
+        <field name="name">Rule user synthetic work report</field>
+        <field name="model_id" ref="model_synthetic_work_report"/>
+        <field name="domain_force">[('employee_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_user_employee'))]"/>
+    </record>
+
+    <record id="rule_dl_synthetic_work_report" model="ir.rule">
+        <field name="name">Rule DL synthetic work report</field>
+        <field name="model_id" ref="model_synthetic_work_report"/>
+         <field name="domain_force">['|', ('employee_id.user_id', '=', user.id), ('employee_id', 'child_of', [emp.id for emp in user.employee_ids])] </field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_dl_employee'))]"/>
+    </record>
+
+    <record id="rule_hr_synthetic_work_report" model="ir.rule">
+        <field name="name">Rule HR synthetic work report</field>
+        <field name="model_id" ref="model_synthetic_work_report"/>
+        <field name="domain_force">['|', ('employee_id.company_id', '=', user.company_id.id), ('employee_id.company_id', 'in', user.company_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_hr_employee'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_user_leave_report" model="ir.rule">
+        <field name="name">Rule user leave report</field>
+        <field name="model_id" ref="model_leave_report"/>
+        <field name="domain_force">[('ns_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_user_employee'))]"/>
+    </record>
+
+    <record id="rule_dl_leave_report" model="ir.rule">
+        <field name="name">Rule DL leave report</field>
+        <field name="model_id" ref="model_leave_report"/>
+         <field name="domain_force">['|', ('ns_id.user_id', '=', user.id), ('ns_id', 'child_of', [emp.id for emp in user.employee_ids])] </field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_dl_employee'))]"/>
+    </record>
+
+    <record id="rule_hr_leave_report" model="ir.rule">
+        <field name="name">Rule HR leave report</field>
+        <field name="model_id" ref="model_leave_report"/>
+        <field name="domain_force">['|', ('ns_id.company_id', '=', user.company_id.id), ('ns_id.company_id', 'in', user.company_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_hr_employee'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_user_sonha_word_report" model="ir.rule">
+        <field name="name">Rule user sonha word report</field>
+        <field name="model_id" ref="model_sonha_word_report"/>
+        <field name="domain_force">[('ns_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_user_employee'))]"/>
+    </record>
+
+    <record id="rule_dl_sonha_word_report" model="ir.rule">
+        <field name="name">Rule DL sonha word report</field>
+        <field name="model_id" ref="model_sonha_word_report"/>
+         <field name="domain_force">['|', ('ns_id.user_id', '=', user.id), ('ns_id', 'child_of', [emp.id for emp in user.employee_ids])] </field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_dl_employee'))]"/>
+    </record>
+
+    <record id="rule_hr_sonha_word_report" model="ir.rule">
+        <field name="name">Rule HR sonha word report</field>
+        <field name="model_id" ref="model_sonha_word_report"/>
+        <field name="domain_force">['|', ('ns_id.company_id', '=', user.company_id.id), ('ns_id.company_id', 'in', user.company_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_hr_employee'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_user_discipline_report" model="ir.rule">
+        <field name="name">Rule user discipline report</field>
+        <field name="model_id" ref="model_discipline_report"/>
+        <field name="domain_force">[('employee_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_user_employee'))]"/>
+    </record>
+
+    <record id="rule_dl_discipline_report" model="ir.rule">
+        <field name="name">Rule DL discipline report</field>
+        <field name="model_id" ref="model_discipline_report"/>
+         <field name="domain_force">['|', ('employee_id.user_id', '=', user.id), ('employee_id', 'child_of', [emp.id for emp in user.employee_ids])] </field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_dl_employee'))]"/>
+    </record>
+
+    <record id="rule_hr_discipline_report" model="ir.rule">
+        <field name="name">Rule HR discipline report</field>
+        <field name="model_id" ref="model_discipline_report"/>
+        <field name="domain_force">['|', ('employee_id.company_id', '=', user.company_id.id), ('employee_id.company_id', 'in', user.company_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_hr_employee'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_user_dismissal_report" model="ir.rule">
+        <field name="name">Rule user dismissal report</field>
+        <field name="model_id" ref="model_dismissal_report"/>
+        <field name="domain_force">[('employee_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_user_employee'))]"/>
+    </record>
+
+    <record id="rule_dl_dismissal_report" model="ir.rule">
+        <field name="name">Rule DL dismissal report</field>
+        <field name="model_id" ref="model_dismissal_report"/>
+         <field name="domain_force">['|', ('employee_id.user_id', '=', user.id), ('employee_id', 'child_of', [emp.id for emp in user.employee_ids])] </field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_dl_employee'))]"/>
+    </record>
+
+    <record id="rule_hr_dismissal_report" model="ir.rule">
+        <field name="name">Rule HR dismissal report</field>
+        <field name="model_id" ref="model_dismissal_report"/>
+        <field name="domain_force">['|', ('employee_id.company_id', '=', user.company_id.id), ('employee_id.company_id', 'in', user.company_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_hr_employee'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_user_reward_report" model="ir.rule">
+        <field name="name">Rule user reward report</field>
+        <field name="model_id" ref="model_reward_report"/>
+        <field name="domain_force">[('employee_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_user_employee'))]"/>
+    </record>
+
+    <record id="rule_dl_reward_report" model="ir.rule">
+        <field name="name">Rule DL reward report</field>
+        <field name="model_id" ref="model_reward_report"/>
+         <field name="domain_force">['|', ('employee_id.user_id', '=', user.id), ('employee_id', 'child_of', [emp.id for emp in user.employee_ids])] </field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_dl_employee'))]"/>
+    </record>
+
+    <record id="rule_hr_reward_report" model="ir.rule">
+        <field name="name">Rule HR reward report</field>
+        <field name="model_id" ref="model_reward_report"/>
+        <field name="domain_force">['|', ('employee_id.company_id', '=', user.company_id.id), ('employee_id.company_id', 'in', user.company_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_hr_employee'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_user_word_slip_report" model="ir.rule">
+        <field name="name">Rule user word slip report</field>
+        <field name="model_id" ref="model_word_slip_report"/>
+        <field name="domain_force">[('employee_ids', 'in', user.employee_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_user_employee'))]"/>
+    </record>
+
+    <record id="rule_dl_word_slip_report" model="ir.rule">
+        <field name="name">Rule DL word slip report</field>
+        <field name="model_id" ref="model_word_slip_report"/>
+         <field name="domain_force">['|', ('employee_ids', 'in', user.employee_ids.ids), ('employee_ids', 'child_of', user.employee_ids.ids)] </field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_dl_employee'))]"/>
+    </record>
+
+    <record id="rule_hr_word_slip_report" model="ir.rule">
+        <field name="name">Rule HR word slip report</field>
+        <field name="model_id" ref="model_word_slip_report"/>
+        <field name="domain_force">['|', ('create_employee.company_id', '=', user.company_id.id), ('create_employee.company_id', 'in', user.company_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('sonha_employee.group_hr_employee'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+</odoo>
