@@ -32,9 +32,10 @@ class RelDonTu(models.Model):
     ], string='Trạng thái', store=True)
 
     def phan_ra_all(self):
-        self.phan_ra_don_tu()
-        self.phan_ra_lam_them()
-        self.phan_ra_ca()
+        pass
+        # self.phan_ra_don_tu()
+        # self.phan_ra_lam_them()
+        # self.phan_ra_ca()
 
     def phan_ra_ca(self):
         self.env['rel.ca'].sudo().search([]).unlink()
