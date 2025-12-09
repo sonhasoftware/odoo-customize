@@ -18,6 +18,16 @@ class PopupLeaveReport(models.TransientModel):
     department_domain = fields.Binary(compute="_compute_department_domain")
     employee_domain = fields.Binary(compute="_compute_employee_domain")
 
+    @api.constrains('from_date', 'to_date')
+    def _check_date(self):
+        min_date = date(2025, 11, 1)
+        for rec in self:
+            if rec.from_date < min_date:
+                raise ValidationError("Từ ngày không được trước 01/11/2025!")
+            if rec.to_date < min_date:
+                raise ValidationError("Đến ngày không được trước 01/11/2025!")
+
+
     def default_employee_id(self):
         emp = self.env['hr.employee'].sudo().search([('user_id', '=', self.env.user.id)], limit=1)
         if emp and not (self.env.user.has_group('sonha_employee.group_hr_employee') or self.env.user.has_group(
