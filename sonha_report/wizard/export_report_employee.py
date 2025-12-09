@@ -94,7 +94,7 @@ class ExportReportEmployee(models.TransientModel):
                 sheet.cell(row=row, column=13).value = record.khoi_con or ''
                 sheet.cell(row=row, column=14).value = record.trinh_do_van_hoa or ''
                 sheet.cell(row=row, column=15).value = date_birthday
-                sheet.cell(row=row, column=16).value = record.ngay_sinh.year or ''
+                sheet.cell(row=row, column=16).value = record.ngay_sinh.year if record.ngay_sinh else ''
                 sheet.cell(row=row, column=17).value = record.do_tuoi or ''
                 sheet.cell(row=row, column=18).value = record.so_nam_tham_nien or ''
                 sheet.cell(row=row, column=19).value = record.tham_nien or ''
