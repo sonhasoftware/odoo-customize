@@ -18,6 +18,14 @@ class PopupSyntheticLeaveReport(models.TransientModel):
     department_domain = fields.Binary(compute="_compute_department_domain")
     employee_domain = fields.Binary(compute="_compute_employee_domain")
 
+    @api.constrains('from_date', 'to_date')
+    def _check_date(self):
+        min_date = date(2025, 11, 1)
+        for rec in self:
+            if rec.from_date < min_date:
+                raise ValidationError("Từ ngày không được trước 01/11/2025!")
+            if rec.to_date < min_date:
+                raise ValidationError("Đến ngày không được trước 01/11/2025!")
     def default_from_date(self):
         now = datetime.today().date()
         from_date = now.replace(day=1)
