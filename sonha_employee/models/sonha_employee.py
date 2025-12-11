@@ -107,6 +107,16 @@ class SonHaEmployee(models.Model):
     birth_month = fields.Integer(string="Sinh nhật", compute='_compute_birth_month', store=True, tracking=True)
     reception_date = fields.Date("Ngày tiếp nhận", tracking=True)
     culture_level = fields.Char("Trình độ văn hóa", tracking=True)
+    level_culture = fields.Selection([('none', "Không có"),
+                                      ('junior', "Trung học cơ sở"),
+                                      ('high_school', "Trung học phổ thông"),
+                                      ('vocational_certificate', "Chứng chỉ nghề"),
+                                      ('intermediate', "Trung cấp"),
+                                      ('college', "Cao đẳng"),
+                                      ('university', "Đại học"),
+                                      ('masters_degree', "Thạc sĩ"),
+                                      ('phd', "Tiến sĩ")], string="Trình độ văn hóa", tracking=True)
+    specialized = fields.Char(string="Chuyên ngành học", tracking=True)
     tax_code = fields.Char("Mã số thuế", tracking=True)
     check_account = fields.Boolean('check_account', compute="check_account_user", store=True)
 
@@ -447,6 +457,7 @@ class WorkProcess(models.Model):
             res.employee_id.status_employee = 'quit_job'
             res.employee_id.date_quit = str(res.start_date)
             res.employee_id.reason_quit = res.note
+            res.employee_id.active = False
         return res
 
     def write(self, vals):
@@ -466,15 +477,18 @@ class WorkProcess(models.Model):
                 r.employee_id.status_employee = 'quit_job'
                 r.employee_id.date_quit = str(r.start_date)
                 r.employee_id.reason_quit = r.note
+                r.employee_id.active = False
             if r.decision_type.type != "NV" and r.decision_type.type != "TN":
                 r.employee_id.status_employee = 'working'
                 r.employee_id.date_quit = None
                 r.employee_id.reason_quit = None
+                res.employee_id.active = True
             if r.decision_type.type == "TN":
                 r.employee_id.reception_date = str(r.start_date)
                 r.employee_id.status_employee = 'working'
                 r.employee_id.date_quit = None
                 r.employee_id.reason_quit = None
+                r.employee_id.active = True
         return res
 
     def unlink(self):
@@ -483,6 +497,11 @@ class WorkProcess(models.Model):
             r.employee_id.job_id = r.old_job_id.id if r.old_job_id else None
             if r.decision_type.type and r.decision_type.type.lower() == 'tn':
                 r.employee_id.reception_date = r.old_date if r.old_date else None
+            if r.decision_type.type and r.decision_type.type.lower() == 'nv':
+                r.employee_id.status_employee = 'working'
+                r.employee_id.date_quit = None
+                r.employee_id.reason_quit = None
+                r.employee_id.active = True
         return super(WorkProcess, self).unlink()
 
 
