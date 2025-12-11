@@ -1,6 +1,6 @@
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
 
 class PopupSyntheticWorkReport(models.TransientModel):
@@ -77,40 +77,72 @@ class PopupSyntheticWorkReport(models.TransientModel):
 
     def action_confirm(self):
         self.env['synthetic.work.report'].search([]).sudo().unlink()
-        list_records = self.env['synthetic.work'].sudo().search([('start_date', '=', self.from_date),
-                                                                 ('end_date', '=', self.to_date)])
-        if self.company_id and not self.department_id:
-            list_records = list_records.filtered(lambda x: x.employee_id.company_id.id == self.company_id.id)
-        if self.department_id and not self.employee_id:
-            list_records = list_records.filtered(lambda x: x.department_id.id == self.department_id.id)
-        if self.employee_id:
-            list_records = list_records.filtered(lambda x: x.employee_id.id == self.employee_id.id)
-        if list_records:
-            for r in list_records:
+        company_id = self.company_id.id if self.company_id else 0
+        department_id = self.department_id.id if self.department_id else 0
+        employee_id = self.employee_id.id if self.employee_id else 0
+        from_date = self.from_date if self.from_date else date.today()
+        to_date = self.to_date if self.to_date else date.today()
+        query = """select cth.employee_id,
+                        cth.department_id, 
+                        ns.employee_code,
+                        cth.date_work,
+                        cth.apprenticeship,
+                        cth.probationary_period,
+                        cth.ot_one_hundred,
+                        cth.ot_one_hundred_fifty,
+                        cth.ot_three_hundred,
+                        cth.paid_leave,
+                        cth.number_minutes_late,
+                        cth.number_minutes_early,
+                        cth.shift_two_crew_three,
+                        cth.shift_three_crew_four,
+                        cth.on_leave,
+                        cth.compensatory_leave,
+                        cth.filial_leave,
+                        cth.grandparents_leave,
+                        cth.vacation,
+                        cth.public_leave,
+                        COALESCE(cth.date_work, 0) + COALESCE(cth.paid_leave, 0) as total_work,
+                        cth.month,
+                        cth.hours_reinforcement
+                    from synthetic_work cth
+                    left join hr_employee ns on cth.employee_id = ns.id
+                    where cth.start_date between %(from_date)s and %(to_date)s 
+                        and cth.end_date between %(from_date)s and %(to_date)s and ns.company_id = %(company_id)s
+                        AND case when %(department_id)s = 0 then 1=1 else cth.department_id = %(department_id)s end
+                        AND case when %(employee_id)s = 0 then 1=1 else cth.employee_id = %(employee_id)s end;"""
+        self.env.cr.execute(query, {'from_date': from_date,
+                                    'to_date': to_date,
+                                    'company_id': company_id,
+                                    'department_id': department_id,
+                                    'employee_id': employee_id})
+        row = self.env.cr.dictfetchall()
+        if row:
+            for r in row:
                 vals = {
-                    'employee_id': r.employee_id.id,
-                    'department_id': r.department_id.id,
-                    'employee_code': r.employee_code,
-                    'date_work': r.date_work,
-                    'apprenticeship': r.apprenticeship,
-                    'probationary_period': r.probationary_period,
-                    'ot_one_hundred': r.ot_one_hundred,
-                    'ot_one_hundred_fifty': r.ot_one_hundred_fifty,
-                    'ot_three_hundred': r.ot_three_hundred,
-                    'paid_leave': r.paid_leave,
-                    'number_minutes_late': r.number_minutes_late,
-                    'number_minutes_early': r.number_minutes_early,
-                    'shift_two_crew_three': r.shift_two_crew_three,
-                    'shift_three_crew_four': r.shift_three_crew_four,
-                    'on_leave': r.on_leave,
-                    'compensatory_leave': r.compensatory_leave,
-                    'filial_leave': r.filial_leave,
-                    'grandparents_leave': r.grandparents_leave,
-                    'vacation': r.vacation,
-                    'public_leave': r.public_leave,
-                    'total_work': r.total_work,
-                    'month': r.month,
-                    'hours_reinforcement': r.hours_reinforcement,
+                    'employee_id': r["employee_id"],
+                    'department_id': r["department_id"],
+                    'employee_code': r["employee_code"],
+                    'date_work': r["date_work"],
+                    'apprenticeship': r["apprenticeship"],
+                    'probationary_period': r["probationary_period"],
+                    'ot_one_hundred': r["ot_one_hundred"],
+                    'ot_one_hundred_fifty': r["ot_one_hundred_fifty"],
+                    'ot_three_hundred': r["ot_three_hundred"],
+                    'paid_leave': r["paid_leave"],
+                    'number_minutes_late': r["number_minutes_late"],
+                    'number_minutes_early': r["number_minutes_early"],
+                    'shift_two_crew_three': r["shift_two_crew_three"],
+                    'shift_three_crew_four': r["shift_three_crew_four"],
+                    'on_leave': r["on_leave"],
+                    'compensatory_leave': r["compensatory_leave"],
+                    'filial_leave': r["filial_leave"],
+                    'grandparents_leave': r["grandparents_leave"],
+                    'vacation': r["vacation"],
+                    'public_leave': r["public_leave"],
+                    'total_work': r["total_work"],
+                    'month': r["month"],
+                    'hours_reinforcement': r["hours_reinforcement"],
                 }
                 self.env['synthetic.work.report'].sudo().create(vals)
             return {

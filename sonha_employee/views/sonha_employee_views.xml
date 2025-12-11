@@ -53,7 +53,9 @@
                     <field name="number_cccd" required = "1"/>
                     <field name="date_cccd" required = "1"/>
                     <field name="place_of_issue" required = "1"/>
-                    <field name="culture_level"/>
+<!--                    <field name="culture_level"/>-->
+                    <field name="level_culture"/>
+                    <field name="specialized"/>
                     <field name="total_compensatory"/>
                     <field name="old_leave_balance"/>
                     <field name="new_leave_balance"/>

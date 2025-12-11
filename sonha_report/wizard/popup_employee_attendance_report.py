@@ -1,6 +1,6 @@
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
 
 class PopupEmployeeAttendanceReport(models.TransientModel):
@@ -67,33 +67,55 @@ class PopupEmployeeAttendanceReport(models.TransientModel):
 
     def action_confirm(self):
         self.env['employee.attendance.report'].search([]).sudo().unlink()
-        list_records = self.env['employee.attendance.store'].sudo().search([('date', '>=', self.from_date),
-                                                                      ('date', '<=', self.to_date)])
-
-        if self.employee_id:
-            list_records = list_records.filtered(lambda x: x.employee_id.id == self.employee_id.id)
-        elif self.department_id:
-            list_records = list_records.filtered(lambda x: x.department_id.id == self.department_id.id)
-        elif self.company_id:
-            list_records = list_records.filtered(lambda x: x.employee_id.company_id.id == self.company_id.id)
-        if list_records:
-            for r in list_records:
+        company_id = self.company_id.id if self.company_id else 0
+        department_id = self.department_id.id if self.department_id else 0
+        employee_id = self.employee_id.id if self.employee_id else 0
+        from_date = self.from_date if self.from_date else date.today()
+        to_date = self.to_date if self.to_date else date.today()
+        query = """select cct.employee_id as ns_id,
+                        cct.department_id as bo_phan_id, 
+                        cct.weekday as thu,
+                        cct.date as ngay,
+                        cct.check_in,
+                        cct.check_out,
+                        cct.shift as ca,
+                        cct.note as ghi_chu,
+                        cct.minutes_late as phut_muon,
+                        cct.minutes_early as phut_som,
+                        cct.work_day as ngay_cong,
+                        cct.over_time as lam_them,
+                        cct.leave as nghi_phep,
+                        cct.compensatory as nghi_bu,
+                        cct.over_time_nb as lam_them_nb
+                    from employee_attendance_v2 cct
+                    left join hr_employee ns on cct.employee_id = ns.id
+                    where cct.date between %(from_date)s and %(to_date)s and ns.company_id = %(company_id)s
+                        AND case when %(department_id)s = 0 then 1=1 else cct.department_id = %(department_id)s end
+                        AND case when %(employee_id)s = 0 then 1=1 else cct.employee_id = %(employee_id)s end;"""
+        self.env.cr.execute(query, {'from_date': from_date,
+                                    'to_date': to_date,
+                                    'company_id': company_id,
+                                    'department_id': department_id,
+                                    'employee_id': employee_id})
+        row = self.env.cr.dictfetchall()
+        if row:
+            for r in row:
                 vals = {
-                    'employee_id': r.employee_id.id,
-                    'department_id': r.department_id.id,
-                    'weekday': r.weekday,
-                    'date': r.date,
-                    'check_in': r.check_in,
-                    'check_out': r.check_out,
-                    'shift': r.shift.id,
-                    'note': r.note,
-                    'minutes_late': r.minutes_late,
-                    'minutes_early': r.minutes_early,
-                    'work_day': r.work_day,
-                    'over_time': r.over_time,
-                    'leave': r.leave,
-                    'compensatory': r.compensatory,
-                    'over_time_nb': r.over_time_nb,
+                    'employee_id': r["ns_id"],
+                    'department_id': r["bo_phan_id"],
+                    'weekday': r["thu"],
+                    'date': r["ngay"],
+                    'check_in': r["check_in"],
+                    'check_out': r["check_out"],
+                    'shift': r["ca"],
+                    'note': r["ghi_chu"],
+                    'minutes_late': r["phut_muon"],
+                    'minutes_early': r["phut_som"],
+                    'work_day': r["ngay_cong"],
+                    'over_time': r["lam_them"],
+                    'leave': r["nghi_phep"],
+                    'compensatory': r["nghi_bu"],
+                    'over_time_nb': r["lam_them_nb"],
                 }
                 self.env['employee.attendance.report'].sudo().create(vals)
             return {
