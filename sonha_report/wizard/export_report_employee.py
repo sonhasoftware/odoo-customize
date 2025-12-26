@@ -25,7 +25,8 @@ class ExportReportEmployee(models.TransientModel):
         if not active_ids:
             raise ValidationError("Không có bản ghi nào được chọn.")
 
-        list_record = self.env['employee.report'].browse(active_ids)
+        list_record = self.env['employee.report'].search([('id', 'in', active_ids)],
+                                                         order='phong_ban_id asc, chuc_vu asc, ngay_vao_cong_ty asc, ma_nhan_vien asc')
         file_stream = io.BytesIO(base64.b64decode(self.report.file))
         wb = load_workbook(filename=file_stream)
         sheet = wb['Sheet1']

@@ -31,22 +31,22 @@
                         <field name="type" invisible="1"/>
                         <field name="company_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                         <field name="department_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
-                        <field name="purpose" readonly="status != 'draft'"/>
-                        <field name="amount_people" readonly="status != 'draft'"/>
-                        <field name="booking_employee_id" readonly="status != 'draft'" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="purpose" readonly="status not in ('draft', 'waiting')"/>
+                        <field name="amount_people" readonly="status not in ('draft', 'waiting')"/>
+                        <field name="booking_employee_id" readonly="status not in ('draft', 'waiting')" options="{'no_create': True, 'no_open': True}"/>
                         <field name="booking_employee_job_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
-                        <field name="phone_number" readonly="status != 'draft'"/>
+                        <field name="phone_number" readonly="status not in ('draft', 'waiting')"/>
                     </group>
                     <group>
                         <group>
-                            <field name="start_place" readonly="status != 'draft'"/>
-                            <field name="start_date" readonly="status != 'draft'"/>
-                            <field name="start_time" widget="float_time" readonly="status != 'draft'"/>
+                            <field name="start_place" readonly="status not in ('draft', 'waiting')"/>
+                            <field name="start_date" readonly="status not in ('draft', 'waiting')"/>
+                            <field name="start_time" widget="float_time" readonly="status not in ('draft', 'waiting')"/>
                         </group>
                         <group>
-                            <field name="end_place" readonly="status != 'draft'"/>
-                            <field name="end_date" readonly="status != 'draft'"/>
-                            <field name="end_time" widget="float_time" readonly="status != 'draft'"/>
+                            <field name="end_place" readonly="status not in ('draft', 'waiting')"/>
+                            <field name="end_date" readonly="status not in ('draft', 'waiting')"/>
+                            <field name="end_time" widget="float_time" readonly="status not in ('draft', 'waiting')"/>
                         </group>
                     </group>
                     <group>
@@ -62,7 +62,7 @@
                                 <field name="end_time"/>
                             </tree>
                         </field>
-                        <field name="approve_people" readonly="status != 'draft'" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="approve_people" readonly="status not in ('draft', 'waiting')" options="{'no_create': True, 'no_open': True}"/>
                         <field name="approve_people_job_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                     </group>
                     <group string="Thông tin xe" invisible="type != 'exist_car'">
@@ -131,6 +131,9 @@
                 <filter string="Đặt xe: Chờ duyệt" name="approve_request" domain="[
                 ('approve_people.user_id', '=', uid),
                 ('type', '=', 'waiting')]" />
+                <filter string="Đặt xe: Chờ xử lý" name="handle_request" domain="[
+                ('competency_employee.user_id', '=', uid),
+                ('type', '=', 'approved')]"/>
             </search>
         </field>
     </record>
