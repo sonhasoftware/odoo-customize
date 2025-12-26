@@ -4,7 +4,7 @@
         <field name="name">emp.employee.report.tree.view</field>
         <field name="model">employee.report</field>
         <field name="arch" type="xml">
-            <tree string="Báo cáo nhân viên">
+            <tree string="Báo cáo nhân viên" default_order="phong_ban_id asc, chuc_vu asc, ngay_vao_cong_ty asc, ma_nhan_vien asc">
 <!--                <field name="id_ns"/>-->
                 <field name="ma_cham_cong"/>
                 <field name="ma_nhan_vien"/>
@@ -63,7 +63,7 @@
         <field name="name">contract.employee.report.tree.view</field>
         <field name="model">employee.report</field>
         <field name="arch" type="xml">
-            <tree string="Báo cáo nhân viên">
+            <tree string="Báo cáo nhân viên" default_order="phong_ban_id asc, chuc_vu asc, ngay_vao_cong_ty asc, ma_nhan_vien asc">
 <!--                <field name="id_ns"/>-->
                 <field name="ma_cham_cong"/>
                 <field name="ma_nhan_vien"/>
