@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <menuitem id="menu_sap_son_ha"
+              name="SAP"
+              sequence="11"/>
+
+    <menuitem id="menu_sap_unlock"
+              name="Mở khóa"
+              parent="menu_sap_son_ha"
+              action="action_sap_unlock"
+              sequence="1"/>
+</odoo>
