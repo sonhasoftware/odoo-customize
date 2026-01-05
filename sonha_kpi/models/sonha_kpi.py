@@ -28,12 +28,12 @@ class SonHaKPI(models.Model):
                              string="Tháng")
     year = fields.Integer('Năm')
 
-    @api.constrains('year')
-    def validate_year(self):
-        now = datetime.datetime.now()
-        for r in self:
-            if r.year and r.year < now.date().year:
-                raise ValidationError('Năm không được bé hơn năm hiện tại!')
+    # @api.constrains('year')
+    # def validate_year(self):
+    #     now = datetime.datetime.now()
+    #     for r in self:
+    #         if r.year and r.year < now.date().year:
+    #             raise ValidationError('Năm không được bé hơn năm hiện tại!')
 
     @api.constrains('year')
     def validate_year(self):
