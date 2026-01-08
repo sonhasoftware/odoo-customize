@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="view_sap_unlock_form" model="ir.ui.view">
+            <field name="name">view.sap.unlock.form</field>
+            <field name="model">sap.unlock</field>
+            <field name="arch" type="xml">
+                <form string="Mở khóa">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="user_name"/>
+                            </group>
+                            <group>
+                                <field name="password"/>
+                            </group>
+                        </group>
+                        <footer>
+                            <button name="action_confirm" string="Xác nhận" type="object" class="btn-primary"/>
+                            <button string="Hủy bỏ" class="btn-secondary" special="cancel"/>
+                        </footer>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_sap_unlock_tree" model="ir.ui.view">
+            <field name="name">view.sap.unlock.tree</field>
+            <field name="model">sap.unlock</field>
+            <field name="arch" type="xml">
+                <tree string="Mở khóa">
+                    <field name="user_name"/>
+                    <field name="password"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_sap_unlock" model="ir.actions.act_window">
+            <field name="name">Mở khóa</field>
+            <field name="res_model">sap.unlock</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+    </data>
+</odoo>
