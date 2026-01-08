@@ -127,7 +127,7 @@ class SonHaKPIMonth(models.Model):
             else:
                 self.write_result_month(r)
                 self.write_report_month(r)
-        self.re_calculating_density_all(self[0])
+        # self.re_calculating_density_all(self[0])
         self.calculating_dvdgkpi_tqdgkpi(self[0])
         return res
 
@@ -309,14 +309,14 @@ class SonHaKPIMonth(models.Model):
                         month_record = self.env['sonha.kpi.result.month'].sudo().search([('kpi_month', '=', r.id)])
                         desnsity = desnsity / kpi_year_count
                         month_record.sudo().write({'ti_trong': desnsity})
-                        month_record.filter_data_dvdg(month_record)
-                        month_record.filter_data_dvtq(month_record)
+                        # month_record.filter_data_dvdg(month_record)
+                        # month_record.filter_data_dvtq(month_record)
 
     # Tính lại tỉ trọng khi sửa, vì sửa thời gian kpi tháng sang tháng khác cần tính lại tỉ trọng tháng cũ nên em cho tính lại tất cả
-    def re_calculating_density_all(self, record):
-        exist_month = self.env['sonha.kpi.month'].sudo().search([('sonha_kpi', '=', record.sonha_kpi.id)])
-        for month in exist_month:
-            self.re_calculating_density(month)
+    # def re_calculating_density_all(self, record):
+    #     exist_month = self.env['sonha.kpi.month'].sudo().search([('sonha_kpi', '=', record.sonha_kpi.id)])
+    #     for month in exist_month:
+    #         self.re_calculating_density(month)
 
     # Tính đơn vị, thẩm quyền đánh giá kpi đến hiện tại
     def calculating_dvdgkpi_tqdgkpi(self, record):
