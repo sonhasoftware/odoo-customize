@@ -32,13 +32,13 @@ class PlanCollaborate(models.Model):
     sufficient = fields.Boolean("Tự túc", tracking=True)
 
     # end
-    general_information = fields.One2many('general.information', 'plan_id', string="Thông tin chung")
+    general_information = fields.One2many('general.information', 'plan_id', string="Thông tin chung", tracking=True)
 
-    plan_detail = fields.One2many('plan.detail', 'plan_id', string="Kế hoạch công tác chi tiết")
+    plan_detail = fields.One2many('plan.detail', 'plan_id', string="Kế hoạch công tác chi tiết", tracking=True)
 
-    cost_coverage = fields.One2many('cost.coverage', 'plan_id', string="Chi phí được đài thọ")
+    cost_coverage = fields.One2many('cost.coverage', 'plan_id', string="Chi phí được đài thọ", tracking=True)
 
-    cost_estimated = fields.One2many('cost.estimated', 'plan_id', string="Chi phí dự kiến")
+    cost_estimated = fields.One2many('cost.estimated', 'plan_id', string="Chi phí dự kiến", tracking=True)
 
     config_id = fields.Many2one('config.approval', string='Chọn bước duyệt', tracking=True)
     step_line_ids = fields.One2many('plan.step', 'plan_id', string="Luồng duyệt áp dụng")
