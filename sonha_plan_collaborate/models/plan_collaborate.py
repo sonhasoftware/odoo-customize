@@ -4,30 +4,32 @@ from odoo.exceptions import ValidationError
 
 class PlanCollaborate(models.Model):
     _name = 'plan.collaborate'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _order = 'create_date DESC'
 
     code = fields.Char("Mã đơn", compute="get_code")
     type_collaborate = fields.Selection([('in', "Trong nước"),
                                          ('out', "Nước ngoài")],
-                            string="Loại công tác",)
+                            string="Loại công tác", tracking=True)
     total_price = fields.Float("Tổng chi phí(Dự trù)", compute="get_total_price")
-    company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
+    company_id = fields.Many2one('res.company', default=lambda self: self.env.company, tracking=True)
 
     # giay di cong tac
 
     date = fields.Date("Ngày")
-    employee_id = fields.Many2one('hr.employee', string="Họ và tên", compute="get_employee_info")
-    department_id = fields.Many2one(related='employee_id.department_id', string="Đơn vị công tác")
-    business = fields.Char("Được cử đi công tác tại:")
+    employee_id = fields.Many2one('hr.employee', string="Họ và tên", compute="get_employee_info", tracking=True)
+    department_id = fields.Many2one(related='employee_id.department_id', string="Đơn vị công tác", tracking=True)
+    business = fields.Char("Được cử đi công tác tại:", tracking=True)
     gender = fields.Selection([('male', "Nam"),
                                ('female', "Nữ")],
-                              string="Giới tính", compute="get_employee_info")
-    from_date = fields.Date("Từ ngày", compute="get_date_business")
-    to_date = fields.Date("Đến ngày", compute="get_date_business")
+                              string="Giới tính", compute="get_employee_info", tracking=True)
+    from_date = fields.Date("Từ ngày", compute="get_date_business", tracking=True)
+    to_date = fields.Date("Đến ngày", compute="get_date_business", tracking=True)
 
-    car = fields.Boolean("Công ty cấp xe và lái xe")
-    self_drive = fields.Boolean("Công ty cấp xe, tự lái xe")
-    drive = fields.Boolean("Công ty cấp lái xe")
-    sufficient = fields.Boolean("Tự túc")
+    car = fields.Boolean("Công ty cấp xe và lái xe", tracking=True)
+    self_drive = fields.Boolean("Công ty cấp xe, tự lái xe", tracking=True)
+    drive = fields.Boolean("Công ty cấp lái xe", tracking=True)
+    sufficient = fields.Boolean("Tự túc", tracking=True)
 
     # end
     general_information = fields.One2many('general.information', 'plan_id', string="Thông tin chung")
@@ -38,9 +40,10 @@ class PlanCollaborate(models.Model):
 
     cost_estimated = fields.One2many('cost.estimated', 'plan_id', string="Chi phí dự kiến")
 
-    config_id = fields.Many2one('config.approval', string='Chọn bước duyệt')
+    config_id = fields.Many2one('config.approval', string='Chọn bước duyệt', tracking=True)
     step_line_ids = fields.One2many('plan.step', 'plan_id', string="Luồng duyệt áp dụng")
-    current_step_label = fields.Char(string="Trạng thái hiện tại", compute="_compute_current_step_label", store=True)
+    current_step_label = fields.Char(string="Trạng thái hiện tại",
+                                     compute="_compute_current_step_label", store=True, tracking=True)
 
     manager_ids = fields.Many2many('hr.employee', compute='_compute_manager_ids', store=True)
 
