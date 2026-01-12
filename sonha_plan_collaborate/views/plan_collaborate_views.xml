@@ -104,6 +104,11 @@
                         </page>
                     </notebook>
                     </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
                 </form>
             </field>
         </record>
@@ -114,6 +119,11 @@
             <field name="arch" type="xml">
                 <tree string="Kế hoạch công tác">
                     <field name="code"/>
+                    <field name="company_id"/>
+                    <field name="department_id"/>
+                    <field name="create_uid" string="Người tạo"/>
+                    <field name="create_date" string="Ngày tạo"/>
+                    <field name="current_step_label"/>
                 </tree>
             </field>
         </record>
