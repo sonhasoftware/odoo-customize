@@ -309,8 +309,8 @@ class SonHaKPIMonth(models.Model):
                         month_record = self.env['sonha.kpi.result.month'].sudo().search([('kpi_month', '=', r.id)])
                         desnsity = desnsity / kpi_year_count
                         month_record.sudo().write({'ti_trong': desnsity})
-                        # month_record.filter_data_dvdg(month_record)
-                        # month_record.filter_data_dvtq(month_record)
+                        month_record.filter_data_dvdg(month_record)
+                        month_record.filter_data_dvtq(month_record)
 
     # Tính lại tỉ trọng khi sửa, vì sửa thời gian kpi tháng sang tháng khác cần tính lại tỉ trọng tháng cũ nên em cho tính lại tất cả
     def re_calculating_density_all(self, record):
