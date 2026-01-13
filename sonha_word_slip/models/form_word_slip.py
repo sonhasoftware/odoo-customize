@@ -808,6 +808,9 @@ class FormWordSlip(models.Model):
             r.phep_ton = "\n".join(info_lines)
 
     def call_fn_them_phep(self):
+        self.with_delay().call_job_them_phep()
+
+    def call_job_them_phep(self):
         today = datetime.now().date()
         if today.day not in (1, 16):
             return
