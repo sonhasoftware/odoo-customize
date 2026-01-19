@@ -50,6 +50,12 @@
               action="action_config_standard_work"
               sequence="30"/>
 
+    <menuitem id="menu_config_overtime"
+              name="Cấu hình làm thêm"
+              parent="menu_config"
+              action="action_config_overtime"
+              sequence="31"/>
+
     <menuitem id="menu_config_leave"
               name="Cấu hình số lượng đơn từ trong tháng"
               parent="menu_config"

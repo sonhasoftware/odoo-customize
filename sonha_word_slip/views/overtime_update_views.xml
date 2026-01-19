@@ -29,7 +29,8 @@
                                 <field name="date"/>
                                 <field name="start_time" widget="float_time"/>
                                 <field name="end_time" widget="float_time"/>
-                                <field name="coefficient"/>
+<!--                                <field name="coefficient"/>-->
+                                <field name="percent"/>
                                 <field name="reason"/>
                             </tree>
                         </field>
@@ -51,7 +52,7 @@
         <field name="name">view.register.overtime.update.tree</field>
         <field name="model">register.overtime.update</field>
         <field name="arch" type="xml">
-            <tree string="Đăng ký làm thêm">
+            <tree string="Đăng ký làm thêm" default_order="create_date desc">
                 <field name="department_id"/>
                 <field name="employee_id"/>
                 <field name="employee_ids" widget="many2many_tags"/>

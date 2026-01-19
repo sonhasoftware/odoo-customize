@@ -68,6 +68,43 @@ class EmployeeAttendanceV2(models.Model):
 
     color = fields.Selection([('red', 'Red'), ('green', 'Green')], string="Màu", compute="_compute_color")
 
+    ot_one_hundred = fields.Float("Giờ làm thêm hưởng 100%", store=True, compute="get_hours_overtime_percent")
+    ot_one_hundred_fifty = fields.Float("Giờ làm thêm hưởng 150%", store=True, compute="get_hours_overtime_percent")
+    ot_two_hundred = fields.Float("Giờ làm thêm hưởng 200%", store=True, compute="get_hours_overtime_percent")
+    ot_two_hundred_fifty = fields.Float("Giờ làm thêm hưởng 250%", store=True, compute="get_hours_overtime_percent")
+    ot_three_hundred = fields.Float("Giờ làm thêm hưởng 300%", store=True, compute="get_hours_overtime_percent")
+
+    @api.depends('employee_id', 'date')
+    def get_hours_overtime_percent(self):
+        for record in self:
+            record.ot_one_hundred = 0
+            record.ot_one_hundred_fifty = 0
+            record.ot_two_hundred = 0
+            record.ot_two_hundred_fifty = 0
+            record.ot_three_hundred = 0
+            overtime = self.env['overtime.rel'].sudo().search([
+                '&',
+                ('date', '=', record.date),
+                '|',
+                ('overtime_id.status', '=', 'done'),
+                ('overtime_id.status_lv2', '=', 'done'),
+            ])
+            overtime = overtime.filtered(
+                lambda x: (x.overtime_id.employee_id and x.overtime_id.employee_id.id == record.employee_id.id)
+                          or (x.overtime_id.employee_ids and record.employee_id.id in x.overtime_id.employee_ids.ids))
+            if overtime:
+                for ot in overtime:
+                    if ot.percent == "100":
+                        record.ot_one_hundred = ot.end_time - ot.start_time
+                    elif ot.percent == "150":
+                        record.ot_one_hundred_fifty = ot.end_time - ot.start_time
+                    elif ot.percent == "200":
+                        record.ot_two_hundred = ot.end_time - ot.start_time
+                    elif ot.percent == "250":
+                        record.ot_two_hundred_fifty = ot.end_time - ot.start_time
+                    elif ot.percent == "300":
+                        record.ot_three_hundred = ot.end_time - ot.start_time
+
     @api.depends('date', 'shift')
     def get_work_calendar(self):
         for r in self:
@@ -909,6 +946,7 @@ class EmployeeAttendanceV2(models.Model):
                 recs._get_shift_employee()
                 recs._get_time_off()
                 recs.get_hours_reinforcement()
+                recs.get_hours_overtime_percent()
                 recs._get_time_in_out()
                 recs._get_check_in_out()
                 recs._get_work_day()

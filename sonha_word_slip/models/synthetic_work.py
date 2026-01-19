@@ -24,6 +24,8 @@ class SyntheticWork(models.Model):
     probationary_period = fields.Float("Công thử việc")
     ot_one_hundred = fields.Float("Giờ làm thêm hưởng 100%")
     ot_one_hundred_fifty = fields.Float("Giờ làm thêm hưởng 150%")
+    ot_two_hundred = fields.Float("Giờ làm thêm hưởng 200%")
+    ot_two_hundred_fifty = fields.Float("Giờ làm thêm hưởng 250%")
     ot_three_hundred = fields.Float("Giờ làm thêm hưởng 300%")
     paid_leave = fields.Float("Ngày nghỉ hưởng 100% lương", compute="get_leave")
     number_minutes_late = fields.Float("Số phút đi muộn", compute="get_date_work")
@@ -100,7 +102,12 @@ class SyntheticWork(models.Model):
                     COALESCE(SUM(actual_work), 0) AS actual_work,
                     COALESCE(SUM(vacation), 0) AS vacation,
                     COALESCE(SUM(forgot_time), 0) AS forgot_time,
-                    COALESCE(SUM(work_eat), 0) AS work_eat
+                    COALESCE(SUM(work_eat), 0) AS work_eat,
+                    COALESCE(SUM(ot_one_hundred), 0) AS ot_one_hundred,
+                    COALESCE(SUM(ot_one_hundred_fifty), 0) AS ot_one_hundred_fifty,
+                    COALESCE(SUM(ot_two_hundred), 0) AS ot_two_hundred,
+                    COALESCE(SUM(ot_two_hundred_fifty), 0) AS ot_two_hundred_fifty,
+                    COALESCE(SUM(ot_three_hundred), 0) AS ot_three_hundred
                 FROM employee_attendance_v2
                 WHERE employee_id = %s
                   AND date >= %s
@@ -124,6 +131,11 @@ class SyntheticWork(models.Model):
             r.work_hc = result['work_hc']
             r.work_sp = result['work_sp']
             r.overtime_nb = result['over_time_nb']
+            r.ot_one_hundred = result['ot_one_hundred']
+            r.ot_one_hundred_fifty = result['ot_one_hundred_fifty']
+            r.ot_two_hundred = result['ot_two_hundred']
+            r.ot_two_hundred_fifty = result['ot_two_hundred_fifty']
+            r.ot_three_hundred = result['ot_three_hundred']
             r.total_time_late = result['times_late']
             r.actual_work = result['actual_work']
             r.vacation = result['vacation']
