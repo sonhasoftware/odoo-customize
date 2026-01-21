@@ -107,6 +107,12 @@ class HrContract(models.Model):
                     paragraph.text = paragraph.text.replace('[department]', self.department_id.name or '')
                 if '[date_contract]' in paragraph.text:
                     paragraph.text = paragraph.text.replace('[date_contract]', str(self.date_start.strftime("%d/%m/%Y")) or '')
+                if '[date_sign]' in paragraph.text:
+                    paragraph.text = paragraph.text.replace('[date_sign]', str(self.date_start.day) or '')
+                if '[month_sign]' in paragraph.text:
+                    paragraph.text = paragraph.text.replace('[month_sign]', str(self.date_start.month) or '')
+                if '[year_sign]' in paragraph.text:
+                    paragraph.text = paragraph.text.replace('[year_sign]', str(self.date_start.year) or '')
                 if '[end_date_contract]' in paragraph.text:
                     paragraph.text = paragraph.text.replace('[end_date_contract]', str(self.date_end.strftime("%d/%m/%Y")) or '')
             # Lưu tài liệu vào bộ nhớ
