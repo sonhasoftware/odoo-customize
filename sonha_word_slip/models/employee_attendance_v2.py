@@ -50,6 +50,7 @@ class EmployeeAttendanceV2(models.Model):
     compensatory = fields.Float("Nghỉ bù", compute="_get_time_off", store=True)
     public_leave = fields.Float("Nghỉ lễ", compute="_get_time_off", store=True)
     vacation = fields.Float("Nghỉ mát", compute="_get_time_off", store=True)
+    unpaid_leave = fields.Float("Nghỉ không lương", compute="_get_time_off", store=True)
 
     c2k3 = fields.Float("Ca 2 kíp 3", compute="get_shift", store=True)
     c3k4 = fields.Float("Ca 3 kíp 4", compute="get_shift", store=True)
@@ -67,6 +68,43 @@ class EmployeeAttendanceV2(models.Model):
     work_eat = fields.Integer("Công ăn", compute="_get_work_eat", store=True)
 
     color = fields.Selection([('red', 'Red'), ('green', 'Green')], string="Màu", compute="_compute_color")
+
+    ot_one_hundred = fields.Float("Giờ làm thêm hưởng 100%", store=True, compute="get_hours_overtime_percent")
+    ot_one_hundred_fifty = fields.Float("Giờ làm thêm hưởng 150%", store=True, compute="get_hours_overtime_percent")
+    ot_two_hundred = fields.Float("Giờ làm thêm hưởng 200%", store=True, compute="get_hours_overtime_percent")
+    ot_two_hundred_fifty = fields.Float("Giờ làm thêm hưởng 250%", store=True, compute="get_hours_overtime_percent")
+    ot_three_hundred = fields.Float("Giờ làm thêm hưởng 300%", store=True, compute="get_hours_overtime_percent")
+
+    @api.depends('employee_id', 'date')
+    def get_hours_overtime_percent(self):
+        for record in self:
+            record.ot_one_hundred = 0
+            record.ot_one_hundred_fifty = 0
+            record.ot_two_hundred = 0
+            record.ot_two_hundred_fifty = 0
+            record.ot_three_hundred = 0
+            overtime = self.env['overtime.rel'].sudo().search([
+                '&',
+                ('date', '=', record.date),
+                '|',
+                ('overtime_id.status', '=', 'done'),
+                ('overtime_id.status_lv2', '=', 'done'),
+            ])
+            overtime = overtime.filtered(
+                lambda x: (x.overtime_id.employee_id and x.overtime_id.employee_id.id == record.employee_id.id)
+                          or (x.overtime_id.employee_ids and record.employee_id.id in x.overtime_id.employee_ids.ids))
+            if overtime:
+                for ot in overtime:
+                    if ot.percent == "100":
+                        record.ot_one_hundred = ot.end_time - ot.start_time
+                    elif ot.percent == "150":
+                        record.ot_one_hundred_fifty = ot.end_time - ot.start_time
+                    elif ot.percent == "200":
+                        record.ot_two_hundred = ot.end_time - ot.start_time
+                    elif ot.percent == "250":
+                        record.ot_two_hundred_fifty = ot.end_time - ot.start_time
+                    elif ot.percent == "300":
+                        record.ot_three_hundred = ot.end_time - ot.start_time
 
     @api.depends('date', 'shift')
     def get_work_calendar(self):
@@ -112,6 +150,7 @@ class EmployeeAttendanceV2(models.Model):
             r.compensatory = 0
             r.public_leave = 0
             r.vacation = 0
+            r.unpaid_leave = 0
 
             if not r.employee_id or not r.date:
                 continue
@@ -155,6 +194,14 @@ class EmployeeAttendanceV2(models.Model):
                             r.vacation = 0.5
                     else:
                         r.vacation = 0
+                elif key == "kl":
+                    if slip.start_time and slip.end_time:
+                        if slip.start_time != slip.end_time:
+                            r.unpaid_leave = 1
+                        else:
+                            r.unpaid_leave = 0.5
+                    else:
+                        r.unpaid_leave = 0
 
             # Kiểm tra public leave
             if all_public_leaves.filtered(
@@ -909,6 +956,7 @@ class EmployeeAttendanceV2(models.Model):
                 recs._get_shift_employee()
                 recs._get_time_off()
                 recs.get_hours_reinforcement()
+                recs.get_hours_overtime_percent()
                 recs._get_time_in_out()
                 recs._get_check_in_out()
                 recs._get_work_day()
