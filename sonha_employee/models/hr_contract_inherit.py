@@ -1,5 +1,6 @@
 from datetime import datetime, time, timedelta, date
 from dateutil.relativedelta import relativedelta
+from odoo.exceptions import UserError, ValidationError
 
 from odoo import models, fields, api, _
 import base64
@@ -65,6 +66,9 @@ class HrContract(models.Model):
                 template.send_mail(contract.id, force_send=True)
                 
     def export_contract(self):
+        if not self.contract_type_id.file:
+            raise ValidationError("Chưa có mẫu hợp đồng cho loại hợp đồng này!")
+        
         dt_now = datetime.now()
         file_data = base64.b64decode(self.contract_type_id.file)
 
@@ -80,7 +84,10 @@ class HrContract(models.Model):
             # Thay thế các biến với dữ liệu thực tế
             for paragraph in doc.paragraphs:
                 if '[name_contract]' in paragraph.text:
-                    paragraph.text = paragraph.text.replace('[name_contract]', self.name)
+                    if self.name:
+                        paragraph.text = paragraph.text.replace('[name_contract]', self.name)
+                    else:
+                        raise ValidationError("Không có tên hợp đồng!")
                 if '[date]' in paragraph.text:
                     paragraph.text = paragraph.text.replace('[date]', str(dt_now.day))
                 if '[month]' in paragraph.text:
@@ -114,7 +121,10 @@ class HrContract(models.Model):
                 if '[year_sign]' in paragraph.text:
                     paragraph.text = paragraph.text.replace('[year_sign]', str(self.date_start.year) or '')
                 if '[end_date_contract]' in paragraph.text:
-                    paragraph.text = paragraph.text.replace('[end_date_contract]', str(self.date_end.strftime("%d/%m/%Y")) or '')
+                    if self.date_end:
+                        paragraph.text = paragraph.text.replace('[end_date_contract]', str(self.date_end.strftime("%d/%m/%Y")) or '')
+                    else:
+                        raise ValidationError("Không có ngày kết thúc hợp đồng!")
             # Lưu tài liệu vào bộ nhớ
             file_stream = io.BytesIO()
             doc.save(file_stream)
