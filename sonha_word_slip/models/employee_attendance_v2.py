@@ -72,8 +72,9 @@ class EmployeeAttendanceV2(models.Model):
     ot_one_hundred = fields.Float("Giờ làm thêm hưởng 100%", store=True, compute="get_hours_overtime_percent")
     ot_one_hundred_fifty = fields.Float("Giờ làm thêm hưởng 150%", store=True, compute="get_hours_overtime_percent")
     ot_two_hundred = fields.Float("Giờ làm thêm hưởng 200%", store=True, compute="get_hours_overtime_percent")
-    ot_two_hundred_fifty = fields.Float("Giờ làm thêm hưởng 250%", store=True, compute="get_hours_overtime_percent")
+    ot_two_hundred_fifty = fields.Float("Giờ làm thêm hưởng 270%", store=True, compute="get_hours_overtime_percent")
     ot_three_hundred = fields.Float("Giờ làm thêm hưởng 300%", store=True, compute="get_hours_overtime_percent")
+    ot_three_hundred_ninety = fields.Float("Giờ làm thêm hưởng 390%", store=True, compute="get_hours_overtime_percent")
 
     @api.depends('employee_id', 'date')
     def get_hours_overtime_percent(self):
@@ -83,6 +84,7 @@ class EmployeeAttendanceV2(models.Model):
             record.ot_two_hundred = 0
             record.ot_two_hundred_fifty = 0
             record.ot_three_hundred = 0
+            record.ot_three_hundred_ninety = 0
             overtime = self.env['overtime.rel'].sudo().search([
                 '&',
                 ('date', '=', record.date),
@@ -101,10 +103,12 @@ class EmployeeAttendanceV2(models.Model):
                         record.ot_one_hundred_fifty = ot.end_time - ot.start_time
                     elif ot.percent == "200":
                         record.ot_two_hundred = ot.end_time - ot.start_time
-                    elif ot.percent == "250":
+                    elif ot.percent == "270":
                         record.ot_two_hundred_fifty = ot.end_time - ot.start_time
                     elif ot.percent == "300":
                         record.ot_three_hundred = ot.end_time - ot.start_time
+                    elif ot.percent == "390":
+                        record.ot_three_hundred_ninety = ot.end_time - ot.start_time
 
     @api.depends('date', 'shift')
     def get_work_calendar(self):

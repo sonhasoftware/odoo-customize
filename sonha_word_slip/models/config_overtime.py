@@ -8,6 +8,7 @@ class ConfigOvertime(models.Model):
     percent = fields.Selection([('100', "100%"),
                                 ('150', "150%"),
                                 ('200', "200%"),
-                                ('250', "250%"),
-                                ('300', "300%")],
+                                ('270', "270%"),
+                                ('300', "300%"),
+                                ('390', "390%")],
                                string="Phần trăm", required=True)
