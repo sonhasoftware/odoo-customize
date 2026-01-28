@@ -371,26 +371,26 @@ class RegisterOvertimeUpdate(models.Model):
 
     def action_done(self):
         for r in self:
-            # if r.check_manager:
-            prev_status = r.status
-            r.status_lv2 = 'done'
-            r.status = 'done'
-            over_time = 0
-            for ot in r.date:
-                time_ot = (ot.end_time - ot.start_time) * ot.coefficient
-                over_time += time_ot
-            list_employee = r.employee_ids or [r.employee_id]
-            for employee in list_employee:
-                if employee.department_id.over_time == 'date':
-                    employee.total_compensatory += over_time
-                else:
-                    pass
-            # gọi recompute chỉ khi chuyển sang done (hoặc luôn vì ta vừa cộng bù)
-            # Nếu trước đó chưa phải done thì apply recompute
-            if prev_status != 'done':
-                self._recompute_overtime_for_record(r)
-            # else:
-            #     raise ValidationError("Bạn không có quyền thực hiện hành động này")
+            if r.check_manager:
+                prev_status = r.status
+                r.status_lv2 = 'done'
+                r.status = 'done'
+                over_time = 0
+                for ot in r.date:
+                    time_ot = (ot.end_time - ot.start_time) * ot.coefficient
+                    over_time += time_ot
+                list_employee = r.employee_ids or [r.employee_id]
+                for employee in list_employee:
+                    if employee.department_id.over_time == 'date':
+                        employee.total_compensatory += over_time
+                    else:
+                        pass
+                # gọi recompute chỉ khi chuyển sang done (hoặc luôn vì ta vừa cộng bù)
+                # Nếu trước đó chưa phải done thì apply recompute
+                if prev_status != 'done':
+                    self._recompute_overtime_for_record(r)
+            else:
+                raise ValidationError("Bạn không có quyền thực hiện hành động này")
 
     def action_back_status(self):
         for r in self:

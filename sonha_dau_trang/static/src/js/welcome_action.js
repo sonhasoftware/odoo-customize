@@ -8,7 +8,7 @@ class WelcomeImage extends Component {}
 
 WelcomeImage.template = xml`
     <div style="text-align: center;">
-        <img src="/sonha_dau_trang/static/img/ctt.jpg"
+        <img src="/sonha_dau_trang/static/img/ttc.jpg"
              style="max-width: 80%; border-radius: 12px;"/>
     </div>
 `;
