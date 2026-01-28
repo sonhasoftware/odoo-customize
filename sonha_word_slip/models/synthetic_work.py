@@ -39,6 +39,7 @@ class SyntheticWork(models.Model):
     grandparents_leave = fields.Float("Nghỉ ông bà mất")
     vacation = fields.Float("Nghỉ mát")
     unpaid_leave = fields.Float("Nghỉ không lương", compute="get_date_work")
+    absent_unpaid = fields.Float("Vắng không phép")
     public_leave = fields.Float("Nghỉ lễ", compute="get_date_work")
     total_work = fields.Float("Tổng công", compute="get_total_work")
     maternity_leave = fields.Float("Nghỉ vợ sinh")

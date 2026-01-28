@@ -48,6 +48,7 @@
                             <field name="shift_two_crew_three"/>
                             <field name="shift_three_crew_four"/>
                             <field name="unpaid_leave"/>
+                            <field name="absent_unpaid"/>
                             <field name="on_leave"/>
                             <field name="compensatory_leave"/>
                             <field name="maternity_leave"/>
