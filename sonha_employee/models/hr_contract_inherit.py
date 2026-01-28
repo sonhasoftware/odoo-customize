@@ -49,21 +49,39 @@ class HrContract(models.Model):
             list_contracts = self.env['hr.contract'].sudo().search([('date_end', '>=', start),
                                                                     ('date_end', '<=', end_date),
                                                                     ('state', '=', 'open')])
-            list_expired_contract = []
-            for contract in list_contracts:
-                if contract.mail == False:
-                    contract.mail = True
-                    expired_contract = str(contract.employee_id.name) + " - " + str(contract.employee_code) + " có hợp đồng " + str(contract.name) + " sắp hết hạn"
-                else:
-                    expired_contract = str(contract.employee_id.name) + " - " + str(contract.employee_code) + " có hợp đồng " + str(contract.name) + " sắp hết hạn (Đã gửi mail)"
-                list_expired_contract.append(expired_contract)
-            body_mail = ', '.join(list_expired_contract)
-            custom_body = "<p>Kính gửi HR,<br></br>Dưới đây là danh sách những nhân viên sắp hết hạn:<br></br></p>" + body_mail
-            if body_mail:
-                template.write({
-                    'body_html': custom_body
-                })
-                template.send_mail(contract.id, force_send=True)
+            list_company = list_contracts.mapped('company_id')
+            for company in list_company:
+                company_contracts = list_contracts.filtered(lambda c: c.company_id == company)
+                list_expired_contract = []
+                for contract in company_contracts:
+                    if contract.mail == False:
+                        contract.mail = True
+                        expired_contract = str(contract.employee_id.name) + " - " + str(
+                            contract.employee_code) + " có hợp đồng " + str(contract.name) + " sắp hết hạn"
+                    else:
+                        expired_contract = str(contract.employee_id.name) + " - " + str(
+                            contract.employee_code) + " có hợp đồng " + str(
+                            contract.name) + " sắp hết hạn (Đã gửi mail)"
+                    list_expired_contract.append(expired_contract)
+                body_mail = ', '.join(list_expired_contract)
+                custom_body = "<p>Kính gửi HR,<br></br>Dưới đây là danh sách những nhân viên sắp hết hạn:<br></br></p>" + body_mail
+                if body_mail:
+                    hr_emp = self.env['hr.employee'].sudo().search([('company_id', '=', company.id),
+                                                                    ('user_id', 'in', self.env.ref(
+                                                                        'sonha_employee.group_hr_employee').users.ids)])
+                    list_email = [
+                        email for email in hr_emp.mapped('work_email')
+                        if email
+                    ]
+                    if list_email:
+                        mail_to = ', '.join(list_email)
+                    else:
+                        mail_to = 'hr@example.com'
+                    template.write({
+                        'body_html': custom_body,
+                        'email_to': mail_to,
+                    })
+                    template.send_mail(contract.id, force_send=True)
                 
     def export_contract(self):
         if not self.contract_type_id.file:
