@@ -78,37 +78,38 @@ class EmployeeAttendanceV2(models.Model):
 
     @api.depends('employee_id', 'date')
     def get_hours_overtime_percent(self):
-        for record in self:
-            record.ot_one_hundred = 0
-            record.ot_one_hundred_fifty = 0
-            record.ot_two_hundred = 0
-            record.ot_two_hundred_fifty = 0
-            record.ot_three_hundred = 0
-            record.ot_three_hundred_ninety = 0
-            overtime = self.env['overtime.rel'].sudo().search([
-                '&',
-                ('date', '=', record.date),
-                '|',
-                ('overtime_id.status', '=', 'done'),
-                ('overtime_id.status_lv2', '=', 'done'),
-            ])
-            overtime = overtime.filtered(
-                lambda x: (x.overtime_id.employee_id and x.overtime_id.employee_id.id == record.employee_id.id)
-                          or (x.overtime_id.employee_ids and record.employee_id.id in x.overtime_id.employee_ids.ids))
-            if overtime:
-                for ot in overtime:
-                    if ot.percent == "100":
-                        record.ot_one_hundred = ot.end_time - ot.start_time
-                    elif ot.percent == "150":
-                        record.ot_one_hundred_fifty = ot.end_time - ot.start_time
-                    elif ot.percent == "200":
-                        record.ot_two_hundred = ot.end_time - ot.start_time
-                    elif ot.percent == "270":
-                        record.ot_two_hundred_fifty = ot.end_time - ot.start_time
-                    elif ot.percent == "300":
-                        record.ot_three_hundred = ot.end_time - ot.start_time
-                    elif ot.percent == "390":
-                        record.ot_three_hundred_ninety = ot.end_time - ot.start_time
+        pass
+        # for record in self:
+        #     record.ot_one_hundred = 0
+        #     record.ot_one_hundred_fifty = 0
+        #     record.ot_two_hundred = 0
+        #     record.ot_two_hundred_fifty = 0
+        #     record.ot_three_hundred = 0
+        #     record.ot_three_hundred_ninety = 0
+        #     overtime = self.env['overtime.rel'].sudo().search([
+        #         '&',
+        #         ('date', '=', record.date),
+        #         '|',
+        #         ('overtime_id.status', '=', 'done'),
+        #         ('overtime_id.status_lv2', '=', 'done'),
+        #     ])
+        #     overtime = overtime.filtered(
+        #         lambda x: (x.overtime_id.employee_id and x.overtime_id.employee_id.id == record.employee_id.id)
+        #                   or (x.overtime_id.employee_ids and record.employee_id.id in x.overtime_id.employee_ids.ids))
+        #     if overtime:
+        #         for ot in overtime:
+        #             if ot.percent == "100":
+        #                 record.ot_one_hundred = ot.end_time - ot.start_time
+        #             elif ot.percent == "150":
+        #                 record.ot_one_hundred_fifty = ot.end_time - ot.start_time
+        #             elif ot.percent == "200":
+        #                 record.ot_two_hundred = ot.end_time - ot.start_time
+        #             elif ot.percent == "270":
+        #                 record.ot_two_hundred_fifty = ot.end_time - ot.start_time
+        #             elif ot.percent == "300":
+        #                 record.ot_three_hundred = ot.end_time - ot.start_time
+        #             elif ot.percent == "390":
+        #                 record.ot_three_hundred_ninety = ot.end_time - ot.start_time
 
     @api.depends('date', 'shift')
     def get_work_calendar(self):
@@ -198,14 +199,14 @@ class EmployeeAttendanceV2(models.Model):
                             r.vacation = 0.5
                     else:
                         r.vacation = 0
-                elif key == "kl":
-                    if slip.start_time and slip.end_time:
-                        if slip.start_time != slip.end_time:
-                            r.unpaid_leave = 1
-                        else:
-                            r.unpaid_leave = 0.5
-                    else:
-                        r.unpaid_leave = 0
+                # elif key == "kl":
+                #     if slip.start_time and slip.end_time:
+                #         if slip.start_time != slip.end_time:
+                #             r.unpaid_leave = 1
+                #         else:
+                #             r.unpaid_leave = 0.5
+                #     else:
+                #         r.unpaid_leave = 0
 
             # Kiểm tra public leave
             if all_public_leaves.filtered(
