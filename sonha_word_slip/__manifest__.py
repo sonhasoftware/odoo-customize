@@ -14,7 +14,6 @@
         'views/word_slip_views.xml',
         'views/form_word_slip_views.xml',
         'views/config_shift_views.xml',
-        'views/config_overtime_views.xml',
         'views/register_shift_rel_views.xml',
         'views/register_shift_views.xml',
         'views/register_work_views.xml',

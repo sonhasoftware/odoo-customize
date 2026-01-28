@@ -22,11 +22,9 @@ class SyntheticWork(models.Model):
     date_work = fields.Float("Ngày làm việc", compute="get_date_work")
     apprenticeship = fields.Float("Công học việc")
     probationary_period = fields.Float("Công thử việc")
-    ot_one_hundred = fields.Float("Giờ làm thêm hưởng 100%", compute="get_date_work")
-    ot_one_hundred_fifty = fields.Float("Giờ làm thêm hưởng 150%", compute="get_date_work")
-    ot_two_hundred = fields.Float("Giờ làm thêm hưởng 200%", compute="get_date_work")
-    ot_two_hundred_fifty = fields.Float("Giờ làm thêm hưởng 250%", compute="get_date_work")
-    ot_three_hundred = fields.Float("Giờ làm thêm hưởng 300%", compute="get_date_work")
+    ot_one_hundred = fields.Float("Giờ làm thêm hưởng 100%")
+    ot_one_hundred_fifty = fields.Float("Giờ làm thêm hưởng 150%")
+    ot_three_hundred = fields.Float("Giờ làm thêm hưởng 300%")
     paid_leave = fields.Float("Ngày nghỉ hưởng 100% lương", compute="get_leave")
     number_minutes_late = fields.Float("Số phút đi muộn", compute="get_date_work")
     number_minutes_early = fields.Float("Số phút về sớm", compute="get_date_work")
@@ -38,8 +36,6 @@ class SyntheticWork(models.Model):
     filial_leave = fields.Float("Nghỉ bố mẹ mất")
     grandparents_leave = fields.Float("Nghỉ ông bà mất")
     vacation = fields.Float("Nghỉ mát")
-    unpaid_leave = fields.Float("Nghỉ không lương", compute="get_date_work")
-    absent_unpaid = fields.Float("Vắng không phép")
     public_leave = fields.Float("Nghỉ lễ", compute="get_date_work")
     total_work = fields.Float("Tổng công", compute="get_total_work")
     maternity_leave = fields.Float("Nghỉ vợ sinh")
@@ -104,13 +100,7 @@ class SyntheticWork(models.Model):
                     COALESCE(SUM(actual_work), 0) AS actual_work,
                     COALESCE(SUM(vacation), 0) AS vacation,
                     COALESCE(SUM(forgot_time), 0) AS forgot_time,
-                    COALESCE(SUM(work_eat), 0) AS work_eat,
-                    COALESCE(SUM(ot_one_hundred), 0) AS ot_one_hundred,
-                    COALESCE(SUM(ot_one_hundred_fifty), 0) AS ot_one_hundred_fifty,
-                    COALESCE(SUM(ot_two_hundred), 0) AS ot_two_hundred,
-                    COALESCE(SUM(ot_two_hundred_fifty), 0) AS ot_two_hundred_fifty,
-                    COALESCE(SUM(ot_three_hundred), 0) AS ot_three_hundred,
-                    COALESCE(SUM(unpaid_leave), 0) AS unpaid_leave
+                    COALESCE(SUM(work_eat), 0) AS work_eat
                 FROM employee_attendance_v2
                 WHERE employee_id = %s
                   AND date >= %s
@@ -134,17 +124,11 @@ class SyntheticWork(models.Model):
             r.work_hc = result['work_hc']
             r.work_sp = result['work_sp']
             r.overtime_nb = result['over_time_nb']
-            r.ot_one_hundred = result['ot_one_hundred']
-            r.ot_one_hundred_fifty = result['ot_one_hundred_fifty']
-            r.ot_two_hundred = result['ot_two_hundred']
-            r.ot_two_hundred_fifty = result['ot_two_hundred_fifty']
-            r.ot_three_hundred = result['ot_three_hundred']
             r.total_time_late = result['times_late']
             r.actual_work = result['actual_work']
             r.vacation = result['vacation']
             r.forgot_time = result['forgot_time']
             r.work_eat = result['work_eat']
-            r.unpaid_leave = result['unpaid_leave']
 
     @api.depends('on_leave', 'compensatory_leave', 'public_leave', 'maternity_leave', 'wedding_leave')
     def get_leave(self):

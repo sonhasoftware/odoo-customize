@@ -50,12 +50,6 @@
               action="action_config_standard_work"
               sequence="30"/>
 
-    <menuitem id="menu_config_overtime"
-              name="Cấu hình làm thêm"
-              parent="menu_config"
-              action="action_config_overtime"
-              sequence="31"/>
-
     <menuitem id="menu_config_leave"
               name="Cấu hình số lượng đơn từ trong tháng"
               parent="menu_config"
@@ -142,17 +136,16 @@
               sequence="0"/>
 
     <menuitem id="menu_employeee_attendance"
-              name="Bảng công chi tiết (cũ admin)"
-              parent="menu_attendance"
-              action="employee_attendance_action"
-              groups="sonha_employee.group_back_up_employee"
-              sequence="10"/>
-
-    <menuitem id="menu_employeee_attendance_v2"
               name="Bảng công chi tiết"
               parent="menu_attendance"
-              action="employee_attendance_v2_action"
+              action="employee_attendance_action"
               sequence="1"/>
+
+    <menuitem id="menu_employeee_attendance_v2"
+              name="Bảng công chi tiết V2"
+              parent="menu_attendance"
+              action="employee_attendance_v2_action"
+              sequence="2"/>
 
     <menuitem id="menu_config_reason"
               name="Cấu hình lý do"
