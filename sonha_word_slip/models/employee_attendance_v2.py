@@ -446,10 +446,10 @@ class EmployeeAttendanceV2(models.Model):
             check_time_co = datetime.combine(date, time_co)
 
             # Tính thời gian check-in
-            time_check_in = check_time_ci - timedelta(hours=7, minutes=r.shift.earliest)
+            time_check_in = check_time_ci - timedelta(hours=7, minutes=240)
 
             # Tính thời gian check-out
-            time_check_out = check_time_co + timedelta(hours=-7, minutes=r.shift.latest_out)
+            time_check_out = check_time_co + timedelta(hours=-7, minutes=240)
 
             # Xử lý trường hợp night shift
             if r.shift.night:
@@ -503,15 +503,23 @@ class EmployeeAttendanceV2(models.Model):
                 r.duration = 0
 
     # Lấy giờ mốc để tách giờ check-in và giờ check-out của nhân viên
-    @api.depends('shift', 'duration', 'time_check_in', 'time_check_out')
+    @api.depends('shift', 'duration', 'time_check_in', 'time_check_out', 'employee_id')
     def _check_no_in_out(self):
         for r in self:
             r.check_no_in = None
             r.check_no_out = None
-            if r.shift and r.duration > 0 and r.time_check_in and r.time_check_out:
-                duration = r.duration / 2
-                r.check_no_in = r.time_check_in + timedelta(minutes=r.shift.earliest + r.shift.latest)
-                r.check_no_out = r.time_check_out - timedelta(hours=duration, minutes=r.shift.latest_out)
+            if r.shift:
+                time_ci = (r.shift.start + timedelta(hours=7)).time()
+                time_co = (r.shift.end_shift + timedelta(hours=7)).time()
+                date = r.date
+                no_in_check = datetime.combine(date, time_ci)
+                no_out_check = datetime.combine(date, time_co)
+
+                # Tính thời gian check-in
+                r.check_no_in = no_in_check + timedelta(hours=2, minutes=-300)
+
+                # Tính thời gian check-out
+                r.check_no_out = no_out_check - timedelta(hours=11)
 
     # Lấy thông tin check-in và check-out của nhân viên
     @api.depends('employee_id', 'time_check_in', 'time_check_out', 'check_no_in', 'check_no_out')
