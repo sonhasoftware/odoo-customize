@@ -53,7 +53,7 @@ class FormWordSlip(models.Model):
     code = fields.Char("Mã đơn", compute="get_code_slip", required=False, readonly=True)
     check_sent = fields.Boolean("Check gửi duyệt", default=False, compute="_get_button_sent")
     record_url = fields.Char(string="Record URL", compute="_compute_record_url")
-    check_invisible_type = fields.Boolean("Check ẩn hiện", default=False)
+    check_invisible_type = fields.Boolean("Check ẩn hiện", default=False, compute="get_check_invisible_type")
     regis_type = fields.Selection([
         ('one', 'Tạo cho tôi'),
         ('many', 'Tạo hộ'),
@@ -209,6 +209,7 @@ class FormWordSlip(models.Model):
                     emp.new_leave_balance += r.duration
 
     @api.onchange('type')
+    @api.depends('type')
     def get_check_invisible_type(self):
         for r in self:
             if r.type.date_and_time == 'date':
