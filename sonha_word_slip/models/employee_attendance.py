@@ -124,7 +124,7 @@ class EmployeeAttendance(models.Model):
                         if slip.start_time != slip.end_time:
                             r.leave = 1
                         else:
-                            r.leave = 0.5
+                            r.leave += 0.5
                     else:
                         r.leave = 0
                 elif type_name == "nghỉ bù":
@@ -132,7 +132,7 @@ class EmployeeAttendance(models.Model):
                         if slip.start_time != slip.end_time:
                             r.compensatory = 1
                         else:
-                            r.compensatory = 0.5
+                            r.compensatory += 0.5
                     else:
                         r.compensatory = 0
                 elif key == "tbd":
