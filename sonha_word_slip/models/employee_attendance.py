@@ -411,8 +411,8 @@ class EmployeeAttendance(models.Model):
             check_time_ci = datetime.combine(date, time_ci)
             check_time_co = datetime.combine(date, time_co)
 
-            time_check_in = check_time_ci - timedelta(hours=7, minutes=240)
-            time_check_out = check_time_co + timedelta(hours=-7, minutes=240)
+            time_check_in = check_time_ci - timedelta(hours=7, minutes=420)
+            time_check_out = check_time_co + timedelta(hours=-7, minutes=420)
 
             # Xử lý trường hợp night shift
             if r.shift.night:
@@ -481,7 +481,7 @@ class EmployeeAttendance(models.Model):
                 r.check_no_in = no_in_check + timedelta(hours=2, minutes=-300)
 
                 # Tính thời gian check-out
-                r.check_no_out = no_out_check - timedelta(hours=11)
+                r.check_no_out = no_out_check - timedelta(hours=9)
 
     #Lấy thông tin check-in và check-out của nhân viên
     @api.depends('employee_id', 'time_check_in', 'time_check_out', 'check_no_in', 'check_no_out')
