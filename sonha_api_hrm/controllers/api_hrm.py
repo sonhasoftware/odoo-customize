@@ -980,6 +980,7 @@ class AuthAPI(http.Controller):
                             }
                         }
                         request.env['form.word.slip'].sudo().noti_user_done(record)
+                        request.env['form.word.slip'].sudo()._recompute_word_slip_for_record(record)
                 else:
                     if record.status_lv2 == 'sent':
                         record.status = 'draft'
@@ -1036,6 +1037,7 @@ class AuthAPI(http.Controller):
                             }
                         }
                         request.env['form.word.slip'].sudo().noti_user_done(record)
+                        request.env['form.word.slip'].sudo()._recompute_word_slip_for_record(record)
 
                 # Trả về kết quả
                 return Response(json.dumps({
@@ -1170,6 +1172,7 @@ class AuthAPI(http.Controller):
                     }
                 }
                 request.env['form.word.slip'].sudo().action_noti(record)
+                request.env['form.word.slip'].sudo()._recompute_word_slip_for_record(record)
 
                 # Trả về kết quả
                 return Response(json.dumps({
