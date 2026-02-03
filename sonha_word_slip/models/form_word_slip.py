@@ -194,6 +194,30 @@ class FormWordSlip(models.Model):
                     )
                 current += timedelta(days=1)
 
+    def job_word_slip_for_record(self):
+        self.with_delay().job_word_slip_for_record_queue()
+
+    def job_word_slip_for_record_queue(self):
+        start_date = date(2026, 1, 1)
+        end_date = date(2026, 1, 31)
+        list_record = self.env['word.slip'].sudo().search([('from_date', '<=', end_date),
+                                                           ('to_date', '>=', start_date)])
+
+        for line in list_record:
+            employees = line.word_slip.employee_ids or (line.word_slip.employee_id and [line.word_slip.employee_id]) or []
+            if not line.from_date or not line.to_date:
+                continue
+
+            current = line.from_date
+            while current <= line.to_date:
+                for emp in employees:
+                    self.env['employee.attendance.v2'].sudo().recompute_for_employee(
+                        emp,
+                        current,
+                        current
+                    )
+                current += timedelta(days=1)
+
     def action_cancel(self):
         for r in self:
             prev_status = r.status
