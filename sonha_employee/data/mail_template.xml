@@ -5,7 +5,7 @@
            <field name="name">Mail cảnh báo</field>
            <field name="model_id" ref="sonha_employee.model_hr_contract"/>
            <field name="email_from">{{user.login}}</field>
-           <field name="email_to">{('hr@example.com')}</field>
+           <field name="email_to"></field>
            <field name="subject">Cảnh báo hết hạn hợp đồng</field>
        </record>
    </data>

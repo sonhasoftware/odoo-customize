@@ -367,6 +367,7 @@ class AuthAPIHRM(http.Controller):
             if not record.type_overtime:
                 record.status = 'done'
                 request.env['register.overtime.update'].sudo().action_noti_user(record)
+                request.env['register.overtime.update'].sudo()._recompute_overtime_for_record(record)
             else:
                 if record.status_lv2 == 'draft':
                     record.status_lv2 = 'waiting'
@@ -376,6 +377,7 @@ class AuthAPIHRM(http.Controller):
                 elif record.status_lv2 == 'confirm':
                     record.status_lv2 = 'done'
                     request.env['register.overtime.update'].sudo().action_noti_user(record)
+                    request.env['register.overtime.update'].sudo()._recompute_overtime_for_record(record)
 
             # Trả về kết quả
             return Response(json.dumps({
@@ -426,8 +428,10 @@ class AuthAPIHRM(http.Controller):
                 raise ValueError("Không tìm thấy bản ghi")
             if not record.type_overtime:
                 record.status = 'cancel'
+                request.env['register.overtime.update'].sudo()._recompute_overtime_for_record(record)
             else:
                 record.status_lv2 = 'cancel'
+                request.env['register.overtime.update'].sudo()._recompute_overtime_for_record(record)
 
                 # Trả về kết quả
             return Response(json.dumps({
