@@ -136,16 +136,17 @@
               sequence="0"/>
 
     <menuitem id="menu_employeee_attendance"
-              name="Bảng công chi tiết"
+              name="Bảng công chi tiết (Admin cũ)"
               parent="menu_attendance"
               action="employee_attendance_action"
-              sequence="1"/>
+              groups="sonha_employee.group_back_up_employee"
+              sequence="10"/>
 
     <menuitem id="menu_employeee_attendance_v2"
-              name="Bảng công chi tiết V2"
+              name="Bảng công chi tiết"
               parent="menu_attendance"
               action="employee_attendance_v2_action"
-              sequence="2"/>
+              sequence="1"/>
 
     <menuitem id="menu_config_reason"
               name="Cấu hình lý do"
