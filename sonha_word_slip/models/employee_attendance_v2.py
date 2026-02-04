@@ -11,7 +11,7 @@ class EmployeeAttendanceV2(models.Model):
     _description = 'Bảng công chi tiết'
 
     employee_id = fields.Many2one('hr.employee', string='Nhân viên', required=True, store=True)
-    department_id = fields.Many2one('hr.department', string='Phòng ban', related='employee_id.department_id', store=True)
+    department_id = fields.Many2one('hr.department', string='Phòng ban', store=True, compute="get_department")
     date = fields.Date(string='Ngày', required=True, store=True)
     weekday = fields.Selection([
         ('0', 'Thứ hai'), ('1', 'Thứ ba'), ('2', 'Thứ tư'),
@@ -67,6 +67,14 @@ class EmployeeAttendanceV2(models.Model):
     work_eat = fields.Integer("Công ăn", compute="_get_work_eat", store=True)
 
     color = fields.Selection([('red', 'Red'), ('green', 'Green')], string="Màu", compute="_compute_color")
+
+    @api.depends('employee_id')
+    def get_department(self):
+        for r in self:
+            if r.employee_id and r.employee_id.department_id:
+                r.department_id = r.employee_id.department_id.id
+            else:
+                r.department_id = None
 
     @api.depends('date', 'shift')
     def get_work_calendar(self):
@@ -920,4 +928,5 @@ class EmployeeAttendanceV2(models.Model):
                 recs._get_time_in_out()
                 recs._get_check_in_out()
                 recs._get_work_day()
+                recs.get_department()
         return True
