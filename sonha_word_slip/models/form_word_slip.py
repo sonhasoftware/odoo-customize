@@ -471,7 +471,9 @@ class FormWordSlip(models.Model):
             ])
             word_slips = word_slips.filtered(
                 lambda x: (x.word_slip.employee_id and x.word_slip.employee_id.id == rec.employee_id.id) or (
-                        x.word_slip.employee_ids and rec.employee_id.id in x.word_slip.employee_ids.ids))
+                        x.word_slip.employee_ids and rec.employee_id.id in x.word_slip.employee_ids.ids) or (
+                        x.word_slip.employee_id and x.word_slip.employee_id.id in rec.employee_ids.ids) or (
+                        x.word_slip.employee_ids and rec.employee_ids & x.word_slip.employee_ids))
             # gọi hàm check validate
             self.validate_record_overlap(record, word_slips, form_type)
 
