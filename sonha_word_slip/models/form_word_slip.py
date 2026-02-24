@@ -342,6 +342,7 @@ class FormWordSlip(models.Model):
             else:
                 pass
             r.status = 'sent'
+            self._recompute_word_slip_for_record(r)
 
     @api.depends('employee_confirm')
     def get_button_confirm(self):
