@@ -339,7 +339,7 @@ class FormWordSlip(models.Model):
                     over_time += 8
                 elif ot.start_time == ot.end_time:
                     over_time += 4
-                if r.type.key == 'NB':
+                if r.type.key == 'NBN':
                     nbn_time += float(ot.time_from - ot.time_to)
             if r.check_level != True:
                 r.status_lv1 = 'sent'
@@ -403,7 +403,7 @@ class FormWordSlip(models.Model):
                     over_time += 8
                 elif ot.start_time == ot.end_time:
                     over_time += 4
-                if r.type.key == 'NB':
+                if r.type.key == 'NBN':
                     nbn_time += float(ot.time_from - ot.time_to)
 
             if r.type.key == "NB":
