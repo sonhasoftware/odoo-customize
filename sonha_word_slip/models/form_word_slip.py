@@ -257,11 +257,14 @@ class FormWordSlip(models.Model):
             prev_status = r.status
 
             over_time = 0
+            nbn_time = 0
             for ot in r.word_slip_id:
                 if ot.start_time != ot.end_time:
                     over_time += 8
                 elif ot.start_time == ot.end_time:
                     over_time += 4
+                if r.type.key == "NBN":
+                    nbn_time += float(ot.time_from - ot.time_to)
             if r.status != 'draft':
                 raise ValidationError("Chỉ duyệt được những bản ghi ở trạng thái chờ duyệt!")
 
@@ -269,6 +272,10 @@ class FormWordSlip(models.Model):
                 employees = r.employee_ids or [r.employee_id]
                 for employee in employees:
                     employee.total_compensatory -= over_time
+            if r.type.key == "NBN":
+                employees = r.employee_ids or [r.employee_id]
+                for employee in employees:
+                    employee.total_compensatory -= nbn_time
             r.status = 'done'
             r.status_lv1 = 'done'
             r.status_lv2 = 'done'
@@ -326,11 +333,14 @@ class FormWordSlip(models.Model):
     def complete_approval(self):
         for r in self:
             over_time = 0
+            nbn_time = 0
             for ot in r.word_slip_id:
                 if ot.start_time != ot.end_time:
                     over_time += 8
                 elif ot.start_time == ot.end_time:
                     over_time += 4
+                if r.type.key == 'NB':
+                    nbn_time += float(ot.time_from - ot.time_to)
             if r.check_level != True:
                 r.status_lv1 = 'sent'
             else:
@@ -338,7 +348,13 @@ class FormWordSlip(models.Model):
             if r.status == 'done' and r.type.key == 'NB':
                 employees = r.employee_ids or [r.employee_id]
                 for employee in employees:
-                    employee.total_compensatory -= over_time
+                    employee.total_compensatory += over_time
+            else:
+                pass
+            if r.status == 'done' and r.type.key == 'NBN':
+                employees = r.employee_ids or [r.employee_id]
+                for employee in employees:
+                    employee.total_compensatory += nbn_time
             else:
                 pass
             r.status = 'sent'
@@ -381,16 +397,23 @@ class FormWordSlip(models.Model):
             # Xác định cấp duyệt
             status_level = "status_lv2" if r.check_level else "status_lv1"
             over_time = 0
+            nbn_time = 0
             for ot in r.word_slip_id:
                 if ot.start_time != ot.end_time:
                     over_time += 8
                 elif ot.start_time == ot.end_time:
                     over_time += 4
+                if r.type.key == 'NB':
+                    nbn_time += float(ot.time_from - ot.time_to)
 
             if r.type.key == "NB":
                 employees = r.employee_ids or [r.employee_id]
                 for employee in employees:
                     employee.total_compensatory -= over_time
+            if r.type.key == "NBN":
+                employees = r.employee_ids or [r.employee_id]
+                for employee in employees:
+                    employee.total_compensatory -= nbn_time
 
             setattr(r, status_level, 'done')
             r.status = 'done'
