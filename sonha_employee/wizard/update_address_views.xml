@@ -1,0 +1,31 @@
+<odoo>
+    <record id="view_update_address_wizard" model="ir.ui.view">
+        <field name="name">update.address.form</field>
+        <field name="model">update.address</field>
+        <field name="arch" type="xml">
+            <form string="Import Address Employees">
+                <group>
+                    <field name="file" filename="file_name"/>
+                </group>
+                <footer>
+                    <button string="Import" type="object" name="import_employees" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_update_address_wizard" model="ir.actions.act_window">
+        <field name="name">Update địa chỉ</field>
+        <field name="res_model">update.address</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_update_address"
+              name="Update địa chỉ"
+              parent="hr.menu_hr_root"
+              action="action_update_address_wizard"
+              groups="group_back_up_employee"
+              sequence="44"/>
+</odoo>
