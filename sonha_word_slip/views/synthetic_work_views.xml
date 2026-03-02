@@ -49,7 +49,6 @@
                             <field name="shift_three_crew_four"/>
                             <field name="on_leave"/>
                             <field name="compensatory_leave"/>
-                            <field name="paid_leave_slip"/>
                             <field name="maternity_leave"/>
                             <field name="filial_leave"/>
                             <field name="grandparents_leave"/>

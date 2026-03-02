@@ -40,7 +40,6 @@ class SyntheticWork(models.Model):
     total_work = fields.Float("Tổng công", compute="get_total_work")
     maternity_leave = fields.Float("Nghỉ vợ sinh")
     wedding_leave = fields.Float("Nghỉ cưới")
-    paid_leave_slip = fields.Float("Đơn nghỉ có hưởng lương", compute="get_total_work")
 
     start_date = fields.Date("Từ ngày")
     end_date = fields.Date("Đến ngày")
@@ -107,8 +106,7 @@ class SyntheticWork(models.Model):
                     COALESCE(SUM(ot_two_hundred), 0) AS ot_two_hundred,
                     COALESCE(SUM(ot_two_hundred_fifty), 0) AS ot_two_hundred_fifty,
                     COALESCE(SUM(ot_three_hundred), 0) AS ot_three_hundred,
-                    COALESCE(SUM(unpaid_leave), 0) AS unpaid_leave,
-                    COALESCE(SUM(paid_leave_slip), 0) AS paid_leave_slip
+                    COALESCE(SUM(unpaid_leave), 0) AS unpaid_leave
                 FROM employee_attendance_v2
                 WHERE employee_id = %s
                   AND date >= %s
@@ -138,12 +136,11 @@ class SyntheticWork(models.Model):
             r.forgot_time = result['forgot_time']
             r.work_eat = result['work_eat']
             r.unpaid_leave = result['unpaid_leave']
-            r.paid_leave_slip = result['paid_leave_slip']
 
-    @api.depends('on_leave', 'compensatory_leave', 'public_leave', 'maternity_leave', 'wedding_leave', 'paid_leave_slip')
+    @api.depends('on_leave', 'compensatory_leave', 'public_leave', 'maternity_leave', 'wedding_leave')
     def get_leave(self):
         for r in self:
-            r.paid_leave = r.on_leave + r.compensatory_leave + r.public_leave + r.filial_leave + r.grandparents_leave + r.maternity_leave + r.wedding_leave + r.vacation + r.paid_leave_slip
+            r.paid_leave = r.on_leave + r.compensatory_leave + r.public_leave + r.filial_leave + r.grandparents_leave + r.maternity_leave + r.wedding_leave + r.vacation
 
     @api.depends('date_work', 'paid_leave')
     def get_total_work(self):
