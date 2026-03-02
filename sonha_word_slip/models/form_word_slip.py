@@ -222,6 +222,7 @@ class FormWordSlip(models.Model):
                 raise ValidationError("Chỉ được xóa khi trạng thái là nháp!")
             self.env['word.slip'].sudo().search([('word_slip.id', '=', r.id)]).unlink()
             self.env['rel.don.tu'].sudo().search([('key_form', '=', r.id)]).unlink()
+            self._recompute_word_slip_for_record(r)
         return super(FormWordSlip, self).unlink()
 
     @api.depends('employee_id')
