@@ -50,7 +50,7 @@ class EmployeeAttendanceV2(models.Model):
     compensatory = fields.Float("Nghỉ bù", compute="_get_time_off", store=True)
     public_leave = fields.Float("Nghỉ lễ", compute="_get_time_off", store=True)
     vacation = fields.Float("Nghỉ mát", compute="_get_time_off", store=True)
-    unpaid_leave = fields.Float("Nghỉ không lương", compute="_get_time_off", store=True)
+    unpaid_leave = fields.Float("Nghỉ không lương", compute="_get_time_off")
 
     c2k3 = fields.Float("Ca 2 kíp 3", compute="get_shift", store=True)
     c3k4 = fields.Float("Ca 3 kíp 4", compute="get_shift", store=True)
