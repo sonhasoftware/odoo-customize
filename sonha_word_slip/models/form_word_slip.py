@@ -247,6 +247,7 @@ class FormWordSlip(models.Model):
                 raise ValidationError("Chỉ được xóa khi trạng thái là nháp!")
             self.env['word.slip'].sudo().search([('word_slip.id', '=', r.id)]).unlink()
             self.env['rel.don.tu'].sudo().search([('key_form', '=', r.id)]).unlink()
+            self._recompute_word_slip_for_record(r)
         return super(FormWordSlip, self).unlink()
 
     @api.depends('employee_id')
@@ -282,11 +283,14 @@ class FormWordSlip(models.Model):
             prev_status = r.status
 
             over_time = 0
+            nbn_time = 0
             for ot in r.word_slip_id:
                 if ot.start_time != ot.end_time:
                     over_time += 8
                 elif ot.start_time == ot.end_time:
                     over_time += 4
+                if r.type.key == "NBN":
+                    nbn_time += float(ot.time_from - ot.time_to)
             if r.status != 'draft':
                 raise ValidationError("Chỉ duyệt được những bản ghi ở trạng thái chờ duyệt!")
 
@@ -294,6 +298,10 @@ class FormWordSlip(models.Model):
                 employees = r.employee_ids or [r.employee_id]
                 for employee in employees:
                     employee.total_compensatory -= over_time
+            if r.type.key == "NBN":
+                employees = r.employee_ids or [r.employee_id]
+                for employee in employees:
+                    employee.total_compensatory -= nbn_time
             r.status = 'done'
             r.status_lv1 = 'done'
             r.status_lv2 = 'done'
@@ -351,11 +359,14 @@ class FormWordSlip(models.Model):
     def complete_approval(self):
         for r in self:
             over_time = 0
+            nbn_time = 0
             for ot in r.word_slip_id:
                 if ot.start_time != ot.end_time:
                     over_time += 8
                 elif ot.start_time == ot.end_time:
                     over_time += 4
+                if r.type.key == 'NBN':
+                    nbn_time += float(ot.time_from - ot.time_to)
             if r.check_level != True:
                 r.status_lv1 = 'sent'
             else:
@@ -363,10 +374,17 @@ class FormWordSlip(models.Model):
             if r.status == 'done' and r.type.key == 'NB':
                 employees = r.employee_ids or [r.employee_id]
                 for employee in employees:
-                    employee.total_compensatory -= over_time
+                    employee.total_compensatory += over_time
+            else:
+                pass
+            if r.status == 'done' and r.type.key == 'NBN':
+                employees = r.employee_ids or [r.employee_id]
+                for employee in employees:
+                    employee.total_compensatory += nbn_time
             else:
                 pass
             r.status = 'sent'
+            self._recompute_word_slip_for_record(r)
 
     @api.depends('employee_confirm')
     def get_button_confirm(self):
@@ -405,16 +423,23 @@ class FormWordSlip(models.Model):
             # Xác định cấp duyệt
             status_level = "status_lv2" if r.check_level else "status_lv1"
             over_time = 0
+            nbn_time = 0
             for ot in r.word_slip_id:
                 if ot.start_time != ot.end_time:
                     over_time += 8
                 elif ot.start_time == ot.end_time:
                     over_time += 4
+                if r.type.key == 'NBN':
+                    nbn_time += float(ot.time_from - ot.time_to)
 
             if r.type.key == "NB":
                 employees = r.employee_ids or [r.employee_id]
                 for employee in employees:
                     employee.total_compensatory -= over_time
+            if r.type.key == "NBN":
+                employees = r.employee_ids or [r.employee_id]
+                for employee in employees:
+                    employee.total_compensatory -= nbn_time
 
             setattr(r, status_level, 'done')
             r.status = 'done'
@@ -496,7 +521,9 @@ class FormWordSlip(models.Model):
             ])
             word_slips = word_slips.filtered(
                 lambda x: (x.word_slip.employee_id and x.word_slip.employee_id.id == rec.employee_id.id) or (
-                        x.word_slip.employee_ids and rec.employee_id.id in x.word_slip.employee_ids.ids))
+                        x.word_slip.employee_ids and rec.employee_id.id in x.word_slip.employee_ids.ids) or (
+                        x.word_slip.employee_id and x.word_slip.employee_id.id in rec.employee_ids.ids) or (
+                        x.word_slip.employee_ids and rec.employee_ids & x.word_slip.employee_ids))
             # gọi hàm check validate
             self.validate_record_overlap(record, word_slips, form_type)
 

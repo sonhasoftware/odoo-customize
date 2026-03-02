@@ -1201,6 +1201,8 @@ class AuthAPI(http.Controller):
                 record.status_lv1 = 'sent'
                 record.status_lv2 = 'sent'
 
+                request.env['form.word.slip'].sudo()._recompute_word_slip_for_record(record)
+
                 # Trả về kết quả
                 return Response(json.dumps({
                     "success": True,

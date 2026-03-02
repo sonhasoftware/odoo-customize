@@ -402,8 +402,10 @@ class AuthAPIHRM(http.Controller):
                 raise ValueError("Không tìm thấy bản ghi")
             if not record.type_overtime:
                 record.status = 'draft'
+                request.env['register.overtime.update'].sudo()._recompute_overtime_for_record(record)
             else:
                 record.status_lv2 = 'draft'
+                request.env['register.overtime.update'].sudo()._recompute_overtime_for_record(record)
 
                 # Trả về kết quả
             return Response(json.dumps({

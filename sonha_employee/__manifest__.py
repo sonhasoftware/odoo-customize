@@ -38,6 +38,7 @@
         'wizard/import_manager_views.xml',
         'wizard/update_security_user_view.xml',
         'wizard/update_cccd_views.xml',
+        'wizard/update_address_views.xml',
         'wizard/import_leave_views.xml',
 
         'data/corn_job.xml',
