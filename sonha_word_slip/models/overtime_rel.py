@@ -13,29 +13,6 @@ class OvertimeRel(models.Model):
     coefficient = fields.Float("Hệ số", default=1)
     overtime_id = fields.Many2one('register.overtime.update')
     reason = fields.Char("Lý do")
-    percent = fields.Selection([('100', "100%"),
-                                ('150', "150%"),
-                                ('200', "200%"),
-                                ('270', "270%"),
-                                ('300', "300%"),
-                                ('390', "390%")],
-                               string="Phần trăm hưởng", default="100", compute="get_percent_ot")
-
-    @api.depends('overtime_id', 'overtime_id.department_id')
-    def get_percent_ot(self):
-        for r in self:
-            leave = self.env['resource.calendar.leaves'].sudo().search([])
-            leave = leave.filtered(lambda x: x.date_from.date() <= r.date <= x.date_to.date())
-            p = self.env['config.overtime'].sudo().search([('department_id', '=', r.overtime_id.department_id.id)])
-            weekday = r.date.weekday()
-            if leave:
-                r.percent = '300'
-            elif weekday == 6:
-                r.percent = '200'
-            elif p:
-                r.percent = p.percent
-            else:
-                r.percent = '100'
 
     @api.constrains("date", "start_time", "end_time", "overtime_id")
     def validate_overtime(self):
@@ -61,7 +38,7 @@ class OvertimeRel(models.Model):
             list_employee = [
                 record.overtime_id.employee_id.id] if record.overtime_id.employee_id else record.overtime_id.employee_ids.ids
             for employee in list_employee:
-                data = self.env['employee.attendance.v2'].sudo().search([
+                data = self.env['employee.attendance'].sudo().search([
                     ('date', '=', record.date),
                     ('employee_id', '=', employee)])
                 check_in_out = self.env['master.data.attendance'].sudo().search([

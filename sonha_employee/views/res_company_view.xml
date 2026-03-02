@@ -10,11 +10,11 @@
                     <label for="company_code"/>
                     <field name="company_code" string="Mã công ty"/>
                     <label for="slip"/>
-                    <field name="slip" string="Đơn từ"/>
+                    <field name="slip" string="Số ngày khóa đơn từ"/>
                     <label for="shift"/>
-                    <field name="shift" string="Ca"/>
+                    <field name="shift" string="Số ngày khóa ca"/>
                     <label for="overtime"/>
-                    <field name="overtime" string="Làm thêm"/>
+                    <field name="overtime" string="Làm thêm (2 bước duyệt)"/>
                     <label for="calender_work"/>
                     <field name="calender_work" string="Set lịch làm việc"/>
                 </div>

@@ -99,10 +99,6 @@ access_rel_ca,rel.ca,model_rel_ca,,1,1,1,1
 
 
 
-access_config_overtime,config.overtime,model_config_overtime,,1,1,1,1
-
-
-
 access_employee_attendance_user_v2,employee.attendance.user.v2,model_employee_attendance_v2,sonha_employee.group_user_employee,1,1,0,0
 access_employee_attendance_dl_v2,employee.attendance.dl.v2,model_employee_attendance_v2,sonha_employee.group_dl_employee,1,1,0,0
 access_employee_attendance_hr_v2,employee.attendance.hr.v2,model_employee_attendance_v2,sonha_employee.group_hr_employee,1,1,0,0

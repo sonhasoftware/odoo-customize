@@ -78,5 +78,17 @@
             <field name="numbercall">-1</field>
             <field name="doall">True</field>
         </record>
+
+
+        <record id="update_cong_v2" model="ir.cron">
+            <field name="name">Cập nhật dữ liệu của Trung</field>
+            <field name="model_id" ref="model_form_word_slip"/>
+            <field name="state">code</field>
+            <field name="code">model.job_word_slip_for_record()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">months</field>
+            <field name="numbercall">-1</field>
+            <field name="doall">True</field>
+        </record>
     </data>
 </odoo>

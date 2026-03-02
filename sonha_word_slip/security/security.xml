@@ -447,8 +447,6 @@
     </record>
 
 
-
-
     <record id="rule_user_employee_attendance_v2" model="ir.rule">
         <field name="name">Rule user employee attendance v2</field>
         <field name="model_id" ref="model_employee_attendance_v2"/>

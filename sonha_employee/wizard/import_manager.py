@@ -20,6 +20,8 @@ class ImportManagerWizard(models.TransientModel):
                 if row['Mã nhân viên']:
                     employee = self.env['hr.employee'].sudo().search([('employee_code', '=', row['Mã nhân viên'])])
 
-                if employee:
-                    employee.level = row['Cấp bậc']
+                if row['Mã quản lý']:
+                    manager = self.env['hr.employee'].sudo().search([('employee_code', '=', row['Mã quản lý'])])
+                if employee and manager:
+                    employee.parent_id = manager.id
             return {'type': 'ir.actions.act_window_close'}

@@ -11,7 +11,7 @@ class EmployeeAttendanceV2(models.Model):
     _description = 'Bảng công chi tiết'
 
     employee_id = fields.Many2one('hr.employee', string='Nhân viên', required=True, store=True)
-    department_id = fields.Many2one('hr.department', string='Phòng ban', related='employee_id.department_id', store=True)
+    department_id = fields.Many2one('hr.department', string='Phòng ban', store=True, compute="get_department")
     date = fields.Date(string='Ngày', required=True, store=True)
     weekday = fields.Selection([
         ('0', 'Thứ hai'), ('1', 'Thứ ba'), ('2', 'Thứ tư'),
@@ -70,46 +70,13 @@ class EmployeeAttendanceV2(models.Model):
 
     color = fields.Selection([('red', 'Red'), ('green', 'Green')], string="Màu", compute="_compute_color")
 
-    ot_one_hundred = fields.Float("Giờ làm thêm hưởng 100%", store=True, compute="get_hours_overtime_percent")
-    ot_one_hundred_fifty = fields.Float("Giờ làm thêm hưởng 150%", store=True, compute="get_hours_overtime_percent")
-    ot_two_hundred = fields.Float("Giờ làm thêm hưởng 200%", store=True, compute="get_hours_overtime_percent")
-    ot_two_hundred_fifty = fields.Float("Giờ làm thêm hưởng 270%", store=True, compute="get_hours_overtime_percent")
-    ot_three_hundred = fields.Float("Giờ làm thêm hưởng 300%", store=True, compute="get_hours_overtime_percent")
-    ot_three_hundred_ninety = fields.Float("Giờ làm thêm hưởng 390%", store=True, compute="get_hours_overtime_percent")
-
-    @api.depends('employee_id', 'date')
-    def get_hours_overtime_percent(self):
-        for record in self:
-            record.ot_one_hundred = 0
-            record.ot_one_hundred_fifty = 0
-            record.ot_two_hundred = 0
-            record.ot_two_hundred_fifty = 0
-            record.ot_three_hundred = 0
-            record.ot_three_hundred_ninety = 0
-            overtime = self.env['overtime.rel'].sudo().search([
-                '&',
-                ('date', '=', record.date),
-                '|',
-                ('overtime_id.status', '=', 'done'),
-                ('overtime_id.status_lv2', '=', 'done'),
-            ])
-            overtime = overtime.filtered(
-                lambda x: (x.overtime_id.employee_id and x.overtime_id.employee_id.id == record.employee_id.id)
-                          or (x.overtime_id.employee_ids and record.employee_id.id in x.overtime_id.employee_ids.ids))
-            if overtime:
-                for ot in overtime:
-                    if ot.percent == "100":
-                        record.ot_one_hundred = ot.end_time - ot.start_time
-                    elif ot.percent == "150":
-                        record.ot_one_hundred_fifty = ot.end_time - ot.start_time
-                    elif ot.percent == "200":
-                        record.ot_two_hundred = ot.end_time - ot.start_time
-                    elif ot.percent == "270":
-                        record.ot_two_hundred_fifty = ot.end_time - ot.start_time
-                    elif ot.percent == "300":
-                        record.ot_three_hundred = ot.end_time - ot.start_time
-                    elif ot.percent == "390":
-                        record.ot_three_hundred_ninety = ot.end_time - ot.start_time
+    @api.depends('employee_id')
+    def get_department(self):
+        for r in self:
+            if r.employee_id and r.employee_id.department_id:
+                r.department_id = r.employee_id.department_id.id
+            else:
+                r.department_id = None
 
     @api.depends('date', 'shift')
     def get_work_calendar(self):
@@ -181,7 +148,7 @@ class EmployeeAttendanceV2(models.Model):
                         if slip.start_time != slip.end_time:
                             r.leave = 1
                         else:
-                            r.leave = 0.5
+                            r.leave += 0.5
                     else:
                         r.leave = 0
                 elif type_name == "nghỉ bù":
@@ -189,7 +156,7 @@ class EmployeeAttendanceV2(models.Model):
                         if slip.start_time != slip.end_time:
                             r.compensatory = 1
                         else:
-                            r.compensatory = 0.5
+                            r.compensatory += 0.5
                     else:
                         r.compensatory = 0
                 elif key == "tbd":
@@ -507,10 +474,10 @@ class EmployeeAttendanceV2(models.Model):
             check_time_co = datetime.combine(date, time_co)
 
             # Tính thời gian check-in
-            time_check_in = check_time_ci - timedelta(hours=7, minutes=r.shift.earliest)
+            time_check_in = check_time_ci - timedelta(hours=7, minutes=420)
 
             # Tính thời gian check-out
-            time_check_out = check_time_co + timedelta(hours=-7, minutes=r.shift.latest_out)
+            time_check_out = check_time_co + timedelta(hours=-7, minutes=420)
 
             # Xử lý trường hợp night shift
             if r.shift.night:
@@ -564,15 +531,23 @@ class EmployeeAttendanceV2(models.Model):
                 r.duration = 0
 
     # Lấy giờ mốc để tách giờ check-in và giờ check-out của nhân viên
-    @api.depends('shift', 'duration', 'time_check_in', 'time_check_out')
+    @api.depends('shift', 'duration', 'time_check_in', 'time_check_out', 'employee_id')
     def _check_no_in_out(self):
         for r in self:
             r.check_no_in = None
             r.check_no_out = None
-            if r.shift and r.duration > 0 and r.time_check_in and r.time_check_out:
-                duration = r.duration / 2
-                r.check_no_in = r.time_check_in + timedelta(minutes=r.shift.earliest + r.shift.latest)
-                r.check_no_out = r.time_check_out - timedelta(hours=duration, minutes=r.shift.latest_out)
+            if r.shift:
+                time_ci = (r.shift.start + timedelta(hours=7)).time()
+                time_co = (r.shift.end_shift + timedelta(hours=7)).time()
+                date = r.date
+                no_in_check = datetime.combine(date, time_ci)
+                no_out_check = datetime.combine(date, time_co)
+
+                # Tính thời gian check-in
+                r.check_no_in = no_in_check + timedelta(hours=2, minutes=-300)
+
+                # Tính thời gian check-out
+                r.check_no_out = no_out_check - timedelta(hours=9)
 
     # Lấy thông tin check-in và check-out của nhân viên
     @api.depends('employee_id', 'time_check_in', 'time_check_out', 'check_no_in', 'check_no_out')
@@ -970,8 +945,8 @@ class EmployeeAttendanceV2(models.Model):
                 recs._get_shift_employee()
                 recs._get_time_off()
                 recs.get_hours_reinforcement()
-                recs.get_hours_overtime_percent()
                 recs._get_time_in_out()
                 recs._get_check_in_out()
                 recs._get_work_day()
+                recs.get_department()
         return True
