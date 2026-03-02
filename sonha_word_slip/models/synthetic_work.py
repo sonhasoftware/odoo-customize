@@ -102,11 +102,6 @@ class SyntheticWork(models.Model):
                     COALESCE(SUM(vacation), 0) AS vacation,
                     COALESCE(SUM(forgot_time), 0) AS forgot_time,
                     COALESCE(SUM(work_eat), 0) AS work_eat,
-                    COALESCE(SUM(ot_one_hundred), 0) AS ot_one_hundred,
-                    COALESCE(SUM(ot_one_hundred_fifty), 0) AS ot_one_hundred_fifty,
-                    COALESCE(SUM(ot_two_hundred), 0) AS ot_two_hundred,
-                    COALESCE(SUM(ot_two_hundred_fifty), 0) AS ot_two_hundred_fifty,
-                    COALESCE(SUM(ot_three_hundred), 0) AS ot_three_hundred,
                     COALESCE(SUM(unpaid_leave), 0) AS unpaid_leave,
                     COALESCE(SUM(paid_leave_slip), 0) AS paid_leave_slip
                 FROM employee_attendance_v2
