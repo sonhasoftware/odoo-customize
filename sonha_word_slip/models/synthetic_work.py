@@ -101,9 +101,7 @@ class SyntheticWork(models.Model):
                     COALESCE(SUM(actual_work), 0) AS actual_work,
                     COALESCE(SUM(vacation), 0) AS vacation,
                     COALESCE(SUM(forgot_time), 0) AS forgot_time,
-                    COALESCE(SUM(work_eat), 0) AS work_eat,
-                    COALESCE(SUM(unpaid_leave), 0) AS unpaid_leave,
-                    COALESCE(SUM(paid_leave_slip), 0) AS paid_leave_slip
+                    COALESCE(SUM(work_eat), 0) AS work_eat
                 FROM employee_attendance_v2
                 WHERE employee_id = %s
                   AND date >= %s
@@ -132,8 +130,6 @@ class SyntheticWork(models.Model):
             r.vacation = result['vacation']
             r.forgot_time = result['forgot_time']
             r.work_eat = result['work_eat']
-            r.unpaid_leave = result['unpaid_leave']
-            r.paid_leave_slip = result['paid_leave_slip']
 
     @api.depends('on_leave', 'compensatory_leave', 'public_leave', 'maternity_leave', 'wedding_leave', 'paid_leave_slip')
     def get_leave(self):
