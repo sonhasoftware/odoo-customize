@@ -51,7 +51,7 @@ class SyntheticWork(models.Model):
     overtime_nb = fields.Float("Giờ làm thêm hưởng nghỉ bù")
 
     month = fields.Integer("Tháng", compute="get_this_month", store=True)
-    year = fields.Integer("Năm", compute="get_this_month")
+    year = fields.Integer("Năm", compute="get_this_month", store=True)
 
     key = fields.Boolean("Khóa công", default=False)
     total_time_late = fields.Integer("Tổng số lần đi muộn/về sớm quá 30p")
