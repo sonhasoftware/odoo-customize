@@ -40,8 +40,8 @@ class SyntheticWork(models.Model):
     total_work = fields.Float("Tổng công", compute="get_total_work")
     maternity_leave = fields.Float("Nghỉ vợ sinh")
     wedding_leave = fields.Float("Nghỉ cưới")
-    unpaid_leave = fields.Float("Nghỉ không lương", compute="get_total_work")
-    paid_leave_slip = fields.Float("Đơn nghỉ có hưởng lương", compute="get_total_work")
+    unpaid_leave = fields.Float("Nghỉ không lương", compute="get_date_work")
+    paid_leave_slip = fields.Float("Đơn nghỉ có hưởng lương", compute="get_date_work")
 
     start_date = fields.Date("Từ ngày")
     end_date = fields.Date("Đến ngày")
