@@ -11,6 +11,7 @@
                         <field name="employee_code" readonly="1"/>
                         <field name="department_id"/>
                         <field name="month"/>
+                        <field name="year"/>
                     </group>
                     <group>
                         <group string="Công sản phẩm">
@@ -79,6 +80,7 @@
                 <field name="employee_id"/>
                 <field name="department_id"/>
                 <field name="month"/>
+                <field name="year"/>
                 <field name="total_work"/>
                 <field name="date_work"/>
                 <field name="hours_reinforcement"/>
@@ -114,7 +116,7 @@
                 <group expand="0" string="Group By">
                     <filter string="Phòng ban" name="department_id" context="{'group_by': 'department_id'}"/>
                 </group>
-                <filter string="Tháng hiện tại" name="current_month" domain="[('month', '=', context_today().month)]" />
+                <filter string="Tháng hiện tại" name="current_month" domain="[('month', '=', context_today().month), ('year', '=', context_today().year)]" />
             </search>
         </field>
     </record>
