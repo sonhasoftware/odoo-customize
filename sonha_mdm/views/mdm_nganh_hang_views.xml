@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_mdm_nganh_hang_tree" model="ir.ui.view">
+        <field name="name">MDM Ngành hàng</field>
+        <field name="model">mdm.nganh.hang</field>
+        <field name="arch" type="xml">
+            <tree string="Ngành hàng" editable="bottom">
+                <field name="ma"/>
+                <field name="ten"/>
+                <field name="key_map"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_mdm_nganh_hang" model="ir.actions.act_window">
+        <field name="name">MDM Ngành hàng</field>
+        <field name="res_model">mdm.nganh.hang</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

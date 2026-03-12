@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_mdm_tong_hop_form" model="ir.ui.view">
+        <field name="name">mdm.tong.hop.form</field>
+        <field name="model">mdm.tong.hop</field>
+        <field name="arch" type="xml">
+            <form string="MDM Tổng hợp">
+                <header>
+                    <button name="action_open_update_popup"
+                        type="object"
+                        string="Cập nhật thông tin"
+                        class="btn-primary"/>
+                    <button name="action_confirm_data"
+                        type="object"
+                        string="Đối chiếu dữ liệu so sánh"
+                        class="btn-primary"/>
+                </header>
+                <sheet>
+                    <field name="key_linh_vuc" invisible="1"/>
+                    <field name="key_nganh_hang" invisible="1"/>
+                    <field name="key_nhan_hang" invisible="1"/>
+                    <group>
+                        <group>
+                            <field name="ten"/>
+                            <field name="chung_loai1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="chung_loai2" domain="[('key', '=', chung_loai1)]" options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                        <group>
+                            <field name="linh_vuc" domain="[('key_map', '=', key_linh_vuc)]" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="nganh_hang" domain="[('key_map', '=', key_nganh_hang)]" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="nhan_hang" domain="[('key_map', '=', key_nhan_hang)]" options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                    </group>
+                    <field name="so_sanh">
+                        <tree default_order="score desc">
+                            <field name="ten"/>
+                            <field name="chung_loai1"/>
+                            <field name="chung_loai2"/>
+                            <field name="linh_vuc"/>
+                            <field name="nganh_hang"/>
+                            <field name="nhan_hang"/>
+                            <field name="score"/>
+                            <field name="score_group"/>
+                        </tree>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_mdm_tong_hop_update_form" model="ir.ui.view">
+        <field name="name">mdm.tong.hop.update.form</field>
+        <field name="model">mdm.tong.hop</field>
+        <field name="arch" type="xml">
+            <form string="Nhập thêm thông tin">
+                <group>
+                    <group>
+                        <field name="ma_tg"/>
+                        <field name="ten"/>
+                        <field name="ten_ngan"/>
+                        <field name="dvt"/>
+                    </group>
+                    <group>
+                        <field name="key_linh_vuc" invisible="1"/>
+                        <field name="key_nganh_hang" invisible="1"/>
+                        <field name="key_nhan_hang" invisible="1"/>
+                        <field name="chung_loai1"/>
+                        <field name="chung_loai2" domain="[('key', '=', chung_loai1)]"/>
+                        <field name="linh_vuc" domain="[('key_map', '=', key_linh_vuc)]"/>
+                        <field name="nganh_hang" domain="[('key_map', '=', key_nganh_hang)]"/>
+                        <field name="nhan_hang"/>
+                    </group>
+                </group>
+                <footer>
+                    <button string="Lưu"
+                            type="object"
+                            name="action_save_popup"
+                            class="btn-primary"/>
+
+                    <button string="Hủy"
+                            special="cancel"
+                            class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_mdm_tong_hop_tree" model="ir.ui.view">
+        <field name="name">mdm.tong.hop.tree</field>
+        <field name="model">mdm.tong.hop</field>
+        <field name="arch" type="xml">
+            <tree string="MDM Tổng hợp">
+                <field name="ma_tg" optional="show"/>
+                <field name="mdm_hh_type_id" optional="show"/>
+                <field name="mdm_hh_type" optional="show"/>
+                <field name="ten_ngan" optional="show"/>
+                <field name="ten" optional="show"/>
+                <field name="dvt" optional="show"/>
+                <field name="chung_loai1" optional="show"/>
+                <field name="chung_loai2" optional="show"/>
+                <field name="linh_vuc" optional="show"/>
+                <field name="nganh_hang" optional="show"/>
+                <field name="nhan_hang" optional="show"/>
+                <field name="chat_lieu" optional="show"/>
+                <field name="do_bong" optional="show"/>
+                <field name="do_day" optional="show"/>
+                <field name="dung_tich" optional="show"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_mdm_tong_hop" model="ir.actions.act_window">
+        <field name="name">MDM Tổng hợp</field>
+        <field name="res_model">mdm.tong.hop</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="action_mdm_tong_hop" model="ir.actions.act_window">
+            <field name="name">MDM Tổng hợp</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">mdm.tong.hop</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('view_mdm_tong_hop_tree')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('view_mdm_tong_hop_form')})]"/>
+        </record>
+</odoo>

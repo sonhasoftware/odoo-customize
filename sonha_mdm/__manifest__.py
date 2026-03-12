@@ -1,0 +1,34 @@
+# -*- coding: utf-8 -*-
+{
+    'name': 'Sơn Hà MDM',
+    'version': '1.7',
+    'category': 'MDM',
+    'summary': 'Sơn Hà MDM',
+    'website': 'https://',
+    'description': "Sơn Hà MDM",
+    'depends': [],
+    'data': [
+        'security/ir.model.access.csv',
+        'views/mdm_chung_loai1_views.xml',
+        'views/mdm_chung_loai2_views.xml',
+        'views/mdm_linh_vuc_views.xml',
+        'views/mdm_nganh_hang_views.xml',
+        'views/mdm_nhan_hang_views.xml',
+        'views/mdm_chat_lieu_views.xml',
+        'views/mdm_do_bong_views.xml',
+        'views/mdm_do_day_views.xml',
+        'views/mdm_dung_tich_views.xml',
+        'views/mdm_hh_type_views.xml',
+        'views/mdm_tong_hop_views.xml',
+        'data/cron_job.xml',
+        'views/menu_views.xml',
+    ],
+    'assets': {
+        'web.assets_backend': [
+            'sonha_mdm/static/src/css/style.css',
+        ],
+    },
+    'installable': True,
+    'application': True,
+    'license': 'LGPL-3',
+}

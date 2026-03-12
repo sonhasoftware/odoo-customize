@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_mdm_dung_tich_tree" model="ir.ui.view">
+        <field name="name">MDM Dung tích</field>
+        <field name="model">mdm.dung.tich</field>
+        <field name="arch" type="xml">
+            <tree string="Dung tích" editable="bottom">
+                <field name="ma"/>
+                <field name="ten"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_mdm_dung_tich" model="ir.actions.act_window">
+        <field name="name">MDM Dung tích</field>
+        <field name="res_model">mdm.dung.tich</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

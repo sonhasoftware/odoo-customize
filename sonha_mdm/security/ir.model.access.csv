@@ -1,0 +1,17 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+
+access_mdm_chung_loai1,mdm.chung.loai1,model_mdm_chung_loai1,,1,1,1,1
+access_mdm_chung_loai2,mdm.chung.loai2,model_mdm_chung_loai2,,1,1,1,1
+access_mdm_linh_vuc,mdm.linh.vuc,model_mdm_linh_vuc,,1,1,1,1
+access_mdm_nganh_hang,mdm.nganh.hang,model_mdm_nganh_hang,,1,1,1,1
+access_mdm_nhan_hang,mdm.nhan.hang,model_mdm_nhan_hang,,1,1,1,1
+access_mdm_chat_lieu,mdm.chat.lieu,model_mdm_chat_lieu,,1,1,1,1
+access_mdm_do_bong,mdm.do.bong,model_mdm_do_bong,,1,1,1,1
+access_mdm_do_day,mdm.do.day,model_mdm_do_day,,1,1,1,1
+access_mdm_dung_tich,mdm.dung.tich,model_mdm_dung_tich,,1,1,1,1
+access_mdm_hh_type,mdm.hh.type,model_mdm_hh_type,,1,1,1,1
+
+
+access_mdm_tong_hop,mdm.tong.hop,model_mdm_tong_hop,,1,1,1,1
+
+access_ket_qua_tong_hop,ket.qua.tong.hop,model_ket_qua_tong_hop,,1,1,1,1

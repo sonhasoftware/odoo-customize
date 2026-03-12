@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_mdm_chat_lieu_tree" model="ir.ui.view">
+        <field name="name">MDM Chất liệu</field>
+        <field name="model">mdm.chat.lieu</field>
+        <field name="arch" type="xml">
+            <tree string="Chất liệu" editable="bottom">
+                <field name="ma"/>
+                <field name="ten"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_mdm_chat_lieu" model="ir.actions.act_window">
+        <field name="name">MDM Chất liệu</field>
+        <field name="res_model">mdm.chat.lieu</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

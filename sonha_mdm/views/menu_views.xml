@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <menuitem id="menu_sonha_mdm"
+              name="MDM"
+              sequence="21"/>
+
+    <menuitem id="menu_mdm_tong_hop"
+              name="MDM Tổng hợp"
+              parent="menu_sonha_mdm"
+              action="action_mdm_tong_hop"
+              sequence="1"/>
+
+    <menuitem id="menu_mdm_danh_muc"
+              name="Danh mục"
+              parent="menu_sonha_mdm"
+              sequence="10"/>
+
+    <menuitem id="menu_mdm_chung_loai_1"
+              name="Chủng loại 1"
+              parent="menu_mdm_danh_muc"
+              action="action_mdm_chung_loai1"
+              sequence="1"/>
+
+    <menuitem id="menu_mdm_chung_loai_2"
+              name="Chủng loại 2"
+              parent="menu_mdm_danh_muc"
+              action="action_mdm_chung_loai2"
+              sequence="2"/>
+
+    <menuitem id="menu_mdm_linh_vuc"
+              name="Lĩnh vực"
+              parent="menu_mdm_danh_muc"
+              action="action_mdm_linh_vuc"
+              sequence="3"/>
+
+    <menuitem id="menu_mdm_nganh_hang"
+              name="Ngành hàng"
+              parent="menu_mdm_danh_muc"
+              action="action_mdm_nganh_hang"
+              sequence="4"/>
+
+    <menuitem id="menu_mdm_nhan_hang"
+              name="Nhãn hàng"
+              parent="menu_mdm_danh_muc"
+              action="action_mdm_nhan_hang"
+              sequence="5"/>
+
+    <menuitem id="menu_mdm_chat_lieu"
+              name="Chất liệu"
+              parent="menu_mdm_danh_muc"
+              action="action_mdm_chat_lieu"
+              sequence="6"/>
+
+    <menuitem id="menu_mdm_do_bong"
+              name="Độ bóng"
+              parent="menu_mdm_danh_muc"
+              action="action_mdm_do_bong"
+              sequence="7"/>
+
+    <menuitem id="menu_mdm_do_day"
+              name="Độ dày"
+              parent="menu_mdm_danh_muc"
+              action="action_mdm_do_day"
+              sequence="8"/>
+
+    <menuitem id="menu_mdm_dung_tich"
+              name="Dung tích"
+              parent="menu_mdm_danh_muc"
+              action="action_mdm_dung_tich"
+              sequence="9"/>
+
+    <menuitem id="menu_mdm_hh_type"
+              name="Loại hàng hóa"
+              parent="menu_mdm_danh_muc"
+              action="action_mdm_hh_type"
+              sequence="10"/>
+</odoo>

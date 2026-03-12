@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_mdm_chung_loai2_tree" model="ir.ui.view">
+        <field name="name">MDM Chủng loại 2</field>
+        <field name="model">mdm.chung.loai2</field>
+        <field name="arch" type="xml">
+            <tree string="Chủng loại 2" editable="bottom">
+                <field name="ma"/>
+                <field name="ten"/>
+                <field name="key"/>
+                <field name="key_linh_vuc"/>
+                <field name="key_nganh_hang"/>
+                <field name="key_nhan_hang"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_mdm_chung_loai2" model="ir.actions.act_window">
+        <field name="name">MDM Chủng loại 2</field>
+        <field name="res_model">mdm.chung.loai2</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>
