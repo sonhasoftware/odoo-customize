@@ -8,7 +8,6 @@ import io
 import base64
 import calendar
 import xlsxwriter
-import datetime
 
 
 class EmployeeAttendanceV2(models.Model):
@@ -389,7 +388,7 @@ class EmployeeAttendanceV2(models.Model):
         employee_ids = [row[0] for row in self.env.cr.fetchall()]
 
         # STEP 2 — Tính khoảng thời gian
-        now = datetime.datetime.now()
+        now = datetime.now()
         start_date = now.replace(day=1).date() - relativedelta(months=1)
         end_date = (start_date + relativedelta(months=2)) - timedelta(days=1)
 
