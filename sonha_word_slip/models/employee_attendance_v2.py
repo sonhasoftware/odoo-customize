@@ -4,6 +4,11 @@ from odoo import api, fields, models, _
 from datetime import datetime, time, timedelta, date
 import requests
 import json
+import io
+import base64
+import calendar
+import xlsxwriter
+import datetime
 
 
 class EmployeeAttendanceV2(models.Model):
@@ -372,7 +377,7 @@ class EmployeeAttendanceV2(models.Model):
     # tạo ra bản ghi cho từng nhân viên trong các ngày của tháng
 
     def update_attendance_data_v2(self):
-        self.with_delay().create_data_attendance()
+        self.create_data_attendance()
 
     def create_data_attendance(self):
         # STEP 1 — Lấy danh sách nhân viên
@@ -951,3 +956,472 @@ class EmployeeAttendanceV2(models.Model):
                 recs._get_work_day()
                 recs.get_department()
         return True
+
+    def action_export_excel(self, ids):
+
+        records = self.browse(ids)
+
+        if not records:
+            return
+
+        first_date = records[0].date
+        month = first_date.month
+        year = first_date.year
+
+        days_in_month = calendar.monthrange(year, month)[1]
+
+        employees = {}
+
+        for rec in records:
+
+            emp_id = rec.employee_id.id
+
+            if emp_id not in employees:
+                employees[emp_id] = {
+                    "employee": rec.employee_id,
+                    "days": {}
+                }
+
+            day = rec.date.day
+            employees[emp_id]["days"][day] = rec
+
+        syntic_records = self.env['synthetic.work'].search([
+            ('month', '=', month),
+            ('year', '=', year)
+        ])
+
+        syntic_map = {}
+
+        for s in syntic_records:
+            syntic_map[s.employee_id.id] = s
+
+        output = io.BytesIO()
+
+        workbook = xlsxwriter.Workbook(output)
+        sheet = workbook.add_worksheet("Cham cong")
+
+        # ================= FORMAT =================
+
+        title_format = workbook.add_format({
+            "bold": True,
+            "align": "center",
+            "valign": "vcenter",
+            "font_size": 16
+        })
+
+        header_format = workbook.add_format({
+            "bold": True,
+            "align": "center",
+            "valign": "vcenter",
+            "border": 1,
+            "bg_color": "#4F81BD",  # xanh dương
+            "font_color": "white"
+        })
+
+        cell_format = workbook.add_format({
+            "align": "center",
+            "border": 1
+        })
+
+        # ================= SET WIDTH =================
+
+        sheet.set_column(0, 0, 6)
+        sheet.set_column(1, 1, 15)
+        sheet.set_column(2, 2, 30)  # cột tên rộng hơn
+
+        # ================= TITLE =================
+
+        total_columns = 3 + days_in_month + 20
+
+        title = f"BẢNG CHẤM CÔNG THÁNG {month} NĂM {year}".upper()
+
+        sheet.merge_range(0, 0, 3, total_columns, title, title_format)
+
+        # ================= HEADER =================
+
+        header_row1 = 4
+        header_row2 = 5
+
+        sheet.write(header_row1, 0, "STT", header_format)
+        sheet.write(header_row1, 1, "Mã NV", header_format)
+        sheet.write(header_row1, 2, "Họ tên", header_format)
+
+        sheet.write(header_row2, 0, "", header_format)
+        sheet.write(header_row2, 1, "", header_format)
+        sheet.write(header_row2, 2, "", header_format)
+
+        col = 3
+
+        for d in range(1, days_in_month + 1):
+            date_obj = datetime.date(year, month, d)
+            thu = date_obj.strftime("%a")
+
+            sheet.write(header_row1, col, thu, header_format)
+            sheet.write(header_row2, col, d, header_format)
+
+            col += 1
+
+        summary_columns = [
+            "Công thử việc",
+            "Công luân chuyển",
+            "Tổng công",
+            "NB",
+            "NP",
+            "Lễ",
+            "Nghỉ TNLĐ",
+            "Nghỉ CĐ Cty",
+            "Ô Đ TS",
+            "Không Lương",
+            "Nghỉ không phép",
+            "TC thường (x1.5)",
+            "TC CN (x2)",
+            "TC Lễ (x3)",
+            "Total Nhóm tại nhà",
+            "Ngừng việc",
+            "Cách ly",
+            "Online",
+            "Ở nhà",
+            "Ký nhận"
+        ]
+
+        summary_start_col = col
+
+        for name in summary_columns:
+            sheet.write(header_row1, col, name, header_format)
+            sheet.write(header_row2, col, "", header_format)
+
+            col += 1
+
+        # ================= DATA =================
+
+        row = 6
+        stt = 1
+
+        for emp_id, data in employees.items():
+
+            emp = data["employee"]
+            days = data["days"]
+
+            syntic = syntic_map.get(emp_id)
+
+            sheet.write(row, 0, stt, cell_format)
+            sheet.write(row, 1, emp.employee_code or "", cell_format)
+            sheet.write(row, 2, emp.name or "", cell_format)
+
+            sheet.write(row + 1, 0, "", cell_format)
+            sheet.write(row + 1, 1, "", cell_format)
+            sheet.write(row + 1, 2, "", cell_format)
+
+            col = 3
+
+            for d in range(1, days_in_month + 1):
+
+                rec = days.get(d)
+
+                if rec:
+
+                    if rec.compensatory >= 1:
+                        work_day = "1B"
+
+                    elif rec.compensatory == 0.5:
+                        work_day = "B/2"
+
+                    elif rec.leave >= 1:
+                        work_day = "1P"
+
+                    elif rec.leave == 0.5:
+                        work_day = "P/2"
+
+                    elif rec.shift and rec.shift.key:
+                        work_day = rec.shift.key
+
+                    else:
+                        work_day = rec.work_day
+
+                    sheet.write(row, col, work_day, cell_format)
+
+                    overtime = rec.over_time or ""
+                    sheet.write(row + 1, col, overtime, cell_format)
+
+                else:
+
+                    sheet.write(row, col, "", cell_format)
+                    sheet.write(row + 1, col, "", cell_format)
+
+                col += 1
+
+            col = summary_start_col
+            for i in range(len(summary_columns)):
+                sheet.write(row, col + i, "", cell_format)
+                sheet.write(row + 1, col + i, "", cell_format)
+            if syntic:
+                sheet.write(row, col + 0, syntic.probationary_period or 0, cell_format)
+                sheet.write(row, col + 1, 0, cell_format)
+                sheet.write(row, col + 2, syntic.total_work or 0, cell_format)
+
+                sheet.write(row, col + 3, syntic.compensatory_leave or 0, cell_format)
+                sheet.write(row, col + 4, syntic.on_leave or 0, cell_format)
+                sheet.write(row, col + 5, syntic.public_leave or 0, cell_format)
+
+                sheet.write(row, col + 9, syntic.unpaid_leave or 0, cell_format)
+                sheet.write(row, col + 10, syntic.unpaid_leave or 0, cell_format)
+
+                sheet.write(row + 1, col + 11, syntic.hours_reinforcement or 0, cell_format)
+                sheet.write(row + 1, col + 12, syntic.ot_one_hundred_fifty or 0, cell_format)
+                sheet.write(row + 1, col + 13, syntic.ot_three_hundred or 0, cell_format)
+
+            row += 2
+            stt += 1
+
+        workbook.close()
+
+        output.seek(0)
+
+        file_data = base64.b64encode(output.read())
+
+        attachment = self.env["ir.attachment"].create({
+            "name": f"Cham_cong_{month}_{year}.xlsx",
+            "type": "binary",
+            "datas": file_data,
+            "res_model": self._name,
+        })
+
+        return {
+            "type": "ir.actions.act_url",
+            "url": f"/web/content/{attachment.id}?download=true",
+            "target": "self",
+        }
+
+    # def action_export_excel(self, ids):
+    #
+    #     if not ids:
+    #         return
+    #
+    #     records = self.browse(ids)
+    #
+    #     first_date = records[0].date
+    #     month = first_date.month
+    #     year = first_date.year
+    #
+    #     days_in_month = calendar.monthrange(year, month)[1]
+    #
+    #     employees = self._get_employee_days(ids)
+    #     syntic_map = self._get_synthetic_data(month, year, employees.keys())
+    #
+    #     file_data = self._generate_excel(
+    #         employees,
+    #         syntic_map,
+    #         month,
+    #         year,
+    #         days_in_month
+    #     )
+    #
+    #     attachment = self.env["ir.attachment"].create({
+    #         "name": f"Cham_cong_{month}_{year}.xlsx",
+    #         "type": "binary",
+    #         "datas": file_data,
+    #         "res_model": self._name,
+    #     })
+    #
+    #     return {
+    #         "type": "ir.actions.act_url",
+    #         "url": f"/web/content/{attachment.id}?download=true",
+    #         "target": "self",
+    #     }
+    #
+    # def _get_employee_days(self, ids):
+    #
+    #     query = """
+    #         SELECT
+    #             id,
+    #             employee_id,
+    #             date,
+    #             compensatory,
+    #             leave,
+    #             work_day,
+    #             over_time,
+    #             shift
+    #         FROM employee_attendance_v2
+    #         WHERE id IN %s
+    #     """
+    #
+    #     self.env.cr.execute(query, (tuple(ids),))
+    #     rows = self.env.cr.dictfetchall()
+    #
+    #     employees = {}
+    #
+    #     for r in rows:
+    #
+    #         emp_id = r["employee_id"]
+    #
+    #         if emp_id not in employees:
+    #             employees[emp_id] = {
+    #                 "employee": self.env["hr.employee"].browse(emp_id),
+    #                 "days": {}
+    #             }
+    #
+    #         day = r["date"].day
+    #         employees[emp_id]["days"][day] = r
+    #
+    #     return employees
+    #
+    # def _get_synthetic_data(self, month, year, employee_ids):
+    #
+    #     query = """
+    #         SELECT *
+    #         FROM synthetic_work
+    #         WHERE month = %s
+    #         AND year = %s
+    #         AND employee_id IN %s
+    #     """
+    #
+    #     self.env.cr.execute(query, (month, year, tuple(employee_ids)))
+    #     rows = self.env.cr.dictfetchall()
+    #
+    #     result = {}
+    #
+    #     for r in rows:
+    #         result[r["employee_id"]] = r
+    #
+    #     return result
+    #
+    # def _generate_excel(self, employees, syntic_map, month, year, days_in_month):
+    #
+    #     output = io.BytesIO()
+    #
+    #     workbook = xlsxwriter.Workbook(
+    #         output,
+    #         {"constant_memory": True}
+    #     )
+    #
+    #     sheet = workbook.add_worksheet("Cham cong")
+    #
+    #     title_format = workbook.add_format({
+    #         "bold": True,
+    #         "align": "center",
+    #         "font_size": 16
+    #     })
+    #
+    #     header_format = workbook.add_format({
+    #         "bold": True,
+    #         "align": "center",
+    #         "border": 1,
+    #         "bg_color": "#4F81BD",
+    #         "font_color": "white"
+    #     })
+    #
+    #     cell_format = workbook.add_format({
+    #         "align": "center",
+    #         "border": 1
+    #     })
+    #
+    #     sheet.set_column(0, 0, 6)
+    #     sheet.set_column(1, 1, 15)
+    #     sheet.set_column(2, 2, 30)
+    #     sheet.set_column(3, 3 + days_in_month, 5)
+    #
+    #     total_columns = 3 + days_in_month + 20
+    #
+    #     title = f"BẢNG CHẤM CÔNG THÁNG {month} NĂM {year}".upper()
+    #
+    #     sheet.merge_range(0, 0, 3, total_columns, title, title_format)
+    #
+    #     header_row1 = 4
+    #     header_row2 = 5
+    #
+    #     sheet.write_row(header_row1, 0, ["STT", "Mã NV", "Họ tên"], header_format)
+    #     sheet.write_row(header_row2, 0, ["", "", ""], header_format)
+    #
+    #     col = 3
+    #
+    #     for d in range(1, days_in_month + 1):
+    #         date_obj = datetime.date(year, month, d)
+    #         thu = date_obj.strftime("%a")
+    #
+    #         sheet.write(header_row1, col, thu, header_format)
+    #         sheet.write(header_row2, col, d, header_format)
+    #
+    #         col += 1
+    #
+    #     summary_start_col = col
+    #
+    #     row = 6
+    #     stt = 1
+    #
+    #     for emp_id, data in employees.items():
+    #
+    #         emp = data["employee"]
+    #         days = data["days"]
+    #         syntic = syntic_map.get(emp_id)
+    #
+    #         sheet.write_row(row, 0, [stt, emp.employee_code or "", emp.name], cell_format)
+    #         sheet.write_row(row + 1, 0, ["", "", ""], cell_format)
+    #
+    #         day_row = []
+    #         ot_row = []
+    #
+    #         for d in range(1, days_in_month + 1):
+    #
+    #             rec = days.get(d)
+    #
+    #             if rec:
+    #
+    #                 if rec["compensatory"] >= 1:
+    #                     work_day = "1B"
+    #
+    #                 elif rec["compensatory"] == 0.5:
+    #                     work_day = "B/2"
+    #
+    #                 elif rec["leave"] >= 1:
+    #                     work_day = "1P"
+    #
+    #                 elif rec["leave"] == 0.5:
+    #                     work_day = "P/2"
+    #
+    #                 else:
+    #                     work_day = rec["work_day"]
+    #
+    #                 day_row.append(work_day)
+    #                 ot_row.append(rec["over_time"] or "")
+    #
+    #             else:
+    #                 day_row.append("")
+    #                 ot_row.append("")
+    #
+    #         sheet.write_row(row, 3, day_row, cell_format)
+    #         sheet.write_row(row + 1, 3, ot_row, cell_format)
+    #
+    #         if syntic:
+    #
+    #             summary = [
+    #                 syntic["probationary_period"],
+    #                 0,
+    #                 syntic["total_work"],
+    #                 syntic["compensatory_leave"],
+    #                 syntic["on_leave"],
+    #                 syntic["public_leave"],
+    #                 0,
+    #                 0,
+    #                 0,
+    #                 syntic["unpaid_leave"],
+    #                 syntic["unpaid_leave"],
+    #                 "",
+    #                 "",
+    #                 "",
+    #                 0, 0, 0, 0, 0, ""
+    #             ]
+    #
+    #         else:
+    #
+    #             summary = [""] * 20
+    #
+    #         sheet.write_row(row, summary_start_col, summary, cell_format)
+    #
+    #         row += 2
+    #         stt += 1
+    #
+    #     workbook.close()
+    #
+    #     output.seek(0)
+    #
+    #     return base64.b64encode(output.read())
