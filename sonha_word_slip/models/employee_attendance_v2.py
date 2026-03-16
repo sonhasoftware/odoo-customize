@@ -377,7 +377,7 @@ class EmployeeAttendanceV2(models.Model):
     # tạo ra bản ghi cho từng nhân viên trong các ngày của tháng
 
     def update_attendance_data_v2(self):
-        self.create_data_attendance()
+        self.with_delay().create_data_attendance()
 
     def create_data_attendance(self):
         # STEP 1 — Lấy danh sách nhân viên
