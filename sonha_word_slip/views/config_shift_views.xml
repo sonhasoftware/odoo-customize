@@ -42,6 +42,7 @@
                     <group>
                         <field name="code"/>
                         <field name="name"/>
+                        <field name="key"/>
                         <field name="earliest"/>
                         <field name="overtime_before_shift"/>
                         <field name="start"/>

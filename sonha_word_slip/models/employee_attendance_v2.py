@@ -69,6 +69,7 @@ class EmployeeAttendanceV2(models.Model):
     work_eat = fields.Integer("Công ăn", compute="_get_work_eat", store=True)
 
     color = fields.Selection([('red', 'Red'), ('green', 'Green')], string="Màu", compute="_compute_color")
+    key = fields.Char("Ký hiệu ca", related="shift.key")
 
     @api.depends('employee_id')
     def get_department(self):

@@ -18,6 +18,7 @@
                 <field name="minutes_early"/>
                 <field name="forgot_time"/>
                 <field name="work_day"/>
+                <field name="key"/>
                 <field name="actual_work"/>
                 <field name="over_time"/>
                 <field name="leave"/>
