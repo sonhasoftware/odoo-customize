@@ -5,6 +5,7 @@ import json
 from collections import Counter
 import math
 from odoo.exceptions import ValidationError
+import requests
 
 
 class MDMTongHop(models.Model):
@@ -56,6 +57,84 @@ class MDMTongHop(models.Model):
     vector_group = fields.Text("Vector", compute="_compute_vector_group", store=True)
 
     so_sanh = fields.One2many('ket.qua.tong.hop', 'mdm', string="Chi tiết")
+    dvcs = fields.Many2one('res.company', string="ĐV", store=True, default=lambda self: self.env.company, readonly=False)
+    luong_duyet = fields.Many2one('luong.duyet', string="Luồng duyệt")
+    buoc_duyet = fields.One2many('buoc.duyet.hang.hoa', 'key', string="Bước duyệt")
+
+    current_step = fields.Integer(string="STT hiện tại", default=1)
+    can_approve = fields.Boolean(compute='_compute_can_approve')
+
+    def _compute_can_approve(self):
+        for rec in self:
+            user = self.env.user
+
+            steps = rec.buoc_duyet.filtered(
+                lambda x: x.sequence == rec.current_step
+            )
+
+            rec.can_approve = any(
+                step.ten_nguoi_duyet.id == user.id and not step.da_duyet
+                for step in steps
+            )
+
+    def action_approve(self):
+        for rec in self:
+            user = self.env.user
+
+            # lấy tất cả step hiện tại (cùng sequence)
+            steps = rec.buoc_duyet.filtered(
+                lambda x: x.sequence == rec.current_step
+            )
+
+            # tìm dòng của user hiện tại
+            my_step = steps.filtered(
+                lambda x: x.ten_nguoi_duyet.id == user.id
+            )[:1]
+
+            if not my_step:
+                raise ValidationError("Chưa đến bước bạn duyệt")
+
+            # ✔ duyệt dòng của mình
+            my_step.da_duyet = True
+
+            # 🔥 kiểm tra tất cả đã duyệt chưa
+            all_done = all(step.da_duyet for step in steps)
+
+            # 👉 nếu tất cả đã duyệt → mới sang step tiếp theo
+            if all_done:
+                rec.current_step += 1
+
+    @api.onchange('luong_duyet')
+    def _get_buoc_duyet(self):
+        for r in self:
+            if not r.luong_duyet:
+                r.buoc_duyet = [(5, 0, 0)]
+                return
+
+            # XÓA dữ liệu cũ
+            lines = [(5, 0, 0)]
+
+            data = r.luong_duyet.sudo().step_ids.sorted('sequence')
+
+            for step in data:
+                if step.phuong_thuc == 'ql':
+                    lines.append((0, 0, {
+                        'sequence': step.sequence,
+                        'phuong_thuc': step.phuong_thuc,
+                        'vai_tro': step.vai_tro.id,
+                        'ten_nguoi_duyet': 2,
+                    }))
+                else:
+                    for user in step.ten_nguoi_duyet:
+                        lines.append((0, 0, {
+                            'sequence': step.sequence,
+                            'phuong_thuc': step.phuong_thuc,
+                            'vai_tro': step.vai_tro.id,
+                            'ten_nguoi_duyet': user.id,
+                        }))
+
+            r.buoc_duyet = lines
+
 
     @api.constrains('chung_loai1', 'chung_loai2', 'linh_vuc', 'nganh_hang', 'nhan_hang', 'key_linh_vuc', 'key_nganh_hang', 'key_nhan_hang')
     def _check_chung_loai(self):
@@ -191,6 +270,7 @@ class MDMTongHop(models.Model):
     def create(self, vals):
         record = super().create(vals)
         self.create_write_action_data(record)
+        self.call_api_insert(record)
 
         # Nếu không có vector thì bỏ qua
         # if not record.vector:
@@ -269,9 +349,10 @@ class MDMTongHop(models.Model):
                     continue
 
                 # 🚀 Tối ưu 1: lọc theo độ dài tên trước
+                name_match = False
                 if record.ten and r['ten']:
-                    if abs(len(record.ten) - len(r['ten'])) > 5:
-                        continue
+                    if record.ten.lower() in r['ten'].lower():
+                        name_match = True
 
                 old_vec = json.loads(r['vector'])
                 old_vec_group = json.loads(r['vector_group'])
@@ -279,7 +360,7 @@ class MDMTongHop(models.Model):
                 score = self._cosine_similarity_dict(new_vec, old_vec)
                 score_group = self._cosine_similarity_dict(new_vec_group, old_vec_group)
 
-                if score >= 0.8 and score_group >= 0.5:
+                if (score >= 0.8 or name_match) and (score_group >= 0.5):
                     logs.append({
                         'mdm': record.id,
                         'record': r['id'],
@@ -314,4 +395,97 @@ class MDMTongHop(models.Model):
     def action_confirm_data(self):
         for r in self:
             self.create_write_action_data(r)
+
+    def call_api_insert(self, record):
+        data = {'ma_chung_loai1': record.chung_loai1.ma or None,
+                'ten_chung_loai1': record.chung_loai1.ten or None,
+                'ma_chung_loai2': record.chung_loai2.ma or None,
+                'ten_chung_loai2': record.chung_loai2.ten or None,
+                'ma_linh_vuc': record.linh_vuc.ma or None,
+                'ten_linh_vuc': record.linh_vuc.ten or None,
+                'ma_nganh_hang': record.nganh_hang.ma or None,
+                'ten_nganh_hang': record.nganh_hang.ten or None,
+                'ma_nhan_hang': record.nhan_hang.ma or None,
+                'ten_nhan_hang': record.nhan_hang.ten or None,
+                'ma': record.ma or None,
+                'ten': record.ten or None,
+                'ma_tg': record.ma_tg or None,
+                'ten_ngan': record.ten_ngan or None,
+                'dvt': record.dvt or None,
+                'ma_dvcs': record.dvcs.company_code or None,
+                'ten_dvcs': record.dvcs.name or None,
+                'type': 'insert',
+                }
+
+        # 👉 convert sang JSON string
+        json_str = json.dumps(data, ensure_ascii=False)
+
+        # 🔥 thêm dấu ' 2 bên (theo yêu cầu API của bạn)
+        payload = f"'{json_str}'"
+
+        try:
+            response = requests.put(
+                "https://bhapi.sonha.com.vn/api/mdm_hh",
+                json=payload,
+                headers={
+                    'Content-Type': 'application/json; charset=utf-8'
+                },
+                timeout=10
+            )
+
+            # debug
+            print("API RESPONSE:", response.text)
+
+        except Exception as e:
+            print("API ERROR:", str(e))
+
+    def call_api_update(self, record):
+        data = {'ma_chung_loai1': record.chung_loai1.ma or None,
+                'ten_chung_loai1': record.chung_loai1.ten or None,
+                'ma_chung_loai2': record.chung_loai2.ma or None,
+                'ten_chung_loai2': record.chung_loai2.ten or None,
+                'ma_linh_vuc': record.linh_vuc.ma or None,
+                'ten_linh_vuc': record.linh_vuc.ten or None,
+                'ma_nganh_hang': record.nganh_hang.ma or None,
+                'ten_nganh_hang': record.nganh_hang.ten or None,
+                'ma_nhan_hang': record.nhan_hang.ma or None,
+                'ten_nhan_hang': record.nhan_hang.ten or None,
+                'ma': record.ma or None,
+                'ten': record.ten or None,
+                'ma_tg': record.ma_tg or None,
+                'ten_ngan': record.ten_ngan or None,
+                'dvt': record.dvt or None,
+                'ma_dvcs': record.dvcs.company_code or None,
+                'ten_dvcs': record.dvcs.name or None,
+                'type': 'update',
+                }
+
+        # 👉 convert sang JSON string
+        json_str = json.dumps(data, ensure_ascii=False)
+
+        # 🔥 thêm dấu ' 2 bên (theo yêu cầu API của bạn)
+        payload = f"'{json_str}'"
+
+        try:
+            response = requests.put(
+                "https://bhapi.sonha.com.vn/api/mdm_hh",
+                json=payload,
+                headers={
+                    'Content-Type': 'application/json; charset=utf-8'
+                },
+                timeout=10
+            )
+
+            # debug
+            print("API hàng hóa:", response.text)
+
+        except Exception as e:
+            print("API hàng hóa:", str(e))
+
+    def write(self, vals):
+        res = super().write(vals)
+        for r in self:
+            self.create_write_action_data(r)
+            self.call_api_update(r)
+        return res
 

@@ -5,10 +5,16 @@
               sequence="21"/>
 
     <menuitem id="menu_mdm_tong_hop"
-              name="MDM Tổng hợp"
+              name="MDM Hàng hóa"
               parent="menu_sonha_mdm"
               action="action_mdm_tong_hop"
               sequence="1"/>
+
+    <menuitem id="menu_mdm_khach_hang"
+              name="MDM khách hàng"
+              parent="menu_sonha_mdm"
+              action="action_mdm_khach_hang"
+              sequence="2"/>
 
     <menuitem id="menu_mdm_danh_muc"
               name="Danh mục"
@@ -74,4 +80,46 @@
               parent="menu_mdm_danh_muc"
               action="action_mdm_hh_type"
               sequence="10"/>
+
+    <menuitem id="menu_mdm_quoc_gia"
+              name="Quốc gia"
+              parent="menu_mdm_danh_muc"
+              action="action_mdm_quoc_gia"
+              sequence="11"/>
+
+    <menuitem id="menu_mdm_chi_nhanh"
+              name="Chi nhánh"
+              parent="menu_mdm_danh_muc"
+              action="sonha_mdm.action_mdm_chi_nhanh"
+              sequence="12"/>
+
+    <menuitem id="menu_mdm_nhom_khach"
+              name="Nhóm khách"
+              parent="menu_mdm_danh_muc"
+              action="sonha_mdm.action_mdm_nhom_khach"
+              sequence="13"/>
+
+    <menuitem id="menu_mdm_saleman"
+              name="Sale man"
+              parent="menu_mdm_danh_muc"
+              action="sonha_mdm.action_mdm_saleman"
+              sequence="14"/>
+
+    <menuitem id="menu_mdm_tinh"
+              name="Tỉnh"
+              parent="menu_mdm_danh_muc"
+              action="sonha_mdm.action_mdm_tinh"
+              sequence="15"/>
+
+    <menuitem id="menu_mdm_khu_vuc"
+              name="Khu vực"
+              parent="menu_mdm_danh_muc"
+              action="sonha_mdm.action_mdm_khu_vuc"
+              sequence="16"/>
+
+    <menuitem id="menu_mdm_quan_ly_vung"
+              name="Quản lý vùng"
+              parent="menu_mdm_danh_muc"
+              action="sonha_mdm.action_mdm_quan_ly_vung"
+              sequence="17"/>
 </odoo>

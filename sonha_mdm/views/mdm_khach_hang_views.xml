@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_mdm_khach_hang_form" model="ir.ui.view">
+        <field name="name">mdm.khach.hang.form</field>
+        <field name="model">mdm.khach.hang</field>
+        <field name="arch" type="xml">
+            <form string="MDM khách hàng">
+                <header>
+                    <button name="action_open_update_popup"
+                        type="object"
+                        string="Cập nhật thông tin"
+                        class="btn-primary"/>
+                    <button name="action_confirm_data"
+                        type="object"
+                        string="Đối chiếu dữ liệu so sánh"
+                        class="btn-primary"/>
+                    <button name="action_approve"
+                        string="Duyệt"
+                        type="object"
+                        class="btn-primary"
+                        invisible="can_approve != True"/>
+                    <field name="can_approve" invisible="1"/>
+                </header>
+                <group>
+                    <group>
+                        <field name="ten_khach"/>
+                        <field name="so_dien_thoai" />
+                        <field name="luong_duyet" options="{'no_create': True}"/>
+                    </group>
+                    <group>
+                        <field name="mst"/>
+                        <field name="cccd"/>
+                    </group>
+                </group>
+                <notebook>
+                    <page string="Dữ liệu so sánh">
+                        <field name="so_sanh_khach_hang">
+                            <tree create="0" default_order="sort_score desc">
+                                <field name="ten_khach"/>
+                                <field name="dia_chi_khach"/>
+                                <field name="so_dien_thoai"/>
+                                <field name="mst"/>
+                                <field name="cccd"/>
+                                <field name="score_mst"/>
+                                <field name="score_cccd"/>
+                                <field name="score_sdt"/>
+                                <field name="score_ten"/>
+                            </tree>
+                        </field>
+                    </page>
+                    <page string="Bước duyệt">
+                        <field name="buoc_duyet">
+                            <tree>
+                                <field name="sequence"/>
+                                <field name="phuong_thuc"/>
+                                <field name="vai_tro"/>
+                                <field name="ten_nguoi_duyet"/>
+                                <field name="da_duyet"/>
+                            </tree>
+                        </field>
+                    </page>
+                </notebook>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_mdm_khach_hang_update_form" model="ir.ui.view">
+        <field name="name">mdm.khach_hang.update.form</field>
+        <field name="model">mdm.khach.hang</field>
+        <field name="arch" type="xml">
+            <form string="Nhập thêm thông tin">
+                <group>
+                    <group>
+                        <field name="ma_khach"/>
+                        <field name="ten_khach"/>
+                        <field name="dia_chi_khach"/>
+                        <field name="ma_cn"/>
+                        <field name="nhom_khach"/>
+                        <field name="ten_salesman"/>
+                        <field name="ma_salesman"/>
+                        <field name="ma_dms"/>
+                    </group>
+                    <group>
+                        <field name="ma_tinh" />
+                        <field name="kinh_do" />
+                        <field name="vi_do" />
+                        <field name="so_dien_thoai" />
+                        <field name="dat_nuoc"/>
+                        <field name="khu_vuc"/>
+                        <field name="vung"/>
+                        <field name="qlv"/>
+                        <field name="mst"/>
+                        <field name="cccd"/>
+                    </group>
+                </group>
+                <footer>
+                    <button string="Lưu"
+                            type="object"
+                            name="action_save_popup"
+                            class="btn-primary"/>
+
+                    <button string="Hủy"
+                            special="cancel"
+                            class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_mdm_khach_hang_tree" model="ir.ui.view">
+        <field name="name">mdm.khach.hang.tree</field>
+        <field name="model">mdm.khach.hang</field>
+        <field name="arch" type="xml">
+            <tree string="MDM khách hàng">
+                <field name="ma_khach"/>
+                    <field name="ten_khach"/>
+                    <field name="dia_chi_khach"/>
+                    <field name="ma_cn"/>
+                    <field name="nhom_khach"/>
+                    <field name="ten_salesman"/>
+                    <field name="ma_salesman"/>
+                    <field name="ma_dms"/>
+                    <field name="ma_tinh" />
+                    <field name="kinh_do" />
+                    <field name="vi_do" />
+                    <field name="so_dien_thoai" />
+                    <field name="dat_nuoc"/>
+                    <field name="khu_vuc"/>
+                    <field name="vung"/>
+                    <field name="qlv"/>
+                    <field name="mst"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_mdm_khach_hang" model="ir.actions.act_window">
+            <field name="name">MDM khách hàng</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">mdm.khach.hang</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('view_mdm_khach_hang_tree')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('view_mdm_khach_hang_form')})]"/>
+        </record>
+</odoo>

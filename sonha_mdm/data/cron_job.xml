@@ -21,5 +21,16 @@
             <field name="interval_type">days</field>
             <field name="numbercall">-1</field>
         </record>
+
+        <record id="ir_cron_action_vector_khach_hang" model="ir.cron">
+            <field name="name">Sinh vector cho khách hàng</field>
+            <field name="model_id" ref="model_mdm_khach_hang"/>
+            <field name="state">code</field>
+            <field name="code">model.get_vector_khach_hang()</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+        </record>
     </data>
 </odoo>

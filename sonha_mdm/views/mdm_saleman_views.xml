@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_mdm_saleman_tree" model="ir.ui.view">
+        <field name="name">MDM Sale man</field>
+        <field name="model">mdm.saleman</field>
+        <field name="arch" type="xml">
+            <tree string="Sale man" editable="bottom">
+                <field name="ma"/>
+                <field name="ten"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_mdm_saleman" model="ir.actions.act_window">
+        <field name="name">MDM sale man</field>
+        <field name="res_model">mdm.saleman</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

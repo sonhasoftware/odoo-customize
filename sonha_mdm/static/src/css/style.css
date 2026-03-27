@@ -9,3 +9,62 @@
 .o_cell.o_wrap_input.flex-grow-1.flex-sm-grow-0.text-break {
     margin-top: -6px !important;
 }
+
+div[name="so_sanh"] div#tenContainer {
+    display: none;
+}
+
+div[name="so_sanh"] div#chung_loai1Container {
+    display: none;
+}
+
+div[name="so_sanh"] div#chung_loai2Container {
+    display: none;
+}
+
+div[name="so_sanh"] div#linh_vucContainer {
+    display: none;
+}
+
+div[name="so_sanh"] div#nganh_hangContainer {
+    display: none;
+}
+
+div[name="so_sanh"] div#nhan_hangContainer {
+    display: none;
+}
+
+div[name="so_sanh"] div#nhan_hangContainer {
+    display: none;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover {
+    width: unset !important;
+    max-width: none !important;
+}
+
+th.align-middle.cursor-default.opacity-trigger-hover {
+    width:unset !important;
+    max-width: none !important;
+}
+
+div[name="so_sanh_khach_hang"] div#ten_khachContainer {
+    display: none;
+}
+
+div[name="so_sanh_khach_hang"] div#dia_chi_khachContainer {
+    display: none;
+}
+
+div[name="so_sanh_khach_hang"] div#so_dien_thoaiContainer {
+    display: none;
+}
+
+div[name="so_sanh_khach_hang"] div#mstContainer {
+    display: none;
+}
+
+div[name="so_sanh_khach_hang"] div#cccdContainer {
+    display: none;
+}
+

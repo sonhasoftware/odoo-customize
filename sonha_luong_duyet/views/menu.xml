@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <menuitem id="menu_sonha_luong_duyet"
+              name="Luồng duyệt"
+              sequence="21"/>
+
+    <menuitem id="menu_luong_duyet"
+              name="Luồng duyệt"
+              parent="menu_sonha_luong_duyet"
+              action="sonha_luong_duyet.action_luong_duyet"
+              sequence="1"/>
+
+    <menuitem id="menu_vai_tro"
+              name="Vai trò"
+              parent="menu_sonha_luong_duyet"
+              action="sonha_luong_duyet.action_vai_tro"
+              sequence="2"/>
+</odoo>

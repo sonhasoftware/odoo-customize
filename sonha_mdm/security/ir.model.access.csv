@@ -11,7 +11,20 @@ access_mdm_do_day,mdm.do.day,model_mdm_do_day,,1,1,1,1
 access_mdm_dung_tich,mdm.dung.tich,model_mdm_dung_tich,,1,1,1,1
 access_mdm_hh_type,mdm.hh.type,model_mdm_hh_type,,1,1,1,1
 
+access_mdm_quoc_gia,mdm.quoc.gia,model_mdm_quoc_gia,,1,1,1,1
+access_mdm_chi_nhanh,mdm.chi.nhanh,model_mdm_chi_nhanh,,1,1,1,1
+access_mdm_nhom_khach,mdm.nhom.khach,model_mdm_nhom_khach,,1,1,1,1
+access_mdm_saleman,mdm.saleman,model_mdm_saleman,,1,1,1,1
+access_mdm_tinh,mdm.tinh,model_mdm_tinh,,1,1,1,1
+access_mdm_khu_vuc,mdm.khu.vuc,model_mdm_khu_vuc,,1,1,1,1
+access_mdm_quan_ly_vung,mdm.quan.ly.vung,model_mdm_quan_ly_vung,,1,1,1,1
+
 
 access_mdm_tong_hop,mdm.tong.hop,model_mdm_tong_hop,,1,1,1,1
+access_mdm_khach_hang,mdm.khach.hang,model_mdm_khach_hang,,1,1,1,1
 
 access_ket_qua_tong_hop,ket.qua.tong.hop,model_ket_qua_tong_hop,,1,1,1,1
+access_ket_qua_khach_hang,ket.qua.khach.hang,model_ket_qua_khach_hang,,1,1,1,1
+
+access_buoc_duyet_hang_hoa,buoc.duyet.hang.hoa,model_buoc_duyet_hang_hoa,,1,1,1,1
+access_buoc_duyet_khach_hang,buoc.duyet.khach.hang,model_buoc_duyet_khach_hang,,1,1,1,1

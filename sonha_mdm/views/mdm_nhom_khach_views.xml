@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_mdm_nhom_khach_tree" model="ir.ui.view">
+        <field name="name">MDM nhóm khách</field>
+        <field name="model">mdm.nhom.khach</field>
+        <field name="arch" type="xml">
+            <tree string="Nhóm khách" editable="bottom">
+                <field name="ma"/>
+                <field name="ten"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_mdm_nhom_khach" model="ir.actions.act_window">
+        <field name="name">MDM nhóm khách</field>
+        <field name="res_model">mdm.nhom.khach</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_mdm_quan_ly_vung_tree" model="ir.ui.view">
+        <field name="name">MDM quản lý cùng</field>
+        <field name="model">mdm.quan.ly.vung</field>
+        <field name="arch" type="xml">
+            <tree string="Quản lý vùng" editable="bottom">
+                <field name="ma"/>
+                <field name="ten"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_mdm_quan_ly_vung" model="ir.actions.act_window">
+        <field name="name">MDM quản lý cùng</field>
+        <field name="res_model">mdm.quan.ly.vung</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

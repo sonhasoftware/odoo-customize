@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+
+access_sonha_luong_duyet,sonha.luong.duyet,model_luong_duyet,,1,1,1,1
+access_sonha_buoc_duyet,sonha.buoc.duyet,model_buoc_duyet,,1,1,1,1
+access_sonha_vai_tro,sonha.vai.tro,model_vai_tro,,1,1,1,1

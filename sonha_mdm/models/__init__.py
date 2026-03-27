@@ -10,3 +10,14 @@ from . import mdm_dung_tich
 from . import mdm_hh_type
 from . import mdm_tong_hop
 from . import ket_qua_tong_hop
+from . import mdm_quoc_gia
+from . import mdm_chi_nhanh
+from . import mdm_nhom_khach
+from . import mdm_saleman
+from . import mdm_tinh
+from . import mdm_khu_vuc
+from . import mdm_quan_ly_vung
+from . import mdm_khach_hang
+from . import ket_qua_khach_hang
+from . import buoc_duyet_hang_hoa
+from . import buoc_duyet_khach_hang

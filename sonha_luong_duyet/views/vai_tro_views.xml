@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_vai_tro_tree" model="ir.ui.view">
+        <field name="name">vai.tro.tree</field>
+        <field name="model">vai.tro</field>
+        <field name="arch" type="xml">
+            <tree string="Vai trò" editable="bottom">
+                <field name="ten"/>
+                <field name="ten_nguoi_duyet" widget="many2many_tags"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_vai_tro" model="ir.actions.act_window">
+        <field name="name">Vai trò</field>
+        <field name="res_model">vai.tro</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>
