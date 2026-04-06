@@ -514,6 +514,8 @@ class EmployeeAttendanceV2(models.Model):
                         time_check_in = time_check_in - timedelta(hours=end - start)
                     if start == r.shift.end_shift.hour + 7:
                         time_check_out = time_check_out + timedelta(hours=end - start)
+                    if start != r.shift.end_shift.hour + 7:
+                        time_check_out = time_check_out + timedelta(hours=end - start)
 
             # Gán kết quả
             r.time_check_in = time_check_in

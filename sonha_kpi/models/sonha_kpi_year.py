@@ -111,13 +111,13 @@ class SonHaKPIYear(models.Model):
     #         else:
     #             raise ValidationError("Phải điền dữ liệu ngày bắt đầu và ngày kết thúc trước")
 
-    @api.constrains('kpi_year')
-    def validate_kpi_kh_year(self):
-        for r in self:
-            kh_kpi = self.env['sonha.kpi.year'].search([('year', '=', r.year),
-                                                        ('sonha_kpi', '=', r.sonha_kpi.id)])
-            if sum(kh_kpi.mapped('kpi_year')) > 1:
-                raise ValidationError("KPI kế hoạch cả năm không được vượt quá 100%")
+    # @api.constrains('kpi_year')
+    # def validate_kpi_kh_year(self):
+    #     for r in self:
+    #         kh_kpi = self.env['sonha.kpi.year'].search([('year', '=', r.year),
+    #                                                     ('sonha_kpi', '=', r.sonha_kpi.id)])
+    #         if sum(kh_kpi.mapped('kpi_year')) > 1:
+    #             raise ValidationError("KPI kế hoạch cả năm không được vượt quá 100%")
 
     @api.depends('dvdg_kpi', 'kpi_year')
     def compute_filter_status(self):

@@ -64,8 +64,8 @@ class PlanKPIYear(models.Model):
     @api.constrains('kpi_year')
     def validate_kpi_kh_year(self):
         for r in self:
-            kh_kpi = self.env['sonha.kpi.year'].search([('year', '=', r.year),
-                                                        ('sonha_kpi', '=', r.sonha_kpi.id)])
+            kh_kpi = self.env['plan.kpi.year'].search([('year', '=', r.year),
+                                                       ('plan_kpi_year', '=', r.plan_kpi_year.id)])
             if sum(kh_kpi.mapped('kpi_year')) > 1:
                 raise ValidationError("KPI kế hoạch cả năm không được vượt quá 100%")
             
