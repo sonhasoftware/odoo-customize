@@ -44,6 +44,15 @@ class MDMKhachHang(models.Model):
     can_approve = fields.Boolean(compute='_compute_can_approve')
 
 
+    # update thêm code
+    phuong_xa_cu = fields.Many2one('phuong.xa.cu', string="Phường/xã cũ")
+    quan_huyen_cu = fields.Many2one('quan.huyen.cu', string="Quận/huyện cũ")
+    tinh_cu = fields.Many2one('tinh.cu', string="Tỉnh cũ")
+    plan = fields.Many2one('mdm.plan', string="Plan")
+    mien_lon = fields.Many2one('mien.lon', string="Miền lớn")
+    mien_nho = fields.Many2one('mien.nho', string="Miền nhỏ")
+
+
     def _compute_can_approve(self):
         for rec in self:
             user = self.env.user

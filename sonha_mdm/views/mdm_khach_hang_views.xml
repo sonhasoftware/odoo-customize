@@ -79,6 +79,9 @@
                         <field name="ten_salesman"/>
                         <field name="ma_salesman"/>
                         <field name="ma_dms"/>
+                        <field name="phuong_xa_cu"/>
+                        <field name="quan_huyen_cu"/>
+                        <field name="tinh_cu"/>
                     </group>
                     <group>
                         <field name="ma_tinh" />
@@ -91,6 +94,9 @@
                         <field name="qlv"/>
                         <field name="mst"/>
                         <field name="cccd"/>
+                        <field name="plan"/>
+                        <field name="mien_lon"/>
+                        <field name="mien_nho"/>
                     </group>
                 </group>
                 <footer>

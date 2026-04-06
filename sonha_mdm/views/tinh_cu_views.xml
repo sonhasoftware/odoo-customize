@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_mdm_tinh_cu_tree" model="ir.ui.view">
+        <field name="name">view.mdm.tinh.cu.tree</field>
+        <field name="model">tinh.cu</field>
+        <field name="arch" type="xml">
+            <tree string="Tỉnh cũ" editable="bottom">
+                <field name="ma"/>
+                <field name="ten"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_tinh_cu" model="ir.actions.act_window">
+        <field name="name">Tỉnh cũ</field>
+        <field name="res_model">tinh.cu</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>
