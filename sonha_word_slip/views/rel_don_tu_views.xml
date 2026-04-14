@@ -5,7 +5,7 @@
         <field name="model">rel.don.tu</field>
         <field name="arch" type="xml">
             <tree string="Rel đơn từ" editable="bottom">
-                <field name="employee_ids"/>
+                <field name="employee_id"/>
                 <field name="leave_more"/>
                 <field name="date"/>
                 <field name="status"/>
