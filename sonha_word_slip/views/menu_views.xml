@@ -18,6 +18,12 @@
               groups="sonha_employee.group_hr_employee"
               sequence="1"/>
 
+    <menuitem id="menu_rel_don_tu"
+              name="Rel đơn từ"
+              parent="menu_config"
+              action="action_rel_don_tu"
+              sequence="200"/>
+
     <menuitem id="menu_config_shift"
               name="Danh mục ca làm việc"
               parent="menu_config"
