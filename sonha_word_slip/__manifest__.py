@@ -28,6 +28,7 @@
         'views/overtime_update_views.xml',
         'views/free_timekeeping_views.xml',
         'views/config_leave_views.xml',
+        'views/config_update_leave_views.xml',
         'views/sonha_area_views.xml',
         'views/sonha_yard_views.xml',
         'views/yard_ball_views.xml',

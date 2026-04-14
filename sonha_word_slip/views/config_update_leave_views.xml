@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_config_update_leave_tree" model="ir.ui.view">
+        <field name="name">config.update.leave.tree</field>
+        <field name="model">config.update.leave</field>
+        <field name="arch" type="xml">
+            <tree string="Cấu hình thêm phép" editable="bottom">
+                <field name="employee_id"/>
+                <field name="date"/>
+                <field name="amount_leave_balance"/>
+                <field name="create_uid" string="Tạo bởi"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="config_update_leave_action" model="ir.actions.act_window">
+        <field name="name">Cấu hình thêm phép</field>
+        <field name="res_model">config.update.leave</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

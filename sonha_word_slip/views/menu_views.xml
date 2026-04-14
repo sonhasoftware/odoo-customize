@@ -159,4 +159,11 @@
               parent="menu_word_slip_root"
               action="distribute_shift_action"
               sequence="10"/>
+
+    <menuitem id="menu_config_update_leave"
+              name="Cấu hình thêm phép"
+              parent="menu_config"
+              action="config_update_leave_action"
+              groups="sonha_employee.group_back_up_employee"
+              sequence="9"/>
 </odoo>
