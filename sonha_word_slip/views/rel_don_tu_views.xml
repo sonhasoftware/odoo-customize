@@ -6,6 +6,7 @@
         <field name="arch" type="xml">
             <tree string="Rel đơn từ" editable="bottom">
                 <field name="employee_id"/>
+                <field name="employee_code"/>
                 <field name="leave_more"/>
                 <field name="date"/>
                 <field name="status"/>

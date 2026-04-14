@@ -31,6 +31,40 @@ class RelDonTu(models.Model):
         ('cancel', 'Hủy'),
     ], string='Trạng thái', store=True)
 
+    employee_code = fields.Char("Mã nhân viên")
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get('employee_code') and not vals.get('employee_id'):
+                employee = self.env['hr.employee'].search([
+                    ('employee_code', '=', vals['employee_code'])
+                ], limit=1)
+
+                if not employee:
+                    raise ValidationError(
+                        f"Không tìm thấy nhân viên mã {vals['employee_code']}"
+                    )
+
+                vals['employee_id'] = employee.id
+
+        return super().create(vals_list)
+
+    def write(self, vals):
+        if vals.get('employee_code') and not vals.get('employee_id'):
+            employee = self.env['hr.employee'].search([
+                ('employee_code', '=', vals['employee_code'])
+            ], limit=1)
+
+            if not employee:
+                raise ValidationError(
+                    f"Không tìm thấy nhân viên mã {vals['employee_code']}"
+                )
+
+            vals['employee_id'] = employee.id
+
+        return super().write(vals)
+
     def phan_ra_all(self):
         pass
         # self.phan_ra_don_tu()
