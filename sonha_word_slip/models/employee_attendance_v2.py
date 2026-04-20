@@ -1054,7 +1054,7 @@ class EmployeeAttendanceV2(models.Model):
         col = 3
 
         for d in range(1, days_in_month + 1):
-            date_obj = datetime.date(year, month, d)
+            date_obj = date(year, month, d)
             thu = date_obj.strftime("%a")
 
             sheet.write(header_row1, col, thu, header_format)
