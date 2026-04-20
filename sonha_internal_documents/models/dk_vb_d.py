@@ -141,8 +141,8 @@ class DKVanBanD(models.Model):
             if recipients:
                 link = f"{base_url}/web#id={r.id}&model=dk.vb.h&view_type=form"
                 sender_name = r.create_uid.name if r.create_uid else ""
-                document_no = r.chung_tu or ""
-                document_type = r.id_loai_vb.ten or ""
+                document_no = r.dk_vb_h.chung_tu or ""
+                document_type = r.dk_vb_h.id_loai_vb.ten or ""
                 send_date = r.create_date.strftime("%d/%m/%Y") if r.create_date else ""
                 for partner in recipients:
                     subject = f"Hồ sơ cần Anh/Chị phê duyệt"
@@ -158,7 +158,7 @@ class DKVanBanD(models.Model):
 
                             <p><b>Thông tin đơn phê duyệt:</b><br/>
                             • <b>Tóm tắt văn bản:</b><br/>
-                            <p>{r.noi_dung_tom_tat}</p>
+                            <p>{r.dk_vb_h.noi_dung_tom_tat}</p>
                             • <b>Người gửi:</b> {sender_name}<br/>
                             • <b>Số văn bản:</b> {document_no}<br/>
                             • <b>Loại đơn:</b> <b>{document_type}</b><br/>
@@ -267,11 +267,12 @@ class DKVanBanD(models.Model):
 
     def noti_manager_action(self, record, employee_id):
         employee_id = self.env['hr.employee'].sudo().search([('id', '=', employee_id.id)])
-        data_text = str(record.id) + "#" + str(employee_id.user_id.id) + "#" + str(employee_id.id) + "#" + str(
-            record.chung_tu) + "#6#" + str(employee_id.user_id.name)
+        data_text = ""
+        # str(record.id) + "#" + str(employee_id.user_id.id) + "#" + str(employee_id.id) + "#" + str(
+        #     record.chung_tu) + "#6#" + str(employee_id.user_id.name)
         self.send_fcm_notification(
             title="Sơn Hà Văn Bản",
-            content="Văn bản " + str(record.chung_tu) + " đang chờ Anh/Chị xem xét và phê duyệt!",
+            content="Văn bản " + str(record.dk_vb_h.chung_tu) + " đang chờ Anh/Chị xem xét và phê duyệt!",
             token=employee_id.user_id.token,
             user_id=employee_id.user_id.id,
             type=6,
@@ -306,8 +307,8 @@ class DKVanBanD(models.Model):
         if recipients:
             link = f"{base_url}/web#id={r.id}&model=dk.vb.h&view_type=form"
             sender_name = r.create_uid.name if r.create_uid else ""
-            document_no = r.chung_tu or ""
-            document_type = r.id_loai_vb.ten or ""
+            document_no = r.dk_vb_h.chung_tu or ""
+            document_type = r.dk_vb_h.id_loai_vb.ten or ""
             send_date = r.create_date.strftime("%d/%m/%Y") if r.create_date else ""
             for partner in recipients:
                 subject = f"Hồ sơ cần Anh/Chị phê duyệt"
@@ -323,7 +324,7 @@ class DKVanBanD(models.Model):
 
                         <p><b>Thông tin đơn phê duyệt:</b><br/>
                         • <b>Tóm tắt văn bản:</b><br/>
-                        <p>{r.noi_dung_tom_tat}</p>
+                        <p>{r.dk_vb_h.noi_dung_tom_tat}</p>
                         • <b>Người gửi:</b> {sender_name}<br/>
                         • <b>Số văn bản:</b> {document_no}<br/>
                         • <b>Loại đơn:</b> <b>{document_type}</b><br/>
@@ -419,11 +420,13 @@ class DKVanBanD(models.Model):
 
     def noti_user_reject(self, record, employee_id):
         employee_id = self.env['hr.employee'].sudo().search([('id', '=', employee_id.id)])
-        data_text = str(record.id) + "#" + str(employee_id.user_id.id) + "#" + str(employee_id.id) + "#" + str(
-            record.chung_tu) + "#6#" + str(employee_id.user_id.name)
+        data_text = ""
+        # (
+            #     str(record.id) + "#" + str(employee_id.user_id.id) + "#" + str(employee_id.id) + "#" + str(
+            # record.chung_tu) + "#6#" + str(employee_id.user_id.name))
         self.send_fcm_notification(
             title="Sơn Hà Văn Bản",
-            content="Văn bản " + str(record.chung_tu) + " đã bị từ chối!",
+            content="Văn bản " + str(record.dk_vb_h.chung_tu) + " đã bị từ chối!",
             token=employee_id.user_id.token,
             user_id=employee_id.user_id.id,
             type=7,
