@@ -1055,7 +1055,17 @@ class EmployeeAttendanceV2(models.Model):
 
         for d in range(1, days_in_month + 1):
             date_obj = date(year, month, d)
-            thu = date_obj.strftime("%a")
+            weekday_map = {
+                0: "T2",
+                1: "T3",
+                2: "T4",
+                3: "T5",
+                4: "T6",
+                5: "T7",
+                6: "CN",
+            }
+
+            thu = weekday_map[date_obj.weekday()]
 
             sheet.write(header_row1, col, thu, header_format)
             sheet.write(header_row2, col, d, header_format)
