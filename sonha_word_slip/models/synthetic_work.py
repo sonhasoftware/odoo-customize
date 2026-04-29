@@ -64,6 +64,7 @@ class SyntheticWork(models.Model):
     forgot_fine = fields.Float("Vi phạm quên CI/CO (VNĐ)", compute="_get_forgot_fine", digits=(16, 0))
     total_fine = fields.Float("Tổng vi phạm (VNĐ)", compute="_get_total_fine", digits=(16, 0))
     work_eat = fields.Integer("Công ăn")
+    sunday_work = fields.Float(string="Giờ làm chủ nhật", compute="get_date_work")
 
     @api.depends('department_id', 'month', 'year')
     def get_standard_work(self):
@@ -104,7 +105,8 @@ class SyntheticWork(models.Model):
                     COALESCE(SUM(forgot_time), 0) AS forgot_time,
                     COALESCE(SUM(work_eat), 0) AS work_eat,
                     COALESCE(SUM(unpaid_leave), 0) AS unpaid_leave,
-                    COALESCE(SUM(paid_leave_slip), 0) AS paid_leave_slip
+                    COALESCE(SUM(paid_leave_slip), 0) AS paid_leave_slip,
+                    COALESCE(SUM(sunday_work), 0) AS sunday_work
                 FROM employee_attendance_v2
                 WHERE employee_id = %s
                   AND date >= %s
@@ -135,6 +137,7 @@ class SyntheticWork(models.Model):
             r.work_eat = result['work_eat']
             r.unpaid_leave = result['unpaid_leave']
             r.paid_leave_slip = result['paid_leave_slip']
+            r.sunday_work = result['sunday_work']
 
     @api.depends('on_leave', 'compensatory_leave', 'public_leave', 'maternity_leave', 'wedding_leave', 'paid_leave_slip')
     def get_leave(self):
