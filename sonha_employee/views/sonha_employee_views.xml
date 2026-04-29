@@ -57,6 +57,8 @@
                     <field name="level_culture"/>
                     <field name="specialized"/>
                     <field name="total_compensatory" readonly="1"/>
+                    <field name="compensatory_old" readonly="1"/>
+                    <field name="compensatory_new" readonly="1"/>
                     <field name="old_leave_balance" invisible="1"/>
                     <field name="new_leave_balance" invisible="1"/>
                     <field name="leave_milestone_date" invisible="1"/>

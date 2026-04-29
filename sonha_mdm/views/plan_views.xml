@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_mdm_plan_tree" model="ir.ui.view">
+        <field name="name">view.mdm.plan.tree</field>
+        <field name="model">mdm.plan</field>
+        <field name="arch" type="xml">
+            <tree string="Plan" editable="bottom">
+                <field name="ma"/>
+                <field name="ten"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_plan" model="ir.actions.act_window">
+        <field name="name">Plan</field>
+        <field name="res_model">mdm.plan</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

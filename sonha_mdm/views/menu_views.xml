@@ -122,4 +122,40 @@
               parent="menu_mdm_danh_muc"
               action="sonha_mdm.action_mdm_quan_ly_vung"
               sequence="17"/>
+
+    <menuitem id="menu_phuong_xa_cu"
+              name="Phường xã cũ"
+              parent="menu_mdm_danh_muc"
+              action="sonha_mdm.action_phuong_xa_cu"
+              sequence="18"/>
+
+    <menuitem id="menu_quan_huyen_cu"
+              name="Quận huyện cũ"
+              parent="menu_mdm_danh_muc"
+              action="sonha_mdm.action_quan_huyen_cu"
+              sequence="19"/>
+
+    <menuitem id="menu_tinh_cu"
+              name="Tỉnh cũ"
+              parent="menu_mdm_danh_muc"
+              action="sonha_mdm.action_tinh_cu"
+              sequence="20"/>
+
+    <menuitem id="menu_mdm_plan"
+              name="Plan"
+              parent="menu_mdm_danh_muc"
+              action="sonha_mdm.action_plan"
+              sequence="21"/>
+
+    <menuitem id="menu_mien_lon"
+              name="Miền lớn"
+              parent="menu_mdm_danh_muc"
+              action="sonha_mdm.action_mien_lon"
+              sequence="22"/>
+
+    <menuitem id="menu_mien_nho"
+              name="Miền nhỏ"
+              parent="menu_mdm_danh_muc"
+              action="sonha_mdm.action_mien_nho"
+              sequence="23"/>
 </odoo>

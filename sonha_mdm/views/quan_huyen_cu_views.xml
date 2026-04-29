@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_mdm_quan_huyen_cu_tree" model="ir.ui.view">
+        <field name="name">view.mdm.quan.huyen.cu.tree</field>
+        <field name="model">quan.huyen.cu</field>
+        <field name="arch" type="xml">
+            <tree string="Quận huyện cũ" editable="bottom">
+                <field name="ma"/>
+                <field name="ten"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_quan_huyen_cu" model="ir.actions.act_window">
+        <field name="name">Quận huyện cũ</field>
+        <field name="res_model">quan.huyen.cu</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

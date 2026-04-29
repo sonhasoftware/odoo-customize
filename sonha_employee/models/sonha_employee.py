@@ -122,6 +122,9 @@ class SonHaEmployee(models.Model):
 
     total_compensatory = fields.Float("Thời gian nghỉ bù còn lại")
 
+    compensatory_old = fields.Float("Thời gian nghỉ (năm cũ)")
+    compensatory_new = fields.Float("Thời gian nghỉ bù (hiện tại)")
+
     seniority_display = fields.Char(string="Thâm niên", compute="_compute_seniority_display")
 
     old_leave_balance = fields.Float(string="Phép cũ", readonly=True)

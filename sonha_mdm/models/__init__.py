@@ -21,3 +21,9 @@ from . import mdm_khach_hang
 from . import ket_qua_khach_hang
 from . import buoc_duyet_hang_hoa
 from . import buoc_duyet_khach_hang
+from . import phuong_xa_cu
+from . import quan_huyen_cu
+from . import plan
+from . import tinh_cu
+from . import mien_lon
+from . import mien_nho

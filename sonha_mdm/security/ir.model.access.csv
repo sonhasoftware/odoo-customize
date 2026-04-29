@@ -28,3 +28,9 @@ access_ket_qua_khach_hang,ket.qua.khach.hang,model_ket_qua_khach_hang,,1,1,1,1
 
 access_buoc_duyet_hang_hoa,buoc.duyet.hang.hoa,model_buoc_duyet_hang_hoa,,1,1,1,1
 access_buoc_duyet_khach_hang,buoc.duyet.khach.hang,model_buoc_duyet_khach_hang,,1,1,1,1
+
+access_phuong_xa_cu,phuong.xa.cu,model_phuong_xa_cu,,1,1,1,1
+access_quan_huyen_cu,quan.huyen.cu,model_quan_huyen_cu,,1,1,1,1
+access_tinh_cu,tinh.cu,model_tinh_cu,,1,1,1,1
+access_mdm_plan,mdm.plan,model_mdm_plan,,1,1,1,1
+access_mien_nho,mien.nho,model_mien_nho,,1,1,1,1

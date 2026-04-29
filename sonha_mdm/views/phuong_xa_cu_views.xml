@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_mdm_phuong_xa_cu_tree" model="ir.ui.view">
+        <field name="name">view.mdm.phuong.xa.cu.tree</field>
+        <field name="model">phuong.xa.cu</field>
+        <field name="arch" type="xml">
+            <tree string="Phường xã cũ" editable="bottom">
+                <field name="ma"/>
+                <field name="ten"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_phuong_xa_cu" model="ir.actions.act_window">
+        <field name="name">Phường xã cũ</field>
+        <field name="res_model">phuong.xa.cu</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

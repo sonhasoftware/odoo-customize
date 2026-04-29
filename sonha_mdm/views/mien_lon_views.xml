@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_mdm_mien_lon_tree" model="ir.ui.view">
+        <field name="name">view.mdm.mien.lon.tree</field>
+        <field name="model">mien.lon</field>
+        <field name="arch" type="xml">
+            <tree string="Miền lớn" editable="bottom">
+                <field name="ma"/>
+                <field name="ten"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_mien_lon" model="ir.actions.act_window">
+        <field name="name">Miền lớn</field>
+        <field name="res_model">mien.lon</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>
