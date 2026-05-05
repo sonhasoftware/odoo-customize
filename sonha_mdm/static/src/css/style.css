@@ -48,6 +48,24 @@ th.align-middle.cursor-default.opacity-trigger-hover {
     max-width: none !important;
 }
 
+/* Mở rộng và xuống dòng cho cột dữ liệu kiểu text/char trong list view */
+.o_list_view .o_data_row td.o_data_cell {
+    min-width: 140px;
+}
+
+.o_list_view .o_data_row td.o_data_cell .o_field_char,
+.o_list_view .o_data_row td.o_data_cell .o_field_text {
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    line-height: 1.35;
+}
+
+.o_list_view table.o_list_table th[data-name],
+.o_list_view table.o_list_table td[data-name] {
+    max-width: 420px;
+}
+
 div[name="so_sanh_khach_hang"] div#ten_khachContainer {
     display: none;
 }
@@ -67,4 +85,3 @@ div[name="so_sanh_khach_hang"] div#mstContainer {
 div[name="so_sanh_khach_hang"] div#cccdContainer {
     display: none;
 }
-
