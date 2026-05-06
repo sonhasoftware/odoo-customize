@@ -96,7 +96,6 @@ access_ton_phep,rel.ton.phep,model_ton_phep,,1,1,1,1
 
 access_rel_lam_them,rel.lam.them,model_rel_lam_them,,1,1,1,1
 access_rel_ca,rel.ca,model_rel_ca,,1,1,1,1
-access_config_update_leave,config.update.leave,model_config_update_leave,,1,1,1,1
 
 
 
