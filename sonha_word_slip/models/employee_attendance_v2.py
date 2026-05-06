@@ -75,6 +75,40 @@ class EmployeeAttendanceV2(models.Model):
     color = fields.Selection([('red', 'Red'), ('green', 'Green')], string="Màu", compute="_compute_color")
     key = fields.Char("Ký hiệu ca", related="shift.key")
 
+    sunday_work = fields.Float(string="Giờ làm chủ nhật", compute="_get_sunday_work", store=True)
+
+    @api.depends('employee_id', 'check_in', 'check_out', 'date')
+    def _get_sunday_work(self):
+        for r in self:
+            r.sunday_work = 0
+            if r.weekday == '6':
+                word_slip = self.env['word.slip'].sudo().search([('from_date', '<=', r.date),
+                                                                 ('to_date', '>=', r.date),
+                                                                 ('word_slip.status', '=', 'done')])
+                word_slips = word_slip.filtered(
+                    lambda x: (x.word_slip.employee_id and x.word_slip.employee_id.id == r.employee_id.id) or (
+                            x.word_slip.employee_ids and r.employee_id.id in x.word_slip.employee_ids.ids))
+
+                for slip in word_slips:
+                    if slip.word_slip.type.sunday_count == 'haft' and slip.start_time == slip.end_time and (r.check_in or r.check_out):
+                        if r.shift.start and r.shift.end_shift:
+                            time_ci = (r.shift.start + timedelta(hours=7)).time()
+                            time_co = (r.shift.end_shift + timedelta(hours=7)).time()
+                            date = r.date
+                            check_time_ci = datetime.combine(date, time_ci)
+                            check_time_co = datetime.combine(date, time_co)
+
+                            shift_work = abs((check_time_co - check_time_ci).total_seconds() / 3600)
+
+                            r.sunday_work += shift_work/2
+                    elif slip.word_slip.type.sunday_count == 'full' and r.check_in and r.check_out:
+                        sun_work = abs((r.check_out - r.check_in).total_seconds() / 3600)
+                        r.sunday_work += sun_work
+                if not word_slips:
+                    if r.check_in and r.check_out:
+                        sun_work = abs((r.check_out - r.check_in).total_seconds() / 3600)
+                        r.sunday_work += sun_work
+
     @api.depends('employee_id')
     def get_department(self):
         for r in self:
@@ -466,7 +500,7 @@ class EmployeeAttendanceV2(models.Model):
     def _get_time_in_out(self):
         for r in self:
             # Nếu không có shift, gán giá trị mặc định và bỏ qua
-            if not r.shift:
+            if not r.shift or not r.shift.start or not r.shift.end_shift:
                 r.time_check_in = None
                 r.time_check_out = None
                 continue
@@ -525,7 +559,7 @@ class EmployeeAttendanceV2(models.Model):
     @api.depends('shift')
     def _get_duration(self):
         for r in self:
-            if r.shift:
+            if r.shift and r.shift.start and r.shift.end_shift:
                 start_time = r.shift.start.time()
                 end_time = r.shift.end_shift.time()
                 start_seconds = timedelta(hours=start_time.hour, minutes=start_time.minute,
@@ -543,7 +577,7 @@ class EmployeeAttendanceV2(models.Model):
         for r in self:
             r.check_no_in = None
             r.check_no_out = None
-            if r.shift:
+            if r.shift and r.shift.start and r.shift.end_shift:
                 time_ci = (r.shift.start + timedelta(hours=7)).time()
                 time_co = (r.shift.end_shift + timedelta(hours=7)).time()
                 date = r.date
@@ -651,7 +685,7 @@ class EmployeeAttendanceV2(models.Model):
             # Khởi tạo giá trị mặc định
             r.minutes_late, r.minutes_early = 0, 0
 
-            if not r.shift:
+            if not r.shift or not r.shift.start or not r.shift.end_shift:
                 continue
 
             # Tính thời gian bắt đầu và kết thúc ca làm việc

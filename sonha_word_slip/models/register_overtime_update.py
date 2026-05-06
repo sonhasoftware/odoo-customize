@@ -133,7 +133,7 @@ class RegisterOvertimeUpdate(models.Model):
     @api.onchange('status_lv2')
     def get_check_manager(self):
         for r in self:
-            if self.env.user.has_group('sonha_employee.group_manager_employee') and r.status_lv2 == 'confirm':
+            if (self.env.user.has_group('sonha_employee.group_manager_employee') or self.env.user.has_group("sonha_word_slip.group_approve_work")) and r.status_lv2 == 'confirm':
                 r.check_manager = True
             else:
                 r.check_manager = False
@@ -142,12 +142,12 @@ class RegisterOvertimeUpdate(models.Model):
     def get_check_qltt(self):
         for r in self:
             if r.type == 'one':
-                if r.employee_id.parent_id.user_id.id == self.env.user.id and r.status_lv2 == 'waiting':
+                if (r.employee_id.parent_id.user_id.id == self.env.user.id or self.env.user.has_group("sonha_word_slip.group_approve_work")) and r.status_lv2 == 'waiting':
                     r.check_qltt = True
                 else:
                     r.check_qltt = False
             else:
-                if r.department_id.manager_id.user_id.id == self.env.user.id and r.status_lv2 == 'waiting':
+                if (r.department_id.manager_id.user_id.id == self.env.user.id or self.env.user.has_group("sonha_word_slip.group_approve_work")) and r.status_lv2 == 'waiting':
                     r.check_qltt = True
                 else:
                     r.check_qltt = False
@@ -341,12 +341,12 @@ class RegisterOvertimeUpdate(models.Model):
     def get_user(self):
         for r in self:
             if r.type == 'one':
-                if (r.employee_id.user_id.id == self.env.user.id or r.create_uid.id == self.env.user.id) and r.status_lv2 == 'draft':
+                if (r.employee_id.user_id.id == self.env.user.id or r.create_uid.id == self.env.user.id or self.env.user.has_group("sonha_word_slip.group_approve_work")) and r.status_lv2 == 'draft':
                     r.check_user = True
                 else:
                     r.check_user = False
             else:
-                if (r.employee_id[:1].user_id.id == self.env.user.id or r.create_uid.id == self.env.user.id) and r.status_lv2 == 'draft':
+                if (r.employee_id[:1].user_id.id == self.env.user.id or r.create_uid.id == self.env.user.id or self.env.user.has_group("sonha_word_slip.group_approve_work")) and r.status_lv2 == 'draft':
                     r.check_user = True
                 else:
                     r.check_user = False
@@ -400,7 +400,7 @@ class RegisterOvertimeUpdate(models.Model):
                 time_ot = (ot.end_time - ot.start_time) * ot.coefficient
                 over_time += time_ot
             list_employee = r.employee_ids or [r.employee_id]
-            if list_employee[-1].parent_id.id == self.env.user.employee_id.id or self.env.user.has_group('sonha_employee.group_manager_employee') or list_employee[-1].employee_approval.id == self.env.user.employee_id.id:
+            if list_employee[-1].parent_id.id == self.env.user.employee_id.id or self.env.user.has_group('sonha_employee.group_manager_employee') or self.env.user.has_group("sonha_word_slip.group_approve_work") or list_employee[-1].employee_approval.id == self.env.user.employee_id.id:
                 r.status = 'draft'
                 r.status_lv2 = 'draft'
                 for employee in list_employee:
@@ -421,7 +421,7 @@ class RegisterOvertimeUpdate(models.Model):
                 time_ot = (ot.end_time - ot.start_time) * ot.coefficient
                 over_time += time_ot
             if r.type == 'one':
-                if r.department_id.manager_id.user_id.id == self.env.user.id or self.env.user.id == 1738 or r.employee_id.parent_id.user_id.id == self.env.user.id:
+                if r.department_id.manager_id.user_id.id == self.env.user.id or self.env.user.id == 1738 or r.employee_id.parent_id.user_id.id == self.env.user.id or self.env.user.has_group("sonha_word_slip.group_approve_work"):
                     r.status = 'done'
                     if r.employee_id.department_id.over_time == 'date':
                         r.employee_id.total_compensatory += over_time
@@ -430,7 +430,7 @@ class RegisterOvertimeUpdate(models.Model):
                 else:
                     raise ValidationError("Bạn không có quyền thực hiện hành động này")
             else:
-                if r.department_id.manager_id.user_id.id == self.env.user.id or self.env.user.id == 1738 or r.employee_ids[-1].parent_id.user_id.id == self.env.user.id:
+                if r.department_id.manager_id.user_id.id == self.env.user.id or self.env.user.id == 1738 or r.employee_ids[-1].parent_id.user_id.id == self.env.user.id or self.env.user.has_group("sonha_word_slip.group_approve_work"):
                     r.status = 'done'
                     for employee in r.employee_ids:
                         if employee.department_id.over_time == 'date':

@@ -19,3 +19,8 @@ class ConfigWordSlip(models.Model):
     key = fields.Char('Key')
 
     fine = fields.Float('Tiền phạt')
+
+    sunday_count = fields.Selection([
+        ('haft', "Hưởng nửa"),
+        ('full', "Hưởng full giờ")
+    ], string="Hưởng giờ chủ nhật")
