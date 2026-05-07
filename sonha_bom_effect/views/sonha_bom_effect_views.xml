@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sonha_bom_effect_tree" model="ir.ui.view">
+        <field name="name">sonha.bom.effect.tree</field>
+        <field name="model">sonha.bom.effect</field>
+        <field name="arch" type="xml">
+            <list string="Định mức NVL effect/SAP" create="1" edit="1" delete="1">
+                <field name="product_code"/>
+                <field name="product_name"/>
+                <field name="material_code"/>
+                <field name="material_name"/>
+                <field name="quantity_per_product"/>
+                <field name="thickness"/>
+                <field name="roll_1"/>
+                <field name="roll_2"/>
+                <field name="unit"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sonha_bom_effect_form" model="ir.ui.view">
+        <field name="name">sonha.bom.effect.form</field>
+        <field name="model">sonha.bom.effect</field>
+        <field name="arch" type="xml">
+            <form string="Định mức NVL effect/SAP">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="product_code"/>
+                            <field name="product_name"/>
+                            <field name="material_code"/>
+                            <field name="material_name"/>
+                        </group>
+                        <group>
+                            <field name="quantity_per_product"/>
+                            <field name="thickness"/>
+                            <field name="roll_1"/>
+                            <field name="roll_2"/>
+                            <field name="unit"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_sonha_bom_effect_search" model="ir.ui.view">
+        <field name="name">sonha.bom.effect.search</field>
+        <field name="model">sonha.bom.effect</field>
+        <field name="arch" type="xml">
+            <search string="Tìm định mức NVL effect/SAP">
+                <field name="product_code"/>
+                <field name="product_name"/>
+                <field name="material_code"/>
+                <field name="material_name"/>
+                <filter name="group_by_product_code" string="Nhóm theo mã TP" context="{'group_by': 'product_code'}"/>
+                <filter name="group_by_material_code" string="Nhóm theo mã NVL" context="{'group_by': 'material_code'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_sonha_bom_effect" model="ir.actions.act_window">
+        <field name="name">Định mức NVL effect/SAP</field>
+        <field name="res_model">sonha.bom.effect</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_sonha_bom_effect_search"/>
+    </record>
+
+    <menuitem id="menu_sonha_bom_effect_root" name="Định mức NVL" sequence="10"/>
+    <menuitem id="menu_sonha_bom_effect" name="Định mức effect/SAP" parent="menu_sonha_bom_effect_root" action="action_sonha_bom_effect" sequence="1"/>
+</odoo>
