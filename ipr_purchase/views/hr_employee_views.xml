@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Kế thừa form view của hr.employee -->
+    <record id="view_hr_employee_ipr_form" model="ir.ui.view">
+        <field name="name">hr.employee.form.ipr</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <notebook position="inside">
+                <page string="Lịch sử yêu cầu mua hàng" name="ipr_history"
+                      groups="ipr_purchase.group_ipr_employee">
+                    <field name="ipr_request_ids" readonly="1">
+                        <tree decoration-danger="state == 'reject'"
+                              decoration-warning="state == 'confirm'"
+                              decoration-success="state == 'approve'">
+                            <field name="name"/>
+                            <field name="date_request"/>
+                            <field name="total_amount" widget="monetary"/>
+                            <field name="approver_id"/>
+                            <field name="state" widget="badge"
+                                   decoration-danger="state == 'reject'"
+                                   decoration-warning="state == 'confirm'"
+                                   decoration-success="state == 'approve'"
+                                   decoration-muted="state == 'draft'"/>
+                        </tree>
+                    </field>
+                </page>
+            </notebook>
+        </field>
+    </record>
+</odoo>

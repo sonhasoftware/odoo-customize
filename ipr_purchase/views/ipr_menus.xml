@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ─── Root menu ──────────────────────────────────────────────────── -->
+    <menuitem id="menu_ipr_root"
+              name="Yêu cầu mua hàng"
+              sequence="60"/>
+
+    <!-- ─── Sub menus ──────────────────────────────────────────────────── -->
+    <menuitem id="menu_ipr_requests"
+              name="Phiếu yêu cầu"
+              parent="menu_ipr_root"
+              sequence="10"/>
+
+    <menuitem id="menu_ipr_request_all"
+              name="Tất cả phiếu"
+              parent="menu_ipr_requests"
+              action="action_ipr_request"
+              sequence="10"
+              groups="ipr_purchase.group_ipr_employee"/>
+
+    <menuitem id="menu_ipr_request_pending"
+              name="Chờ duyệt"
+              parent="menu_ipr_requests"
+              action="action_ipr_request_pending"
+              sequence="20"
+              groups="ipr_purchase.group_ipr_manager"/>
+
+    <!-- Dashboard menu -->
+    <menuitem id="menu_ipr_dashboard"
+              name="Dashboard"
+              parent="menu_ipr_root"
+              action="action_ipr_dashboard"
+              sequence="1"
+              groups="ipr_purchase.group_ipr_manager"/>
+</odoo>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_ipr_approval_wizard_form" model="ir.ui.view">
+        <field name="name">ipr.approval.wizard.form</field>
+        <field name="model">ipr.approval.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Duyệt Phiếu Yêu Cầu">
+                <group>
+                    <group string="Thông tin phiếu">
+                        <field name="request_id" readonly="1"/>
+                        <field name="total_amount" widget="monetary" readonly="1"/>
+                        <field name="require_two_level" invisible="1"/>
+                    </group>
+                    <group string="Thông tin duyệt">
+                        <field name="approver_id"/>
+                        <field name="second_approver_id"
+                               invisible="not require_two_level"
+                               required="require_two_level"/>
+                    </group>
+                </group>
+
+                <!-- Alert nếu cần duyệt 2 cấp -->
+                <div class="alert alert-warning" role="alert"
+                     invisible="not require_two_level">
+                    ⚠️ Tổng tiền vượt 10.000.000 VNĐ — Bắt buộc chọn người duyệt cấp 2.
+                </div>
+
+                <group>
+                    <field name="approval_note"
+                           placeholder="Nhập ghi chú duyệt..."
+                           required="1"/>
+                </group>
+
+                <footer>
+                    <button name="action_approve" type="object"
+                            string="Duyệt" class="btn-primary"/>
+                    <button name="action_reject" type="object"
+                            string="Từ chối" class="btn-danger"/>
+                    <button special="cancel" string="Hủy"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

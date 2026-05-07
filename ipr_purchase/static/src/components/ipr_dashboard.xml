@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+
+<t t-name="ipr_purchase.IprDashboard">
+    <div class="o_ipr_dashboard">
+        <div class="o_ipr_dashboard_header">
+            <h2>📊 Dashboard – Yêu cầu mua hàng nội bộ</h2>
+            <button class="btn btn-sm btn-outline-secondary" t-on-click="refresh">
+                🔄 Làm mới
+            </button>
+        </div>
+
+        <t t-if="state.loading">
+            <div class="o_ipr_loading">
+                <i class="fa fa-spinner fa-spin fa-2x"/>
+                <span> Đang tải dữ liệu...</span>
+            </div>
+        </t>
+
+        <t t-else="">
+            <div class="o_ipr_stat_grid">
+                <div class="o_ipr_stat_card o_ipr_total" t-on-click="openAll">
+                    <div class="o_ipr_stat_icon">📋</div>
+                    <div class="o_ipr_stat_number">
+                        <t t-esc="state.stats.total"/>
+                    </div>
+                    <div class="o_ipr_stat_label">Tổng phiếu</div>
+                </div>
+
+                <div class="o_ipr_stat_card o_ipr_draft" t-on-click="openDraft">
+                    <div class="o_ipr_stat_icon">📝</div>
+                    <div class="o_ipr_stat_number">
+                        <t t-esc="state.stats.draft"/>
+                    </div>
+                    <div class="o_ipr_stat_label">Nháp</div>
+                </div>
+
+                <div class="o_ipr_stat_card o_ipr_confirm" t-on-click="openConfirm">
+                    <div class="o_ipr_stat_icon">⏳</div>
+                    <div class="o_ipr_stat_number">
+                        <t t-esc="state.stats.confirm"/>
+                    </div>
+                    <div class="o_ipr_stat_label">Chờ duyệt</div>
+                </div>
+
+                <div class="o_ipr_stat_card o_ipr_approve" t-on-click="openApprove">
+                    <div class="o_ipr_stat_icon">✅</div>
+                    <div class="o_ipr_stat_number">
+                        <t t-esc="state.stats.approve"/>
+                    </div>
+                    <div class="o_ipr_stat_label">Đã duyệt</div>
+                </div>
+
+                <div class="o_ipr_stat_card o_ipr_reject" t-on-click="openReject">
+                    <div class="o_ipr_stat_icon">❌</div>
+                    <div class="o_ipr_stat_number">
+                        <t t-esc="state.stats.reject"/>
+                    </div>
+                    <div class="o_ipr_stat_label">Từ chối</div>
+                </div>
+            </div>
+        </t>
+    </div>
+</t>
+
+</templates>

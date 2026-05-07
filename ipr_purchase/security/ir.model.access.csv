@@ -1,0 +1,12 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_ipr_request_employee,ipr.request employee,model_ipr_request,group_ipr_employee,1,1,1,1
+access_ipr_request_manager,ipr.request manager,model_ipr_request,group_ipr_manager,1,1,1,0
+access_ipr_request_accountant,ipr.request accountant,model_ipr_request,group_ipr_accountant,1,0,0,0
+access_ipr_request_admin,ipr.request admin,model_ipr_request,group_ipr_admin,1,1,1,1
+access_ipr_request_line_employee,ipr.request.line employee,model_ipr_request_line,group_ipr_employee,1,1,1,1
+access_ipr_request_line_manager,ipr.request.line manager,model_ipr_request_line,group_ipr_manager,1,1,1,0
+access_ipr_request_line_accountant,ipr.request.line accountant,model_ipr_request_line,group_ipr_accountant,1,0,0,0
+access_ipr_request_line_admin,ipr.request.line admin,model_ipr_request_line,group_ipr_admin,1,1,1,1
+access_ipr_approval_wizard_employee,ipr.approval.wizard employee,model_ipr_approval_wizard,group_ipr_employee,1,1,1,1
+access_ipr_approval_wizard_manager,ipr.approval.wizard manager,model_ipr_approval_wizard,group_ipr_manager,1,1,1,1
+access_ipr_approval_wizard_admin,ipr.approval.wizard admin,model_ipr_approval_wizard,group_ipr_admin,1,1,1,1

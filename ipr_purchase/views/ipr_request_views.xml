@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ─── Tree View ──────────────────────────────────────────────────── -->
+    <record id="view_ipr_request_tree" model="ir.ui.view">
+        <field name="name">ipr.request.tree</field>
+        <field name="model">ipr.request</field>
+        <field name="arch" type="xml">
+            <tree string="Danh sách yêu cầu mua hàng"
+                  decoration-danger="state == 'reject'"
+                  decoration-warning="state == 'confirm'"
+                  decoration-success="state == 'approve'"
+                  decoration-muted="state == 'draft'">
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="department_id"/>
+                <field name="company_id" optional="show"/>
+                <field name="date_request"/>
+                <field name="total_amount" widget="monetary"/>
+                <field name="approver_id"/>
+                <field name="state" widget="badge"
+                       decoration-danger="state == 'reject'"
+                       decoration-warning="state == 'confirm'"
+                       decoration-success="state == 'approve'"
+                       decoration-muted="state == 'draft'"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- ─── Form View ──────────────────────────────────────────────────── -->
+    <record id="view_ipr_request_form" model="ir.ui.view">
+        <field name="name">ipr.request.form</field>
+        <field name="model">ipr.request</field>
+        <field name="arch" type="xml">
+            <form string="Phiếu yêu cầu mua hàng">
+                <header>
+                    <!-- Status buttons -->
+                    <button name="action_confirm" type="object"
+                            string="Xác nhận" class="btn-primary"
+                            invisible="state != 'draft'"
+                            groups="ipr_purchase.group_ipr_employee"/>
+                    <button name="action_approve" type="object"
+                            string="Duyệt" class="btn-success"
+                            invisible="state != 'confirm'"
+                            groups="ipr_purchase.group_ipr_manager"/>
+                    <button name="action_reject" type="object"
+                            string="Từ chối" class="btn-danger"
+                            invisible="state not in ('confirm',)"
+                            groups="ipr_purchase.group_ipr_manager"
+                            confirm="Bạn có chắc muốn từ chối phiếu này không?"/>
+                    <button name="action_reset_draft" type="object"
+                            string="Trả về nháp"
+                            invisible="state not in ('confirm', 'reject')"
+                            groups="ipr_purchase.group_ipr_admin"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,confirm,approve"/>
+                </header>
+
+                <sheet>
+                    <!-- Smart buttons -->
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="object"
+                                name="action_approve" icon="fa-check-circle"
+                                invisible="state != 'approve'" disabled="1">
+                            <div class="o_stat_info">
+                                <span class="o_stat_value">Đã duyệt</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group string="Thông tin chính">
+                            <field name="employee_id"
+                                   readonly="state != 'draft'"/>
+                            <field name="department_id"/>
+                            <field name="company_id"
+                                   readonly="state != 'draft'"/>
+                            <field name="date_request"
+                                   readonly="state != 'draft'"/>
+                        </group>
+                        <group string="Thông tin duyệt">
+                            <field name="approver_id"
+                                   readonly="state not in ('draft', 'confirm')"/>
+                            <field name="second_approver_id"
+                                   invisible="not require_two_level"
+                                   readonly="state not in ('draft', 'confirm')"/>
+                            <field name="require_two_level"
+                                   invisible="1"/>
+                            <field name="is_multi_company"
+                                   invisible="1"/>
+                            <field name="total_amount" widget="monetary"/>
+                        </group>
+                    </group>
+
+                    <!-- Warning banner: cần duyệt 2 cấp -->
+                    <div class="alert alert-warning" role="alert"
+                         invisible="not require_two_level">
+                        Tổng tiền vượt 10.000.000 VNĐ — Yêu cầu duyệt 2 cấp.
+                    </div>
+                    <!-- Warning banner: multi-company -->
+                    <div class="alert alert-info" role="alert"
+                         invisible="not is_multi_company">
+                        Phiếu thuộc công ty khác — Người duyệt phải thuộc đúng công ty đó.
+                    </div>
+
+                    <notebook>
+                        <page string="Chi tiết sản phẩm" name="lines">
+                            <field name="line_ids"
+                                   readonly="state not in ('draft',)">
+                                <tree editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="product_id"/>
+                                    <field name="description"/>
+                                    <field name="product_uom_id" optional="show"/>
+                                    <field name="quantity"/>
+                                    <field name="price_unit"/>
+                                    <field name="subtotal" sum="Tổng cộng"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Ghi chú" name="note">
+                            <field name="note"
+                                   readonly="state not in ('draft',)"
+                                   placeholder="Nhập ghi chú thêm..."/>
+                            <separator string="Ghi chú duyệt" invisible="not approval_note"/>
+                            <field name="approval_note" readonly="1"
+                                   invisible="not approval_note"/>
+                        </page>
+                    </notebook>
+                </sheet>
+
+                <!-- Chatter -->
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- ─── Search View ────────────────────────────────────────────────── -->
+    <record id="view_ipr_request_search" model="ir.ui.view">
+        <field name="name">ipr.request.search</field>
+        <field name="model">ipr.request</field>
+        <field name="arch" type="xml">
+            <search string="Tìm kiếm phiếu yêu cầu">
+                <field name="name" string="Mã phiếu"/>
+                <field name="employee_id" string="Nhân viên"/>
+                <field name="department_id" string="Phòng ban"/>
+
+                <!-- Filters -->
+                <filter string="Nháp" name="filter_draft"
+                        domain="[('state','=','draft')]"/>
+                <filter string="Chờ duyệt" name="filter_confirm"
+                        domain="[('state','=','confirm')]"/>
+                <filter string="Đã duyệt" name="filter_approve"
+                        domain="[('state','=','approve')]"/>
+                <filter string="Từ chối" name="filter_reject"
+                        domain="[('state','=','reject')]"/>
+                <separator/>
+                <filter string="Của tôi" name="filter_mine"
+                        domain="[('employee_id.user_id','=',uid)]"/>
+                <filter string="Tổng > 10tr" name="filter_big"
+                        domain="[('total_amount','>',10000000)]"/>
+                <separator/>
+                <!-- Filter by company -->
+                <filter string="Công ty hiện tại" name="filter_company"
+                        domain="[('company_id','=',allowed_company_ids[0])]"/>
+
+                <!-- Group By -->
+                <group expand="0" string="Nhóm theo">
+                    <filter string="Nhân viên" name="group_employee"
+                            context="{'group_by': 'employee_id'}"/>
+                    <filter string="Phòng ban" name="group_department"
+                            context="{'group_by': 'department_id'}"/>
+                    <filter string="Trạng thái" name="group_state"
+                            context="{'group_by': 'state'}"/>
+                    <filter string="Công ty" name="group_company"
+                            context="{'group_by': 'company_id'}"/>
+                    <filter string="Tháng" name="group_month"
+                            context="{'group_by': 'date_request:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ─── Kanban View (Bonus) ────────────────────────────────────────── -->
+    <record id="view_ipr_request_kanban" model="ir.ui.view">
+        <field name="name">ipr.request.kanban</field>
+        <field name="model">ipr.request</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_small_column">
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="total_amount"/>
+                <field name="state"/>
+                <field name="date_request"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_card oe_kanban_global_click">
+                            <div class="oe_kanban_content">
+                                <div class="o_kanban_record_top">
+                                    <div class="o_kanban_record_headings">
+                                        <strong class="o_kanban_record_title">
+                                            <field name="name"/>
+                                        </strong>
+                                    </div>
+                                </div>
+                                <div class="o_kanban_record_body">
+                                    <field name="employee_id"/>
+                                    <br/>
+                                    <span class="text-muted">
+                                        <field name="date_request"/>
+                                    </span>
+                                </div>
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <b><field name="total_amount" widget="monetary"/></b>
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <field name="state" widget="label_selection"
+                                               options="{'classes': {'draft': 'default', 'confirm': 'warning', 'approve': 'success', 'reject': 'danger'}}"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ─── Action ────────────────────────────────────────────────────── -->
+    <record id="action_ipr_request" model="ir.actions.act_window">
+        <field name="name">Phiếu yêu cầu mua hàng</field>
+        <field name="res_model">ipr.request</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="search_view_id" ref="view_ipr_request_search"/>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Chưa có phiếu yêu cầu nào!
+            </p>
+            <p>Tạo phiếu yêu cầu mua hàng đầu tiên của bạn.</p>
+        </field>
+    </record>
+
+    <!-- Action: chỉ xem request pending (cho manager) -->
+    <record id="action_ipr_request_pending" model="ir.actions.act_window">
+        <field name="name">Chờ duyệt</field>
+        <field name="res_model">ipr.request</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('state', '=', 'confirm')]</field>
+        <field name="search_view_id" ref="view_ipr_request_search"/>
+    </record>
+</odoo>

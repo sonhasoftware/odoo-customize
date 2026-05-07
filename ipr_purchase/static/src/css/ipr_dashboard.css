@@ -1,0 +1,86 @@
+/* ─── IPR Dashboard ─────────────────────────────────────────────────── */
+.o_ipr_dashboard {
+    padding: 24px;
+    background: #f8f9fa;
+    min-height: 100%;
+}
+
+.o_ipr_dashboard_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.o_ipr_dashboard_header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #2c3e50;
+}
+
+.o_ipr_loading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 40px;
+    color: #6c757d;
+    font-size: 1.1rem;
+}
+
+/* ─── Stat grid ─────────────────────────────────────────────────────── */
+.o_ipr_stat_grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 20px;
+}
+
+.o_ipr_stat_card {
+    background: white;
+    border-radius: 12px;
+    padding: 24px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    border-left: 5px solid transparent;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.07);
+}
+
+.o_ipr_stat_card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+}
+
+.o_ipr_stat_icon {
+    font-size: 2rem;
+    margin-bottom: 8px;
+}
+
+.o_ipr_stat_number {
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 6px;
+}
+
+.o_ipr_stat_label {
+    font-size: 0.85rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* ─── Card color variants ────────────────────────────────────────────── */
+.o_ipr_total    { border-left-color: #6c757d; }
+.o_ipr_total .o_ipr_stat_number { color: #343a40; }
+
+.o_ipr_draft    { border-left-color: #adb5bd; }
+.o_ipr_draft .o_ipr_stat_number { color: #6c757d; }
+
+.o_ipr_confirm  { border-left-color: #ffc107; }
+.o_ipr_confirm .o_ipr_stat_number { color: #e6a817; }
+
+.o_ipr_approve  { border-left-color: #28a745; }
+.o_ipr_approve .o_ipr_stat_number { color: #218838; }
+
+.o_ipr_reject   { border-left-color: #dc3545; }
+.o_ipr_reject .o_ipr_stat_number { color: #c82333; }
