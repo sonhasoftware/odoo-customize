@@ -136,53 +136,53 @@ class MDMTongHop(models.Model):
             r.buoc_duyet = lines
 
 
-    @api.constrains('chung_loai1', 'chung_loai2', 'linh_vuc', 'nganh_hang', 'nhan_hang', 'key_linh_vuc', 'key_nganh_hang', 'key_nhan_hang')
-    def _check_chung_loai(self):
-        for record in self:
-            if record.chung_loai2 and record.chung_loai2.key != record.chung_loai1:
-                raise ValidationError(
-                    "Chủng loại 2 không thuộc Chủng loại 1 đã chọn."
-                )
-            if record.linh_vuc and record.key_linh_vuc and record.linh_vuc.key_map != record.key_linh_vuc:
-                raise ValidationError(
-                    "Lĩnh vực không thuộc Chủng loại 2 đã chọn."
-                )
-            if record.nganh_hang and record.key_nganh_hang and record.nganh_hang.key_map != record.key_nganh_hang:
-                raise ValidationError(
-                    "Ngành hàng không thuộc Chủng loại 2 đã chọn."
-                )
-            if record.nhan_hang and record.key_nhan_hang and record.nhan_hang.key_map != record.key_nhan_hang:
-                raise ValidationError(
-                    "Nhãn hàng không thuộc Chủng loại 2 đã chọn."
-                )
-
-    @api.onchange(
-        'chung_loai1',
-        'chung_loai2',
-        'linh_vuc',
-        'nganh_hang',
-        'nhan_hang'
-        'key_linh_vuc',
-        'key_nganh_hang',
-        'key_nhan_hang'
-    )
-    def _onchange_validate_domain(self):
-        for record in self:
-
-            if record.chung_loai2 and record.chung_loai2.key != record.chung_loai1:
-                record.chung_loai2 = False
-                record.linh_vuc = False
-                record.nganh_hang = False
-                record.nhan_hang = False
-
-            if record.linh_vuc and record.key_linh_vuc and record.linh_vuc.key_map != record.key_linh_vuc:
-                record.linh_vuc = False
-
-            if record.nganh_hang and record.key_nganh_hang and record.nganh_hang.key_map != record.key_nganh_hang:
-                record.nganh_hang = False
-
-            if record.nhan_hang and record.key_nhan_hang and record.nhan_hang.key_map != record.key_nhan_hang:
-                record.nhan_hang = False
+    # @api.constrains('chung_loai1', 'chung_loai2', 'linh_vuc', 'nganh_hang', 'nhan_hang', 'key_linh_vuc', 'key_nganh_hang', 'key_nhan_hang')
+    # def _check_chung_loai(self):
+    #     for record in self:
+    #         if record.chung_loai2 and record.chung_loai2.key != record.chung_loai1:
+    #             raise ValidationError(
+    #                 "Chủng loại 2 không thuộc Chủng loại 1 đã chọn."
+    #             )
+    #         if record.linh_vuc and record.key_linh_vuc and record.linh_vuc.key_map != record.key_linh_vuc:
+    #             raise ValidationError(
+    #                 "Lĩnh vực không thuộc Chủng loại 2 đã chọn."
+    #             )
+    #         if record.nganh_hang and record.key_nganh_hang and record.nganh_hang.key_map != record.key_nganh_hang:
+    #             raise ValidationError(
+    #                 "Ngành hàng không thuộc Chủng loại 2 đã chọn."
+    #             )
+    #         if record.nhan_hang and record.key_nhan_hang and record.nhan_hang.key_map != record.key_nhan_hang:
+    #             raise ValidationError(
+    #                 "Nhãn hàng không thuộc Chủng loại 2 đã chọn."
+    #             )
+    #
+    # @api.onchange(
+    #     'chung_loai1',
+    #     'chung_loai2',
+    #     'linh_vuc',
+    #     'nganh_hang',
+    #     'nhan_hang'
+    #     'key_linh_vuc',
+    #     'key_nganh_hang',
+    #     'key_nhan_hang'
+    # )
+    # def _onchange_validate_domain(self):
+    #     for record in self:
+    #
+    #         if record.chung_loai2 and record.chung_loai2.key != record.chung_loai1:
+    #             record.chung_loai2 = False
+    #             record.linh_vuc = False
+    #             record.nganh_hang = False
+    #             record.nhan_hang = False
+    #
+    #         if record.linh_vuc and record.key_linh_vuc and record.linh_vuc.key_map != record.key_linh_vuc:
+    #             record.linh_vuc = False
+    #
+    #         if record.nganh_hang and record.key_nganh_hang and record.nganh_hang.key_map != record.key_nganh_hang:
+    #             record.nganh_hang = False
+    #
+    #         if record.nhan_hang and record.key_nhan_hang and record.nhan_hang.key_map != record.key_nhan_hang:
+    #             record.nhan_hang = False
 
     def _normalize_name(self, text):
         text = (text or "").lower()
