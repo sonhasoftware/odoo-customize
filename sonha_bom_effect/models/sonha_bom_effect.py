@@ -4,7 +4,7 @@ from odoo import fields, models
 class SonhaBomEffect(models.Model):
     _name = 'sonha.bom.bcu'
     _description = 'Định mức NVL effect/SAP'
-    _rec_name = 'product_name'
+    _rec_name = 'ten_tp'
 
     ma_tp = fields.Char(string='Mã TP effect/SAP', required=True, index=True)
     ten_tp = fields.Char(string='Tên TP', required=True)
