@@ -12,7 +12,6 @@
                 <field name="ma_hang_id" options="{'no_create': True}"/>
                 <field name="ma_hang"/>
                 <field name="ma_sap" readonly="1" required="1"/>
-                <field name="ma_bom"/>
                 <field name="month_key" required="1"/>
                 <field name="qty" sum="SL"/>
             </tree>
@@ -26,7 +25,6 @@
             <search>
                 <field name="period_id"/>
                 <field name="ma_sap"/>
-                <field name="ma_bom"/>
                 <field name="ma_hang"/>
                 <field name="company_id"/>
                 <field name="nganh_hang_id"/>

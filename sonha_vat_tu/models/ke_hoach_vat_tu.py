@@ -139,11 +139,11 @@ class KeHoachVatTu(models.Model):
         self.dinh_muc_ids.unlink()
         vals_list = []
         for line in self.ke_hoach_thanh_pham_ids:
-            if not line.ma_bom:
+            if not line.ma_sap:
                 continue
             bom_lines = Bom.search([
                 ('company_id', '=', line.company_id.id),
-                ('ma_bom', '=', line.ma_bom),
+                ('ma_tp', '=', line.ma_sap),
             ])
             for bom_line in bom_lines:
                 vals_list.append({
@@ -200,21 +200,72 @@ class KeHoachVatTu(models.Model):
         B4 = self.env['tong.hop.vat.tu'].sudo()
         VatDuong = self.env['vat.tu.di.duong'].sudo()
         self.tong_hop_vat_tu_ids.unlink()
+
+        # Gom nhu cầu từ B3 theo (company, material_code, month_key)
         grouped = defaultdict(float)
         for b3 in self.tinh_toan_vat_tu_ids:
             key = (
                 b3.company_id.id,
-                b3.month_key,
                 b3.ma_sap or '',
                 b3.ma_effect or b3.ma_sap or '',
             )
-            grouped[key] += b3.qty or 0.0
-        vals_list = []
-        days_in_formula = 28.0  # Ngày làm việc/tháng theo convention Excel; có thể tách thêm field nếu cần
+            # Dùng tuple (month_key, key) để giữ thứ tự tháng
+            grouped[(key, b3.month_key)] += b3.qty or 0.0
+
+        # Sắp xếp theo material_code rồi theo month_key để cuốn chiếu đúng
+        sorted_keys = sorted(grouped.keys(), key=lambda x: (x[0], x[1]))
+
+        days_in_formula = 28.0
         ngay_dp = self.ngay_du_phong_b4 or 15.0
         divisor_b4 = days_in_formula * ngay_dp
-        for (company_id, month_key, ma_sap, material_code), demand_qty in grouped.items():
-            ton_dau = 120.0
+
+        # Cache tồn cuối để cuốn chiếu: key = (company_id, material_code)
+        ton_cuoi_cache = {}
+
+        # Cache đơn giá tồn kho từ SAP: key = material_code
+        don_gia_cache = {}
+
+        vals_list = []
+        for (material_key, month_key), demand_qty in sorted_keys:
+            company_id, ma_sap, material_code = material_key[0], material_key[1], material_key[2]
+            demand_qty = grouped[(material_key, month_key)]
+            cache_key = (company_id, material_code)
+
+            # --- Tồn đầu: cuốn chiếu ---
+            if cache_key in ton_cuoi_cache:
+                # Tháng tiếp: tồn đầu = tồn cuối tháng trước
+                ton_dau = ton_cuoi_cache[cache_key]
+            else:
+                # Tháng đầu: lấy từ SAP
+                ton_dau = 0.0
+                if material_code:
+                    self.env.cr.execute("""
+                        SELECT safe_sap_numeric(ton_dau)
+                        FROM md_sap_ton_kho
+                        WHERE TRIM(ma_hang) = %s
+                        ORDER BY create_date DESC LIMIT 1
+                    """, (material_code,))
+                    row = self.env.cr.fetchone()
+                    if row and row[0]:
+                        ton_dau = float(row[0])
+
+            # --- Đơn giá tồn kho từ SAP (cache lần đầu) ---
+            if material_code not in don_gia_cache:
+                don_gia = 0.0
+                if material_code:
+                    self.env.cr.execute("""
+                        SELECT safe_sap_numeric(tien_ton_dau),
+                               safe_sap_numeric(ton_dau)
+                        FROM md_sap_ton_kho
+                        WHERE TRIM(ma_hang) = %s
+                        ORDER BY create_date DESC LIMIT 1
+                    """, (material_code,))
+                    row = self.env.cr.fetchone()
+                    if row and row[1] and float(row[1]) != 0:
+                        don_gia = float(row[0]) / float(row[1])
+                don_gia_cache[material_code] = don_gia
+
+            # --- Vật tư đi đường ---
             ve_du_kien = 0.0
             if material_code:
                 vdd = VatDuong.search(
@@ -226,10 +277,15 @@ class KeHoachVatTu(models.Model):
                     limit=1,
                 )
                 ve_du_kien = vdd.so_luong if vdd else 0.0
+
             so_luong_du_phong = (
                 (demand_qty / divisor_b4) if demand_qty else 0.0)
             ton_cuoi = ton_dau + ve_du_kien - demand_qty
             so_luong_thieu = max(0.0, so_luong_du_phong - ton_cuoi)
+
+            # Lưu tồn cuối để cuốn chiếu sang tháng sau
+            ton_cuoi_cache[cache_key] = ton_cuoi
+
             vals_list.append({
                 'period_id': self.id,
                 'company_id': company_id,
@@ -256,12 +312,34 @@ class KeHoachVatTu(models.Model):
         days_in_formula = 28.0
         ngay_dt = self.ngay_du_tru_b5 or 20.0
         divisor_b5 = days_in_formula * ngay_dt
+
+        # Cache đơn giá tồn kho từ SAP
+        don_gia_cache = {}
+
         vals_list = []
         for b4 in self.tong_hop_vat_tu_ids:
             vt_can_dung = b4.vt_can_dung or 0.0
             sl_du_tru_toi_thieu = (
                 (vt_can_dung / divisor_b5) if vt_can_dung else 0.0)
             so_luong_can_mua = b4.so_luong_can_mua or 0.0
+            material_code = b4.ma_dat_hang or b4.ma_sap
+
+            # Lấy đơn giá tồn kho từ SAP (cache)
+            if material_code not in don_gia_cache:
+                don_gia = 0.0
+                if material_code:
+                    self.env.cr.execute("""
+                        SELECT safe_sap_numeric(tien_ton_dau),
+                               safe_sap_numeric(ton_dau)
+                        FROM md_sap_ton_kho
+                        WHERE TRIM(ma_hang) = %s
+                        ORDER BY create_date DESC LIMIT 1
+                    """, (material_code,))
+                    row = self.env.cr.fetchone()
+                    if row and row[1] and float(row[1]) != 0:
+                        don_gia = float(row[0]) / float(row[1])
+                don_gia_cache[material_code] = don_gia
+
             vals_list.append({
                 'period_id': self.id,
                 'company_id': b4.company_id.id,
@@ -275,7 +353,7 @@ class KeHoachVatTu(models.Model):
                 'tong_sl_vt_can_dung': b4.vt_can_dung,
                 'sl_du_tru_toi_thieu': sl_du_tru_toi_thieu,
                 'sl_can_mua_theo_moq': False,
-                'don_gia_ton_kho': 0.0,
+                'don_gia_ton_kho': don_gia_cache.get(material_code, 0.0),
             })
         if vals_list:
             B5.create(vals_list)

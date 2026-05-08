@@ -41,7 +41,7 @@ class BcTongHopVatTu(models.Model):
     dong_hang_id = fields.Many2one('dong.hang', string='Dòng hàng', readonly=True)
     ma_hang_id = fields.Many2one('ma.hang', string='Mã hàng', readonly=True)
     ma_hang = fields.Char(string='Mã hàng (text)', readonly=True)
-    ma_bom = fields.Char(string='Mã BOM', readonly=True)
+
     qty = fields.Float(string='Số lượng (B1/B2/B3)', digits=(16, 4), readonly=True)
     note = fields.Char(string='Ghi chú (B1)', readonly=True)
 

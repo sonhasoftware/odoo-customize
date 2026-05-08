@@ -25,7 +25,6 @@
                 <field name="dong_hang_id"/>
                 <field name="ma_hang_id"/>
                 <field name="ma_hang"/>
-                <field name="ma_bom"/>
                 <field name="qty"/>
                 <field name="note"/>
                 <!-- B2 -->
@@ -90,7 +89,6 @@
                             <field name="dong_hang_id"/>
                             <field name="ma_hang_id"/>
                             <field name="ma_hang"/>
-                            <field name="ma_bom"/>
                             <field name="qty"/>
                             <field name="note"/>
                             <field name="ma_tp"/>

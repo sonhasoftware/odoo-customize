@@ -70,7 +70,6 @@
                                     <field name="dong_hang_id" options="{'no_create': True, 'no_open': True}"/>
                                     <field name="ma_hang_id" options="{'no_create': True, 'no_open': True}"/>
                                     <field name="ma_sap" readonly="1" required="1"/>
-                                    <field name="ma_bom" required="1"/>
                                     <field name="month_key" required="1"/>
                                     <field name="qty" sum="SL"/>
                                 </tree>

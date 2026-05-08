@@ -28,7 +28,7 @@ class KeHoachThanhPham(models.Model):
     ma_hang = fields.Char(string='Mã hàng', index=True)
     ma_sap = fields.Char(
         string='Mã SAP', index=True)
-    ma_bom = fields.Char(string='Mã BOM', index=True)
+
 
     month_key = fields.Char(
         string='Tháng', index=True)
@@ -114,7 +114,7 @@ class KeHoachThanhPham(models.Model):
                 'dong': rec.dong_hang_id.name if rec.dong_hang_id else '',
                 'ma_hang': rec.ma_hang or '',
                 'ma_sap': rec.ma_sap or '',
-                'ma_bom': rec.ma_bom or '',
+
                 'month_key': rec.month_key or '',
                 'qty': qty_str
             })
@@ -140,7 +140,6 @@ class KeHoachThanhPham(models.Model):
                     <th>Dòng hàng</th>
                     <th>Mã hàng</th>
                     <th>Mã SAP</th>
-                    <th>Mã BOM</th>
                     <th>Tháng</th>
                     <th class="text-end">Số lượng</th>
                 </tr>
@@ -161,7 +160,6 @@ class KeHoachThanhPham(models.Model):
                     <td>{wrap_s}{vals['dong']}{wrap_e}</td>
                     <td>{wrap_s}{vals['ma_hang']}{wrap_e}</td>
                     <td>{wrap_s}{vals['ma_sap']}{wrap_e}</td>
-                    <td>{wrap_s}{vals['ma_bom']}{wrap_e}</td>
                     <td>{wrap_s}{vals['month_key']}{wrap_e}</td>
                     <td class="text-end">{wrap_s}{vals['qty']}{wrap_e}</td>
                 </tr>
@@ -184,7 +182,7 @@ class KeHoachThanhPham(models.Model):
         self.period_id.message_post(body=Markup("<ul>%s</ul>") % message)
 
     def write(self, vals):
-        TRACKED = {'ma_sap': 'Mã SAP', 'ma_bom': 'Mã BOM', 'month_key': 'Tháng', 'qty': 'Số lượng'}
+        TRACKED = {'ma_sap': 'Mã SAP', 'month_key': 'Tháng', 'qty': 'Số lượng'}
 
         old = {f: {r.id: r[f] for r in self} for f in TRACKED if f in vals}
         res = super().write(vals)

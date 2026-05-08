@@ -64,9 +64,8 @@ class ImportKeHoachWizard(models.TransientModel):
 
         header = [str(c).strip() if c is not None else '' for c in rows[0]]
 
-        # Cố định: cột 0–3 Ngành/Dòng/Mã hàng/Mã SAP, cột 4 Mã BOM, từ cột 5 là Tháng M/YYYY
-        BOM_COL_IDX = 4
-        MONTH_START_IDX = 5
+        # Cố định: cột 0–3 Ngành/Dòng/Mã hàng/Mã SAP, từ cột 4 là Tháng M/YYYY
+        MONTH_START_IDX = 4
 
         month_cols = []
         for idx in range(MONTH_START_IDX, len(header)):
@@ -97,11 +96,6 @@ class ImportKeHoachWizard(models.TransientModel):
             dong_raw = row[1]
             ma_hang = (row[2] or '').strip() if row[2] else ''
             ma_sap = str(row[3]).strip() if row[3] not in (None, '') else ''
-            ma_bom = (
-                str(row[BOM_COL_IDX]).strip()
-                if row[BOM_COL_IDX] not in (None, '')
-                else ''
-            )
 
             nganh_raw_s = str(nganh_raw).strip() if nganh_raw not in (None, '') else ''
             dong_raw_s = str(dong_raw).strip() if dong_raw not in (None, '') else ''
@@ -117,9 +111,6 @@ class ImportKeHoachWizard(models.TransientModel):
                 continue
             if not ma_sap:
                 errors.append(_('Dòng %d: thiếu Mã SAP.') % row_idx)
-                continue
-            if not ma_bom:
-                errors.append(_('Dòng %d: thiếu Mã BOM.') % row_idx)
                 continue
 
             nganh = self._find_master('nganh.hang', nganh_raw_s)
@@ -165,15 +156,6 @@ class ImportKeHoachWizard(models.TransientModel):
                 ) % (row_idx, ma_hang, ma_sap))
                 continue
 
-            if not Bom.search(
-                    [('company_id', '=', company.id), ('ma_bom', '=', ma_bom)],
-                    limit=1):
-                errors.append(_(
-                    'Dòng %d: Mã BOM "%s" không tồn tại trong danh mục BOM '
-                    '(đơn vị: %s).'
-                ) % (row_idx, ma_bom, company.display_name))
-                continue
-
             for col_idx, month_key in month_cols:
                 raw_qty = row[col_idx]
                 if raw_qty in (None, '', 0, 0.0):
@@ -202,7 +184,6 @@ class ImportKeHoachWizard(models.TransientModel):
                     'ma_hang_id': ma_hang_rec.id,
                     'ma_hang': ma_hang_rec.code,
                     'ma_sap': ma_sap,
-                    'ma_bom': ma_bom,
                     'month_key': month_key,
                     'qty': qty,
                 })
@@ -244,7 +225,6 @@ class ImportKeHoachWizard(models.TransientModel):
                         <th>Dòng hàng</th>
                         <th>Mã hàng</th>
                         <th>Mã SAP</th>
-                        <th>Mã BOM</th>
                         <th>Tháng</th>
                         <th class="text-end">Số lượng</th>
                     </tr>
@@ -256,7 +236,6 @@ class ImportKeHoachWizard(models.TransientModel):
                 dong_hang_name = dong_dict.get(vals.get('dong_hang_id'), '')
                 ma_hang = vals.get('ma_hang') or ''
                 ma_sap = vals.get('ma_sap') or ''
-                ma_bom = vals.get('ma_bom') or ''
                 month_key = vals.get('month_key') or ''
                 qty_val = vals.get('qty', 0.0)
                 qty_str = "{:,.2f}".format(qty_val).replace(',', 'X').replace('.', ',').replace('X', '.')
@@ -267,7 +246,6 @@ class ImportKeHoachWizard(models.TransientModel):
                         <td>{dong_hang_name}</td>
                         <td>{ma_hang}</td>
                         <td>{ma_sap}</td>
-                        <td>{ma_bom}</td>
                         <td>{month_key}</td>
                         <td class="text-end">{qty_str}</td>
                     </tr>

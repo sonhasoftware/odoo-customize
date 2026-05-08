@@ -61,98 +61,100 @@
         <field name="dong_hang_id" ref="demo_dong_bom_sh"/>
     </record>
 
-    <!-- Vật tư đi đường (BCU): B4 đọc theo company + month_key + ma_sap trùng mã NVL (ma_effect) -->
-    <record id="demo_vdd_cdau1420_04" model="vat.tu.di.duong">
+    <!-- Vật tư đi đường (BCU): B4 đọc theo company + month_key + ma_sap (mã NVL từ BOM SAP) -->
+    <!-- Dùng mã SAP thật: 20000177 = Chất Báo Ồn Đen, 20000178 = Chất Báo Ồn Trắng,
+         20000253 = Dây Chống Giật, 20000043 = Bộ Dây Điện, 11000027 = TM BNN N20 GALAXY -->
+    <record id="demo_vdd_20000177_04" model="vat.tu.di.duong">
         <field name="company_id" eval="17"/>
-        <field name="ma_sap">CDAU1420</field>
+        <field name="ma_sap">20000177</field>
         <field name="month_key">04/2026</field>
         <field name="so_luong">18.000</field>
     </record>
-    <record id="demo_vdd_cdau1420_05" model="vat.tu.di.duong">
+    <record id="demo_vdd_20000177_05" model="vat.tu.di.duong">
         <field name="company_id" eval="17"/>
-        <field name="ma_sap">CDAU1420</field>
+        <field name="ma_sap">20000177</field>
         <field name="month_key">05/2026</field>
         <field name="so_luong">22.000</field>
     </record>
-    <record id="demo_vdd_cdau1420_06" model="vat.tu.di.duong">
+    <record id="demo_vdd_20000177_06" model="vat.tu.di.duong">
         <field name="company_id" eval="17"/>
-        <field name="ma_sap">CDAU1420</field>
+        <field name="ma_sap">20000177</field>
         <field name="month_key">06/2026</field>
         <field name="so_luong">15.000</field>
     </record>
 
-    <record id="demo_vdd_cc304_04" model="vat.tu.di.duong">
+    <record id="demo_vdd_20000178_04" model="vat.tu.di.duong">
         <field name="company_id" eval="17"/>
-        <field name="ma_sap">CC304BA0.80*1219*4520</field>
+        <field name="ma_sap">20000178</field>
         <field name="month_key">04/2026</field>
         <field name="so_luong">35.500</field>
     </record>
-    <record id="demo_vdd_cc304_05" model="vat.tu.di.duong">
+    <record id="demo_vdd_20000178_05" model="vat.tu.di.duong">
         <field name="company_id" eval="17"/>
-        <field name="ma_sap">CC304BA0.80*1219*4520</field>
+        <field name="ma_sap">20000178</field>
         <field name="month_key">05/2026</field>
         <field name="so_luong">40.000</field>
     </record>
-    <record id="demo_vdd_cc304_06" model="vat.tu.di.duong">
+    <record id="demo_vdd_20000178_06" model="vat.tu.di.duong">
         <field name="company_id" eval="17"/>
-        <field name="ma_sap">CC304BA0.80*1219*4520</field>
+        <field name="ma_sap">20000178</field>
         <field name="month_key">06/2026</field>
         <field name="so_luong">38.000</field>
     </record>
 
-    <record id="demo_vdd_gioang_04" model="vat.tu.di.duong">
+    <record id="demo_vdd_20000253_04" model="vat.tu.di.duong">
         <field name="company_id" eval="17"/>
-        <field name="ma_sap">GIOANG_INOX_01</field>
+        <field name="ma_sap">20000253</field>
         <field name="month_key">04/2026</field>
         <field name="so_luong">5.000</field>
     </record>
-    <record id="demo_vdd_gioang_05" model="vat.tu.di.duong">
+    <record id="demo_vdd_20000253_05" model="vat.tu.di.duong">
         <field name="company_id" eval="17"/>
-        <field name="ma_sap">GIOANG_INOX_01</field>
+        <field name="ma_sap">20000253</field>
         <field name="month_key">05/2026</field>
         <field name="so_luong">5.500</field>
     </record>
-    <record id="demo_vdd_gioang_06" model="vat.tu.di.duong">
+    <record id="demo_vdd_20000253_06" model="vat.tu.di.duong">
         <field name="company_id" eval="17"/>
-        <field name="ma_sap">GIOANG_INOX_01</field>
+        <field name="ma_sap">20000253</field>
         <field name="month_key">06/2026</field>
         <field name="so_luong">6.000</field>
     </record>
 
-    <record id="demo_vdd_cdau9000_04" model="vat.tu.di.duong">
+    <record id="demo_vdd_20000043_04" model="vat.tu.di.duong">
         <field name="company_id" eval="17"/>
-        <field name="ma_sap">CDAU9000</field>
+        <field name="ma_sap">20000043</field>
         <field name="month_key">04/2026</field>
         <field name="so_luong">8.000</field>
     </record>
-    <record id="demo_vdd_cdau9000_05" model="vat.tu.di.duong">
+    <record id="demo_vdd_20000043_05" model="vat.tu.di.duong">
         <field name="company_id" eval="17"/>
-        <field name="ma_sap">CDAU9000</field>
+        <field name="ma_sap">20000043</field>
         <field name="month_key">05/2026</field>
         <field name="so_luong">8.500</field>
     </record>
-    <record id="demo_vdd_cdau9000_06" model="vat.tu.di.duong">
+    <record id="demo_vdd_20000043_06" model="vat.tu.di.duong">
         <field name="company_id" eval="17"/>
-        <field name="ma_sap">CDAU9000</field>
+        <field name="ma_sap">20000043</field>
         <field name="month_key">06/2026</field>
         <field name="so_luong">7.000</field>
     </record>
 
-    <record id="demo_vdd_inoxtam_04" model="vat.tu.di.duong">
+    <record id="demo_vdd_11000027_04" model="vat.tu.di.duong">
         <field name="company_id" eval="17"/>
-        <field name="ma_sap">INOX304.1.0*2000*3000</field>
+        <field name="ma_sap">11000027</field>
         <field name="month_key">04/2026</field>
         <field name="so_luong">12.000</field>
     </record>
-    <record id="demo_vdd_inoxtam_05" model="vat.tu.di.duong">
+    <record id="demo_vdd_11000027_05" model="vat.tu.di.duong">
         <field name="company_id" eval="17"/>
-        <field name="ma_sap">INOX304.1.0*2000*3000</field>
+        <field name="ma_sap">11000027</field>
         <field name="month_key">05/2026</field>
         <field name="so_luong">15.000</field>
     </record>
-    <record id="demo_vdd_inoxtam_06" model="vat.tu.di.duong">
+    <record id="demo_vdd_11000027_06" model="vat.tu.di.duong">
         <field name="company_id" eval="17"/>
-        <field name="ma_sap">INOX304.1.0*2000*3000</field>
+        <field name="ma_sap">11000027</field>
         <field name="month_key">06/2026</field>
         <field name="so_luong">10.000</field>
     </record>
@@ -176,7 +178,6 @@
         <field name="ma_hang_id" ref="demo_ma_bmmd00500"/>
         <field name="ma_hang">BMMD00500F0720</field>
         <field name="ma_sap">10000158</field>
-        <field name="ma_bom">80000500</field>
         <field name="month_key">04/2026</field>
         <field name="qty">150</field>
     </record>
@@ -189,7 +190,6 @@
         <field name="ma_hang_id" ref="demo_ma_bmmd00500"/>
         <field name="ma_hang">BMMD00500F0720</field>
         <field name="ma_sap">10000158</field>
-        <field name="ma_bom">80000500</field>
         <field name="month_key">05/2026</field>
         <field name="qty">220</field>
     </record>
@@ -202,7 +202,6 @@
         <field name="ma_hang_id" ref="demo_ma_bmmd00500"/>
         <field name="ma_hang">BMMD00500F0720</field>
         <field name="ma_sap">10000158</field>
-        <field name="ma_bom">80000500</field>
         <field name="month_key">06/2026</field>
         <field name="qty">180</field>
     </record>
@@ -215,7 +214,6 @@
         <field name="ma_hang_id" ref="demo_ma_bmmd00600"/>
         <field name="ma_hang">BMMD00600F1800</field>
         <field name="ma_sap">10000160</field>
-        <field name="ma_bom">80000600</field>
         <field name="month_key">04/2026</field>
         <field name="qty">90</field>
     </record>
@@ -228,7 +226,6 @@
         <field name="ma_hang_id" ref="demo_ma_bmmd00600"/>
         <field name="ma_hang">BMMD00600F1800</field>
         <field name="ma_sap">10000160</field>
-        <field name="ma_bom">80000600</field>
         <field name="month_key">05/2026</field>
         <field name="qty">110</field>
     </record>
@@ -241,104 +238,11 @@
         <field name="ma_hang_id" ref="demo_ma_bmmd00600"/>
         <field name="ma_hang">BMMD00600F1800</field>
         <field name="ma_sap">10000160</field>
-        <field name="ma_bom">80000600</field>
         <field name="month_key">06/2026</field>
         <field name="qty">75</field>
         <field name="note">Demo Q2 — giảm nhẹ tháng 6</field>
     </record>
     -->
 
-    <!-- BOM 80000500: thêm dòng NVL; đủ nhiều dòng để test B2 -->
-    <record id="demo_bom_map_80000500_nvl_1" model="bom">
-        <field name="company_id" eval="17"/>
-        <field name="ma_bom">80000500</field>
-        <field name="ma_tp">BSMD00500F1420</field>
-        <field name="ten_tp">Bồn inox SH mẫu đứng 0500F1420</field>
-        <field name="ma_nvl">CDAU1420</field>
-        <field name="ten_nvl">Đầu 1420</field>
-        <field name="sl_dinh_muc">1.0000</field>
-        <field name="do_day">0.8000</field>
-        <field name="kho_1">1219.000</field>
-        <field name="kho_2">4520.000</field>
-    </record>
-
-    <record id="demo_bom_map_80000500_nvl_2" model="bom">
-        <field name="company_id" eval="17"/>
-        <field name="ma_bom">80000500</field>
-        <field name="ma_tp">BSMD00500F1420</field>
-        <field name="ten_tp">Bồn inox SH mẫu đứng 0500F1420</field>
-        <field name="ma_nvl">CC304BA0.80*1219*4520</field>
-        <field name="ten_nvl">Thân bồn 0.8*1219*4520</field>
-        <field name="sl_dinh_muc">0.6500</field>
-        <field name="do_day">0.8000</field>
-        <field name="kho_1">1219.000</field>
-        <field name="kho_2">4520.000</field>
-    </record>
-
-    <record id="demo_bom_map_80000500_nvl_3" model="bom">
-        <field name="company_id" eval="17"/>
-        <field name="ma_bom">80000500</field>
-        <field name="ma_tp">BSMD00500F1420</field>
-        <field name="ten_tp">Bồn inox SH mẫu đứng 0500F1420</field>
-        <field name="ma_nvl">GIOANG_INOX_01</field>
-        <field name="ten_nvl">Gioăng inox đệm mặt bích</field>
-        <field name="sl_dinh_muc">2.0000</field>
-        <field name="do_day">0.0000</field>
-        <field name="kho_1">0.000</field>
-        <field name="kho_2">0.000</field>
-    </record>
-
-    <record id="demo_bom_map_80000500_nvl_4" model="bom">
-        <field name="company_id" eval="17"/>
-        <field name="ma_bom">80000500</field>
-        <field name="ma_tp">BSMD00500F1420</field>
-        <field name="ten_tp">Bồn inox SH mẫu đứng 0500F1420</field>
-        <field name="ma_nvl">CDAU9000</field>
-        <field name="ten_nvl">Đầu 9000 (phụ kiện thêm)</field>
-        <field name="sl_dinh_muc">0.2500</field>
-        <field name="do_day">1.2000</field>
-        <field name="kho_1">900.000</field>
-        <field name="kho_2">900.000</field>
-    </record>
-
-    <!-- BOM 80000600: bộ BOM thứ hai — nhiều NVL -->
-    <record id="demo_bom_80000600_nvl_1" model="bom">
-        <field name="company_id" eval="17"/>
-        <field name="ma_bom">80000600</field>
-        <field name="ma_tp">BSMD00600F1800</field>
-        <field name="ten_tp">Bồn inox SH mẫu đứng 0600F1800</field>
-        <field name="ma_nvl">CDAU1420</field>
-        <field name="ten_nvl">Đầu 1420</field>
-        <field name="sl_dinh_muc">1.1000</field>
-        <field name="do_day">0.8000</field>
-        <field name="kho_1">1219.000</field>
-        <field name="kho_2">4520.000</field>
-    </record>
-
-    <record id="demo_bom_80000600_nvl_2" model="bom">
-        <field name="company_id" eval="17"/>
-        <field name="ma_bom">80000600</field>
-        <field name="ma_tp">BSMD00600F1800</field>
-        <field name="ten_tp">Bồn inox SH mẫu đứng 0600F1800</field>
-        <field name="ma_nvl">INOX304.1.0*2000*3000</field>
-        <field name="ten_nvl">Tấm inox 304 dày 1.0 khổ 2000x3000</field>
-        <field name="sl_dinh_muc">1.8500</field>
-        <field name="do_day">1.0000</field>
-        <field name="kho_1">2000.000</field>
-        <field name="kho_2">3000.000</field>
-    </record>
-
-    <record id="demo_bom_80000600_nvl_3" model="bom">
-        <field name="company_id" eval="17"/>
-        <field name="ma_bom">80000600</field>
-        <field name="ma_tp">BSMD00600F1800</field>
-        <field name="ten_tp">Bồn inox SH mẫu đứng 0600F1800</field>
-        <field name="ma_nvl">CC304BA0.80*1219*4520</field>
-        <field name="ten_nvl">Thân bồn 0.8*1219*4520</field>
-        <field name="sl_dinh_muc">0.4200</field>
-        <field name="do_day">0.8000</field>
-        <field name="kho_1">1219.000</field>
-        <field name="kho_2">4520.000</field>
-    </record>
 
 </odoo>
