@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <menuitem id="menu_ke_hoach_vat_tu_root" name="Kế hoạch vật tư" sequence="55"
+              groups="sonha_vat_tu.group_ban_cung_ung_vat_tu,sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"/>
+
+    <menuitem id="menu_ke_hoach_vat_tu" name="Kế hoạch vật tư"
+              parent="menu_ke_hoach_vat_tu_root" sequence="10"/>
+    <menuitem id="menu_ke_hoach_vat_tu_b1"
+              name="B1 - Kế hoạch thành phẩm"
+              parent="menu_ke_hoach_vat_tu"
+              action="action_ke_hoach_vat_tu_b1" sequence="10"/>
+    <menuitem id="menu_ke_hoach_vat_tu_b2"
+              name="B2 - Định mức kỳ"
+              parent="menu_ke_hoach_vat_tu"
+              action="action_dinh_muc" sequence="20"/>
+    <menuitem id="menu_ke_hoach_vat_tu_b3"
+              name="B3 - Tính toán vật tư"
+              parent="menu_ke_hoach_vat_tu"
+              action="action_tinh_toan_vat_tu" sequence="30"/>
+    <menuitem id="menu_ke_hoach_vat_tu_b4"
+              name="B4 - Tổng hợp vật tư cần sản xuất"
+              parent="menu_ke_hoach_vat_tu"
+              action="action_tong_hop_vat_tu" sequence="40"/>
+    <menuitem id="menu_ke_hoach_vat_tu_b5"
+              name="B5 - Kế hoạch đặt vật tư"
+              parent="menu_ke_hoach_vat_tu"
+              action="action_kh_dat_vat_tu" sequence="50"/>
+    <menuitem id="menu_bc_tong_hop_vat_tu"
+              name="Báo cáo tổng hợp"
+              parent="menu_ke_hoach_vat_tu"
+              action="action_bc_tong_hop_vat_tu" sequence="60"
+              groups="sonha_vat_tu.group_ban_cung_ung_vat_tu,sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"/>
+    <menuitem id="menu_danh_muc_root" name="Danh mục"
+              parent="menu_ke_hoach_vat_tu_root" sequence="20"/>
+    <menuitem id="menu_nganh_hang"
+              name="Ngành hàng"
+              parent="menu_danh_muc_root"
+              action="action_nganh_hang" sequence="10"/>
+    <menuitem id="menu_dong_hang"
+              name="Dòng hàng"
+              parent="menu_danh_muc_root"
+              action="action_dong_hang" sequence="20"/>
+    <menuitem id="menu_ma_hang"
+              name="Mã hàng"
+              parent="menu_danh_muc_root"
+              action="action_ma_hang" sequence="30"/>
+    <menuitem id="menu_dinh_muc"
+              name="BOM"
+              parent="menu_danh_muc_root"
+              action="action_bom" sequence="40"/>
+    <menuitem id="menu_vat_tu_di_duong"
+              name="Vật tư đi đường"
+              parent="menu_danh_muc_root"
+              action="action_vat_tu_di_duong" sequence="50"/>
+
+</odoo>

@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record model="ir.module.category" id="sonha_vat_tu_cat_security">
+        <field name="name">Kế hoạch vật tư Sơn Hà</field>
+        <field name="sequence">10</field>
+    </record>
+
+    <record id="group_ban_cung_ung_vat_tu" model="res.groups">
+        <field name="name">Ban cung ứng</field>
+        <field name="category_id" ref="sonha_vat_tu_cat_security"/>
+    </record>
+
+    <record id="group_bo_phan_vat_tu" model="res.groups">
+        <field name="name">Bộ phận</field>
+        <field name="category_id" ref="sonha_vat_tu_cat_security"/>
+    </record>
+
+    <record id="group_truong_bo_phan_vat_tu" model="res.groups">
+        <field name="name">Trưởng bộ phận</field>
+        <field name="category_id" ref="sonha_vat_tu_cat_security"/>
+        <field name="implied_ids" eval="[(4, ref('sonha_vat_tu.group_bo_phan_vat_tu'))]"/>
+    </record>
+
+
+    <record id="rule_ke_hoach_vat_tu_ban_cung_ung" model="ir.rule">
+        <field name="name">Ke hoach vat tu - Ban cung ung - company scope</field>
+        <field name="model_id" ref="model_ke_hoach_vat_tu"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+        <field name="groups" eval="[(4, ref('sonha_vat_tu.group_ban_cung_ung_vat_tu'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_ke_hoach_vat_tu_bo_phan" model="ir.rule">
+        <field name="name">Ke hoach vat tu - Bo phan - company scope</field>
+        <field name="model_id" ref="model_ke_hoach_vat_tu"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+        <field name="groups" eval="[(4, ref('sonha_vat_tu.group_bo_phan_vat_tu'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_ke_hoach_vat_tu_truong_bo_phan" model="ir.rule">
+        <field name="name">Ke hoach vat tu - Truong bo phan - company scope</field>
+        <field name="model_id" ref="model_ke_hoach_vat_tu"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+        <field name="groups" eval="[(4, ref('sonha_vat_tu.group_truong_bo_phan_vat_tu'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+
+    <record id="rule_ke_hoach_thanh_pham_ban_cung_ung" model="ir.rule">
+        <field name="name">B1 ke hoach thanh pham - Ban cung ung - company scope</field>
+        <field name="model_id" ref="model_ke_hoach_thanh_pham"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+        <field name="groups" eval="[(4, ref('sonha_vat_tu.group_ban_cung_ung_vat_tu'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_ke_hoach_thanh_pham_bo_phan" model="ir.rule">
+        <field name="name">B1 ke hoach thanh pham - Bo phan - company scope</field>
+        <field name="model_id" ref="model_ke_hoach_thanh_pham"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+        <field name="groups" eval="[(4, ref('sonha_vat_tu.group_bo_phan_vat_tu'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_ke_hoach_thanh_pham_truong_bo_phan" model="ir.rule">
+        <field name="name">B1 ke hoach thanh pham - Truong bo phan - company scope</field>
+        <field name="model_id" ref="model_ke_hoach_thanh_pham"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+        <field name="groups" eval="[(4, ref('sonha_vat_tu.group_truong_bo_phan_vat_tu'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="rule_dinh_muc_ban_cung_ung" model="ir.rule">
+        <field name="name">B2 dinh muc - Ban cung ung - company scope</field>
+        <field name="model_id" ref="model_dinh_muc"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+        <field name="groups" eval="[(4, ref('sonha_vat_tu.group_ban_cung_ung_vat_tu'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_dinh_muc_bo_phan" model="ir.rule">
+        <field name="name">B2 dinh muc - Bo phan - company scope</field>
+        <field name="model_id" ref="model_dinh_muc"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+        <field name="groups" eval="[(4, ref('sonha_vat_tu.group_bo_phan_vat_tu'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_dinh_muc_truong_bo_phan" model="ir.rule">
+        <field name="name">B2 dinh muc - Truong bo phan - company scope</field>
+        <field name="model_id" ref="model_dinh_muc"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+        <field name="groups" eval="[(4, ref('sonha_vat_tu.group_truong_bo_phan_vat_tu'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="rule_tinh_toan_vat_tu_ban_cung_ung" model="ir.rule">
+        <field name="name">B3 tinh toan vat tu - Ban cung ung - company scope</field>
+        <field name="model_id" ref="model_tinh_toan_vat_tu"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+        <field name="groups" eval="[(4, ref('sonha_vat_tu.group_ban_cung_ung_vat_tu'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_tinh_toan_vat_tu_bo_phan" model="ir.rule">
+        <field name="name">B3 tinh toan vat tu - Bo phan - company scope</field>
+        <field name="model_id" ref="model_tinh_toan_vat_tu"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+        <field name="groups" eval="[(4, ref('sonha_vat_tu.group_bo_phan_vat_tu'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_tinh_toan_vat_tu_truong_bo_phan" model="ir.rule">
+        <field name="name">B3 tinh toan vat tu - Truong bo phan - company scope</field>
+        <field name="model_id" ref="model_tinh_toan_vat_tu"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+        <field name="groups" eval="[(4, ref('sonha_vat_tu.group_truong_bo_phan_vat_tu'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="rule_tong_hop_vat_tu_ban_cung_ung" model="ir.rule">
+        <field name="name">B4 tong hop vat tu - Ban cung ung - company scope</field>
+        <field name="model_id" ref="model_tong_hop_vat_tu"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+        <field name="groups" eval="[(4, ref('sonha_vat_tu.group_ban_cung_ung_vat_tu'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_tong_hop_vat_tu_bo_phan" model="ir.rule">
+        <field name="name">B4 tong hop vat tu - Bo phan - company scope</field>
+        <field name="model_id" ref="model_tong_hop_vat_tu"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+        <field name="groups" eval="[(4, ref('sonha_vat_tu.group_bo_phan_vat_tu'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_tong_hop_vat_tu_truong_bo_phan" model="ir.rule">
+        <field name="name">B4 tong hop vat tu - Truong bo phan - company scope</field>
+        <field name="model_id" ref="model_tong_hop_vat_tu"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+        <field name="groups" eval="[(4, ref('sonha_vat_tu.group_truong_bo_phan_vat_tu'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="rule_kh_dat_vat_tu_ban_cung_ung" model="ir.rule">
+        <field name="name">B5 ke hoach dat vat tu - Ban cung ung - company scope</field>
+        <field name="model_id" ref="model_kh_dat_vat_tu"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+        <field name="groups" eval="[(4, ref('sonha_vat_tu.group_ban_cung_ung_vat_tu'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_kh_dat_vat_tu_bo_phan" model="ir.rule">
+        <field name="name">B5 ke hoach dat vat tu - Bo phan - company scope</field>
+        <field name="model_id" ref="model_kh_dat_vat_tu"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+        <field name="groups" eval="[(4, ref('sonha_vat_tu.group_bo_phan_vat_tu'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_kh_dat_vat_tu_truong_bo_phan" model="ir.rule">
+        <field name="name">B5 ke hoach dat vat tu - Truong bo phan - company scope</field>
+        <field name="model_id" ref="model_kh_dat_vat_tu"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+        <field name="groups" eval="[(4, ref('sonha_vat_tu.group_truong_bo_phan_vat_tu'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="rule_bc_tong_hop_vat_tu_ban_cung_ung" model="ir.rule">
+        <field name="name">BC tong hop vat tu - Ban cung ung - company scope</field>
+        <field name="model_id" ref="model_bc_tong_hop_vat_tu"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+        <field name="groups" eval="[(4, ref('sonha_vat_tu.group_ban_cung_ung_vat_tu'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_bc_tong_hop_vat_tu_bo_phan" model="ir.rule">
+        <field name="name">BC tong hop vat tu - Bo phan - company scope</field>
+        <field name="model_id" ref="model_bc_tong_hop_vat_tu"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+        <field name="groups" eval="[(4, ref('sonha_vat_tu.group_bo_phan_vat_tu'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_bc_tong_hop_vat_tu_truong_bo_phan" model="ir.rule">
+        <field name="name">BC tong hop vat tu - Truong bo phan - company scope</field>
+        <field name="model_id" ref="model_bc_tong_hop_vat_tu"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+        <field name="groups" eval="[(4, ref('sonha_vat_tu.group_truong_bo_phan_vat_tu'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+</odoo>
