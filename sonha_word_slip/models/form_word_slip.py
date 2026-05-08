@@ -353,7 +353,7 @@ class FormWordSlip(models.Model):
     def get_complete_approval(self):
         for r in self:
             r.complete_approval_lv = False
-            if (r.employee_confirm.user_id.id == self.env.user.id or r.employee_approval.user_id.id == self.env.user.id) and r.status != 'sent':
+            if (r.employee_confirm.user_id.id == self.env.user.id or r.employee_approval.user_id.id == self.env.user.id or self.env.user.has_group("sonha_word_slip.group_approve_work")) and r.status != 'sent':
                 r.complete_approval_lv = True
 
     def complete_approval(self):
@@ -389,7 +389,7 @@ class FormWordSlip(models.Model):
     @api.depends('employee_confirm')
     def get_button_confirm(self):
         for r in self:
-            if r.employee_confirm and r.employee_confirm.user_id.id == self.env.user.id and r.status_lv2 == 'draft':
+            if r.employee_confirm and (r.employee_confirm.user_id.id == self.env.user.id or self.env.user.has_group("sonha_word_slip.group_approve_work")) and r.status_lv2 == 'draft':
                 r.button_confirm = True
             else:
                 r.button_confirm = False
@@ -398,7 +398,7 @@ class FormWordSlip(models.Model):
     def get_button_done(self):
         for record in self:
             record.button_done = False
-            if record.employee_approval and record.employee_approval.user_id.id == self.env.user.id:
+            if (record.employee_approval and record.employee_approval.user_id.id == self.env.user.id) or self.env.user.has_group("sonha_word_slip.group_approve_work"):
                 if record.check_level and record.status_lv2 == 'confirm':
                     record.button_done = True
                 elif not record.check_level and record.status_lv1 == 'draft':
@@ -406,7 +406,7 @@ class FormWordSlip(models.Model):
 
     def action_confirm(self):
         for r in self:
-            if r.employee_confirm.user_id.id == self.env.user.id:
+            if r.employee_confirm.user_id.id == self.env.user.id or self.env.user.has_group("sonha_word_slip.group_approve_work"):
                 r.status_lv2 = 'confirm'
                 r.button_confirm = False
                 template = self.env.ref('sonha_word_slip.template_sent_mail_manager_slip')
@@ -417,7 +417,8 @@ class FormWordSlip(models.Model):
     def action_approval(self):
         for r in self:
             if r.employee_approval.user_id.id != self.env.user.id:
-                raise ValidationError("Bạn không có quyền thực hiện hành động này")
+                if not self.env.user.has_group("sonha_word_slip.group_approve_work"):
+                    raise ValidationError("Bạn không có quyền thực hiện hành động này")
 
             prev_status = r.status
             # Xác định cấp duyệt

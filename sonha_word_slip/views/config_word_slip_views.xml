@@ -12,6 +12,7 @@
                 <field name="fine"/>
                 <field name="company_id" widget="many2many_tags"/>
                 <field name="key" groups="sonha_employee.group_back_up_employee"/>
+                <field name="sunday_count" groups="sonha_employee.group_back_up_employee"/>
             </tree>
         </field>
     </record>
