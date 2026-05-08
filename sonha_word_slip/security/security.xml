@@ -16,6 +16,11 @@
         <field name="category_id" ref="sonha_work_cat_security"/>
     </record>
 
+    <record id="group_approve_work" model="res.groups">
+        <field name="name">Quyền duyệt/hoàn duyệt</field>
+        <field name="category_id" ref="sonha_work_cat_security"/>
+    </record>
+
 <!--    record rule đơn từ-->
     <record id="rule_user_form_word_slip" model="ir.rule">
         <field name="name">Rule user form word slip</field>

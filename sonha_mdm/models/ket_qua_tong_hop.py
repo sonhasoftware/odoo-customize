@@ -21,4 +21,5 @@ class KetQuaTongHop(models.Model):
     do_bong = fields.Text(related='record.do_bong.ten', string="Độ bóng")
     do_day = fields.Text(related='record.do_day.ten', string="Độ dày")
     dung_tich = fields.Text(related='record.dung_tich.ten', string="Dung tích")
+    ma_tg = fields.Char(related='record.ma_tg', string="Mã TG")
 

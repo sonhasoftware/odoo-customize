@@ -42,6 +42,7 @@
                     <page string="Dữ liệu so sánh">
                         <field name="so_sanh">
                         <tree default_order="score desc">
+                            <field name="ma_tg"/>
                             <field name="ten"/>
                             <field name="chung_loai1"/>
                             <field name="chung_loai2"/>
@@ -111,7 +112,7 @@
         <field name="name">mdm.tong.hop.tree</field>
         <field name="model">mdm.tong.hop</field>
         <field name="arch" type="xml">
-            <tree string="MDM Hàng hóa">
+            <tree string="MDM Hàng hóa" default_order="create_date desc">
                 <field name="ma_tg" optional="show"/>
                 <field name="mdm_hh_type_id" optional="show"/>
                 <field name="mdm_hh_type" optional="show"/>

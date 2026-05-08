@@ -470,7 +470,7 @@ class EmployeeAttendance(models.Model):
         for r in self:
             r.check_no_in = None
             r.check_no_out = None
-            if r.shift:
+            if r.shift and r.shift.start and r.shift.end_shift:
                 time_ci = (r.shift.start + timedelta(hours=7)).time()
                 time_co = (r.shift.end_shift + timedelta(hours=7)).time()
                 date = r.date

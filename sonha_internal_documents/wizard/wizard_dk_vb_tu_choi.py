@@ -111,17 +111,17 @@ class WizardDKVBTuChoi(models.TransientModel):
             return {"error": str(e)}
 
     def noti_user_reject(self, record, employee_id):
-        employee_id = self.env['hr.employee'].sudo().search([('id', '=', employee_id.id)])
-        data_text = str(record.id) + "#" + str(employee_id.user_id.id) + "#" + str(employee_id.id) + "#" + str(
-            record.chung_tu) + "#6#" + str(employee_id.user_id.name)
-        self.send_fcm_notification(
-            title="Sơn Hà Văn Bản",
-            content="Văn bản " + str(record.chung_tu) + " đã bị từ chối!",
-            token=employee_id.user_id.token,
-            user_id=employee_id.user_id.id,
-            type=7,
-            employee_id=employee_id.id,
-            application_id=str(record.id),
-            data_text=data_text
-        )
-
+        pass
+        # employee_id = self.env['hr.employee'].sudo().search([('id', '=', employee_id.id)])
+        # data_text = str(record.id) + "#" + str(employee_id.user_id.id) + "#" + str(employee_id.id) + "#" + str(
+        #     record.chung_tu) + "#6#" + str(employee_id.user_id.name)
+        # self.send_fcm_notification(
+        #     title="Sơn Hà Văn Bản",
+        #     content="Văn bản " + str(record.chung_tu) + " đã bị từ chối!",
+        #     token=employee_id.user_id.token,
+        #     user_id=employee_id.user_id.id,
+        #     type=7,
+        #     employee_id=employee_id.id,
+        #     application_id=str(record.id),
+        #     data_text=data_text
+        # )

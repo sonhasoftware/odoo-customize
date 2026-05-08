@@ -4,7 +4,7 @@
         <field name="name">dk.vb.h.tree</field>
         <field name="model">dk.vb.h</field>
         <field name="arch" type="xml">
-            <tree string="Luồng xử lý văn bản">
+            <tree string="Luồng xử lý văn bản" default_order="ngay_ct desc">
                 <field name="chung_tu"/>
                 <field name="ngay_ct"/>
                 <field name="ngay_ht"/>
