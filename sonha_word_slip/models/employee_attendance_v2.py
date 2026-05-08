@@ -75,7 +75,7 @@ class EmployeeAttendanceV2(models.Model):
     color = fields.Selection([('red', 'Red'), ('green', 'Green')], string="Màu", compute="_compute_color")
     key = fields.Char("Ký hiệu ca", related="shift.key")
 
-    sunday_work = fields.Float(string="Giờ làm chủ nhật", compute="_get_sunday_work", store=True)
+    sunday_work = fields.Float(string="Giờ làm chủ nhật", compute="_get_sunday_work")
 
     @api.depends('employee_id', 'check_in', 'check_out', 'date')
     def _get_sunday_work(self):
