@@ -113,9 +113,6 @@
         <field name="model">mdm.tong.hop</field>
         <field name="arch" type="xml">
             <tree string="MDM Hàng hóa" default_order="create_date desc">
-                <header>
-                    <button name="action_open_import_wizard" type="object" string="Import Excel" class="btn-primary"/>
-                </header>
                 <field name="ma_tg" optional="show"/>
                 <field name="mdm_hh_type_id" optional="show"/>
                 <field name="mdm_hh_type" optional="show"/>

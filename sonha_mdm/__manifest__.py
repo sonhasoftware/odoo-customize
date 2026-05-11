@@ -27,7 +27,6 @@
         'views/mdm_khu_vuc_views.xml',
         'views/mdm_quan_ly_vung_views.xml',
         'views/mdm_tong_hop_views.xml',
-        'views/mdm_tong_hop_import_wizard_views.xml',
         'views/mdm_khach_hang_views.xml',
         'views/phuong_xa_cu_views.xml',
         'views/quan_huyen_cu_views.xml',
