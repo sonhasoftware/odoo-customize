@@ -184,6 +184,16 @@ class MDMTongHop(models.Model):
     #         if record.nhan_hang and record.key_nhan_hang and record.nhan_hang.key_map != record.key_nhan_hang:
     #             record.nhan_hang = False
 
+
+    def action_open_import_wizard(self):
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Import MDM Hàng hóa',
+            'res_model': 'mdm.tong.hop.import.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+        }
+
     def _normalize_name(self, text):
         text = (text or "").lower()
         text = unicodedata.normalize('NFD', text)
