@@ -16,4 +16,13 @@
             </form>
         </field>
     </record>
+
+
+    <record id="action_mdm_khach_hang_import_wizard" model="ir.actions.act_window">
+        <field name="name">Import khách hàng</field>
+        <field name="res_model">mdm.khach.hang.import.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_mdm_khach_hang_import_wizard_form"/>
+        <field name="target">new</field>
+    </record>
 </odoo>

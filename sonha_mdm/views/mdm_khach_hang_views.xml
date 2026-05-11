@@ -118,9 +118,6 @@
         <field name="model">mdm.khach.hang</field>
         <field name="arch" type="xml">
             <tree string="MDM khách hàng">
-                <header>
-                    <button name="action_open_import_wizard" type="object" string="Import Excel" class="btn-primary"/>
-                </header>
                 <field name="ma_khach"/>
                     <field name="ten_khach"/>
                     <field name="dia_chi_khach"/>

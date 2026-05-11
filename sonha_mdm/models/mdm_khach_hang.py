@@ -330,15 +330,6 @@ class MDMKhachHang(models.Model):
             self.env['ket.qua.khach.hang'].sudo().create(logs)
 
 
-    def action_open_import_wizard(self):
-        return {
-            'type': 'ir.actions.act_window',
-            'name': 'Import khách hàng từ Excel',
-            'res_model': 'mdm.khach.hang.import.wizard',
-            'view_mode': 'form',
-            'target': 'new',
-        }
-
     def action_open_update_popup(self):
         self.ensure_one()
 
