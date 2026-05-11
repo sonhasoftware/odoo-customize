@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_mdm_tong_hop_import_wizard_form" model="ir.ui.view">
+        <field name="name">mdm.tong.hop.import.wizard.form</field>
+        <field name="model">mdm.tong.hop.import.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Import MDM Hàng hóa">
+                <group>
+                    <field name="file_name" invisible="1"/>
+                    <field name="file_data" filename="file_name" required="1"/>
+                </group>
+                <footer>
+                    <button name="action_import" type="object" string="Import" class="btn-primary"/>
+                    <button string="Hủy" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>
