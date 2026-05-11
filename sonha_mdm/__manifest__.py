@@ -35,6 +35,7 @@
         'views/mien_lon_views.xml',
         'views/mien_nho_views.xml',
         'data/cron_job.xml',
+        'wizard/mdm_khach_hang_import_wizard_views.xml',
         'views/menu_views.xml',
     ],
     'assets': {
