@@ -329,6 +329,7 @@ class MDMKhachHang(models.Model):
         if logs:
             self.env['ket.qua.khach.hang'].sudo().create(logs)
 
+
     def action_open_update_popup(self):
         self.ensure_one()
 

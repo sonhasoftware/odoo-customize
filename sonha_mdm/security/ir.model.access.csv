@@ -34,3 +34,4 @@ access_quan_huyen_cu,quan.huyen.cu,model_quan_huyen_cu,,1,1,1,1
 access_tinh_cu,tinh.cu,model_tinh_cu,,1,1,1,1
 access_mdm_plan,mdm.plan,model_mdm_plan,,1,1,1,1
 access_mien_nho,mien.nho,model_mien_nho,,1,1,1,1
+access_mdm_tong_hop_import_wizard,mdm.tong.hop.import.wizard,model_mdm_tong_hop_import_wizard,,1,1,1,1

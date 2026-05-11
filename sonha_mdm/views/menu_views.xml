@@ -9,12 +9,18 @@
               parent="menu_sonha_mdm"
               action="action_mdm_tong_hop"
               sequence="1"/>
+    <menuitem id="menu_mdm_tong_hop_import"
+              name="Import Excel hàng hóa"
+              parent="menu_sonha_mdm"
+              action="sonha_mdm.action_mdm_tong_hop_import_wizard"
+              sequence="2"/>
+
 
     <menuitem id="menu_mdm_khach_hang"
               name="MDM khách hàng"
               parent="menu_sonha_mdm"
               action="action_mdm_khach_hang"
-              sequence="2"/>
+              sequence="3"/>
 
     <menuitem id="menu_mdm_danh_muc"
               name="Danh mục"
