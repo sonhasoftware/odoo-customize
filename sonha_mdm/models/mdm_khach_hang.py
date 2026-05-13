@@ -62,7 +62,7 @@ class MDMKhachHang(models.Model):
             )
 
             rec.can_approve = any(
-                step.ten_nguoi_duyet.id == user.id and not step.da_duyet
+                step.ten_nguoi_duyet and step.ten_nguoi_duyet == user and not step.da_duyet
                 for step in steps
             )
 
@@ -77,7 +77,7 @@ class MDMKhachHang(models.Model):
 
             # tìm dòng của user hiện tại
             my_step = steps.filtered(
-                lambda x: x.ten_nguoi_duyet.id == user.id
+                lambda x: x.ten_nguoi_duyet and x.ten_nguoi_duyet == user
             )[:1]
 
             if not my_step:
@@ -111,7 +111,7 @@ class MDMKhachHang(models.Model):
                         'sequence': step.sequence,
                         'phuong_thuc': step.phuong_thuc,
                         'vai_tro': step.vai_tro.id,
-                        'ten_nguoi_duyet': 2,
+                        'ten_nguoi_duyet': self.env.user.id,
                     }))
                 else:
                     for user in step.ten_nguoi_duyet:
