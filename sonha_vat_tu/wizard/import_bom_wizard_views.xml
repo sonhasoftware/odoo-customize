@@ -7,7 +7,6 @@
             <form string="Import BOM">
                 <sheet>
                     <group>
-                        <field name="company_id" readonly="1" required="1"/>
                         <field name="file_data" filename="file_name" required="1"/>
                         <field name="file_name" invisible="1"/>
                     </group>

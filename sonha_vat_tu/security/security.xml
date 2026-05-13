@@ -221,9 +221,9 @@
         <field name="perm_unlink" eval="True"/>
     </record>
 
-    <record id="rule_bc_tong_hop_vat_tu_ban_cung_ung" model="ir.rule">
+    <record id="rule_du_lieu_tong_hop_vat_tu_ban_cung_ung" model="ir.rule">
         <field name="name">BC tong hop vat tu - Ban cung ung - company scope</field>
-        <field name="model_id" ref="model_bc_tong_hop_vat_tu"/>
+        <field name="model_id" ref="model_du_lieu_tong_hop_vat_tu"/>
         <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
         <field name="groups" eval="[(4, ref('sonha_vat_tu.group_ban_cung_ung_vat_tu'))]"/>
         <field name="perm_read" eval="True"/>
@@ -232,9 +232,9 @@
         <field name="perm_unlink" eval="False"/>
     </record>
 
-    <record id="rule_bc_tong_hop_vat_tu_bo_phan" model="ir.rule">
+    <record id="rule_du_lieu_tong_hop_vat_tu_bo_phan" model="ir.rule">
         <field name="name">BC tong hop vat tu - Bo phan - company scope</field>
-        <field name="model_id" ref="model_bc_tong_hop_vat_tu"/>
+        <field name="model_id" ref="model_du_lieu_tong_hop_vat_tu"/>
         <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
         <field name="groups" eval="[(4, ref('sonha_vat_tu.group_bo_phan_vat_tu'))]"/>
         <field name="perm_read" eval="True"/>
@@ -243,9 +243,9 @@
         <field name="perm_unlink" eval="False"/>
     </record>
 
-    <record id="rule_bc_tong_hop_vat_tu_truong_bo_phan" model="ir.rule">
+    <record id="rule_du_lieu_tong_hop_vat_tu_truong_bo_phan" model="ir.rule">
         <field name="name">BC tong hop vat tu - Truong bo phan - company scope</field>
-        <field name="model_id" ref="model_bc_tong_hop_vat_tu"/>
+        <field name="model_id" ref="model_du_lieu_tong_hop_vat_tu"/>
         <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
         <field name="groups" eval="[(4, ref('sonha_vat_tu.group_truong_bo_phan_vat_tu'))]"/>
         <field name="perm_read" eval="True"/>

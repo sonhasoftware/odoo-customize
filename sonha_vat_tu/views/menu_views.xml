@@ -7,29 +7,29 @@
     <menuitem id="menu_ke_hoach_vat_tu" name="Kế hoạch vật tư"
               parent="menu_ke_hoach_vat_tu_root" sequence="10"/>
     <menuitem id="menu_ke_hoach_vat_tu_b1"
-              name="B1 - Kế hoạch thành phẩm"
+              name="Kế hoạch thành phẩm"
               parent="menu_ke_hoach_vat_tu"
               action="action_ke_hoach_vat_tu_b1" sequence="10"/>
     <menuitem id="menu_ke_hoach_vat_tu_b2"
-              name="B2 - Định mức kỳ"
+              name="Định mức kỳ"
               parent="menu_ke_hoach_vat_tu"
               action="action_dinh_muc" sequence="20"/>
     <menuitem id="menu_ke_hoach_vat_tu_b3"
-              name="B3 - Tính toán vật tư"
+              name="Tính toán vật tư"
               parent="menu_ke_hoach_vat_tu"
               action="action_tinh_toan_vat_tu" sequence="30"/>
     <menuitem id="menu_ke_hoach_vat_tu_b4"
-              name="B4 - Tổng hợp vật tư cần sản xuất"
+              name="Tổng hợp vật tư cần sản xuất"
               parent="menu_ke_hoach_vat_tu"
               action="action_tong_hop_vat_tu" sequence="40"/>
     <menuitem id="menu_ke_hoach_vat_tu_b5"
-              name="B5 - Kế hoạch đặt vật tư"
+              name="Kế hoạch đặt vật tư"
               parent="menu_ke_hoach_vat_tu"
               action="action_kh_dat_vat_tu" sequence="50"/>
-    <menuitem id="menu_bc_tong_hop_vat_tu"
-              name="Báo cáo tổng hợp"
+    <menuitem id="menu_du_lieu_tong_hop_vat_tu"
+              name="Dữ liệu tổng hợp vật tư"
               parent="menu_ke_hoach_vat_tu"
-              action="action_bc_tong_hop_vat_tu" sequence="60"
+              action="action_du_lieu_tong_hop_vat_tu" sequence="60"
               groups="sonha_vat_tu.group_ban_cung_ung_vat_tu,sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"/>
     <menuitem id="menu_danh_muc_root" name="Danh mục"
               parent="menu_ke_hoach_vat_tu_root" sequence="20"/>

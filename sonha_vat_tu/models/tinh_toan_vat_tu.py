@@ -5,19 +5,15 @@ from odoo import fields, models
 class TinhToanVatTu(models.Model):
     _name = 'tinh.toan.vat.tu'
     _inherit = ['mail.thread', 'mail.activity.mixin']
-    _description = 'B3 - Tính toán vật tư'
+    _description = 'Tính toán vật tư'
     _order = 'period_id, ma_sap, month_key, id'
-    _DON_VI_TINH = [
-        ('kg', 'Kg'),
-        ('cai', 'Cái'),
-    ]
 
     period_id = fields.Many2one(
         'ke.hoach.vat.tu', string='Kỳ', ondelete='cascade', index=True)
     ma_sap = fields.Char(string='Mã SAP', index=True)
     ma_effect = fields.Char(string='Mã effect', index=True)
     ten_sap = fields.Char(string='Tên SAP')
-    don_vi_tinh = fields.Selection(_DON_VI_TINH, string='Đơn vị tính')
+    don_vi_tinh = fields.Many2one('uom.uom', string='Đơn vị tính')
     do_day = fields.Float(string='Độ dày', digits=(16, 4))
     kho_1 = fields.Float(string='Khổ 1', digits=(16, 3))
     kho_2 = fields.Float(string='Khổ 2', digits=(16, 3))

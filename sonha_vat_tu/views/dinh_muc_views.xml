@@ -5,7 +5,7 @@
         <field name="name">dinh.muc.tree</field>
         <field name="model">dinh.muc</field>
         <field name="arch" type="xml">
-            <tree string="B2 - Định mức kỳ" create="0">
+            <tree string="Định mức kỳ" create="0">
                 <field name="period_id" required="1"/>
                 <field name="company_id" required="1"/>
                 <field name="ma_sap"/>
@@ -18,8 +18,30 @@
         </field>
     </record>
 
+    <record id="view_dinh_muc_search" model="ir.ui.view">
+        <field name="name">dinh.muc.search</field>
+        <field name="model">dinh.muc</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="period_id"/>
+                <field name="company_id"/>
+                <field name="ma_sap"/>
+                <field name="ten_sap"/>
+                <field name="ma_tp"/>
+                <field name="ma_nvl"/>
+                <field name="month_key"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="group_period" string="Kỳ" context="{'group_by': 'period_id'}"/>
+                    <filter name="group_company" string="Công ty" context="{'group_by': 'company_id'}"/>
+                    <filter name="group_month" string="Tháng" context="{'group_by': 'month_key'}"/>
+                    <filter name="group_sap" string="Mã SAP" context="{'group_by': 'ma_sap'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
     <record id="action_dinh_muc" model="ir.actions.act_window">
-        <field name="name">B2 - Định mức kỳ</field>
+        <field name="name">Định mức kỳ</field>
         <field name="res_model">dinh.muc</field>
         <field name="view_mode">tree</field>
         <field name="view_id" ref="view_dinh_muc_tree"/>

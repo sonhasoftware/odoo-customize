@@ -5,12 +5,8 @@ from odoo import fields, models
 class TongHopVatTu(models.Model):
     _name = 'tong.hop.vat.tu'
     _inherit = ['mail.thread', 'mail.activity.mixin']
-    _description = 'B4 - Tổng hợp vật tư cần sản xuất'
+    _description = 'Tổng hợp vật tư cần sản xuất'
     _order = 'period_id, company_id, ma_sap, month_key, id'
-    _DON_VI_TINH = [
-        ('kg', 'Kg'),
-        ('cai', 'Cái'),
-    ]
 
     period_id = fields.Many2one(
         'ke.hoach.vat.tu', string='Kỳ', ondelete='cascade', index=True)
@@ -19,7 +15,7 @@ class TongHopVatTu(models.Model):
     ma_dat_hang = fields.Char(string='Mã đặt hàng', index=True)
     ma_sap = fields.Char(string='Mã SAP', index=True)
     chung_loai = fields.Char(string='Chủng loại')
-    don_vi_tinh = fields.Selection(_DON_VI_TINH, string='ĐVT')
+    don_vi_tinh = fields.Many2one('uom.uom', string='ĐVT')
     month_key = fields.Char(string='Tháng', index=True)
 
     ton_dau = fields.Float(string='Tổng tồn đầu', digits=(16, 3))

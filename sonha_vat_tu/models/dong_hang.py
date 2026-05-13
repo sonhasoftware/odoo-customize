@@ -4,8 +4,7 @@ from odoo import fields, models
 
 class DongHang(models.Model):
     _name = 'dong.hang'
-    _table = 'vtc_dong_hang'
-    _description = 'Danh mục dòng hàng B1'
+    _description = 'Danh mục dòng hàng'
     _rec_name = 'name'
     _order = 'code, name'
 

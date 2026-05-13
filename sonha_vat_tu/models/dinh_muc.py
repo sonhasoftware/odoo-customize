@@ -5,7 +5,7 @@ from odoo import fields, models
 class DinhMuc(models.Model):
     _name = 'dinh.muc'
     _inherit = ['mail.thread', 'mail.activity.mixin']
-    _description = 'B2 - Định mức tháng'
+    _description = 'Định mức tháng'
     _order = 'period_id, company_id, month_key, ma_tp, id'
 
     period_id = fields.Many2one(

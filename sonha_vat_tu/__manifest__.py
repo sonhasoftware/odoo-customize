@@ -9,7 +9,7 @@
     """,
     'author': 'Sơn Hà',
     'website': 'https://sonha.com.vn',
-    'depends': ['base', 'mail', 'hr'],
+    'depends': ['base', 'mail', 'hr', 'uom'],
     'data': [
         'security/security.xml',
         'security/ir.model.access.csv',
@@ -24,7 +24,7 @@
         'views/kh_dat_vat_tu_views.xml',
         'views/vat_tu_di_duong_views.xml',
         'views/ke_hoach_vat_tu_views.xml',
-        'views/bc_tong_hop_vat_tu_views.xml',
+        'views/du_lieu_tong_hop_vat_tu_views.xml',
         'views/menu_views.xml',
         'data/demo_data.xml',
     ],

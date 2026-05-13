@@ -27,28 +27,26 @@ class KeHoachVatTu(models.Model):
     ], default='ke_hoach', tracking=True, string='Trạng thái')
     note = fields.Text(string='Ghi chú')
 
-    # Tham số ước lượng số ngày trong công thức chia cho (28 × ngày). Hai bước độc lập:
-    # B4: dự phòng; B5: dự trữ (Excel thường dùng 15 vs 20). Có thể chỉnh theo từng kỳ.
     ngay_du_phong_b4 = fields.Float(
-        string='Số ngày (B4 - dự phòng)',
+        string='Số ngày (dự phòng)',
         default=15.0,
         digits=(16, 2),
         help='Dùng cho B4: số lượng dự phòng = VT cần dùng ÷ (28 × số ngày này).',
         tracking=True,
     )
     ngay_du_tru_b5 = fields.Float(
-        string='Số ngày (B5 - dự trữ)',
+        string='Số ngày (dự trữ)',
         default=20.0,
         digits=(16, 2),
         help='Dùng cho B5: số lượng dự trữ tối thiểu = VT cần dùng ÷ (28 × số ngày này).',
         tracking=True,
     )
 
-    ke_hoach_thanh_pham_ids = fields.One2many('ke.hoach.thanh.pham', 'period_id', string='B1 - KH thành phẩm')
-    dinh_muc_ids = fields.One2many('dinh.muc', 'period_id', string='B2 - Định mức tháng')
-    tinh_toan_vat_tu_ids = fields.One2many('tinh.toan.vat.tu', 'period_id', string='B3 - Tính toán vật tư')
-    tong_hop_vat_tu_ids = fields.One2many('tong.hop.vat.tu', 'period_id', string='B4 - Tổng hợp vật tư')
-    kh_dat_vat_tu_ids = fields.One2many('kh.dat.vat.tu', 'period_id', string='B5 - Kế hoạch đặt vật tư')
+    ke_hoach_thanh_pham_ids = fields.One2many('ke.hoach.thanh.pham', 'period_id', string='KH thành phẩm')
+    dinh_muc_ids = fields.One2many('dinh.muc', 'period_id', string='Định mức tháng')
+    tinh_toan_vat_tu_ids = fields.One2many('tinh.toan.vat.tu', 'period_id', string='Tính toán vật tư')
+    tong_hop_vat_tu_ids = fields.One2many('tong.hop.vat.tu', 'period_id', string='Tổng hợp vật tư')
+    kh_dat_vat_tu_ids = fields.One2many('kh.dat.vat.tu', 'period_id', string='Kế hoạch đặt vật tư')
 
     ke_hoach_thanh_pham_count = fields.Integer(compute='_compute_counts')
     dinh_muc_count = fields.Integer(compute='_compute_counts')
@@ -121,7 +119,7 @@ class KeHoachVatTu(models.Model):
             ) % fn_name)
         self.env.cr.execute('SELECT %s(%%s)' % fn_name, (self.id,))
 
-    def _run_db_or_demo(self, fn_name, demo_method_name):
+    def _run_db_or_python(self, fn_name, python_method_name):
         self.ensure_one()
         self.env.cr.execute(
             "SELECT routine_name FROM information_schema.routines "
@@ -130,9 +128,9 @@ class KeHoachVatTu(models.Model):
         if self.env.cr.fetchone():
             self.env.cr.execute('SELECT %s(%%s)' % fn_name, (self.id,))
             return
-        getattr(self, demo_method_name)()
+        getattr(self, python_method_name)()
 
-    def _generate_b2_demo(self):
+    def _generate_b2(self):
         self.ensure_one()
         Bom = self.env['bom'].sudo()
         DinhMuc = self.env['dinh.muc'].sudo()
@@ -141,11 +139,12 @@ class KeHoachVatTu(models.Model):
         for line in self.ke_hoach_thanh_pham_ids:
             if not line.ma_sap:
                 continue
-            bom_lines = Bom.search([
-                ('company_id', '=', line.company_id.id),
-                ('ma_tp', '=', line.ma_sap),
-            ])
+            domain = [('ma_tp', '=', line.ma_sap)]
+            if line.ma_bom:
+                domain.append(('ma_bom', '=', line.ma_bom))
+            bom_lines = Bom.search(domain)
             for bom_line in bom_lines:
+                sl_spdm = bom_line.sl_spdm if bom_line.sl_spdm else 1.0
                 vals_list.append({
                     'period_id': self.id,
                     'company_id': line.company_id.id,
@@ -154,21 +153,24 @@ class KeHoachVatTu(models.Model):
                     'ma_tp': bom_line.ma_tp,
                     'ma_nvl': bom_line.ma_nvl,
                     'month_key': line.month_key,
-                    'qty': (line.qty or 0.0) * (bom_line.sl_dinh_muc or 0.0),
+                    'qty': ((line.qty or 0.0) / sl_spdm) * (bom_line.sl_dinh_muc or 0.0),
                 })
         if vals_list:
             DinhMuc.create(vals_list)
 
-    def _compute_b3_demo(self):
+    def _compute_b3(self):
         self.ensure_one()
         Bom = self.env['bom'].sudo()
         B3 = self.env['tinh.toan.vat.tu'].sudo()
         self.tinh_toan_vat_tu_ids.unlink()
+        
+        uom_kg = self.env.ref('uom.product_uom_kgm', raise_if_not_found=False)
+        uom_kg_id = uom_kg.id if uom_kg else False
+        
         vals_list = []
         density = 7.63  # theo file Excel: nhân 7.63 rồi chia 1,000,000
         for b2 in self.dinh_muc_ids:
             bom_line = Bom.search([
-                ('company_id', '=', b2.company_id.id),
                 ('ma_tp', '=', b2.ma_tp),
                 ('ma_nvl', '=', b2.ma_nvl),
             ], limit=1)
@@ -183,7 +185,7 @@ class KeHoachVatTu(models.Model):
                 'ma_sap': b2.ma_sap,
                 'ma_effect': b2.ma_nvl or (bom_line.ma_nvl if bom_line else False),
                 'ten_sap': b2.ten_sap,
-                'don_vi_tinh': 'kg',
+                'don_vi_tinh': uom_kg_id,
                 'do_day': do_day,
                 'kho_1': kho_1,
                 'kho_2': kho_2,
@@ -195,7 +197,7 @@ class KeHoachVatTu(models.Model):
         if vals_list:
             B3.create(vals_list)
 
-    def _compute_b4_demo(self):
+    def _compute_b4(self):
         self.ensure_one()
         B4 = self.env['tong.hop.vat.tu'].sudo()
         VatDuong = self.env['vat.tu.di.duong'].sudo()
@@ -225,45 +227,71 @@ class KeHoachVatTu(models.Model):
         # Cache đơn giá tồn kho từ SAP: key = material_code
         don_gia_cache = {}
 
+        uom_kg = self.env.ref('uom.product_uom_kgm', raise_if_not_found=False)
+        uom_kg_id = uom_kg.id if uom_kg else False
+
         vals_list = []
         for (material_key, month_key), demand_qty in sorted_keys:
             company_id, ma_sap, material_code = material_key[0], material_key[1], material_key[2]
             demand_qty = grouped[(material_key, month_key)]
             cache_key = (company_id, material_code)
 
+            # --- Logic Mapping Chi Nhánh ---
+            company = self.env['res.company'].sudo().browse(company_id)
+            comp_code = company.company_code
+            chi_nhanh_pattern = '%'
+            if comp_code == 'BNH':
+                chi_nhanh_pattern = '21%'
+            elif comp_code == 'SSP':
+                chi_nhanh_pattern = '22%'
+
             # --- Tồn đầu: cuốn chiếu ---
             if cache_key in ton_cuoi_cache:
                 # Tháng tiếp: tồn đầu = tồn cuối tháng trước
                 ton_dau = ton_cuoi_cache[cache_key]
             else:
-                # Tháng đầu: lấy từ SAP
+                # Tháng đầu: lấy tổng tồn kho từ các chi nhánh thuộc công ty (SAP)
                 ton_dau = 0.0
                 if material_code:
                     self.env.cr.execute("""
-                        SELECT safe_sap_numeric(ton_dau)
-                        FROM md_sap_ton_kho
-                        WHERE TRIM(ma_hang) = %s
-                        ORDER BY create_date DESC LIMIT 1
-                    """, (material_code,))
+                        SELECT SUM(ton_cuoi)
+                        FROM (
+                            SELECT DISTINCT ON (chi_nhanh) safe_sap_numeric(ton_cuoi) as ton_cuoi
+                            FROM md_sap_ton_kho
+                            WHERE TRIM(ma_hang) = %s AND chi_nhanh LIKE %s
+                            ORDER BY chi_nhanh, create_date DESC
+                        ) t
+                    """, (material_code, chi_nhanh_pattern))
                     row = self.env.cr.fetchone()
                     if row and row[0]:
                         ton_dau = float(row[0])
 
             # --- Đơn giá tồn kho từ SAP (cache lần đầu) ---
-            if material_code not in don_gia_cache:
+            # Cache key sửa lại phải có chi_nhanh_pattern vì các công ty khác nhau lấy tồn kho khác nhau
+            dg_cache_key = (material_code, chi_nhanh_pattern)
+            if dg_cache_key not in don_gia_cache:
                 don_gia = 0.0
                 if material_code:
                     self.env.cr.execute("""
-                        SELECT safe_sap_numeric(tien_ton_dau),
-                               safe_sap_numeric(ton_dau)
-                        FROM md_sap_ton_kho
-                        WHERE TRIM(ma_hang) = %s
-                        ORDER BY create_date DESC LIMIT 1
-                    """, (material_code,))
+                        SELECT SUM(tien_ton_cuoi), SUM(ton_cuoi), SUM(tien_ton_dau), SUM(ton_dau)
+                        FROM (
+                            SELECT DISTINCT ON (chi_nhanh)
+                                   safe_sap_numeric(tien_ton_cuoi) as tien_ton_cuoi,
+                                   safe_sap_numeric(ton_cuoi) as ton_cuoi,
+                                   safe_sap_numeric(tien_ton_dau) as tien_ton_dau,
+                                   safe_sap_numeric(ton_dau) as ton_dau
+                            FROM md_sap_ton_kho
+                            WHERE TRIM(ma_hang) = %s AND chi_nhanh LIKE %s
+                            ORDER BY chi_nhanh, create_date DESC
+                        ) t
+                    """, (material_code, chi_nhanh_pattern))
                     row = self.env.cr.fetchone()
-                    if row and row[1] and float(row[1]) != 0:
-                        don_gia = float(row[0]) / float(row[1])
-                don_gia_cache[material_code] = don_gia
+                    if row:
+                        if row[1] and float(row[1]) != 0:
+                            don_gia = float(row[0]) / float(row[1])
+                        elif row[3] and float(row[3]) != 0:
+                            don_gia = float(row[2]) / float(row[3])
+                don_gia_cache[dg_cache_key] = don_gia
 
             # --- Vật tư đi đường ---
             ve_du_kien = 0.0
@@ -292,7 +320,7 @@ class KeHoachVatTu(models.Model):
                 'ma_dat_hang': material_code,
                 'ma_sap': ma_sap,
                 'chung_loai': material_code,
-                'don_vi_tinh': 'kg',
+                'don_vi_tinh': uom_kg_id,
                 'month_key': month_key,
                 'ton_dau': ton_dau,
                 've_du_kien': ve_du_kien,
@@ -305,7 +333,7 @@ class KeHoachVatTu(models.Model):
         if vals_list:
             B4.create(vals_list)
 
-    def _compute_b5_demo(self):
+    def _compute_b5(self):
         self.ensure_one()
         B5 = self.env['kh.dat.vat.tu'].sudo()
         self.kh_dat_vat_tu_ids.unlink()
@@ -316,6 +344,9 @@ class KeHoachVatTu(models.Model):
         # Cache đơn giá tồn kho từ SAP
         don_gia_cache = {}
 
+        uom_kg = self.env.ref('uom.product_uom_kgm', raise_if_not_found=False)
+        uom_kg_id = uom_kg.id if uom_kg else False
+
         vals_list = []
         for b4 in self.tong_hop_vat_tu_ids:
             vt_can_dung = b4.vt_can_dung or 0.0
@@ -324,21 +355,41 @@ class KeHoachVatTu(models.Model):
             so_luong_can_mua = b4.so_luong_can_mua or 0.0
             material_code = b4.ma_dat_hang or b4.ma_sap
 
+            # Mapping chi nhánh tương tự B4
+            company = self.env['res.company'].sudo().browse(b4.company_id.id)
+            comp_code = company.company_code
+            chi_nhanh_pattern = '%'
+            if comp_code == 'BNH':
+                chi_nhanh_pattern = '21%'
+            elif comp_code == 'SSP':
+                chi_nhanh_pattern = '22%'
+
+            dg_cache_key = (material_code, chi_nhanh_pattern)
+
             # Lấy đơn giá tồn kho từ SAP (cache)
-            if material_code not in don_gia_cache:
+            if dg_cache_key not in don_gia_cache:
                 don_gia = 0.0
                 if material_code:
                     self.env.cr.execute("""
-                        SELECT safe_sap_numeric(tien_ton_dau),
-                               safe_sap_numeric(ton_dau)
-                        FROM md_sap_ton_kho
-                        WHERE TRIM(ma_hang) = %s
-                        ORDER BY create_date DESC LIMIT 1
-                    """, (material_code,))
+                        SELECT SUM(tien_ton_cuoi), SUM(ton_cuoi), SUM(tien_ton_dau), SUM(ton_dau)
+                        FROM (
+                            SELECT DISTINCT ON (chi_nhanh)
+                                   safe_sap_numeric(tien_ton_cuoi) as tien_ton_cuoi,
+                                   safe_sap_numeric(ton_cuoi) as ton_cuoi,
+                                   safe_sap_numeric(tien_ton_dau) as tien_ton_dau,
+                                   safe_sap_numeric(ton_dau) as ton_dau
+                            FROM md_sap_ton_kho
+                            WHERE TRIM(ma_hang) = %s AND chi_nhanh LIKE %s
+                            ORDER BY chi_nhanh, create_date DESC
+                        ) t
+                    """, (material_code, chi_nhanh_pattern))
                     row = self.env.cr.fetchone()
-                    if row and row[1] and float(row[1]) != 0:
-                        don_gia = float(row[0]) / float(row[1])
-                don_gia_cache[material_code] = don_gia
+                    if row:
+                        if row[1] and float(row[1]) != 0:
+                            don_gia = float(row[0]) / float(row[1])
+                        elif row[3] and float(row[3]) != 0:
+                            don_gia = float(row[2]) / float(row[3])
+                don_gia_cache[dg_cache_key] = don_gia
 
             vals_list.append({
                 'period_id': self.id,
@@ -347,38 +398,38 @@ class KeHoachVatTu(models.Model):
                 'ma_sap': b4.ma_sap,
                 'ma_effect': b4.ma_dat_hang or b4.ma_sap,
                 'chung_loai': b4.chung_loai,
-                'don_vi_tinh': b4.don_vi_tinh or 'kg',
+                'don_vi_tinh': b4.don_vi_tinh.id if b4.don_vi_tinh else uom_kg_id,
                 'tong_ton_nvl_sl': b4.ton_dau,
                 'tong_hang_di_duong_sl': b4.ve_du_kien,
                 'tong_sl_vt_can_dung': b4.vt_can_dung,
                 'sl_du_tru_toi_thieu': sl_du_tru_toi_thieu,
                 'sl_can_mua_theo_moq': False,
-                'don_gia_ton_kho': don_gia_cache.get(material_code, 0.0),
+                'don_gia_ton_kho': don_gia_cache.get(dg_cache_key, 0.0),
             })
         if vals_list:
             B5.create(vals_list)
 
     def action_generate_b2(self):
         self.ensure_one()
-        self._generate_b2_demo()
+        self._generate_b2()
         self.state = 'dinh_muc'
         return self.action_open_step_b2()
 
     def action_compute_b3(self):
         self.ensure_one()
-        self._run_db_or_demo('fn_vtc_compute_b3', '_compute_b3_demo')
+        self._run_db_or_python('fn_vtc_compute_b3', '_compute_b3')
         self.state = 'tinh_toan'
         return self.action_open_step_b3()
 
     def action_compute_b4(self):
         self.ensure_one()
-        self._run_db_or_demo('fn_vtc_compute_b4', '_compute_b4_demo')
+        self._run_db_or_python('fn_vtc_compute_b4', '_compute_b4')
         self.state = 'tong_hop'
         return self.action_open_step_b4()
 
     def action_compute_b5(self):
         self.ensure_one()
-        self._run_db_or_demo('fn_vtc_compute_b5', '_compute_b5_demo')
+        self._run_db_or_python('fn_vtc_compute_b5', '_compute_b5')
         self.state = 'dat_hang'
         return self.action_open_step_b5()
 
@@ -395,7 +446,7 @@ class KeHoachVatTu(models.Model):
         self.ensure_one()
         return {
             'type': 'ir.actions.act_url',
-            'url': '/sonha_vat_tu/static/xls/ke_hoach_vat_tu_templates.xlsx',
+            'url': '/sonha_vat_tu/static/xls/ke_hoach_vat_tu_template.xlsx',
             'target': 'self',
         }
 

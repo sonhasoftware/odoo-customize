@@ -11,6 +11,17 @@
         </field>
     </record>
 
+    <record id="view_nganh_hang_search" model="ir.ui.view">
+        <field name="name">nganh.hang.search</field>
+        <field name="model">nganh.hang</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="code"/>
+                <field name="name"/>
+            </search>
+        </field>
+    </record>
+
     <record id="action_nganh_hang" model="ir.actions.act_window">
         <field name="name">Ngành hàng</field>
         <field name="res_model">nganh.hang</field>
@@ -26,6 +37,21 @@
                 <field name="name" required="1"/>
                 <field name="nganh_hang_id"/>
             </tree>
+        </field>
+    </record>
+
+    <record id="view_dong_hang_search" model="ir.ui.view">
+        <field name="name">dong.hang.search</field>
+        <field name="model">dong.hang</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="nganh_hang_id"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="group_nganh" string="Ngành hàng" context="{'group_by': 'nganh_hang_id'}"/>
+                </group>
+            </search>
         </field>
     </record>
 
@@ -47,6 +73,23 @@
                 <field name="nganh_hang_id"/>
                 <field name="dong_hang_id"/>
             </tree>
+        </field>
+    </record>
+
+    <record id="view_ma_hang_search" model="ir.ui.view">
+        <field name="name">ma.hang.search</field>
+        <field name="model">ma.hang</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="code"/>
+                <field name="ma_sap"/>
+                <field name="ma_nvl"/>
+                <field name="ten_nvl"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="group_nganh" string="Ngành hàng" context="{'group_by': 'nganh_hang_id'}"/>
+                    <filter name="group_dong" string="Dòng hàng" context="{'group_by': 'dong_hang_id'}"/>
+                </group>
+            </search>
         </field>
     </record>
 

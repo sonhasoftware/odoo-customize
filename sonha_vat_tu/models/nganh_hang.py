@@ -4,8 +4,7 @@ from odoo import fields, models
 
 class NganhHang(models.Model):
     _name = 'nganh.hang'
-    _table = 'vtc_nganh_hang'
-    _description = 'Danh mục ngành hàng B1'
+    _description = 'Danh mục ngành hàng'
     _rec_name = 'name'
     _order = 'code, name'
 

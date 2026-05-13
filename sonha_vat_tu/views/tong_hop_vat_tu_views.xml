@@ -5,7 +5,7 @@
         <field name="name">tong.hop.vat.tu.tree</field>
         <field name="model">tong.hop.vat.tu</field>
         <field name="arch" type="xml">
-            <tree string="B4 - Tổng hợp vật tư cần sản xuất" create="0" class="sh_free_width_tree">
+            <tree string="Tổng hợp vật tư cần sản xuất" create="0" class="sh_free_width_tree">
                 <field name="period_id" required="1"/>
                 <field name="company_id" required="1"/>
                 <field name="ma_dat_hang"/>
@@ -29,7 +29,7 @@
         <field name="name">tong.hop.vat.tu.form</field>
         <field name="model">tong.hop.vat.tu</field>
         <field name="arch" type="xml">
-            <form string="B4 - Tổng hợp vật tư cần sản xuất">
+            <form string="Tổng hợp vật tư cần sản xuất">
                 <sheet>
                     <group>
                         <group>
@@ -88,7 +88,7 @@
     </record>
 
     <record id="action_tong_hop_vat_tu" model="ir.actions.act_window">
-        <field name="name">B4 - Tổng hợp vật tư cần sản xuất</field>
+        <field name="name">Tổng hợp vật tư cần sản xuất</field>
         <field name="res_model">tong.hop.vat.tu</field>
         <field name="view_mode">tree,form</field>
         <field name="views" eval="[(ref('view_tong_hop_vat_tu_tree'), 'tree'), (ref('view_tong_hop_vat_tu_form'), 'form')]"/>

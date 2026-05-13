@@ -10,4 +10,4 @@ from . import tinh_toan_vat_tu
 from . import tong_hop_vat_tu
 from . import kh_dat_vat_tu
 from . import vat_tu_di_duong
-from . import bc_tong_hop_vat_tu
+from . import du_lieu_tong_hop_vat_tu

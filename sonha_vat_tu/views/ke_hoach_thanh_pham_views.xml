@@ -5,12 +5,11 @@
         <field name="name">ke.hoach.thanh.pham.tree</field>
         <field name="model">ke.hoach.thanh.pham</field>
         <field name="arch" type="xml">
-            <tree string="B1 - Kế hoạch thành phẩm" editable="bottom">
+            <tree string="Kế hoạch thành phẩm" editable="bottom">
                 <field name="period_id" required="1"/>
                 <field name="nganh_hang_id"/>
                 <field name="dong_hang_id"/>
                 <field name="ma_hang_id" options="{'no_create': True}"/>
-                <field name="ma_hang"/>
                 <field name="ma_sap" readonly="1" required="1"/>
                 <field name="month_key" required="1"/>
                 <field name="qty" sum="SL"/>
@@ -25,7 +24,7 @@
             <search>
                 <field name="period_id"/>
                 <field name="ma_sap"/>
-                <field name="ma_hang"/>
+                <field name="ma_bom"/>
                 <field name="company_id"/>
                 <field name="nganh_hang_id"/>
                 <field name="dong_hang_id"/>
@@ -46,7 +45,7 @@
     </record>
 
     <record id="action_ke_hoach_thanh_pham" model="ir.actions.act_window">
-        <field name="name">B1 - Kế hoạch thành phẩm</field>
+        <field name="name">Kế hoạch thành phẩm</field>
         <field name="res_model">ke.hoach.thanh.pham</field>
         <field name="view_mode">tree</field>
         <field name="search_view_id" ref="view_ke_hoach_thanh_pham_search"/>

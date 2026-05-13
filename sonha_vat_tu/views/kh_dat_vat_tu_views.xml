@@ -5,7 +5,7 @@
         <field name="name">kh.dat.vat.tu.tree</field>
         <field name="model">kh.dat.vat.tu</field>
         <field name="arch" type="xml">
-            <tree string="B5 - Kế hoạch đặt vật tư" editable="bottom" class="sh_free_width_tree">
+            <tree string="Kế hoạch đặt vật tư" editable="bottom" class="sh_free_width_tree">
                 <field name="period_id" required="1"/>
                 <field name="company_id" required="1"/>
                 <field name="month_key" required="1"/>
@@ -33,7 +33,7 @@
         <field name="name">kh.dat.vat.tu.form</field>
         <field name="model">kh.dat.vat.tu</field>
         <field name="arch" type="xml">
-            <form string="B5 - Kế hoạch đặt vật tư">
+            <form string="Kế hoạch đặt vật tư">
                 <sheet>
                     <group>
                         <group>
@@ -96,7 +96,7 @@
     </record>
 
     <record id="action_kh_dat_vat_tu" model="ir.actions.act_window">
-        <field name="name">B5 - Kế hoạch đặt vật tư</field>
+        <field name="name">Kế hoạch đặt vật tư</field>
         <field name="res_model">kh.dat.vat.tu</field>
         <field name="view_mode">tree,form</field>
         <field name="views" eval="[(ref('view_kh_dat_vat_tu_tree'), 'tree'), (ref('view_kh_dat_vat_tu_form'), 'form')]"/>

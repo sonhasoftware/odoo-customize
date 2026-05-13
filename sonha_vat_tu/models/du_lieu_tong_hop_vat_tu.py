@@ -6,21 +6,21 @@ from psycopg2 import sql
 from odoo import _, api, fields, models
 
 
-class BcTongHopVatTu(models.Model):
+class DuLieuTongHopVatTu(models.Model):
     """Bảng phẳng phục vụ báo cáo: đồng bộ từ B1–B5 qua trigger PostgreSQL.
     """
-    _name = 'bc.tong.hop.vat.tu'
-    _description = 'Báo cáo tổng hợp'
+    _name = 'du.lieu.tong.hop.vat.tu'
+    _description = 'Dữ liệu tổng hợp vật tư'
     _order = 'step_code, period_id, month_key, ma_sap, id'
     _rec_name = 'display_name'
 
     step_code = fields.Selection(
         [
-            ('b1', 'B1 - Kế hoạch thành phẩm'),
-            ('b2', 'B2 - Định mức kỳ'),
-            ('b3', 'B3 - Tính toán vật tư'),
-            ('b4', 'B4 - Tổng hợp vật tư'),
-            ('b5', 'B5 - Kế hoạch đặt vật tư'),
+            ('b1', 'Kế hoạch thành phẩm'),
+            ('b2', 'Định mức kỳ'),
+            ('b3', 'Tính toán vật tư'),
+            ('b4', 'Tổng hợp vật tư'),
+            ('b5', 'Kế hoạch đặt vật tư'),
         ],
         string='Bước',
         index=True,
@@ -36,24 +36,23 @@ class BcTongHopVatTu(models.Model):
     month_key = fields.Char(string='Tháng', index=True, readonly=True)
     ma_sap = fields.Char(string='Mã SAP', index=True, readonly=True)
 
-    # --- B1 ---
+    # --- --
     nganh_hang_id = fields.Many2one('nganh.hang', string='Ngành hàng', readonly=True)
     dong_hang_id = fields.Many2one('dong.hang', string='Dòng hàng', readonly=True)
     ma_hang_id = fields.Many2one('ma.hang', string='Mã hàng', readonly=True)
-    ma_hang = fields.Char(string='Mã hàng (text)', readonly=True)
 
     qty = fields.Float(string='Số lượng (B1/B2/B3)', digits=(16, 4), readonly=True)
     note = fields.Char(string='Ghi chú (B1)', readonly=True)
 
-    # --- B2 ---
+    # --- --
     ma_tp = fields.Char(string='Mã thành phẩm', readonly=True)
     ten_sap = fields.Char(string='Tên SAP', readonly=True)
     ma_nvl = fields.Char(string='Mã NVL', readonly=True)
 
     # --- B3 (+ chồng tên với B2 khi cùng bước không xảy ra) ---
     ma_effect = fields.Char(string='Mã effect', readonly=True)
-    don_vi_tinh = fields.Selection(
-        [('kg', 'Kg'), ('cai', 'Cái')],
+    don_vi_tinh = fields.Many2one(
+        'uom.uom',
         string='ĐVT',
         readonly=True,
     )
@@ -65,7 +64,7 @@ class BcTongHopVatTu(models.Model):
     sl_dinh_muc = fields.Float(
         string='SL định mức / 1 SP', digits=(16, 3), readonly=True)
 
-    # --- B4 ---
+    # --- --
     ma_dat_hang = fields.Char(string='Mã đặt hàng', readonly=True)
     chung_loai = fields.Char(string='Chủng loại', readonly=True)
     ton_dau = fields.Float(string='Tồn đầu', digits=(16, 3), readonly=True)
@@ -77,7 +76,7 @@ class BcTongHopVatTu(models.Model):
     so_luong_can_mua = fields.Float(string='SL cần mua', digits=(16, 3), readonly=True)
     ghi_chu = fields.Char(string='Ghi chú (B4/B5)', readonly=True)
 
-    # --- B5 ---
+    # --- --
     tong_ton_nvl_sl = fields.Float(string='Tổng tồn NVL', digits=(16, 3), readonly=True)
     tong_hang_di_duong_sl = fields.Float(string='Tổng hàng đi đường', digits=(16, 3), readonly=True)
     tong_sl_vt_can_dung = fields.Float(string='Tổng SL VT cần dùng', digits=(16, 3), readonly=True)
@@ -93,7 +92,7 @@ class BcTongHopVatTu(models.Model):
     display_name = fields.Char(compute='_compute_display_name')
 
     _sql_constraints = [
-        ('uniq_bc_source',
+        ('uniq_dlthvt_source',
          'unique(source_model, source_res_id)',
          'Mỗi dòng nguồn chỉ có một bản ghi tổng hợp.'),
     ]
@@ -114,7 +113,7 @@ class BcTongHopVatTu(models.Model):
 
     def action_rebuild_from_sources(self):
         self.env.cr.execute(_read_sql_file())
-        self.env.cr.execute('DELETE FROM bc_tong_hop_vat_tu')
+        self.env.cr.execute('DELETE FROM du_lieu_tong_hop_vat_tu')
         for tbl in _SOURCE_TABLES:
             self.env.cr.execute(
                 sql.SQL('UPDATE {} SET id = id WHERE id IS NOT NULL').format(
@@ -139,7 +138,7 @@ class BcTongHopVatTu(models.Model):
 
 _SQL_PATH = _os.path.join(
     _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))),
-    'data', 'bc_triggers.sql',
+    'data', 'du_lieu_tong_hop_vat_tu_triggers.sql',
 )
 
 _SOURCE_TABLES = (
@@ -152,6 +151,6 @@ _SOURCE_TABLES = (
 
 
 def _read_sql_file():
-    """Đọc file data/bc_triggers.sql."""
+    """Đọc file data/du_lieu_tong_hop_vat_tu_triggers.sql."""
     with open(_SQL_PATH, 'r', encoding='utf-8') as f:
         return f.read()

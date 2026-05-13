@@ -7,7 +7,7 @@ from odoo.exceptions import ValidationError
 
 class KeHoachThanhPham(models.Model):
     _name = 'ke.hoach.thanh.pham'
-    _description = 'B1 - Kế hoạch thành phẩm theo tháng'
+    _description = 'Kế hoạch thành phẩm theo tháng'
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'period_id, company_id, month_key, ma_sap, id'
 
@@ -25,9 +25,9 @@ class KeHoachThanhPham(models.Model):
         'dong.hang', string='Dòng hàng', index=True)
     ma_hang_id = fields.Many2one(
         'ma.hang', string='Mã hàng', index=True)
-    ma_hang = fields.Char(string='Mã hàng', index=True)
     ma_sap = fields.Char(
         string='Mã SAP', index=True)
+    ma_bom = fields.Char(string='Mã BOM', index=True)
 
 
     month_key = fields.Char(
@@ -56,7 +56,6 @@ class KeHoachThanhPham(models.Model):
     def _onchange_ma_hang(self):
         for rec in self:
             if rec.ma_hang_id:
-                rec.ma_hang = rec.ma_hang_id.code
                 rec.ma_sap = rec.ma_hang_id.ma_sap or rec.ma_sap
                 rec.nganh_hang_id = rec.ma_hang_id.nganh_hang_id
                 rec.dong_hang_id = rec.ma_hang_id.dong_hang_id
@@ -67,7 +66,6 @@ class KeHoachThanhPham(models.Model):
         for vals in vals_list:
             if vals.get('ma_hang_id'):
                 master = MaHang.browse(vals['ma_hang_id'])
-                vals.setdefault('ma_hang', master.code)
                 vals.setdefault('ma_sap', master.ma_sap)
                 vals.setdefault('nganh_hang_id', master.nganh_hang_id.id)
                 vals.setdefault('dong_hang_id', master.dong_hang_id.id)
@@ -76,7 +74,6 @@ class KeHoachThanhPham(models.Model):
                 master = MaHang.search([('ma_sap', '=', vals['ma_sap'])], limit=1)
                 if master:
                     vals['ma_hang_id'] = master.id
-                    vals.setdefault('ma_hang', master.code)
                     vals.setdefault('nganh_hang_id', master.nganh_hang_id.id)
                     vals.setdefault('dong_hang_id', master.dong_hang_id.id)
 
@@ -112,8 +109,8 @@ class KeHoachThanhPham(models.Model):
             period_dict[rec.period_id].append({
                 'nganh': rec.nganh_hang_id.name if rec.nganh_hang_id else '',
                 'dong': rec.dong_hang_id.name if rec.dong_hang_id else '',
-                'ma_hang': rec.ma_hang or '',
                 'ma_sap': rec.ma_sap or '',
+                'ma_bom': rec.ma_bom or '',
 
                 'month_key': rec.month_key or '',
                 'qty': qty_str
@@ -138,8 +135,8 @@ class KeHoachThanhPham(models.Model):
                 <tr>
                     <th>Ngành hàng</th>
                     <th>Dòng hàng</th>
-                    <th>Mã hàng</th>
                     <th>Mã SAP</th>
+                    <th>Mã BOM</th>
                     <th>Tháng</th>
                     <th class="text-end">Số lượng</th>
                 </tr>
@@ -158,8 +155,8 @@ class KeHoachThanhPham(models.Model):
                 <tr>
                     <td>{wrap_s}{vals['nganh']}{wrap_e}</td>
                     <td>{wrap_s}{vals['dong']}{wrap_e}</td>
-                    <td>{wrap_s}{vals['ma_hang']}{wrap_e}</td>
                     <td>{wrap_s}{vals['ma_sap']}{wrap_e}</td>
+                    <td>{wrap_s}{vals.get('ma_bom', '')}{wrap_e}</td>
                     <td>{wrap_s}{vals['month_key']}{wrap_e}</td>
                     <td class="text-end">{wrap_s}{vals['qty']}{wrap_e}</td>
                 </tr>
@@ -182,7 +179,7 @@ class KeHoachThanhPham(models.Model):
         self.period_id.message_post(body=Markup("<ul>%s</ul>") % message)
 
     def write(self, vals):
-        TRACKED = {'ma_sap': 'Mã SAP', 'month_key': 'Tháng', 'qty': 'Số lượng'}
+        TRACKED = {'ma_sap': 'Mã SAP', 'ma_bom': 'Mã BOM', 'month_key': 'Tháng', 'qty': 'Số lượng'}
 
         old = {f: {r.id: r[f] for r in self} for f in TRACKED if f in vals}
         res = super().write(vals)
@@ -194,7 +191,7 @@ class KeHoachThanhPham(models.Model):
                     rec.create_tracking_message(
                         ov if ov not in (False, None, '') else 'Trống',
                         nv if nv not in (False, None, '') else 'Trống',
-                        f'{TRACKED[f]} - Mã hàng {rec.ma_hang}',
+                        f'{TRACKED[f]} - Mã hàng {rec.ma_hang_id.code if rec.ma_hang_id else ""}',
                     )
 
         return res
