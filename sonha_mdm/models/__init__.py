@@ -28,3 +28,5 @@ from . import tinh_cu
 from . import mien_lon
 from . import mien_nho
 from . import mdm_tong_hop_import_wizard
+
+from . import bom_sale
