@@ -105,13 +105,3 @@ class MDMTongHopImportWizard(models.TransientModel):
 
         return {'type': 'ir.actions.act_window_close'}
 
-        # return {
-        #     'type': 'ir.actions.client',
-        #     'tag': 'display_notification',
-        #     'params': {
-        #         'title': _('Thành công'),
-        #         'message': message,
-        #         'type': 'success',
-        #         'sticky': False,
-        #     }
-        # }

@@ -108,13 +108,4 @@ class MDMKhachHangImportWizard(models.TransientModel):
             message = message + '\n' + '\n'.join(errors[:20])
             raise ValidationError(message)
 
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'title': _('Thành công'),
-                'message': message,
-                'type': 'success',
-                'sticky': False,
-            }
-        }
+        return {'type': 'ir.actions.act_window_close'}
