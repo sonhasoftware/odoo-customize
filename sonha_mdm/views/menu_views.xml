@@ -15,6 +15,17 @@
               parent="menu_sonha_mdm"
               action="action_mdm_khach_hang"
               sequence="2"/>
+    <menuitem id="menu_mdm_tong_hop_import_excel"
+              name="Import MDM Hàng hóa"
+              parent="menu_sonha_mdm"
+              action="action_mdm_tong_hop_import_excel_wizard"
+              sequence="3"/>
+
+    <menuitem id="menu_mdm_khach_hang_import_excel"
+              name="Import MDM Khách hàng"
+              parent="menu_sonha_mdm"
+              action="action_mdm_khach_hang_import_excel_wizard"
+              sequence="4"/>
 
     <menuitem id="menu_mdm_danh_muc"
               name="Danh mục"
@@ -158,4 +169,11 @@
               parent="menu_mdm_danh_muc"
               action="sonha_mdm.action_mien_nho"
               sequence="23"/>
+
+    <menuitem id="menu_bom_sale"
+              name="BOM Sale"
+              parent="menu_mdm_danh_muc"
+              action="sonha_mdm.action_bom_sale"
+              sequence="24"/>
+
 </odoo>
