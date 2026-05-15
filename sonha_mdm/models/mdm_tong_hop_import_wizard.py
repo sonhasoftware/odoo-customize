@@ -28,13 +28,13 @@ class MDMTongHopImportWizard(models.TransientModel):
     def _find_by_code(self, model_name, code):
         code = self._clean_value(code)
         if not code:
-            return False
+            return self.env[model_name].browse()
         return self.env[model_name].search([('ma', '=', code)], limit=1)
 
     def _find_or_create_by_code(self, model_name, code):
         code = self._clean_value(code)
         if not code:
-            return False
+            return self.env[model_name].browse()
 
         record = self._find_by_code(model_name, code)
         if record:
