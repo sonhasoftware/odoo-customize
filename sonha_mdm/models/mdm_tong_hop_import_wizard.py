@@ -54,7 +54,9 @@ class MDMTongHopImportWizard(models.TransientModel):
 
         for row_index, row in enumerate(sheet.iter_rows(min_row=2, values_only=True), start=2):
             ma_tg = self._clean_value(row[0] if len(row) > 0 else False)
-            if not ma_tg:
+            record_id = self._clean_value(row[16] if len(row) > 16 else False)
+
+            if not any(self._clean_value(cell) for cell in row[:16]) and not record_id:
                 continue
 
             vals = {
@@ -77,7 +79,12 @@ class MDMTongHopImportWizard(models.TransientModel):
             }
 
             try:
-                existing = model.search([('ma_tg', '=', ma_tg)], limit=1)
+                existing = model.browse()
+                if record_id:
+                    if not str(record_id).isdigit():
+                        raise ValidationError(_('ID phải là số nguyên dương.'))
+                    existing = model.search([('id', '=', int(record_id))], limit=1)
+
                 if existing:
                     existing.write(vals)
                     updated += 1
@@ -85,7 +92,7 @@ class MDMTongHopImportWizard(models.TransientModel):
                     model.create(vals)
                     imported += 1
             except Exception as exc:
-                errors.append(_('Dòng %(row)s (Mã TG: %(ma_tg)s): %(error)s', row=row_index, ma_tg=ma_tg, error=str(exc)))
+                errors.append(_('Dòng %(row)s (Mã TG: %(ma_tg)s, ID: %(record_id)s): %(error)s', row=row_index, ma_tg=ma_tg, record_id=record_id or '-', error=str(exc)))
 
         message = _('Import hoàn tất. Tạo mới: %(new)s, Cập nhật: %(updated)s', new=imported, updated=updated)
         if errors:
