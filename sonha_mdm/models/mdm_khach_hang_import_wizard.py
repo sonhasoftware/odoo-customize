@@ -56,7 +56,8 @@ class MDMKhachHangImportWizard(models.TransientModel):
         for row_index, row in enumerate(sheet.iter_rows(min_row=2, values_only=True), start=2):
             ma_khach = self._clean_value(row[0] if len(row) > 0 else False)
             ten_khach = self._clean_value(row[1] if len(row) > 1 else False)
-            if not ma_khach and not ten_khach:
+            record_id = self._clean_value(row[19] if len(row) > 19 else False)
+            if not any(self._clean_value(cell) for cell in row[:19]) and not record_id:
                 continue
 
             try:
@@ -82,7 +83,12 @@ class MDMKhachHangImportWizard(models.TransientModel):
                     'mien_nho': self._find_many2one_by_code('mien.nho', row[18] if len(row) > 18 else False, 'Miền nhỏ').id,
                 }
 
-                existing = model.search([('ma_khach', '=', ma_khach)], limit=1) if ma_khach else model.browse()
+                existing = model.browse()
+                if record_id:
+                    if not str(record_id).isdigit():
+                        raise ValidationError(_('ID phải là số nguyên dương.'))
+                    existing = model.search([('id', '=', int(record_id))], limit=1)
+
                 if existing:
                     existing.write(vals)
                     updated += 1
@@ -90,7 +96,7 @@ class MDMKhachHangImportWizard(models.TransientModel):
                     model.create(vals)
                     imported += 1
             except Exception as exc:
-                errors.append(_('Dòng %(row)s: %(error)s', row=row_index, error=str(exc)))
+                errors.append(_('Dòng %(row)s (ID: %(record_id)s): %(error)s', row=row_index, record_id=record_id or '-', error=str(exc)))
 
         message = _('Import hoàn tất. Tạo mới: %(new)s, Cập nhật: %(updated)s', new=imported, updated=updated)
         if errors:
