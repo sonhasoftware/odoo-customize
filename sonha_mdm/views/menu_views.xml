@@ -21,6 +21,12 @@
               action="action_mdm_tong_hop_import_excel_wizard"
               sequence="3"/>
 
+    <menuitem id="menu_mdm_khach_hang_import_excel"
+              name="Import MDM Khách hàng"
+              parent="menu_sonha_mdm"
+              action="action_mdm_khach_hang_import_excel_wizard"
+              sequence="4"/>
+
     <menuitem id="menu_mdm_danh_muc"
               name="Danh mục"
               parent="menu_sonha_mdm"
