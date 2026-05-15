@@ -47,7 +47,9 @@ class MDMTongHop(models.Model):
     chat_lieu = fields.Many2one('mdm.chat.lieu', string="Chất liệu")
     do_bong = fields.Many2one('mdm.do.bong', string="Độ bóng")
     do_day = fields.Many2one('mdm.do.day', string="Độ dày")
-    dung_tich = fields.Many2one('mdm.dung.tich', string="Dung tích")
+    dung_tich = fields.Char(string="Dung tích")
+    dvt_dung_tich = fields.Char(string="ĐVT Dung tích")
+
 
     key_linh_vuc = fields.Integer(related='chung_loai2.key_linh_vuc', string="Key lĩnh vực")
     key_nganh_hang = fields.Integer(related='chung_loai2.key_nganh_hang', string="Key ngành hàng")
