@@ -25,27 +25,16 @@ class MDMKhachHangImportWizard(models.TransientModel):
             return value or False
         return str(value).strip() or False
 
-    def _find_or_create_by_name(self, model_name, value):
-        name = self._clean_value(value)
-        if not name:
+    def _find_many2one_by_code(self, model_name, value, field_label):
+        code = self._clean_value(value)
+        if not code:
             return self.env[model_name].browse()
 
-        record = self.env[model_name].search([('ten', '=', name)], limit=1)
+        record = self.env[model_name].search([('ma', '=', code)], limit=1)
         if record:
             return record
 
-        return self.env[model_name].create({'ten': name, 'ma': name})
-
-    def _find_or_create_salesman(self, code):
-        code = self._clean_value(code)
-        if not code:
-            return self.env['mdm.saleman'].browse()
-
-        record = self.env['mdm.saleman'].search([('ma', '=', code)], limit=1)
-        if record:
-            return record
-
-        return self.env['mdm.saleman'].create({'ma': code, 'ten': code})
+        raise ValidationError(_('Không tìm thấy dữ liệu ở field %(field)s với mã "%(code)s".', field=field_label, code=code))
 
     def action_import(self):
         self.ensure_one()
@@ -75,22 +64,22 @@ class MDMKhachHangImportWizard(models.TransientModel):
                     'ma_khach': ma_khach,
                     'ten_khach': ten_khach,
                     'dia_chi_khach': self._clean_value(row[2] if len(row) > 2 else False),
-                    'phuong_xa_cu': self._find_or_create_by_name('phuong.xa.cu', row[3] if len(row) > 3 else False).id,
-                    'quan_huyen_cu': self._find_or_create_by_name('quan.huyen.cu', row[4] if len(row) > 4 else False).id,
-                    'tinh_cu': self._find_or_create_by_name('tinh.cu', row[5] if len(row) > 5 else False).id,
-                    'dat_nuoc': self._find_or_create_by_name('mdm.quoc.gia', row[6] if len(row) > 6 else False).id,
+                    'phuong_xa_cu': self._find_many2one_by_code('phuong.xa.cu', row[3] if len(row) > 3 else False, 'Phường/xã cũ').id,
+                    'quan_huyen_cu': self._find_many2one_by_code('quan.huyen.cu', row[4] if len(row) > 4 else False, 'Quận/huyện cũ').id,
+                    'tinh_cu': self._find_many2one_by_code('tinh.cu', row[5] if len(row) > 5 else False, 'Tỉnh cũ').id,
+                    'dat_nuoc': self._find_many2one_by_code('mdm.quoc.gia', row[6] if len(row) > 6 else False, 'Đất nước').id,
                     'so_dien_thoai': self._clean_value(row[7] if len(row) > 7 else False),
                     'mst': self._clean_value(row[8] if len(row) > 8 else False),
-                    'plan': self._find_or_create_by_name('mdm.plan', row[9] if len(row) > 9 else False).id,
-                    'ma_cn': self._find_or_create_by_name('mdm.chi.nhanh', row[10] if len(row) > 10 else False).id,
-                    'nhom_khach': self._find_or_create_by_name('mdm.nhom.khach', row[11] if len(row) > 11 else False).id,
+                    'plan': self._find_many2one_by_code('mdm.plan', row[9] if len(row) > 9 else False, 'Plan').id,
+                    'ma_cn': self._find_many2one_by_code('mdm.chi.nhanh', row[10] if len(row) > 10 else False, 'Mã chi nhánh').id,
+                    'nhom_khach': self._find_many2one_by_code('mdm.nhom.khach', row[11] if len(row) > 11 else False, 'Nhóm khách').id,
                     'dvcs': self.env.company.id,
-                    'ten_salesman': self._find_or_create_salesman(row[13] if len(row) > 13 else False).id,
+                    'ten_salesman': self._find_many2one_by_code('mdm.saleman', row[13] if len(row) > 13 else False, 'Tên Salesman').id,
                     'vung': self._clean_value(row[14] if len(row) > 14 else False),
-                    'qlv': self._find_or_create_by_name('mdm.quan.ly.vung', row[15] if len(row) > 15 else False).id,
-                    'khu_vuc': self._find_or_create_by_name('mdm.khu.vuc', row[16] if len(row) > 16 else False).id,
-                    'mien_lon': self._find_or_create_by_name('mien.lon', row[17] if len(row) > 17 else False).id,
-                    'mien_nho': self._find_or_create_by_name('mien.nho', row[18] if len(row) > 18 else False).id,
+                    'qlv': self._find_many2one_by_code('mdm.quan.ly.vung', row[15] if len(row) > 15 else False, 'QLV').id,
+                    'khu_vuc': self._find_many2one_by_code('mdm.khu.vuc', row[16] if len(row) > 16 else False, 'Khu vực').id,
+                    'mien_lon': self._find_many2one_by_code('mien.lon', row[17] if len(row) > 17 else False, 'Miền lớn').id,
+                    'mien_nho': self._find_many2one_by_code('mien.nho', row[18] if len(row) > 18 else False, 'Miền nhỏ').id,
                 }
 
                 existing = model.search([('ma_khach', '=', ma_khach)], limit=1) if ma_khach else model.browse()
