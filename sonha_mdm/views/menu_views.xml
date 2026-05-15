@@ -15,6 +15,11 @@
               parent="menu_sonha_mdm"
               action="action_mdm_khach_hang"
               sequence="2"/>
+    <menuitem id="menu_mdm_tong_hop_import_excel"
+              name="Import MDM Hàng hóa"
+              parent="menu_sonha_mdm"
+              action="action_mdm_tong_hop_import_excel"
+              sequence="3"/>
 
     <menuitem id="menu_mdm_danh_muc"
               name="Danh mục"
