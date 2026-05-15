@@ -47,6 +47,7 @@ class MDMTongHop(models.Model):
     chat_lieu = fields.Many2one('mdm.chat.lieu', string="Chất liệu")
     do_bong = fields.Many2one('mdm.do.bong', string="Độ bóng")
     do_day = fields.Many2one('mdm.do.day', string="Độ dày")
+    dung_tich_plus = fields.Char(string="Dung tích plus")
     dung_tich = fields.Many2one('mdm.dung.tich', string="Dung tích")
     dvt_dung_tich = fields.Char(string="ĐVT Dung tích")
     bom_sale = fields.Many2one('bom.sale', string="Loại trong BOM sales")
@@ -501,4 +502,3 @@ class MDMTongHop(models.Model):
             self.create_write_action_data(r)
             self.call_api_update(r)
         return res
-

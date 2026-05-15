@@ -31,6 +31,20 @@ class MDMTongHopImportWizard(models.TransientModel):
             return False
         return self.env[model_name].search([('ma', '=', code)], limit=1)
 
+    def _find_or_create_by_code(self, model_name, code):
+        code = self._clean_value(code)
+        if not code:
+            return False
+
+        record = self._find_by_code(model_name, code)
+        if record:
+            return record
+
+        return self.env[model_name].create({
+            'ma': code,
+            'ten': code,
+        })
+
     def action_import(self):
         self.ensure_one()
 
@@ -56,20 +70,21 @@ class MDMTongHopImportWizard(models.TransientModel):
 
             vals = {
                 'ma_tg': ma_tg,
-                'ma': self._clean_value(row[1] if len(row) > 1 else False),
-                'mdm_hh_type_id': self._find_by_code('mdm.hh.type', row[2] if len(row) > 2 else False).id,
-                'ten_ngan': self._clean_value(row[3] if len(row) > 3 else False),
-                'ten': self._clean_value(row[4] if len(row) > 4 else False),
-                'dvt': self._clean_value(row[5] if len(row) > 5 else False),
-                'chung_loai1': self._find_by_code('mdm.chung.loai1', row[6] if len(row) > 6 else False).id,
-                'chung_loai2': self._find_by_code('mdm.chung.loai2', row[7] if len(row) > 7 else False).id,
-                'linh_vuc': self._find_by_code('mdm.linh.vuc', row[8] if len(row) > 8 else False).id,
-                'nganh_hang': self._find_by_code('mdm.nganh.hang', row[9] if len(row) > 9 else False).id,
-                'nhan_hang': self._find_by_code('mdm.nhan.hang', row[10] if len(row) > 10 else False).id,
-                'chat_lieu': self._find_by_code('mdm.chat.lieu', row[11] if len(row) > 11 else False).id,
-                'do_bong': self._find_by_code('mdm.do.bong', row[12] if len(row) > 12 else False).id,
-                'do_day': self._find_by_code('mdm.do.day', row[13] if len(row) > 13 else False).id,
-                'dung_tich': self._find_by_code('mdm.dung.tich', row[14] if len(row) > 14 else False).id,
+                'mdm_hh_type_id': self._find_or_create_by_code('mdm.hh.type', row[1] if len(row) > 1 else False).id,
+                'ten_ngan': self._clean_value(row[2] if len(row) > 2 else False),
+                'ten': self._clean_value(row[3] if len(row) > 3 else False),
+                'dvt': self._clean_value(row[4] if len(row) > 4 else False),
+                'chung_loai1': self._find_or_create_by_code('mdm.chung.loai1', row[5] if len(row) > 5 else False).id,
+                'chung_loai2': self._find_or_create_by_code('mdm.chung.loai2', row[6] if len(row) > 6 else False).id,
+                'linh_vuc': self._find_or_create_by_code('mdm.linh.vuc', row[7] if len(row) > 7 else False).id,
+                'nganh_hang': self._find_or_create_by_code('mdm.nganh.hang', row[8] if len(row) > 8 else False).id,
+                'nhan_hang': self._find_or_create_by_code('mdm.nhan.hang', row[9] if len(row) > 9 else False).id,
+                'chat_lieu': self._find_or_create_by_code('mdm.chat.lieu', row[10] if len(row) > 10 else False).id,
+                'do_bong': self._find_or_create_by_code('mdm.do.bong', row[11] if len(row) > 11 else False).id,
+                'do_day': self._find_or_create_by_code('mdm.do.day', row[12] if len(row) > 12 else False).id,
+                'dung_tich_plus': self._clean_value(row[13] if len(row) > 13 else False),
+                'dvt_dung_tich': self._clean_value(row[14] if len(row) > 14 else False),
+                'bom_sale': self._find_or_create_by_code('bom.sale', row[15] if len(row) > 15 else False).id,
             }
 
             try:
