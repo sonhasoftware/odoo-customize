@@ -21,6 +21,7 @@ class MaHang(models.Model):
         index=True)
     dong_hang_id = fields.Many2one(
         'dong.hang', string='Dòng hàng', ondelete='restrict', index=True)
+    don_vi_tinh_id = fields.Many2one('uom.uom', string='Đơn vị tính')
 
     _sql_constraints = [
         ('vtc_ma_hang_code_uniq', 'unique(code)', 'Mã hàng phải duy nhất!'),

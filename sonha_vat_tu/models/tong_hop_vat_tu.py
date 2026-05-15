@@ -6,7 +6,7 @@ class TongHopVatTu(models.Model):
     _name = 'tong.hop.vat.tu'
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _description = 'Tổng hợp vật tư cần sản xuất'
-    _order = 'period_id, company_id, ma_sap, month_key, id'
+    _order = 'period_id, company_id, ma_sap, month_date, id'
 
     period_id = fields.Many2one(
         'ke.hoach.vat.tu', string='Kỳ', ondelete='cascade', index=True)
@@ -17,6 +17,7 @@ class TongHopVatTu(models.Model):
     chung_loai = fields.Char(string='Chủng loại')
     don_vi_tinh = fields.Many2one('uom.uom', string='ĐVT')
     month_key = fields.Char(string='Tháng', index=True)
+    month_date = fields.Date(string='Tháng tính toán', index=True)
 
     ton_dau = fields.Float(string='Tổng tồn đầu', digits=(16, 3))
     ve_du_kien = fields.Float(string='Vật tư đi đường', digits=(16, 3))

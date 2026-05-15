@@ -70,6 +70,7 @@
                 <field name="ma_sap" required="1"/>
                 <field name="ma_nvl"/>
                 <field name="ten_nvl"/>
+                <field name="don_vi_tinh_id"/>
                 <field name="nganh_hang_id"/>
                 <field name="dong_hang_id"/>
             </tree>

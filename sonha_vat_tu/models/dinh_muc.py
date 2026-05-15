@@ -6,7 +6,7 @@ class DinhMuc(models.Model):
     _name = 'dinh.muc'
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _description = 'Định mức tháng'
-    _order = 'period_id, company_id, month_key, ma_tp, id'
+    _order = 'period_id, company_id, month_date, ma_tp, id'
 
     period_id = fields.Many2one(
         'ke.hoach.vat.tu', string='Kỳ', ondelete='cascade', index=True)
@@ -19,4 +19,5 @@ class DinhMuc(models.Model):
     ma_tp = fields.Char(string='Mã thành phẩm', index=True)
     ma_nvl = fields.Char(string='Mã NVL', index=True)
     month_key = fields.Char(string='Tháng')
+    month_date = fields.Date(string='Tháng tính toán', index=True)
     qty = fields.Float(string='Số lượng', digits=(16, 2))

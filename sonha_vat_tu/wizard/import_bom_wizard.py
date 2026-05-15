@@ -43,48 +43,47 @@ class ImportBomWizard(models.TransientModel):
         errors = []
         vals_list = []
         seen = set()
-       
+
         for row_idx, row in enumerate(rows[1:], start=2):
             if not row or not any(c not in (None, '') for c in row):
                 continue
-            row = (list(row) + [None] * 10)[:10]
+            # Template: Mã TP | Tên TP | Mã NVL | Tên NVL | SL định mức | SL SPĐM | Độ dày | Khổ 1 | Khổ 2
+            row = (list(row) + [None] * 9)[:9]
 
-            ma_bom = (str(row[0]).strip() if row[0] not in (None, '') else '')
-            ma_tp = (str(row[1]).strip() if row[1] not in (None, '') else '')
-            ten_tp = (str(row[2]).strip() if row[2] not in (None, '') else '')
-            ma_nvl = (str(row[3]).strip() if row[3] not in (None, '') else '')
-            ten_nvl = (str(row[4]).strip() if row[4] not in (None, '') else '')
+            ma_tp  = (str(row[0]).strip() if row[0] not in (None, '') else '')
+            ten_tp = (str(row[1]).strip() if row[1] not in (None, '') else '')
+            ma_nvl = (str(row[2]).strip() if row[2] not in (None, '') else '')
+            ten_nvl = (str(row[3]).strip() if row[3] not in (None, '') else '')
             if not ma_tp or not ma_nvl:
                 errors.append(_('Dòng %d: thiếu Mã TP hoặc Mã NVL.') % row_idx)
                 continue
 
-            key = (ma_bom, ma_tp, ma_nvl)
+            key = (ma_tp, ma_nvl)
             if key in seen:
-                errors.append(_('Dòng %d: trùng bộ (Mã BOM, Mã TP, Mã NVL) trong file.') % row_idx)
+                errors.append(_('Dòng %d: trùng bộ (Mã TP, Mã NVL) trong file.') % row_idx)
                 continue
             seen.add(key)
 
-            sl_dinh_muc = self._to_float_or_error(row[5], 'Số lượng định mức', row_idx, errors)
-            sl_spdm = self._to_float_or_error(row[6], 'Số lượng SPĐM', row_idx, errors)
+            sl_dinh_muc = self._to_float_or_error(row[4], 'Số lượng định mức', row_idx, errors)
+            sl_spdm     = self._to_float_or_error(row[5], 'Số lượng SPĐM', row_idx, errors)
             if sl_spdm is not None and sl_spdm == 0:
-                sl_spdm = 1.0 # Tránh lỗi chia cho 0
-            do_day = self._to_float_or_error(row[7], 'Độ dày', row_idx, errors)
-            kho_1 = self._to_float_or_error(row[8], 'Khổ 1', row_idx, errors)
-            kho_2 = self._to_float_or_error(row[9], 'Khổ 2', row_idx, errors)
+                sl_spdm = 1.0
+            do_day = self._to_float_or_error(row[6], 'Độ dày', row_idx, errors)
+            kho_1  = self._to_float_or_error(row[7], 'Khổ 1', row_idx, errors)
+            kho_2  = self._to_float_or_error(row[8], 'Khổ 2', row_idx, errors)
             if None in (sl_dinh_muc, sl_spdm, do_day, kho_1, kho_2):
                 continue
 
             vals_list.append({
-                'ma_bom': ma_bom,
-                'ma_tp': ma_tp,
-                'ten_tp': ten_tp or ma_tp,
-                'ma_nvl': ma_nvl,
-                'ten_nvl': ten_nvl or ma_nvl,
+                'ma_tp':       ma_tp,
+                'ten_tp':      ten_tp or ma_tp,
+                'ma_nvl':      ma_nvl,
+                'ten_nvl':     ten_nvl or ma_nvl,
                 'sl_dinh_muc': sl_dinh_muc,
-                'sl_spdm': sl_spdm if sl_spdm else 1.0,
-                'do_day': do_day,
-                'kho_1': kho_1,
-                'kho_2': kho_2,
+                'sl_spdm':     sl_spdm if sl_spdm else 1.0,
+                'do_day':      do_day,
+                'kho_1':       kho_1,
+                'kho_2':       kho_2,
             })
 
         if vals_list:
@@ -93,29 +92,25 @@ class ImportBomWizard(models.TransientModel):
             nvl_map = {r.ma_nvl: r for r in nvl_master if r.ma_nvl}
             for vals in vals_list:
                 master = nvl_map.get(vals['ma_nvl'])
-                if not master:
-                    errors.append(_('Mã NVL %s chưa có trong danh mục Mã hàng.') % vals['ma_nvl'])
-                    continue
-                if master.ten_nvl:
+                if master and master.ten_nvl:
                     vals['ten_nvl'] = master.ten_nvl
 
             existing = Bom.search([
-                ('ma_bom', 'in', [v['ma_bom'] for v in vals_list]),
-                ('ma_tp', 'in', [v['ma_tp'] for v in vals_list]),
+                ('ma_tp',  'in', [v['ma_tp']  for v in vals_list]),
                 ('ma_nvl', 'in', [v['ma_nvl'] for v in vals_list]),
             ])
-            existing_map = {(r.ma_bom, r.ma_tp, r.ma_nvl): r for r in existing}
-            
+            existing_map = {(r.ma_tp, r.ma_nvl): r for r in existing}
+
             create_list = []
             for vals in vals_list:
-                key = (vals['ma_bom'], vals['ma_tp'], vals['ma_nvl'])
+                key = (vals['ma_tp'], vals['ma_nvl'])
                 if key in existing_map:
                     existing_map[key].write({
-                        'do_day': vals['do_day'],
-                        'kho_1': vals['kho_1'],
-                        'kho_2': vals['kho_2'],
+                        'do_day':      vals['do_day'],
+                        'kho_1':       vals['kho_1'],
+                        'kho_2':       vals['kho_2'],
                         'sl_dinh_muc': vals['sl_dinh_muc'],
-                        'sl_spdm': vals['sl_spdm']
+                        'sl_spdm':     vals['sl_spdm'],
                     })
                 else:
                     create_list.append(vals)

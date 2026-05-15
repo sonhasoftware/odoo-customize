@@ -11,12 +11,12 @@ class DuLieuTongHopVatTu(models.Model):
     """
     _name = 'du.lieu.tong.hop.vat.tu'
     _description = 'Dữ liệu tổng hợp vật tư'
-    _order = 'step_code, period_id, month_key, ma_sap, id'
+    _order = 'step_code, period_id, month_date, ma_sap, id'
     _rec_name = 'display_name'
 
     step_code = fields.Selection(
         [
-            ('b1', 'Kế hoạch thành phẩm'),
+            ('b1', 'Kế hoạch sản xuất'),
             ('b2', 'Định mức kỳ'),
             ('b3', 'Tính toán vật tư'),
             ('b4', 'Tổng hợp vật tư'),
@@ -34,7 +34,9 @@ class DuLieuTongHopVatTu(models.Model):
     company_id = fields.Many2one(
         'res.company', string='Đơn vị', index=True, readonly=True)
     month_key = fields.Char(string='Tháng', index=True, readonly=True)
+    month_date = fields.Date(string='Tháng tính toán', index=True, readonly=True)
     ma_sap = fields.Char(string='Mã SAP', index=True, readonly=True)
+    ma_vat_tu = fields.Char(string='Mã vật tư', index=True, readonly=True)
 
     # --- --
     nganh_hang_id = fields.Many2one('nganh.hang', string='Ngành hàng', readonly=True)
@@ -67,6 +69,7 @@ class DuLieuTongHopVatTu(models.Model):
     # --- --
     ma_dat_hang = fields.Char(string='Mã đặt hàng', readonly=True)
     chung_loai = fields.Char(string='Chủng loại', readonly=True)
+    ma_cuon = fields.Char(string='Mã cuộn', readonly=True)
     ton_dau = fields.Float(string='Tồn đầu', digits=(16, 3), readonly=True)
     ve_du_kien = fields.Float(string='Vật tư đi đường', digits=(16, 3), readonly=True)
     vt_can_dung = fields.Float(string='VT cần dùng', digits=(16, 3), readonly=True)
@@ -110,6 +113,10 @@ class DuLieuTongHopVatTu(models.Model):
     @api.model
     def init(self):
         self._cr.execute(_read_sql_file())
+        try:
+            self._cr.execute(_read_sql_bom_file())
+        except Exception:
+            pass
 
     def action_rebuild_from_sources(self):
         self.env.cr.execute(_read_sql_file())
@@ -141,8 +148,13 @@ _SQL_PATH = _os.path.join(
     'data', 'du_lieu_tong_hop_vat_tu_triggers.sql',
 )
 
+_SQL_BOM_PATH = _os.path.join(
+    _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))),
+    'data', 'fn_bom_chuoi_cung_ung.sql',
+)
+
 _SOURCE_TABLES = (
-    'ke_hoach_thanh_pham',
+    'ke_hoach_san_xuat',
     'dinh_muc',
     'tinh_toan_vat_tu',
     'tong_hop_vat_tu',
@@ -153,4 +165,9 @@ _SOURCE_TABLES = (
 def _read_sql_file():
     """Đọc file data/du_lieu_tong_hop_vat_tu_triggers.sql."""
     with open(_SQL_PATH, 'r', encoding='utf-8') as f:
+        return f.read()
+
+def _read_sql_bom_file():
+    """Đọc file data/fn_bom_chuoi_cung_ung.sql."""
+    with open(_SQL_BOM_PATH, 'r', encoding='utf-8') as f:
         return f.read()

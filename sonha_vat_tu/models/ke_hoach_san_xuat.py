@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 import re
-from markupsafe import Markup
-from odoo import api, fields, models
-from odoo.exceptions import ValidationError
+from markupsafe import Markup, escape
+from odoo import api, fields, models, _
+from odoo.exceptions import UserError, ValidationError
 
 
-class KeHoachThanhPham(models.Model):
-    _name = 'ke.hoach.thanh.pham'
-    _description = 'Kế hoạch thành phẩm theo tháng'
+class KeHoachSanXuat(models.Model):
+    _name = 'ke.hoach.san.xuat'
+    _description = 'Kế hoạch sản xuất theo tháng'
     _inherit = ['mail.thread', 'mail.activity.mixin']
-    _order = 'period_id, company_id, month_key, ma_sap, id'
+    _order = 'period_id, company_id, month_date, ma_sap, id'
 
     period_id = fields.Many2one(
         'ke.hoach.vat.tu', string='Kỳ',
@@ -27,11 +27,11 @@ class KeHoachThanhPham(models.Model):
         'ma.hang', string='Mã hàng', index=True)
     ma_sap = fields.Char(
         string='Mã SAP', index=True)
-    ma_bom = fields.Char(string='Mã BOM', index=True)
 
 
     month_key = fields.Char(
         string='Tháng', index=True)
+    month_date = fields.Date(string='Tháng tính toán', index=True)
     qty = fields.Float(
         string='Số lượng', digits=(16, 2))
 
@@ -63,7 +63,16 @@ class KeHoachThanhPham(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         MaHang = self.env['ma.hang']
+        Period = self.env['ke.hoach.vat.tu']
         for vals in vals_list:
+            if vals.get('period_id'):
+                period = Period.browse(vals['period_id'])
+                if period.state != 'ke_hoach':
+                    raise UserError(_('Kế hoạch sản xuất đã khóa vì kỳ kế hoạch đã sang bước sau.'))
+
+            if vals.get('month_key') and not vals.get('month_date'):
+                vals['month_date'] = Period._month_key_to_date(vals['month_key'])
+
             if vals.get('ma_hang_id'):
                 master = MaHang.browse(vals['ma_hang_id'])
                 vals.setdefault('ma_sap', master.ma_sap)
@@ -91,82 +100,77 @@ class KeHoachThanhPham(models.Model):
         return records
 
     def unlink(self):
+        self._check_period_editable()
         self._log_action_table(self, action='unlink')
         return super().unlink()
 
+    def _check_period_editable(self):
+        locked = self.filtered(lambda rec: rec.period_id and rec.period_id.state != 'ke_hoach')
+        if locked:
+            raise UserError(_('Kế hoạch sản xuất đã khóa vì kỳ kế hoạch đã sang bước sau.'))
+
+    @api.model
+    def _format_qty(self, qty):
+        return "{:,.2f}".format(qty or 0.0).replace(',', 'X').replace('.', ',').replace('X', '.')
+
+    def _tracking_values(self):
+        return {
+            'nganh': self.nganh_hang_id.name or '',
+            'dong': self.dong_hang_id.name or '',
+            'ma_sap': self.ma_sap or '',
+            'month_key': self.month_key or '',
+            'qty': self._format_qty(self.qty),
+        }
+
     @api.model
     def _log_action_table(self, records, action='create'):
-        if not records:
-            return
-        period_dict = {}
-        for rec in records:
-            if not rec.period_id:
-                continue
-            if rec.period_id not in period_dict:
-                period_dict[rec.period_id] = []
-            
-            qty_str = "{:,.2f}".format(rec.qty or 0.0).replace(',', 'X').replace('.', ',').replace('X', '.')
-            period_dict[rec.period_id].append({
-                'nganh': rec.nganh_hang_id.name if rec.nganh_hang_id else '',
-                'dong': rec.dong_hang_id.name if rec.dong_hang_id else '',
-                'ma_sap': rec.ma_sap or '',
-                'ma_bom': rec.ma_bom or '',
+        period_lines = {}
+        for rec in records.filtered('period_id'):
+            period_lines.setdefault(rec.period_id, []).append(rec._tracking_values())
 
-                'month_key': rec.month_key or '',
-                'qty': qty_str
-            })
-
-        for period, lines in period_dict.items():
-            if not lines:
-                continue
-            if action == 'create':
-                title = f"<span class='text-success'><i class='fa fa-plus-circle'></i> <b>Đã thêm {len(lines)} dòng kế hoạch mới:</b></span>"
-            else:
-                title = f"<span class='text-danger'><i class='fa fa-trash'></i> <b>Đã xóa {len(lines)} dòng kế hoạch:</b></span>"
-            msg = self.env['ke.hoach.thanh.pham']._build_tracking_table_html(title, lines, action=action)
-            period.message_post(body=msg)
+        for period, lines in period_lines.items():
+            title = (
+                "<span class='text-success'><i class='fa fa-plus-circle'></i> "
+                f"<b>Đã thêm {len(lines)} dòng kế hoạch sản xuất mới:</b></span>"
+            ) if action == 'create' else (
+                "<span class='text-danger'><i class='fa fa-trash'></i> "
+                f"<b>Đã xóa {len(lines)} dòng kế hoạch sản xuất:</b></span>"
+            )
+            period.message_post(body=self._build_tracking_table_html(title, lines, action=action))
 
     @api.model
     def _build_tracking_table_html(self, title, lines, action='create'):
-        table_html = """
-        <div class="table-responsive">
-        <table class="table table-sm table-bordered o_main_table mb-0" style="font-size: 13px;">
-            <thead class="bg-light">
-                <tr>
-                    <th>Ngành hàng</th>
-                    <th>Dòng hàng</th>
-                    <th>Mã SAP</th>
-                    <th>Mã BOM</th>
-                    <th>Tháng</th>
-                    <th class="text-end">Số lượng</th>
-                </tr>
-            </thead>
-            <tbody>
-        """
-        for vals in lines:
-            if action == 'unlink':
-                wrap_s = "<del class='text-muted'>"
-                wrap_e = "</del>"
-            else:
-                wrap_s = ""
-                wrap_e = ""
-                
-            table_html += f"""
-                <tr>
-                    <td>{wrap_s}{vals['nganh']}{wrap_e}</td>
-                    <td>{wrap_s}{vals['dong']}{wrap_e}</td>
-                    <td>{wrap_s}{vals['ma_sap']}{wrap_e}</td>
-                    <td>{wrap_s}{vals.get('ma_bom', '')}{wrap_e}</td>
-                    <td>{wrap_s}{vals['month_key']}{wrap_e}</td>
-                    <td class="text-end">{wrap_s}{vals['qty']}{wrap_e}</td>
-                </tr>
-            """
-        table_html += """
-            </tbody>
-        </table>
-        </div>
-        """
-        return Markup(f"<p class='mb-2'>{title}</p>{table_html}")
+        def cell(value):
+            value = escape(value)
+            return Markup("<del class='text-muted'>%s</del>") % value if action == 'unlink' else value
+
+        rows = ''.join(
+            "<tr>"
+            f"<td>{cell(vals['nganh'])}</td>"
+            f"<td>{cell(vals['dong'])}</td>"
+            f"<td>{cell(vals['ma_sap'])}</td>"
+            f"<td>{cell(vals['month_key'])}</td>"
+            f"<td class='text-end'>{cell(vals['qty'])}</td>"
+            "</tr>"
+            for vals in lines
+        )
+        return Markup("""
+            <p class="mb-2">%s</p>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered o_main_table mb-0" style="font-size: 13px;">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Ngành hàng</th>
+                            <th>Dòng hàng</th>
+                            <th>Mã SAP</th>
+                            <th>Tháng</th>
+                            <th class="text-end">Số lượng</th>
+                        </tr>
+                    </thead>
+                    <tbody>%s</tbody>
+                </table>
+            </div>
+        """) % (Markup(title), Markup(rows))
 
     def create_tracking_message(self, old_value, new_value, field_label):
         self.ensure_one()
@@ -179,10 +183,19 @@ class KeHoachThanhPham(models.Model):
         self.period_id.message_post(body=Markup("<ul>%s</ul>") % message)
 
     def write(self, vals):
-        TRACKED = {'ma_sap': 'Mã SAP', 'ma_bom': 'Mã BOM', 'month_key': 'Tháng', 'qty': 'Số lượng'}
+        TRACKED = {'ma_sap': 'Mã SAP', 'month_key': 'Tháng', 'qty': 'Số lượng'}
+
+        if not self.env.context.get('skip_period_lock'):
+            self._check_period_editable()
+
+        if 'month_key' in vals:
+            vals = dict(vals)
+            vals['month_date'] = self.env['ke.hoach.vat.tu']._month_key_to_date(vals.get('month_key'))
 
         old = {f: {r.id: r[f] for r in self} for f in TRACKED if f in vals}
         res = super().write(vals)
+        if self.env.context.get('is_importing'):
+            return res
 
         for f in old:
             for rec in self:
@@ -191,7 +204,7 @@ class KeHoachThanhPham(models.Model):
                     rec.create_tracking_message(
                         ov if ov not in (False, None, '') else 'Trống',
                         nv if nv not in (False, None, '') else 'Trống',
-                        f'{TRACKED[f]} - Mã hàng {rec.ma_hang_id.code if rec.ma_hang_id else ""}',
+                        f'Kế hoạch sản xuất / {TRACKED[f]} - Mã hàng {rec.ma_hang_id.code if rec.ma_hang_id else ""}',
                     )
 
         return res

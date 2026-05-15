@@ -28,8 +28,8 @@
         <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
         <field name="groups" eval="[(4, ref('sonha_vat_tu.group_ban_cung_ung_vat_tu'))]"/>
         <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="False"/>
-        <field name="perm_create" eval="False"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
         <field name="perm_unlink" eval="False"/>
     </record>
 
@@ -56,9 +56,42 @@
     </record>
 
 
-    <record id="rule_ke_hoach_thanh_pham_ban_cung_ung" model="ir.rule">
-        <field name="name">B1 ke hoach thanh pham - Ban cung ung - company scope</field>
-        <field name="model_id" ref="model_ke_hoach_thanh_pham"/>
+    <record id="rule_ke_hoach_kinh_doanh_ban_cung_ung" model="ir.rule">
+        <field name="name">B1 ke hoach kinh doanh - Ban cung ung - company scope</field>
+        <field name="model_id" ref="model_ke_hoach_kinh_doanh"/>
+        <field name="domain_force">[('period_id.company_id', 'in', company_ids + [False])]</field>
+        <field name="groups" eval="[(4, ref('sonha_vat_tu.group_ban_cung_ung_vat_tu'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="rule_ke_hoach_kinh_doanh_bo_phan" model="ir.rule">
+        <field name="name">B1 ke hoach kinh doanh - Bo phan - company scope</field>
+        <field name="model_id" ref="model_ke_hoach_kinh_doanh"/>
+        <field name="domain_force">[('period_id.company_id', 'in', company_ids + [False])]</field>
+        <field name="groups" eval="[(4, ref('sonha_vat_tu.group_bo_phan_vat_tu'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_ke_hoach_kinh_doanh_truong_bo_phan" model="ir.rule">
+        <field name="name">B1 ke hoach kinh doanh - Truong bo phan - company scope</field>
+        <field name="model_id" ref="model_ke_hoach_kinh_doanh"/>
+        <field name="domain_force">[('period_id.company_id', 'in', company_ids + [False])]</field>
+        <field name="groups" eval="[(4, ref('sonha_vat_tu.group_truong_bo_phan_vat_tu'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="rule_ke_hoach_san_xuat_ban_cung_ung" model="ir.rule">
+        <field name="name">B1 ke hoach san xuat - Ban cung ung - company scope</field>
+        <field name="model_id" ref="model_ke_hoach_san_xuat"/>
         <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
         <field name="groups" eval="[(4, ref('sonha_vat_tu.group_ban_cung_ung_vat_tu'))]"/>
         <field name="perm_read" eval="True"/>
@@ -67,20 +100,20 @@
         <field name="perm_unlink" eval="False"/>
     </record>
 
-    <record id="rule_ke_hoach_thanh_pham_bo_phan" model="ir.rule">
-        <field name="name">B1 ke hoach thanh pham - Bo phan - company scope</field>
-        <field name="model_id" ref="model_ke_hoach_thanh_pham"/>
+    <record id="rule_ke_hoach_san_xuat_bo_phan" model="ir.rule">
+        <field name="name">B1 ke hoach san xuat - Bo phan - company scope</field>
+        <field name="model_id" ref="model_ke_hoach_san_xuat"/>
         <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
         <field name="groups" eval="[(4, ref('sonha_vat_tu.group_bo_phan_vat_tu'))]"/>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
         <field name="perm_create" eval="True"/>
-        <field name="perm_unlink" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
     </record>
 
-    <record id="rule_ke_hoach_thanh_pham_truong_bo_phan" model="ir.rule">
-        <field name="name">B1 ke hoach thanh pham - Truong bo phan - company scope</field>
-        <field name="model_id" ref="model_ke_hoach_thanh_pham"/>
+    <record id="rule_ke_hoach_san_xuat_truong_bo_phan" model="ir.rule">
+        <field name="name">B1 ke hoach san xuat - Truong bo phan - company scope</field>
+        <field name="model_id" ref="model_ke_hoach_san_xuat"/>
         <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
         <field name="groups" eval="[(4, ref('sonha_vat_tu.group_truong_bo_phan_vat_tu'))]"/>
         <field name="perm_read" eval="True"/>

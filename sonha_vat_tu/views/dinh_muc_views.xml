@@ -10,7 +10,7 @@
                 <field name="company_id" required="1"/>
                 <field name="ma_sap"/>
                 <field name="ten_sap"/>
-                <field name="ma_tp"/>
+                <field name="ma_tp" column_invisible="True"/>
                 <field name="ma_nvl"/>
                 <field name="month_key" required="1"/>
                 <field name="qty" string="Số lượng thô"/>

@@ -7,7 +7,7 @@
     <menuitem id="menu_ke_hoach_vat_tu" name="Kế hoạch vật tư"
               parent="menu_ke_hoach_vat_tu_root" sequence="10"/>
     <menuitem id="menu_ke_hoach_vat_tu_b1"
-              name="Kế hoạch thành phẩm"
+              name="Kế hoạch vật tư"
               parent="menu_ke_hoach_vat_tu"
               action="action_ke_hoach_vat_tu_b1" sequence="10"/>
     <menuitem id="menu_ke_hoach_vat_tu_b2"

@@ -11,7 +11,7 @@
                 <field name="month_key" required="1"/>
                 <field name="ma_sap" required="1"/>
                 <field name="ma_effect"/>
-                <field name="chung_loai"/>
+                <field name="ma_cuon"/>
                 <field name="don_vi_tinh"/>
                 <field name="tong_ton_nvl_sl" string="Tổng tồn nguyên vật liệu" sum="Tổng tồn nguyên vật liệu"/>
                 <field name="tong_hang_di_duong_sl" string="Tổng hàng đi đường" sum="Tổng đi đường"/>
@@ -44,7 +44,7 @@
                             <field name="ma_effect"/>
                         </group>
                         <group>
-                            <field name="chung_loai"/>
+                            <field name="ma_cuon"/>
                             <field name="don_vi_tinh"/>
                             <field name="ghi_chu"/>
                         </group>

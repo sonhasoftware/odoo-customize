@@ -41,6 +41,7 @@
                 <!-- -->
                 <field name="ma_dat_hang"/>
                 <field name="chung_loai"/>
+                <field name="ma_cuon"/>
                 <field name="ton_dau"/>
                 <field name="ve_du_kien"/>
                 <field name="vt_can_dung"/>

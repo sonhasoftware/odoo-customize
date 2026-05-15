@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import os as _os
 import logging
 
 from odoo import _, api, fields, models
@@ -7,10 +6,6 @@ from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
-_SAP_BOM_TRIGGER_SQL = _os.path.join(
-    _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))),
-    'data', 'du_lieu_tong_hop_vat_tu_triggers.sql',
-)
 
 
 class Bom(models.Model):
@@ -20,7 +15,6 @@ class Bom(models.Model):
     _rec_name = 'ma_tp'
     _order = 'ma_tp, ma_nvl'
 
-    ma_bom = fields.Char(string='Mã BOM', index=True)
     ma_tp = fields.Char(string='Mã thành phẩm', index=True)
     ten_tp = fields.Char(string='Tên thành phẩm')
     ma_nvl = fields.Char(string='Mã NVL', index=True)
@@ -33,14 +27,14 @@ class Bom(models.Model):
     kho_2 = fields.Float(string='Khổ 2', digits=(16, 0))
 
     _sql_constraints = [
-        ('uniq_bom_tp_nvl', 'unique(ma_bom, ma_tp, ma_nvl)',
-         'BOM đã tồn tại theo mã BOM, mã thành phẩm và mã NVL!'),
+        ('uniq_bom_tp_nvl', 'unique(ma_tp, ma_nvl)',
+         'BOM đã tồn tại theo mã thành phẩm và mã NVL!'),
     ]
 
     def action_download_bom_template(self):
         return {
             'type': 'ir.actions.act_url',
-            'url': '/sonha_vat_tu/static/xls/bom_template.xlsx',
+            'url': '/sonha_vat_tu/static/xls/bom_templates.xlsx',
             'target': 'self',
         }
 

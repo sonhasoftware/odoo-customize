@@ -9,7 +9,6 @@
                     <button name="action_download_bom_template" type="object" string="Tải template" class="btn-secondary btn-sm" display="always"/>
                     <button name="action_open_import_bom_wizard" type="object" string="Import" class="btn-primary btn-sm" display="always"/>
                 </header>
-                <field name="ma_bom" required="1"/>
                 <field name="ma_tp" required="1"/>
                 <field name="ten_tp" required="1"/>
                 <field name="ma_nvl" required="1"/>
@@ -30,7 +29,6 @@
             <form string="BOM">
                 <sheet>
                     <group>
-                        <field name="ma_bom" required="1"/>
                         <field name="ma_tp" required="1"/>
                         <field name="ten_tp" required="1"/>
                         <field name="ma_nvl" required="1"/>
@@ -56,7 +54,6 @@
         <field name="model">bom</field>
         <field name="arch" type="xml">
             <search>
-                <field name="ma_bom"/>
                 <field name="ma_tp"/>
                 <field name="ten_tp"/>
                 <field name="ma_nvl"/>
@@ -64,7 +61,6 @@
                 <group expand="0" string="Nhóm theo">
                     <filter name="group_ma_tp" string="Mã thành phẩm" context="{'group_by': 'ma_tp'}"/>
                     <filter name="group_ma_nvl" string="Mã nguyên vật liệu" context="{'group_by': 'ma_nvl'}"/>
-                    <filter name="group_ma_bom" string="Mã BOM" context="{'group_by': 'ma_bom'}"/>
                 </group>
             </search>
         </field>

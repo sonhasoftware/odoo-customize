@@ -1,9 +1,21 @@
 # -*- coding: utf-8 -*-
+from datetime import date
+import os as _os
 import re
-from collections import defaultdict
+import base64
+import io
 
+from openpyxl import Workbook
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+from openpyxl.worksheet.datavalidation import DataValidation
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
+
+
+_SQL_FUNCTIONS_PATH = _os.path.join(
+    _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))),
+    'data', 'fn_ke_hoach_vat_tu.sql',
+)
 
 
 class KeHoachVatTu(models.Model):
@@ -19,7 +31,7 @@ class KeHoachVatTu(models.Model):
         'res.company', string='Công ty', tracking=True,
         default=lambda self: self.env.company)
     state = fields.Selection([
-        ('ke_hoach', 'Kế hoạch thành phẩm'),
+        ('ke_hoach', 'Kế hoạch sản xuất'),
         ('dinh_muc', 'Định mức kỳ'),
         ('tinh_toan', 'Tính toán vật tư'),
         ('tong_hop', 'Tổng hợp vật tư cần sản xuất'),
@@ -42,13 +54,15 @@ class KeHoachVatTu(models.Model):
         tracking=True,
     )
 
-    ke_hoach_thanh_pham_ids = fields.One2many('ke.hoach.thanh.pham', 'period_id', string='KH thành phẩm')
+    ke_hoach_kinh_doanh_ids = fields.One2many('ke.hoach.kinh.doanh', 'period_id', string='Kế hoạch kinh doanh')
+    ke_hoach_san_xuat_ids = fields.One2many('ke.hoach.san.xuat', 'period_id', string='Kế hoạch sản xuất')
     dinh_muc_ids = fields.One2many('dinh.muc', 'period_id', string='Định mức tháng')
     tinh_toan_vat_tu_ids = fields.One2many('tinh.toan.vat.tu', 'period_id', string='Tính toán vật tư')
     tong_hop_vat_tu_ids = fields.One2many('tong.hop.vat.tu', 'period_id', string='Tổng hợp vật tư')
     kh_dat_vat_tu_ids = fields.One2many('kh.dat.vat.tu', 'period_id', string='Kế hoạch đặt vật tư')
 
-    ke_hoach_thanh_pham_count = fields.Integer(compute='_compute_counts')
+    ke_hoach_kinh_doanh_count = fields.Integer(compute='_compute_counts')
+    ke_hoach_san_xuat_count = fields.Integer(compute='_compute_counts')
     dinh_muc_count = fields.Integer(compute='_compute_counts')
     tinh_toan_vat_tu_count = fields.Integer(compute='_compute_counts')
     tong_hop_vat_tu_count = fields.Integer(compute='_compute_counts')
@@ -57,11 +71,24 @@ class KeHoachVatTu(models.Model):
         string='Các tháng có dữ liệu',
         compute='_compute_month_preview')
 
-
-
     _sql_constraints = [
         ('name_uniq', 'unique(name)', 'Tên kỳ phải duy nhất!'),
     ]
+
+    @api.model
+    def init(self):
+        with open(_SQL_FUNCTIONS_PATH, 'r', encoding='utf-8') as f:
+            self.env.cr.execute(f.read())
+
+    @api.model
+    def _month_key_to_date(self, month_key):
+        if not month_key:
+            return False
+        try:
+            month, year = str(month_key).split('/')
+            return date(int(year), int(month), 1)
+        except Exception:
+            return False
 
     @api.constrains('period_month')
     def _check_period_month(self):
@@ -80,17 +107,18 @@ class KeHoachVatTu(models.Model):
                 raise ValidationError(
                     _('Số ngày B5 phải lớn hơn 0 (đang là %s).') % rec.ngay_du_tru_b5)
 
-    @api.depends('ke_hoach_thanh_pham_ids', 'dinh_muc_ids', 'tinh_toan_vat_tu_ids',
+    @api.depends('ke_hoach_kinh_doanh_ids', 'ke_hoach_san_xuat_ids', 'dinh_muc_ids', 'tinh_toan_vat_tu_ids',
                  'tong_hop_vat_tu_ids', 'kh_dat_vat_tu_ids')
     def _compute_counts(self):
         for rec in self:
-            rec.ke_hoach_thanh_pham_count = len(rec.ke_hoach_thanh_pham_ids)
+            rec.ke_hoach_kinh_doanh_count = len(rec.ke_hoach_kinh_doanh_ids)
+            rec.ke_hoach_san_xuat_count = len(rec.ke_hoach_san_xuat_ids)
             rec.dinh_muc_count = len(rec.dinh_muc_ids)
             rec.tinh_toan_vat_tu_count = len(rec.tinh_toan_vat_tu_ids)
             rec.tong_hop_vat_tu_count = len(rec.tong_hop_vat_tu_ids)
             rec.kh_dat_vat_tu_count = len(rec.kh_dat_vat_tu_ids)
 
-    @api.depends('ke_hoach_thanh_pham_ids.month_key')
+    @api.depends('ke_hoach_san_xuat_ids.month_key')
     def _compute_month_preview(self):
         for rec in self:
             def _sort_key(mm_yyyy):
@@ -100,336 +128,42 @@ class KeHoachVatTu(models.Model):
                 except Exception:
                     return 0, 0
             months = sorted(
-                {p.month_key for p in rec.ke_hoach_thanh_pham_ids if p.month_key},
+                {p.month_key for p in rec.ke_hoach_san_xuat_ids if p.month_key},
                 key=_sort_key
             )
             rec.month_ids_preview = ', '.join(months) or False
 
-
-    def _call_db_function(self, fn_name):
-        self.ensure_one()
-        self.env.cr.execute(
-            "SELECT routine_name FROM information_schema.routines "
-            "WHERE routine_name = %s AND routine_schema = 'public' LIMIT 1",
-            (fn_name,))
-        if not self.env.cr.fetchone():
-            raise UserError(_(
-                'Chưa có function DB "%s" để tính. Function này do team DB '
-                'cung cấp; nhánh Odoo đang chờ ghép nối.'
-            ) % fn_name)
-        self.env.cr.execute('SELECT %s(%%s)' % fn_name, (self.id,))
-
-    def _run_db_or_python(self, fn_name, python_method_name):
-        self.ensure_one()
-        self.env.cr.execute(
-            "SELECT routine_name FROM information_schema.routines "
-            "WHERE routine_name = %s AND routine_schema = 'public' LIMIT 1",
-            (fn_name,))
-        if self.env.cr.fetchone():
-            self.env.cr.execute('SELECT %s(%%s)' % fn_name, (self.id,))
-            return
-        getattr(self, python_method_name)()
-
-    def _generate_b2(self):
-        self.ensure_one()
-        Bom = self.env['bom'].sudo()
-        DinhMuc = self.env['dinh.muc'].sudo()
-        self.dinh_muc_ids.unlink()
-        vals_list = []
-        for line in self.ke_hoach_thanh_pham_ids:
-            if not line.ma_sap:
-                continue
-            domain = [('ma_tp', '=', line.ma_sap)]
-            if line.ma_bom:
-                domain.append(('ma_bom', '=', line.ma_bom))
-            bom_lines = Bom.search(domain)
-            for bom_line in bom_lines:
-                sl_spdm = bom_line.sl_spdm if bom_line.sl_spdm else 1.0
-                vals_list.append({
-                    'period_id': self.id,
-                    'company_id': line.company_id.id,
-                    'ma_sap': line.ma_sap,
-                    'ten_sap': bom_line.ten_tp,
-                    'ma_tp': bom_line.ma_tp,
-                    'ma_nvl': bom_line.ma_nvl,
-                    'month_key': line.month_key,
-                    'qty': ((line.qty or 0.0) / sl_spdm) * (bom_line.sl_dinh_muc or 0.0),
-                })
-        if vals_list:
-            DinhMuc.create(vals_list)
-
-    def _compute_b3(self):
-        self.ensure_one()
-        Bom = self.env['bom'].sudo()
-        B3 = self.env['tinh.toan.vat.tu'].sudo()
-        self.tinh_toan_vat_tu_ids.unlink()
-        
-        uom_kg = self.env.ref('uom.product_uom_kgm', raise_if_not_found=False)
-        uom_kg_id = uom_kg.id if uom_kg else False
-        
-        vals_list = []
-        density = 7.63  # theo file Excel: nhân 7.63 rồi chia 1,000,000
-        for b2 in self.dinh_muc_ids:
-            bom_line = Bom.search([
-                ('ma_tp', '=', b2.ma_tp),
-                ('ma_nvl', '=', b2.ma_nvl),
-            ], limit=1)
-            kho_1 = bom_line.kho_1 if bom_line else 0.0
-            kho_2 = bom_line.kho_2 if bom_line else 0.0
-            do_day = bom_line.do_day if bom_line else 0.0
-            trong_luong_kg_tam = (do_day * kho_1 * kho_2 * density) / 1000000.0
-            qty_kg = (b2.qty or 0.0) * (trong_luong_kg_tam or 1.0)
-            vals_list.append({
-                'period_id': self.id,
-                'company_id': b2.company_id.id,
-                'ma_sap': b2.ma_sap,
-                'ma_effect': b2.ma_nvl or (bom_line.ma_nvl if bom_line else False),
-                'ten_sap': b2.ten_sap,
-                'don_vi_tinh': uom_kg_id,
-                'do_day': do_day,
-                'kho_1': kho_1,
-                'kho_2': kho_2,
-                'trong_luong_kg_tam': trong_luong_kg_tam,
-                'sl_dinh_muc': False,
-                'month_key': b2.month_key,
-                'qty': qty_kg,
-            })
-        if vals_list:
-            B3.create(vals_list)
-
-    def _compute_b4(self):
-        self.ensure_one()
-        B4 = self.env['tong.hop.vat.tu'].sudo()
-        VatDuong = self.env['vat.tu.di.duong'].sudo()
-        self.tong_hop_vat_tu_ids.unlink()
-
-        # Gom nhu cầu từ B3 theo (company, material_code, month_key)
-        grouped = defaultdict(float)
-        for b3 in self.tinh_toan_vat_tu_ids:
-            key = (
-                b3.company_id.id,
-                b3.ma_sap or '',
-                b3.ma_effect or b3.ma_sap or '',
-            )
-            # Dùng tuple (month_key, key) để giữ thứ tự tháng
-            grouped[(key, b3.month_key)] += b3.qty or 0.0
-
-        # Sắp xếp theo material_code rồi theo month_key để cuốn chiếu đúng
-        sorted_keys = sorted(grouped.keys(), key=lambda x: (x[0], x[1]))
-
-        days_in_formula = 28.0
-        ngay_dp = self.ngay_du_phong_b4 or 15.0
-        divisor_b4 = days_in_formula * ngay_dp
-
-        # Cache tồn cuối để cuốn chiếu: key = (company_id, material_code)
-        ton_cuoi_cache = {}
-
-        # Cache đơn giá tồn kho từ SAP: key = material_code
-        don_gia_cache = {}
-
-        uom_kg = self.env.ref('uom.product_uom_kgm', raise_if_not_found=False)
-        uom_kg_id = uom_kg.id if uom_kg else False
-
-        vals_list = []
-        for (material_key, month_key), demand_qty in sorted_keys:
-            company_id, ma_sap, material_code = material_key[0], material_key[1], material_key[2]
-            demand_qty = grouped[(material_key, month_key)]
-            cache_key = (company_id, material_code)
-
-            # --- Logic Mapping Chi Nhánh ---
-            company = self.env['res.company'].sudo().browse(company_id)
-            comp_code = company.company_code
-            chi_nhanh_pattern = '%'
-            if comp_code == 'BNH':
-                chi_nhanh_pattern = '21%'
-            elif comp_code == 'SSP':
-                chi_nhanh_pattern = '22%'
-
-            # --- Tồn đầu: cuốn chiếu ---
-            if cache_key in ton_cuoi_cache:
-                # Tháng tiếp: tồn đầu = tồn cuối tháng trước
-                ton_dau = ton_cuoi_cache[cache_key]
-            else:
-                # Tháng đầu: lấy tổng tồn kho từ các chi nhánh thuộc công ty (SAP)
-                ton_dau = 0.0
-                if material_code:
-                    self.env.cr.execute("""
-                        SELECT SUM(ton_cuoi)
-                        FROM (
-                            SELECT DISTINCT ON (chi_nhanh) safe_sap_numeric(ton_cuoi) as ton_cuoi
-                            FROM md_sap_ton_kho
-                            WHERE TRIM(ma_hang) = %s AND chi_nhanh LIKE %s
-                            ORDER BY chi_nhanh, create_date DESC
-                        ) t
-                    """, (material_code, chi_nhanh_pattern))
-                    row = self.env.cr.fetchone()
-                    if row and row[0]:
-                        ton_dau = float(row[0])
-
-            # --- Đơn giá tồn kho từ SAP (cache lần đầu) ---
-            # Cache key sửa lại phải có chi_nhanh_pattern vì các công ty khác nhau lấy tồn kho khác nhau
-            dg_cache_key = (material_code, chi_nhanh_pattern)
-            if dg_cache_key not in don_gia_cache:
-                don_gia = 0.0
-                if material_code:
-                    self.env.cr.execute("""
-                        SELECT SUM(tien_ton_cuoi), SUM(ton_cuoi), SUM(tien_ton_dau), SUM(ton_dau)
-                        FROM (
-                            SELECT DISTINCT ON (chi_nhanh)
-                                   safe_sap_numeric(tien_ton_cuoi) as tien_ton_cuoi,
-                                   safe_sap_numeric(ton_cuoi) as ton_cuoi,
-                                   safe_sap_numeric(tien_ton_dau) as tien_ton_dau,
-                                   safe_sap_numeric(ton_dau) as ton_dau
-                            FROM md_sap_ton_kho
-                            WHERE TRIM(ma_hang) = %s AND chi_nhanh LIKE %s
-                            ORDER BY chi_nhanh, create_date DESC
-                        ) t
-                    """, (material_code, chi_nhanh_pattern))
-                    row = self.env.cr.fetchone()
-                    if row:
-                        if row[1] and float(row[1]) != 0:
-                            don_gia = float(row[0]) / float(row[1])
-                        elif row[3] and float(row[3]) != 0:
-                            don_gia = float(row[2]) / float(row[3])
-                don_gia_cache[dg_cache_key] = don_gia
-
-            # --- Vật tư đi đường ---
-            ve_du_kien = 0.0
-            if material_code:
-                vdd = VatDuong.search(
-                    [
-                        ('company_id', '=', company_id),
-                        ('month_key', '=', month_key),
-                        ('ma_sap', '=', material_code),
-                    ],
-                    limit=1,
-                )
-                ve_du_kien = vdd.so_luong if vdd else 0.0
-
-            so_luong_du_phong = (
-                (demand_qty / divisor_b4) if demand_qty else 0.0)
-            ton_cuoi = ton_dau + ve_du_kien - demand_qty
-            so_luong_thieu = max(0.0, so_luong_du_phong - ton_cuoi)
-
-            # Lưu tồn cuối để cuốn chiếu sang tháng sau
-            ton_cuoi_cache[cache_key] = ton_cuoi
-
-            vals_list.append({
-                'period_id': self.id,
-                'company_id': company_id,
-                'ma_dat_hang': material_code,
-                'ma_sap': ma_sap,
-                'chung_loai': material_code,
-                'don_vi_tinh': uom_kg_id,
-                'month_key': month_key,
-                'ton_dau': ton_dau,
-                've_du_kien': ve_du_kien,
-                'vt_can_dung': demand_qty,
-                'ton_cuoi': ton_cuoi,
-                'so_luong_du_phong': so_luong_du_phong,
-                'so_luong_thieu': so_luong_thieu,
-                'so_luong_can_mua': so_luong_thieu,
-            })
-        if vals_list:
-            B4.create(vals_list)
-
-    def _compute_b5(self):
-        self.ensure_one()
-        B5 = self.env['kh.dat.vat.tu'].sudo()
-        self.kh_dat_vat_tu_ids.unlink()
-        days_in_formula = 28.0
-        ngay_dt = self.ngay_du_tru_b5 or 20.0
-        divisor_b5 = days_in_formula * ngay_dt
-
-        # Cache đơn giá tồn kho từ SAP
-        don_gia_cache = {}
-
-        uom_kg = self.env.ref('uom.product_uom_kgm', raise_if_not_found=False)
-        uom_kg_id = uom_kg.id if uom_kg else False
-
-        vals_list = []
-        for b4 in self.tong_hop_vat_tu_ids:
-            vt_can_dung = b4.vt_can_dung or 0.0
-            sl_du_tru_toi_thieu = (
-                (vt_can_dung / divisor_b5) if vt_can_dung else 0.0)
-            so_luong_can_mua = b4.so_luong_can_mua or 0.0
-            material_code = b4.ma_dat_hang or b4.ma_sap
-
-            # Mapping chi nhánh tương tự B4
-            company = self.env['res.company'].sudo().browse(b4.company_id.id)
-            comp_code = company.company_code
-            chi_nhanh_pattern = '%'
-            if comp_code == 'BNH':
-                chi_nhanh_pattern = '21%'
-            elif comp_code == 'SSP':
-                chi_nhanh_pattern = '22%'
-
-            dg_cache_key = (material_code, chi_nhanh_pattern)
-
-            # Lấy đơn giá tồn kho từ SAP (cache)
-            if dg_cache_key not in don_gia_cache:
-                don_gia = 0.0
-                if material_code:
-                    self.env.cr.execute("""
-                        SELECT SUM(tien_ton_cuoi), SUM(ton_cuoi), SUM(tien_ton_dau), SUM(ton_dau)
-                        FROM (
-                            SELECT DISTINCT ON (chi_nhanh)
-                                   safe_sap_numeric(tien_ton_cuoi) as tien_ton_cuoi,
-                                   safe_sap_numeric(ton_cuoi) as ton_cuoi,
-                                   safe_sap_numeric(tien_ton_dau) as tien_ton_dau,
-                                   safe_sap_numeric(ton_dau) as ton_dau
-                            FROM md_sap_ton_kho
-                            WHERE TRIM(ma_hang) = %s AND chi_nhanh LIKE %s
-                            ORDER BY chi_nhanh, create_date DESC
-                        ) t
-                    """, (material_code, chi_nhanh_pattern))
-                    row = self.env.cr.fetchone()
-                    if row:
-                        if row[1] and float(row[1]) != 0:
-                            don_gia = float(row[0]) / float(row[1])
-                        elif row[3] and float(row[3]) != 0:
-                            don_gia = float(row[2]) / float(row[3])
-                don_gia_cache[dg_cache_key] = don_gia
-
-            vals_list.append({
-                'period_id': self.id,
-                'company_id': b4.company_id.id,
-                'month_key': b4.month_key,
-                'ma_sap': b4.ma_sap,
-                'ma_effect': b4.ma_dat_hang or b4.ma_sap,
-                'chung_loai': b4.chung_loai,
-                'don_vi_tinh': b4.don_vi_tinh.id if b4.don_vi_tinh else uom_kg_id,
-                'tong_ton_nvl_sl': b4.ton_dau,
-                'tong_hang_di_duong_sl': b4.ve_du_kien,
-                'tong_sl_vt_can_dung': b4.vt_can_dung,
-                'sl_du_tru_toi_thieu': sl_du_tru_toi_thieu,
-                'sl_can_mua_theo_moq': False,
-                'don_gia_ton_kho': don_gia_cache.get(dg_cache_key, 0.0),
-            })
-        if vals_list:
-            B5.create(vals_list)
+    # ------------------------------------------------------------------
+    # Actions — gọi thẳng SQL Procedure
+    # ------------------------------------------------------------------
 
     def action_generate_b2(self):
         self.ensure_one()
-        self._generate_b2()
+        self.env.cr.execute('CALL public.fn_sinh_dinh_muc(%s)', (self.id,))
         self.state = 'dinh_muc'
         return self.action_open_step_b2()
 
     def action_compute_b3(self):
         self.ensure_one()
-        self._run_db_or_python('fn_vtc_compute_b3', '_compute_b3')
+        self.env.cr.execute('CALL public.fn_tinh_toan_vat_tu(%s)', (self.id,))
         self.state = 'tinh_toan'
         return self.action_open_step_b3()
 
     def action_compute_b4(self):
         self.ensure_one()
-        self._run_db_or_python('fn_vtc_compute_b4', '_compute_b4')
+        self.env.cr.execute(
+            'CALL public.fn_tong_hop_vat_tu(%s, %s)',
+            (self.id, self.ngay_du_phong_b4 or 15.0)
+        )
         self.state = 'tong_hop'
         return self.action_open_step_b4()
 
     def action_compute_b5(self):
         self.ensure_one()
-        self._run_db_or_python('fn_vtc_compute_b5', '_compute_b5')
+        self.env.cr.execute(
+            'CALL public.fn_ke_hoach_dat_vat_tu(%s, %s)',
+            (self.id, self.ngay_du_tru_b5 or 20.0)
+        )
         self.state = 'dat_hang'
         return self.action_open_step_b5()
 
@@ -444,23 +178,170 @@ class KeHoachVatTu(models.Model):
 
     def action_download_b1_template(self):
         self.ensure_one()
+        if self.state != 'ke_hoach':
+            raise UserError(_('Kế hoạch đã sang bước sau, không thể tải template để import lại.'))
+        if not (
+            self.env.user.has_group('sonha_vat_tu.group_ban_cung_ung_vat_tu') or
+            self.env.user.has_group('sonha_vat_tu.group_truong_bo_phan_vat_tu')
+        ):
+            raise UserError(_('Bạn không có quyền tải template kế hoạch kinh doanh.'))
         return {
             'type': 'ir.actions.act_url',
-            'url': '/sonha_vat_tu/static/xls/ke_hoach_vat_tu_template.xlsx',
+            'url': '/sonha_vat_tu/static/xls/ke_hoach_vat_tu_templates.xlsx',
             'target': 'self',
         }
 
-    def action_open_import_wizard(self):
+    def action_open_import_kinh_doanh_wizard(self):
         self.ensure_one()
+        if self.state != 'ke_hoach':
+            raise UserError(_('Kế hoạch kinh doanh đã khóa vì kỳ kế hoạch đã sang bước sau.'))
+        if not (
+            self.env.user.has_group('sonha_vat_tu.group_ban_cung_ung_vat_tu') or
+            self.env.user.has_group('sonha_vat_tu.group_truong_bo_phan_vat_tu')
+        ):
+            raise UserError(_('Bạn không có quyền import kế hoạch kinh doanh.'))
         return {
-            'name': _('Import kế hoạch thành phẩm'),
+            'name': _('Import kế hoạch kinh doanh'),
             'type': 'ir.actions.act_window',
             'res_model': 'import.ke.hoach.wizard',
             'view_mode': 'form',
             'target': 'new',
             'context': {
                 'default_period_id': self.id,
+                'default_import_type': 'business',
             },
+        }
+
+    def action_open_import_san_xuat_wizard(self):
+        self.ensure_one()
+        if self.state != 'ke_hoach':
+            raise UserError(_('Kế hoạch sản xuất đã khóa vì kỳ kế hoạch đã sang bước sau.'))
+        if not (
+            self.env.user.has_group('sonha_vat_tu.group_bo_phan_vat_tu') or
+            self.env.user.has_group('sonha_vat_tu.group_truong_bo_phan_vat_tu')
+        ):
+            raise UserError(_('Bạn không có quyền import kế hoạch sản xuất.'))
+        return {
+            'name': _('Import kế hoạch sản xuất'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'import.ke.hoach.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_period_id': self.id,
+                'default_import_type': 'production',
+            },
+        }
+
+    def action_open_import_wizard(self):
+        return self.action_open_import_kinh_doanh_wizard()
+
+    def action_export_san_xuat(self):
+        self.ensure_one()
+        if self.state != 'ke_hoach':
+            raise UserError(_('Kế hoạch đã sang bước sau, không thể export lại cho sản xuất.'))
+        if not (
+            self.env.user.has_group('sonha_vat_tu.group_bo_phan_vat_tu') or
+            self.env.user.has_group('sonha_vat_tu.group_truong_bo_phan_vat_tu')
+        ):
+            raise UserError(_('Bạn không có quyền export kế hoạch cho sản xuất.'))
+        lines = self.ke_hoach_kinh_doanh_ids.sorted(lambda r: (
+            r.nganh_hang_id.name or '',
+            r.dong_hang_id.name or '',
+            r.ma_hang_id.code or '',
+            r.ma_sap or '',
+            r.month_date or date.min,
+        ))
+        if not lines:
+            raise UserError(_('Chưa có kế hoạch kinh doanh để export cho sản xuất.'))
+
+        months = sorted(
+            {line.month_key for line in lines if line.month_key},
+            key=lambda month: self._month_key_to_date(month) or date.min,
+        )
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = 'Ke hoach san xuat'
+        headers = ['Ngành hàng', 'Dòng hàng', 'Mã hàng', 'Mã SAP']
+        headers += ['Tháng %s' % month for month in months]
+        headers += ['Đơn vị sản xuất']
+        ws.append(headers)
+
+        grouped = {}
+        for line in lines:
+            key = (
+                line.nganh_hang_id.name or '',
+                line.dong_hang_id.name or '',
+                line.ma_hang_id.code or '',
+                line.ma_sap or '',
+            )
+            grouped.setdefault(key, {})
+            grouped[key][line.month_key] = grouped[key].get(line.month_key, 0.0) + (line.qty or 0.0)
+
+        for key, qty_by_month in grouped.items():
+            ws.append(list(key) + [qty_by_month.get(month, 0.0) for month in months] + [''])
+
+        base_font = Font(name='Times New Roman', size=10)
+        header_font = Font(name='Times New Roman', size=10, bold=True)
+        header_fill = PatternFill(fill_type='solid', fgColor='FFF2CC')
+        thin_side = Side(style='thin', color='000000')
+        header_border = Border(left=thin_side, right=thin_side, top=thin_side, bottom=thin_side)
+        header_alignment = Alignment(horizontal='center', vertical='center')
+        body_alignment = Alignment(vertical='center')
+
+        for row in ws.iter_rows(min_row=1, max_row=ws.max_row, min_col=1, max_col=len(headers)):
+            for cell in row:
+                cell.font = base_font
+                cell.alignment = body_alignment
+        for cell in ws[1]:
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.border = header_border
+            cell.alignment = header_alignment
+        ws.freeze_panes = 'A2'
+
+        companies = self.env['res.company'].sudo().search([
+            ('company_code', 'in', ['BNH', 'SSP']),
+        ], order='name')
+        company_names = companies.mapped('name') or ['BNH', 'SSP']
+        list_ws = wb.create_sheet('_lists')
+        for row_idx, company_name in enumerate(company_names, start=1):
+            list_ws.cell(row=row_idx, column=1, value=company_name)
+        list_ws.sheet_state = 'hidden'
+        validation = DataValidation(
+            type='list',
+            formula1="'_lists'!$A$1:$A$%s" % len(company_names),
+            allow_blank=False,
+        )
+        ws.add_data_validation(validation)
+        company_col = len(headers)
+        for row in range(2, ws.max_row + 1):
+            validation.add(ws.cell(row=row, column=company_col))
+
+        for col in ws.columns:
+            max_len = max(len(str(cell.value or '')) for cell in col)
+            ws.column_dimensions[col[0].column_letter].width = min(max(max_len + 2, 12), 28)
+        ws.column_dimensions['A'].width = 22
+        ws.column_dimensions['B'].width = 22
+        ws.column_dimensions['C'].width = 24
+        ws.column_dimensions['D'].width = 24
+        ws.column_dimensions[ws.cell(row=1, column=company_col).column_letter].width = 42
+
+        output = io.BytesIO()
+        wb.save(output)
+        attachment = self.env['ir.attachment'].sudo().create({
+            'name': 'ke_hoach_san_xuat_%s.xlsx' % (self.period_month or self.id),
+            'type': 'binary',
+            'datas': base64.b64encode(output.getvalue()),
+            'res_model': self._name,
+            'res_id': self.id,
+            'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        })
+        return {
+            'type': 'ir.actions.act_url',
+            'url': '/web/content/%s?download=true' % attachment.id,
+            'target': 'self',
         }
 
     def _action_open_step(self, view_xmlid):

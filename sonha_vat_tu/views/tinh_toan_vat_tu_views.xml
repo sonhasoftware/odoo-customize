@@ -9,6 +9,7 @@
                 <field name="period_id" required="1"/>
                 <field name="company_id" required="1"/>
                 <field name="ma_sap" required="1"/>
+                <field name="ma_vat_tu"/>
                 <field name="ma_effect"/>
                 <field name="ten_sap"/>
                 <field name="don_vi_tinh"/>
@@ -30,6 +31,7 @@
             <search>
                 <field name="period_id"/>
                 <field name="ma_sap"/>
+                <field name="ma_vat_tu"/>
                 <field name="ma_effect"/>
                 <field name="ten_sap"/>
                 <field name="month_key"/>
