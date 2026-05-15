@@ -119,22 +119,20 @@
         <field name="arch" type="xml">
             <tree string="MDM khách hàng">
                 <field name="ma_khach"/>
-                    <field name="ten_khach"/>
-                    <field name="dia_chi_khach"/>
-                    <field name="ma_cn"/>
-                    <field name="nhom_khach"/>
-                    <field name="ten_salesman"/>
-                    <field name="ma_salesman"/>
-                    <field name="ma_dms"/>
-                    <field name="ma_tinh" />
-                    <field name="kinh_do" />
-                    <field name="vi_do" />
-                    <field name="so_dien_thoai" />
-                    <field name="dat_nuoc"/>
-                    <field name="khu_vuc"/>
-                    <field name="vung"/>
-                    <field name="qlv"/>
-                    <field name="mst"/>
+                <field name="ten_khach"/>
+                <field name="dia_chi_khach"/>
+                <field name="tinh_cu"/>
+                <field name="dat_nuoc" string="Quốc gia"/>
+                <field name="so_dien_thoai"/>
+                <field name="mst"/>
+                <field name="ma_cn"/>
+                <field name="nhom_khach" />
+                <field name="dvcs" />
+                <field name="ma_salesman" />
+                <field name="vung" />
+                <field name="qlv"/>
+                <field name="khu_vuc"/>
+                <field name="mien_lon"/>
             </tree>
         </field>
     </record>
