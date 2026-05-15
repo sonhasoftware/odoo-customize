@@ -148,7 +148,7 @@
                 (0, 0, {'view_mode': 'tree', 'view_id': ref('view_mdm_tong_hop_tree')}),
                 (0, 0, {'view_mode': 'form', 'view_id': ref('view_mdm_tong_hop_form')})]"/>
         </record>
-    <record id="action_mdm_tong_hop_import_excel" model="ir.actions.act_window">
+    <record id="action_mdm_tong_hop_import_excel_wizard" model="ir.actions.act_window">
         <field name="name">Import Excel</field>
         <field name="res_model">mdm.tong.hop.import.wizard</field>
         <field name="view_mode">form</field>
