@@ -128,6 +128,8 @@
                 <field name="do_bong" optional="show"/>
                 <field name="do_day" optional="show"/>
                 <field name="dung_tich" optional="show"/>
+                <field name="dvt_dung_tich" optional="show"/>
+                <field name="bom_sale" optional="show"/>
             </tree>
         </field>
     </record>
