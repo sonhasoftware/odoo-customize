@@ -6,7 +6,7 @@
     'summary': 'Sơn Hà MDM',
     'website': 'https://',
     'description': "Sơn Hà MDM",
-    'depends': [],
+    'depends': ['base', 'sonha_luong_duyet'],
     'data': [
         'security/ir.model.access.csv',
         'views/mdm_chung_loai1_views.xml',
