@@ -13,7 +13,7 @@ BEGIN
     )
     SELECT
         p_period_id,
-        kh.company_id,
+        b1.company_id,
         b1.ma_sap,
         bcu.ten_tp_goc,
         bcu.ma_tp_cha,          -- Key tra do_day/kho_1/kho_2 ở B3
@@ -23,7 +23,6 @@ BEGIN
         b1.qty * bcu.sl_thuc_te,
         1, 1, NOW(), NOW()
     FROM ke_hoach_san_xuat b1
-    JOIN ke_hoach_vat_tu kh ON kh.id = b1.period_id
     JOIN bom_tinh_toan bcu
         ON bcu.ma_tp_goc = b1.ma_sap
        AND bcu.loai_vat_tu = 'NVL'
@@ -323,7 +322,7 @@ BEGIN
             COALESCE(b4.month_date, TO_DATE(b4.month_key, 'MM/YYYY')) AS month_date,
             b4.ma_sap,
             NULL::VARCHAR                            AS ma_effect,
-            b4.chung_loai                            AS ma_cuon,
+            NULL::VARCHAR                            AS ma_cuon,
             b4.don_vi_tinh                           AS don_vi_tinh,
             b4.ton_dau,
             b4.ve_du_kien,
