@@ -82,8 +82,45 @@ class ImportKeHoachWizard(models.TransientModel):
             raise UserError(_('File rỗng.'))
         return rows
 
+    def _norm_text(self, value):
+        return str(value or '').strip()
+
+    def _validate_metadata(self, rows):
+        if len(rows) < 6:
+            raise UserError(_('File Excel không đúng mẫu. Vui lòng tải lại template từ kỳ kế hoạch đang mở.'))
+
+        meta = {}
+        for row_idx in range(3):
+            row = rows[row_idx] if row_idx < len(rows) else ()
+            label = self._norm_text(row[0] if len(row) > 0 else '')
+            value = self._norm_text(row[1] if len(row) > 1 else '')
+            meta[label.lower()] = value
+
+        code = meta.get('mã') or meta.get('ma')
+        month = meta.get('tháng bắt đầu') or meta.get('thang bat dau')
+        company = meta.get('công ty') or meta.get('cong ty')
+
+        errors = []
+        if not code:
+            errors.append(_('Mã kỳ không được để trống. Vui lòng kiểm tra ô B1.'))
+        elif code != (self.period_id.code or ''):
+            errors.append(_('Mã kỳ trong file là "%s", không đúng với kỳ đang mở "%s".') % (code, self.period_id.code or ''))
+
+        if not month:
+            errors.append(_('Tháng bắt đầu không được để trống. Vui lòng kiểm tra ô B2.'))
+        elif month != (self.period_id.period_month or ''):
+            errors.append(_('Tháng bắt đầu trong file là "%s", không đúng với kỳ đang mở "%s".') % (month, self.period_id.period_month or ''))
+
+        if not company:
+            errors.append(_('Công ty không được để trống. Vui lòng kiểm tra ô B3.'))
+        elif company != (self.period_id.company_id.name or ''):
+            errors.append(_('Công ty trong file là "%s", không đúng với kỳ đang mở "%s".') % (company, self.period_id.company_id.name or ''))
+
+        self._raise_errors(errors)
+
     def _prepare_rows(self, rows):
-        header = [str(c).strip() if c is not None else '' for c in rows[0]]
+        header_row_idx = 5
+        header = [str(c).strip() if c is not None else '' for c in rows[header_row_idx]]
         month_cols = []
         company_col_idx = None
         for idx, label in enumerate(header):
@@ -98,10 +135,10 @@ class ImportKeHoachWizard(models.TransientModel):
             ):
                 company_col_idx = idx
         if not month_cols:
-            raise UserError(_('Không tìm thấy cột tháng nào trong file.'))
+            raise UserError(_('Không tìm thấy cột tháng trong bảng dữ liệu. Vui lòng kiểm tra dòng tiêu đề số 6.'))
         if self.import_type == 'production' and company_col_idx is None:
-            raise UserError(_('File sản xuất thiếu cột "Đơn vị sản xuất".'))
-        return header, month_cols, company_col_idx
+            raise UserError(_('File kế hoạch sản xuất phải có cột "Đơn vị sản xuất".'))
+        return header, month_cols, company_col_idx, header_row_idx + 1
 
     def _validate_master_row(self, row_idx, row, errors):
         NganhHang = self.env['nganh.hang'].sudo()
@@ -160,7 +197,7 @@ class ImportKeHoachWizard(models.TransientModel):
         msg = '\n'.join('- %s' % error for error in shown)
         if len(errors) > 80:
             msg += _('\n... còn %d lỗi khác.') % (len(errors) - 80)
-        raise UserError(_('File import có lỗi, chưa ghi dữ liệu:\n%s') % msg)
+        raise UserError(_('File Excel có lỗi, chưa ghi dữ liệu:\n%s') % msg)
 
     def action_import(self):
         self.ensure_one()
@@ -177,13 +214,14 @@ class ImportKeHoachWizard(models.TransientModel):
             raise UserError(_('Bạn không có quyền import kế hoạch sản xuất.'))
 
         rows = self._read_workbook()
-        header, month_cols, company_col_idx = self._prepare_rows(rows)
+        self._validate_metadata(rows)
+        header, month_cols, company_col_idx, data_start_idx = self._prepare_rows(rows)
 
         if self.import_type == 'business':
-            count = self._import_business(rows, header, month_cols)
+            count = self._import_business(rows, header, month_cols, data_start_idx)
             label = 'kế hoạch kinh doanh'
         else:
-            count = self._import_production(rows, header, month_cols, company_col_idx)
+            count = self._import_production(rows, header, month_cols, company_col_idx, data_start_idx)
             label = 'kế hoạch sản xuất'
 
         attachment = self.env['ir.attachment'].sudo().create({
@@ -207,14 +245,14 @@ class ImportKeHoachWizard(models.TransientModel):
             'target': 'current',
         }
 
-    def _import_business(self, rows, header, month_cols):
+    def _import_business(self, rows, header, month_cols, data_start_idx):
         Plan = self.env['ke.hoach.kinh.doanh'].sudo()
         Period = self.env['ke.hoach.vat.tu']
         vals_list = []
         errors = []
         seen = set()
 
-        for row_idx, row in enumerate(rows[1:], start=2):
+        for row_idx, row in enumerate(rows[data_start_idx:], start=data_start_idx + 1):
             if not row or not any(c not in (None, '') for c in row):
                 continue
             row = list(row) + [None] * (len(header) - len(row))
@@ -256,13 +294,14 @@ class ImportKeHoachWizard(models.TransientModel):
             Plan.with_context(is_importing=True).create(vals_list)
         return len(vals_list)
 
-    def _import_production(self, rows, header, month_cols, company_col_idx):
+    def _import_production(self, rows, header, month_cols, company_col_idx, data_start_idx):
         Plan = self.env['ke.hoach.san.xuat'].sudo()
         Period = self.env['ke.hoach.vat.tu']
         vals_by_key = {}
+        imported_line_keys = set()
         errors = []
 
-        for row_idx, row in enumerate(rows[1:], start=2):
+        for row_idx, row in enumerate(rows[data_start_idx:], start=data_start_idx + 1):
             if not row or not any(c not in (None, '') for c in row):
                 continue
             row = list(row) + [None] * (len(header) - len(row))
@@ -275,14 +314,15 @@ class ImportKeHoachWizard(models.TransientModel):
                 continue
             for col_idx, month_key in month_cols:
                 raw_qty = row[col_idx]
-                if raw_qty in (None, '', 0, 0.0):
+                if raw_qty in (None, ''):
                     continue
                 try:
                     qty = float(raw_qty)
                 except (TypeError, ValueError):
                     errors.append(_('Dòng %d, tháng %s: "%s" không phải số.') % (row_idx, month_key, raw_qty))
                     continue
-                key = (company.id, base_vals['ma_sap'], month_key)
+                imported_line_keys.add((base_vals['ma_hang_id'], base_vals['ma_sap'], month_key))
+                key = (company.id, base_vals['ma_hang_id'], base_vals['ma_sap'], month_key)
                 if key in vals_by_key:
                     vals_by_key[key]['qty'] += qty
                     continue
@@ -296,17 +336,30 @@ class ImportKeHoachWizard(models.TransientModel):
                 })
                 vals_by_key[key] = vals
 
+        business_line_keys = {
+            (line.ma_hang_id.id, line.ma_sap, line.month_key)
+            for line in self.period_id.ke_hoach_kinh_doanh_ids
+        }
+        missing = business_line_keys - imported_line_keys
+        extra = imported_line_keys - business_line_keys
+        if missing:
+            sample = sorted(missing, key=lambda item: (item[1] or '', item[2] or ''))[:20]
+            for ma_hang_id, ma_sap, month_key in sample:
+                ma_hang = self.env['ma.hang'].sudo().browse(ma_hang_id)
+                errors.append(_('Thiếu dòng sản xuất so với kế hoạch kinh doanh: Mã hàng=%s, Mã SAP=%s, Tháng=%s.') % (ma_hang.code or '', ma_sap, month_key))
+            if len(missing) > len(sample):
+                errors.append(_('Còn %d dòng sản xuất bị thiếu khác.') % (len(missing) - len(sample)))
+        if extra:
+            sample = sorted(extra, key=lambda item: (item[1] or '', item[2] or ''))[:20]
+            for ma_hang_id, ma_sap, month_key in sample:
+                ma_hang = self.env['ma.hang'].sudo().browse(ma_hang_id)
+                errors.append(_('Dòng sản xuất không có trong kế hoạch kinh doanh: Mã hàng=%s, Mã SAP=%s, Tháng=%s.') % (ma_hang.code or '', ma_sap, month_key))
+            if len(extra) > len(sample):
+                errors.append(_('Còn %d dòng sản xuất thừa khác.') % (len(extra) - len(sample)))
+
         self._raise_errors(errors)
         vals_list = list(vals_by_key.values())
-        for vals in vals_list:
-            existing = Plan.search([
-                ('period_id', '=', self.period_id.id),
-                ('company_id', '=', vals['company_id']),
-                ('ma_sap', '=', vals['ma_sap']),
-                ('month_key', '=', vals['month_key']),
-            ], limit=1)
-            if existing:
-                existing.with_context(is_importing=True).write(vals)
-            else:
-                Plan.with_context(is_importing=True).create(vals)
+        Plan.search([('period_id', '=', self.period_id.id)]).with_context(is_importing=True).unlink()
+        if vals_list:
+            Plan.with_context(is_importing=True).create(vals_list)
         return len(vals_list)

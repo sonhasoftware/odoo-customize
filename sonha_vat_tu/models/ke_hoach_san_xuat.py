@@ -101,7 +101,8 @@ class KeHoachSanXuat(models.Model):
 
     def unlink(self):
         self._check_period_editable()
-        self._log_action_table(self, action='unlink')
+        if not self.env.context.get('is_importing'):
+            self._log_action_table(self, action='unlink')
         return super().unlink()
 
     def _check_period_editable(self):

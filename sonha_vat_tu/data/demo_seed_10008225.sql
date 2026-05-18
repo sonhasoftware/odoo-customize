@@ -11,7 +11,7 @@
 DELETE FROM vat_tu_di_duong WHERE ma_sap = '20005260' AND month_key = '05/2026';
 DELETE FROM ke_hoach_san_xuat WHERE ma_sap = '10008225' AND month_key = '05/2026';
 DELETE FROM ke_hoach_kinh_doanh WHERE ma_sap = '10008225' AND month_key = '05/2026';
-DELETE FROM ke_hoach_vat_tu WHERE name = 'Kế hoạch Demo BNH (Mã 10008225)' AND period_month = '05/2026';
+DELETE FROM ke_hoach_vat_tu WHERE code = 'KHVT_BNH_0001' AND period_month = '05/2026';
 
 -- Xóa toàn bộ mã hàng NVL thuộc cây 10008225 trước khi xóa dòng hàng
 DELETE FROM ma_hang WHERE ma_sap IN (
@@ -41,8 +41,8 @@ VALUES (
 );
 
 -- 4. Kỳ Kế Hoạch & Kế hoạch thành phẩm
-INSERT INTO ke_hoach_vat_tu (name, period_month, state, company_id, create_uid, write_uid, create_date, write_date)
-VALUES ('Kế hoạch Demo BNH (Mã 10008225)', '05/2026', 'ke_hoach', 17, 1, 1, NOW(), NOW());
+INSERT INTO ke_hoach_vat_tu (code, period_month, state, company_id, create_uid, write_uid, create_date, write_date)
+VALUES ('KHVT_BNH_0001', '05/2026', 'ke_hoach', 5, 1, 1, NOW(), NOW());
 
 INSERT INTO ke_hoach_kinh_doanh (
     period_id, nganh_hang_id, dong_hang_id,
@@ -50,7 +50,7 @@ INSERT INTO ke_hoach_kinh_doanh (
     create_uid, write_uid, create_date, write_date
 )
 VALUES (
-    (SELECT id FROM ke_hoach_vat_tu WHERE name = 'Kế hoạch Demo BNH (Mã 10008225)' AND period_month = '05/2026' LIMIT 1),
+    (SELECT id FROM ke_hoach_vat_tu WHERE code = 'KHVT_BNH_0001' AND period_month = '05/2026' LIMIT 1),
     (SELECT id FROM nganh_hang WHERE code = 'DEMO_BNN' LIMIT 1),
     (SELECT id FROM dong_hang WHERE code = 'DEMO_GT' LIMIT 1),
     (SELECT id FROM ma_hang WHERE code = 'DEMO_MH_10008225' LIMIT 1),
@@ -64,7 +64,7 @@ INSERT INTO ke_hoach_san_xuat (
     create_uid, write_uid, create_date, write_date
 )
 VALUES (
-    (SELECT id FROM ke_hoach_vat_tu WHERE name = 'Kế hoạch Demo BNH (Mã 10008225)' AND period_month = '05/2026' LIMIT 1),
+    (SELECT id FROM ke_hoach_vat_tu WHERE code = 'KHVT_BNH_0001' AND period_month = '05/2026' LIMIT 1),
     5,
     (SELECT id FROM nganh_hang WHERE code = 'DEMO_BNN' LIMIT 1),
     (SELECT id FROM dong_hang WHERE code = 'DEMO_GT' LIMIT 1),

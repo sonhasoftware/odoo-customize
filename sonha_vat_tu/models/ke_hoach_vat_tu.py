@@ -6,6 +6,7 @@ import base64
 import io
 
 from openpyxl import Workbook
+from openpyxl.utils import get_column_letter
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.worksheet.datavalidation import DataValidation
 from odoo import api, fields, models, _
@@ -21,10 +22,11 @@ _SQL_FUNCTIONS_PATH = _os.path.join(
 class KeHoachVatTu(models.Model):
     _name = 'ke.hoach.vat.tu'
     _description = 'Kỳ kế hoạch vật tư cần'
+    _rec_name = 'code'
     _order = 'period_month desc, id desc'
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
-    name = fields.Char(string='Tên kỳ', tracking=True)
+    code = fields.Char(string='Mã', readonly=True, copy=False, index=True, tracking=True)
     period_month = fields.Char(
         string='Tháng bắt đầu', tracking=True)
     company_id = fields.Many2one(
@@ -72,7 +74,8 @@ class KeHoachVatTu(models.Model):
         compute='_compute_month_preview')
 
     _sql_constraints = [
-        ('name_uniq', 'unique(name)', 'Tên kỳ phải duy nhất!'),
+        ('code_uniq', 'unique(code)', 'Mã kỳ phải duy nhất!'),
+        ('company_month_uniq', 'unique(company_id, period_month)', 'Công ty và tháng bắt đầu không được trùng!'),
     ]
 
     @api.model
@@ -89,6 +92,34 @@ class KeHoachVatTu(models.Model):
             return date(int(year), int(month), 1)
         except Exception:
             return False
+
+    def _build_period_code(self, company):
+        company_key = re.sub(r'[^A-Za-z0-9]+', '', company.company_code or '') or str(company.id or 'CTY')
+        prefix = 'KHVT_%s_' % company_key.upper()
+        latest = self.sudo().search([('code', '=like', prefix + '%')], order='code desc', limit=1)
+        next_no = 1
+        if latest.code:
+            try:
+                next_no = int(latest.code.rsplit('_', 1)[-1]) + 1
+            except (TypeError, ValueError):
+                next_no = 1
+        return '%s%04d' % (prefix, next_no)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        Company = self.env['res.company']
+        counters = {}
+        for vals in vals_list:
+            if not vals.get('code'):
+                company = Company.browse(vals.get('company_id')) if vals.get('company_id') else self.env.company
+                company_id = company.id or 0
+                if company_id not in counters:
+                    counters[company_id] = int(self._build_period_code(company).rsplit('_', 1)[-1])
+                else:
+                    counters[company_id] += 1
+                company_key = re.sub(r'[^A-Za-z0-9]+', '', company.company_code or '') or str(company.id or 'CTY')
+                vals['code'] = 'KHVT_%s_%04d' % (company_key.upper(), counters[company_id])
+        return super().create(vals_list)
 
     @api.constrains('period_month')
     def _check_period_month(self):
@@ -176,6 +207,76 @@ class KeHoachVatTu(models.Model):
             period.kh_dat_vat_tu_ids.unlink()
             period.state = 'ke_hoach'
 
+    def _apply_plan_excel_style(self, ws, header_row, max_col):
+        base_font = Font(name='Times New Roman', size=10)
+        label_font = Font(name='Times New Roman', size=10, bold=True)
+        value_font = Font(name='Times New Roman', size=10)
+        header_font = Font(name='Times New Roman', size=10, bold=True, color='FFFFFF')
+        header_fill = PatternFill(fill_type='solid', fgColor='3F6F8F')
+        thin_side = Side(style='thin', color='B7C6D0')
+        header_side = Side(style='thin', color='2F556D')
+        meta_border = Border(left=thin_side, right=thin_side, top=thin_side, bottom=thin_side)
+        header_border = Border(left=thin_side, right=thin_side, top=thin_side, bottom=thin_side)
+        header_border = Border(left=header_side, right=header_side, top=header_side, bottom=header_side)
+        header_alignment = Alignment(horizontal='center', vertical='center')
+        body_alignment = Alignment(vertical='center')
+
+        for row in ws.iter_rows(min_row=1, max_row=max(ws.max_row, header_row), min_col=1, max_col=max_col):
+            for cell in row:
+                cell.font = base_font
+                cell.alignment = body_alignment
+
+        for row_idx in (1, 2, 3):
+            label_cell = ws.cell(row=row_idx, column=1)
+            value_cell = ws.cell(row=row_idx, column=2)
+            label_cell.font = label_font
+            value_cell.font = value_font
+            label_cell.border = meta_border
+            label_cell.alignment = Alignment(horizontal='left', vertical='center')
+            value_cell.alignment = Alignment(horizontal='left', vertical='center')
+            for col_idx in range(2, max_col + 1):
+                meta_cell = ws.cell(row=row_idx, column=col_idx)
+                meta_cell.border = meta_border
+                meta_cell.font = value_font
+                meta_cell.alignment = Alignment(horizontal='left', vertical='center')
+
+        for cell in ws[header_row][:max_col]:
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.border = header_border
+            cell.alignment = header_alignment
+
+        ws.row_dimensions[header_row].height = 22
+        ws.freeze_panes = ws.cell(row=header_row + 1, column=1).coordinate
+
+    def _write_plan_metadata(self, ws):
+        ws.merge_cells(start_row=1, start_column=2, end_row=1, end_column=5)
+        ws.merge_cells(start_row=2, start_column=2, end_row=2, end_column=5)
+        ws.merge_cells(start_row=3, start_column=2, end_row=3, end_column=5)
+        ws.cell(row=1, column=1, value='Mã')
+        ws.cell(row=1, column=2, value=self.code or '')
+        ws.cell(row=2, column=1, value='Tháng bắt đầu')
+        ws.cell(row=2, column=2, value=self.period_month or '')
+        ws.cell(row=3, column=1, value='Công ty')
+        ws.cell(row=3, column=2, value=self.company_id.name or '')
+
+    def _xlsx_download_action(self, wb, filename):
+        output = io.BytesIO()
+        wb.save(output)
+        attachment = self.env['ir.attachment'].sudo().create({
+            'name': filename,
+            'type': 'binary',
+            'datas': base64.b64encode(output.getvalue()),
+            'res_model': self._name,
+            'res_id': self.id,
+            'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        })
+        return {
+            'type': 'ir.actions.act_url',
+            'url': '/web/content/%s?download=true' % attachment.id,
+            'target': 'self',
+        }
+
     def action_download_b1_template(self):
         self.ensure_one()
         if self.state != 'ke_hoach':
@@ -185,11 +286,26 @@ class KeHoachVatTu(models.Model):
             self.env.user.has_group('sonha_vat_tu.group_truong_bo_phan_vat_tu')
         ):
             raise UserError(_('Bạn không có quyền tải template kế hoạch kinh doanh.'))
-        return {
-            'type': 'ir.actions.act_url',
-            'url': '/sonha_vat_tu/static/xls/ke_hoach_vat_tu_templates.xlsx',
-            'target': 'self',
-        }
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = 'Ke hoach kinh doanh'
+        self._write_plan_metadata(ws)
+        headers = ['Ngành hàng', 'Dòng hàng', 'Mã hàng', 'Mã SAP']
+        headers += ['Tháng %s' % (self.period_month or '')]
+        header_row = 6
+        for col_idx, label in enumerate(headers, start=1):
+            ws.cell(row=header_row, column=col_idx, value=label)
+        self._apply_plan_excel_style(ws, header_row, len(headers))
+        ws.column_dimensions['A'].width = 18
+        ws.column_dimensions['B'].width = 22
+        ws.column_dimensions['C'].width = 24
+        ws.column_dimensions['D'].width = 24
+        ws.column_dimensions['E'].width = 16
+        return self._xlsx_download_action(
+            wb,
+            'KHKD_%s.xlsx' % (self.code or self.id),
+        )
 
     def action_open_import_kinh_doanh_wizard(self):
         self.ensure_one()
@@ -263,10 +379,13 @@ class KeHoachVatTu(models.Model):
         wb = Workbook()
         ws = wb.active
         ws.title = 'Ke hoach san xuat'
+        self._write_plan_metadata(ws)
         headers = ['Ngành hàng', 'Dòng hàng', 'Mã hàng', 'Mã SAP']
         headers += ['Tháng %s' % month for month in months]
         headers += ['Đơn vị sản xuất']
-        ws.append(headers)
+        header_row = 6
+        for col_idx, label in enumerate(headers, start=1):
+            ws.cell(row=header_row, column=col_idx, value=label)
 
         grouped = {}
         for line in lines:
@@ -282,24 +401,7 @@ class KeHoachVatTu(models.Model):
         for key, qty_by_month in grouped.items():
             ws.append(list(key) + [qty_by_month.get(month, 0.0) for month in months] + [''])
 
-        base_font = Font(name='Times New Roman', size=10)
-        header_font = Font(name='Times New Roman', size=10, bold=True)
-        header_fill = PatternFill(fill_type='solid', fgColor='FFF2CC')
-        thin_side = Side(style='thin', color='000000')
-        header_border = Border(left=thin_side, right=thin_side, top=thin_side, bottom=thin_side)
-        header_alignment = Alignment(horizontal='center', vertical='center')
-        body_alignment = Alignment(vertical='center')
-
-        for row in ws.iter_rows(min_row=1, max_row=ws.max_row, min_col=1, max_col=len(headers)):
-            for cell in row:
-                cell.font = base_font
-                cell.alignment = body_alignment
-        for cell in ws[1]:
-            cell.font = header_font
-            cell.fill = header_fill
-            cell.border = header_border
-            cell.alignment = header_alignment
-        ws.freeze_panes = 'A2'
+        self._apply_plan_excel_style(ws, header_row, len(headers))
 
         companies = self.env['res.company'].sudo().search([
             ('company_code', 'in', ['BNH', 'SSP']),
@@ -316,33 +418,22 @@ class KeHoachVatTu(models.Model):
         )
         ws.add_data_validation(validation)
         company_col = len(headers)
-        for row in range(2, ws.max_row + 1):
+        for row in range(header_row + 1, ws.max_row + 1):
             validation.add(ws.cell(row=row, column=company_col))
 
-        for col in ws.columns:
-            max_len = max(len(str(cell.value or '')) for cell in col)
-            ws.column_dimensions[col[0].column_letter].width = min(max(max_len + 2, 12), 28)
+        for col_idx in range(1, len(headers) + 1):
+            max_len = max(len(str(ws.cell(row=row_idx, column=col_idx).value or '')) for row_idx in range(1, ws.max_row + 1))
+            ws.column_dimensions[get_column_letter(col_idx)].width = min(max(max_len + 2, 12), 28)
         ws.column_dimensions['A'].width = 22
         ws.column_dimensions['B'].width = 22
         ws.column_dimensions['C'].width = 24
         ws.column_dimensions['D'].width = 24
         ws.column_dimensions[ws.cell(row=1, column=company_col).column_letter].width = 42
 
-        output = io.BytesIO()
-        wb.save(output)
-        attachment = self.env['ir.attachment'].sudo().create({
-            'name': 'ke_hoach_san_xuat_%s.xlsx' % (self.period_month or self.id),
-            'type': 'binary',
-            'datas': base64.b64encode(output.getvalue()),
-            'res_model': self._name,
-            'res_id': self.id,
-            'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        })
-        return {
-            'type': 'ir.actions.act_url',
-            'url': '/web/content/%s?download=true' % attachment.id,
-            'target': 'self',
-        }
+        return self._xlsx_download_action(
+            wb,
+            'KHSX_%s.xlsx' % (self.code or self.id),
+        )
 
     def _action_open_step(self, view_xmlid):
         self.ensure_one()
