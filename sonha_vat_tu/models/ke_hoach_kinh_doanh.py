@@ -11,23 +11,23 @@ class KeHoachKinhDoanh(models.Model):
     _order = 'period_id, month_date, ma_sap, id'
 
     period_id = fields.Many2one(
-        'ke.hoach.vat.tu', string='Ky', ondelete='cascade', index=True)
+        'ke.hoach.vat.tu', string='Kỳ', ondelete='cascade', index=True)
     nganh_hang_id = fields.Many2one(
-        'nganh.hang', string='Nganh hang', index=True)
+        'nganh.hang', string='Ngành hàng', index=True)
     dong_hang_id = fields.Many2one(
-        'dong.hang', string='Dong hang', index=True)
+        'dong.hang', string='Dòng hàng', index=True)
     ma_hang_id = fields.Many2one(
-        'ma.hang', string='Ma hang', index=True)
-    ma_sap = fields.Char(string='Ma SAP', index=True)
-    month_key = fields.Char(string='Thang', index=True)
-    month_date = fields.Date(string='Thang tinh toan', index=True)
-    qty = fields.Float(string='So luong kinh doanh', digits=(16, 2))
-    note = fields.Char(string='Ghi chu')
+        'ma.hang', string='Mã hàng', index=True)
+    ma_sap = fields.Char(string='Mã SAP', index=True)
+    month_key = fields.Char(string='Tháng', index=True)
+    month_date = fields.Date(string='Tháng tính toán', index=True)
+    qty = fields.Float(string='Số lượng', digits=(16, 2))
+    note = fields.Char(string='Ghi chú')
 
     _sql_constraints = [
         ('uniq_business_row',
          'unique(period_id, ma_sap, month_key)',
-         'Trung dong: Ky, Ma SAP va Thang phai duy nhat tren ke hoach kinh doanh!'),
+         'Trùng dòng: Kỳ, Mã SAP và Tháng phải duy nhất trên kế hoạch kinh doanh!'),
     ]
 
     @api.onchange('ma_hang_id')
