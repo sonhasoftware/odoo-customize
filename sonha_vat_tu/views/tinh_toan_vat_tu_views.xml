@@ -6,10 +6,9 @@
         <field name="model">tinh.toan.vat.tu</field>
         <field name="arch" type="xml">
             <tree string="Tính toán vật tư" create="0" class="sh_free_width_tree">
-                <field name="period_id" required="1"/>
-                <field name="company_id" required="1"/>
                 <field name="ma_sap" required="1"/>
                 <field name="ma_vat_tu"/>
+                <field name="ten_vat_tu"/>
                 <field name="ma_effect"/>
                 <field name="ten_sap"/>
                 <field name="don_vi_tinh"/>

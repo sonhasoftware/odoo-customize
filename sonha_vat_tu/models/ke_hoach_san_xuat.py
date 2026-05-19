@@ -5,6 +5,9 @@ from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
 
 
+_SCOPE = 'sx'
+
+
 class KeHoachSanXuat(models.Model):
     _name = 'ke.hoach.san.xuat'
     _description = 'Kế hoạch sản xuất theo tháng'
@@ -17,7 +20,7 @@ class KeHoachSanXuat(models.Model):
 
     company_id = fields.Many2one(
         'res.company', string='Công ty',
-        default=lambda self: self.env.company, index=True)
+        default=lambda self: self.env.user.company_id, index=True)
 
     nganh_hang_id = fields.Many2one(
         'nganh.hang', string='Ngành hàng', index=True)
@@ -87,23 +90,28 @@ class KeHoachSanXuat(models.Model):
                     vals.setdefault('dong_hang_id', master.dong_hang_id.id)
 
             if not vals.get('company_id') and vals.get('period_id'):
-                period = self.env['ke.hoach.vat.tu'].browse(vals['period_id'])
-                if period.company_id:
-                    vals['company_id'] = period.company_id.id
+                vals['company_id'] = self.env.user.company_id.id
                     
         records = super().create(vals_list)
         
         # Log khi Thêm dòng trên UI (bỏ qua nếu đang chạy import wizard)
         if not self.env.context.get('is_importing'):
             self._log_action_table(records, action='create')
+            for period in records.mapped('period_id'):
+                period._sync_material_plan_from_production()
                 
         return records
 
     def unlink(self):
+        periods = self.mapped('period_id')
         self._check_period_editable()
         if not self.env.context.get('is_importing'):
             self._log_action_table(self, action='unlink')
-        return super().unlink()
+        res = super().unlink()
+        if not self.env.context.get('is_importing'):
+            for period in periods:
+                period._sync_material_plan_from_production()
+        return res
 
     def _check_period_editable(self):
         locked = self.filtered(lambda rec: rec.period_id and rec.period_id.state != 'ke_hoach')
@@ -137,7 +145,9 @@ class KeHoachSanXuat(models.Model):
                 "<span class='text-danger'><i class='fa fa-trash'></i> "
                 f"<b>Đã xóa {len(lines)} dòng kế hoạch sản xuất:</b></span>"
             )
-            period.message_post(body=self._build_tracking_table_html(title, lines, action=action))
+            period.with_context(vat_tu_chatter_scope=_SCOPE).message_post(
+                body=self._build_tracking_table_html(title, lines, action=action)
+            )
 
     @api.model
     def _build_tracking_table_html(self, title, lines, action='create'):
@@ -173,15 +183,25 @@ class KeHoachSanXuat(models.Model):
             </div>
         """) % (Markup(title), Markup(rows))
 
-    def create_tracking_message(self, old_value, new_value, field_label):
-        self.ensure_one()
-        message = Markup(
-            "<li><b class='o-mail-Message-trackingOld me-1 px-1 text-muted fw-bold'>%s</b> "
-            "<i class='o_TrackingValue_separator fa fa-long-arrow-right mx-1 text-600' role='img'></i>"
-            "<b class='o-mail-Message-trackingNew me-1 fw-bold text-info'>%s</b> "
-            "<span class='o-mail-Message-trackingField ms-1 fst-italic text-muted'>(%s)</span></li>"
-        ) % (old_value, new_value, field_label)
-        self.period_id.message_post(body=Markup("<ul>%s</ul>") % message)
+    @api.model
+    def _log_field_changes(self, changes_by_period):
+        """Gom mọi thay đổi trong cùng một period vào 1 message bảng để tránh
+        spam chatter khi user sửa nhiều dòng cùng lúc."""
+        for period, changes in changes_by_period.items():
+            if not changes:
+                continue
+            items = ''.join(
+                "<li>"
+                "<b class='o-mail-Message-trackingOld me-1 px-1 text-muted fw-bold'>%s</b>"
+                "<i class='o_TrackingValue_separator fa fa-long-arrow-right mx-1 text-600' role='img'></i>"
+                "<b class='o-mail-Message-trackingNew me-1 fw-bold text-info'>%s</b>"
+                "<span class='o-mail-Message-trackingField ms-1 fst-italic text-muted'>(%s)</span>"
+                "</li>" % (escape(old), escape(new), escape(label))
+                for old, new, label in changes
+            )
+            period.with_context(vat_tu_chatter_scope=_SCOPE).message_post(
+                body=Markup("<ul>%s</ul>") % Markup(items)
+            )
 
     def write(self, vals):
         TRACKED = {'ma_sap': 'Mã SAP', 'month_key': 'Tháng', 'qty': 'Số lượng'}
@@ -198,16 +218,26 @@ class KeHoachSanXuat(models.Model):
         if self.env.context.get('is_importing'):
             return res
 
-        for f in old:
+        changes_by_period = {}
+        for f, label in TRACKED.items():
+            if f not in old:
+                continue
             for rec in self:
                 ov, nv = old[f][rec.id], rec[f]
-                if ov != nv:
-                    rec.create_tracking_message(
-                        ov if ov not in (False, None, '') else 'Trống',
-                        nv if nv not in (False, None, '') else 'Trống',
-                        f'Kế hoạch sản xuất / {TRACKED[f]} - Mã hàng {rec.ma_hang_id.code if rec.ma_hang_id else ""}',
-                    )
+                if ov == nv:
+                    continue
+                ov_disp = ov if ov not in (False, None, '') else 'Trống'
+                nv_disp = nv if nv not in (False, None, '') else 'Trống'
+                ma_hang_code = rec.ma_hang_id.code if rec.ma_hang_id else ''
+                changes_by_period.setdefault(rec.period_id, []).append((
+                    str(ov_disp),
+                    str(nv_disp),
+                    f'{label} - Mã hàng {ma_hang_code}',
+                ))
+        self._log_field_changes(changes_by_period)
 
+        for period in self.mapped('period_id'):
+            period._sync_material_plan_from_production()
         return res
 
 

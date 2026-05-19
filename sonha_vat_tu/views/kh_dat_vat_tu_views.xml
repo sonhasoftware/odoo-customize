@@ -6,8 +6,6 @@
         <field name="model">kh.dat.vat.tu</field>
         <field name="arch" type="xml">
             <tree string="Kế hoạch đặt vật tư" editable="bottom" class="sh_free_width_tree">
-                <field name="period_id" required="1"/>
-                <field name="company_id" required="1"/>
                 <field name="month_key" required="1"/>
                 <field name="ma_sap" required="1"/>
                 <field name="ma_effect"/>

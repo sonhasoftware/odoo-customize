@@ -22,7 +22,7 @@ BEGIN
         COALESCE(b1.month_date, TO_DATE(b1.month_key, 'MM/YYYY')),
         b1.qty * bcu.sl_thuc_te,
         1, 1, NOW(), NOW()
-    FROM ke_hoach_san_xuat b1
+    FROM ke_hoach_vat_tu_line b1
     JOIN bom_tinh_toan bcu
         ON bcu.ma_tp_goc = b1.ma_sap
        AND bcu.loai_vat_tu = 'NVL'
@@ -46,7 +46,7 @@ BEGIN
     LIMIT 1;
 
     INSERT INTO tinh_toan_vat_tu (
-        period_id, company_id, ma_sap, ma_vat_tu, ma_effect, ten_sap,
+        period_id, company_id, ma_sap, ma_vat_tu, ten_vat_tu, ma_effect, ten_sap,
         don_vi_tinh, do_day, kho_1, kho_2, trong_luong_kg_tam,
         sl_dinh_muc, month_key, month_date, qty,
         create_uid, write_uid, create_date, write_date
@@ -56,6 +56,7 @@ BEGIN
         dm.company_id,
         dm.ma_sap,
         dm.ma_nvl                                                       AS ma_vat_tu,
+        COALESCE(mh.ten_nvl, b.ten_nvl, dm.ma_nvl)                      AS ten_vat_tu,
         NULL::VARCHAR                                                   AS ma_effect,
         dm.ten_sap,
         mh.don_vi_tinh_id                                               AS don_vi_tinh,

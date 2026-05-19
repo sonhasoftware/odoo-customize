@@ -11,7 +11,8 @@ class TinhToanVatTu(models.Model):
     period_id = fields.Many2one(
         'ke.hoach.vat.tu', string='Kỳ', ondelete='cascade', index=True)
     ma_sap = fields.Char(string='Mã SAP', index=True)
-    ma_vat_tu = fields.Char(string='Mã vật tư', index=True)
+    ma_vat_tu = fields.Char(string='Mã nguyên vật liệu', index=True)
+    ten_vat_tu = fields.Char(string='Tên nguyên vật liệu')
     ma_effect = fields.Char(string='Mã effect', index=True)
     ten_sap = fields.Char(string='Tên SAP')
     don_vi_tinh = fields.Many2one('uom.uom', string='Đơn vị tính')

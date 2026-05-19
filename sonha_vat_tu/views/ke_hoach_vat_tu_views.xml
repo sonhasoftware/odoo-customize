@@ -162,8 +162,6 @@
                     <div class="oe_title"><h1><field name="code"/></h1></div>
                     <field name="dinh_muc_ids" readonly="1">
                         <tree editable="bottom">
-                            <field name="period_id" required="1"/>
-                            <field name="company_id" required="1"/>
                             <field name="ma_sap"/>
                             <field name="ten_sap"/>
                             <field name="ma_tp"/>
@@ -208,10 +206,9 @@
                     <div class="oe_title"><h1><field name="code"/></h1></div>
                     <field name="tinh_toan_vat_tu_ids">
                         <tree editable="bottom" class="sh_free_width_tree">
-                            <field name="period_id" required="1"/>
-                            <field name="company_id" required="1"/>
                             <field name="ma_sap" required="1"/>
                             <field name="ma_vat_tu"/>
+                            <field name="ten_vat_tu"/>
                             <field name="ma_effect"/>
                             <field name="ten_sap"/>
                             <field name="don_vi_tinh"/>
@@ -260,8 +257,6 @@
                     <div class="oe_title"><h1><field name="code"/></h1></div>
                     <field name="tong_hop_vat_tu_ids" readonly="1">
                         <tree class="sh_free_width_tree">
-                            <field name="period_id" required="1"/>
-                            <field name="company_id" required="1"/>
                             <field name="ma_dat_hang"/>
                             <field name="ma_sap" required="1"/>
                             <field name="chung_loai"/>
@@ -312,8 +307,6 @@
                     <div class="oe_title"><h1><field name="code"/></h1></div>
                     <field name="kh_dat_vat_tu_ids" readonly="1">
                         <tree editable="bottom" class="sh_free_width_tree">
-                            <field name="period_id" required="1"/>
-                            <field name="company_id" required="1"/>
                             <field name="month_key" required="1"/>
                             <field name="ma_sap" required="1"/>
                             <field name="ma_effect"/>

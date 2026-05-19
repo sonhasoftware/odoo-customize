@@ -13,18 +13,18 @@ CREATE INDEX IF NOT EXISTS idx_dlthvt_report_month_date
     ON du_lieu_tong_hop_vat_tu (step_code, period_id, month_date);
 
 -- =============================================================================
--- B1: ke_hoach_san_xuat → du_lieu_tong_hop_vat_tu
+-- B1: ke_hoach_vat_tu_line → du_lieu_tong_hop_vat_tu
 -- =============================================================================
 CREATE OR REPLACE FUNCTION dlthvt_sync_b1() RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP = 'DELETE' THEN
         DELETE FROM du_lieu_tong_hop_vat_tu
-        WHERE source_model = 'ke.hoach.san.xuat' AND source_res_id = OLD.id;
+        WHERE source_model = 'ke.hoach.vat.tu.line' AND source_res_id = OLD.id;
         RETURN OLD;
     END IF;
     INSERT INTO du_lieu_tong_hop_vat_tu (
         step_code, source_model, source_res_id,
-        period_id, company_id, month_key, month_date, ma_sap,
+        period_id, company_id, month_key, month_date, ma_sap, ma_vat_tu,
         nganh_hang_id, dong_hang_id, ma_hang_id, qty, note,
         ma_tp, ten_sap, ma_nvl, ma_effect, don_vi_tinh,
         do_day, kho_1, kho_2, trong_luong_kg_tam, sl_dinh_muc,
@@ -35,8 +35,8 @@ BEGIN
         sl_dat_mua_chot, sl_ton_kho, so_ngay_vong_quay_ton, don_gia_ton_kho, gia_tri_ton_kho,
         create_uid, create_date, write_uid, write_date
     ) VALUES (
-        'b1', 'ke.hoach.san.xuat', NEW.id,
-        NEW.period_id, NEW.company_id, NEW.month_key, COALESCE(NEW.month_date, TO_DATE(NEW.month_key, 'MM/YYYY')), NEW.ma_sap,
+        'b1', 'ke.hoach.vat.tu.line', NEW.id,
+        NEW.period_id, NEW.company_id, NEW.month_key, COALESCE(NEW.month_date, TO_DATE(NEW.month_key, 'MM/YYYY')), NEW.ma_sap, NULL,
         NEW.nganh_hang_id, NEW.dong_hang_id, NEW.ma_hang_id, NEW.qty, NEW.note,
         NULL, NULL, NULL, NULL, NULL,
         NULL, NULL, NULL, NULL, NULL,
@@ -52,6 +52,7 @@ BEGIN
         month_key = EXCLUDED.month_key,
         month_date = EXCLUDED.month_date,
         ma_sap = EXCLUDED.ma_sap,
+        ma_vat_tu = EXCLUDED.ma_vat_tu,
         nganh_hang_id = EXCLUDED.nganh_hang_id,
         dong_hang_id = EXCLUDED.dong_hang_id,
         ma_hang_id = EXCLUDED.ma_hang_id,
@@ -63,9 +64,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-DROP TRIGGER IF EXISTS trg_dlthvt_b1 ON ke_hoach_san_xuat;
+DROP TRIGGER IF EXISTS trg_dlthvt_b1 ON ke_hoach_vat_tu_line;
 CREATE TRIGGER trg_dlthvt_b1
-AFTER INSERT OR UPDATE OR DELETE ON ke_hoach_san_xuat
+AFTER INSERT OR UPDATE OR DELETE ON ke_hoach_vat_tu_line
 FOR EACH ROW EXECUTE PROCEDURE dlthvt_sync_b1();
 
 -- =============================================================================
@@ -80,7 +81,7 @@ BEGIN
     END IF;
     INSERT INTO du_lieu_tong_hop_vat_tu (
         step_code, source_model, source_res_id,
-        period_id, company_id, month_key, month_date, ma_sap,
+        period_id, company_id, month_key, month_date, ma_sap, ma_vat_tu,
         nganh_hang_id, dong_hang_id, ma_hang_id, qty, note,
         ma_tp, ten_sap, ma_nvl, ma_effect, don_vi_tinh,
         do_day, kho_1, kho_2, trong_luong_kg_tam, sl_dinh_muc,
@@ -92,7 +93,7 @@ BEGIN
         create_uid, create_date, write_uid, write_date
     ) VALUES (
         'b2', 'dinh.muc', NEW.id,
-        NEW.period_id, NEW.company_id, NEW.month_key, COALESCE(NEW.month_date, TO_DATE(NEW.month_key, 'MM/YYYY')), NEW.ma_sap,
+        NEW.period_id, NEW.company_id, NEW.month_key, COALESCE(NEW.month_date, TO_DATE(NEW.month_key, 'MM/YYYY')), NEW.ma_sap, NEW.ma_nvl,
         NULL, NULL, NULL, NEW.qty, NULL,
         NEW.ma_tp, NEW.ten_sap, NEW.ma_nvl, NULL, NULL,
         NULL, NULL, NULL, NULL, NULL,
@@ -108,6 +109,7 @@ BEGIN
         month_key = EXCLUDED.month_key,
         month_date = EXCLUDED.month_date,
         ma_sap = EXCLUDED.ma_sap,
+        ma_vat_tu = EXCLUDED.ma_vat_tu,
         qty = EXCLUDED.qty,
         ma_tp = EXCLUDED.ma_tp,
         ten_sap = EXCLUDED.ten_sap,
@@ -135,7 +137,7 @@ BEGIN
     END IF;
     INSERT INTO du_lieu_tong_hop_vat_tu (
         step_code, source_model, source_res_id,
-        period_id, company_id, month_key, month_date, ma_sap,
+        period_id, company_id, month_key, month_date, ma_sap, ma_vat_tu,
         nganh_hang_id, dong_hang_id, ma_hang_id, qty, note,
         ma_tp, ten_sap, ma_nvl, ma_effect, don_vi_tinh,
         do_day, kho_1, kho_2, trong_luong_kg_tam, sl_dinh_muc,
@@ -147,7 +149,7 @@ BEGIN
         create_uid, create_date, write_uid, write_date
     ) VALUES (
         'b3', 'tinh.toan.vat.tu', NEW.id,
-        NEW.period_id, NEW.company_id, NEW.month_key, COALESCE(NEW.month_date, TO_DATE(NEW.month_key, 'MM/YYYY')), NEW.ma_sap,
+        NEW.period_id, NEW.company_id, NEW.month_key, COALESCE(NEW.month_date, TO_DATE(NEW.month_key, 'MM/YYYY')), NEW.ma_sap, NEW.ma_vat_tu,
         NULL, NULL, NULL, NEW.qty, NULL,
         NULL, NEW.ten_sap, NULL, NEW.ma_effect, NEW.don_vi_tinh,
         NEW.do_day, NEW.kho_1, NEW.kho_2, NEW.trong_luong_kg_tam, NEW.sl_dinh_muc,
@@ -163,6 +165,7 @@ BEGIN
         month_key = EXCLUDED.month_key,
         month_date = EXCLUDED.month_date,
         ma_sap = EXCLUDED.ma_sap,
+        ma_vat_tu = EXCLUDED.ma_vat_tu,
         qty = EXCLUDED.qty,
         ten_sap = EXCLUDED.ten_sap,
         ma_effect = EXCLUDED.ma_effect,

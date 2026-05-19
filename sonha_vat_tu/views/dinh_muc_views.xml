@@ -6,8 +6,6 @@
         <field name="model">dinh.muc</field>
         <field name="arch" type="xml">
             <tree string="Định mức kỳ" create="0">
-                <field name="period_id" required="1"/>
-                <field name="company_id" required="1"/>
                 <field name="ma_sap"/>
                 <field name="ten_sap"/>
                 <field name="ma_tp" column_invisible="True"/>

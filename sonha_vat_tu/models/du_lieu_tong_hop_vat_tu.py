@@ -16,7 +16,7 @@ class DuLieuTongHopVatTu(models.Model):
 
     step_code = fields.Selection(
         [
-            ('b1', 'Kế hoạch sản xuất'),
+            ('b1', 'Kế hoạch vật tư'),
             ('b2', 'Định mức kỳ'),
             ('b3', 'Tính toán vật tư'),
             ('b4', 'Tổng hợp vật tư'),
@@ -36,7 +36,7 @@ class DuLieuTongHopVatTu(models.Model):
     month_key = fields.Char(string='Tháng', index=True, readonly=True)
     month_date = fields.Date(string='Tháng tính toán', index=True, readonly=True)
     ma_sap = fields.Char(string='Mã SAP', index=True, readonly=True)
-    ma_vat_tu = fields.Char(string='Mã vật tư', index=True, readonly=True)
+    ma_vat_tu = fields.Char(string='Mã nguyên vật liệu', index=True, readonly=True)
 
     # --- --
     nganh_hang_id = fields.Many2one('nganh.hang', string='Ngành hàng', readonly=True)
@@ -154,7 +154,7 @@ _SQL_BOM_PATH = _os.path.join(
 )
 
 _SOURCE_TABLES = (
-    'ke_hoach_san_xuat',
+    'ke_hoach_vat_tu_line',
     'dinh_muc',
     'tinh_toan_vat_tu',
     'tong_hop_vat_tu',
