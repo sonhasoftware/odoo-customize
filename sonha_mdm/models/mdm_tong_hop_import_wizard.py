@@ -92,6 +92,7 @@ class MDMTongHopImportWizard(models.TransientModel):
                 continue
 
             vals = {
+                'ma_tg': ma_hang_don_vi,
                 'ma': ma_mdm,
                 'mdm_hh_type_id': self._find_many2one_by_code('mdm.hh.type', row[3] if len(row) > 3 else False, 'Loại hàng hóa').id,
                 'ten_ngan': self._clean_value(row[4] if len(row) > 4 else False),
