@@ -42,6 +42,8 @@ class MDMKhachHang(models.Model):
 
     buoc_duyet = fields.One2many('buoc.duyet.khach.hang', 'key', string="Bước duyệt")
 
+    bang_con_ids = fields.One2many('mdm.khach.hang.line', 'khach_hang_id', string='Bảng con đơn vị')
+
     current_step = fields.Integer(string="STT hiện tại", default=1)
     can_approve = fields.Boolean(compute='_compute_can_approve')
 
