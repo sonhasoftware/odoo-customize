@@ -47,6 +47,7 @@ class MDMTongHopImportWizard(models.TransientModel):
         sheet = workbook.active
 
         model = self.env['mdm.tong.hop']
+        line_model = self.env['mdm.tong.hop.line']
 
         imported = 0
         updated = 0
@@ -86,11 +87,18 @@ class MDMTongHopImportWizard(models.TransientModel):
                 existing = model.search([('ma', '=', ma_mdm)], limit=1)
 
                 if existing:
-                    existing.write(vals)
+                    parent_record = existing
                     updated += 1
                 else:
-                    model.create(vals)
+                    parent_record = model.create(vals)
                     imported += 1
+
+                line_model.create({
+                    'tong_hop_id': parent_record.id,
+                    'ma_mdm': ma_mdm,
+                    'ma_dv': ma_tg,
+                    'dvcs': self.env.company.id,
+                })
             except Exception as exc:
                 errors.append(_('Dòng %(row)s (Mã MDM: %(ma_mdm)s): %(error)s', row=row_index, ma_mdm=ma_mdm or '-', error=str(exc)))
 
