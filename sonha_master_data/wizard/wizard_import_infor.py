@@ -14,6 +14,19 @@ class WizardImportInfor(models.TransientModel):
                               ('vendor', "Nhà cung cấp"),
                               ('material', "Vật tư")], string="Model")
 
+
+
+    @staticmethod
+    def _build_partial_update_vals(current_record, incoming_vals):
+        """Only overwrite fields having non-empty values in import file."""
+        vals = {}
+        for field_name, value in incoming_vals.items():
+            if value not in (None, ''):
+                vals[field_name] = value
+            elif current_record:
+                vals[field_name] = current_record[field_name]
+        return vals
+
     def action_confirm(self):
         file_stream = io.BytesIO(base64.b64decode(self.file))
         wb = load_workbook(filename=file_stream, data_only=True)
@@ -248,6 +261,40 @@ class WizardImportInfor(models.TransientModel):
                         'indicator': indicator_bool,
                     }
                     self.env['vendor.purchase'].sudo().create(vals)
+                row += 1
+
+        if self.model == 'material':
+            sheet = wb['Sheet1']
+            max_row = sheet.max_row
+            row = 2
+            while row <= max_row:
+                mdm_code = sheet.cell(row=row, column=1).value
+                if mdm_code:
+                    product_type = self.env['x.material.type'].sudo().search([('x_code', '=', sheet.cell(row=row, column=2).value)], limit=1)
+                    product_name = sheet.cell(row=row, column=3).value
+                    product_english_name = sheet.cell(row=row, column=4).value
+                    product_long_name = sheet.cell(row=row, column=5).value
+                    search_product = self.env['md.product'].sudo().search([('product_code', '=', mdm_code)], limit=1)
+                    incoming_vals = {
+                        'product_code': mdm_code,
+                        'product_type': product_type.id,
+                        'product_name': product_name,
+                        'product_english_name': product_english_name,
+                        'product_long_name': product_long_name,
+                    }
+                    if search_product:
+                        update_vals = self._build_partial_update_vals(search_product, incoming_vals)
+                        search_product.sudo().write(update_vals)
+                        self.env['basic.mat.data'].sudo().create({
+                            'md_product_id': search_product.id,
+                            'old_product_code': mdm_code,
+                        })
+                    else:
+                        new_product = self.env['md.product'].sudo().create(incoming_vals)
+                        self.env['basic.mat.data'].sudo().create({
+                            'md_product_id': new_product.id,
+                            'old_product_code': mdm_code,
+                        })
                 row += 1
         return {
             'type': 'ir.actions.client',
