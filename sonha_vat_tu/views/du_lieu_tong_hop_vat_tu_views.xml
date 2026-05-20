@@ -145,6 +145,8 @@
                 <field name="ma_effect"/>
                 <field name="ma_dat_hang"/>
                 <field name="source_model"/>
+                <filter name="filter_kd" string="Kế hoạch kinh doanh" domain="[('step_code', '=', 'kd')]"/>
+                <filter name="filter_sx" string="Kế hoạch sản xuất" domain="[('step_code', '=', 'sx')]"/>
                 <filter name="filter_b1" string="B1" domain="[('step_code', '=', 'b1')]"/>
                 <filter name="filter_b2" string="B2" domain="[('step_code', '=', 'b2')]"/>
                 <filter name="filter_b3" string="B3" domain="[('step_code', '=', 'b3')]"/>

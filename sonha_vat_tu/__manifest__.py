@@ -26,6 +26,7 @@
         'views/ke_hoach_vat_tu_views.xml',
         'views/ke_hoach_workflow_views.xml',
         'views/du_lieu_tong_hop_vat_tu_views.xml',
+        'views/bao_cao_tong_quan_vat_tu_views.xml',
         'views/menu_views.xml',
         'data/cron_jobs.xml',
         'data/demo_seed_10008225.sql',

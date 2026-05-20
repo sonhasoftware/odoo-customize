@@ -20,8 +20,7 @@ class TinhToanVatTu(models.Model):
     kho_1 = fields.Float(string='Khổ 1', digits=(16, 3))
     kho_2 = fields.Float(string='Khổ 2', digits=(16, 3))
     trong_luong_kg_tam = fields.Float(string='Trọng lượng kg/1 tấm', digits=(16, 8))
-    sl_dinh_muc = fields.Float(
-        string='Số lượng định mức / 1 sản phẩm', digits=(16, 3))
+    sl_dinh_muc = fields.Float(string='Định mức', digits=(16, 3))
     month_key = fields.Char(string='Tháng')
     month_date = fields.Date(string='Tháng tính toán', index=True)
     qty = fields.Float(string='Số lượng', digits=(16, 2))

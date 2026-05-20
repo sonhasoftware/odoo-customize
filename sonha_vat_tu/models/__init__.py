@@ -14,3 +14,4 @@ from . import tong_hop_vat_tu
 from . import kh_dat_vat_tu
 from . import vat_tu_di_duong
 from . import du_lieu_tong_hop_vat_tu
+from . import bao_cao_tong_quan_vat_tu

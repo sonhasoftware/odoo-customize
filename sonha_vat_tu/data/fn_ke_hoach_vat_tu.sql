@@ -70,7 +70,7 @@ BEGIN
             THEN (b.do_day * b.kho_1 * b.kho_2 * 7.63) / 1000000.0
             ELSE 0
         END                                                             AS trong_luong_kg_tam,
-        NULL::NUMERIC                                                   AS sl_dinh_muc,
+        COALESCE(dm.qty, 0)                                             AS sl_dinh_muc,
         dm.month_key,
         COALESCE(dm.month_date, TO_DATE(dm.month_key, 'MM/YYYY')),
         dm.qty                                                          AS qty,

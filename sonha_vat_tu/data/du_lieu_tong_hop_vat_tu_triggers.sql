@@ -317,6 +317,128 @@ AFTER INSERT OR UPDATE OR DELETE ON kh_dat_vat_tu
 FOR EACH ROW EXECUTE PROCEDURE dlthvt_sync_b5();
 
 -- =============================================================================
+-- KD: ke_hoach_kinh_doanh -> du_lieu_tong_hop_vat_tu
+-- =============================================================================
+CREATE OR REPLACE FUNCTION dlthvt_sync_kd() RETURNS TRIGGER AS $$
+DECLARE
+    v_company_id INTEGER;
+BEGIN
+    IF TG_OP = 'DELETE' THEN
+        DELETE FROM du_lieu_tong_hop_vat_tu
+        WHERE source_model = 'ke.hoach.kinh.doanh' AND source_res_id = OLD.id;
+        RETURN OLD;
+    END IF;
+
+    SELECT company_id INTO v_company_id
+    FROM ke_hoach_vat_tu
+    WHERE id = NEW.period_id;
+
+    INSERT INTO du_lieu_tong_hop_vat_tu (
+        step_code, source_model, source_res_id,
+        period_id, company_id, month_key, month_date, ma_sap, ma_vat_tu,
+        nganh_hang_id, dong_hang_id, ma_hang_id, qty, note,
+        ma_tp, ten_sap, ma_nvl, ma_effect, don_vi_tinh,
+        do_day, kho_1, kho_2, trong_luong_kg_tam, sl_dinh_muc,
+        ma_dat_hang, chung_loai, ma_cuon, ton_dau, ve_du_kien, vt_can_dung, ton_cuoi,
+        so_luong_du_phong, so_luong_thieu, so_luong_can_mua, ghi_chu,
+        tong_ton_nvl_sl, tong_hang_di_duong_sl, tong_sl_vt_can_dung,
+        sl_du_tru_toi_thieu, sl_can_mua_theo_moq, sl_dat_mua_de_xuat,
+        sl_dat_mua_chot, sl_ton_kho, so_ngay_vong_quay_ton, don_gia_ton_kho, gia_tri_ton_kho,
+        create_uid, create_date, write_uid, write_date
+    ) VALUES (
+        'kd', 'ke.hoach.kinh.doanh', NEW.id,
+        NEW.period_id, v_company_id, NEW.month_key, COALESCE(NEW.month_date, TO_DATE(NEW.month_key, 'MM/YYYY')), NEW.ma_sap, NULL,
+        NEW.nganh_hang_id, NEW.dong_hang_id, NEW.ma_hang_id, NEW.qty, NEW.note,
+        NULL, NULL, NULL, NULL, NULL,
+        NULL, NULL, NULL, NULL, NULL,
+        NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+        NULL, NULL, NULL, NULL,
+        NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+        NEW.create_uid, NEW.create_date, NEW.write_uid, NEW.write_date
+    )
+    ON CONFLICT (source_model, source_res_id) DO UPDATE SET
+        step_code = EXCLUDED.step_code,
+        period_id = EXCLUDED.period_id,
+        company_id = EXCLUDED.company_id,
+        month_key = EXCLUDED.month_key,
+        month_date = EXCLUDED.month_date,
+        ma_sap = EXCLUDED.ma_sap,
+        ma_vat_tu = EXCLUDED.ma_vat_tu,
+        nganh_hang_id = EXCLUDED.nganh_hang_id,
+        dong_hang_id = EXCLUDED.dong_hang_id,
+        ma_hang_id = EXCLUDED.ma_hang_id,
+        qty = EXCLUDED.qty,
+        note = EXCLUDED.note,
+        write_uid = EXCLUDED.write_uid,
+        write_date = EXCLUDED.write_date;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_dlthvt_kd ON ke_hoach_kinh_doanh;
+CREATE TRIGGER trg_dlthvt_kd
+AFTER INSERT OR UPDATE OR DELETE ON ke_hoach_kinh_doanh
+FOR EACH ROW EXECUTE PROCEDURE dlthvt_sync_kd();
+
+-- =============================================================================
+-- SX: ke_hoach_san_xuat -> du_lieu_tong_hop_vat_tu
+-- =============================================================================
+CREATE OR REPLACE FUNCTION dlthvt_sync_sx() RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'DELETE' THEN
+        DELETE FROM du_lieu_tong_hop_vat_tu
+        WHERE source_model = 'ke.hoach.san.xuat' AND source_res_id = OLD.id;
+        RETURN OLD;
+    END IF;
+
+    INSERT INTO du_lieu_tong_hop_vat_tu (
+        step_code, source_model, source_res_id,
+        period_id, company_id, month_key, month_date, ma_sap, ma_vat_tu,
+        nganh_hang_id, dong_hang_id, ma_hang_id, qty, note,
+        ma_tp, ten_sap, ma_nvl, ma_effect, don_vi_tinh,
+        do_day, kho_1, kho_2, trong_luong_kg_tam, sl_dinh_muc,
+        ma_dat_hang, chung_loai, ma_cuon, ton_dau, ve_du_kien, vt_can_dung, ton_cuoi,
+        so_luong_du_phong, so_luong_thieu, so_luong_can_mua, ghi_chu,
+        tong_ton_nvl_sl, tong_hang_di_duong_sl, tong_sl_vt_can_dung,
+        sl_du_tru_toi_thieu, sl_can_mua_theo_moq, sl_dat_mua_de_xuat,
+        sl_dat_mua_chot, sl_ton_kho, so_ngay_vong_quay_ton, don_gia_ton_kho, gia_tri_ton_kho,
+        create_uid, create_date, write_uid, write_date
+    ) VALUES (
+        'sx', 'ke.hoach.san.xuat', NEW.id,
+        NEW.period_id, NEW.company_id, NEW.month_key, COALESCE(NEW.month_date, TO_DATE(NEW.month_key, 'MM/YYYY')), NEW.ma_sap, NULL,
+        NEW.nganh_hang_id, NEW.dong_hang_id, NEW.ma_hang_id, NEW.qty, NEW.note,
+        NULL, NULL, NULL, NULL, NULL,
+        NULL, NULL, NULL, NULL, NULL,
+        NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+        NULL, NULL, NULL, NULL,
+        NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+        NEW.create_uid, NEW.create_date, NEW.write_uid, NEW.write_date
+    )
+    ON CONFLICT (source_model, source_res_id) DO UPDATE SET
+        step_code = EXCLUDED.step_code,
+        period_id = EXCLUDED.period_id,
+        company_id = EXCLUDED.company_id,
+        month_key = EXCLUDED.month_key,
+        month_date = EXCLUDED.month_date,
+        ma_sap = EXCLUDED.ma_sap,
+        ma_vat_tu = EXCLUDED.ma_vat_tu,
+        nganh_hang_id = EXCLUDED.nganh_hang_id,
+        dong_hang_id = EXCLUDED.dong_hang_id,
+        ma_hang_id = EXCLUDED.ma_hang_id,
+        qty = EXCLUDED.qty,
+        note = EXCLUDED.note,
+        write_uid = EXCLUDED.write_uid,
+        write_date = EXCLUDED.write_date;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_dlthvt_sx ON ke_hoach_san_xuat;
+CREATE TRIGGER trg_dlthvt_sx
+AFTER INSERT OR UPDATE OR DELETE ON ke_hoach_san_xuat
+FOR EACH ROW EXECUTE PROCEDURE dlthvt_sync_sx();
+
+-- =============================================================================
 -- SYNC: md_sap_bom → bom (ORM table)
 -- Khi md_sap_bom được INSERT/UPDATE, tự động UPSERT vào bảng bom.
 -- Tạm thời gán company_id = 17 (SHE). Sau này sẽ mapping từ chi_nhanh.

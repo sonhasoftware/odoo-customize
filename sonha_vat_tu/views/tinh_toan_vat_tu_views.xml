@@ -16,7 +16,7 @@
                 <field name="kho_1"/>
                 <field name="kho_2"/>
                 <field name="trong_luong_kg_tam"/>
-                <field name="sl_dinh_muc" sum="Số lượng định mức / 1 sản phẩm"/>
+                <field name="sl_dinh_muc" sum="Định mức"/>
                 <field name="month_key" required="1"/>
                 <field name="qty" sum="Số lượng"/>
             </tree>

@@ -55,11 +55,11 @@
                         </group>
                     </group>
                     <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:8px;">
-                        <button name="action_download_b1_template" type="object" string="Tải template KD"
+                        <button name="action_download_b1_template" type="object" string="Tải template kinh doanh"
                                 class="btn btn-secondary" icon="fa-download"
                                 groups="sonha_vat_tu.group_ban_cung_ung_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"
                                 invisible="state != 'ke_hoach'"/>
-                        <button name="action_open_import_kinh_doanh_wizard" type="object" string="Import kế hoạch KD"
+                        <button name="action_open_import_kinh_doanh_wizard" type="object" string="Import kế hoạch kinh doanh"
                                 class="btn btn-primary" icon="fa-upload"
                                 groups="sonha_vat_tu.group_ban_cung_ung_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"
                                 invisible="state != 'ke_hoach'"/>
@@ -67,7 +67,7 @@
                                 class="btn btn-secondary" icon="fa-download"
                                 groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"
                                 invisible="state != 'ke_hoach'"/>
-                        <button name="action_open_import_san_xuat_wizard" type="object" string="Import kế hoạch SX"
+                        <button name="action_open_import_san_xuat_wizard" type="object" string="Import kế hoạch sản xuất"
                                 class="btn btn-primary" icon="fa-upload"
                                 groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"
                                 invisible="state != 'ke_hoach'"/>
@@ -218,7 +218,7 @@
                             <field name="trong_luong_kg_tam"/>
                             <field name="sl_dinh_muc"/>
                             <field name="month_key" required="1"/>
-                            <field name="qty"/>
+                            <field name="qty" column_invisible="True"/>
                         </tree>
                     </field>
                 </sheet>

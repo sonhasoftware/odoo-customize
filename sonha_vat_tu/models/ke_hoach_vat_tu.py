@@ -401,7 +401,7 @@ class KeHoachVatTu(models.Model):
         ws.column_dimensions['E'].width = 16
         return self._xlsx_download_action(
             wb,
-            'KHKD_%s.xlsx' % (self.code or self.id),
+            'KHKD_%s.xlsx' % (self.code),
         )
 
     def action_open_import_kinh_doanh_wizard(self):
@@ -515,7 +515,7 @@ class KeHoachVatTu(models.Model):
             'KHSX_%s.xlsx' % (self.code or self.id),
         )
 
-    def _action_open_step(self, view_xmlid):
+    def _action_open_step(self, view_xmlid, context=None):
         self.ensure_one()
         return {
             'type': 'ir.actions.act_window',
@@ -525,7 +525,26 @@ class KeHoachVatTu(models.Model):
             'view_mode': 'form',
             'views': [(self.env.ref(view_xmlid).id, 'form')],
             'target': 'current',
+            'context': context or {},
         }
+
+    def action_open_workflow_sx(self):
+        return self._action_open_step(
+            'sonha_vat_tu.view_ke_hoach_vat_tu_form_sx',
+            context={
+                'form_view_ref': 'sonha_vat_tu.view_ke_hoach_vat_tu_form_sx',
+                'vat_tu_chatter_scope': 'sx',
+            },
+        )
+
+    def action_open_workflow_vt(self):
+        return self._action_open_step(
+            'sonha_vat_tu.view_ke_hoach_vat_tu_form_vt',
+            context={
+                'form_view_ref': 'sonha_vat_tu.view_ke_hoach_vat_tu_form_vt',
+                'vat_tu_chatter_scope': 'vt',
+            },
+        )
 
     def action_open_step_b1(self):
         return self._action_open_step('sonha_vat_tu.view_ke_hoach_vat_tu_form_b1')

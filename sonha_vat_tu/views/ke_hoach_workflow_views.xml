@@ -25,14 +25,20 @@
                         <field name="company_id" options="{'no_create': True, 'no_open': True}"/>
                     </group>
                     <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:8px;">
-                        <button name="action_download_b1_template" type="object" string="Tải template KD"
+                        <button name="action_download_b1_template" type="object" string="Tải template kinh doanh"
                                 class="btn btn-secondary" icon="fa-download"
                                 groups="sonha_vat_tu.group_ban_cung_ung_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"
                                 invisible="state != 'ke_hoach'"/>
-                        <button name="action_open_import_kinh_doanh_wizard" type="object" string="Import kế hoạch KD"
+                        <button name="action_open_import_kinh_doanh_wizard" type="object" string="Import kế hoạch kinh doanh"
                                 class="btn btn-primary" icon="fa-upload"
                                 groups="sonha_vat_tu.group_ban_cung_ung_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"
                                 invisible="state != 'ke_hoach'"/>
+                    </div>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_workflow_sx" type="object" class="oe_stat_button" icon="fa-arrow-right"
+                                groups="sonha_vat_tu.group_ban_cung_ung_vat_tu,sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu">
+                            <field name="ke_hoach_san_xuat_count" string="Kế hoạch sản xuất" widget="statinfo"/>
+                        </button>
                     </div>
                     <field name="ke_hoach_kinh_doanh_ids" context="{'default_period_id': id}" readonly="state != 'ke_hoach'">
                         <tree editable="bottom">
@@ -61,24 +67,31 @@
             <form string="Kế hoạch sản xuất">
                 <sheet>
                     <field name="state" invisible="1"/>
+                    <field name="ke_hoach_san_xuat_count" invisible="1"/>
                     <div class="oe_title"><h1><field name="code"/></h1></div>
                     <group>
                         <field name="period_month" readonly="1"/>
                         <field name="company_id" readonly="1"/>
                     </group>
                     <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:8px;">
-                        <button name="action_export_san_xuat" type="object" string="Export kế hoạch KD"
+                        <button name="action_export_san_xuat" type="object" string="Export kế hoạch kinh doanh"
                                 class="btn btn-secondary" icon="fa-download"
                                 groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"
                                 invisible="state != 'ke_hoach'"/>
-                        <button name="action_open_import_san_xuat_wizard" type="object" string="Import kế hoạch SX"
+                        <button name="action_open_import_san_xuat_wizard" type="object" string="Import kế hoạch sản xuất"
                                 class="btn btn-primary" icon="fa-upload"
                                 groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"
                                 invisible="state != 'ke_hoach'"/>
-                        <button name="action_approve_business_plan" type="object" string="Duyệt theo kế hoạch KD"
+                        <button name="action_approve_business_plan" type="object" string="Duyệt theo kế hoạch kinh doanh"
                                 class="btn btn-secondary" icon="fa-check"
                                 groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"
-                                invisible="state != 'ke_hoach'"/>
+                                invisible="state != 'ke_hoach' or ke_hoach_san_xuat_count > 0"/>
+                    </div>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_workflow_vt" type="object" class="oe_stat_button" icon="fa-arrow-right"
+                                groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu">
+                            <field name="ke_hoach_vat_tu_line_count" string="Kế hoạch vật tư" widget="statinfo"/>
+                        </button>
                     </div>
                     <field name="ke_hoach_san_xuat_ids" context="{'default_period_id': id}" readonly="state != 'ke_hoach'">
                         <tree editable="bottom">

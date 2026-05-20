@@ -13,16 +13,13 @@ class VatTuMailThreadController(http.Controller):
 
     @staticmethod
     def _scope_domain(thread_model, vat_tu_scope):
-        # Chỉ áp dụng filter scope cho đúng model kế hoạch vật tư.
         if thread_model != VAT_TU_THREAD_MODEL or vat_tu_scope not in VAT_TU_CHATTER_SCOPES:
             return []
-        # Màn vật tư (vt): xem log scope 'vt' và các message cũ chưa có scope.
         if vat_tu_scope == 'vt':
             return expression.OR([
                 [('x_vat_tu_scope', '=', 'vt')],
                 [('x_vat_tu_scope', '=', False)],
             ])
-        # Màn kinh doanh/sản xuất: chỉ xem đúng scope của mình.
         return [('x_vat_tu_scope', '=', vat_tu_scope)]
 
     @http.route('/sonha_vat_tu/mail/thread/messages', methods=['POST'], type='json', auth='user')
