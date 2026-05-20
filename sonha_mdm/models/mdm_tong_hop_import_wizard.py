@@ -53,7 +53,27 @@ class MDMTongHopImportWizard(models.TransientModel):
         updated = 0
         errors = []
 
-        for row_index, row in enumerate(sheet.iter_rows(min_row=2, values_only=True), start=2):
+        rows = list(sheet.iter_rows(min_row=2, values_only=True))
+        company_codes = set()
+        for row in rows:
+            if not any(self._clean_value(cell) for cell in row[:18]):
+                continue
+            company_code = self._clean_value(row[0] if len(row) > 0 else False)
+            if company_code:
+                company_codes.add(company_code)
+
+        if len(company_codes) > 1:
+            raise ValidationError(_('File không cùng 1 mã công ty. Vui lòng kiểm tra lại cột mã công ty trong file import.'))
+
+        if not company_codes:
+            raise ValidationError(_('Thiếu mã công ty trong file import.'))
+
+        company_code = next(iter(company_codes))
+        company = self.env['res.company'].search([('company_code', '=', company_code)], limit=1)
+        if not company:
+            raise ValidationError(_('Không tìm thấy công ty với mã công ty "%(code)s".', code=company_code))
+
+        for row_index, row in enumerate(rows, start=2):
             ma_tg = self._clean_value(row[1] if len(row) > 1 else False)
             ma_mdm = self._clean_value(row[2] if len(row) > 2 else False)
 
@@ -88,16 +108,17 @@ class MDMTongHopImportWizard(models.TransientModel):
 
                 if existing:
                     parent_record = existing
+                    parent_record.sudo().write(dict(vals, dvcs=company.id))
                     updated += 1
                 else:
-                    parent_record = model.create(vals)
+                    parent_record = model.create(dict(vals, dvcs=company.id))
                     imported += 1
 
                 line_model.create({
                     'tong_hop_id': parent_record.id,
                     'ma_mdm': ma_mdm,
                     'ma_dv': ma_tg,
-                    'dvcs': self.env.company.id,
+                    'dvcs': company.id,
                 })
             except Exception as exc:
                 errors.append(_('Dòng %(row)s (Mã MDM: %(ma_mdm)s): %(error)s', row=row_index, ma_mdm=ma_mdm or '-', error=str(exc)))
