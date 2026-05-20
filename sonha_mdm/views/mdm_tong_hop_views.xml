@@ -59,6 +59,7 @@
                             <tree editable="bottom">
                                 <field name="ma_mdm"/>
                                 <field name="ma_dv"/>
+                                <field name="dvcs"/>
                             </tree>
                         </field>
                     </page>
