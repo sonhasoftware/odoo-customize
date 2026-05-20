@@ -31,3 +31,4 @@ from . import mdm_tong_hop_import_wizard
 from . import mdm_khach_hang_import_wizard
 
 from . import bom_sale
+from . import mdm_tong_hop_line
