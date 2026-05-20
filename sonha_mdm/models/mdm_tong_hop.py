@@ -64,6 +64,7 @@ class MDMTongHop(models.Model):
     dvcs = fields.Many2one('res.company', string="ĐV", store=True, default=lambda self: self.env.company, readonly=False)
     luong_duyet = fields.Many2one('luong.duyet', string="Luồng duyệt")
     buoc_duyet = fields.One2many('buoc.duyet.hang.hoa', 'key', string="Bước duyệt")
+    bang_con_ids = fields.One2many('mdm.tong.hop.line', 'tong_hop_id', string='Bảng con đơn vị')
 
     current_step = fields.Integer(string="STT hiện tại", default=1)
     can_approve = fields.Boolean(compute='_compute_can_approve')
