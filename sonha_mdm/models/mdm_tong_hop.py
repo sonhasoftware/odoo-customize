@@ -283,6 +283,8 @@ class MDMTongHop(models.Model):
     @api.model
     def create(self, vals):
         record = super().create(vals)
+        if not record.ma:
+            record.ma = f"mdm01{record.id:010d}"
         self.create_write_action_data(record)
         self.call_api_insert(record)
 
