@@ -34,6 +34,17 @@ class MDMTongHopImportWizard(models.TransientModel):
             return record
         raise ValidationError(_('Không tìm thấy dữ liệu ở field %(field)s với mã "%(code)s".', field=field_label, code=code))
 
+
+    @staticmethod
+    def _merge_non_empty_vals(existing_record, incoming_vals):
+        merged_vals = {}
+        for field_name, value in incoming_vals.items():
+            if value not in (False, None, ''):
+                merged_vals[field_name] = value
+            elif existing_record:
+                merged_vals[field_name] = existing_record[field_name]
+        return merged_vals
+
     def action_import(self):
         self.ensure_one()
 
@@ -108,7 +119,8 @@ class MDMTongHopImportWizard(models.TransientModel):
 
                 if existing:
                     parent_record = existing
-                    parent_record.sudo().write(dict(vals, dvcs=company.id))
+                    update_vals = self._merge_non_empty_vals(existing, vals)
+                    parent_record.sudo().write(dict(update_vals, dvcs=company.id))
                     updated += 1
                 else:
                     parent_record = model.create(dict(vals, dvcs=company.id))
