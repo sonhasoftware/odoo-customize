@@ -199,6 +199,8 @@ class EmployeeAttendanceV2(models.Model):
         for record in self:
             record.over_time_nb = 0
             total_overtime = 0
+            total_rest_overlap = 0.0
+
             ot = self.env['register.overtime'].sudo().search([('employee_id', '=', record.employee_id.id),
                                                               ('start_date', '<=', record.date),
                                                               ('end_date', '>=', record.date),
@@ -226,6 +228,26 @@ class EmployeeAttendanceV2(models.Model):
                     fl += 24
                 return fl
 
+            # --- Helper tính overlap thời gian nghỉ trưa ---
+            rest_start_float = None
+            rest_end_float = None
+            if record.shift and record.shift.from_rest and record.shift.to_rest:
+                rest_start_dt = record.shift.from_rest + relativedelta(hours=7)
+                rest_end_dt = record.shift.to_rest + relativedelta(hours=7)
+                rest_start_float = rest_start_dt.hour + rest_start_dt.minute / 60
+                rest_end_float = rest_end_dt.hour + rest_end_dt.minute / 60
+                if rest_end_dt.date() > rest_start_dt.date() or rest_end_float <= rest_start_float:
+                    rest_end_float += 24
+
+            def _calc_overlap_rest(t_start, t_end):
+                if rest_start_float is None or rest_end_float is None:
+                    return 0.0
+                overlap_start = max(t_start, rest_start_float)
+                overlap_end = min(t_end, rest_end_float)
+                if overlap_end > overlap_start:
+                    return overlap_end - overlap_start
+                return 0.0
+
             # --- Xử lý register.overtime (ot) ---
             if ot:
                 for r in ot:
@@ -241,10 +263,13 @@ class EmployeeAttendanceV2(models.Model):
                     if r.start_date != r.end_date and r_start > r_end:
                         if r.start_date == record.date:
                             total_overtime += abs(24 - r_start)
+                            total_rest_overlap += _calc_overlap_rest(r_start, 24)
                         elif r.end_date == record.date:
                             total_overtime += abs(r_end)
+                            total_rest_overlap += _calc_overlap_rest(0, r_end)
                     else:
                         total_overtime += abs(r_end - r_start)
+                        total_rest_overlap += _calc_overlap_rest(r_start, r_end)
 
             # --- Xử lý overtime.rel (overtime) ---
             if overtime:
@@ -270,6 +295,7 @@ class EmployeeAttendanceV2(models.Model):
                             gap = shift_start - ot_end
                             if gap >= 1:  # Nếu cách ca >= 4 tiếng -> tính toàn bộ OT (ví dụ 0h–2h, ca 8h)
                                 total_overtime += ot_end - ot_start
+                                total_rest_overlap += _calc_overlap_rest(ot_start, ot_end)
                             else:
                                 # logic chuẩn như cũ (6h–8h sát ca thì check check_in/check_out)
                                 if record.check_in:
@@ -281,12 +307,14 @@ class EmployeeAttendanceV2(models.Model):
                                         actual_end = min(actual_end, check_out_time)
                                     if actual_end > actual_start:
                                         total_overtime += actual_end - actual_start
+                                        total_rest_overlap += _calc_overlap_rest(actual_start, actual_end)
 
                         # --- Trường hợp overtime hoàn toàn sau ca ---
                         elif shift_end <= ot_start:
                             gap = ot_start - shift_end
                             if gap >= 1:  # Nếu cách ca >= 4 tiếng -> tính toàn bộ OT
                                 total_overtime += ot_end - ot_start
+                                total_rest_overlap += _calc_overlap_rest(ot_start, ot_end)
                             else:
                                 # logic chuẩn như cũ (OT ngay sau ca thì check check_in/check_out)
                                 if record.check_out:
@@ -298,6 +326,7 @@ class EmployeeAttendanceV2(models.Model):
                                         actual_start = max(actual_start, check_in_time)
                                     if actual_end > actual_start:
                                         total_overtime += actual_end - actual_start
+                                        total_rest_overlap += _calc_overlap_rest(actual_start, actual_end)
 
                         # Trường hợp overtime nằm trong giờ ca (hoặc chồng 1 phần ca)
                         else:
@@ -313,6 +342,7 @@ class EmployeeAttendanceV2(models.Model):
                                     actual_end = min(actual_end, check_out_time)
                                 if actual_end > actual_start:
                                     total_overtime += actual_end - actual_start
+                                    total_rest_overlap += _calc_overlap_rest(actual_start, actual_end)
 
                             # phần sau ca (nếu có)
                             if ot_end > shift_end:
@@ -326,6 +356,7 @@ class EmployeeAttendanceV2(models.Model):
                                     actual_end = min(actual_end, check_out_time)
                                 if actual_end > actual_start:
                                     total_overtime += actual_end - actual_start
+                                    total_rest_overlap += _calc_overlap_rest(actual_start, actual_end)
 
                             # phần trong ca
                             inside_start = max(ot_start, shift_start)
@@ -338,6 +369,7 @@ class EmployeeAttendanceV2(models.Model):
                                 inside_end = min(inside_end, check_out_time)
                             if inside_end > inside_start:
                                 total_overtime += inside_end - inside_start
+                                total_rest_overlap += _calc_overlap_rest(inside_start, inside_end)
 
                     else:
                         # Nếu shift_ot = True → tính thẳng theo khoảng OT nhưng vẫn cắt theo check_in/check_out
@@ -352,16 +384,22 @@ class EmployeeAttendanceV2(models.Model):
                             actual_end = min(ot_end, check_out_time)
                             if actual_end > actual_start:
                                 total_overtime += actual_end - actual_start
+                                total_rest_overlap += _calc_overlap_rest(actual_start, actual_end)
 
             # --- Gán kết quả như cũ ---
-            if record.shift.type_ot == 'nb':
-                record.over_time_nb = total_overtime * record.shift.coefficient
+            # Trừ thời gian nghỉ trưa theo phần trăm giao nhau thực tế với khoảng OT
+            max_rest = (record.shift.minutes_rest / 60.0) if record.shift and record.shift.minutes_rest else 0.0
+            actual_rest_to_deduct = min(total_rest_overlap, max_rest) if max_rest > 0 else total_rest_overlap
+            actual_overtime = max(0.0, total_overtime - actual_rest_to_deduct) if total_overtime > 0 else 0.0
+
+            if record.shift and record.shift.type_ot == 'nb':
+                record.over_time_nb = actual_overtime * record.shift.coefficient
                 record.over_time = 0
             else:
                 if record.weekday == '6' and record.employee_id.company_id.id == 16:
-                    record.over_time = total_overtime * 2
+                    record.over_time = actual_overtime * 2
                 else:
-                    record.over_time = total_overtime
+                    record.over_time = actual_overtime
 
     @api.depends('date')
     def _get_month_year(self):
@@ -946,7 +984,7 @@ class EmployeeAttendanceV2(models.Model):
         list_recs = self.search(domain)
         if list_recs:
             for recs in list_recs:
-            # ghi lại để force recompute store fields
+                # ghi lại để force recompute store fields
                 recs.sudo().write({'date': recs.date})  # ghi lại trường date để kích hoạt recompute store
                 # hoặc gọi recompute cụ thể
                 recs._get_shift_employee()
