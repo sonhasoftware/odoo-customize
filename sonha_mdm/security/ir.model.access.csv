@@ -41,3 +41,4 @@ access_bom_sale,bom.sale,model_bom_sale,,1,1,1,1
 
 access_mdm_khach_hang_import_wizard,mdm.khach.hang.import.wizard,model_mdm_khach_hang_import_wizard,,1,1,1,1
 
+access_mdm_tong_hop_line,mdm.tong.hop.line,model_mdm_tong_hop_line,,1,1,1,1

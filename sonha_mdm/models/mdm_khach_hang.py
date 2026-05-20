@@ -11,6 +11,8 @@ import requests
 class MDMKhachHang(models.Model):
     _name = 'mdm.khach.hang'
 
+    _DUPLICATE_CHECK_FIELDS = {'ten_khach', 'dia_chi_khach', 'so_dien_thoai', 'mst', 'cccd'}
+
     ma_khach = fields.Char("Mã", store=True)
     ten_khach = fields.Char("Tên", store=True, required=True)
     dia_chi_khach = fields.Char("Địa chỉ khách", store=True)
@@ -242,6 +244,12 @@ class MDMKhachHang(models.Model):
 
         return dot / (norm1 * norm2)
 
+
+    def _should_run_duplicate_check(self, vals=None):
+        vals = vals or {}
+        # chỉ chạy check nặng khi người dùng thay đổi các trường phục vụ so khớp
+        return not vals or bool(self._DUPLICATE_CHECK_FIELDS.intersection(vals.keys()))
+
     def create_write_action_data(self, record):
         if not record.vector_ten or not record.vector_sdt:
             return record
@@ -349,8 +357,11 @@ class MDMKhachHang(models.Model):
 
     def write(self, vals):
         res = super().write(vals)
+
+        should_check_duplicate = self._should_run_duplicate_check(vals)
         for r in self:
-            self.create_write_action_data(r)
+            if should_check_duplicate:
+                self.create_write_action_data(r)
             self.call_api_update(r)
         return res
 
@@ -361,7 +372,8 @@ class MDMKhachHang(models.Model):
     @api.model
     def create(self, vals):
         record = super().create(vals)
-        self.create_write_action_data(record)
+        if self._should_run_duplicate_check(vals):
+            self.create_write_action_data(record)
         self.call_api_insert(record)
 
         return record

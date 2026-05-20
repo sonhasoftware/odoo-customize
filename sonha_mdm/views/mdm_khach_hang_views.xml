@@ -118,21 +118,22 @@
         <field name="model">mdm.khach.hang</field>
         <field name="arch" type="xml">
             <tree string="MDM khách hàng">
-                <field name="ma_khach"/>
-                <field name="ten_khach"/>
-                <field name="dia_chi_khach"/>
-                <field name="tinh_cu"/>
-                <field name="dat_nuoc" string="Quốc gia"/>
-                <field name="so_dien_thoai"/>
-                <field name="mst"/>
-                <field name="ma_cn"/>
-                <field name="nhom_khach" />
-                <field name="dvcs" />
-                <field name="ma_salesman" />
-                <field name="vung" />
-                <field name="qlv"/>
-                <field name="khu_vuc"/>
-                <field name="mien_lon"/>
+                <field name="ma_khach" optional="show"/>
+                <field name="ten_khach" optional="show"/>
+                <field name="dia_chi_khach" optional="show"/>
+                <field name="tinh_cu" optional="show"/>
+                <field name="dat_nuoc" string="Quốc gia" optional="show"/>
+                <field name="so_dien_thoai" optional="show"/>
+                <field name="mst" optional="show"/>
+                <field name="ma_cn" optional="show"/>
+                <field name="nhom_khach" optional="show"/>
+                <field name="dvcs" optional="show"/>
+                <field name="ma_salesman" optional="show"/>
+                <field name="vung" optional="show"/>
+                <field name="qlv" optional="show"/>
+                <field name="khu_vuc" optional="show"/>
+                <field name="mien_lon" optional="show"/>
+                <field name="id" optional="show"/>
             </tree>
         </field>
     </record>
