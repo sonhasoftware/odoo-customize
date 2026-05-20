@@ -48,6 +48,15 @@
                             </tree>
                         </field>
                     </page>
+                    <page string="Bảng con đơn vị">
+                        <field name="bang_con_ids">
+                            <tree editable="bottom">
+                                <field name="ma_mdm"/>
+                                <field name="ma_dv"/>
+                                <field name="dvcs"/>
+                            </tree>
+                        </field>
+                    </page>
                     <page string="Bước duyệt">
                         <field name="buoc_duyet">
                             <tree>
