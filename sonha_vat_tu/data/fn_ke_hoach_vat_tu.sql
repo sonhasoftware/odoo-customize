@@ -276,7 +276,7 @@ BEGIN
         tong_ton_nvl_sl, tong_hang_di_duong_sl, tong_sl_vt_can_dung,
         sl_du_tru_toi_thieu, sl_can_mua_theo_moq, don_gia_ton_kho,
         sl_dat_mua_de_xuat, sl_dat_mua_chot, sl_ton_kho,
-        so_ngay_vong_quay_ton, gia_tri_ton_kho,
+        so_ngay_vong_quay_ton, gia_tri_ton_kho, ghi_chu,
         create_uid, write_uid, create_date, write_date
     )
     WITH ton_kho_agg AS (
@@ -314,6 +314,7 @@ BEGIN
         final_b5.sl_ton_kho,
         (CASE WHEN final_b5.vt_can_dung > 0 THEN (final_b5.sl_ton_kho / final_b5.vt_can_dung * 30.0) ELSE 0.0 END) AS so_ngay_vong_quay_ton,
         (final_b5.sl_ton_kho * final_b5.don_gia_ton_kho) AS gia_tri_ton_kho,
+        final_b5.ghi_chu,
         1, 1, NOW(), NOW()
     FROM (
         SELECT
@@ -338,7 +339,8 @@ BEGIN
                 ELSE 0
             END                                       AS don_gia_ton_kho,
             (b4.ton_dau - COALESCE(b4.vt_can_dung, 0) + b4.ve_du_kien - (CASE WHEN COALESCE(b4.vt_can_dung, 0) > 0 THEN b4.vt_can_dung / (28.0 * p_ngay_dt) ELSE 0 END)) AS sl_dat_mua_de_xuat,
-            (b4.ton_dau - COALESCE(b4.vt_can_dung, 0) + b4.ve_du_kien + 0) AS sl_ton_kho
+            (b4.ton_dau - COALESCE(b4.vt_can_dung, 0) + b4.ve_du_kien + 0) AS sl_ton_kho,
+            b4.ghi_chu
         FROM tong_hop_vat_tu b4
         JOIN res_company c ON c.id = b4.company_id
         LEFT JOIN ton_kho_agg tk

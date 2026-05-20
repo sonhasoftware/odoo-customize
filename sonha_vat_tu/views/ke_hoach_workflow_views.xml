@@ -133,7 +133,7 @@
                         <field name="company_id" readonly="1"/>
                     </group>
                     <field name="ke_hoach_vat_tu_line_ids" readonly="1">
-                        <tree>
+                        <tree editable="bottom">
                             <field name="nganh_hang_id"/>
                             <field name="dong_hang_id"/>
                             <field name="ma_hang_id"/>
