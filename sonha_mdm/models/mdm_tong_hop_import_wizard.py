@@ -85,14 +85,13 @@ class MDMTongHopImportWizard(models.TransientModel):
             raise ValidationError(_('Không tìm thấy công ty với mã công ty "%(code)s".', code=company_code))
 
         for row_index, row in enumerate(rows, start=2):
-            ma_tg = self._clean_value(row[1] if len(row) > 1 else False)
+            ma_hang_don_vi = self._clean_value(row[1] if len(row) > 1 else False)
             ma_mdm = self._clean_value(row[2] if len(row) > 2 else False)
 
             if not any(self._clean_value(cell) for cell in row[:18]):
                 continue
 
             vals = {
-                'ma_tg': ma_tg,
                 'ma': ma_mdm,
                 'mdm_hh_type_id': self._find_many2one_by_code('mdm.hh.type', row[3] if len(row) > 3 else False, 'Loại hàng hóa').id,
                 'ten_ngan': self._clean_value(row[4] if len(row) > 4 else False),
@@ -126,12 +125,15 @@ class MDMTongHopImportWizard(models.TransientModel):
                     parent_record = model.create(dict(vals, dvcs=company.id))
                     imported += 1
 
-                line_model.create({
+                line_vals = {
                     'tong_hop_id': parent_record.id,
                     'ma_mdm': ma_mdm,
-                    'ma_dv': ma_tg,
                     'dvcs': company.id,
-                })
+                }
+                if ma_hang_don_vi:
+                    line_vals['ma_dv'] = ma_hang_don_vi
+
+                line_model.create(line_vals)
             except Exception as exc:
                 errors.append(_('Dòng %(row)s (Mã MDM: %(ma_mdm)s): %(error)s', row=row_index, ma_mdm=ma_mdm or '-', error=str(exc)))
 
