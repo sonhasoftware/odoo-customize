@@ -13,6 +13,26 @@
         </field>
     </record>
 
+
+    <record id="view_mdm_tong_hop_line_form" model="ir.ui.view">
+        <field name="name">mdm.tong.hop.line.form</field>
+        <field name="model">mdm.tong.hop.line</field>
+        <field name="arch" type="xml">
+            <form string="Mã ĐV">
+                <group>
+                    <field name="tong_hop_id" invisible="1"/>
+                    <field name="ma_mdm"/>
+                    <field name="ma_dv"/>
+                    <field name="dvcs"/>
+                </group>
+                <footer>
+                    <button string="Lưu" special="save" class="btn-primary"/>
+                    <button string="Hủy" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
     <record id="action_mdm_tong_hop_line" model="ir.actions.act_window">
         <field name="name">Bảng tổng hợp con</field>
         <field name="res_model">mdm.tong.hop.line</field>
