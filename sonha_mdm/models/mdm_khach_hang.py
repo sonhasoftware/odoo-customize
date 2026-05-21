@@ -13,6 +13,7 @@ class MDMKhachHang(models.Model):
 
     _DUPLICATE_CHECK_FIELDS = {'ten_khach', 'dia_chi_khach', 'so_dien_thoai', 'mst', 'cccd'}
 
+    ma = fields.Char("Mã")
     ma_khach = fields.Char("Mã", store=True)
     ten_khach = fields.Char("Tên", store=True, required=True)
     dia_chi_khach = fields.Char("Địa chỉ khách", store=True)
@@ -374,6 +375,14 @@ class MDMKhachHang(models.Model):
     @api.model
     def create(self, vals):
         record = super().create(vals)
+        if not record.ma:
+            record.ma = f"mdm02{record.id:010d}"
+        if record.ma and record.dvcs:
+            self.env['mdm.khach.hang.line'].create({
+                'khach_hang_id': record.id,
+                'ma_mdm': record.ma,
+                'dvcs': record.dvcs.id,
+            })
         if self._should_run_duplicate_check(vals):
             self.create_write_action_data(record)
         self.call_api_insert(record)
@@ -486,4 +495,17 @@ class MDMKhachHang(models.Model):
         except Exception as e:
             print("API ERROR:", str(e))
 
+    def action_view_popup(self):
+        self.ensure_one()
 
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Mã ĐV',
+            'res_model': 'mdm.khach.hang.line',
+            'view_mode': 'tree',
+            'view_id': self.env.ref('sonha_mdm.view_mdm_khach_hang_line_tree').id,
+            'target': 'new',
+            'context': {
+                'default_khach_hang_id': self.id,
+            },
+        }
