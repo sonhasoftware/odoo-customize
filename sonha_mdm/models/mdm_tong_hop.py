@@ -511,10 +511,12 @@ class MDMTongHop(models.Model):
 
         return {
             'type': 'ir.actions.act_window',
-            'name': 'Nhập thêm thông tin',
+            'name': 'Mã ĐV',
             'res_model': 'mdm.tong.hop.line',
-            'view_mode': 'tree',
-            'view_id': self.env.ref('sonha_mdm.view_mdm_tong_hop_line_tree').id,
-            'res_id': self.id,
-            'target': 'new'
+            'view_mode': 'form',
+            'view_id': self.env.ref('sonha_mdm.view_mdm_tong_hop_line_form').id,
+            'target': 'new',
+            'context': {
+                'default_tong_hop_id': self.id,
+            },
         }
