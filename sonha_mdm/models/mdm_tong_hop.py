@@ -505,3 +505,16 @@ class MDMTongHop(models.Model):
             self.create_write_action_data(r)
             self.call_api_update(r)
         return res
+
+    def action_view_popup(self):
+        self.ensure_one()
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Nhập thêm thông tin',
+            'res_model': 'mdm.tong.hop.line',
+            'view_mode': 'tree',
+            'view_id': self.env.ref('sonha_mdm.view_mdm_tong_hop_line_tree').id,
+            'res_id': self.id,
+            'target': 'new'
+        }

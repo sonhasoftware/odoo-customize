@@ -109,6 +109,10 @@
                         <field name="do_bong"/>
                         <field name="do_day"/>
                         <field name="bom_sale"/>
+                        <button string="Mã ĐV"
+                            type="object"
+                            name="action_view_popup"
+                            class="btn-primary"/>
                     </group>
                 </group>
                 <footer>
