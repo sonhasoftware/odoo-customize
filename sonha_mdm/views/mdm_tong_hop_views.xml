@@ -14,6 +14,10 @@
                         type="object"
                         string="Đối chiếu dữ liệu so sánh"
                         class="btn-primary"/>
+                    <button string="Cập nhật mã ĐV"
+                            type="object"
+                            name="action_view_popup"
+                            class="btn-primary"/>
                     <button name="action_approve"
                         string="Duyệt"
                         type="object"
@@ -26,6 +30,7 @@
                     <field name="key_nhan_hang" invisible="1"/>
                     <group>
                         <group>
+                            <field name="ma"/>
                             <field name="ten"/>
                             <field name="chung_loai1" options="{'no_create': True, 'no_open': True}"/>
                             <field name="chung_loai2" domain="[('key', '=', chung_loai1)]" options="{'no_create': True, 'no_open': True}"/>
@@ -42,7 +47,7 @@
                     <page string="Dữ liệu so sánh">
                         <field name="so_sanh">
                         <tree default_order="score desc">
-                            <field name="ma_tg"/>
+                            <field name="ma"/>
                             <field name="ten"/>
                             <field name="chung_loai1"/>
                             <field name="chung_loai2"/>
@@ -86,12 +91,10 @@
             <form string="Nhập thêm thông tin">
                 <group>
                     <group>
-                        <field name="ma_tg"/>
+                        <field name="ma"/>
                         <field name="mdm_hh_type"/>
-                        <field name="material"/>
                         <field name="ten_ngan"/>
                         <field name="ten"/>
-                        <field name="material_number"/>
                         <field name="dvt"/>
                         <field name="dung_tich_plus"/>
                         <field name="dvt_dung_tich"/>
@@ -130,7 +133,8 @@
         <field name="model">mdm.tong.hop</field>
         <field name="arch" type="xml">
             <tree string="MDM Hàng hóa" default_order="create_date desc">
-                <field name="ma_tg" optional="show"/>
+                <field name="ma_tg" optional="show" string="Mã hàng đơn vị"/>
+                <field name="ma" optional="show" string="Mã MDM"/>
                 <field name="mdm_hh_type" optional="show"/>
                 <field name="ten_ngan" optional="show"/>
                 <field name="ten" optional="show"/>
@@ -146,7 +150,6 @@
                 <field name="dung_tich_plus" optional="show"/>
                 <field name="dvt_dung_tich" optional="show"/>
                 <field name="bom_sale" optional="show"/>
-                <field name="id" optional="show"/>
             </tree>
         </field>
     </record>

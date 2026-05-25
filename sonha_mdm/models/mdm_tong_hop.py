@@ -286,56 +286,14 @@ class MDMTongHop(models.Model):
         record = super().create(vals)
         if not record.ma:
             record.ma = f"mdm01{record.id:010d}"
+        if record.ma and record.dvcs:
+            self.env['mdm.tong.hop.line'].create({
+                'tong_hop_id': record.id,
+                'ma_mdm': record.ma,
+                'dvcs': record.dvcs.id,
+            })
         self.create_write_action_data(record)
         self.call_api_insert(record)
-
-        # Nếu không có vector thì bỏ qua
-        # if not record.vector:
-        #     return record
-        #
-        # new_vec = json.loads(record.vector)
-        # # new_vec_group = json.loads(record.vector_group)
-        #
-        # logs = []
-        # offset = 0
-        # limit = 5000
-        #
-        # while True:
-        #     batch = self.sudo().search_read(
-        #         [('id', '!=', record.id)],
-        #         ['id', 'vector', 'ten', 'vector_group'],
-        #         offset=offset,
-        #         limit=limit
-        #     )
-        #
-        #     if not batch:
-        #         break
-        #
-        #     for r in batch:
-        #         if not r['vector']:
-        #             continue
-        #
-        #         # 🚀 Tối ưu 1: lọc theo độ dài tên trước
-        #         if record.ten and r['ten']:
-        #             if abs(len(record.ten) - len(r['ten'])) > 5:
-        #                 continue
-        #
-        #         old_vec = json.loads(r['vector'])
-        #
-        #         score = self._cosine_similarity_dict(new_vec, old_vec)
-        #
-        #         if score >= 0.8:
-        #             logs.append({
-        #                 'mdm': record.id,
-        #                 'record': r['id'],
-        #                 'ten': r['ten'],
-        #                 'score': score * 100
-        #             })
-        #
-        #     offset += limit
-        #
-        # if logs:
-        #     self.env['ket.qua.tong.hop'].sudo().create(logs)
 
         return record
 
@@ -505,3 +463,18 @@ class MDMTongHop(models.Model):
             self.create_write_action_data(r)
             self.call_api_update(r)
         return res
+
+    def action_view_popup(self):
+        self.ensure_one()
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Mã ĐV',
+            'res_model': 'mdm.tong.hop.line',
+            'view_mode': 'tree',
+            'view_id': self.env.ref('sonha_mdm.view_mdm_tong_hop_line_tree').id,
+            'target': 'new',
+            'context': {
+                'default_tong_hop_id': self.id,
+            },
+        }

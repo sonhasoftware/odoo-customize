@@ -37,6 +37,7 @@
         'views/mien_lon_views.xml',
         'views/mien_nho_views.xml',
         'views/bom_sale_views.xml',
+        'views/view_popup_con.xml',
         'data/cron_job.xml',
         'views/menu_views.xml',
     ],
