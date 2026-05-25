@@ -74,10 +74,10 @@
               action="action_mdm_do_bong"
               sequence="7"/>
 
-    <menuitem id="menu_mdm_do_day"
-              name="Độ dày"
+    <menuitem id="menu_mdm_dvt"
+              name="Đơn vị tính"
               parent="menu_mdm_danh_muc"
-              action="action_mdm_do_day"
+              action="action_mdm_dvt"
               sequence="8"/>
 
     <menuitem id="menu_mdm_dung_tich"

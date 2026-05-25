@@ -16,7 +16,7 @@
         'views/mdm_nhan_hang_views.xml',
         'views/mdm_chat_lieu_views.xml',
         'views/mdm_do_bong_views.xml',
-        'views/mdm_do_day_views.xml',
+        'views/mdm_dvt_views.xml',
         'views/mdm_dung_tich_views.xml',
         'views/mdm_hh_type_views.xml',
         'views/mdm_quoc_gia_views.xml',

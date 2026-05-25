@@ -5,7 +5,7 @@ from . import mdm_nganh_hang
 from . import mdm_nhan_hang
 from . import mdm_chat_lieu
 from . import mdm_do_bong
-from . import mdm_do_day
+from . import mdm_dvt
 from . import mdm_dung_tich
 from . import mdm_hh_type
 from . import mdm_tong_hop

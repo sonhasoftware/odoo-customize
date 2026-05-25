@@ -19,7 +19,7 @@ class KetQuaTongHop(models.Model):
     nhan_hang = fields.Text(related='record.nhan_hang.ten', string="Nhãn hàng")
     chat_lieu = fields.Text(related='record.chat_lieu.ten', string="Chất liệu")
     do_bong = fields.Text(related='record.do_bong.ten', string="Độ bóng")
-    do_day = fields.Text(related='record.do_day.ten', string="Độ dày")
+    do_day = fields.Text(related='record.do_day', string="Độ dày")
     dung_tich = fields.Text(related='record.dung_tich.ten', string="Dung tích")
     ma_tg = fields.Char(related='record.ma_tg', string="Mã TG")
 
