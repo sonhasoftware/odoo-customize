@@ -16,7 +16,7 @@ class ConfigShift(models.Model):
     latest = fields.Integer("Muộn Nhất Phải Vào")
     rest = fields.Integer("Nghỉ")
     from_rest = fields.Datetime("Nghỉ từ")
-    minutes_rest = fields.Integer("Số phút nghỉ")
+    minutes_rest = fields.Integer("Số phút nghỉ", compute="_compute_minutes_rest", store=True)
     to_rest = fields.Datetime("Nghỉ đến")
     earliest_out = fields.Integer("Sớm nhất được ra")
     allow_early_exit = fields.Integer("Cho Phép Ra Sớm")
@@ -64,6 +64,18 @@ class ConfigShift(models.Model):
                 r.night = True
             else:
                 r.night = False
+
+    @api.depends('from_rest', 'to_rest')
+    def _compute_minutes_rest(self):
+        for r in self:
+            if r.from_rest and r.to_rest:
+                diff = (r.to_rest - r.from_rest).total_seconds()
+                if diff < 0:
+                    # Nếu to_rest qua ngày hôm sau
+                    diff += 24 * 3600
+                r.minutes_rest = int(diff / 60)
+            else:
+                r.minutes_rest = 0
 
     name_code_shift = fields.Char(string="Tên và mã ca",compute="_compute_name_code_shift",tracking=True,store=True)
 
