@@ -1,8 +1,8 @@
-from odoo import api, fields, models
+from odoo import fields, models
 
 
-class MDMDoDay(models.Model):
-    _name = 'mdm.do.day'
+class MDMDVT(models.Model):
+    _name = 'mdm.dvt'
     _rec_name = 'ten'
 
     ma = fields.Char("Mã", store=True)

@@ -97,7 +97,7 @@ class MDMKhachHangImportWizard(models.TransientModel):
 
                 vals = {
                     'ma_khach': ma_kh_ncc,
-                    'ma_dms': ma_mdm,
+                    'ma': ma_mdm,
                     'ten_khach': self._clean_value(row[3] if len(row) > 3 else False),
                     'dia_chi_khach': self._clean_value(row[4] if len(row) > 4 else False),
                     'phuong_xa_cu': self._find_many2one_by_code('phuong.xa.cu', row[5] if len(row) > 5 else False, 'Phường/xã cũ').id,
@@ -117,7 +117,7 @@ class MDMKhachHangImportWizard(models.TransientModel):
                     'mien_nho': self._find_many2one_by_code('mien.nho', row[19] if len(row) > 19 else False, 'Miền nhỏ').id,
                 }
 
-                existing = model.search([('ma_dms', '=', ma_mdm)], limit=1)
+                existing = model.search([('ma', '=', ma_mdm)], limit=1)
                 if existing:
                     parent_record = existing
                     update_vals = self._merge_non_empty_vals(existing, vals)

@@ -7,7 +7,7 @@ access_mdm_nganh_hang,mdm.nganh.hang,model_mdm_nganh_hang,,1,1,1,1
 access_mdm_nhan_hang,mdm.nhan.hang,model_mdm_nhan_hang,,1,1,1,1
 access_mdm_chat_lieu,mdm.chat.lieu,model_mdm_chat_lieu,,1,1,1,1
 access_mdm_do_bong,mdm.do.bong,model_mdm_do_bong,,1,1,1,1
-access_mdm_do_day,mdm.do.day,model_mdm_do_day,,1,1,1,1
+access_mdm_dvt,mdm.dvt,model_mdm_dvt,,1,1,1,1
 access_mdm_dung_tich,mdm.dung.tich,model_mdm_dung_tich,,1,1,1,1
 access_mdm_hh_type,mdm.hh.type,model_mdm_hh_type,,1,1,1,1
 

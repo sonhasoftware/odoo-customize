@@ -19,7 +19,7 @@ class MDMTongHop(models.Model):
     ten_ngan = fields.Char("Tên ngắn")
     ten = fields.Char("Tên")
     material_number = fields.Char("Material number")
-    dvt = fields.Char("Đơn vị tính")
+    dvt = fields.Many2one('mdm.dvt', string="Đơn vị tính")
     material_group = fields.Integer("Material Group")
     batch_management = fields.Char("Batch Management")
 
@@ -46,7 +46,7 @@ class MDMTongHop(models.Model):
     nhan_hang = fields.Many2one('mdm.nhan.hang', string="Nhãn hàng")
     chat_lieu = fields.Many2one('mdm.chat.lieu', string="Chất liệu")
     do_bong = fields.Many2one('mdm.do.bong', string="Độ bóng")
-    do_day = fields.Many2one('mdm.do.day', string="Độ dày")
+    do_day = fields.Char("Độ dày")
     dung_tich_plus = fields.Char(string="Dung tích plus")
     dung_tich = fields.Many2one('mdm.dung.tich', string="Dung tích")
     dvt_dung_tich = fields.Char(string="ĐVT Dung tích")
@@ -287,11 +287,16 @@ class MDMTongHop(models.Model):
         if not record.ma:
             record.ma = f"mdm01{record.id:010d}"
         if record.ma and record.dvcs:
-            self.env['mdm.tong.hop.line'].create({
-                'tong_hop_id': record.id,
-                'ma_mdm': record.ma,
-                'dvcs': record.dvcs.id,
-            })
+            check = self.env['mdm.khach.hang.line'].sudo().search([('ma_mdm', '=', record.ma),
+                                                                   ('dvcs', '=', record.dvcs.id)])
+            if check:
+                check.ma_mdm = record.ma
+            else:
+                self.env['mdm.tong.hop.line'].create({
+                    'tong_hop_id': record.id,
+                    'ma_mdm': record.ma,
+                    'dvcs': record.dvcs.id,
+                })
         self.create_write_action_data(record)
         self.call_api_insert(record)
 
@@ -386,7 +391,7 @@ class MDMTongHop(models.Model):
                 'ten': record.ten or None,
                 'ma_tg': record.ma_tg or None,
                 'ten_ngan': record.ten_ngan or None,
-                'dvt': record.dvt or None,
+                'dvt': record.dvt.ma or None,
                 'ma_dvcs': record.dvcs.company_code or None,
                 'ten_dvcs': record.dvcs.name or None,
                 'type': 'insert',
@@ -429,7 +434,7 @@ class MDMTongHop(models.Model):
                 'ten': record.ten or None,
                 'ma_tg': record.ma_tg or None,
                 'ten_ngan': record.ten_ngan or None,
-                'dvt': record.dvt or None,
+                'dvt': record.dvt.ma or None,
                 'ma_dvcs': record.dvcs.company_code or None,
                 'ten_dvcs': record.dvcs.name or None,
                 'type': 'update',

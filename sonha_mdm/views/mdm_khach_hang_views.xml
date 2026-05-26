@@ -56,9 +56,9 @@
                     <page string="Bảng con đơn vị">
                         <field name="bang_con_ids">
                             <tree editable="bottom">
-                                <field name="ma_mdm"/>
+                                <field name="ma_mdm" readonly="1"/>
                                 <field name="ma_dv"/>
-                                <field name="dvcs"/>
+                                <field name="dvcs" readonly="1"/>
                             </tree>
                         </field>
                     </page>
