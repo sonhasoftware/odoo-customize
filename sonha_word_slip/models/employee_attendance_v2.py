@@ -709,12 +709,14 @@ class EmployeeAttendanceV2(models.Model):
                 continue
 
             # Tính thời gian bắt đầu và kết thúc ca làm việc
-            shift_start_time = datetime.combine(r.date, r.shift.start.time()) + timedelta(hours=7)
-            shift_end_time = datetime.combine(r.date, r.shift.end_shift.time()) + timedelta(hours=7)
+            shift_start_time = datetime.combine(r.date, (r.shift.start + timedelta(hours=7)).time())
+            shift_end_time = datetime.combine(r.date, (r.shift.end_shift + timedelta(hours=7)).time())
 
             if r.check_in:
                 check_in_time = r.check_in + timedelta(hours=7)
-                if check_in_time.time() > shift_start_time.time():
+                if shift_start_time.time().hour == 0:
+                    shift_start_time + timedelta(days=1)
+                if check_in_time > shift_start_time:
                     minute_late = (check_in_time - datetime.combine(check_in_time.date(),
                                                                     shift_start_time.time())).total_seconds() / 60
                     r.minutes_late = int(minute_late)
