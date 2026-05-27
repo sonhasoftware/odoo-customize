@@ -496,7 +496,7 @@ class EmployeeAttendanceV2(models.Model):
                 r.shift = r.employee_id.shift.id
 
     # Lấy thông tin giờ phải check-in và giờ check-out của nhân viên
-    @api.depends('shift', 'date', 'employee_id')
+    @api.depends('shift')
     def _get_time_in_out(self):
         for r in self:
             # Nếu không có shift, gán giá trị mặc định và bỏ qua
