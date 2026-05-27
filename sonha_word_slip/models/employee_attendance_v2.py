@@ -76,11 +76,14 @@ class EmployeeAttendanceV2(models.Model):
     key = fields.Char("Ký hiệu ca", related="shift.key")
 
     sunday_work = fields.Float(string="Giờ làm chủ nhật", compute="_get_sunday_work", store=True)
+    normal_sunday_work = fields.Float(string="Làm bình thường ngày chủ nhật", compute="_get_sunday_work", store=True)
+    ot_sunday_work = fields.Float(string="Làm thêm ngày chủ nhật", compute="get_hours_reinforcement", store=True)
 
     @api.depends('employee_id', 'check_in', 'check_out', 'date')
     def _get_sunday_work(self):
         for r in self:
             r.sunday_work = 0
+            r.normal_sunday_work = 0
             if r.weekday == '6':
                 word_slip = self.env['word.slip'].sudo().search([('from_date', '<=', r.date),
                                                                  ('to_date', '>=', r.date),
@@ -101,13 +104,19 @@ class EmployeeAttendanceV2(models.Model):
                             shift_work = abs((check_time_co - check_time_ci).total_seconds() / 3600)
 
                             r.sunday_work += shift_work/2
+                            if not r.shift.shift_ot:
+                                r.normal_sunday_work += shift_work/2
                     elif slip.word_slip.type.sunday_count == 'full' and r.check_in and r.check_out:
                         sun_work = abs((r.check_out - r.check_in).total_seconds() / 3600)
                         r.sunday_work += sun_work
+                        if not r.shift.shift_ot:
+                            r.normal_sunday_work += sun_work
                 if not word_slips:
                     if r.check_in and r.check_out:
                         sun_work = abs((r.check_out - r.check_in).total_seconds() / 3600)
                         r.sunday_work += sun_work
+                        if not r.shift.shift_ot:
+                            r.normal_sunday_work += sun_work
 
     @api.depends('employee_id')
     def get_department(self):
@@ -232,6 +241,7 @@ class EmployeeAttendanceV2(models.Model):
     def get_hours_reinforcement(self):
         for record in self:
             record.over_time_nb = 0
+            record.ot_sunday_work = 0
             total_overtime = 0
             ot = self.env['register.overtime'].sudo().search([('employee_id', '=', record.employee_id.id),
                                                               ('start_date', '<=', record.date),
@@ -392,10 +402,15 @@ class EmployeeAttendanceV2(models.Model):
                 record.over_time_nb = total_overtime * record.shift.coefficient
                 record.over_time = 0
             else:
+                if record.weekday == '6':
+                    record.ot_sunday_work = total_overtime
                 if record.weekday == '6' and record.employee_id.company_id.id == 16:
                     record.over_time = total_overtime * 2
                 else:
                     record.over_time = total_overtime
+                if record.employee_id.department_id.produce_department and record.weekday != '6':
+                    if total_overtime < 1:
+                        record.over_time = 0
 
     @api.depends('date')
     def _get_month_year(self):
@@ -412,11 +427,14 @@ class EmployeeAttendanceV2(models.Model):
     def update_attendance_data_v2(self):
         self.with_delay().create_data_attendance()
 
+    def update_new_emp_attendance_data_v2(self):
+        self.with_delay().create_data_attendance_new_emp()
+
     def create_data_attendance(self):
         # STEP 1 — Lấy danh sách nhân viên
         self.env.cr.execute("""
-            SELECT id 
-            FROM hr_employee 
+            SELECT id
+            FROM hr_employee
             WHERE id != 1
         """)
         employee_ids = [row[0] for row in self.env.cr.fetchall()]
@@ -428,7 +446,7 @@ class EmployeeAttendanceV2(models.Model):
 
         # STEP 3 — Lấy bản ghi đã tồn tại để bỏ qua
         self.env.cr.execute("""
-            SELECT employee_id, date 
+            SELECT employee_id, date
             FROM employee_attendance_v2
             WHERE date BETWEEN %s AND %s
         """, (start_date, end_date))
@@ -463,6 +481,61 @@ class EmployeeAttendanceV2(models.Model):
                 emp = self.env['hr.employee'].browse(emp_id)
                 Attendance.recompute_for_employee(emp, cur, cur)
             cur += timedelta(days=1)
+
+    def create_data_attendance_new_emp(self):
+        now = datetime.now()
+        start_date = now.replace(day=1).date() - relativedelta(months=1)
+        end_date = (start_date + relativedelta(months=2)) - timedelta(days=1)
+        query = """
+            CREATE TEMP TABLE temp_employee_dates ON COMMIT DROP AS
+                SELECT
+                    e.id AS employee_id,
+                    gs::date AS date
+                FROM hr_employee e
+                CROSS JOIN generate_series(
+                    %s,
+                    %s,
+                    interval '1 day'
+                ) AS gs
+                WHERE e.id != 1
+                AND onboard >= %s;
+            
+            CREATE TEMP TABLE temp_attendance_dates ON COMMIT DROP AS
+                SELECT employee_id, date 
+                FROM employee_attendance_v2
+                WHERE date BETWEEN %s AND %s;
+            
+            CREATE TEMP TABLE temp_missing_dates ON COMMIT DROP AS
+                SELECT
+                    ted.employee_id,
+                    ted.date
+                FROM temp_employee_dates ted
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM temp_attendance_dates tad
+                    WHERE tad.employee_id = ted.employee_id
+                    AND tad.date = ted.date
+                );
+                
+            INSERT INTO employee_attendance_v2 (employee_id, date)
+                SELECT
+                    t.employee_id,
+                    t.date
+                FROM temp_missing_dates t;
+                
+            SELECT
+                employee_id,
+                MIN(date) AS start_date,
+                MAX(date) AS end_date
+            FROM temp_missing_dates
+            GROUP BY employee_id;
+        """
+        self.env.cr.execute(query, (start_date, end_date, now.date(), start_date, end_date))
+        rows = self.env.cr.dictfetchall()
+        if rows:
+            attendance = self.env['employee.attendance.v2'].sudo()
+            for r in rows:
+                attendance.recompute_for_employee(r["employee_id"], r["start_date"], r["end_date"])
 
     # lấy thông tin ca của nhân viên để điền vào trường ca
     @api.depends('date', 'employee_id')
