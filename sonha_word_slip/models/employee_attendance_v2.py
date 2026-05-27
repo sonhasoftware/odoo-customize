@@ -496,60 +496,80 @@ class EmployeeAttendanceV2(models.Model):
                 r.shift = r.employee_id.shift.id
 
     # Lấy thông tin giờ phải check-in và giờ check-out của nhân viên
-    @api.depends('shift')
+    @api.depends('shift', 'date', 'employee_id')
     def _get_time_in_out(self):
         for r in self:
             # Nếu không có shift, gán giá trị mặc định và bỏ qua
-            if not r.shift or not r.shift.start or not r.shift.end_shift:
+            if not r.shift or not r.shift.start or not r.shift.end_shift or not r.date or not r.employee_id:
                 r.time_check_in = None
                 r.time_check_out = None
                 continue
 
-            # Tính toán các giá trị thời gian cơ bản
-            time_ci = (r.shift.start + timedelta(hours=7)).time()
-            time_co = (r.shift.end_shift + timedelta(hours=7)).time()
-            date = r.date
-            check_time_ci = datetime.combine(date, time_ci)
-            check_time_co = datetime.combine(date, time_co)
+            # Khung giờ chuẩn theo ca: ±3h
+            shift_start_local = datetime.combine(r.date, (r.shift.start + timedelta(hours=7)).time())
+            shift_end_local = datetime.combine(r.date, (r.shift.end_shift + timedelta(hours=7)).time())
+            if shift_end_local <= shift_start_local:
+                shift_end_local += timedelta(days=1)
 
-            # Tính thời gian check-in
-            time_check_in = check_time_ci - timedelta(hours=7, minutes=420)
+            base_in_local = shift_start_local - timedelta(hours=3)
+            base_out_local = shift_end_local + timedelta(hours=3)
 
-            # Tính thời gian check-out
-            time_check_out = check_time_co + timedelta(hours=-7, minutes=420)
+            # Đổi về UTC để lưu Datetime fields
+            time_check_in = base_in_local - timedelta(hours=7)
+            time_check_out = base_out_local - timedelta(hours=7)
 
-            # Xử lý trường hợp night shift
-            if r.shift.night:
-                # Nếu ngày của check-in và check-out giống nhau, điều chỉnh thời gian check-out qua ngày hôm sau
-                if (time_check_in + timedelta(hours=7)).date() == (time_check_out + timedelta(hours=7)).date():
-                    time_check_out += timedelta(days=1)
-            overtime = self.env['register.overtime'].sudo().search([('employee_id', '=', r.employee_id.id),
-                                                                    ('start_date', '<=', r.date),
-                                                                    ('end_date', '>=', r.date)])
-            overtime_update = self.env['overtime.rel'].sudo().search([('date', '=', r.date),
-                                                                      ('overtime_id.status', '=', 'done')])
+            # Lấy OT theo logic trạng thái hiện có
+            overtime = self.env['register.overtime'].sudo().search([
+                ('employee_id', '=', r.employee_id.id),
+                ('start_date', '<=', r.date),
+                ('end_date', '>=', r.date),
+                ('status', '=', 'done')
+            ])
+            overtime_update = self.env['overtime.rel'].sudo().search([
+                ('date', '=', r.date),
+                '|',
+                ('overtime_id.status', '=', 'done'),
+                ('overtime_id.status_lv2', '=', 'done'),
+            ])
             overtime_update = overtime_update.filtered(
                 lambda x: (x.overtime_id.employee_id and x.overtime_id.employee_id.id == r.employee_id.id)
                           or (x.overtime_id.employee_ids and r.employee_id.id in x.overtime_id.employee_ids.ids))
-            if overtime:
-                for ot in overtime:
-                    start = int(ot.start_time)
-                    end = int(ot.end_time)
-                    if end == r.shift.start.hour + 7:
-                        time_check_in = time_check_in - timedelta(hours=end - start)
-                    if start == r.shift.end_shift.hour + 7:
-                        time_check_out = time_check_out + timedelta(hours=end - start)
 
-            if overtime_update:
-                for ot_update in overtime_update:
-                    start = int(ot_update.start_time)
-                    end = int(ot_update.end_time)
-                    if end == r.shift.start.hour + 7:
-                        time_check_in = time_check_in - timedelta(hours=end - start)
-                    if start == r.shift.end_shift.hour + 7:
-                        time_check_out = time_check_out + timedelta(hours=end - start)
-                    if start != r.shift.end_shift.hour + 7:
-                        time_check_out = time_check_out + timedelta(hours=end - start)
+            ot_local_ranges = []
+
+            def _ot_range_local(anchor_date, start_hour, end_hour):
+                start_float = float(start_hour or 0)
+                end_float = float(end_hour or 0)
+                if end_float == 0:
+                    end_float = 24.0
+                start_dt = datetime.combine(anchor_date, time(0, 0)) + timedelta(hours=start_float)
+                end_dt = datetime.combine(anchor_date, time(0, 0)) + timedelta(hours=end_float)
+                if end_dt <= start_dt:
+                    end_dt += timedelta(days=1)
+                return start_dt, end_dt
+
+            for ot in overtime:
+                if not ot.start_date or not ot.end_date:
+                    continue
+                if r.shift.shift_ot and r.shift.night and r.date != ot.start_date:
+                    continue
+                cur_day = ot.start_date
+                while cur_day <= ot.end_date:
+                    if cur_day == r.date:
+                        ot_local_ranges.append(_ot_range_local(cur_day, ot.start_time, ot.end_time))
+                    cur_day += timedelta(days=1)
+
+            for ot_update in overtime_update:
+                anchor_date = r.date
+                ot_local_ranges.append(_ot_range_local(anchor_date, ot_update.start_time, ot_update.end_time))
+
+            if ot_local_ranges:
+                earliest = min(ot_local_ranges, key=lambda x: x[0])[0]
+                latest = max(ot_local_ranges, key=lambda x: x[1])[1]
+                ot_in_utc = (earliest - timedelta(hours=3)) - timedelta(hours=7)
+                ot_out_utc = (latest + timedelta(hours=3)) - timedelta(hours=7)
+                time_check_in = min(time_check_in, ot_in_utc)
+                time_check_out = max(time_check_out, ot_out_utc)
 
             # Gán kết quả
             r.time_check_in = time_check_in
