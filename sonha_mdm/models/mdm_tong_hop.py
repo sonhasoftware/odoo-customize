@@ -286,17 +286,17 @@ class MDMTongHop(models.Model):
         record = super().create(vals)
         if not record.ma:
             record.ma = f"mdm01{record.id:010d}"
-        if record.ma and record.dvcs:
-            check = self.env['mdm.khach.hang.line'].sudo().search([('ma_mdm', '=', record.ma),
-                                                                   ('dvcs', '=', record.dvcs.id)])
-            if check:
-                check.ma_mdm = record.ma
-            else:
-                self.env['mdm.tong.hop.line'].create({
-                    'tong_hop_id': record.id,
-                    'ma_mdm': record.ma,
-                    'dvcs': record.dvcs.id,
-                })
+        # if record.ma and record.dvcs:
+        #     check = self.env['mdm.khach.hang.line'].sudo().search([('ma_mdm', '=', record.ma),
+        #                                                            ('dvcs', '=', record.dvcs.id)])
+        #     if check:
+        #         check.ma_mdm = record.ma
+        #     else:
+        #         self.env['mdm.tong.hop.line'].create({
+        #             'tong_hop_id': record.id,
+        #             'ma_mdm': record.ma,
+        #             'dvcs': record.dvcs.id,
+        #         })
         self.create_write_action_data(record)
         self.call_api_insert(record)
 
