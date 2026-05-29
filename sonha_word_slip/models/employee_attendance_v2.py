@@ -594,9 +594,17 @@ class EmployeeAttendanceV2(models.Model):
                 order='attendance_time ASC'
             )
             attendance_values = [a['attendance_time'] for a in attendance_times if a['attendance_time']]
+            attendance_ci = [
+                value for value in attendance_values
+                if r.check_no_in and value <= r.check_no_in
+            ]
+            attendance_co = [
+                value for value in attendance_values
+                if r.check_no_out and value > r.check_no_out
+            ]
 
-            check_in = attendance_values[0] if attendance_values else None
-            check_out = attendance_values[-1] if attendance_values else None
+            check_in = attendance_ci[0] if attendance_ci else None
+            check_out = attendance_co[-1] if attendance_co else None
 
             in_outs = self.env['word.slip'].sudo().search([
                 ('from_date', '<=', r.date),
@@ -613,13 +621,15 @@ class EmployeeAttendanceV2(models.Model):
                 if in_out and in_out.time_to:
                     ci = calculate_time(in_out.time_to, r.date, datetime.combine(r.date, time(0, 0, 0)))
                     ci = ci - relativedelta(hours=7)
-                    if r.time_check_in <= ci <= r.time_check_out and (not check_in or check_in > ci):
+                    if (r.time_check_in <= ci <= r.time_check_out and r.check_no_in and ci <= r.check_no_in
+                            and (not check_in or check_in > ci)):
                         check_in = ci
 
                 if in_out and in_out.time_from:
                     co = calculate_time(in_out.time_from, r.date, datetime.combine(r.date, time(0, 0, 0)))
                     co = co - relativedelta(hours=7)
-                    if r.time_check_in <= co <= r.time_check_out and (not check_out or check_out < co):
+                    if (r.time_check_in <= co <= r.time_check_out and r.check_no_out and co > r.check_no_out
+                            and (not check_out or check_out < co)):
                         check_out = co
 
             r.check_in = check_in
