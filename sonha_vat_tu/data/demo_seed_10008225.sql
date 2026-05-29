@@ -8,7 +8,7 @@
 -- ============================================================
 
 -- 0. Xóa dữ liệu cũ theo thứ tự để tránh lỗi Khóa ngoại (Foreign Key)
-DELETE FROM vat_tu_di_duong WHERE ma_sap = '20005260' AND month_key = '05/2026';
+DELETE FROM vat_tu_di_duong WHERE ma_sap IN ('10008225', '20005260') AND month_key = '05/2026';
 DELETE FROM ke_hoach_vat_tu_line WHERE ma_sap = '10008225' AND month_key = '05/2026';
 DELETE FROM ke_hoach_san_xuat WHERE ma_sap = '10008225' AND month_key = '05/2026';
 DELETE FROM ke_hoach_kinh_doanh WHERE ma_sap = '10008225' AND month_key = '05/2026';
@@ -65,7 +65,7 @@ VALUES (
 
 -- 5. Vật tư đi đường
 INSERT INTO vat_tu_di_duong (company_id, ma_sap, month_key, month_date, so_luong, create_uid, write_uid, create_date, write_date)
-VALUES (5, '20005260', '05/2026', DATE '2026-05-01', 5000, 1, 1, NOW(), NOW());
+VALUES (5, '10008225', '05/2026', DATE '2026-05-01', 500, 1, 1, NOW(), NOW());
 
 
 -- ============================================================

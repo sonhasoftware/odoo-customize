@@ -1,5 +1,5 @@
 -- ============================================================
--- B2: Sinh định mức từ bom_tinh_toan
+-- B2: Sinh dinh muc tu bom_tinh_toan
 -- ============================================================
 CREATE OR REPLACE PROCEDURE public.fn_sinh_dinh_muc(p_period_id INTEGER)
 LANGUAGE 'plpgsql' AS $BODY$
@@ -16,8 +16,8 @@ BEGIN
         b1.company_id,
         b1.ma_sap,
         bcu.ten_tp_goc,
-        bcu.ma_tp_cha,          -- Key tra do_day/kho_1/kho_2 ở B3
-        bcu.ma_con,             -- Mã NVL thực tế cuối cùng
+        bcu.ma_tp_cha,
+        bcu.ma_con,             -- Ma NVL thuc te cuoi cung
         b1.month_key,
         COALESCE(b1.month_date, TO_DATE(b1.month_key, 'MM/YYYY')),
         b1.qty * bcu.sl_thuc_te,
@@ -31,7 +31,7 @@ END;
 $BODY$;
 
 -- ============================================================
--- B3: Tính toán vật tư (kg) từ định mức + trọng lượng bom
+-- B3: Tinh toan vat tu tu dinh muc
 -- ============================================================
 CREATE OR REPLACE PROCEDURE public.fn_tinh_toan_vat_tu(p_period_id INTEGER)
 LANGUAGE 'plpgsql' AS $BODY$
@@ -60,16 +60,10 @@ BEGIN
         NULL::VARCHAR                                                   AS ma_effect,
         dm.ten_sap,
         mh.don_vi_tinh_id                                               AS don_vi_tinh,
-        COALESCE(b.do_day, 0)                                           AS do_day,
-        COALESCE(b.kho_1, 0)                                            AS kho_1,
-        COALESCE(b.kho_2, 0)                                            AS kho_2,
-        CASE
-            WHEN COALESCE(b.do_day, 0) > 0
-             AND COALESCE(b.kho_1, 0) > 0
-             AND COALESCE(b.kho_2, 0) > 0
-            THEN (b.do_day * b.kho_1 * b.kho_2 * 7.63) / 1000000.0
-            ELSE 0
-        END                                                             AS trong_luong_kg_tam,
+        0::NUMERIC                                                      AS do_day,
+        0::NUMERIC                                                      AS kho_1,
+        0::NUMERIC                                                      AS kho_2,
+        0::NUMERIC                                                      AS trong_luong_kg_tam,
         COALESCE(dm.qty, 0)                                             AS sl_dinh_muc,
         dm.month_key,
         COALESCE(dm.month_date, TO_DATE(dm.month_key, 'MM/YYYY')),
@@ -83,7 +77,7 @@ END;
 $BODY$;
 
 -- ============================================================
--- B4: Tổng hợp vật tư + tồn kho (cuốn chiếu theo tháng)
+-- B4: Tong hop vat tu va ton kho cuon chieu theo thang
 -- ============================================================
 CREATE OR REPLACE PROCEDURE public.fn_tong_hop_vat_tu(
     p_period_id INTEGER,
@@ -111,9 +105,9 @@ BEGIN
     WHERE module = 'uom' AND name = 'product_uom_kgm'
     LIMIT 1;
 
-    -- ── Bước 1: Pre-load tồn kho SAP (chạy 1 lần, dùng mãi trong loop) ──
-    -- Latest record per (ma_hang, chi_nhanh), rồi group theo 3 nhóm công ty.
-    -- 'BNH' → chi_nhanh LIKE '21%', 'SSP' → '22%', 'ALL' → toàn bộ.
+    -- Buoc 1: Pre-load ton kho SAP mot lan de dung trong loop.
+    -- Latest record per (ma_hang, chi_nhanh), roi group theo nhom cong ty.
+    -- 'BNH' -> chi_nhanh LIKE '21%', 'SSP' -> '22%', 'ALL' -> toan bo.
     CREATE TEMP TABLE _tmp_ton_kho ON COMMIT DROP AS
     WITH latest AS (
         SELECT DISTINCT ON (TRIM(ma_hang), chi_nhanh)
@@ -143,7 +137,7 @@ BEGIN
 
     CREATE INDEX ON _tmp_ton_kho (ma_hang, comp_grp);
 
-    -- ── Bước 2: Pre-load vật tư đi đường ──
+    -- Buoc 2: Pre-load vat tu di duong.
     CREATE TEMP TABLE _tmp_vdd ON COMMIT DROP AS
     SELECT
         company_id,
@@ -155,7 +149,7 @@ BEGIN
 
     CREATE INDEX ON _tmp_vdd (company_id, month_date, ma_sap);
 
-    -- ── Bước 3: Vòng lặp cuốn chiếu tồn kho ──
+    -- Buoc 3: Vong lap cuon chieu ton kho.
     FOR rec IN
         SELECT
             b3.company_id,
@@ -165,7 +159,7 @@ BEGIN
             mh.don_vi_tinh_id                  AS don_vi_tinh,
             b3.month_key,
             COALESCE(b3.month_date, TO_DATE(b3.month_key, 'MM/YYYY')) AS month_date,
-            SUM(b3.qty * CASE WHEN COALESCE(b3.trong_luong_kg_tam, 0) > 0 THEN b3.trong_luong_kg_tam ELSE 1.0 END) AS vt_can_dung
+            SUM(COALESCE(b3.qty, 0)) AS vt_can_dung
         FROM tinh_toan_vat_tu b3
         JOIN res_company c ON c.id = b3.company_id
         LEFT JOIN ma_hang mh ON mh.ma_sap = b3.ma_vat_tu
@@ -182,7 +176,7 @@ BEGIN
                            ELSE 'ALL'
                        END;
         v_cache_key := rec.company_id::TEXT || '_' || rec.material_code;
-        -- Tồn đầu: cuốn chiếu từ tháng trước hoặc lấy từ temp table
+        -- Ton dau: cuon chieu tu thang truoc hoac lay tu temp table.
         v_ton_dau := 0;
         IF v_ton_cuoi_cache ? v_cache_key THEN
             v_ton_dau := (v_ton_cuoi_cache ->> v_cache_key)::NUMERIC;
@@ -193,7 +187,7 @@ BEGIN
             v_ton_dau := COALESCE(v_ton_dau, 0);
         END IF;
 
-        -- Đơn giá tồn kho
+        -- Don gia ton kho.
         v_tcu := 0; v_ttcu := 0; v_tdu := 0; v_ttdu := 0;
         SELECT COALESCE(tcu, 0), COALESCE(ttcu, 0),
                COALESCE(tdu, 0), COALESCE(ttdu, 0)
@@ -211,7 +205,7 @@ BEGIN
             ELSE 0
         END;
 
-        -- Vật tư đi đường
+        -- Vat tu di duong.
         v_ve_du_kien := 0;
         SELECT COALESCE(so_luong, 0) INTO v_ve_du_kien
         FROM _tmp_vdd
@@ -253,7 +247,7 @@ END;
 $BODY$;
 
 -- ============================================================
--- B5: Kế hoạch đặt vật tư từ B4
+-- B5: Ke hoach dat vat tu tu B4
 -- ============================================================
 CREATE OR REPLACE PROCEDURE public.fn_ke_hoach_dat_vat_tu(
     p_period_id INTEGER,

@@ -33,10 +33,6 @@
                 <!-- -->
                 <field name="ma_effect"/>
                 <field name="don_vi_tinh"/>
-                <field name="do_day"/>
-                <field name="kho_1"/>
-                <field name="kho_2"/>
-                <field name="trong_luong_kg_tam"/>
                 <field name="sl_dinh_muc"/>
                 <!-- -->
                 <field name="ma_dat_hang"/>
@@ -95,10 +91,6 @@
                             <field name="ma_nvl"/>
                             <field name="ma_effect"/>
                             <field name="don_vi_tinh"/>
-                            <field name="do_day"/>
-                            <field name="kho_1"/>
-                            <field name="kho_2"/>
-                            <field name="trong_luong_kg_tam"/>
                             <field name="sl_dinh_muc"/>
                         </group>
                         <group>

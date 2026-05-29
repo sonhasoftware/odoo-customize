@@ -289,6 +289,7 @@ class ImportKeHoachWizard(models.TransientModel):
         self._raise_errors(errors)
         if vals_list:
             Plan.with_context(is_importing=True).create(vals_list)
+            self.period_id._sync_production_from_business()
         return len(vals_list)
 
     def _import_production(self, rows, header, month_cols, data_start_idx):
@@ -332,8 +333,23 @@ class ImportKeHoachWizard(models.TransientModel):
 
         self._raise_errors(errors)
         vals_list = list(vals_by_key.values())
+        business_keys = {
+            (line.ma_hang_id.id, line.ma_sap, line.month_key): line
+            for line in self.period_id.ke_hoach_kinh_doanh_ids
+        }
+        imported_keys = {
+            (vals['ma_hang_id'], vals['ma_sap'], vals['month_key'])
+            for vals in vals_list
+        }
+        missing = sorted(set(business_keys) - imported_keys, key=lambda item: (item[1] or '', item[2] or ''))
+        if missing:
+            for key in missing[:20]:
+                line = business_keys[key]
+                errors.append(_('Thiáº¿u dÃ²ng káº¿ hoáº¡ch kinh doanh MÃ£ SAP=%s, ThÃ¡ng=%s. Náº¿u khÃ´ng sáº£n xuáº¥t, vui lÃ²ng giá»¯ dÃ²ng vÃ  nháº­p Sá»‘ lÆ°á»£ng = 0.') % (line.ma_sap, line.month_key))
+            if len(missing) > 20:
+                errors.append(_('... cÃ²n %d dÃ²ng káº¿ hoáº¡ch kinh doanh bá»‹ thiáº¿u.') % (len(missing) - 20))
+        self._raise_errors(errors)
         Plan.search([('period_id', '=', self.period_id.id)]).with_context(is_importing=True).unlink()
         if vals_list:
             Plan.with_context(is_importing=True).create(vals_list)
-        self.period_id._sync_material_plan_from_production()
         return len(vals_list)

@@ -97,8 +97,6 @@ class KeHoachSanXuat(models.Model):
         # Log khi Thêm dòng trên UI (bỏ qua nếu đang chạy import wizard)
         if not self.env.context.get('is_importing'):
             self._log_action_table(records, action='create')
-            for period in records.mapped('period_id'):
-                period._sync_material_plan_from_production()
                 
         return records
 
@@ -108,9 +106,6 @@ class KeHoachSanXuat(models.Model):
         if not self.env.context.get('is_importing'):
             self._log_action_table(self, action='unlink')
         res = super().unlink()
-        if not self.env.context.get('is_importing'):
-            for period in periods:
-                period._sync_material_plan_from_production()
         return res
 
     def _check_period_editable(self):
@@ -236,8 +231,6 @@ class KeHoachSanXuat(models.Model):
                 ))
         self._log_field_changes(changes_by_period)
 
-        for period in self.mapped('period_id'):
-            period._sync_material_plan_from_production()
         return res
 
 

@@ -12,10 +12,6 @@
                 <field name="ma_effect"/>
                 <field name="ten_sap"/>
                 <field name="don_vi_tinh"/>
-                <field name="do_day"/>
-                <field name="kho_1"/>
-                <field name="kho_2"/>
-                <field name="trong_luong_kg_tam"/>
                 <field name="sl_dinh_muc" sum="Định mức"/>
                 <field name="month_key" required="1"/>
                 <field name="qty" sum="Số lượng"/>

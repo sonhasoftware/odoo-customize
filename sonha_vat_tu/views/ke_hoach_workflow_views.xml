@@ -1,10 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="view_ke_hoach_vat_tu_tree_plan" model="ir.ui.view">
         <field name="name">ke.hoach.vat.tu.tree.plan</field>
         <field name="model">ke.hoach.vat.tu</field>
         <field name="arch" type="xml">
-            <tree string="Kế hoạch">
+            <tree string="Káº¿ hoáº¡ch">
                 <field name="code"/>
                 <field name="period_month"/>
                 <field name="company_id"/>
@@ -16,7 +16,7 @@
         <field name="name">ke.hoach.vat.tu.form.kd</field>
         <field name="model">ke.hoach.vat.tu</field>
         <field name="arch" type="xml">
-            <form string="Kế hoạch kinh doanh">
+            <form string="Káº¿ hoáº¡ch kinh doanh">
                 <sheet>
                     <field name="state" invisible="1"/>
                     <div class="oe_title"><h1><field name="code"/></h1></div>
@@ -25,11 +25,11 @@
                         <field name="company_id" options="{'no_create': True, 'no_open': True}"/>
                     </group>
                     <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:8px;">
-                        <button name="action_download_b1_template" type="object" string="Tải template kinh doanh"
+                        <button name="action_download_b1_template" type="object" string="Táº£i template kinh doanh"
                                 class="btn btn-secondary" icon="fa-download"
                                 groups="sonha_vat_tu.group_ban_cung_ung_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"
                                 invisible="state != 'ke_hoach'"/>
-                        <button name="action_open_import_kinh_doanh_wizard" type="object" string="Import kế hoạch kinh doanh"
+                        <button name="action_open_import_kinh_doanh_wizard" type="object" string="Import káº¿ hoáº¡ch kinh doanh"
                                 class="btn btn-primary" icon="fa-upload"
                                 groups="sonha_vat_tu.group_ban_cung_ung_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"
                                 invisible="state != 'ke_hoach'"/>
@@ -37,7 +37,7 @@
                     <div class="oe_button_box" name="button_box">
                         <button name="action_open_workflow_sx" type="object" class="oe_stat_button" icon="fa-arrow-right"
                                 groups="sonha_vat_tu.group_ban_cung_ung_vat_tu,sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu">
-                            <field name="ke_hoach_san_xuat_count" string="Kế hoạch sản xuất" widget="statinfo"/>
+                            <field name="ke_hoach_san_xuat_count" string="Káº¿ hoáº¡ch sáº£n xuáº¥t" widget="statinfo"/>
                         </button>
                     </div>
                     <field name="ke_hoach_kinh_doanh_ids" context="{'default_period_id': id}" readonly="state != 'ke_hoach'">
@@ -64,44 +64,45 @@
         <field name="name">ke.hoach.vat.tu.form.sx</field>
         <field name="model">ke.hoach.vat.tu</field>
         <field name="arch" type="xml">
-            <form string="Kế hoạch sản xuất">
+            <form string="Káº¿ hoáº¡ch sáº£n xuáº¥t">
                 <sheet>
                     <field name="state" invisible="1"/>
                     <field name="ke_hoach_san_xuat_count" invisible="1"/>
+                    <field name="ke_hoach_vat_tu_line_count" invisible="1"/>
                     <div class="oe_title"><h1><field name="code"/></h1></div>
                     <group>
                         <field name="period_month" readonly="1"/>
                         <field name="company_id" readonly="1"/>
                     </group>
                     <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:8px;">
-                        <button name="action_export_san_xuat" type="object" string="Export kế hoạch kinh doanh"
+                        <button name="action_export_san_xuat" type="object" string="Export kế hoạch sản xuất"
                                 class="btn btn-secondary" icon="fa-download"
                                 groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"
                                 invisible="state != 'ke_hoach'"/>
-                        <button name="action_open_import_san_xuat_wizard" type="object" string="Import kế hoạch sản xuất"
+                        <button name="action_open_import_san_xuat_wizard" type="object" string="Import káº¿ hoáº¡ch sáº£n xuáº¥t"
                                 class="btn btn-primary" icon="fa-upload"
                                 groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"
                                 invisible="state != 'ke_hoach'"/>
-                        <button name="action_approve_business_plan" type="object" string="Duyệt theo kế hoạch kinh doanh"
+                        <button name="action_create_material_plan" type="object" string="Tạo kế hoạch vật tư"
                                 class="btn btn-secondary" icon="fa-check"
                                 groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"
-                                invisible="state != 'ke_hoach' or ke_hoach_san_xuat_count > 0"/>
+                                invisible="state != 'ke_hoach' or ke_hoach_san_xuat_count == 0 or ke_hoach_vat_tu_line_count > 0"/>
                     </div>
                     <div class="oe_button_box" name="button_box">
                         <button name="action_open_workflow_vt" type="object" class="oe_stat_button" icon="fa-arrow-right"
                                 groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu">
-                            <field name="ke_hoach_vat_tu_line_count" string="Kế hoạch vật tư" widget="statinfo"/>
+                            <field name="ke_hoach_vat_tu_line_count" string="Káº¿ hoáº¡ch váº­t tÆ°" widget="statinfo"/>
                         </button>
                     </div>
                     <field name="ke_hoach_san_xuat_ids" context="{'default_period_id': id}" readonly="state != 'ke_hoach'">
                         <tree editable="bottom">
-                            <field name="nganh_hang_id" options="{'no_create': True, 'no_open': True}"/>
-                            <field name="dong_hang_id" options="{'no_create': True, 'no_open': True}"/>
-                            <field name="ma_hang_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="nganh_hang_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="dong_hang_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="ma_hang_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                             <field name="ma_sap" readonly="1" required="1"/>
-                            <field name="month_key" required="1"/>
+                            <field name="month_key" readonly="1" required="1"/>
                             <field name="company_id" column_invisible="True"/>
-                            <field name="qty" sum="SL sản xuất"/>
+                            <field name="qty" sum="SL sáº£n xuáº¥t"/>
                         </tree>
                     </field>
                 </sheet>
@@ -118,9 +119,9 @@
         <field name="name">ke.hoach.vat.tu.form.vt</field>
         <field name="model">ke.hoach.vat.tu</field>
         <field name="arch" type="xml">
-            <form string="Kế hoạch vật tư">
+            <form string="Káº¿ hoáº¡ch váº­t tÆ°">
                 <header>
-                    <button name="action_generate_b2" type="object" string="Sinh định mức kỳ"
+                    <button name="action_generate_b2" type="object" string="Sinh Ä‘á»‹nh má»©c ká»³"
                             class="btn-primary"
                             groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"
                             invisible="state != 'ke_hoach'"/>
@@ -130,19 +131,19 @@
                     <div class="oe_button_box" name="button_box">
                         <button name="action_open_step_b2" type="object" class="oe_stat_button" icon="fa-arrow-right"
                                 groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu">
-                            <field name="dinh_muc_count" string="Định mức kỳ" widget="statinfo"/>
+                            <field name="dinh_muc_count" string="Äá»‹nh má»©c ká»³" widget="statinfo"/>
                         </button>
                         <button name="action_open_step_b3" type="object" class="oe_stat_button" icon="fa-calculator"
                                 groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu">
-                            <field name="tinh_toan_vat_tu_count" string="Tính toán vật tư" widget="statinfo"/>
+                            <field name="tinh_toan_vat_tu_count" string="TÃ­nh toÃ¡n váº­t tÆ°" widget="statinfo"/>
                         </button>
                         <button name="action_open_step_b4" type="object" class="oe_stat_button" icon="fa-cubes"
                                 groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu">
-                            <field name="tong_hop_vat_tu_count" string="Tổng hợp vật tư cần sản xuất" widget="statinfo"/>
+                            <field name="tong_hop_vat_tu_count" string="Tá»•ng há»£p váº­t tÆ° cáº§n sáº£n xuáº¥t" widget="statinfo"/>
                         </button>
                         <button name="action_open_step_b5" type="object" class="oe_stat_button" icon="fa-shopping-cart"
                                 groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu">
-                            <field name="kh_dat_vat_tu_count" string="Kế hoạch đặt vật tư" widget="statinfo"/>
+                            <field name="kh_dat_vat_tu_count" string="Káº¿ hoáº¡ch Ä‘áº·t váº­t tÆ°" widget="statinfo"/>
                         </button>
                     </div>
                     <div class="oe_title"><h1><field name="code"/></h1></div>
@@ -157,8 +158,9 @@
                             <field name="ma_hang_id"/>
                             <field name="ma_sap"/>
                             <field name="month_key"/>
-                            <field name="qty" sum="SL vật tư"/>
-                            <field name="source_type"/>
+                            <field name="qty_kinh_doanh" string="Số lượng kinh doanh" sum="SL kinh doanh"/>
+                            <field name="qty_san_xuat" string="Số lượng sản xuất" sum="SL sản xuất"/>
+                            <field name="qty_chenh_lech" string="Chênh lệch" sum="Chênh lệch"/>
                         </tree>
                     </field>
                 </sheet>
@@ -172,7 +174,7 @@
     </record>
 
     <record id="action_ke_hoach_kinh_doanh_period" model="ir.actions.act_window">
-        <field name="name">Kế hoạch kinh doanh</field>
+        <field name="name">Káº¿ hoáº¡ch kinh doanh</field>
         <field name="res_model">ke.hoach.vat.tu</field>
         <field name="view_mode">tree,form</field>
         <field name="views" eval="[(ref('view_ke_hoach_vat_tu_tree_plan'), 'tree'), (ref('view_ke_hoach_vat_tu_form_kd'), 'form')]"/>
@@ -180,7 +182,7 @@
     </record>
 
     <record id="action_ke_hoach_san_xuat_period" model="ir.actions.act_window">
-        <field name="name">Kế hoạch sản xuất</field>
+        <field name="name">Káº¿ hoáº¡ch sáº£n xuáº¥t</field>
         <field name="res_model">ke.hoach.vat.tu</field>
         <field name="view_mode">tree,form</field>
         <field name="views" eval="[(ref('view_ke_hoach_vat_tu_tree_plan'), 'tree'), (ref('view_ke_hoach_vat_tu_form_sx'), 'form')]"/>
@@ -188,7 +190,7 @@
     </record>
 
     <record id="action_ke_hoach_vat_tu_period" model="ir.actions.act_window">
-        <field name="name">Kế hoạch vật tư</field>
+        <field name="name">Káº¿ hoáº¡ch váº­t tÆ°</field>
         <field name="res_model">ke.hoach.vat.tu</field>
         <field name="view_mode">tree,form</field>
         <field name="views" eval="[(ref('view_ke_hoach_vat_tu_tree'), 'tree'), (ref('view_ke_hoach_vat_tu_form_vt'), 'form')]"/>

@@ -63,7 +63,7 @@
                                 class="btn btn-primary" icon="fa-upload"
                                 groups="sonha_vat_tu.group_ban_cung_ung_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"
                                 invisible="state != 'ke_hoach'"/>
-                        <button name="action_export_san_xuat" type="object" string="Export cho sản xuất"
+                        <button name="action_export_san_xuat" type="object" string="Export kế hoạch sản xuất"
                                 class="btn btn-secondary" icon="fa-download"
                                 groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"
                                 invisible="state != 'ke_hoach'"/>
@@ -115,11 +115,11 @@
                                    groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"
                                    readonly="state != 'ke_hoach'">
                                 <tree editable="bottom">
-                                    <field name="nganh_hang_id" options="{'no_create': True, 'no_open': True}"/>
-                                    <field name="dong_hang_id" options="{'no_create': True, 'no_open': True}"/>
-                                    <field name="ma_hang_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="nganh_hang_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="dong_hang_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="ma_hang_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                                     <field name="ma_sap" readonly="1" required="1"/>
-                                    <field name="month_key" required="1"/>
+                                    <field name="month_key" readonly="1" required="1"/>
                                     <field name="company_id" column_invisible="True"/>
                                     <field name="qty" sum="SL sản xuất"/>
                                 </tree>
@@ -212,10 +212,6 @@
                             <field name="ma_effect" readonly="1"/>
                             <field name="ten_sap" readonly="1"/>
                             <field name="don_vi_tinh" readonly="1"/>
-                            <field name="do_day" readonly="1"/>
-                            <field name="kho_1" readonly="1"/>
-                            <field name="kho_2" readonly="1"/>
-                            <field name="trong_luong_kg_tam" readonly="1"/>
                             <field name="sl_dinh_muc" readonly="1"/>
                             <field name="month_key" required="1" readonly="1"/>
                             <field name="qty" column_invisible="True" readonly="1"/>

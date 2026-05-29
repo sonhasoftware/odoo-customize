@@ -15,9 +15,6 @@
                 <field name="ten_nvl" required="1"/>
                 <field name="sl_spdm" required="1"/>
                 <field name="sl_dinh_muc" required="1"/>
-                <field name="do_day"/>
-                <field name="kho_1"/>
-                <field name="kho_2"/>
             </tree>
         </field>
     </record>
@@ -35,9 +32,6 @@
                         <field name="ten_nvl" required="1"/>
                         <field name="sl_spdm" required="1"/>
                         <field name="sl_dinh_muc" required="1"/>
-                        <field name="do_day"/>
-                        <field name="kho_1"/>
-                        <field name="kho_2"/>
                     </group>
                 </sheet>
                 <div class="oe_chatter">
