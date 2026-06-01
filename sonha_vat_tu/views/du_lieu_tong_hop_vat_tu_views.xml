@@ -177,11 +177,11 @@
                 <group expand="0" string="Nhóm">
                     <filter name="group_step" string="Bước" context="{'group_by': 'step_code'}"/>
                     <filter name="group_period" string="Kỳ" context="{'group_by': 'period_id'}"/>
-                    <filter name="group_period_company" string="Đơn vị chứng từ" context="{'group_by': 'period_company_id'}"/>
+                    <filter name="group_period_company" string="Đơn vị yêu cầu" context="{'group_by': 'period_company_id'}"/>
                     <filter name="group_period_code" string="Số chứng từ" context="{'group_by': 'period_code'}"/>
                     <filter name="group_period_month" string="Tháng bắt đầu" context="{'group_by': 'period_month'}"/>
                     <filter name="group_month" string="Tháng" context="{'group_by': 'month_key'}"/>
-                    <filter name="group_company" string="Đơn vị" context="{'group_by': 'company_id'}"/>
+                    <filter name="group_company" string="Đơn vị sản xuất" context="{'group_by': 'company_id'}"/>
                     <filter name="group_ma_nvl" string="Mã NVL" context="{'group_by': 'ma_nvl'}"/>
                 </group>
             </search>

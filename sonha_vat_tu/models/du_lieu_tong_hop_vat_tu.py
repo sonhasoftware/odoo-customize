@@ -34,13 +34,13 @@ class DuLieuTongHopVatTu(models.Model):
     period_id = fields.Many2one(
         'ke.hoach.vat.tu', string='Kỳ', ondelete='cascade', index=True, readonly=True)
     company_id = fields.Many2one(
-        'res.company', string='Đơn vị', index=True, readonly=True)
+        'res.company', string='Đơn vị sản xuất', index=True, readonly=True)
     period_company_id = fields.Many2one(
-        'res.company', string='Đơn vị chứng từ', index=True, readonly=True)
+        'res.company', string='Đơn vị yêu cầu', index=True, readonly=True)
     period_code = fields.Char(string='Số chứng từ', index=True, readonly=True)
     period_month = fields.Char(string='Tháng bắt đầu', index=True, readonly=True)
-    company_code = fields.Char(string='Mã đơn vị', index=True, readonly=True)
-    period_company_code = fields.Char(string='Mã đơn vị chứng từ', index=True, readonly=True)
+    company_code = fields.Char(string='Mã đơn vị sản xuất', index=True, readonly=True)
+    period_company_code = fields.Char(string='Mã đơn vị yêu cầu', index=True, readonly=True)
     month_key = fields.Char(string='Tháng', index=True, readonly=True)
     month_date = fields.Date(string='Tháng tính toán', index=True, readonly=True)
     ma_sap = fields.Char(string='Mã SAP', index=True, readonly=True)
