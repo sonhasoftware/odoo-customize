@@ -65,7 +65,7 @@ class KeHoachSanXuat(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        MaHang = self.env['ma.hang']
+        MaHang = self.env['ma.hang'].sudo()
         Period = self.env['ke.hoach.vat.tu']
         for vals in vals_list:
             if vals.get('period_id'):

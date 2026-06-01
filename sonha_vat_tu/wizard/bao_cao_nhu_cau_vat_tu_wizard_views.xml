@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_bao_cao_nhu_cau_vat_tu_wizard_form" model="ir.ui.view">
+        <field name="name">bao.cao.nhu.cau.vat.tu.wizard.form</field>
+        <field name="model">bao.cao.nhu.cau.vat.tu.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Báo cáo nhu cầu vật tư">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="from_month" required="1"/>
+                            <field name="from_year" required="1"/>
+                            <field name="company_id" string="Đơn vị"
+                                   context="{'vat_tu_company_code_display': True}"/>
+                        </group>
+                        <group>
+                            <field name="to_month" required="1"/>
+                            <field name="to_year" required="1"/>
+                        </group>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_open_report" type="object"
+                            string="Xem báo cáo" class="btn-primary"/>
+                    <button string="Huỷ" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_bao_cao_nhu_cau_vat_tu_wizard" model="ir.actions.act_window">
+        <field name="name">Báo cáo nhu cầu vật tư</field>
+        <field name="res_model">bao.cao.nhu.cau.vat.tu.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_bao_cao_nhu_cau_vat_tu_wizard_form"/>
+        <field name="target">new</field>
+        <field name="context">{'vat_tu_company_code_display': True}</field>
+    </record>
+
+</odoo>

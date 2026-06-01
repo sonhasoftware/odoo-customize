@@ -23,48 +23,48 @@ _SQL_FUNCTIONS_PATH = _os.path.join(
 
 class KeHoachVatTu(models.Model):
     _name = 'ke.hoach.vat.tu'
-    _description = 'Ká»³ káº¿ hoáº¡ch váº­t tÆ° cáº§n'
+    _description = 'Kỳ kế hoạch vật tư cần'
     _rec_name = 'code'
     _order = 'period_month desc, id desc'
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
-    code = fields.Char(string='MÃ£', readonly=True, copy=False, index=True, tracking=True)
+    code = fields.Char(string='Số chứng từ', readonly=True, copy=False, index=True, tracking=True)
     period_month = fields.Char(
-        string='ThÃ¡ng báº¯t Ä‘áº§u', tracking=True)
+        string='Tháng bắt đầu', tracking=True)
     company_id = fields.Many2one(
-        'res.company', string='CÃ´ng ty', tracking=True,
+        'res.company', string='Công ty', tracking=True,
         default=lambda self: self.env.company)
     state = fields.Selection([
-        ('ke_hoach', 'Káº¿ hoáº¡ch sáº£n xuáº¥t'),
-        ('dinh_muc', 'Äá»‹nh má»©c ká»³'),
-        ('tinh_toan', 'TÃ­nh toÃ¡n váº­t tÆ°'),
-        ('tong_hop', 'Tá»•ng há»£p váº­t tÆ° cáº§n sáº£n xuáº¥t'),
-        ('dat_hang', 'Káº¿ hoáº¡ch Ä‘áº·t váº­t tÆ°'),
-    ], default='ke_hoach', tracking=True, string='Tráº¡ng thÃ¡i')
-    note = fields.Text(string='Ghi chÃº')
+        ('ke_hoach', 'Kế hoạch sản xuất'),
+        ('dinh_muc', 'Định mức kỳ'),
+        ('tinh_toan', 'Tính toán vật tư'),
+        ('tong_hop', 'Tổng hợp vật tư cần sản xuất'),
+        ('dat_hang', 'Kế hoạch đặt vật tư'),
+    ], default='ke_hoach', tracking=True, string='Trạng thái')
+    note = fields.Text(string='Ghi chú')
 
     ngay_du_phong_b4 = fields.Float(
-        string='Sá»‘ ngÃ y (dá»± phÃ²ng)',
+        string='Số ngày (dự phòng)',
         default=15.0,
         digits=(16, 2),
-        help='DÃ¹ng cho B4: sá»‘ lÆ°á»£ng dá»± phÃ²ng = VT cáº§n dÃ¹ng Ã· (28 Ã— sá»‘ ngÃ y nÃ y).',
+        help='Dùng cho B4: số lượng dự phòng = VT cần dùng ÷ (28 × số ngày này).',
         tracking=True,
     )
     ngay_du_tru_b5 = fields.Float(
-        string='Sá»‘ ngÃ y (dá»± trá»¯)',
+        string='Số ngày (dự trữ)',
         default=20.0,
         digits=(16, 2),
-        help='DÃ¹ng cho B5: sá»‘ lÆ°á»£ng dá»± trá»¯ tá»‘i thiá»ƒu = VT cáº§n dÃ¹ng Ã· (28 Ã— sá»‘ ngÃ y nÃ y).',
+        help='Dùng cho B5: số lượng dự trữ tối thiểu = VT cần dùng ÷ (28 × số ngày này).',
         tracking=True,
     )
 
-    ke_hoach_kinh_doanh_ids = fields.One2many('ke.hoach.kinh.doanh', 'period_id', string='Káº¿ hoáº¡ch kinh doanh')
-    ke_hoach_san_xuat_ids = fields.One2many('ke.hoach.san.xuat', 'period_id', string='Káº¿ hoáº¡ch sáº£n xuáº¥t')
-    ke_hoach_vat_tu_line_ids = fields.One2many('ke.hoach.vat.tu.line', 'period_id', string='Káº¿ hoáº¡ch váº­t tÆ°')
-    dinh_muc_ids = fields.One2many('dinh.muc', 'period_id', string='Äá»‹nh má»©c thÃ¡ng')
-    tinh_toan_vat_tu_ids = fields.One2many('tinh.toan.vat.tu', 'period_id', string='TÃ­nh toÃ¡n váº­t tÆ°')
-    tong_hop_vat_tu_ids = fields.One2many('tong.hop.vat.tu', 'period_id', string='Tá»•ng há»£p váº­t tÆ°')
-    kh_dat_vat_tu_ids = fields.One2many('kh.dat.vat.tu', 'period_id', string='Káº¿ hoáº¡ch Ä‘áº·t váº­t tÆ°')
+    ke_hoach_kinh_doanh_ids = fields.One2many('ke.hoach.kinh.doanh', 'period_id', string='Kế hoạch kinh doanh')
+    ke_hoach_san_xuat_ids = fields.One2many('ke.hoach.san.xuat', 'period_id', string='Kế hoạch sản xuất')
+    ke_hoach_vat_tu_line_ids = fields.One2many('ke.hoach.vat.tu.line', 'period_id', string='Kế hoạch vật tư')
+    dinh_muc_ids = fields.One2many('dinh.muc', 'period_id', string='Định mức tháng')
+    tinh_toan_vat_tu_ids = fields.One2many('tinh.toan.vat.tu', 'period_id', string='Tính toán vật tư')
+    tong_hop_vat_tu_ids = fields.One2many('tong.hop.vat.tu', 'period_id', string='Tổng hợp vật tư')
+    kh_dat_vat_tu_ids = fields.One2many('kh.dat.vat.tu', 'period_id', string='Kế hoạch đặt vật tư')
 
     ke_hoach_kinh_doanh_count = fields.Integer(compute='_compute_counts')
     ke_hoach_san_xuat_count = fields.Integer(compute='_compute_counts')
@@ -74,12 +74,12 @@ class KeHoachVatTu(models.Model):
     tong_hop_vat_tu_count = fields.Integer(compute='_compute_counts')
     kh_dat_vat_tu_count = fields.Integer(compute='_compute_counts')
     month_ids_preview = fields.Char(
-        string='CÃ¡c thÃ¡ng cÃ³ dá»¯ liá»‡u',
+        string='Các tháng có dữ liệu',
         compute='_compute_month_preview')
 
     _sql_constraints = [
-        ('code_uniq', 'unique(code)', 'MÃ£ ká»³ pháº£i duy nháº¥t!'),
-        ('company_month_uniq', 'unique(company_id, period_month)', 'CÃ´ng ty vÃ  thÃ¡ng báº¯t Ä‘áº§u khÃ´ng Ä‘Æ°á»£c trÃ¹ng!'),
+        ('code_uniq', 'unique(code)', 'Mã kỳ phải duy nhất!'),
+        ('company_month_uniq', 'unique(company_id, period_month)', 'Công ty và tháng bắt đầu không được trùng!'),
     ]
 
     @api.model
@@ -101,7 +101,10 @@ class KeHoachVatTu(models.Model):
         user_company = self.env.user.company_id
         if user_company.company_code in ('BNH', 'SSP'):
             return user_company
-        raise UserError(_('CÃ´ng ty máº·c Ä‘á»‹nh cá»§a user khÃ´ng pháº£i cÃ´ng ty sáº£n xuáº¥t BNH/SSP. Vui lÃ²ng kiá»ƒm tra láº¡i cÃ´ng ty máº·c Ä‘á»‹nh cá»§a user trÆ°á»›c khi thao tÃ¡c káº¿ hoáº¡ch sáº£n xuáº¥t.'))
+        raise UserError(_(
+            'Công ty mặc định của user không phải công ty sản xuất BNH/SSP. '
+            'Vui lòng kiểm tra lại công ty mặc định của user trước khi thao tác kế hoạch sản xuất.'
+        ))
 
 
 
@@ -138,17 +141,17 @@ class KeHoachVatTu(models.Model):
         pattern = re.compile(r'^(0[1-9]|1[0-2])/\d{4}$')
         for rec in self:
             if rec.period_month and not pattern.match(rec.period_month):
-                raise ValidationError('ThÃ¡ng báº¯t Ä‘áº§u pháº£i Ä‘Ãºng Ä‘á»‹nh dáº¡ng MM/YYYY, vÃ­ dá»¥ 04/2026.')
+                raise ValidationError('Tháng bắt đầu phải đúng định dạng MM/YYYY, ví dụ 04/2026.')
 
     @api.constrains('ngay_du_phong_b4', 'ngay_du_tru_b5')
     def _check_tham_so_ngay(self):
         for rec in self:
             if rec.ngay_du_phong_b4 is not False and rec.ngay_du_phong_b4 <= 0:
                 raise ValidationError(
-                    _('Sá»‘ ngÃ y B4 pháº£i lá»›n hÆ¡n 0 (Ä‘ang lÃ  %s).') % rec.ngay_du_phong_b4)
+                    _('Số ngày B4 phải lớn hơn 0 (đang là %s).') % rec.ngay_du_phong_b4)
             if rec.ngay_du_tru_b5 is not False and rec.ngay_du_tru_b5 <= 0:
                 raise ValidationError(
-                    _('Sá»‘ ngÃ y B5 pháº£i lá»›n hÆ¡n 0 (Ä‘ang lÃ  %s).') % rec.ngay_du_tru_b5)
+                    _('Số ngày B5 phải lớn hơn 0 (đang là %s).') % rec.ngay_du_tru_b5)
 
     @api.depends('ke_hoach_kinh_doanh_ids', 'ke_hoach_san_xuat_ids', 'ke_hoach_vat_tu_line_ids', 'dinh_muc_ids', 'tinh_toan_vat_tu_ids',
                  'tong_hop_vat_tu_ids', 'kh_dat_vat_tu_ids')
@@ -178,13 +181,15 @@ class KeHoachVatTu(models.Model):
             rec.month_ids_preview = ', '.join(months) or False
 
     # ------------------------------------------------------------------
-    # Actions â€” gá»i tháº³ng SQL Procedure
+    # Actions — gọi thẳng SQL Procedure
     # ------------------------------------------------------------------
 
     def action_generate_b2(self):
         self.ensure_one()
         if not self.ke_hoach_vat_tu_line_ids:
-            raise UserError(_('Chua co ke hoach vat tu. Vui long tao ke hoach vat tu tu ke hoach san xuat truoc khi sinh dinh muc.'))
+            raise UserError(_(
+                'Chưa có kế hoạch vật tư. Vui lòng tạo kế hoạch vật tư từ kế hoạch sản xuất trước khi sinh định mức.'
+            ))
         self.env.cr.execute('CALL public.fn_sinh_dinh_muc(%s)', (self.id,))
         self.state = 'dinh_muc'
         return self.action_open_step_b2()
@@ -197,7 +202,7 @@ class KeHoachVatTu(models.Model):
             return self.env.user.company_id
         company = self.env['res.company'].sudo().search([('company_code', 'in', ('BNH', 'SSP'))], limit=1)
         if not company:
-            raise UserError(_('Chua cau hinh cong ty san xuat BNH/SSP de tao ke hoach san xuat.'))
+            raise UserError(_('Chưa cấu hình công ty sản xuất BNH/SSP để tạo kế hoạch sản xuất.'))
         return company
 
     def _sync_production_from_business(self):
@@ -245,10 +250,13 @@ class KeHoachVatTu(models.Model):
             messages = []
             for key in missing[:20]:
                 line = business_by_key[key]
-                messages.append('Ma SAP=%s, Thang=%s' % (line.ma_sap or '', line.month_key or ''))
+                messages.append('Mã SAP=%s, Tháng=%s' % (line.ma_sap or '', line.month_key or ''))
             if len(missing) > 20:
-                messages.append('... con %s dong khac' % (len(missing) - 20))
-            raise UserError(_('Ke hoach san xuat dang thieu dong so voi ke hoach kinh doanh:\n%s\nNeu khong san xuat, vui long giu dong va nhap So luong = 0.') % '\n'.join(messages))
+                messages.append('... còn %s dòng khác' % (len(missing) - 20))
+            raise UserError(_(
+                'Kế hoạch sản xuất đang thiếu dòng so với kế hoạch kinh doanh:\n%s\n'
+                'Nếu không sản xuất, vui lòng giữ dòng và nhập Số lượng = 0.'
+            ) % '\n'.join(messages))
 
         vals_list = []
         for line in self.ke_hoach_san_xuat_ids:
@@ -273,16 +281,16 @@ class KeHoachVatTu(models.Model):
     def action_create_material_plan(self):
         self.ensure_one()
         if self.state != 'ke_hoach':
-            raise UserError(_('Ke hoach da sang buoc sau, khong the tao lai ke hoach vat tu.'))
+            raise UserError(_('Kế hoạch đã sang bước sau, không thể tạo lại kế hoạch vật tư.'))
         if not self.ke_hoach_san_xuat_ids:
-            raise UserError(_('Chua co ke hoach san xuat de tao ke hoach vat tu.'))
+            raise UserError(_('Chưa có kế hoạch sản xuất để tạo kế hoạch vật tư.'))
         if self.ke_hoach_vat_tu_line_ids:
-            raise UserError(_('Ke hoach vat tu da co du lieu. Vui long xoa du lieu cu neu can tao lai.'))
+            raise UserError(_('Kế hoạch vật tư đã có dữ liệu. Vui lòng xóa dữ liệu cũ nếu cần tạo lại.'))
         vals_list = self._prepare_material_plan_values_from_production()
         if vals_list:
             self.env['ke.hoach.vat.tu.line'].sudo().with_context(skip_period_lock=True).create(vals_list)
         self.with_context(vat_tu_chatter_scope='vt').message_post(
-            body=_('Da tao %s dong ke hoach vat tu tu ke hoach san xuat.') % len(vals_list)
+            body=_('Đã tạo %s dòng kế hoạch vật tư từ kế hoạch sản xuất.') % len(vals_list)
         )
         return self.action_open_workflow_vt()
     def action_compute_b3(self):
@@ -312,12 +320,12 @@ class KeHoachVatTu(models.Model):
     def action_reset_to_draft(self):
         for period in self:
             period.with_context(vat_tu_chatter_scope='vt').message_post(
-                body=_('%s Ä‘Ã£ reset vá» nhÃ¡p.') % self.env.user.name
+                body=_('%s đã reset về nháp.') % self.env.user.name
             )
-            period.dinh_muc_ids.unlink()
-            period.tinh_toan_vat_tu_ids.unlink()
-            period.tong_hop_vat_tu_ids.unlink()
-            period.kh_dat_vat_tu_ids.unlink()
+            period.sudo().dinh_muc_ids.unlink()
+            period.sudo().tinh_toan_vat_tu_ids.unlink()
+            period.sudo().tong_hop_vat_tu_ids.unlink()
+            period.sudo().kh_dat_vat_tu_ids.unlink()
             period.state = 'ke_hoach'
 
     def _apply_plan_excel_style(self, ws, header_row, max_col):
@@ -366,11 +374,11 @@ class KeHoachVatTu(models.Model):
         ws.merge_cells(start_row=1, start_column=2, end_row=1, end_column=5)
         ws.merge_cells(start_row=2, start_column=2, end_row=2, end_column=5)
         ws.merge_cells(start_row=3, start_column=2, end_row=3, end_column=5)
-        ws.cell(row=1, column=1, value='MÃ£')
+        ws.cell(row=1, column=1, value='Mã')
         ws.cell(row=1, column=2, value=self.code or '')
-        ws.cell(row=2, column=1, value='ThÃ¡ng báº¯t Ä‘áº§u')
+        ws.cell(row=2, column=1, value='Tháng bắt đầu')
         ws.cell(row=2, column=2, value=self.period_month or '')
-        ws.cell(row=3, column=1, value='CÃ´ng ty')
+        ws.cell(row=3, column=1, value='Công ty')
         ws.cell(row=3, column=2, value=self.company_id.name or '')
 
     def _protect_plan_sheet(self, ws, header_row, unlocked_cols):
@@ -402,19 +410,19 @@ class KeHoachVatTu(models.Model):
     def action_download_b1_template(self):
         self.ensure_one()
         if self.state != 'ke_hoach':
-            raise UserError(_('Káº¿ hoáº¡ch Ä‘Ã£ sang bÆ°á»›c sau, khÃ´ng thá»ƒ táº£i template Ä‘á»ƒ import láº¡i.'))
+            raise UserError(_('Kế hoạch đã sang bước sau, không thể tải template để import lại.'))
         if not (
             self.env.user.has_group('sonha_vat_tu.group_ban_cung_ung_vat_tu') or
             self.env.user.has_group('sonha_vat_tu.group_truong_bo_phan_vat_tu')
         ):
-            raise UserError(_('Báº¡n khÃ´ng cÃ³ quyá»n táº£i template káº¿ hoáº¡ch kinh doanh.'))
+            raise UserError(_('Bạn không có quyền tải template kế hoạch kinh doanh.'))
 
         wb = Workbook()
         ws = wb.active
         ws.title = 'Ke hoach kinh doanh'
         self._write_plan_metadata(ws)
-        headers = ['NgÃ nh hÃ ng', 'DÃ²ng hÃ ng', 'MÃ£ hÃ ng', 'MÃ£ SAP']
-        headers += ['ThÃ¡ng %s' % (self.period_month or '')]
+        headers = ['Ngành hàng', 'Dòng hàng', 'Mã hàng', 'Mã SAP']
+        headers += ['Tháng %s' % (self.period_month or '')]
         header_row = 6
         for col_idx, label in enumerate(headers, start=1):
             ws.cell(row=header_row, column=col_idx, value=label)
@@ -432,14 +440,14 @@ class KeHoachVatTu(models.Model):
     def action_open_import_kinh_doanh_wizard(self):
         self.ensure_one()
         if self.state != 'ke_hoach':
-            raise UserError(_('Káº¿ hoáº¡ch kinh doanh Ä‘Ã£ khÃ³a vÃ¬ ká»³ káº¿ hoáº¡ch Ä‘Ã£ sang bÆ°á»›c sau.'))
+            raise UserError(_('Kế hoạch kinh doanh đã khóa vì kỳ kế hoạch đã sang bước sau.'))
         if not (
             self.env.user.has_group('sonha_vat_tu.group_ban_cung_ung_vat_tu') or
             self.env.user.has_group('sonha_vat_tu.group_truong_bo_phan_vat_tu')
         ):
-            raise UserError(_('Báº¡n khÃ´ng cÃ³ quyá»n import káº¿ hoáº¡ch kinh doanh.'))
+            raise UserError(_('Bạn không có quyền import kế hoạch kinh doanh.'))
         return {
-            'name': _('Import káº¿ hoáº¡ch kinh doanh'),
+            'name': _('Import kế hoạch kinh doanh'),
             'type': 'ir.actions.act_window',
             'res_model': 'import.ke.hoach.wizard',
             'view_mode': 'form',
@@ -453,14 +461,14 @@ class KeHoachVatTu(models.Model):
     def action_open_import_san_xuat_wizard(self):
         self.ensure_one()
         if self.state != 'ke_hoach':
-            raise UserError(_('Káº¿ hoáº¡ch sáº£n xuáº¥t Ä‘Ã£ khÃ³a vÃ¬ ká»³ káº¿ hoáº¡ch Ä‘Ã£ sang bÆ°á»›c sau.'))
+            raise UserError(_('Kế hoạch sản xuất đã khóa vì kỳ kế hoạch đã sang bước sau.'))
         if not (
             self.env.user.has_group('sonha_vat_tu.group_bo_phan_vat_tu') or
             self.env.user.has_group('sonha_vat_tu.group_truong_bo_phan_vat_tu')
         ):
-            raise UserError(_('Báº¡n khÃ´ng cÃ³ quyá»n import káº¿ hoáº¡ch sáº£n xuáº¥t.'))
+            raise UserError(_('Bạn không có quyền import kế hoạch sản xuất.'))
         return {
-            'name': _('Import káº¿ hoáº¡ch sáº£n xuáº¥t'),
+            'name': _('Import kế hoạch sản xuất'),
             'type': 'ir.actions.act_window',
             'res_model': 'import.ke.hoach.wizard',
             'view_mode': 'form',
@@ -477,12 +485,12 @@ class KeHoachVatTu(models.Model):
     def action_export_san_xuat(self):
         self.ensure_one()
         if self.state != 'ke_hoach':
-            raise UserError(_('Káº¿ hoáº¡ch Ä‘Ã£ sang bÆ°á»›c sau, khÃ´ng thá»ƒ export láº¡i cho sáº£n xuáº¥t.'))
+            raise UserError(_('Kế hoạch đã sang bước sau, không thể export lại cho sản xuất.'))
         if not (
             self.env.user.has_group('sonha_vat_tu.group_bo_phan_vat_tu') or
             self.env.user.has_group('sonha_vat_tu.group_truong_bo_phan_vat_tu')
         ):
-            raise UserError(_('Báº¡n khÃ´ng cÃ³ quyá»n export káº¿ hoáº¡ch cho sáº£n xuáº¥t.'))
+            raise UserError(_('Bạn không có quyền export kế hoạch cho sản xuất.'))
         lines = self.ke_hoach_san_xuat_ids.sorted(lambda r: (
             r.nganh_hang_id.name or '',
             r.dong_hang_id.name or '',
@@ -491,7 +499,7 @@ class KeHoachVatTu(models.Model):
             r.month_date or date.min,
         ))
         if not lines:
-            raise UserError(_('Chua co ke hoach san xuat de export.'))
+            raise UserError(_('Chưa có kế hoạch sản xuất để export.'))
 
         months = sorted(
             {line.month_key for line in lines if line.month_key},
@@ -502,8 +510,8 @@ class KeHoachVatTu(models.Model):
         ws = wb.active
         ws.title = 'Ke hoach san xuat'
         self._write_plan_metadata(ws)
-        headers = ['NgÃ nh hÃ ng', 'DÃ²ng hÃ ng', 'MÃ£ hÃ ng', 'MÃ£ SAP']
-        headers += ['ThÃ¡ng %s' % month for month in months]
+        headers = ['Ngành hàng', 'Dòng hàng', 'Mã hàng', 'Mã SAP']
+        headers += ['Tháng %s' % month for month in months]
         header_row = 6
         for col_idx, label in enumerate(headers, start=1):
             ws.cell(row=header_row, column=col_idx, value=label)
@@ -544,11 +552,11 @@ class KeHoachVatTu(models.Model):
         self.ensure_one()
         return {
             'type': 'ir.actions.act_window',
-            'name': _('Káº¿ hoáº¡ch váº­t tÆ°'),
+            'name': _('Kế hoạch vật tư'),
             'res_model': 'ke.hoach.vat.tu',
             'res_id': self.id,
             'view_mode': 'form',
-            'views': [(self.env.ref(view_xmlid).id, 'form')],
+            'views': [(self.env.ref(view_xmlid).sudo().id, 'form')],
             'target': 'current',
             'context': context or {},
         }

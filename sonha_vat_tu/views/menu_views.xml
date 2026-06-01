@@ -46,10 +46,14 @@
               name="Báo cáo tổng quan vật tư"
               parent="menu_bao_cao_root"
               action="action_bao_cao_tong_quan_vat_tu" sequence="10"/>
+    <menuitem id="menu_bao_cao_nhu_cau_vat_tu"
+              name="Báo cáo nhu cầu vật tư"
+              parent="menu_bao_cao_root"
+              action="action_bao_cao_nhu_cau_vat_tu_wizard" sequence="20"/>
     <menuitem id="menu_du_lieu_tong_hop_vat_tu"
               name="Dữ liệu tổng hợp vật tư"
               parent="menu_bao_cao_root"
-              action="action_du_lieu_tong_hop_vat_tu" sequence="20"
+              action="action_du_lieu_tong_hop_vat_tu" sequence="30"
               groups="base.group_system"/>
 
     <menuitem id="menu_danh_muc_root" name="Danh mục"

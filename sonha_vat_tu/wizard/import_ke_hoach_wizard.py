@@ -237,7 +237,7 @@ class ImportKeHoachWizard(models.TransientModel):
             'res_model': 'ke.hoach.vat.tu',
             'res_id': self.period_id.id,
             'view_mode': 'form',
-            'views': [(self.env.ref(view_xmlid).id, 'form')],
+            'views': [(self.env.ref(view_xmlid).sudo().id, 'form')],
             'context': {'vat_tu_chatter_scope': scope},
             'target': 'current',
         }

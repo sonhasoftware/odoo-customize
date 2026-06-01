@@ -6,16 +6,18 @@ class BaoCaoTongQuanVatTu(models.Model):
     _name = 'bao.cao.tong.quan.vat.tu'
     _description = 'Báo cáo tổng quan vật tư'
     _auto = False
-    _order = 'period_month desc, id desc'
+    _order = 'company_id, period_month desc, code, ma_nvl'
     _rec_name = 'period_id'
 
     period_id = fields.Many2one('ke.hoach.vat.tu', string='Kỳ', readonly=True)
-    code = fields.Char(string='Mã', readonly=True)
+    code = fields.Char(string='Số chứng từ', readonly=True)
     period_month = fields.Char(string='Tháng bắt đầu', readonly=True)
-    company_id = fields.Many2one('res.company', string='Công ty', readonly=True)
+    company_id = fields.Many2one('res.company', string='Đơn vị', readonly=True)
+    ma_nvl = fields.Char(string='Mã NVL', readonly=True)
+    ten_nvl = fields.Char(string='Tên NVL', readonly=True)
     qty_kinh_doanh = fields.Float(string='Kinh doanh', digits=(16, 2), readonly=True)
     qty_san_xuat = fields.Float(string='Sản xuất', digits=(16, 2), readonly=True)
-    tong_nvl = fields.Float(string='Tổng NVL', digits=(16, 3), readonly=True)
+    qty_chenh_lech = fields.Float(string='Chênh lệch', digits=(16, 2), readonly=True)
 
     def init(self):
         tools.drop_view_if_exists(self.env.cr, self._table)
@@ -24,25 +26,40 @@ class BaoCaoTongQuanVatTu(models.Model):
                 WITH flat AS (
                     SELECT
                         period_id,
-                        SUM(CASE WHEN step_code = 'kd' THEN COALESCE(qty, 0) ELSE 0 END) AS qty_kinh_doanh,
-                        SUM(CASE WHEN step_code = 'sx' THEN COALESCE(qty, 0) ELSE 0 END) AS qty_san_xuat,
-                        SUM(CASE
-                            WHEN step_code = 'b3' THEN COALESCE(sl_dinh_muc, qty, 0)
-                            ELSE 0
-                        END) AS tong_nvl
+                        company_id,
+                        period_code,
+                        period_month,
+                        month_key,
+                        month_date,
+                        ma_nvl,
+                        MAX(ten_nvl) AS ten_nvl,
+                        SUM(COALESCE(qty_kinh_doanh, 0)) AS qty_kinh_doanh,
+                        SUM(COALESCE(qty_san_xuat, 0)) AS qty_san_xuat,
+                        SUM(COALESCE(qty_chenh_lech, 0)) AS qty_chenh_lech
                     FROM du_lieu_tong_hop_vat_tu
-                    GROUP BY period_id
+                    WHERE step_code = 'b2'
+                      AND ma_nvl IS NOT NULL
+                    GROUP BY
+                        period_id, company_id, period_code, period_month, month_key, month_date, ma_nvl
                 )
                 SELECT
-                    p.id AS id,
-                    p.id AS period_id,
-                    p.code AS code,
-                    p.period_month AS period_month,
-                    p.company_id AS company_id,
+                    ROW_NUMBER() OVER (
+                        ORDER BY
+                            flat.company_id,
+                            flat.period_month DESC,
+                            flat.period_code,
+                            flat.month_date,
+                            flat.ma_nvl
+                    ) AS id,
+                    flat.period_id AS period_id,
+                    flat.period_code AS code,
+                    flat.period_month AS period_month,
+                    flat.company_id AS company_id,
+                    flat.ma_nvl AS ma_nvl,
+                    flat.ten_nvl AS ten_nvl,
                     COALESCE(flat.qty_kinh_doanh, 0) AS qty_kinh_doanh,
                     COALESCE(flat.qty_san_xuat, 0) AS qty_san_xuat,
-                    COALESCE(flat.tong_nvl, 0) AS tong_nvl
-                FROM ke_hoach_vat_tu p
-                LEFT JOIN flat ON flat.period_id = p.id
+                    COALESCE(flat.qty_chenh_lech, 0) AS qty_chenh_lech
+                FROM flat
             )
         """)

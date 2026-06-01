@@ -6,12 +6,14 @@
         <field name="model">bao.cao.tong.quan.vat.tu</field>
         <field name="arch" type="xml">
             <tree string="Báo cáo tổng quan vật tư" create="false" edit="false" delete="false">
-                <field name="code"/>
-                <field name="period_month"/>
-                <field name="company_id"/>
+                <field name="company_id" string="Đơn vị" context="{'vat_tu_company_code_display': True}"/>
+                <field name="code" string="Số chứng từ"/>
+                <field name="period_month" string="Tháng bắt đầu"/>
+                <field name="ma_nvl" string="Mã NVL"/>
+                <field name="ten_nvl" string="Tên NVL"/>
                 <field name="qty_kinh_doanh" sum="Kinh doanh"/>
                 <field name="qty_san_xuat" sum="Sản xuất"/>
-                <field name="tong_nvl" sum="Tổng nguyên vật liệu"/>
+                <field name="qty_chenh_lech" sum="Chênh lệch"/>
             </tree>
         </field>
     </record>
@@ -21,12 +23,17 @@
         <field name="model">bao.cao.tong.quan.vat.tu</field>
         <field name="arch" type="xml">
             <search>
-                <field name="code"/>
-                <field name="period_month"/>
-                <field name="company_id"/>
+                <field name="company_id" string="Đơn vị" context="{'vat_tu_company_code_display': True}"/>
+                <field name="code" string="Số chứng từ"/>
+                <field name="period_month" string="Tháng bắt đầu"/>
+                <field name="ma_nvl" string="Mã NVL"/>
+                <field name="ten_nvl" string="Tên NVL"/>
                 <group expand="0" string="Nhóm theo">
-                    <filter name="group_company" string="Công ty" context="{'group_by': 'company_id'}"/>
+                    <filter name="group_company" string="Đơn vị" context="{'group_by': 'company_id'}"/>
+                    <filter name="group_code" string="Số chứng từ" context="{'group_by': 'code'}"/>
                     <filter name="group_period_month" string="Tháng bắt đầu" context="{'group_by': 'period_month'}"/>
+                    <filter name="group_ma_nvl" string="Mã NVL" context="{'group_by': 'ma_nvl'}"/>
+                    <filter name="group_ten_nvl" string="Tên NVL" context="{'group_by': 'ten_nvl'}"/>
                 </group>
             </search>
         </field>
@@ -38,6 +45,7 @@
         <field name="view_mode">tree</field>
         <field name="view_id" ref="view_bao_cao_tong_quan_vat_tu_tree"/>
         <field name="search_view_id" ref="view_bao_cao_tong_quan_vat_tu_search"/>
+        <field name="context">{'vat_tu_company_code_display': True}</field>
     </record>
 
 </odoo>

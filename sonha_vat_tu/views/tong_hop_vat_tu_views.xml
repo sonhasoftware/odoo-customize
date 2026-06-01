@@ -6,8 +6,8 @@
         <field name="model">tong.hop.vat.tu</field>
         <field name="arch" type="xml">
             <tree string="Tổng hợp vật tư cần sản xuất" create="0" class="sh_free_width_tree">
-                <field name="ma_dat_hang"/>
-                <field name="ma_sap" required="1"/>
+                <field name="ma_sap" string="Mã NVL" required="1"/>
+                <field name="ten_nvl" string="Tên NVL"/>
                 <field name="chung_loai"/>
                 <field name="don_vi_tinh"/>
                 <field name="month_key" required="1"/>
@@ -33,8 +33,8 @@
                         <group>
                             <field name="period_id" required="1"/>
                             <field name="company_id" required="1"/>
-                            <field name="ma_dat_hang"/>
-                            <field name="ma_sap" required="1"/>
+                            <field name="ma_sap" string="Mã NVL" required="1"/>
+                            <field name="ten_nvl" string="Tên NVL"/>
                             <field name="month_key" required="1"/>
                         </group>
                         <group>
@@ -70,15 +70,15 @@
         <field name="arch" type="xml">
             <search>
                 <field name="period_id"/>
-                <field name="ma_dat_hang"/>
-                <field name="ma_sap"/>
+                <field name="ma_sap" string="Mã NVL"/>
+                <field name="ten_nvl" string="Tên NVL"/>
                 <field name="chung_loai"/>
                 <field name="month_key"/>
                 <field name="company_id"/>
                 <group expand="0" string="Nhóm theo">
                     <filter name="g_period" string="Kỳ" context="{'group_by': 'period_id'}"/>
                     <filter name="g_company" string="Đơn vị" context="{'group_by': 'company_id'}"/>
-                    <filter name="g_sap" string="Mã SAP" context="{'group_by': 'ma_sap'}"/>
+                    <filter name="g_sap" string="Mã NVL" context="{'group_by': 'ma_sap'}"/>
                     <filter name="g_month" string="Tháng" context="{'group_by': 'month_key'}"/>
                 </group>
             </search>

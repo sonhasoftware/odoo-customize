@@ -5,38 +5,38 @@ from odoo.exceptions import UserError
 
 class KeHoachVatTuLine(models.Model):
     _name = 'ke.hoach.vat.tu.line'
-    _description = 'Ke hoach vat tu chot'
+    _description = 'Kế hoạch vật tư chốt'
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'period_id, company_id, month_date, ma_sap, id'
 
     period_id = fields.Many2one(
-        'ke.hoach.vat.tu', string='Ky', ondelete='cascade', index=True)
+        'ke.hoach.vat.tu', string='Kỳ', ondelete='cascade', index=True)
     company_id = fields.Many2one(
-        'res.company', string='Cong ty san xuat', index=True)
+        'res.company', string='Công ty sản xuất', index=True)
     nganh_hang_id = fields.Many2one(
-        'nganh.hang', string='Nganh hang', index=True)
+        'nganh.hang', string='Ngành hàng', index=True)
     dong_hang_id = fields.Many2one(
-        'dong.hang', string='Dong hang', index=True)
+        'dong.hang', string='Dòng hàng', index=True)
     ma_hang_id = fields.Many2one(
-        'ma.hang', string='Ma hang', index=True)
-    ma_sap = fields.Char(string='Ma SAP', index=True)
-    month_key = fields.Char(string='Thang', index=True)
-    month_date = fields.Date(string='Thang tinh toan', index=True)
-    qty_kinh_doanh = fields.Float(string='So luong kinh doanh', digits=(16, 2))
-    qty_san_xuat = fields.Float(string='So luong san xuat', digits=(16, 2))
+        'ma.hang', string='Mã hàng', index=True)
+    ma_sap = fields.Char(string='Mã SAP', index=True)
+    month_key = fields.Char(string='Tháng', index=True)
+    month_date = fields.Date(string='Tháng tính toán', index=True)
+    qty_kinh_doanh = fields.Float(string='Số lượng kinh doanh', digits=(16, 2))
+    qty_san_xuat = fields.Float(string='Số lượng sản xuất', digits=(16, 2))
     qty_chenh_lech = fields.Float(
-        string='Chenh lech',
+        string='Chênh lệch',
         compute='_compute_qty_chenh_lech',
         store=True,
         digits=(16, 2),
     )
-    qty = fields.Float(string='So luong tinh toan', digits=(16, 2))
-    note = fields.Char(string='Ghi chu')
+    qty = fields.Float(string='Số lượng tính toán', digits=(16, 2))
+    note = fields.Char(string='Ghi chú')
 
     _sql_constraints = [
         ('uniq_material_plan_row',
          'unique(period_id, company_id, ma_hang_id, ma_sap, month_key)',
-         'Trung dong ke hoach vat tu chot!'),
+         'Trùng dòng kế hoạch vật tư chốt!'),
     ]
 
     @api.depends('qty_kinh_doanh', 'qty_san_xuat')
@@ -47,12 +47,12 @@ class KeHoachVatTuLine(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         Period = self.env['ke.hoach.vat.tu']
-        MaHang = self.env['ma.hang']
+        MaHang = self.env['ma.hang'].sudo()
         for vals in vals_list:
             if vals.get('period_id'):
                 period = Period.browse(vals['period_id'])
                 if period.state != 'ke_hoach':
-                    raise UserError(_('Ke hoach vat tu da khoa vi ky ke hoach da sang buoc sau.'))
+                    raise UserError(_('Kế hoạch vật tư đã khóa vì kỳ kế hoạch đã sang bước sau.'))
             if vals.get('month_key') and not vals.get('month_date'):
                 vals['month_date'] = Period._month_key_to_date(vals['month_key'])
             if vals.get('ma_hang_id'):
@@ -83,4 +83,4 @@ class KeHoachVatTuLine(models.Model):
             return
         locked = self.filtered(lambda rec: rec.period_id and rec.period_id.state != 'ke_hoach')
         if locked:
-            raise UserError(_('Ke hoach vat tu da khoa vi ky ke hoach da sang buoc sau.'))
+            raise UserError(_('Kế hoạch vật tư đã khóa vì kỳ kế hoạch đã sang bước sau.'))

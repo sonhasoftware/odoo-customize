@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_bao_cao_nhu_cau_vat_tu_tree" model="ir.ui.view">
+        <field name="name">bao.cao.nhu.cau.vat.tu.tree</field>
+        <field name="model">bao.cao.nhu.cau.vat.tu</field>
+        <field name="arch" type="xml">
+            <tree string="Báo cáo nhu cầu vật tư" create="false" edit="false" delete="false"
+                  class="sh_free_width_tree">
+                <field name="company_id" string="Đơn vị" context="{'vat_tu_company_code_display': True}"/>
+                <field name="month_key" string="Tháng"/>
+                <field name="ma_nvl" string="Mã NVL"/>
+                <field name="ten_nvl" string="Tên NVL"/>
+                <field name="so_luong_vat_tu_can_dung" string="Số lượng" sum="Tổng số lượng"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_bao_cao_nhu_cau_vat_tu_pivot" model="ir.ui.view">
+        <field name="name">bao.cao.nhu.cau.vat.tu.pivot</field>
+        <field name="model">bao.cao.nhu.cau.vat.tu</field>
+        <field name="arch" type="xml">
+            <pivot string="Báo cáo nhu cầu vật tư">
+                <field name="ma_nvl" type="row"/>
+                <field name="ten_nvl" type="row"/>
+                <field name="month_date" type="col" interval="month"/>
+                <field name="so_luong_vat_tu_can_dung" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_bao_cao_nhu_cau_vat_tu_search" model="ir.ui.view">
+        <field name="name">bao.cao.nhu.cau.vat.tu.search</field>
+        <field name="model">bao.cao.nhu.cau.vat.tu</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="company_id" string="Đơn vị" context="{'vat_tu_company_code_display': True}"/>
+                <field name="code" string="Số chứng từ"/>
+                <field name="period_month" string="Tháng bắt đầu"/>
+                <field name="month_key" string="Tháng"/>
+                <field name="ma_nvl" string="Mã NVL"/>
+                <field name="ten_nvl" string="Tên NVL"/>
+                <field name="chung_loai"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="group_company" string="Đơn vị" context="{'group_by': 'company_id'}"/>
+                    <filter name="group_month" string="Tháng" context="{'group_by': 'month_date:month'}"/>
+                    <filter name="group_ma_nvl" string="Mã NVL" context="{'group_by': 'ma_nvl'}"/>
+                    <filter name="group_ten_nvl" string="Tên NVL" context="{'group_by': 'ten_nvl'}"/>
+                    <filter name="group_chung_loai" string="Chủng loại" context="{'group_by': 'chung_loai'}"/>
+                    <filter name="group_code" string="Số chứng từ" context="{'group_by': 'code'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_bao_cao_nhu_cau_vat_tu" model="ir.actions.act_window">
+        <field name="name">Báo cáo nhu cầu vật tư</field>
+        <field name="res_model">bao.cao.nhu.cau.vat.tu</field>
+        <field name="view_mode">pivot,tree</field>
+        <field name="views" eval="[(ref('view_bao_cao_nhu_cau_vat_tu_pivot'), 'pivot'), (ref('view_bao_cao_nhu_cau_vat_tu_tree'), 'tree')]"/>
+        <field name="search_view_id" ref="view_bao_cao_nhu_cau_vat_tu_search"/>
+        <field name="context">{'vat_tu_company_code_display': True}</field>
+    </record>
+
+</odoo>

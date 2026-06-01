@@ -7,9 +7,9 @@
         <field name="arch" type="xml">
             <tree string="Kế hoạch đặt vật tư" editable="bottom" class="sh_free_width_tree">
                 <field name="month_key" required="1"/>
-                <field name="ma_sap" required="1"/>
-                <field name="ma_effect"/>
-                <field name="ma_cuon"/>
+                <field name="ma_sap" string="Mã NVL" required="1"/>
+                <field name="ten_nvl" string="Tên NVL"/>
+                <field name="chung_loai" string="Chủng loại"/>
                 <field name="don_vi_tinh"/>
                 <field name="tong_ton_nvl_sl" string="Tổng tồn nguyên vật liệu" sum="Tổng tồn nguyên vật liệu"/>
                 <field name="tong_hang_di_duong_sl" string="Tổng hàng đi đường" sum="Tổng đi đường"/>
@@ -38,11 +38,11 @@
                             <field name="period_id" required="1"/>
                             <field name="company_id" required="1"/>
                             <field name="month_key" required="1"/>
-                            <field name="ma_sap" required="1"/>
-                            <field name="ma_effect"/>
+                            <field name="ma_sap" string="Mã NVL" required="1"/>
+                            <field name="ten_nvl" string="Tên NVL"/>
                         </group>
                         <group>
-                            <field name="ma_cuon"/>
+                            <field name="chung_loai" string="Chủng loại"/>
                             <field name="don_vi_tinh"/>
                             <field name="ghi_chu"/>
                         </group>
@@ -80,14 +80,16 @@
         <field name="arch" type="xml">
             <search>
                 <field name="period_id"/>
-                <field name="ma_sap"/>
+                <field name="ma_sap" string="Mã NVL"/>
+                <field name="ten_nvl" string="Tên NVL"/>
+                <field name="chung_loai"/>
                 <field name="month_key"/>
                 <field name="company_id"/>
                 <group expand="0" string="Nhóm theo">
                     <filter name="g_period" string="Kỳ" context="{'group_by': 'period_id'}"/>
                     <filter name="g_company" string="Đơn vị" context="{'group_by': 'company_id'}"/>
                     <filter name="g_month" string="Tháng" context="{'group_by': 'month_key'}"/>
-                    <filter name="g_sap" string="Mã SAP" context="{'group_by': 'ma_sap'}"/>
+                    <filter name="g_sap" string="Mã NVL" context="{'group_by': 'ma_sap'}"/>
                 </group>
             </search>
         </field>

@@ -18,6 +18,11 @@
                 <field name="source_res_id"/>
                 <field name="period_id"/>
                 <field name="company_id"/>
+                <field name="period_company_id"/>
+                <field name="period_code"/>
+                <field name="period_month"/>
+                <field name="company_code"/>
+                <field name="period_company_code"/>
                 <field name="month_key"/>
                 <field name="ma_sap"/>
                 <!-- -->
@@ -28,8 +33,14 @@
                 <field name="note"/>
                 <!-- -->
                 <field name="ma_tp"/>
+                <field name="ten_tp"/>
                 <field name="ten_sap"/>
                 <field name="ma_nvl"/>
+                <field name="ten_nvl"/>
+                <field name="ten_vat_tu"/>
+                <field name="qty_kinh_doanh"/>
+                <field name="qty_san_xuat"/>
+                <field name="qty_chenh_lech"/>
                 <!-- -->
                 <field name="ma_effect"/>
                 <field name="don_vi_tinh"/>
@@ -79,6 +90,11 @@
                             <field name="source_res_id"/>
                             <field name="period_id"/>
                             <field name="company_id"/>
+                            <field name="period_company_id"/>
+                            <field name="period_code"/>
+                            <field name="period_month"/>
+                            <field name="company_code"/>
+                            <field name="period_company_code"/>
                             <field name="month_key"/>
                             <field name="ma_sap"/>
                             <field name="nganh_hang_id"/>
@@ -87,8 +103,14 @@
                             <field name="qty"/>
                             <field name="note"/>
                             <field name="ma_tp"/>
+                            <field name="ten_tp"/>
                             <field name="ten_sap"/>
                             <field name="ma_nvl"/>
+                            <field name="ten_nvl"/>
+                            <field name="ten_vat_tu"/>
+                            <field name="qty_kinh_doanh"/>
+                            <field name="qty_san_xuat"/>
+                            <field name="qty_chenh_lech"/>
                             <field name="ma_effect"/>
                             <field name="don_vi_tinh"/>
                             <field name="sl_dinh_muc"/>
@@ -130,10 +152,18 @@
                 <field name="step_code"/>
                 <field name="period_id"/>
                 <field name="company_id"/>
+                <field name="period_company_id"/>
+                <field name="period_code"/>
+                <field name="period_month"/>
+                <field name="company_code"/>
+                <field name="period_company_code"/>
                 <field name="month_key"/>
                 <field name="ma_sap"/>
                 <field name="ma_tp"/>
+                <field name="ten_tp"/>
                 <field name="ma_nvl"/>
+                <field name="ten_nvl"/>
+                <field name="ten_vat_tu"/>
                 <field name="ma_effect"/>
                 <field name="ma_dat_hang"/>
                 <field name="source_model"/>
@@ -147,8 +177,12 @@
                 <group expand="0" string="Nhóm">
                     <filter name="group_step" string="Bước" context="{'group_by': 'step_code'}"/>
                     <filter name="group_period" string="Kỳ" context="{'group_by': 'period_id'}"/>
+                    <filter name="group_period_company" string="Đơn vị chứng từ" context="{'group_by': 'period_company_id'}"/>
+                    <filter name="group_period_code" string="Số chứng từ" context="{'group_by': 'period_code'}"/>
+                    <filter name="group_period_month" string="Tháng bắt đầu" context="{'group_by': 'period_month'}"/>
                     <filter name="group_month" string="Tháng" context="{'group_by': 'month_key'}"/>
                     <filter name="group_company" string="Đơn vị" context="{'group_by': 'company_id'}"/>
+                    <filter name="group_ma_nvl" string="Mã NVL" context="{'group_by': 'ma_nvl'}"/>
                 </group>
             </search>
         </field>

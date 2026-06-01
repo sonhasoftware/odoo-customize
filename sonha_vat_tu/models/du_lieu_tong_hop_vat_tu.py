@@ -35,6 +35,12 @@ class DuLieuTongHopVatTu(models.Model):
         'ke.hoach.vat.tu', string='Kỳ', ondelete='cascade', index=True, readonly=True)
     company_id = fields.Many2one(
         'res.company', string='Đơn vị', index=True, readonly=True)
+    period_company_id = fields.Many2one(
+        'res.company', string='Đơn vị chứng từ', index=True, readonly=True)
+    period_code = fields.Char(string='Số chứng từ', index=True, readonly=True)
+    period_month = fields.Char(string='Tháng bắt đầu', index=True, readonly=True)
+    company_code = fields.Char(string='Mã đơn vị', index=True, readonly=True)
+    period_company_code = fields.Char(string='Mã đơn vị chứng từ', index=True, readonly=True)
     month_key = fields.Char(string='Tháng', index=True, readonly=True)
     month_date = fields.Date(string='Tháng tính toán', index=True, readonly=True)
     ma_sap = fields.Char(string='Mã SAP', index=True, readonly=True)
@@ -50,8 +56,14 @@ class DuLieuTongHopVatTu(models.Model):
 
     # --- --
     ma_tp = fields.Char(string='Mã thành phẩm', readonly=True)
+    ten_tp = fields.Char(string='Tên thành phẩm', readonly=True)
     ten_sap = fields.Char(string='Tên SAP', readonly=True)
     ma_nvl = fields.Char(string='Mã NVL', readonly=True)
+    ten_nvl = fields.Char(string='Tên NVL', readonly=True)
+    ten_vat_tu = fields.Char(string='Tên vật tư', readonly=True)
+    qty_kinh_doanh = fields.Float(string='Kinh doanh', digits=(16, 2), readonly=True)
+    qty_san_xuat = fields.Float(string='Sản xuất', digits=(16, 2), readonly=True)
+    qty_chenh_lech = fields.Float(string='Chênh lệch', digits=(16, 2), readonly=True)
 
     # --- B3 (+ chồng tên với B2 khi cùng bước không xảy ra) ---
     ma_effect = fields.Char(string='Mã effect', readonly=True)

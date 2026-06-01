@@ -7,8 +7,8 @@ BEGIN
     DELETE FROM dinh_muc WHERE period_id = p_period_id;
 
     INSERT INTO dinh_muc (
-        period_id, company_id, ma_sap, ten_sap, ma_tp, ma_nvl,
-        month_key, month_date, qty,
+        period_id, company_id, ma_sap, ten_sap, ma_tp, ten_tp, ma_nvl, ten_nvl,
+        month_key, month_date, qty_kinh_doanh, qty_san_xuat, qty_chenh_lech, qty,
         create_uid, write_uid, create_date, write_date
     )
     SELECT
@@ -17,9 +17,14 @@ BEGIN
         b1.ma_sap,
         bcu.ten_tp_goc,
         bcu.ma_tp_cha,
+        bcu.ten_tp_cha,
         bcu.ma_con,             -- Ma NVL thuc te cuoi cung
+        bcu.ten_con,
         b1.month_key,
         COALESCE(b1.month_date, TO_DATE(b1.month_key, 'MM/YYYY')),
+        COALESCE(b1.qty_kinh_doanh, 0) * bcu.sl_thuc_te,
+        COALESCE(b1.qty_san_xuat, 0) * bcu.sl_thuc_te,
+        (COALESCE(b1.qty_san_xuat, 0) - COALESCE(b1.qty_kinh_doanh, 0)) * bcu.sl_thuc_te,
         b1.qty * bcu.sl_thuc_te,
         1, 1, NOW(), NOW()
     FROM ke_hoach_vat_tu_line b1
@@ -46,7 +51,7 @@ BEGIN
     LIMIT 1;
 
     INSERT INTO tinh_toan_vat_tu (
-        period_id, company_id, ma_sap, ma_vat_tu, ten_vat_tu, ma_effect, ten_sap,
+        period_id, company_id, ma_sap, ma_vat_tu, ten_vat_tu, ten_sap,
         don_vi_tinh, do_day, kho_1, kho_2, trong_luong_kg_tam,
         sl_dinh_muc, month_key, month_date, qty,
         create_uid, write_uid, create_date, write_date
@@ -57,7 +62,6 @@ BEGIN
         dm.ma_sap,
         dm.ma_nvl                                                       AS ma_vat_tu,
         COALESCE(mh.ten_nvl, b.ten_nvl, dm.ma_nvl)                      AS ten_vat_tu,
-        NULL::VARCHAR                                                   AS ma_effect,
         dm.ten_sap,
         mh.don_vi_tinh_id                                               AS don_vi_tinh,
         0::NUMERIC                                                      AS do_day,
@@ -154,8 +158,8 @@ BEGIN
         SELECT
             b3.company_id,
             c.company_code,
-            b3.ma_sap,
             b3.ma_vat_tu AS material_code,
+            b3.ten_vat_tu AS material_name,
             mh.don_vi_tinh_id                  AS don_vi_tinh,
             b3.month_key,
             COALESCE(b3.month_date, TO_DATE(b3.month_key, 'MM/YYYY')) AS month_date,
@@ -164,8 +168,8 @@ BEGIN
         JOIN res_company c ON c.id = b3.company_id
         LEFT JOIN ma_hang mh ON mh.ma_sap = b3.ma_vat_tu
         WHERE b3.period_id = p_period_id
-        GROUP BY b3.company_id, c.company_code, b3.ma_sap,
-                 b3.ma_vat_tu, b3.month_key,
+        GROUP BY b3.company_id, c.company_code,
+                 b3.ma_vat_tu, b3.ten_vat_tu, b3.month_key,
                  COALESCE(b3.month_date, TO_DATE(b3.month_key, 'MM/YYYY')),
                  mh.don_vi_tinh_id
         ORDER BY b3.company_id, b3.ma_vat_tu, COALESCE(b3.month_date, TO_DATE(b3.month_key, 'MM/YYYY'))
@@ -227,13 +231,13 @@ BEGIN
         );
 
         INSERT INTO tong_hop_vat_tu (
-            period_id, company_id, ma_dat_hang, ma_sap, chung_loai,
+            period_id, company_id, ma_dat_hang, ma_sap, ten_nvl, chung_loai,
             don_vi_tinh, month_key, month_date,
             ton_dau, ve_du_kien, vt_can_dung, ton_cuoi,
             so_luong_du_phong, so_luong_thieu, so_luong_can_mua,
             create_uid, write_uid, create_date, write_date
         ) VALUES (
-            p_period_id, rec.company_id, rec.material_code, rec.ma_sap, rec.material_code,
+            p_period_id, rec.company_id, NULL, rec.material_code, rec.material_name, NULL,
             rec.don_vi_tinh, rec.month_key, rec.month_date,
             v_ton_dau, COALESCE(v_ve_du_kien, 0), rec.vt_can_dung, v_ton_cuoi,
             v_sl_du_phong, v_sl_thieu, v_sl_thieu,
@@ -265,7 +269,7 @@ BEGIN
     LIMIT 1;
 
     INSERT INTO kh_dat_vat_tu (
-        period_id, company_id, month_key, month_date, ma_sap, ma_effect, ma_cuon,
+        period_id, company_id, month_key, month_date, ma_sap, ten_nvl, chung_loai,
         don_vi_tinh,
         tong_ton_nvl_sl, tong_hang_di_duong_sl, tong_sl_vt_can_dung,
         sl_du_tru_toi_thieu, sl_can_mua_theo_moq, don_gia_ton_kho,
@@ -300,7 +304,7 @@ BEGIN
     )
     SELECT
         final_b5.period_id, final_b5.company_id, final_b5.month_key, final_b5.month_date,
-        final_b5.ma_sap, final_b5.ma_effect, final_b5.ma_cuon, final_b5.don_vi_tinh,
+        final_b5.ma_sap, final_b5.ten_nvl, final_b5.chung_loai, final_b5.don_vi_tinh,
         final_b5.ton_dau, final_b5.ve_du_kien, final_b5.vt_can_dung,
         final_b5.sl_du_tru_toi_thieu, final_b5.sl_can_mua_theo_moq, final_b5.don_gia_ton_kho,
         final_b5.sl_dat_mua_de_xuat,
@@ -317,8 +321,8 @@ BEGIN
             b4.month_key,
             COALESCE(b4.month_date, TO_DATE(b4.month_key, 'MM/YYYY')) AS month_date,
             b4.ma_sap,
-            NULL::VARCHAR                            AS ma_effect,
-            NULL::VARCHAR                            AS ma_cuon,
+            b4.ten_nvl,
+            b4.chung_loai,
             b4.don_vi_tinh                           AS don_vi_tinh,
             b4.ton_dau,
             b4.ve_du_kien,

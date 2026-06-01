@@ -14,25 +14,25 @@ class KhDatVatTu(models.Model):
     month_date = fields.Date(string='Tháng tính toán', index=True)
     company_id = fields.Many2one(
         'res.company', string='Đơn vị', index=True)
-    ma_sap = fields.Char(string='Mã SAP', index=True)
-    ma_effect = fields.Char(string='Mã effect', index=True)
-    ma_cuon = fields.Char(string='Mã cuộn')
-    don_vi_tinh = fields.Many2one('uom.uom', string='Đơn vị tính')
+    ma_sap = fields.Char(string='Mã NVL', index=True)
+    ten_nvl = fields.Char(string='Tên NVL')
+    chung_loai = fields.Char(string='Chủng loại')
+    don_vi_tinh = fields.Many2one('uom.uom', string='ĐVT')
 
-    tong_ton_nvl_sl = fields.Float(string='Tổng tồn nguyên vật liệu (Số lượng)', digits=(16, 3))
-    tong_hang_di_duong_sl = fields.Float(string='Tổng hàng đi đường (Số lượng)', digits=(16, 3))
-    tong_sl_vt_can_dung = fields.Float(string='Tổng số lượng vật tư cần dùng', digits=(16, 3))
-    sl_du_tru_toi_thieu = fields.Float(string='Số lượng dự trữ tối thiểu', digits=(16, 3))
-    sl_can_mua_theo_moq = fields.Float(string='Số lượng cần mua theo MOQ', digits=(16, 3))
+    tong_ton_nvl_sl = fields.Float(string='Tồn NVL', digits=(16, 3))
+    tong_hang_di_duong_sl = fields.Float(string='Hàng đi đường', digits=(16, 3))
+    tong_sl_vt_can_dung = fields.Float(string='VT cần dùng', digits=(16, 3))
+    sl_du_tru_toi_thieu = fields.Float(string='Dự trữ tối thiểu', digits=(16, 3))
+    sl_can_mua_theo_moq = fields.Float(string='SL cần mua theo MOQ', digits=(16, 3))
 
     sl_dat_mua_de_xuat = fields.Float(
-        string='Số lượng đặt mua đề xuất', compute='_compute_core_values', store=True, digits=(16, 3))
+        string='SL đặt mua đề xuất', compute='_compute_core_values', store=True, digits=(16, 3))
     sl_dat_mua_chot = fields.Float(
-        string='Số lượng đặt mua chốt', compute='_compute_core_values', store=True, digits=(16, 3))
+        string='SL đặt mua chốt', compute='_compute_core_values', store=True, digits=(16, 3))
     sl_ton_kho = fields.Float(
-        string='Số lượng tồn kho', compute='_compute_core_values', store=True, digits=(16, 3))
+        string='SL tồn sau mua', compute='_compute_core_values', store=True, digits=(16, 3))
     so_ngay_vong_quay_ton = fields.Float(
-        string='Số ngày vòng quay tồn kho', compute='_compute_core_values', store=True, digits=(16, 2))
+        string='Ngày vòng quay tồn', compute='_compute_core_values', store=True, digits=(16, 2))
     don_gia_ton_kho = fields.Float(string='Đơn giá tồn kho', digits=(16, 3))
     gia_tri_ton_kho = fields.Float(
         string='Giá trị tồn kho', compute='_compute_core_values', store=True, digits=(16, 3))

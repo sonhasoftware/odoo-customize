@@ -44,7 +44,7 @@ class KeHoachKinhDoanh(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         Period = self.env['ke.hoach.vat.tu']
-        MaHang = self.env['ma.hang']
+        MaHang = self.env['ma.hang'].sudo()
         for vals in vals_list:
             if vals.get('period_id'):
                 period = Period.browse(vals['period_id'])
