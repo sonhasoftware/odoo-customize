@@ -30,7 +30,8 @@ class MDMKhachHangImportWizard(models.TransientModel):
         if not code:
             return self.env[model_name].browse()
 
-        record = self.env[model_name].search([('ma', '=', code)], limit=1)
+        code = code.lower()
+        record = self.env[model_name].search([('ma', '=ilike', code)], limit=1)
         if record:
             return record
 
