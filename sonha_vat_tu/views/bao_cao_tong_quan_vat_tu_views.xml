@@ -5,7 +5,9 @@
         <field name="name">bao.cao.tong.quan.vat.tu.tree</field>
         <field name="model">bao.cao.tong.quan.vat.tu</field>
         <field name="arch" type="xml">
-            <tree string="Báo cáo tổng quan vật tư" create="false" edit="false" delete="false">
+            <tree string="Báo cáo tổng quan vật tư" create="false" edit="false" delete="false"
+                  decoration-danger="qty_chenh_lech &lt; 0"
+                  decoration-success="qty_chenh_lech &gt; 0">
                 <field name="company_id" string="Đơn vị" context="{'vat_tu_company_code_display': True}"/>
                 <field name="code" string="Số chứng từ"/>
                 <field name="period_month" string="Tháng bắt đầu"/>

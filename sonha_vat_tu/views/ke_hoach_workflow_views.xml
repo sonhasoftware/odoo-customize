@@ -176,7 +176,9 @@
                         </group>
                     </group>
                     <field name="ke_hoach_vat_tu_line_ids" readonly="1">
-                        <tree editable="bottom">
+                        <tree editable="bottom"
+                              decoration-danger="qty_chenh_lech &lt; 0"
+                              decoration-success="qty_chenh_lech &gt; 0">
                             <field name="nganh_hang_id"/>
                             <field name="dong_hang_id"/>
                             <field name="ma_hang_id"/>
