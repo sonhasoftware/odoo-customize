@@ -1,7 +1,6 @@
 from odoo import api, fields, models
+from odoo.exceptions import ValidationError
 from datetime import timedelta
-
-
 class ConfigShift(models.Model):
     _name = 'config.shift'
     _order = "code"
@@ -70,12 +69,27 @@ class ConfigShift(models.Model):
         for r in self:
             if r.from_rest and r.to_rest:
                 diff = (r.to_rest - r.from_rest).total_seconds()
-                if diff < 0:
-                    # Nếu to_rest qua ngày hôm sau
+                
+                # Check for lazy overnight shift on the SAME calendar day
+                if diff < 0 and r.to_rest.date() == r.from_rest.date():
                     diff += 24 * 3600
-                r.minutes_rest = int(diff / 60)
+                    
+                r.minutes_rest = max(0, int(diff / 60))
             else:
                 r.minutes_rest = 0
+
+    @api.constrains('from_rest', 'to_rest')
+    def _check_rest_time(self):
+        for r in self:
+            if r.from_rest and r.to_rest:
+                # Nếu Nghỉ đến nằm ở ngày hôm trước so với Nghỉ từ, chắc chắn là lỗi nhập sai
+                if r.to_rest.date() < r.from_rest.date():
+                    raise ValidationError("Thời gian 'Nghỉ đến' không hợp lệ! Bạn không thể chọn ngày kết thúc nằm trước ngày bắt đầu.")
+                
+                # Nếu cùng một ngày nhưng Nghỉ đến < Nghỉ từ (người dùng nhập lười ca đêm), 
+                # thì được phép (compute sẽ tự cộng 24h).
+                # Còn nếu khác ngày (Nghỉ đến > Nghỉ từ) thì bình thường.
+                # Do đó chỉ cần chặn r.to_rest.date() < r.from_rest.date() là đủ để bắt các case ngày quá khứ.
 
     name_code_shift = fields.Char(string="Tên và mã ca",compute="_compute_name_code_shift",tracking=True,store=True)
 
