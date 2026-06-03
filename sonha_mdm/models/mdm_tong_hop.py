@@ -290,9 +290,8 @@ class MDMTongHop(models.Model):
                 'ma': f"mdm01{record.id:010d}",
             })
 
-        if not self.env.context.get('skip_mdm_similarity'):
-            for record in records:
-                self.create_write_action_data(record)
+        for record in records:
+            self.create_write_action_data(record)
         for record in records:
             self.call_api_insert(record)
 
