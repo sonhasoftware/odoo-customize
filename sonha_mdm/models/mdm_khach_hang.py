@@ -401,6 +401,7 @@ class MDMKhachHang(models.Model):
             "so_dien_thoai": record.so_dien_thoai or None,
             "ten_khach": record.ten_khach or None,
             "ma_khach": record.ma_khach or None,
+            "ma_mdm": record.ma or None,
             "dia_chi_khach": record.dia_chi_khach or None,
             "ma_cn": record.ma_cn.ma or None,
             "ten_cn": record.ma_cn.ten or None,

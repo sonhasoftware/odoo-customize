@@ -290,12 +290,10 @@ class MDMTongHop(models.Model):
                 'ma': f"mdm01{record.id:010d}",
             })
 
-        if not self.env.context.get('skip_mdm_similarity'):
-            for record in records:
-                self.create_write_action_data(record)
-        if not self.env.context.get('skip_mdm_api_sync'):
-            for record in records:
-                self.call_api_insert(record)
+        for record in records:
+            self.create_write_action_data(record)
+        for record in records:
+            self.call_api_insert(record)
 
         return records
 
@@ -373,8 +371,9 @@ class MDMTongHop(models.Model):
         for r in self:
             self.create_write_action_data(r)
 
-    def call_api_insert(self, record):
-        data = {'ma_chung_loai1': record.chung_loai1.ma or None,
+    def _prepare_api_payload(self, record, sync_type, line=None):
+        company = line.dvcs if line and line.dvcs else record.dvcs
+        return {'ma_chung_loai1': record.chung_loai1.ma or None,
                 'ten_chung_loai1': record.chung_loai1.ten or None,
                 'ma_chung_loai2': record.chung_loai2.ma or None,
                 'ten_chung_loai2': record.chung_loai2.ten or None,
@@ -386,14 +385,15 @@ class MDMTongHop(models.Model):
                 'ten_nhan_hang': record.nhan_hang.ten or None,
                 'ma': record.ma or None,
                 'ten': record.ten or None,
-                'ma_tg': record.ma_tg or None,
+                'ma_tg': (line.ma_dv or None) if line else (record.ma_tg or None),
                 'ten_ngan': record.ten_ngan or None,
                 'dvt': record.dvt.ma or None,
-                'ma_dvcs': record.dvcs.company_code or None,
-                'ten_dvcs': record.dvcs.name or None,
-                'type': 'insert',
+                'ma_dvcs': company.company_code or None,
+                'ten_dvcs': company.name or None,
+                'type': sync_type,
                 }
 
+    def _call_api_hang_hoa(self, data, success_log, error_log):
         # 👉 convert sang JSON string
         json_str = json.dumps(data, ensure_ascii=False)
 
@@ -411,53 +411,18 @@ class MDMTongHop(models.Model):
             )
 
             # debug
-            print("API RESPONSE:", response.text)
+            print(success_log, response.text)
 
         except Exception as e:
-            print("API ERROR:", str(e))
+            print(error_log, str(e))
+
+    def call_api_insert(self, record, line=None):
+        data = self._prepare_api_payload(record, 'insert', line=line)
+        self._call_api_hang_hoa(data, "API RESPONSE:", "API ERROR:")
 
     def call_api_update(self, record):
-        data = {'ma_chung_loai1': record.chung_loai1.ma or None,
-                'ten_chung_loai1': record.chung_loai1.ten or None,
-                'ma_chung_loai2': record.chung_loai2.ma or None,
-                'ten_chung_loai2': record.chung_loai2.ten or None,
-                'ma_linh_vuc': record.linh_vuc.ma or None,
-                'ten_linh_vuc': record.linh_vuc.ten or None,
-                'ma_nganh_hang': record.nganh_hang.ma or None,
-                'ten_nganh_hang': record.nganh_hang.ten or None,
-                'ma_nhan_hang': record.nhan_hang.ma or None,
-                'ten_nhan_hang': record.nhan_hang.ten or None,
-                'ma': record.ma or None,
-                'ten': record.ten or None,
-                'ma_tg': record.ma_tg or None,
-                'ten_ngan': record.ten_ngan or None,
-                'dvt': record.dvt.ma or None,
-                'ma_dvcs': record.dvcs.company_code or None,
-                'ten_dvcs': record.dvcs.name or None,
-                'type': 'update',
-                }
-
-        # 👉 convert sang JSON string
-        json_str = json.dumps(data, ensure_ascii=False)
-
-        # 🔥 thêm dấu ' 2 bên (theo yêu cầu API của bạn)
-        payload = f"'{json_str}'"
-
-        try:
-            response = requests.put(
-                "https://bhapi.sonha.com.vn/api/mdm_hh",
-                json=payload,
-                headers={
-                    'Content-Type': 'application/json; charset=utf-8'
-                },
-                timeout=10
-            )
-
-            # debug
-            print("API hàng hóa:", response.text)
-
-        except Exception as e:
-            print("API hàng hóa:", str(e))
+        data = self._prepare_api_payload(record, 'update')
+        self._call_api_hang_hoa(data, "API hàng hóa:", "API hàng hóa:")
 
     def write(self, vals):
         res = super().write(vals)
