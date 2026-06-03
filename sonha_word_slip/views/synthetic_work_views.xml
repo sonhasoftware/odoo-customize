@@ -24,6 +24,7 @@
                             <field name="ot_service"/>
                             <field name="toxic_work"/>
                             <field name="sunday_work"/>
+                            <field name="ot_sunday_work"/>
                         </group>
                         <group string="Công thời gian">
                             <field name="standard_work"/>
