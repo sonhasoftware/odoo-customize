@@ -5,6 +5,6 @@ class MDMNhanHang(models.Model):
     _name = 'mdm.nhan.hang'
     _rec_name = 'ten'
 
-    ma = fields.Char("Mã", store=True)
+    ma = fields.Char("Mã", store=True, index=True)
     ten = fields.Text("Tên", store=True)
     key_map = fields.Integer("Key domain")

@@ -11,8 +11,8 @@ import requests
 class MDMTongHop(models.Model):
     _name = 'mdm.tong.hop'
 
-    ma = fields.Char("Mã")
-    ma_tg = fields.Char("Mã TG")
+    ma = fields.Char("Mã", index=True)
+    ma_tg = fields.Char("Mã TG", index=True)
     mdm_hh_type_id = fields.Many2one('mdm.hh.type', string="Loại hàng hóa")
     mdm_hh_type = fields.Text(related='mdm_hh_type_id.ten', string="Loại hàng hóa")
     material = fields.Char("Material Des.VI")
@@ -281,26 +281,23 @@ class MDMTongHop(models.Model):
 
         return dot / (norm1 * norm2)
 
-    @api.model
-    def create(self, vals):
-        record = super().create(vals)
-        if not record.ma:
-            record.ma = f"mdm01{record.id:010d}"
-        # if record.ma and record.dvcs:
-        #     check = self.env['mdm.khach.hang.line'].sudo().search([('ma_mdm', '=', record.ma),
-        #                                                            ('dvcs', '=', record.dvcs.id)])
-        #     if check:
-        #         check.ma_mdm = record.ma
-        #     else:
-        #         self.env['mdm.tong.hop.line'].create({
-        #             'tong_hop_id': record.id,
-        #             'ma_mdm': record.ma,
-        #             'dvcs': record.dvcs.id,
-        #         })
-        self.create_write_action_data(record)
-        self.call_api_insert(record)
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        missing_ma_records = records.filtered(lambda record: not record.ma)
+        for record in missing_ma_records:
+            record.with_context(skip_mdm_similarity=True, skip_mdm_api_sync=True).write({
+                'ma': f"mdm01{record.id:010d}",
+            })
 
-        return record
+        if not self.env.context.get('skip_mdm_similarity'):
+            for record in records:
+                self.create_write_action_data(record)
+        if not self.env.context.get('skip_mdm_api_sync'):
+            for record in records:
+                self.call_api_insert(record)
+
+        return records
 
     def create_write_action_data(self, record):
         if not record.vector:
@@ -464,9 +461,12 @@ class MDMTongHop(models.Model):
 
     def write(self, vals):
         res = super().write(vals)
-        for r in self:
-            self.create_write_action_data(r)
-            self.call_api_update(r)
+        if not self.env.context.get('skip_mdm_similarity'):
+            for r in self:
+                self.create_write_action_data(r)
+        if not self.env.context.get('skip_mdm_api_sync'):
+            for r in self:
+                self.call_api_update(r)
         return res
 
     def action_view_popup(self):
