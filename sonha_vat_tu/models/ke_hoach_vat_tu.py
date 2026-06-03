@@ -223,8 +223,8 @@ class KeHoachVatTu(models.Model):
             vals_list.append({
                 'period_id': self.id,
                 'company_id': company.id,
-                'nganh_hang_id': line.nganh_hang_id.id,
-                'dong_hang_id': line.dong_hang_id.id,
+                'nganh_hang': line.nganh_hang,
+                'dong_hang': line.dong_hang,
                 'ma_hang_id': line.ma_hang_id.id,
                 'ma_sap': line.ma_sap,
                 'month_key': line.month_key,
@@ -265,8 +265,8 @@ class KeHoachVatTu(models.Model):
             vals_list.append({
                 'period_id': self.id,
                 'company_id': line.company_id.id,
-                'nganh_hang_id': line.nganh_hang_id.id,
-                'dong_hang_id': line.dong_hang_id.id,
+                'nganh_hang': line.nganh_hang,
+                'dong_hang': line.dong_hang,
                 'ma_hang_id': line.ma_hang_id.id,
                 'ma_sap': line.ma_sap,
                 'month_key': line.month_key,
@@ -492,9 +492,9 @@ class KeHoachVatTu(models.Model):
         ):
             raise UserError(_('Bạn không có quyền export kế hoạch cho sản xuất.'))
         lines = self.ke_hoach_san_xuat_ids.sorted(lambda r: (
-            r.nganh_hang_id.name or '',
-            r.dong_hang_id.name or '',
-            r.ma_hang_id.code or '',
+            r.nganh_hang or '',
+            r.dong_hang or '',
+            r.ma_hang_id.ma_sap or '',
             r.ma_sap or '',
             r.month_date or date.min,
         ))
@@ -519,9 +519,9 @@ class KeHoachVatTu(models.Model):
         grouped = {}
         for line in lines:
             key = (
-                line.nganh_hang_id.name or '',
-                line.dong_hang_id.name or '',
-                line.ma_hang_id.code or '',
+                line.nganh_hang or '',
+                line.dong_hang or '',
+                line.ma_hang_id.ma_sap or '',
                 line.ma_sap or '',
             )
             grouped.setdefault(key, {})

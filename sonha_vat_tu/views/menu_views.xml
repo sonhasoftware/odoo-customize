@@ -58,21 +58,13 @@
 
     <menuitem id="menu_danh_muc_root" name="Danh mục"
               parent="menu_ke_hoach_vat_tu_root" sequence="40"/>
-    <menuitem id="menu_nganh_hang"
-              name="Ngành hàng"
-              parent="menu_danh_muc_root"
-              action="action_nganh_hang" sequence="10"/>
-    <menuitem id="menu_dong_hang"
-              name="Dòng hàng"
-              parent="menu_danh_muc_root"
-              action="action_dong_hang" sequence="20"/>
     <menuitem id="menu_ma_hang"
               name="Mã hàng"
               parent="menu_danh_muc_root"
-              action="action_ma_hang" sequence="30"/>
+              action="action_ma_hang" sequence="10"/>
     <menuitem id="menu_dinh_muc"
               name="BOM"
               parent="menu_danh_muc_root"
-              action="action_bom" sequence="40"/>
+              action="action_bom" sequence="20"/>
 
 </odoo>

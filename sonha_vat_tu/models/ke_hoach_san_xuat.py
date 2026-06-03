@@ -22,10 +22,8 @@ class KeHoachSanXuat(models.Model):
         'res.company', string='Công ty',
         default=lambda self: self.env.user.company_id, index=True)
 
-    nganh_hang_id = fields.Many2one(
-        'nganh.hang', string='Ngành hàng', index=True)
-    dong_hang_id = fields.Many2one(
-        'dong.hang', string='Dòng hàng', index=True)
+    nganh_hang = fields.Char(string='Ngành hàng', index=True)
+    dong_hang = fields.Char(string='Dòng hàng', index=True)
     ma_hang_id = fields.Many2one(
         'ma.hang', string='Mã hàng', index=True)
     ma_sap = fields.Char(
@@ -60,8 +58,7 @@ class KeHoachSanXuat(models.Model):
         for rec in self:
             if rec.ma_hang_id:
                 rec.ma_sap = rec.ma_hang_id.ma_sap or rec.ma_sap
-                rec.nganh_hang_id = rec.ma_hang_id.nganh_hang_id
-                rec.dong_hang_id = rec.ma_hang_id.dong_hang_id
+                rec.nganh_hang = rec.ma_hang_id.nganh_hang or rec.nganh_hang
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -79,15 +76,13 @@ class KeHoachSanXuat(models.Model):
             if vals.get('ma_hang_id'):
                 master = MaHang.browse(vals['ma_hang_id'])
                 vals.setdefault('ma_sap', master.ma_sap)
-                vals.setdefault('nganh_hang_id', master.nganh_hang_id.id)
-                vals.setdefault('dong_hang_id', master.dong_hang_id.id)
+                vals.setdefault('nganh_hang', master.nganh_hang)
 
             if not vals.get('ma_hang_id') and vals.get('ma_sap'):
                 master = MaHang.search([('ma_sap', '=', vals['ma_sap'])], limit=1)
                 if master:
                     vals['ma_hang_id'] = master.id
-                    vals.setdefault('nganh_hang_id', master.nganh_hang_id.id)
-                    vals.setdefault('dong_hang_id', master.dong_hang_id.id)
+                    vals.setdefault('nganh_hang', master.nganh_hang)
 
             if not vals.get('company_id') and vals.get('period_id'):
                 vals['company_id'] = self.env.user.company_id.id
@@ -119,8 +114,8 @@ class KeHoachSanXuat(models.Model):
 
     def _tracking_values(self):
         return {
-            'nganh': self.nganh_hang_id.name or '',
-            'dong': self.dong_hang_id.name or '',
+            'nganh': self.nganh_hang or '',
+            'dong': self.dong_hang or '',
             'ma_sap': self.ma_sap or '',
             'month_key': self.month_key or '',
             'qty': self._format_qty(self.qty),
@@ -223,7 +218,7 @@ class KeHoachSanXuat(models.Model):
                     continue
                 ov_disp = ov if ov not in (False, None, '') else 'Trống'
                 nv_disp = nv if nv not in (False, None, '') else 'Trống'
-                ma_hang_code = rec.ma_hang_id.code if rec.ma_hang_id else ''
+                ma_hang_code = rec.ma_hang_id.ma_sap if rec.ma_hang_id else ''
                 changes_by_period.setdefault(rec.period_id, []).append((
                     str(ov_disp),
                     str(nv_disp),

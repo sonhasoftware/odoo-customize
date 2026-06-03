@@ -1,15 +1,15 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
     <record id="view_du_lieu_tong_hop_vat_tu_tree" model="ir.ui.view">
         <field name="name">du.lieu.tong.hop.vat.tu.tree</field>
         <field name="model">du.lieu.tong.hop.vat.tu</field>
         <field name="arch" type="xml">
-            <tree string="Dữ liệu tổng hợp vật tư (đủ cột)" create="false" edit="false" delete="false"
+            <tree string="Dá»¯ liá»‡u tá»•ng há»£p váº­t tÆ° (Ä‘á»§ cá»™t)" create="false" edit="false" delete="false"
                   class="sh_free_width_tree">
 <!--                <header>-->
 <!--                    <button name="action_rebuild_from_sources" type="object"-->
-<!--                            string="Đồng bộ" class="btn-secondary"-->
+<!--                            string="Äá»“ng bá»™" class="btn-secondary"-->
 <!--                            display="always"/>-->
 <!--                </header>-->
                 <!-- Chung -->
@@ -26,8 +26,8 @@
                 <field name="month_key"/>
                 <field name="ma_sap"/>
                 <!-- -->
-                <field name="nganh_hang_id"/>
-                <field name="dong_hang_id"/>
+                <field name="nganh_hang"/>
+                <field name="dong_hang"/>
                 <field name="ma_hang_id"/>
                 <field name="qty"/>
                 <field name="note"/>
@@ -77,7 +77,7 @@
         <field name="name">du.lieu.tong.hop.vat.tu.form</field>
         <field name="model">du.lieu.tong.hop.vat.tu</field>
         <field name="arch" type="xml">
-            <form string="Chi tiết tổng hợp" create="false" edit="false" delete="false">
+            <form string="Chi tiáº¿t tá»•ng há»£p" create="false" edit="false" delete="false">
                 <sheet>
                     <div class="oe_title">
                         <label for="display_name"/>
@@ -97,8 +97,8 @@
                             <field name="period_company_code"/>
                             <field name="month_key"/>
                             <field name="ma_sap"/>
-                            <field name="nganh_hang_id"/>
-                            <field name="dong_hang_id"/>
+                            <field name="nganh_hang"/>
+                            <field name="dong_hang"/>
                             <field name="ma_hang_id"/>
                             <field name="qty"/>
                             <field name="note"/>
@@ -167,32 +167,33 @@
                 <field name="ma_effect"/>
                 <field name="ma_dat_hang"/>
                 <field name="source_model"/>
-                <filter name="filter_kd" string="Kế hoạch kinh doanh" domain="[('step_code', '=', 'kd')]"/>
-                <filter name="filter_sx" string="Kế hoạch sản xuất" domain="[('step_code', '=', 'sx')]"/>
+                <filter name="filter_kd" string="Káº¿ hoáº¡ch kinh doanh" domain="[('step_code', '=', 'kd')]"/>
+                <filter name="filter_sx" string="Káº¿ hoáº¡ch sáº£n xuáº¥t" domain="[('step_code', '=', 'sx')]"/>
                 <filter name="filter_b1" string="B1" domain="[('step_code', '=', 'b1')]"/>
                 <filter name="filter_b2" string="B2" domain="[('step_code', '=', 'b2')]"/>
                 <filter name="filter_b3" string="B3" domain="[('step_code', '=', 'b3')]"/>
                 <filter name="filter_b4" string="B4" domain="[('step_code', '=', 'b4')]"/>
                 <filter name="filter_b5" string="B5" domain="[('step_code', '=', 'b5')]"/>
-                <group expand="0" string="Nhóm">
-                    <filter name="group_step" string="Bước" context="{'group_by': 'step_code'}"/>
-                    <filter name="group_period" string="Kỳ" context="{'group_by': 'period_id'}"/>
-                    <filter name="group_period_company" string="Đơn vị yêu cầu" context="{'group_by': 'period_company_id'}"/>
-                    <filter name="group_period_code" string="Số chứng từ" context="{'group_by': 'period_code'}"/>
-                    <filter name="group_period_month" string="Tháng bắt đầu" context="{'group_by': 'period_month'}"/>
-                    <filter name="group_month" string="Tháng" context="{'group_by': 'month_key'}"/>
-                    <filter name="group_company" string="Đơn vị sản xuất" context="{'group_by': 'company_id'}"/>
-                    <filter name="group_ma_nvl" string="Mã NVL" context="{'group_by': 'ma_nvl'}"/>
+                <group expand="0" string="NhÃ³m">
+                    <filter name="group_step" string="BÆ°á»›c" context="{'group_by': 'step_code'}"/>
+                    <filter name="group_period" string="Ká»³" context="{'group_by': 'period_id'}"/>
+                    <filter name="group_period_company" string="ÄÆ¡n vá»‹ yÃªu cáº§u" context="{'group_by': 'period_company_id'}"/>
+                    <filter name="group_period_code" string="Sá»‘ chá»©ng tá»«" context="{'group_by': 'period_code'}"/>
+                    <filter name="group_period_month" string="ThÃ¡ng báº¯t Ä‘áº§u" context="{'group_by': 'period_month'}"/>
+                    <filter name="group_month" string="ThÃ¡ng" context="{'group_by': 'month_key'}"/>
+                    <filter name="group_company" string="ÄÆ¡n vá»‹ sáº£n xuáº¥t" context="{'group_by': 'company_id'}"/>
+                    <filter name="group_ma_nvl" string="MÃ£ NVL" context="{'group_by': 'ma_nvl'}"/>
                 </group>
             </search>
         </field>
     </record>
 
     <record id="action_du_lieu_tong_hop_vat_tu" model="ir.actions.act_window">
-        <field name="name">Dữ liệu tổng hợp vật tư</field>
+        <field name="name">Dá»¯ liá»‡u tá»•ng há»£p váº­t tÆ°</field>
         <field name="res_model">du.lieu.tong.hop.vat.tu</field>
         <field name="view_mode">tree,form</field>
         <field name="search_view_id" ref="view_du_lieu_tong_hop_vat_tu_search"/>
     </record>
 
 </odoo>
+

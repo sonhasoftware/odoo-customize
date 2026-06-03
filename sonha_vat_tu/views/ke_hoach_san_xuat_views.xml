@@ -1,14 +1,14 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
     <record id="view_ke_hoach_san_xuat_tree" model="ir.ui.view">
         <field name="name">ke.hoach.san.xuat.tree</field>
         <field name="model">ke.hoach.san.xuat</field>
         <field name="arch" type="xml">
-            <tree string="Kế hoạch sản xuất" editable="bottom">
+            <tree string="Káº¿ hoáº¡ch sáº£n xuáº¥t" editable="bottom">
                 <field name="period_id" required="1"/>
-                <field name="nganh_hang_id"/>
-                <field name="dong_hang_id"/>
+                <field name="nganh_hang"/>
+                <field name="dong_hang"/>
                 <field name="ma_hang_id" options="{'no_create': True}"/>
                 <field name="ma_sap" readonly="1" required="1"/>
                 <field name="month_key" required="1"/>
@@ -25,18 +25,18 @@
                 <field name="period_id"/>
                 <field name="ma_sap"/>
                 <field name="company_id"/>
-                <field name="nganh_hang_id"/>
-                <field name="dong_hang_id"/>
+                <field name="nganh_hang"/>
+                <field name="dong_hang"/>
                 <field name="ma_hang_id"/>
                 <field name="month_key"/>
-                <group expand="0" string="Nhóm theo">
-                    <filter name="group_period" string="Kỳ"
+                <group expand="0" string="NhÃ³m theo">
+                    <filter name="group_period" string="Ká»³"
                             context="{'group_by': 'period_id'}"/>
-                    <filter name="group_company" string="Công ty"
+                    <filter name="group_company" string="CÃ´ng ty"
                             context="{'group_by': 'company_id'}"/>
-                    <filter name="group_month" string="Tháng"
+                    <filter name="group_month" string="ThÃ¡ng"
                             context="{'group_by': 'month_key'}"/>
-                    <filter name="group_sap" string="Mã SAP"
+                    <filter name="group_sap" string="MÃ£ SAP"
                             context="{'group_by': 'ma_sap'}"/>
                 </group>
             </search>
@@ -44,10 +44,11 @@
     </record>
 
     <record id="action_ke_hoach_san_xuat" model="ir.actions.act_window">
-        <field name="name">Kế hoạch sản xuất</field>
+        <field name="name">Káº¿ hoáº¡ch sáº£n xuáº¥t</field>
         <field name="res_model">ke.hoach.san.xuat</field>
         <field name="view_mode">tree</field>
         <field name="search_view_id" ref="view_ke_hoach_san_xuat_search"/>
     </record>
 
 </odoo>
+

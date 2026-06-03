@@ -47,8 +47,8 @@ class DuLieuTongHopVatTu(models.Model):
     ma_vat_tu = fields.Char(string='Mã nguyên vật liệu', index=True, readonly=True)
 
     # --- --
-    nganh_hang_id = fields.Many2one('nganh.hang', string='Ngành hàng', readonly=True)
-    dong_hang_id = fields.Many2one('dong.hang', string='Dòng hàng', readonly=True)
+    nganh_hang = fields.Char(string='Ngành hàng', readonly=True)
+    dong_hang = fields.Char(string='Dòng hàng', readonly=True)
     ma_hang_id = fields.Many2one('ma.hang', string='Mã hàng', readonly=True)
 
     qty = fields.Float(string='Số lượng (B1/B2/B3)', digits=(16, 4), readonly=True)
@@ -67,11 +67,7 @@ class DuLieuTongHopVatTu(models.Model):
 
     # --- B3 (+ chồng tên với B2 khi cùng bước không xảy ra) ---
     ma_effect = fields.Char(string='Mã effect', readonly=True)
-    don_vi_tinh = fields.Many2one(
-        'uom.uom',
-        string='ĐVT',
-        readonly=True,
-    )
+    don_vi_tinh = fields.Many2one('mdm.dvt', string='ĐVT', readonly=True)
     do_day = fields.Float(string='Độ dày', digits=(16, 2), readonly=True)
     kho_1 = fields.Float(string='Khổ 1', digits=(16, 0), readonly=True)
     kho_2 = fields.Float(string='Khổ 2', digits=(16, 0), readonly=True)

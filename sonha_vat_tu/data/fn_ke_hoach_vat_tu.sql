@@ -40,15 +40,8 @@ $BODY$;
 -- ============================================================
 CREATE OR REPLACE PROCEDURE public.fn_tinh_toan_vat_tu(p_period_id INTEGER)
 LANGUAGE 'plpgsql' AS $BODY$
-DECLARE
-    v_uom_kg_id INTEGER;
 BEGIN
     DELETE FROM tinh_toan_vat_tu WHERE period_id = p_period_id;
-
-    SELECT res_id INTO v_uom_kg_id
-    FROM ir_model_data
-    WHERE module = 'uom' AND name = 'product_uom_kgm'
-    LIMIT 1;
 
     INSERT INTO tinh_toan_vat_tu (
         period_id, company_id, ma_sap, ma_vat_tu, ten_vat_tu, ten_sap,
@@ -61,7 +54,7 @@ BEGIN
         dm.company_id,
         dm.ma_sap,
         dm.ma_nvl                                                       AS ma_vat_tu,
-        COALESCE(mh.ten_nvl, b.ten_nvl, dm.ma_nvl)                      AS ten_vat_tu,
+        COALESCE(mh.ten_hang, b.ten_nvl, dm.ma_nvl)                     AS ten_vat_tu,
         dm.ten_sap,
         mh.don_vi_tinh_id                                               AS don_vi_tinh,
         0::NUMERIC                                                      AS do_day,
@@ -89,7 +82,6 @@ CREATE OR REPLACE PROCEDURE public.fn_tong_hop_vat_tu(
 )
 LANGUAGE 'plpgsql' AS $BODY$
 DECLARE
-    v_uom_kg_id      INTEGER;
     v_ton_cuoi_cache JSONB DEFAULT '{}';
     rec              RECORD;
     v_cache_key      TEXT;
@@ -103,11 +95,6 @@ DECLARE
     v_tcu NUMERIC; v_ttcu NUMERIC; v_tdu NUMERIC; v_ttdu NUMERIC;
 BEGIN
     DELETE FROM tong_hop_vat_tu WHERE period_id = p_period_id;
-
-    SELECT res_id INTO v_uom_kg_id
-    FROM ir_model_data
-    WHERE module = 'uom' AND name = 'product_uom_kgm'
-    LIMIT 1;
 
     -- Buoc 1: Pre-load ton kho SAP mot lan de dung trong loop.
     -- Latest record per (ma_hang, chi_nhanh), roi group theo nhom cong ty.
@@ -258,15 +245,8 @@ CREATE OR REPLACE PROCEDURE public.fn_ke_hoach_dat_vat_tu(
     p_ngay_dt   NUMERIC DEFAULT 20.0
 )
 LANGUAGE 'plpgsql' AS $BODY$
-DECLARE
-    v_uom_kg_id INTEGER;
 BEGIN
     DELETE FROM kh_dat_vat_tu WHERE period_id = p_period_id;
-
-    SELECT res_id INTO v_uom_kg_id
-    FROM ir_model_data
-    WHERE module = 'uom' AND name = 'product_uom_kgm'
-    LIMIT 1;
 
     INSERT INTO kh_dat_vat_tu (
         period_id, company_id, month_key, month_date, ma_sap, ten_nvl, chung_loai,

@@ -1,11 +1,11 @@
 -- =============================================================================
--- Trigger đồng bộ bảng phẳng du_lieu_tong_hop_vat_tu từ 5 bảng nguồn B1–B5.
--- + Trigger sync md_sap_bom → bom (ORM).
--- File này được load bởi du_lieu_tong_hop_vat_tu.py > init() và action_rebuild.
--- Chạy idempotent: CREATE OR REPLACE + DROP TRIGGER IF EXISTS.
+-- Trigger Ä‘á»“ng bá»™ báº£ng pháº³ng du_lieu_tong_hop_vat_tu tá»« 5 báº£ng nguá»“n B1â€“B5.
+-- + Trigger sync md_sap_bom â†’ bom (ORM).
+-- File nÃ y Ä‘Æ°á»£c load bá»Ÿi du_lieu_tong_hop_vat_tu.py > init() vÃ  action_rebuild.
+-- Cháº¡y idempotent: CREATE OR REPLACE + DROP TRIGGER IF EXISTS.
 -- =============================================================================
 
--- Composite index cho query báo cáo
+-- Composite index cho query bÃ¡o cÃ¡o
 CREATE INDEX IF NOT EXISTS idx_dlthvt_report
     ON du_lieu_tong_hop_vat_tu (step_code, period_id, month_key);
 
@@ -41,7 +41,7 @@ BEFORE INSERT OR UPDATE ON du_lieu_tong_hop_vat_tu
 FOR EACH ROW EXECUTE PROCEDURE dlthvt_fill_meta();
 
 -- =============================================================================
--- B1: ke_hoach_vat_tu_line → du_lieu_tong_hop_vat_tu
+-- B1: ke_hoach_vat_tu_line â†’ du_lieu_tong_hop_vat_tu
 -- =============================================================================
 CREATE OR REPLACE FUNCTION dlthvt_sync_b1() RETURNS TRIGGER AS $$
 BEGIN
@@ -52,7 +52,7 @@ BEGIN
     END IF;
     INSERT INTO du_lieu_tong_hop_vat_tu (
         step_code, source_model, source_res_id, period_id, company_id, month_key,
-        month_date, ma_sap, ma_vat_tu, nganh_hang_id, dong_hang_id, ma_hang_id,
+        month_date, ma_sap, ma_vat_tu, nganh_hang, dong_hang, ma_hang_id,
         qty, note, ma_tp, ten_tp, ten_sap, ma_nvl,
         ten_nvl, ten_vat_tu, qty_kinh_doanh, qty_san_xuat, qty_chenh_lech, ma_effect,
         don_vi_tinh, do_day, kho_1, kho_2, trong_luong_kg_tam, sl_dinh_muc,
@@ -64,7 +64,7 @@ BEGIN
     ) VALUES (
         'b1', 'ke.hoach.vat.tu.line', NEW.id, NEW.period_id,
         NEW.company_id, NEW.month_key, COALESCE(NEW.month_date, TO_DATE(NEW.month_key, 'MM/YYYY')), NEW.ma_sap,
-        NULL, NEW.nganh_hang_id, NEW.dong_hang_id, NEW.ma_hang_id,
+        NULL, NEW.nganh_hang, NEW.dong_hang, NEW.ma_hang_id,
         NEW.qty, NEW.note, NULL, NULL,
         NULL, NULL, NULL, NULL,
         NEW.qty_kinh_doanh, NEW.qty_san_xuat, NEW.qty_chenh_lech, NULL,
@@ -85,8 +85,8 @@ BEGIN
         month_date = EXCLUDED.month_date,
         ma_sap = EXCLUDED.ma_sap,
         ma_vat_tu = EXCLUDED.ma_vat_tu,
-        nganh_hang_id = EXCLUDED.nganh_hang_id,
-        dong_hang_id = EXCLUDED.dong_hang_id,
+        nganh_hang = EXCLUDED.nganh_hang,
+        dong_hang = EXCLUDED.dong_hang,
         ma_hang_id = EXCLUDED.ma_hang_id,
         qty = EXCLUDED.qty,
         note = EXCLUDED.note,
@@ -142,7 +142,7 @@ AFTER INSERT OR UPDATE OR DELETE ON ke_hoach_vat_tu_line
 FOR EACH ROW EXECUTE PROCEDURE dlthvt_sync_b1();
 
 -- =============================================================================
--- B2: dinh_muc → du_lieu_tong_hop_vat_tu
+-- B2: dinh_muc â†’ du_lieu_tong_hop_vat_tu
 -- =============================================================================
 CREATE OR REPLACE FUNCTION dlthvt_sync_b2() RETURNS TRIGGER AS $$
 BEGIN
@@ -153,7 +153,7 @@ BEGIN
     END IF;
     INSERT INTO du_lieu_tong_hop_vat_tu (
         step_code, source_model, source_res_id, period_id, company_id, month_key,
-        month_date, ma_sap, ma_vat_tu, nganh_hang_id, dong_hang_id, ma_hang_id,
+        month_date, ma_sap, ma_vat_tu, nganh_hang, dong_hang, ma_hang_id,
         qty, note, ma_tp, ten_tp, ten_sap, ma_nvl,
         ten_nvl, ten_vat_tu, qty_kinh_doanh, qty_san_xuat, qty_chenh_lech, ma_effect,
         don_vi_tinh, do_day, kho_1, kho_2, trong_luong_kg_tam, sl_dinh_muc,
@@ -186,8 +186,8 @@ BEGIN
         month_date = EXCLUDED.month_date,
         ma_sap = EXCLUDED.ma_sap,
         ma_vat_tu = EXCLUDED.ma_vat_tu,
-        nganh_hang_id = EXCLUDED.nganh_hang_id,
-        dong_hang_id = EXCLUDED.dong_hang_id,
+        nganh_hang = EXCLUDED.nganh_hang,
+        dong_hang = EXCLUDED.dong_hang,
         ma_hang_id = EXCLUDED.ma_hang_id,
         qty = EXCLUDED.qty,
         note = EXCLUDED.note,
@@ -243,7 +243,7 @@ AFTER INSERT OR UPDATE OR DELETE ON dinh_muc
 FOR EACH ROW EXECUTE PROCEDURE dlthvt_sync_b2();
 
 -- =============================================================================
--- B3: tinh_toan_vat_tu → du_lieu_tong_hop_vat_tu
+-- B3: tinh_toan_vat_tu â†’ du_lieu_tong_hop_vat_tu
 -- =============================================================================
 CREATE OR REPLACE FUNCTION dlthvt_sync_b3() RETURNS TRIGGER AS $$
 BEGIN
@@ -254,7 +254,7 @@ BEGIN
     END IF;
     INSERT INTO du_lieu_tong_hop_vat_tu (
         step_code, source_model, source_res_id, period_id, company_id, month_key,
-        month_date, ma_sap, ma_vat_tu, nganh_hang_id, dong_hang_id, ma_hang_id,
+        month_date, ma_sap, ma_vat_tu, nganh_hang, dong_hang, ma_hang_id,
         qty, note, ma_tp, ten_tp, ten_sap, ma_nvl,
         ten_nvl, ten_vat_tu, qty_kinh_doanh, qty_san_xuat, qty_chenh_lech, ma_effect,
         don_vi_tinh, do_day, kho_1, kho_2, trong_luong_kg_tam, sl_dinh_muc,
@@ -287,8 +287,8 @@ BEGIN
         month_date = EXCLUDED.month_date,
         ma_sap = EXCLUDED.ma_sap,
         ma_vat_tu = EXCLUDED.ma_vat_tu,
-        nganh_hang_id = EXCLUDED.nganh_hang_id,
-        dong_hang_id = EXCLUDED.dong_hang_id,
+        nganh_hang = EXCLUDED.nganh_hang,
+        dong_hang = EXCLUDED.dong_hang,
         ma_hang_id = EXCLUDED.ma_hang_id,
         qty = EXCLUDED.qty,
         note = EXCLUDED.note,
@@ -344,7 +344,7 @@ AFTER INSERT OR UPDATE OR DELETE ON tinh_toan_vat_tu
 FOR EACH ROW EXECUTE PROCEDURE dlthvt_sync_b3();
 
 -- =============================================================================
--- B4: tong_hop_vat_tu → du_lieu_tong_hop_vat_tu
+-- B4: tong_hop_vat_tu â†’ du_lieu_tong_hop_vat_tu
 -- =============================================================================
 CREATE OR REPLACE FUNCTION dlthvt_sync_b4() RETURNS TRIGGER AS $$
 BEGIN
@@ -355,7 +355,7 @@ BEGIN
     END IF;
     INSERT INTO du_lieu_tong_hop_vat_tu (
         step_code, source_model, source_res_id, period_id, company_id, month_key,
-        month_date, ma_sap, ma_vat_tu, nganh_hang_id, dong_hang_id, ma_hang_id,
+        month_date, ma_sap, ma_vat_tu, nganh_hang, dong_hang, ma_hang_id,
         qty, note, ma_tp, ten_tp, ten_sap, ma_nvl,
         ten_nvl, ten_vat_tu, qty_kinh_doanh, qty_san_xuat, qty_chenh_lech, ma_effect,
         don_vi_tinh, do_day, kho_1, kho_2, trong_luong_kg_tam, sl_dinh_muc,
@@ -388,8 +388,8 @@ BEGIN
         month_date = EXCLUDED.month_date,
         ma_sap = EXCLUDED.ma_sap,
         ma_vat_tu = EXCLUDED.ma_vat_tu,
-        nganh_hang_id = EXCLUDED.nganh_hang_id,
-        dong_hang_id = EXCLUDED.dong_hang_id,
+        nganh_hang = EXCLUDED.nganh_hang,
+        dong_hang = EXCLUDED.dong_hang,
         ma_hang_id = EXCLUDED.ma_hang_id,
         qty = EXCLUDED.qty,
         note = EXCLUDED.note,
@@ -445,7 +445,7 @@ AFTER INSERT OR UPDATE OR DELETE ON tong_hop_vat_tu
 FOR EACH ROW EXECUTE PROCEDURE dlthvt_sync_b4();
 
 -- =============================================================================
--- B5: kh_dat_vat_tu → du_lieu_tong_hop_vat_tu
+-- B5: kh_dat_vat_tu â†’ du_lieu_tong_hop_vat_tu
 -- =============================================================================
 CREATE OR REPLACE FUNCTION dlthvt_sync_b5() RETURNS TRIGGER AS $$
 BEGIN
@@ -456,7 +456,7 @@ BEGIN
     END IF;
     INSERT INTO du_lieu_tong_hop_vat_tu (
         step_code, source_model, source_res_id, period_id, company_id, month_key,
-        month_date, ma_sap, ma_vat_tu, nganh_hang_id, dong_hang_id, ma_hang_id,
+        month_date, ma_sap, ma_vat_tu, nganh_hang, dong_hang, ma_hang_id,
         qty, note, ma_tp, ten_tp, ten_sap, ma_nvl,
         ten_nvl, ten_vat_tu, qty_kinh_doanh, qty_san_xuat, qty_chenh_lech, ma_effect,
         don_vi_tinh, do_day, kho_1, kho_2, trong_luong_kg_tam, sl_dinh_muc,
@@ -489,8 +489,8 @@ BEGIN
         month_date = EXCLUDED.month_date,
         ma_sap = EXCLUDED.ma_sap,
         ma_vat_tu = EXCLUDED.ma_vat_tu,
-        nganh_hang_id = EXCLUDED.nganh_hang_id,
-        dong_hang_id = EXCLUDED.dong_hang_id,
+        nganh_hang = EXCLUDED.nganh_hang,
+        dong_hang = EXCLUDED.dong_hang,
         ma_hang_id = EXCLUDED.ma_hang_id,
         qty = EXCLUDED.qty,
         note = EXCLUDED.note,
@@ -564,7 +564,7 @@ BEGIN
 
     INSERT INTO du_lieu_tong_hop_vat_tu (
         step_code, source_model, source_res_id, period_id, company_id, month_key,
-        month_date, ma_sap, ma_vat_tu, nganh_hang_id, dong_hang_id, ma_hang_id,
+        month_date, ma_sap, ma_vat_tu, nganh_hang, dong_hang, ma_hang_id,
         qty, note, ma_tp, ten_tp, ten_sap, ma_nvl,
         ten_nvl, ten_vat_tu, qty_kinh_doanh, qty_san_xuat, qty_chenh_lech, ma_effect,
         don_vi_tinh, do_day, kho_1, kho_2, trong_luong_kg_tam, sl_dinh_muc,
@@ -576,7 +576,7 @@ BEGIN
     ) VALUES (
         'kd', 'ke.hoach.kinh.doanh', NEW.id, NEW.period_id,
         v_company_id, NEW.month_key, COALESCE(NEW.month_date, TO_DATE(NEW.month_key, 'MM/YYYY')), NEW.ma_sap,
-        NULL, NEW.nganh_hang_id, NEW.dong_hang_id, NEW.ma_hang_id,
+        NULL, NEW.nganh_hang, NEW.dong_hang, NEW.ma_hang_id,
         NEW.qty, NEW.note, NULL, NULL,
         NULL, NULL, NULL, NULL,
         NULL, NULL, NULL, NULL,
@@ -597,8 +597,8 @@ BEGIN
         month_date = EXCLUDED.month_date,
         ma_sap = EXCLUDED.ma_sap,
         ma_vat_tu = EXCLUDED.ma_vat_tu,
-        nganh_hang_id = EXCLUDED.nganh_hang_id,
-        dong_hang_id = EXCLUDED.dong_hang_id,
+        nganh_hang = EXCLUDED.nganh_hang,
+        dong_hang = EXCLUDED.dong_hang,
         ma_hang_id = EXCLUDED.ma_hang_id,
         qty = EXCLUDED.qty,
         note = EXCLUDED.note,
@@ -666,7 +666,7 @@ BEGIN
 
     INSERT INTO du_lieu_tong_hop_vat_tu (
         step_code, source_model, source_res_id, period_id, company_id, month_key,
-        month_date, ma_sap, ma_vat_tu, nganh_hang_id, dong_hang_id, ma_hang_id,
+        month_date, ma_sap, ma_vat_tu, nganh_hang, dong_hang, ma_hang_id,
         qty, note, ma_tp, ten_tp, ten_sap, ma_nvl,
         ten_nvl, ten_vat_tu, qty_kinh_doanh, qty_san_xuat, qty_chenh_lech, ma_effect,
         don_vi_tinh, do_day, kho_1, kho_2, trong_luong_kg_tam, sl_dinh_muc,
@@ -678,7 +678,7 @@ BEGIN
     ) VALUES (
         'sx', 'ke.hoach.san.xuat', NEW.id, NEW.period_id,
         NEW.company_id, NEW.month_key, COALESCE(NEW.month_date, TO_DATE(NEW.month_key, 'MM/YYYY')), NEW.ma_sap,
-        NULL, NEW.nganh_hang_id, NEW.dong_hang_id, NEW.ma_hang_id,
+        NULL, NEW.nganh_hang, NEW.dong_hang, NEW.ma_hang_id,
         NEW.qty, NEW.note, NULL, NULL,
         NULL, NULL, NULL, NULL,
         NULL, NULL, NULL, NULL,
@@ -699,8 +699,8 @@ BEGIN
         month_date = EXCLUDED.month_date,
         ma_sap = EXCLUDED.ma_sap,
         ma_vat_tu = EXCLUDED.ma_vat_tu,
-        nganh_hang_id = EXCLUDED.nganh_hang_id,
-        dong_hang_id = EXCLUDED.dong_hang_id,
+        nganh_hang = EXCLUDED.nganh_hang,
+        dong_hang = EXCLUDED.dong_hang,
         ma_hang_id = EXCLUDED.ma_hang_id,
         qty = EXCLUDED.qty,
         note = EXCLUDED.note,
@@ -756,12 +756,12 @@ AFTER INSERT OR UPDATE OR DELETE ON ke_hoach_san_xuat
 FOR EACH ROW EXECUTE PROCEDURE dlthvt_sync_sx();
 
 -- =============================================================================
--- SYNC: md_sap_bom → bom (ORM table)
--- Khi md_sap_bom được INSERT/UPDATE, tự động UPSERT vào bảng bom.
--- Tạm thời gán company_id = 17 (SHE). Sau này sẽ mapping từ chi_nhanh.
+-- SYNC: md_sap_bom â†’ bom (ORM table)
+-- Khi md_sap_bom Ä‘Æ°á»£c INSERT/UPDATE, tá»± Ä‘á»™ng UPSERT vÃ o báº£ng bom.
+-- Táº¡m thá»i gÃ¡n company_id = 17 (SHE). Sau nÃ y sáº½ mapping tá»« chi_nhanh.
 -- =============================================================================
 
--- Helper: parse số SAP (xử lý dấu trừ cuối: "0.727-" → -0.727, lỗi → 0)
+-- Helper: parse sá»‘ SAP (xá»­ lÃ½ dáº¥u trá»« cuá»‘i: "0.727-" â†’ -0.727, lá»—i â†’ 0)
 CREATE OR REPLACE FUNCTION safe_sap_numeric(val TEXT)
 RETURNS NUMERIC AS $$
 DECLARE
@@ -828,7 +828,7 @@ BEGIN
         AFTER INSERT OR UPDATE ON md_sap_bom
         FOR EACH ROW EXECUTE PROCEDURE sync_md_sap_bom_to_bom();
 
-        -- Backfill: đồng bộ toàn bộ dữ liệu md_sap_bom hiện có
+        -- Backfill: Ä‘á»“ng bá»™ toÃ n bá»™ dá»¯ liá»‡u md_sap_bom hiá»‡n cÃ³
         INSERT INTO bom (ma_tp, ten_tp, ma_nvl, ten_nvl,
                          sl_dinh_muc, sl_spdm, do_day, kho_1, kho_2,
                          create_uid, create_date, write_uid, write_date)
@@ -863,4 +863,5 @@ BEGIN
         RAISE NOTICE 'Table md_sap_bom not found, skip trigger creation.';
     END IF;
 END $$;
+
 

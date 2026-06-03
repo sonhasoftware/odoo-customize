@@ -19,7 +19,7 @@ class BaoCaoNhuCauVatTu(models.Model):
     ma_nvl = fields.Char(string='Mã vật tư', readonly=True)
     ten_nvl = fields.Char(string='Tên vật tư', readonly=True)
     chung_loai = fields.Char(string='Chủng loại', readonly=True)
-    don_vi_tinh = fields.Many2one('uom.uom', string='Đơn vị tính', readonly=True)
+    don_vi_tinh = fields.Many2one('mdm.dvt', string='Đơn vị tính', readonly=True)
     so_luong_vat_tu_can_dung = fields.Float(
         string='Số lượng vật tư cần dùng', digits=(16, 3), readonly=True)
 

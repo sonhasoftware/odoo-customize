@@ -13,10 +13,8 @@ class KeHoachVatTuLine(models.Model):
         'ke.hoach.vat.tu', string='Kỳ', ondelete='cascade', index=True)
     company_id = fields.Many2one(
         'res.company', string='Công ty sản xuất', index=True)
-    nganh_hang_id = fields.Many2one(
-        'nganh.hang', string='Ngành hàng', index=True)
-    dong_hang_id = fields.Many2one(
-        'dong.hang', string='Dòng hàng', index=True)
+    nganh_hang = fields.Char(string='Ngành hàng', index=True)
+    dong_hang = fields.Char(string='Dòng hàng', index=True)
     ma_hang_id = fields.Many2one(
         'ma.hang', string='Mã hàng', index=True)
     ma_sap = fields.Char(string='Mã SAP', index=True)
@@ -58,8 +56,7 @@ class KeHoachVatTuLine(models.Model):
             if vals.get('ma_hang_id'):
                 master = MaHang.browse(vals['ma_hang_id'])
                 vals.setdefault('ma_sap', master.ma_sap)
-                vals.setdefault('nganh_hang_id', master.nganh_hang_id.id)
-                vals.setdefault('dong_hang_id', master.dong_hang_id.id)
+                vals.setdefault('nganh_hang', master.nganh_hang)
             if 'qty_san_xuat' in vals and 'qty' not in vals:
                 vals['qty'] = vals.get('qty_san_xuat') or 0.0
         return super().create(vals_list)

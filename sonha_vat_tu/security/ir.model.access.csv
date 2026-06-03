@@ -1,6 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_nganh_hang_user,nganh.hang.user,model_nganh_hang,,1,1,1,1
-access_dong_hang_user,dong.hang.user,model_dong_hang,,1,1,1,1
 access_ma_hang_user,ma.hang.user,model_ma_hang,,1,1,1,1
 access_bom_user,bom.user,model_bom,,1,1,1,1
 access_ke_hoach_vat_tu_ban_cung_ung,ke.hoach.vat.tu.ban.cung.ung,model_ke_hoach_vat_tu,sonha_vat_tu.group_ban_cung_ung_vat_tu,1,1,1,0

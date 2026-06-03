@@ -15,7 +15,7 @@ class TinhToanVatTu(models.Model):
     ten_vat_tu = fields.Char(string='Tên nguyên vật liệu')
     ma_effect = fields.Char(string='Mã effect', index=True)
     ten_sap = fields.Char(string='Tên SAP')
-    don_vi_tinh = fields.Many2one('uom.uom', string='Đơn vị tính')
+    don_vi_tinh = fields.Many2one('mdm.dvt', string='Đơn vị tính')
     do_day = fields.Float(string='Độ dày', digits=(16, 4))
     kho_1 = fields.Float(string='Khổ 1', digits=(16, 3))
     kho_2 = fields.Float(string='Khổ 2', digits=(16, 3))

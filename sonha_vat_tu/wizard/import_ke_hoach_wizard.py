@@ -2,6 +2,7 @@
 import base64
 import io
 import re
+import unicodedata
 from datetime import date
 
 from markupsafe import Markup
@@ -42,16 +43,6 @@ class ImportKeHoachWizard(models.TransientModel):
         except ValueError:
             return None
 
-    def _find_master(self, model, raw):
-        Model = self.env[model].sudo()
-        raw = (raw or '').strip()
-        if not raw:
-            return Model.browse()
-        rec = Model.search(['|', ('code', '=', raw), ('name', '=', raw)], limit=1)
-        if not rec:
-            rec = Model.search([('name', 'ilike', raw)], limit=1)
-        return rec
-
     def _find_production_company(self, raw):
         raw = str(raw or '').strip()
         if not raw:
@@ -84,6 +75,11 @@ class ImportKeHoachWizard(models.TransientModel):
 
     def _norm_text(self, value):
         return str(value or '').strip()
+
+    def _norm_compare(self, value):
+        text = unicodedata.normalize('NFD', self._norm_text(value).lower())
+        text = ''.join(ch for ch in text if unicodedata.category(ch) != 'Mn')
+        return re.sub(r'\s+', ' ', text).strip()
 
     def _validate_metadata(self, rows):
         if len(rows) < 6:
@@ -131,51 +127,35 @@ class ImportKeHoachWizard(models.TransientModel):
         return header, month_cols, header_row_idx + 1
 
     def _validate_master_row(self, row_idx, row, errors):
-        NganhHang = self.env['nganh.hang'].sudo()
-        DongHang = self.env['dong.hang'].sudo()
         MaHang = self.env['ma.hang'].sudo()
 
         nganh_raw = str(row[0]).strip() if row[0] not in (None, '') else ''
         dong_raw = str(row[1]).strip() if row[1] not in (None, '') else ''
-        ma_hang = str(row[2]).strip() if row[2] not in (None, '') else ''
         ma_sap = str(row[3]).strip() if row[3] not in (None, '') else ''
 
         if not nganh_raw:
             errors.append(_('Dòng %d: thiếu Ngành hàng.') % row_idx)
             return None
-        if not dong_raw:
-            errors.append(_('Dòng %d: thiếu Dòng hàng.') % row_idx)
-            return None
-        if not ma_hang:
-            errors.append(_('Dòng %d: thiếu Mã hàng.') % row_idx)
-            return None
         if not ma_sap:
-            errors.append(_('Dòng %d: thiếu Mã SAP.') % row_idx)
+            errors.append(_('Dòng %d: thiếu Mã SAP/Mã đơn vị.') % row_idx)
             return None
 
-        nganh = self._find_master('nganh.hang', nganh_raw)
-        if not nganh:
-            errors.append(_('Dòng %d: Ngành hàng "%s" không có trong danh mục.') % (row_idx, nganh_raw))
-            return None
-        dong = self._find_master('dong.hang', dong_raw)
-        if not dong:
-            errors.append(_('Dòng %d: Dòng hàng "%s" không có trong danh mục.') % (row_idx, dong_raw))
-            return None
-        if dong.nganh_hang_id != nganh:
-            errors.append(_('Dòng %d: Dòng hàng "%s" không thuộc ngành "%s".') % (row_idx, dong_raw, nganh_raw))
-            return None
-
-        ma_hang_rec = MaHang.search([('code', '=', ma_hang), ('ma_sap', '=', ma_sap)], limit=1)
+        ma_hang_rec = MaHang.search([('ma_sap', '=', ma_sap)], limit=1)
         if not ma_hang_rec:
-            errors.append(_('Dòng %d: Mã hàng "%s" và Mã SAP "%s" không khớp danh mục.') % (row_idx, ma_hang, ma_sap))
+            errors.append(_('Dòng %d: Mã SAP/Mã đơn vị "%s" không có trong danh mục mã hàng.') % (row_idx, ma_sap))
             return None
-        if ma_hang_rec.dong_hang_id != dong:
-            errors.append(_('Dòng %d: Mã hàng "%s" không thuộc dòng hàng "%s".') % (row_idx, ma_hang, dong_raw))
+        if not ma_hang_rec.nganh_hang:
+            errors.append(_('Dòng %d: Mã SAP/Mã đơn vị "%s" chưa có Ngành hàng từ MDM.') % (row_idx, ma_sap))
+            return None
+        if self._norm_compare(nganh_raw) != self._norm_compare(ma_hang_rec.nganh_hang):
+            errors.append(_(
+                'Dòng %d: Ngành hàng "%s" không khớp MDM của Mã SAP/Mã đơn vị "%s" ("%s").'
+            ) % (row_idx, nganh_raw, ma_sap, ma_hang_rec.nganh_hang))
             return None
 
         return {
-            'nganh_hang_id': nganh.id,
-            'dong_hang_id': dong.id,
+            'nganh_hang': ma_hang_rec.nganh_hang or nganh_raw,
+            'dong_hang': dong_raw,
             'ma_hang_id': ma_hang_rec.id,
             'ma_sap': ma_sap,
         }

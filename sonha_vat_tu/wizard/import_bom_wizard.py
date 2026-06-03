@@ -88,12 +88,12 @@ class ImportBomWizard(models.TransientModel):
 
         if vals_list:
             nvl_codes = sorted({v['ma_nvl'] for v in vals_list if v.get('ma_nvl')})
-            nvl_master = MaHang.search([('ma_nvl', 'in', nvl_codes)])
-            nvl_map = {r.ma_nvl: r for r in nvl_master if r.ma_nvl}
+            nvl_master = MaHang.search([('ma_sap', 'in', nvl_codes)])
+            nvl_map = {r.ma_sap: r for r in nvl_master if r.ma_sap}
             for vals in vals_list:
                 master = nvl_map.get(vals['ma_nvl'])
-                if master and master.ten_nvl:
-                    vals['ten_nvl'] = master.ten_nvl
+                if master and master.ten_hang:
+                    vals['ten_nvl'] = master.ten_hang
 
             existing = Bom.search([
                 ('ma_tp',  'in', [v['ma_tp']  for v in vals_list]),
