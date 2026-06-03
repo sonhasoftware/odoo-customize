@@ -25,7 +25,7 @@ class MDMKhachHang(models.Model):
     ma_tinh = fields.Many2one('mdm.tinh', "Mã tỉnh")
     kinh_do = fields.Char("Kinh độ", store=True)
     vi_do = fields.Char("Vĩ độ", store=True)
-    so_dien_thoai = fields.Char("Số điện thoại", store=True, required=True)
+    so_dien_thoai = fields.Char("Số điện thoại", store=True)
     dat_nuoc = fields.Many2one('mdm.quoc.gia', "Đất nước")
     khu_vuc = fields.Many2one('mdm.khu.vuc', "Khu vực")
     vung = fields.Char("Vùng", store=True)
@@ -141,13 +141,13 @@ class MDMKhachHang(models.Model):
             if not record.mst and not record.cccd:
                 raise ValidationError("Phải nhập dữ lệu MST hoặc CCCD")
 
-    @api.constrains('so_dien_thoai')
-    def _check_phone(self):
-        for record in self:
-            if record.so_dien_thoai:
-                # Không có khoảng trắng + đúng 10 số
-                if not re.fullmatch(r'\d{10}', record.so_dien_thoai):
-                    raise ValidationError("Số điện thoại phải đúng 10 chữ số và không chứa khoảng trắng!")
+    # @api.constrains('so_dien_thoai')
+    # def _check_phone(self):
+    #     for record in self:
+    #         if record.so_dien_thoai:
+    #             # Không có khoảng trắng + đúng 10 số
+    #             if not re.fullmatch(r'\d{10}', record.so_dien_thoai):
+    #                 raise ValidationError("Số điện thoại phải đúng 10 chữ số và không chứa khoảng trắng!")
 
     @api.depends('ten_khach', 'dia_chi_khach', 'so_dien_thoai', 'mst', 'cccd')
     def _compute_vector(self):
