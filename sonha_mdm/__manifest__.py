@@ -41,11 +41,11 @@
         'data/cron_job.xml',
         'views/menu_views.xml',
     ],
-    'assets': {
-        'web.assets_backend': [
-            'sonha_mdm/static/src/css/style.css',
-        ],
-    },
+    # 'assets': {
+    #     'web.assets_backend': [
+    #         'sonha_mdm/static/src/css/style.css',
+    #     ],
+    # },
     'installable': True,
     'application': True,
     'license': 'LGPL-3',

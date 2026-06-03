@@ -29,7 +29,9 @@ class MDMTongHopImportWizard(models.TransientModel):
         code = self._clean_value(code)
         if not code:
             return self.env[model_name].browse()
-        record = self.env[model_name].search([('ma', '=', code)], limit=1)
+
+        code = code.lower()
+        record = self.env[model_name].search([('ma', '=ilike', code)], limit=1)
         if record:
             return record
         raise ValidationError(_('Không tìm thấy dữ liệu ở field %(field)s với mã "%(code)s".', field=field_label, code=code))
