@@ -129,17 +129,17 @@ class MDMKhachHang(models.Model):
 
             r.buoc_duyet = lines
 
-    @api.constrains('mst', 'cccd')
-    def _check_no_space_fields(self):
-        for record in self:
-            if record.mst and ' ' in record.mst:
-                raise ValidationError("Mã số thuế không được chứa khoảng trắng!")
-
-            if record.cccd and ' ' in record.cccd:
-                raise ValidationError("CCCD không được chứa khoảng trắng!")
-
-            if not record.mst and not record.cccd:
-                raise ValidationError("Phải nhập dữ lệu MST hoặc CCCD")
+    # @api.constrains('mst', 'cccd')
+    # def _check_no_space_fields(self):
+    #     for record in self:
+    #         if record.mst and ' ' in record.mst:
+    #             raise ValidationError("Mã số thuế không được chứa khoảng trắng!")
+    #
+    #         if record.cccd and ' ' in record.cccd:
+    #             raise ValidationError("CCCD không được chứa khoảng trắng!")
+    #
+    #         if not record.mst and not record.cccd:
+    #             raise ValidationError("Phải nhập dữ lệu MST hoặc CCCD")
 
     # @api.constrains('so_dien_thoai')
     # def _check_phone(self):
