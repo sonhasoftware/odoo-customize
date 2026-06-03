@@ -11,6 +11,9 @@ import requests
 class MDMKhachHang(models.Model):
     _name = 'mdm.khach.hang'
 
+    _DUPLICATE_CHECK_FIELDS = {'ten_khach', 'dia_chi_khach', 'so_dien_thoai', 'mst', 'cccd'}
+
+    ma = fields.Char("Mã")
     ma_khach = fields.Char("Mã", store=True)
     ten_khach = fields.Char("Tên", store=True, required=True)
     dia_chi_khach = fields.Char("Địa chỉ khách", store=True)
@@ -40,6 +43,8 @@ class MDMKhachHang(models.Model):
 
     buoc_duyet = fields.One2many('buoc.duyet.khach.hang', 'key', string="Bước duyệt")
 
+    bang_con_ids = fields.One2many('mdm.khach.hang.line', 'khach_hang_id', string='Bảng con đơn vị')
+
     current_step = fields.Integer(string="STT hiện tại", default=1)
     can_approve = fields.Boolean(compute='_compute_can_approve')
 
@@ -62,7 +67,7 @@ class MDMKhachHang(models.Model):
             )
 
             rec.can_approve = any(
-                step.ten_nguoi_duyet.id == user.id and not step.da_duyet
+                step.ten_nguoi_duyet and step.ten_nguoi_duyet == user and not step.da_duyet
                 for step in steps
             )
 
@@ -77,7 +82,7 @@ class MDMKhachHang(models.Model):
 
             # tìm dòng của user hiện tại
             my_step = steps.filtered(
-                lambda x: x.ten_nguoi_duyet.id == user.id
+                lambda x: x.ten_nguoi_duyet and x.ten_nguoi_duyet == user
             )[:1]
 
             if not my_step:
@@ -111,7 +116,7 @@ class MDMKhachHang(models.Model):
                         'sequence': step.sequence,
                         'phuong_thuc': step.phuong_thuc,
                         'vai_tro': step.vai_tro.id,
-                        'ten_nguoi_duyet': 2,
+                        'ten_nguoi_duyet': self.env.user.id,
                     }))
                 else:
                     for user in step.ten_nguoi_duyet:
@@ -242,6 +247,12 @@ class MDMKhachHang(models.Model):
 
         return dot / (norm1 * norm2)
 
+
+    def _should_run_duplicate_check(self, vals=None):
+        vals = vals or {}
+        # chỉ chạy check nặng khi người dùng thay đổi các trường phục vụ so khớp
+        return not vals or bool(self._DUPLICATE_CHECK_FIELDS.intersection(vals.keys()))
+
     def create_write_action_data(self, record):
         if not record.vector_ten or not record.vector_sdt:
             return record
@@ -349,8 +360,11 @@ class MDMKhachHang(models.Model):
 
     def write(self, vals):
         res = super().write(vals)
+
+        should_check_duplicate = self._should_run_duplicate_check(vals)
         for r in self:
-            self.create_write_action_data(r)
+            if should_check_duplicate:
+                self.create_write_action_data(r)
             self.call_api_update(r)
         return res
 
@@ -361,7 +375,21 @@ class MDMKhachHang(models.Model):
     @api.model
     def create(self, vals):
         record = super().create(vals)
-        self.create_write_action_data(record)
+        if not record.ma:
+            record.ma = f"mdm02{record.id:010d}"
+        # if record.ma and record.dvcs:
+        #     check = self.env['mdm.khach.hang.line'].sudo().search([('ma_mdm', '=', record.ma),
+        #                                                            ('dvcs', '=', record.dvcs.id)])
+        #     if check:
+        #         check.ma_mdm = record.ma
+        #     else:
+        #         self.env['mdm.khach.hang.line'].create({
+        #             'khach_hang_id': record.id,
+        #             'ma_mdm': record.ma,
+        #             'dvcs': record.dvcs.id,
+        #         })
+        if self._should_run_duplicate_check(vals):
+            self.create_write_action_data(record)
         self.call_api_insert(record)
 
         return record
@@ -472,4 +500,17 @@ class MDMKhachHang(models.Model):
         except Exception as e:
             print("API ERROR:", str(e))
 
+    def action_view_popup(self):
+        self.ensure_one()
 
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Mã ĐV',
+            'res_model': 'mdm.khach.hang.line',
+            'view_mode': 'tree',
+            'view_id': self.env.ref('sonha_mdm.view_mdm_khach_hang_line_tree').id,
+            'target': 'new',
+            'context': {
+                'default_khach_hang_id': self.id,
+            },
+        }

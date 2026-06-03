@@ -19,7 +19,7 @@ class MDMTongHop(models.Model):
     ten_ngan = fields.Char("Tên ngắn")
     ten = fields.Char("Tên")
     material_number = fields.Char("Material number")
-    dvt = fields.Char("Đơn vị tính")
+    dvt = fields.Many2one('mdm.dvt', string="Đơn vị tính")
     material_group = fields.Integer("Material Group")
     batch_management = fields.Char("Batch Management")
 
@@ -46,8 +46,12 @@ class MDMTongHop(models.Model):
     nhan_hang = fields.Many2one('mdm.nhan.hang', string="Nhãn hàng")
     chat_lieu = fields.Many2one('mdm.chat.lieu', string="Chất liệu")
     do_bong = fields.Many2one('mdm.do.bong', string="Độ bóng")
-    do_day = fields.Many2one('mdm.do.day', string="Độ dày")
+    do_day = fields.Char("Độ dày")
+    dung_tich_plus = fields.Char(string="Dung tích plus")
     dung_tich = fields.Many2one('mdm.dung.tich', string="Dung tích")
+    dvt_dung_tich = fields.Char(string="ĐVT Dung tích")
+    bom_sale = fields.Many2one('bom.sale', string="Loại trong BOM sales")
+
 
     key_linh_vuc = fields.Integer(related='chung_loai2.key_linh_vuc', string="Key lĩnh vực")
     key_nganh_hang = fields.Integer(related='chung_loai2.key_nganh_hang', string="Key ngành hàng")
@@ -60,6 +64,7 @@ class MDMTongHop(models.Model):
     dvcs = fields.Many2one('res.company', string="ĐV", store=True, default=lambda self: self.env.company, readonly=False)
     luong_duyet = fields.Many2one('luong.duyet', string="Luồng duyệt")
     buoc_duyet = fields.One2many('buoc.duyet.hang.hoa', 'key', string="Bước duyệt")
+    bang_con_ids = fields.One2many('mdm.tong.hop.line', 'tong_hop_id', string='Bảng con đơn vị')
 
     current_step = fields.Integer(string="STT hiện tại", default=1)
     can_approve = fields.Boolean(compute='_compute_can_approve')
@@ -73,7 +78,7 @@ class MDMTongHop(models.Model):
             )
 
             rec.can_approve = any(
-                step.ten_nguoi_duyet.id == user.id and not step.da_duyet
+                step.ten_nguoi_duyet and step.ten_nguoi_duyet == user and not step.da_duyet
                 for step in steps
             )
 
@@ -88,7 +93,7 @@ class MDMTongHop(models.Model):
 
             # tìm dòng của user hiện tại
             my_step = steps.filtered(
-                lambda x: x.ten_nguoi_duyet.id == user.id
+                lambda x: x.ten_nguoi_duyet and x.ten_nguoi_duyet == user
             )[:1]
 
             if not my_step:
@@ -122,7 +127,7 @@ class MDMTongHop(models.Model):
                         'sequence': step.sequence,
                         'phuong_thuc': step.phuong_thuc,
                         'vai_tro': step.vai_tro.id,
-                        'ten_nguoi_duyet': 2,
+                        'ten_nguoi_duyet': self.env.user.id,
                     }))
                 else:
                     for user in step.ten_nguoi_duyet:
@@ -136,53 +141,63 @@ class MDMTongHop(models.Model):
             r.buoc_duyet = lines
 
 
-    @api.constrains('chung_loai1', 'chung_loai2', 'linh_vuc', 'nganh_hang', 'nhan_hang', 'key_linh_vuc', 'key_nganh_hang', 'key_nhan_hang')
-    def _check_chung_loai(self):
-        for record in self:
-            if record.chung_loai2 and record.chung_loai2.key != record.chung_loai1:
-                raise ValidationError(
-                    "Chủng loại 2 không thuộc Chủng loại 1 đã chọn."
-                )
-            if record.linh_vuc and record.key_linh_vuc and record.linh_vuc.key_map != record.key_linh_vuc:
-                raise ValidationError(
-                    "Lĩnh vực không thuộc Chủng loại 2 đã chọn."
-                )
-            if record.nganh_hang and record.key_nganh_hang and record.nganh_hang.key_map != record.key_nganh_hang:
-                raise ValidationError(
-                    "Ngành hàng không thuộc Chủng loại 2 đã chọn."
-                )
-            if record.nhan_hang and record.key_nhan_hang and record.nhan_hang.key_map != record.key_nhan_hang:
-                raise ValidationError(
-                    "Nhãn hàng không thuộc Chủng loại 2 đã chọn."
-                )
+    # @api.constrains('chung_loai1', 'chung_loai2', 'linh_vuc', 'nganh_hang', 'nhan_hang', 'key_linh_vuc', 'key_nganh_hang', 'key_nhan_hang')
+    # def _check_chung_loai(self):
+    #     for record in self:
+    #         if record.chung_loai2 and record.chung_loai2.key != record.chung_loai1:
+    #             raise ValidationError(
+    #                 "Chủng loại 2 không thuộc Chủng loại 1 đã chọn."
+    #             )
+    #         if record.linh_vuc and record.key_linh_vuc and record.linh_vuc.key_map != record.key_linh_vuc:
+    #             raise ValidationError(
+    #                 "Lĩnh vực không thuộc Chủng loại 2 đã chọn."
+    #             )
+    #         if record.nganh_hang and record.key_nganh_hang and record.nganh_hang.key_map != record.key_nganh_hang:
+    #             raise ValidationError(
+    #                 "Ngành hàng không thuộc Chủng loại 2 đã chọn."
+    #             )
+    #         if record.nhan_hang and record.key_nhan_hang and record.nhan_hang.key_map != record.key_nhan_hang:
+    #             raise ValidationError(
+    #                 "Nhãn hàng không thuộc Chủng loại 2 đã chọn."
+    #             )
+    #
+    # @api.onchange(
+    #     'chung_loai1',
+    #     'chung_loai2',
+    #     'linh_vuc',
+    #     'nganh_hang',
+    #     'nhan_hang'
+    #     'key_linh_vuc',
+    #     'key_nganh_hang',
+    #     'key_nhan_hang'
+    # )
+    # def _onchange_validate_domain(self):
+    #     for record in self:
+    #
+    #         if record.chung_loai2 and record.chung_loai2.key != record.chung_loai1:
+    #             record.chung_loai2 = False
+    #             record.linh_vuc = False
+    #             record.nganh_hang = False
+    #             record.nhan_hang = False
+    #
+    #         if record.linh_vuc and record.key_linh_vuc and record.linh_vuc.key_map != record.key_linh_vuc:
+    #             record.linh_vuc = False
+    #
+    #         if record.nganh_hang and record.key_nganh_hang and record.nganh_hang.key_map != record.key_nganh_hang:
+    #             record.nganh_hang = False
+    #
+    #         if record.nhan_hang and record.key_nhan_hang and record.nhan_hang.key_map != record.key_nhan_hang:
+    #             record.nhan_hang = False
 
-    @api.onchange(
-        'chung_loai1',
-        'chung_loai2',
-        'linh_vuc',
-        'nganh_hang',
-        'nhan_hang'
-        'key_linh_vuc',
-        'key_nganh_hang',
-        'key_nhan_hang'
-    )
-    def _onchange_validate_domain(self):
-        for record in self:
 
-            if record.chung_loai2 and record.chung_loai2.key != record.chung_loai1:
-                record.chung_loai2 = False
-                record.linh_vuc = False
-                record.nganh_hang = False
-                record.nhan_hang = False
-
-            if record.linh_vuc and record.key_linh_vuc and record.linh_vuc.key_map != record.key_linh_vuc:
-                record.linh_vuc = False
-
-            if record.nganh_hang and record.key_nganh_hang and record.nganh_hang.key_map != record.key_nganh_hang:
-                record.nganh_hang = False
-
-            if record.nhan_hang and record.key_nhan_hang and record.nhan_hang.key_map != record.key_nhan_hang:
-                record.nhan_hang = False
+    def action_open_import_wizard(self):
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Import MDM Hàng hóa',
+            'res_model': 'mdm.tong.hop.import.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+        }
 
     def _normalize_name(self, text):
         text = (text or "").lower()
@@ -269,56 +284,21 @@ class MDMTongHop(models.Model):
     @api.model
     def create(self, vals):
         record = super().create(vals)
+        if not record.ma:
+            record.ma = f"mdm01{record.id:010d}"
+        # if record.ma and record.dvcs:
+        #     check = self.env['mdm.khach.hang.line'].sudo().search([('ma_mdm', '=', record.ma),
+        #                                                            ('dvcs', '=', record.dvcs.id)])
+        #     if check:
+        #         check.ma_mdm = record.ma
+        #     else:
+        #         self.env['mdm.tong.hop.line'].create({
+        #             'tong_hop_id': record.id,
+        #             'ma_mdm': record.ma,
+        #             'dvcs': record.dvcs.id,
+        #         })
         self.create_write_action_data(record)
         self.call_api_insert(record)
-
-        # Nếu không có vector thì bỏ qua
-        # if not record.vector:
-        #     return record
-        #
-        # new_vec = json.loads(record.vector)
-        # # new_vec_group = json.loads(record.vector_group)
-        #
-        # logs = []
-        # offset = 0
-        # limit = 5000
-        #
-        # while True:
-        #     batch = self.sudo().search_read(
-        #         [('id', '!=', record.id)],
-        #         ['id', 'vector', 'ten', 'vector_group'],
-        #         offset=offset,
-        #         limit=limit
-        #     )
-        #
-        #     if not batch:
-        #         break
-        #
-        #     for r in batch:
-        #         if not r['vector']:
-        #             continue
-        #
-        #         # 🚀 Tối ưu 1: lọc theo độ dài tên trước
-        #         if record.ten and r['ten']:
-        #             if abs(len(record.ten) - len(r['ten'])) > 5:
-        #                 continue
-        #
-        #         old_vec = json.loads(r['vector'])
-        #
-        #         score = self._cosine_similarity_dict(new_vec, old_vec)
-        #
-        #         if score >= 0.8:
-        #             logs.append({
-        #                 'mdm': record.id,
-        #                 'record': r['id'],
-        #                 'ten': r['ten'],
-        #                 'score': score * 100
-        #             })
-        #
-        #     offset += limit
-        #
-        # if logs:
-        #     self.env['ket.qua.tong.hop'].sudo().create(logs)
 
         return record
 
@@ -411,7 +391,7 @@ class MDMTongHop(models.Model):
                 'ten': record.ten or None,
                 'ma_tg': record.ma_tg or None,
                 'ten_ngan': record.ten_ngan or None,
-                'dvt': record.dvt or None,
+                'dvt': record.dvt.ma or None,
                 'ma_dvcs': record.dvcs.company_code or None,
                 'ten_dvcs': record.dvcs.name or None,
                 'type': 'insert',
@@ -454,7 +434,7 @@ class MDMTongHop(models.Model):
                 'ten': record.ten or None,
                 'ma_tg': record.ma_tg or None,
                 'ten_ngan': record.ten_ngan or None,
-                'dvt': record.dvt or None,
+                'dvt': record.dvt.ma or None,
                 'ma_dvcs': record.dvcs.company_code or None,
                 'ten_dvcs': record.dvcs.name or None,
                 'type': 'update',
@@ -489,3 +469,17 @@ class MDMTongHop(models.Model):
             self.call_api_update(r)
         return res
 
+    def action_view_popup(self):
+        self.ensure_one()
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Mã ĐV',
+            'res_model': 'mdm.tong.hop.line',
+            'view_mode': 'tree',
+            'view_id': self.env.ref('sonha_mdm.view_mdm_tong_hop_line_tree').id,
+            'target': 'new',
+            'context': {
+                'default_tong_hop_id': self.id,
+            },
+        }

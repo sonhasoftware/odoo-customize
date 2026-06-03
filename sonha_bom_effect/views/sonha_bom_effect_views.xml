@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sonha_bom_bcu_tree" model="ir.ui.view">
+        <field name="name">sonha.bom.bcu.tree</field>
+        <field name="model">sonha.bom.bcu</field>
+        <field name="arch" type="xml">
+            <tree string="Định mức NVL effect/SAP" create="1" edit="1" delete="1">
+                <field name="ma_tp"/>
+                <field name="ten_tp"/>
+                <field name="ma_nvl"/>
+                <field name="ten_nvl"/>
+                <field name="dinh_muc"/>
+                <field name="do_day"/>
+                <field name="kho_1"/>
+                <field name="kho_2"/>
+                <field name="dvcs"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_sonha_bom_bcu_form" model="ir.ui.view">
+        <field name="name">sonha.bom.bcu.form</field>
+        <field name="model">sonha.bom.bcu</field>
+        <field name="arch" type="xml">
+            <form string="Định mức NVL effect/SAP">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="ma_tp"/>
+                            <field name="ten_tp"/>
+                            <field name="ma_nvl"/>
+                            <field name="ten_nvl"/>
+                        </group>
+                        <group>
+                            <field name="dinh_muc"/>
+                            <field name="do_day"/>
+                            <field name="kho_1"/>
+                            <field name="kho_2"/>
+                            <field name="dvcs"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sonha_bom_bcu" model="ir.actions.act_window">
+        <field name="name">Định mức NVL effect/SAP</field>
+        <field name="res_model">sonha.bom.bcu</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_sonha_bom_effect_root" name="Định mức NVL" sequence="10"/>
+    <menuitem id="menu_sonha_bom_effect" name="Định mức effect/SAP" parent="menu_sonha_bom_effect_root" action="action_sonha_bom_bcu" sequence="1"/>
+</odoo>

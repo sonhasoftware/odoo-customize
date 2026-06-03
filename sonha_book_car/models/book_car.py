@@ -98,6 +98,7 @@ class BookCar(models.Model):
     @api.depends('start_date', 'end_date', 'company_id')
     def caculate_car_estimate(self):
         for r in self:
+            number_car = None
             if r.company_id:
                 now = datetime.now().date()
                 record = self.env['book.car'].sudo().search(['&',

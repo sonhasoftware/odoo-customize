@@ -5,7 +5,7 @@ from . import mdm_nganh_hang
 from . import mdm_nhan_hang
 from . import mdm_chat_lieu
 from . import mdm_do_bong
-from . import mdm_do_day
+from . import mdm_dvt
 from . import mdm_dung_tich
 from . import mdm_hh_type
 from . import mdm_tong_hop
@@ -27,3 +27,10 @@ from . import plan
 from . import tinh_cu
 from . import mien_lon
 from . import mien_nho
+from . import mdm_tong_hop_import_wizard
+from . import mdm_khach_hang_import_wizard
+
+from . import bom_sale
+from . import mdm_tong_hop_line
+
+from . import mdm_khach_hang_line

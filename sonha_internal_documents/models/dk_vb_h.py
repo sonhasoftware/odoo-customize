@@ -6,6 +6,29 @@ from openai import OpenAI
 import google.generativeai as genai
 import requests
 import json
+# from pyvi import ViTokenizer
+# from sumy.parsers.plaintext import PlaintextParser
+# from sumy.nlp.tokenizers import Tokenizer
+# from sumy.summarizers.text_rank import TextRankSummarizer
+
+
+def summarize_simple_vi(text, max_sentences=2):
+    if not text:
+        return ""
+
+    # Chuẩn hóa xuống 1 dòng
+    text = text.replace("\n", ". ").strip()
+
+    # Tách câu theo dấu chấm
+    sentences = [s.strip() for s in text.split(".") if s.strip()]
+
+    # Lấy n câu đầu
+    summary = ". ".join(sentences[:max_sentences])
+
+    if summary and not summary.endswith("."):
+        summary += "."
+
+    return summary
 
 
 class DKVanBanH(models.Model):
@@ -155,14 +178,27 @@ class DKVanBanH(models.Model):
 
     def action_confirm(self):
         Mail = self.env['mail.mail']
-        api_key = self.env['ir.config_parameter'].sudo().get_param("gemini.api_key")
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-2.0-flash")
+        # api_key = self.env['ir.config_parameter'].sudo().get_param("gemini.api_key")
+        # genai.configure(api_key=api_key)
+        # model = genai.GenerativeModel("gemini-2.0-flash")
         for r in self:
             # genai.configure(api_key=api_key)
-            prompt = f"Tóm tắt ngắn gọn nội dung sau bằng tiếng Việt:\n\n{r.noi_dung}"
-            response = model.generate_content(prompt)
-            r.noi_dung_tom_tat = response.text
+            # prompt = f"Tóm tắt ngắn gọn nội dung sau bằng tiếng Việt:\n\n{r.noi_dung}"
+            # response = model.generate_content(prompt)
+            # r.noi_dung_tom_tat = response.text
+            # text = r.noi_dung or ""
+            # result = summarizer(
+            #     text[:3000],
+            #     max_length=120,
+            #     min_length=30,
+            #     do_sample=False
+            # )
+            # r.noi_dung_tom_tat = result[0]["summary_text"]
+            a = summarize_simple_vi(
+                r.noi_dung,
+                max_sentences=2
+            )
+            r.noi_dung_tom_tat = a
             recipients = []
             if r.nguoi_tu_choi:
                 recipients.append(r.nguoi_tu_choi.employee_id)
@@ -196,7 +232,7 @@ class DKVanBanH(models.Model):
 
                         <p><b>Thông tin đơn phê duyệt:</b><br/>
                         • <b>Tóm tắt văn bản:</b><br/>
-                        <p>{response.text}</p>
+                        <p>{a}</p>
                         • <b>Người gửi:</b> {sender_name}<br/>
                         • <b>Số văn bản:</b> {document_no}<br/>
                         • <b>Loại đơn:</b> <b>{document_type}</b><br/>
@@ -233,12 +269,18 @@ class DKVanBanH(models.Model):
             r.status = 'done'
 
     def func_xu_ly_duyet(self, r):
-        api_key = self.env['ir.config_parameter'].sudo().get_param("gemini.api_key")
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-2.0-flash")
-        prompt = f"Tóm tắt ngắn gọn nội dung sau bằng tiếng Việt:\n\n{r.noi_dung}"
-        response = model.generate_content(prompt)
-        r.noi_dung_tom_tat = response.text
+        # api_key = self.env['ir.config_parameter'].sudo().get_param("gemini.api_key")
+        # genai.configure(api_key=api_key)
+        # model = genai.GenerativeModel("gemini-2.0-flash")
+        # prompt = f"Tóm tắt ngắn gọn nội dung sau bằng tiếng Việt:\n\n{r.noi_dung}"
+        # response = model.generate_content(prompt)
+        # r.noi_dung_tom_tat = response.text
+
+        a = summarize_simple_vi(
+                r.noi_dung,
+                max_sentences=2
+            )
+        r.noi_dung_tom_tat = a
 
         pending_records = self.env['dk.vb.d'].sudo().search([
             ('dk_vb_h', '=', r.id),
@@ -289,7 +331,7 @@ class DKVanBanH(models.Model):
 
                     <p><b>Thông tin đơn phê duyệt:</b><br/>
                     • <b>Tóm tắt văn bản:</b><br/>
-                    <p>{response.text}</p>
+                    <p>{a}</p>
                     • <b>Người gửi:</b> {sender_name}<br/>
                     • <b>Số văn bản:</b> {document_no}<br/>
                     • <b>Loại đơn:</b> <b>{document_type}</b><br/>

@@ -9,6 +9,7 @@
             <field name="interval_number">1</field>
             <field name="interval_type">days</field>
             <field name="numbercall">-1</field>
+            <field name="active">false</field>
         </record>
 
         <record id="ir_cron_action_vector_group" model="ir.cron">
@@ -20,6 +21,7 @@
             <field name="interval_number">1</field>
             <field name="interval_type">days</field>
             <field name="numbercall">-1</field>
+            <field name="active">false</field>
         </record>
 
         <record id="ir_cron_action_vector_khach_hang" model="ir.cron">
@@ -31,6 +33,7 @@
             <field name="interval_number">1</field>
             <field name="interval_type">days</field>
             <field name="numbercall">-1</field>
+            <field name="active">false</field>
         </record>
     </data>
 </odoo>

@@ -6,7 +6,7 @@
     'summary': 'Sơn Hà MDM',
     'website': 'https://',
     'description': "Sơn Hà MDM",
-    'depends': [],
+    'depends': ['base', 'sonha_luong_duyet'],
     'data': [
         'security/ir.model.access.csv',
         'views/mdm_chung_loai1_views.xml',
@@ -16,7 +16,7 @@
         'views/mdm_nhan_hang_views.xml',
         'views/mdm_chat_lieu_views.xml',
         'views/mdm_do_bong_views.xml',
-        'views/mdm_do_day_views.xml',
+        'views/mdm_dvt_views.xml',
         'views/mdm_dung_tich_views.xml',
         'views/mdm_hh_type_views.xml',
         'views/mdm_quoc_gia_views.xml',
@@ -27,6 +27,8 @@
         'views/mdm_khu_vuc_views.xml',
         'views/mdm_quan_ly_vung_views.xml',
         'views/mdm_tong_hop_views.xml',
+        'views/mdm_tong_hop_import_wizard_views.xml',
+        'views/mdm_khach_hang_import_wizard_views.xml',
         'views/mdm_khach_hang_views.xml',
         'views/phuong_xa_cu_views.xml',
         'views/quan_huyen_cu_views.xml',
@@ -34,14 +36,16 @@
         'views/plan_views.xml',
         'views/mien_lon_views.xml',
         'views/mien_nho_views.xml',
+        'views/bom_sale_views.xml',
+        'views/view_popup_con.xml',
         'data/cron_job.xml',
         'views/menu_views.xml',
     ],
-    'assets': {
-        'web.assets_backend': [
-            'sonha_mdm/static/src/css/style.css',
-        ],
-    },
+    # 'assets': {
+    #     'web.assets_backend': [
+    #         'sonha_mdm/static/src/css/style.css',
+    #     ],
+    # },
     'installable': True,
     'application': True,
     'license': 'LGPL-3',

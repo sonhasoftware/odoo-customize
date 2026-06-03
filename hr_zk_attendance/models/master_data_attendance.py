@@ -1,4 +1,5 @@
 from odoo import models, fields, api
+from datetime import timedelta
 
 
 class MasterDataAttendance(models.Model):
@@ -28,8 +29,8 @@ class MasterDataAttendance(models.Model):
         if rec.employee_id and rec.attendance_time:
             self.env['employee.attendance.v2'].sudo().recompute_for_employee(
                 rec.employee_id,
-                rec.attendance_time.date(),
-                rec.attendance_time.date()
+                (rec.attendance_time + timedelta(hours=7)).date() - timedelta(days=1),
+                (rec.attendance_time + timedelta(hours=7)).date() + timedelta(days=1)
             )
         return rec
 
@@ -37,17 +38,19 @@ class MasterDataAttendance(models.Model):
         res = super().write(vals)
         for rec in self:
             if rec.employee_id:
-                dt = rec.attendance_time.date()
                 self.env['employee.attendance.v2'].sudo().recompute_for_employee(
-                    rec.employee_id, dt, dt
+                    rec.employee_id,
+                    (rec.attendance_time + timedelta(hours=7)).date() - timedelta(days=1),
+                    (rec.attendance_time + timedelta(hours=7)).date() + timedelta(days=1)
                 )
         return res
 
     def unlink(self):
         for rec in self:
             if rec.employee_id and rec.attendance_time:
-                dt = rec.attendance_time.date()
                 self.env['employee.attendance.v2'].sudo().recompute_for_employee(
-                    rec.employee_id, dt, dt
+                    rec.employee_id,
+                    (rec.attendance_time + timedelta(hours=7)).date() - timedelta(days=1),
+                    (rec.attendance_time + timedelta(hours=7)).date() + timedelta(days=1)
                 )
         return super().unlink()

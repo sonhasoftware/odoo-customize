@@ -51,6 +51,7 @@ class RegisterOvertimeUpdate(models.Model):
     employee_security = fields.Many2one('hr.employee', compute='get_employee_security')
     all_times = fields.Text(string="Thời gian", compute="_compute_all_times", store=True)
     record_url = fields.Char(string="Record URL", compute="_compute_record_url")
+    actual_compensatory_hours = fields.Text(string="Giờ nghỉ bù thực tế", default="{}")
 
     @api.constrains('date')
     def _check_overtime_conflict(self):
@@ -62,9 +63,9 @@ class RegisterOvertimeUpdate(models.Model):
                     raise ValidationError("Không được để trống lý do")
                 if not rec.date:
                     raise ValidationError("Không được để trống ngày")
-                if not rec.start_time:
+                if rec.start_time is False:
                     raise ValidationError("Không được để trống thời gian bắt đầu")
-                if not rec.end_time:
+                if rec.end_time is False:
                     raise ValidationError("Không được để trống thời gian kết thúc")
 
     @api.depends('employee_id', 'employee_ids')
@@ -275,7 +276,7 @@ class RegisterOvertimeUpdate(models.Model):
                         ON rel.employee_overtime_rel = rov.id
                         AND rov.type != 'one'
                     WHERE ovr.date IS NOT NULL
-                    AND ovr.start_time > 0
+                    AND ovr.start_time >= 0
                     AND ovr.end_time > 0;
                 """, {'overtime_id': overtime_id.id})
 
@@ -327,7 +328,7 @@ class RegisterOvertimeUpdate(models.Model):
                         ON rel.employee_overtime_rel = rov.id
                         AND rov.type != 'one'
                     WHERE ovr.date IS NOT NULL
-                    AND ovr.start_time > 0
+                    AND ovr.start_time >= 0
                     AND ovr.end_time > 0;
                 """, {'overtime_id': overtime_id.id})
 
@@ -335,6 +336,9 @@ class RegisterOvertimeUpdate(models.Model):
         res = super(RegisterOvertimeUpdate, self).write(vals)
         for rec in self:
             rec.explode_to_overtime_write(rec)
+            if not self.env.context.get('skip_overtime_actual_sync') and (rec.status == 'done' or rec.status_lv2 == 'done'):
+                rec._recompute_overtime_for_record(rec)
+                rec._sync_actual_compensatory_for_record(rec)
         return res
 
     @api.onchange('employee_id', 'employee_ids', 'status_lv2', 'type_overtime')
@@ -375,39 +379,20 @@ class RegisterOvertimeUpdate(models.Model):
                 prev_status = r.status
                 r.status_lv2 = 'done'
                 r.status = 'done'
-                over_time = 0
-                for ot in r.date:
-                    time_ot = (ot.end_time - ot.start_time) * ot.coefficient
-                    over_time += time_ot
-                list_employee = r.employee_ids or [r.employee_id]
-                for employee in list_employee:
-                    if employee.department_id.over_time == 'date':
-                        employee.total_compensatory += over_time
-                    else:
-                        pass
-                # gọi recompute chỉ khi chuyển sang done (hoặc luôn vì ta vừa cộng bù)
-                # Nếu trước đó chưa phải done thì apply recompute
                 if prev_status != 'done':
                     self._recompute_overtime_for_record(r)
+                self._sync_actual_compensatory_for_record(r)
             else:
                 raise ValidationError("Bạn không có quyền thực hiện hành động này")
 
     def action_back_status(self):
         for r in self:
             prev_status = r.status
-            over_time = 0
-            for ot in r.date:
-                time_ot = (ot.end_time - ot.start_time) * ot.coefficient
-                over_time += time_ot
             list_employee = r.employee_ids or [r.employee_id]
             if list_employee[-1].parent_id.id == self.env.user.employee_id.id or self.env.user.has_group('sonha_employee.group_manager_employee') or self.env.user.has_group("sonha_word_slip.group_approve_work") or list_employee[-1].employee_approval.id == self.env.user.employee_id.id:
                 r.status = 'draft'
                 r.status_lv2 = 'draft'
-                for employee in list_employee:
-                    if employee.department_id.over_time == 'date':
-                        employee.total_compensatory -= over_time
-                    else:
-                        pass
+                self._sync_actual_compensatory_for_record(r)
                 if prev_status == 'done':
                     self._recompute_overtime_for_record(r)
             else:
@@ -416,33 +401,20 @@ class RegisterOvertimeUpdate(models.Model):
     def action_confirm(self):
         for r in self:
             prev_status = r.status
-            over_time = 0
-            for ot in r.date:
-                time_ot = (ot.end_time - ot.start_time) * ot.coefficient
-                over_time += time_ot
             if r.type == 'one':
                 if r.department_id.manager_id.user_id.id == self.env.user.id or self.env.user.id == 1738 or r.employee_id.parent_id.user_id.id == self.env.user.id or self.env.user.has_group("sonha_word_slip.group_approve_work"):
                     r.status = 'done'
-                    if r.employee_id.department_id.over_time == 'date':
-                        r.employee_id.total_compensatory += over_time
-                    else:
-                        pass
                 else:
                     raise ValidationError("Bạn không có quyền thực hiện hành động này")
             else:
                 if r.department_id.manager_id.user_id.id == self.env.user.id or self.env.user.id == 1738 or r.employee_ids[-1].parent_id.user_id.id == self.env.user.id or self.env.user.has_group("sonha_word_slip.group_approve_work"):
                     r.status = 'done'
-                    for employee in r.employee_ids:
-                        if employee.department_id.over_time == 'date':
-                            employee.total_compensatory += over_time
-                        else:
-                            pass
                 else:
                     raise ValidationError("Bạn không có quyền thực hiện hành động này")
             self.action_noti_user(r)
-            # nếu chuyển sang done từ trạng thái khác -> recompute
             if prev_status != 'done':
                 self._recompute_overtime_for_record(r)
+            self._sync_actual_compensatory_for_record(r)
 
     def action_noti_user(self, record):
         user_id = self.env['res.users'].sudo().search([('id', '=', record.create_uid.id)])
@@ -462,6 +434,8 @@ class RegisterOvertimeUpdate(models.Model):
         for r in self:
             prev_status = r.status
             r.status = 'draft'
+            r.status_lv2 = 'draft'
+            self._sync_actual_compensatory_for_record(r)
             # nếu trước đó là done -> undo -> recompute
             if prev_status == 'done':
                 self._recompute_overtime_for_record(r)
@@ -473,6 +447,44 @@ class RegisterOvertimeUpdate(models.Model):
             self.env['rel.lam.them'].sudo().search([('key_form', '=', r.id)]).unlink()
         return super(RegisterOvertimeUpdate, self).unlink()
 
+    def _get_actual_compensatory_map(self):
+        self.ensure_one()
+        if not self.actual_compensatory_hours:
+            return {}
+        try:
+            data = json.loads(self.actual_compensatory_hours)
+        except Exception:
+            return {}
+        return data if isinstance(data, dict) else {}
+
+    def _sync_actual_compensatory_for_record(self, rec):
+        employees = rec.employee_ids or (rec.employee_id and [rec.employee_id]) or []
+        old_values = rec._get_actual_compensatory_map()
+        new_values = {}
+        Attendance = self.env['employee.attendance.v2'].sudo()
+        is_done = rec.status == 'done' or rec.status_lv2 == 'done'
+
+        for employee in employees:
+            old_amount = float(old_values.get(str(employee.id), 0) or 0)
+            new_amount = 0
+            if is_done and employee.department_id.over_time == 'date':
+                new_amount = Attendance._get_actual_compensatory_hours_for_overtime(rec, employee)
+            delta = new_amount - old_amount
+            if delta:
+                employee.sudo().total_compensatory += delta
+            if new_amount:
+                new_values[str(employee.id)] = new_amount
+
+        removed_employee_ids = set(old_values.keys()) - {str(emp.id) for emp in employees}
+        for employee_id in removed_employee_ids:
+            old_amount = float(old_values.get(employee_id, 0) or 0)
+            if old_amount:
+                employee = self.env['hr.employee'].sudo().browse(int(employee_id))
+                if employee.exists():
+                    employee.total_compensatory -= old_amount
+
+        rec.with_context(skip_overtime_actual_sync=True).write({'actual_compensatory_hours': json.dumps(new_values)})
+
     def _recompute_overtime_for_record(self, rec):
         employees = rec.employee_ids or (rec.employee_id and [rec.employee_id]) or []
         if not employees:
@@ -482,8 +494,8 @@ class RegisterOvertimeUpdate(models.Model):
             if not line.date:
                 continue
 
-            date_from = line.date
-            date_to = line.date
+            date_from = line.date - timedelta(days=1)
+            date_to = line.date + timedelta(days=1)
 
             for emp in employees:
                 self.env['employee.attendance.v2'].sudo().recompute_for_employee(

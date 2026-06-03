@@ -7,7 +7,7 @@ access_mdm_nganh_hang,mdm.nganh.hang,model_mdm_nganh_hang,,1,1,1,1
 access_mdm_nhan_hang,mdm.nhan.hang,model_mdm_nhan_hang,,1,1,1,1
 access_mdm_chat_lieu,mdm.chat.lieu,model_mdm_chat_lieu,,1,1,1,1
 access_mdm_do_bong,mdm.do.bong,model_mdm_do_bong,,1,1,1,1
-access_mdm_do_day,mdm.do.day,model_mdm_do_day,,1,1,1,1
+access_mdm_dvt,mdm.dvt,model_mdm_dvt,,1,1,1,1
 access_mdm_dung_tich,mdm.dung.tich,model_mdm_dung_tich,,1,1,1,1
 access_mdm_hh_type,mdm.hh.type,model_mdm_hh_type,,1,1,1,1
 
@@ -33,4 +33,14 @@ access_phuong_xa_cu,phuong.xa.cu,model_phuong_xa_cu,,1,1,1,1
 access_quan_huyen_cu,quan.huyen.cu,model_quan_huyen_cu,,1,1,1,1
 access_tinh_cu,tinh.cu,model_tinh_cu,,1,1,1,1
 access_mdm_plan,mdm.plan,model_mdm_plan,,1,1,1,1
+access_mien_lon,mien.lon,model_mien_lon,,1,1,1,1
 access_mien_nho,mien.nho,model_mien_nho,,1,1,1,1
+
+access_mdm_tong_hop_import_wizard,mdm.tong.hop.import.wizard,model_mdm_tong_hop_import_wizard,,1,1,1,1
+access_bom_sale,bom.sale,model_bom_sale,,1,1,1,1
+
+access_mdm_khach_hang_import_wizard,mdm.khach.hang.import.wizard,model_mdm_khach_hang_import_wizard,,1,1,1,1
+
+access_mdm_tong_hop_line,mdm.tong.hop.line,model_mdm_tong_hop_line,,1,1,1,1
+
+access_mdm_khach_hang_line,mdm.khach.hang.line,model_mdm_khach_hang_line,,1,1,1,1

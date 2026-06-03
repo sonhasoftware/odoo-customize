@@ -14,6 +14,10 @@
                         type="object"
                         string="Đối chiếu dữ liệu so sánh"
                         class="btn-primary"/>
+                    <button string="Cập nhật mã ĐV"
+                            type="object"
+                            name="action_view_popup"
+                            class="btn-primary"/>
                     <button name="action_approve"
                         string="Duyệt"
                         type="object"
@@ -23,6 +27,7 @@
                 </header>
                 <group>
                     <group>
+                        <field name="ma"/>
                         <field name="ten_khach"/>
                         <field name="so_dien_thoai" />
                         <field name="luong_duyet" options="{'no_create': True}"/>
@@ -45,6 +50,15 @@
                                 <field name="score_cccd"/>
                                 <field name="score_sdt"/>
                                 <field name="score_ten"/>
+                            </tree>
+                        </field>
+                    </page>
+                    <page string="Bảng con đơn vị">
+                        <field name="bang_con_ids">
+                            <tree editable="bottom">
+                                <field name="ma_mdm" readonly="1"/>
+                                <field name="ma_dv"/>
+                                <field name="dvcs" readonly="1"/>
                             </tree>
                         </field>
                     </page>
@@ -71,6 +85,7 @@
             <form string="Nhập thêm thông tin">
                 <group>
                     <group>
+                        <field name="ma"/>
                         <field name="ma_khach"/>
                         <field name="ten_khach"/>
                         <field name="dia_chi_khach"/>
@@ -118,23 +133,25 @@
         <field name="model">mdm.khach.hang</field>
         <field name="arch" type="xml">
             <tree string="MDM khách hàng">
-                <field name="ma_khach"/>
-                    <field name="ten_khach"/>
-                    <field name="dia_chi_khach"/>
-                    <field name="ma_cn"/>
-                    <field name="nhom_khach"/>
-                    <field name="ten_salesman"/>
-                    <field name="ma_salesman"/>
-                    <field name="ma_dms"/>
-                    <field name="ma_tinh" />
-                    <field name="kinh_do" />
-                    <field name="vi_do" />
-                    <field name="so_dien_thoai" />
-                    <field name="dat_nuoc"/>
-                    <field name="khu_vuc"/>
-                    <field name="vung"/>
-                    <field name="qlv"/>
-                    <field name="mst"/>
+                <field name="ma_khach" optional="show" string="Mã KH_NCC của đơn vị"/>
+                <field name="ma" optional="show" string="Mã MDM"/>
+                <field name="ten_khach" optional="show" string="Tên KH_NCC"/>
+                <field name="dia_chi_khach" optional="show" string="Địa chỉ KH_NCC"/>
+                <field name="phuong_xa_cu" optional="show"/>
+                <field name="quan_huyen_cu" optional="show"/>
+                <field name="tinh_cu" optional="show"/>
+                <field name="dat_nuoc" string="Quốc gia" optional="show"/>
+                <field name="so_dien_thoai" optional="show" string="Số điện thoại KH_NCC"/>
+                <field name="mst" optional="show" string="Mã số thuế KH_NCC"/>
+                <field name="plan" optional="show"/>
+                <field name="ma_cn" optional="show"/>
+                <field name="nhom_khach" optional="show"/>
+                <field name="ma_salesman" optional="show"/>
+                <field name="vung" optional="show"/>
+                <field name="qlv" optional="show"/>
+                <field name="khu_vuc" optional="show"/>
+                <field name="mien_lon" optional="show"/>
+                <field name="mien_nho" optional="show"/>
             </tree>
         </field>
     </record>
