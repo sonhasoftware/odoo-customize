@@ -49,42 +49,6 @@ DELETE FROM ke_hoach_kinh_doanh WHERE period_id IN (SELECT id FROM demo_period);
 
 DELETE FROM ke_hoach_vat_tu WHERE code = 'KHVT_SHE_0001';
 
--- Đồng bộ cache mã hàng từ MDM để các dòng demo và các bước tính toán có đủ tên/đơn vị tính.
-INSERT INTO ma_hang (
-    mdm_line_id, mdm_id, ma_mdm, ma_sap, ten_hang,
-    don_vi_tinh_id, bom_sale_id, company_id, nganh_hang,
-    active, create_uid, write_uid, create_date, write_date
-)
-SELECT
-    l.id,
-    l.tong_hop_id,
-    l.ma_mdm,
-    TRIM(l.ma_dv),
-    th.ten,
-    l.dvt,
-    l.bom_sale,
-    l.dvcs,
-    nh.ten,
-    TRUE,
-    1, 1, NOW(), NOW()
-FROM mdm_tong_hop_line l
-LEFT JOIN mdm_tong_hop th ON th.id = l.tong_hop_id
-LEFT JOIN mdm_nganh_hang nh ON nh.id = th.nganh_hang
-WHERE l.ma_dv IS NOT NULL
-  AND TRIM(l.ma_dv) != ''
-ON CONFLICT (ma_sap) DO UPDATE SET
-    mdm_line_id = EXCLUDED.mdm_line_id,
-    mdm_id = EXCLUDED.mdm_id,
-    ma_mdm = EXCLUDED.ma_mdm,
-    ten_hang = EXCLUDED.ten_hang,
-    don_vi_tinh_id = EXCLUDED.don_vi_tinh_id,
-    bom_sale_id = EXCLUDED.bom_sale_id,
-    company_id = EXCLUDED.company_id,
-    nganh_hang = EXCLUDED.nganh_hang,
-    active = TRUE,
-    write_uid = 1,
-    write_date = NOW();
-
 -- Kỳ kế hoạch SHE bắt đầu từ tháng 06/2026.
 INSERT INTO ke_hoach_vat_tu (code, period_month, state, company_id, create_uid, write_uid, create_date, write_date)
 SELECT

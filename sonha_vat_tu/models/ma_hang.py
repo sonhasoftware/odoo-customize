@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import os as _os
+
 from odoo import _, fields, models
 
 
@@ -65,3 +67,13 @@ class MaHang(models.Model):
                 'sticky': False,
             },
         }
+
+    def init(self):
+        with open(_SQL_SYNC_PATH, 'r', encoding='utf-8-sig') as f:
+            self.env.cr.execute(f.read())
+
+
+_SQL_SYNC_PATH = _os.path.join(
+    _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))),
+    'data', 'ma_hang_mdm_sync.sql',
+)
