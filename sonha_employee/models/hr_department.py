@@ -8,3 +8,5 @@ class HrDepartment(models.Model):
     over_time = fields.Selection([('hours', 'Hưởng giờ'),
                                   ('date', 'Hưởng ngày')
                                   ], string='Category', default='hours')
+
+    produce_department = fields.Boolean(string='Sản xuất', default=False)

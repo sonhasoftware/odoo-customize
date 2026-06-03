@@ -47,8 +47,8 @@ class AuthAPI(http.Controller):
                 # total_leave = employee_id.old_leave_balance + employee_id.new_leave_balance
                 now = datetime.now().date()
                 query = "SELECT * FROM public.fn_bao_cao_nxt_phep_th(%s, %s, %s, %s, %s)"
-                self.env.cr.execute(query, (employee_id.company_id.id, now, now, 0, employee_id.id))
-                rows = self.env.cr.dictfetchall()
+                request.env.cr.execute(query, (employee_id.company_id.id, now, now, 0, employee_id.id))
+                rows = request.env.cr.dictfetchall()
                 total_leave = 0
                 if rows:
                     for r in rows:
