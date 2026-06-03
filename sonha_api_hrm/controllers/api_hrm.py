@@ -44,7 +44,15 @@ class AuthAPI(http.Controller):
             if uid:
                 user = request.env['res.users'].sudo().browse(uid)
                 employee_id = request.env['hr.employee'].sudo().search([('user_id', '=', user.id)])
-                total_leave = employee_id.old_leave_balance + employee_id.new_leave_balance
+                # total_leave = employee_id.old_leave_balance + employee_id.new_leave_balance
+                now = datetime.now().date()
+                query = "SELECT * FROM public.fn_bao_cao_nxt_phep_th(%s, %s, %s, %s, %s)"
+                request.env.cr.execute(query, (employee_id.company_id.id, now, now, 0, employee_id.id))
+                rows = request.env.cr.dictfetchall()
+                total_leave = 0
+                if rows:
+                    for r in rows:
+                        total_leave += r["ton_cuoi"]
 
                 # 🔥 Trả về response có Set-Cookie
                 response = Response(json.dumps({
