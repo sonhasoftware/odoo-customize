@@ -38,6 +38,7 @@
         'views/mien_nho_views.xml',
         'views/bom_sale_views.xml',
         'views/view_popup_con.xml',
+        'views/bang_con_dv_hang_hoa.xml',
         'data/cron_job.xml',
         'views/menu_views.xml',
     ],

@@ -27,6 +27,12 @@
               action="action_mdm_khach_hang_import_excel_wizard"
               sequence="4"/>
 
+    <menuitem id="menu_bang_con_dv_hh"
+              name="Bảng con đv Hàng Hóa"
+              parent="menu_sonha_mdm"
+              action="action_bang_con_dv_hh"
+              sequence="5"/>
+
     <menuitem id="menu_mdm_danh_muc"
               name="Danh mục"
               parent="menu_sonha_mdm"
