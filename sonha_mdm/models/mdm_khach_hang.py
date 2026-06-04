@@ -15,7 +15,7 @@ class MDMKhachHang(models.Model):
 
     ma = fields.Char("Mã")
     ma_khach = fields.Char("Mã", store=True)
-    ten_khach = fields.Char("Tên", store=True, required=True)
+    ten_khach = fields.Char("Tên", store=True)
     dia_chi_khach = fields.Char("Địa chỉ khách", store=True)
     ma_cn = fields.Many2one('mdm.chi.nhanh', "Mã Chi nhánh")
     nhom_khach = fields.Many2one('mdm.nhom.khach', "Nhóm khách")
