@@ -5,10 +5,6 @@
         <field name="model">ma.hang</field>
         <field name="arch" type="xml">
             <tree create="false" edit="false" delete="false">
-                <header>
-                    <button name="action_sync_from_mdm" type="object" string="Đồng bộ từ MDM"
-                            class="btn-primary" display="always"/>
-                </header>
                 <field name="ma_mdm" string="Mã MDM"/>
                 <field name="ma_sap" string="Mã đơn vị"/>
                 <field name="ten_hang" string="Tên hàng hóa"/>

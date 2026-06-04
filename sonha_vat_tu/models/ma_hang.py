@@ -75,5 +75,5 @@ class MaHang(models.Model):
 
 _SQL_SYNC_PATH = _os.path.join(
     _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))),
-    'data', 'ma_hang_mdm_sync.sql',
+    'data', 'sql', 'ma_hang_mdm_sync.sql',
 )

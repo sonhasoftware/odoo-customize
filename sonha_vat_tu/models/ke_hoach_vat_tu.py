@@ -17,7 +17,7 @@ from .mail_message import VAT_TU_CHATTER_SCOPES
 
 _SQL_FUNCTIONS_PATH = _os.path.join(
     _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))),
-    'data', 'fn_ke_hoach_vat_tu.sql',
+    'data', 'sql', 'fn_ke_hoach_vat_tu.sql',
 )
 
 

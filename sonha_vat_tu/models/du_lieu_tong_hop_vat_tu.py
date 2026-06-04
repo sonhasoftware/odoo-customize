@@ -155,12 +155,12 @@ class DuLieuTongHopVatTu(models.Model):
 
 _SQL_PATH = _os.path.join(
     _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))),
-    'data', 'du_lieu_tong_hop_vat_tu_triggers.sql',
+    'data', 'sql', 'du_lieu_tong_hop_vat_tu_triggers.sql',
 )
 
 _SQL_BOM_PATH = _os.path.join(
     _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))),
-    'data', 'fn_bom_chuoi_cung_ung.sql',
+    'data', 'sql', 'fn_bom_chuoi_cung_ung.sql',
 )
 
 _SOURCE_TABLES = (
@@ -175,11 +175,11 @@ _SOURCE_TABLES = (
 
 
 def _read_sql_file():
-    """Đọc file data/du_lieu_tong_hop_vat_tu_triggers.sql."""
+    """Đọc file data/sql/du_lieu_tong_hop_vat_tu_triggers.sql."""
     with open(_SQL_PATH, 'r', encoding='utf-8') as f:
         return f.read()
 
 def _read_sql_bom_file():
-    """Đọc file data/fn_bom_chuoi_cung_ung.sql."""
+    """Đọc file data/sql/fn_bom_chuoi_cung_ung.sql."""
     with open(_SQL_BOM_PATH, 'r', encoding='utf-8') as f:
         return f.read()
