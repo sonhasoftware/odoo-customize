@@ -15,7 +15,7 @@ class MDMKhachHang(models.Model):
 
     ma = fields.Char("Mã")
     ma_khach = fields.Char("Mã", store=True)
-    ten_khach = fields.Char("Tên", store=True, required=True)
+    ten_khach = fields.Char("Tên", store=True)
     dia_chi_khach = fields.Char("Địa chỉ khách", store=True)
     ma_cn = fields.Many2one('mdm.chi.nhanh', "Mã Chi nhánh")
     nhom_khach = fields.Many2one('mdm.nhom.khach', "Nhóm khách")
@@ -362,45 +362,46 @@ class MDMKhachHang(models.Model):
         res = super().write(vals)
 
         should_check_duplicate = self._should_run_duplicate_check(vals)
-        for r in self:
-            if should_check_duplicate:
-                self.create_write_action_data(r)
-            self.call_api_update(r)
+        if not self.env.context.get('skip_mdm_similarity'):
+            for r in self:
+                if should_check_duplicate:
+                    self.create_write_action_data(r)
+        if not self.env.context.get('skip_mdm_api_sync'):
+            for r in self:
+                self.call_api_update(r)
         return res
 
     def action_confirm_data(self):
         for r in self:
             self.create_write_action_data(r)
 
-    @api.model
-    def create(self, vals):
-        record = super().create(vals)
-        if not record.ma:
-            record.ma = f"mdm02{record.id:010d}"
-        # if record.ma and record.dvcs:
-        #     check = self.env['mdm.khach.hang.line'].sudo().search([('ma_mdm', '=', record.ma),
-        #                                                            ('dvcs', '=', record.dvcs.id)])
-        #     if check:
-        #         check.ma_mdm = record.ma
-        #     else:
-        #         self.env['mdm.khach.hang.line'].create({
-        #             'khach_hang_id': record.id,
-        #             'ma_mdm': record.ma,
-        #             'dvcs': record.dvcs.id,
-        #         })
-        if self._should_run_duplicate_check(vals):
-            self.create_write_action_data(record)
-        self.call_api_insert(record)
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        missing_ma_records = records.filtered(lambda record: not record.ma)
+        for record in missing_ma_records:
+            record.with_context(skip_mdm_similarity=True, skip_mdm_api_sync=True).write({
+                'ma': f"mdm02{record.id:010d}",
+            })
 
-        return record
+        if not self.env.context.get('skip_mdm_similarity'):
+            for record, vals in zip(records, vals_list):
+                if self._should_run_duplicate_check(vals):
+                    self.create_write_action_data(record)
+        if not self.env.context.get('skip_mdm_api_sync'):
+            for record in records:
+                self.call_api_insert(record)
 
-    def call_api_insert(self, record):
-        data = {
+        return records
+
+    def _prepare_api_payload(self, record, sync_type, line=None):
+        company = line.dvcs if line and line.dvcs else record.dvcs
+        return {
             "cccd": record.cccd or None,
             "mst": record.mst or None,
             "so_dien_thoai": record.so_dien_thoai or None,
             "ten_khach": record.ten_khach or None,
-            "ma_khach": record.ma_khach or None,
+            "ma_khach": (line.ma_dv or None) if line else (record.ma_khach or None),
             "ma_mdm": record.ma or None,
             "dia_chi_khach": record.dia_chi_khach or None,
             "ma_cn": record.ma_cn.ma or None,
@@ -421,11 +422,12 @@ class MDMKhachHang(models.Model):
             "vung": record.vung or None,
             "ten_qlv": record.qlv.ten or None,
             "ma_qlv": record.qlv.ma or None,
-            "ma_dvcs": record.dvcs.company_code or None,
-            "ten_dvcs": record.dvcs.name or None,
-            "type": "insert"
+            "ma_dvcs": company.company_code or None,
+            "ten_dvcs": company.name or None,
+            "type": sync_type
         }
 
+    def _call_api_khach_hang(self, data, success_log, error_log):
         # 👉 convert sang JSON string
         json_str = json.dumps(data, ensure_ascii=False)
 
@@ -443,63 +445,18 @@ class MDMKhachHang(models.Model):
             )
 
             # debug
-            print("API RESPONSE:", response.text)
+            print(success_log, response.text)
 
         except Exception as e:
-            print("API ERROR:", str(e))
+            print(error_log, str(e))
+
+    def call_api_insert(self, record, line=None):
+        data = self._prepare_api_payload(record, 'insert', line=line)
+        self._call_api_khach_hang(data, "API RESPONSE:", "API ERROR:")
 
     def call_api_update(self, record):
-        data = {
-            "cccd": record.cccd or None,
-            "mst": record.mst or None,
-            "so_dien_thoai": record.so_dien_thoai or None,
-            "ten_khach": record.ten_khach or None,
-            "ma_khach": record.ma_khach or None,
-            "dia_chi_khach": record.dia_chi_khach or None,
-            "ma_cn": record.ma_cn.ma or None,
-            "ten_cn": record.ma_cn.ten or None,
-            "ma_nhom_khach": record.nhom_khach.ma or None,
-            "ten_nhom_khach": record.nhom_khach.ten or None,
-            "ten_salesman": record.ten_salesman.ten or None,
-            "ma_salesman": record.ten_salesman.ma or None,
-            "ma_dms": record.ma_dms or None,
-            "ma_tinh": record.ma_tinh.ma or None,
-            "ten_tinh": record.ma_tinh.ten or None,
-            "kinh_do": record.kinh_do or None,
-            "vi_do": record.vi_do or None,
-            "ten_dat_nuoc": record.dat_nuoc.ten or None,
-            "ma_dat_nuoc": record.dat_nuoc.ma or None,
-            "ten_khu_vuc": record.khu_vuc.ten or None,
-            "ma_khu_vuc": record.khu_vuc.ma or None,
-            "vung": record.vung or None,
-            "ten_qlv": record.qlv.ten or None,
-            "ma_qlv": record.qlv.ma or None,
-            "ma_dvcs": record.dvcs.company_code or None,
-            "ten_dvcs": record.dvcs.name or None,
-            "type": "update"
-        }
-
-        # 👉 convert sang JSON string
-        json_str = json.dumps(data, ensure_ascii=False)
-
-        # 🔥 thêm dấu ' 2 bên (theo yêu cầu API của bạn)
-        payload = f"'{json_str}'"
-
-        try:
-            response = requests.put(
-                "https://bhapi.sonha.com.vn/api/mdm_kh",
-                json=payload,
-                headers={
-                    'Content-Type': 'application/json; charset=utf-8'
-                },
-                timeout=10
-            )
-
-            # debug
-            print("API RESPONSE:", response.text)
-
-        except Exception as e:
-            print("API ERROR:", str(e))
+        data = self._prepare_api_payload(record, 'update')
+        self._call_api_khach_hang(data, "API RESPONSE:", "API ERROR:")
 
     def action_view_popup(self):
         self.ensure_one()

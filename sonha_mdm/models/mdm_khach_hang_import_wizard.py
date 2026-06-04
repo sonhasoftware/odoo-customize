@@ -1,18 +1,30 @@
 import base64
 from io import BytesIO
 
+from openpyxl import load_workbook
+
 from odoo import _, fields, models
 from odoo.exceptions import ValidationError
-
-try:
-    from openpyxl import load_workbook
-except ImportError:
-    load_workbook = None
 
 
 class MDMKhachHangImportWizard(models.TransientModel):
     _name = 'mdm.khach.hang.import.wizard'
     _description = 'Import MDM Khách hàng từ Excel'
+
+    LOOKUP_FIELDS = (
+        ('phuong_xa_cu', 'phuong.xa.cu', 5, 'Phường/xã cũ'),
+        ('quan_huyen_cu', 'quan.huyen.cu', 6, 'Quận/huyện cũ'),
+        ('tinh_cu', 'tinh.cu', 7, 'Tỉnh cũ'),
+        ('dat_nuoc', 'mdm.quoc.gia', 8, 'Quốc gia'),
+        ('plan', 'mdm.plan', 11, 'Plant'),
+        ('ma_cn', 'mdm.chi.nhanh', 12, 'CN/NPP'),
+        ('nhom_khach', 'mdm.nhom.khach', 13, 'Nhóm KH_NCC'),
+        ('ten_salesman', 'mdm.saleman', 14, 'Mã_salesman'),
+        ('qlv', 'mdm.quan.ly.vung', 16, 'Quản lý vùng'),
+        ('khu_vuc', 'mdm.khu.vuc', 17, 'Khu vực'),
+        ('mien_lon', 'mien.lon', 18, 'Miền lớn'),
+        ('mien_nho', 'mien.nho', 19, 'Miền nhỏ'),
+    )
 
     file_data = fields.Binary(string='File Excel', required=True)
     file_name = fields.Char(string='Tên file')
@@ -25,38 +37,108 @@ class MDMKhachHangImportWizard(models.TransientModel):
             return value or False
         return str(value).strip() or False
 
-    def _find_many2one_by_code(self, model_name, value, field_label):
-        code = self._clean_value(value)
-        if not code:
-            return self.env[model_name].browse()
-
-        code = code.lower()
-        record = self.env[model_name].search([('ma', '=ilike', code)], limit=1)
-        if record:
-            return record
-
-        raise ValidationError(_('Không tìm thấy dữ liệu ở field %(field)s với mã "%(code)s".', field=field_label, code=code))
-
     @staticmethod
     def _merge_non_empty_vals(existing_record, incoming_vals):
         merged_vals = {}
         for field_name, value in incoming_vals.items():
+            if value in (False, None, ''):
+                continue
+
+            existing_value = existing_record[field_name]
+            if hasattr(existing_value, 'id'):
+                existing_value = existing_value.id or False
+            if existing_value != value:
+                merged_vals[field_name] = value
+
+        return merged_vals
+
+    @staticmethod
+    def _merge_non_empty_dict(base_vals, incoming_vals):
+        merged_vals = dict(base_vals)
+        for field_name, value in incoming_vals.items():
             if value not in (False, None, ''):
                 merged_vals[field_name] = value
-            elif existing_record:
-                merged_vals[field_name] = existing_record[field_name]
         return merged_vals
+
+    def _read_import_rows(self, sheet):
+        import_rows = []
+        company_codes = set()
+        lookup_codes_by_model = {model_name: set() for _, model_name, _, _ in self.LOOKUP_FIELDS}
+
+        for row_index, row in enumerate(sheet.iter_rows(min_row=2, max_col=20, values_only=True), start=2):
+            cleaned = [self._clean_value(value) for value in row]
+            if not any(cleaned):
+                continue
+
+            company_code = cleaned[0]
+            if company_code:
+                company_codes.add(company_code)
+
+            for _, model_name, column_index, _ in self.LOOKUP_FIELDS:
+                code = cleaned[column_index]
+                if code:
+                    lookup_codes_by_model[model_name].add(code.lower())
+
+            import_rows.append({
+                'row_index': row_index,
+                'company_code': company_code,
+                'ma_kh_ncc': cleaned[1],
+                'ma_mdm': cleaned[2],
+                'values': cleaned,
+            })
+
+        return import_rows, company_codes, lookup_codes_by_model
+
+    def _get_lookup_cache(self, lookup_codes_by_model):
+        lookup_cache = {}
+        for model_name, codes in lookup_codes_by_model.items():
+            if not codes:
+                lookup_cache[model_name] = {}
+                continue
+
+            records = self.env[model_name].sudo().search([('ma', '!=', False)])
+            lookup_cache[model_name] = {
+                record.ma.strip().lower(): record.id
+                for record in records
+                if record.ma and record.ma.strip().lower() in codes
+            }
+
+        return lookup_cache
+
+    def _get_lookup_id(self, lookup_cache, model_name, code, field_label):
+        if not code:
+            return False
+
+        lookup_id = lookup_cache.get(model_name, {}).get(code.lower())
+        if lookup_id:
+            return lookup_id
+
+        raise ValidationError(_('Không tìm thấy dữ liệu ở field %(field)s với mã "%(code)s".', field=field_label, code=code))
+
+    def _prepare_vals(self, row_data, lookup_cache):
+        row_values = row_data['values']
+        vals = {
+            'ma_khach': row_data['ma_kh_ncc'],
+            'ma': row_data['ma_mdm'],
+            'ten_khach': row_values[3],
+            'dia_chi_khach': row_values[4],
+            'so_dien_thoai': row_values[9],
+            'mst': row_values[10],
+            'vung': row_values[15],
+        }
+
+        for field_name, model_name, column_index, field_label in self.LOOKUP_FIELDS:
+            vals[field_name] = self._get_lookup_id(lookup_cache, model_name, row_values[column_index], field_label)
+
+        return vals
 
     def action_import(self):
         self.ensure_one()
 
-        if load_workbook is None:
-            raise ValidationError(_('Thiếu thư viện openpyxl để đọc file Excel.'))
-
         if not self.file_data:
             raise ValidationError(_('Vui lòng chọn file Excel để import.'))
 
-        workbook = load_workbook(filename=BytesIO(base64.b64decode(self.file_data)), data_only=True)
+        workbook = load_workbook(filename=BytesIO(base64.b64decode(self.file_data)), read_only=True, data_only=True)
         sheet = workbook.active
         model = self.env['mdm.khach.hang']
         line_model = self.env['mdm.khach.hang.line']
@@ -65,14 +147,7 @@ class MDMKhachHangImportWizard(models.TransientModel):
         updated = 0
         errors = []
 
-        rows = list(sheet.iter_rows(min_row=2, values_only=True))
-        company_codes = set()
-        for row in rows:
-            if not any(self._clean_value(cell) for cell in row[:20]):
-                continue
-            company_code = self._clean_value(row[0] if len(row) > 0 else False)
-            if company_code:
-                company_codes.add(company_code)
+        import_rows, company_codes, lookup_codes_by_model = self._read_import_rows(sheet)
 
         if len(company_codes) > 1:
             raise ValidationError(_('File không cùng 1 mã công ty. Vui lòng kiểm tra lại cột mã công ty trong file import.'))
@@ -81,67 +156,82 @@ class MDMKhachHangImportWizard(models.TransientModel):
             raise ValidationError(_('Thiếu mã công ty trong file import.'))
 
         company_code = next(iter(company_codes))
-        company = self.env['res.company'].search([('company_code', '=', company_code)], limit=1)
+        company = self.env['res.company'].sudo().search([('company_code', '=', company_code)], limit=1)
         if not company:
             raise ValidationError(_('Không tìm thấy công ty với mã công ty "%(code)s".', code=company_code))
 
-        for row_index, row in enumerate(rows, start=2):
-            if not any(self._clean_value(cell) for cell in row[:20]):
-                continue
+        lookup_cache = self._get_lookup_cache(lookup_codes_by_model)
+        ma_mdm_values = {row_data['ma_mdm'] for row_data in import_rows if row_data['ma_mdm']}
+        existing_by_ma = {
+            record.ma: record
+            for record in model.sudo().search([('ma', 'in', list(ma_mdm_values))])
+        }
 
-            ma_kh_ncc = self._clean_value(row[1] if len(row) > 1 else False)
-            ma_mdm = self._clean_value(row[2] if len(row) > 2 else False)
+        pending_create_vals_by_ma = {}
+        prepared_rows = []
+        import_context = {
+            'skip_mdm_similarity': True,
+            'skip_mdm_api_sync': True,
+        }
 
+        for row_data in import_rows:
+            ma_mdm = row_data['ma_mdm']
             try:
                 if not ma_mdm:
                     raise ValidationError(_('Thiếu Mã MDM ở cột C.'))
 
-                vals = {
-                    'ma_khach': ma_kh_ncc,
-                    'ma': ma_mdm,
-                    'ten_khach': self._clean_value(row[3] if len(row) > 3 else False),
-                    'dia_chi_khach': self._clean_value(row[4] if len(row) > 4 else False),
-                    'phuong_xa_cu': self._find_many2one_by_code('phuong.xa.cu', row[5] if len(row) > 5 else False, 'Phường/xã cũ').id,
-                    'quan_huyen_cu': self._find_many2one_by_code('quan.huyen.cu', row[6] if len(row) > 6 else False, 'Quận/huyện cũ').id,
-                    'tinh_cu': self._find_many2one_by_code('tinh.cu', row[7] if len(row) > 7 else False, 'Tỉnh cũ').id,
-                    'dat_nuoc': self._find_many2one_by_code('mdm.quoc.gia', row[8] if len(row) > 8 else False, 'Quốc gia').id,
-                    'so_dien_thoai': self._clean_value(row[9] if len(row) > 9 else False),
-                    'mst': self._clean_value(row[10] if len(row) > 10 else False),
-                    'plan': self._find_many2one_by_code('mdm.plan', row[11] if len(row) > 11 else False, 'Plant').id,
-                    'ma_cn': self._find_many2one_by_code('mdm.chi.nhanh', row[12] if len(row) > 12 else False, 'CN/NPP').id,
-                    'nhom_khach': self._find_many2one_by_code('mdm.nhom.khach', row[13] if len(row) > 13 else False, 'Nhóm KH_NCC').id,
-                    'ten_salesman': self._find_many2one_by_code('mdm.saleman', row[14] if len(row) > 14 else False, 'Mã_salesman').id,
-                    'vung': self._clean_value(row[15] if len(row) > 15 else False),
-                    'qlv': self._find_many2one_by_code('mdm.quan.ly.vung', row[16] if len(row) > 16 else False, 'Quản lý vùng').id,
-                    'khu_vuc': self._find_many2one_by_code('mdm.khu.vuc', row[17] if len(row) > 17 else False, 'Khu vực').id,
-                    'mien_lon': self._find_many2one_by_code('mien.lon', row[18] if len(row) > 18 else False, 'Miền lớn').id,
-                    'mien_nho': self._find_many2one_by_code('mien.nho', row[19] if len(row) > 19 else False, 'Miền nhỏ').id,
-                }
+                vals = self._prepare_vals(row_data, lookup_cache)
+                existing = existing_by_ma.get(ma_mdm)
 
-                existing = model.search([('ma', '=', ma_mdm)], limit=1)
                 if existing:
-                    parent_record = existing
                     update_vals = self._merge_non_empty_vals(existing, vals)
-                    parent_record.write(dict(update_vals, dvcs=company.id))
+                    if existing.dvcs.id != company.id:
+                        update_vals['dvcs'] = company.id
+                    if update_vals:
+                        existing.with_context(**import_context).sudo().write(update_vals)
                     updated += 1
                 else:
-                    parent_record = model.create(dict(vals, dvcs=company.id))
-                    imported += 1
+                    current_create_vals = dict(vals, dvcs=company.id)
+                    if ma_mdm in pending_create_vals_by_ma:
+                        pending_create_vals_by_ma[ma_mdm] = self._merge_non_empty_dict(
+                            pending_create_vals_by_ma[ma_mdm],
+                            current_create_vals,
+                        )
+                    else:
+                        pending_create_vals_by_ma[ma_mdm] = current_create_vals
+                        imported += 1
 
-                line_vals = {
-                    'khach_hang_id': parent_record.id,
-                    'ma_mdm': ma_mdm,
-                    'dvcs': company.id,
-                }
-                if ma_kh_ncc:
-                    line_vals['ma_dv'] = ma_kh_ncc
-                line_model.create(line_vals)
+                prepared_rows.append(row_data)
             except Exception as exc:
-                errors.append(_('Dòng %(row)s (Mã MDM: %(ma_mdm)s): %(error)s', row=row_index, ma_mdm=ma_mdm or '-', error=str(exc)))
+                errors.append(_('Dòng %(row)s (Mã MDM: %(ma_mdm)s): %(error)s', row=row_data['row_index'], ma_mdm=ma_mdm or '-', error=str(exc)))
 
-        message = _('Import hoàn tất. Tạo mới: %(new)s, Cập nhật: %(updated)s', new=imported, updated=updated)
         if errors:
+            message = _('Import hoàn tất. Tạo mới: %(new)s, Cập nhật: %(updated)s', new=imported, updated=updated)
             message = message + '\n' + '\n'.join(errors[:20])
             raise ValidationError(message)
+
+        created_by_ma = {}
+        if pending_create_vals_by_ma:
+            created_records = model.with_context(**import_context).sudo().create(list(pending_create_vals_by_ma.values()))
+            created_by_ma = {record.ma: record for record in created_records}
+
+        line_vals_list = []
+        for row_data in prepared_rows:
+            ma_mdm = row_data['ma_mdm']
+            parent_record = existing_by_ma.get(ma_mdm) or created_by_ma.get(ma_mdm)
+            if not parent_record:
+                continue
+
+            line_vals = {
+                'khach_hang_id': parent_record.id,
+                'ma_mdm': ma_mdm,
+                'dvcs': company.id,
+            }
+            if row_data['ma_kh_ncc']:
+                line_vals['ma_dv'] = row_data['ma_kh_ncc']
+            line_vals_list.append(line_vals)
+
+        if line_vals_list:
+            line_model.sudo().create(line_vals_list)
 
         return {'type': 'ir.actions.act_window_close'}
