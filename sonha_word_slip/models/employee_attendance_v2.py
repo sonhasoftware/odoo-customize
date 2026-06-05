@@ -2,12 +2,16 @@
 from dateutil.relativedelta import relativedelta
 from odoo import api, fields, models, _
 from datetime import datetime, time, timedelta, date
+import logging
 import requests
 import json
 import io
 import base64
 import calendar
 import xlsxwriter
+
+
+_logger = logging.getLogger(__name__)
 
 
 class EmployeeAttendanceV2(models.Model):
@@ -435,62 +439,121 @@ class EmployeeAttendanceV2(models.Model):
     # tạo ra bản ghi cho từng nhân viên trong các ngày của tháng
 
     def update_attendance_data_v2(self):
-        self.with_delay().create_data_attendance()
+        period_key = datetime.now().strftime('%Y-%m')
+        self.with_delay(
+            identity_key=f'employee_attendance_v2_create_data_attendance_{period_key}',
+            description=_('Tạo dữ liệu bảng công chi tiết V2 %s') % period_key,
+        ).create_data_attendance()
 
     def update_new_emp_attendance_data_v2(self):
         self.with_delay().create_data_attendance_new_emp()
 
-    def create_data_attendance(self):
-        # STEP 1 — Lấy danh sách nhân viên
-        self.env.cr.execute("""
-            SELECT id
-            FROM hr_employee
-            WHERE id != 1
-        """)
-        employee_ids = [row[0] for row in self.env.cr.fetchall()]
+    def _split_employee_batches(self, employee_ids, batch_size):
+        batch_size = batch_size or 50
+        for index in range(0, len(employee_ids), batch_size):
+            yield employee_ids[index:index + batch_size]
 
-        # STEP 2 — Tính khoảng thời gian
+    def create_data_attendance(self, recompute_batch_size=50):
+        # Tránh 2 queue job cùng tạo dữ liệu tháng chạy song song làm trùng bản ghi và nghẽn DB.
+        self.env.cr.execute("SELECT pg_try_advisory_xact_lock(20260605, 1001)")
+        if not self.env.cr.fetchone()[0]:
+            _logger.info('Skip create_data_attendance because another attendance V2 job is running.')
+            return
+
         now = datetime.now()
         start_date = now.replace(day=1).date() - relativedelta(months=1)
+        current_month_start = now.replace(day=1).date()
         end_date = (start_date + relativedelta(months=2)) - timedelta(days=1)
 
-        # STEP 3 — Lấy bản ghi đã tồn tại để bỏ qua
+        # Tạo bản ghi thiếu bằng SQL set-based giống create_data_attendance_new_emp:
+        # PostgreSQL sinh toàn bộ cặp employee/date, tự loại cặp đã tồn tại và insert một lần.
+        query = """
+            CREATE TEMP TABLE temp_employee_attendance_v2_dates ON COMMIT DROP AS
+                SELECT
+                    e.id AS employee_id,
+                    gs::date AS date
+                FROM hr_employee e
+                CROSS JOIN generate_series(
+                    %s::date,
+                    %s::date,
+                    interval '1 day'
+                ) AS gs
+                WHERE e.id != 1;
+
+            CREATE TEMP TABLE temp_existing_employee_attendance_v2_dates ON COMMIT DROP AS
+                SELECT employee_id, date
+                FROM employee_attendance_v2
+                WHERE date BETWEEN %s AND %s;
+
+            CREATE TEMP TABLE temp_missing_employee_attendance_v2_dates ON COMMIT DROP AS
+                SELECT
+                    ted.employee_id,
+                    ted.date
+                FROM temp_employee_attendance_v2_dates ted
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM temp_existing_employee_attendance_v2_dates tad
+                    WHERE tad.employee_id = ted.employee_id
+                    AND tad.date = ted.date
+                );
+
+            INSERT INTO employee_attendance_v2 (employee_id, date)
+                SELECT
+                    t.employee_id,
+                    t.date
+                FROM temp_missing_employee_attendance_v2_dates t;
+
+            SELECT COUNT(*) AS inserted_count
+            FROM temp_missing_employee_attendance_v2_dates;
+        """
+        self.env.cr.execute(query, (start_date, end_date, start_date, end_date))
+        inserted_count = self.env.cr.fetchone()[0]
+
+        # Chỉ recompute tháng hiện tại để giảm khối lượng xử lý từ ~2 tháng xuống còn 1 tháng.
+        # Mỗi batch là một queue job riêng để tránh một job lớn xử lý >2.000 nhân viên bị treo worker.
         self.env.cr.execute("""
-            SELECT employee_id, date
+            SELECT DISTINCT employee_id
             FROM employee_attendance_v2
             WHERE date BETWEEN %s AND %s
-        """, (start_date, end_date))
+            ORDER BY employee_id
+        """, (current_month_start, end_date))
+        employee_ids = [row[0] for row in self.env.cr.fetchall()]
 
-        existing = {(row[0], row[1]) for row in self.env.cr.fetchall()}
+        _logger.info(
+            'Created %s missing employee_attendance_v2 rows for %s -> %s. Enqueue recompute %s employees for %s -> %s.',
+            inserted_count, start_date, end_date, len(employee_ids), current_month_start, end_date,
+        )
 
-        # STEP 4 — Tạo list insert
-        values = []
-        cur = start_date
-        while cur <= end_date:
-            for emp_id in employee_ids:
-                if (emp_id, cur) not in existing:
-                    values.append(f"({emp_id}, '{cur}')")
-            cur += timedelta(days=1)
+        date_from = current_month_start.isoformat()
+        date_to = end_date.isoformat()
+        for batch_number, batch_employee_ids in enumerate(
+                self._split_employee_batches(employee_ids, recompute_batch_size), start=1):
+            first_emp = batch_employee_ids[0]
+            last_emp = batch_employee_ids[-1]
+            self.with_delay(
+                identity_key=(
+                    'employee_attendance_v2_recompute_%s_%s_%s_%s' %
+                    (date_from, date_to, first_emp, last_emp)
+                ),
+                description=_('Recompute bảng công V2 %s - batch %s') % (date_from, batch_number),
+            ).create_data_attendance_recompute_batch(batch_employee_ids, date_from, date_to)
 
-        # STEP 5 — Insert bằng batch SQL
-        if values:
-            batch_size = 5000
-            for i in range(0, len(values), batch_size):
-                batch = values[i:i + batch_size]
-                sql = """
-                    INSERT INTO employee_attendance_v2 (employee_id, date)
-                    VALUES %s
-                """ % ",".join(batch)
-                self.env.cr.execute(sql)
-
-        # STEP 6 — RECOMPUTE cho từng employee từng ngày
-        Attendance = self.env['employee.attendance.v2'].sudo()
-        cur = start_date
-        while cur <= end_date:
-            for emp_id in employee_ids:
-                emp = self.env['hr.employee'].browse(emp_id)
-                Attendance.recompute_for_employee(emp, cur, cur)
-            cur += timedelta(days=1)
+    def create_data_attendance_recompute_batch(self, employee_ids, date_from, date_to):
+        if not employee_ids:
+            return
+        date_from = fields.Date.to_date(date_from)
+        date_to = fields.Date.to_date(date_to)
+        attendance = self.env['employee.attendance.v2'].sudo()
+        _logger.info(
+            'Start recompute employee_attendance_v2 for %s employees from %s to %s.',
+            len(employee_ids), date_from, date_to,
+        )
+        for emp_id in employee_ids:
+            attendance.recompute_for_employee(emp_id, date_from, date_to)
+        _logger.info(
+            'Done recompute employee_attendance_v2 for %s employees from %s to %s.',
+            len(employee_ids), date_from, date_to,
+        )
 
     def create_data_attendance_new_emp(self):
         now = datetime.now()
