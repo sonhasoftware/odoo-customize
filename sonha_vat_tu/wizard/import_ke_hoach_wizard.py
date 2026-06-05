@@ -325,9 +325,9 @@ class ImportKeHoachWizard(models.TransientModel):
         if missing:
             for key in missing[:20]:
                 line = business_keys[key]
-                errors.append(_('Thiáº¿u dÃ²ng káº¿ hoáº¡ch kinh doanh MÃ£ SAP=%s, ThÃ¡ng=%s. Náº¿u khÃ´ng sáº£n xuáº¥t, vui lÃ²ng giá»¯ dÃ²ng vÃ  nháº­p Sá»‘ lÆ°á»£ng = 0.') % (line.ma_sap, line.month_key))
+                errors.append(_('Thiếu dòng kế hoạch kinh doanh Mã SAP=%s, Tháng=%s. Nếu không sản xuất, vui lòng giữ dòng và nhập Số lượng = 0.') % (line.ma_sap, line.month_key))
             if len(missing) > 20:
-                errors.append(_('... cÃ²n %d dÃ²ng káº¿ hoáº¡ch kinh doanh bá»‹ thiáº¿u.') % (len(missing) - 20))
+                errors.append(_('... còn %d dòng kế hoạch kinh doanh bị thiếu.') % (len(missing) - 20))
         self._raise_errors(errors)
         Plan.search([('period_id', '=', self.period_id.id)]).with_context(is_importing=True).unlink()
         if vals_list:

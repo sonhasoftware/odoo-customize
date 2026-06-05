@@ -8,7 +8,6 @@
                 <field name="code"/>
                 <field name="period_month" required="1"/>
                 <field name="company_id" string="Đơn vị" context="{'vat_tu_company_code_display': True}"/>
-                <field name="state"/>
             </tree>
         </field>
     </record>
