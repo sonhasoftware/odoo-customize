@@ -47,6 +47,9 @@ class MDMKhachHang(models.Model):
 
     current_step = fields.Integer(string="STT hiện tại", default=1)
     can_approve = fields.Boolean(compute='_compute_can_approve')
+    da_call_api = fields.Boolean(string="Đã call API", copy=False, readonly=True)
+    thoi_gian_call_api = fields.Datetime(string="Thời gian call API", copy=False, readonly=True)
+    ket_qua_call_api = fields.Text(string="Kết quả call API", copy=False, readonly=True)
 
 
     # update thêm code
@@ -446,17 +449,42 @@ class MDMKhachHang(models.Model):
 
             # debug
             print(success_log, response.text)
+            return response.ok, response.text
 
         except Exception as e:
-            print(error_log, str(e))
+            error_message = str(e)
+            print(error_log, error_message)
+            return False, error_message
+
+    def _mark_api_result(self, record, success, message, line=None):
+        values = {
+            'da_call_api': success,
+            'thoi_gian_call_api': fields.Datetime.now(),
+            'ket_qua_call_api': message,
+        }
+        target = line or record
+        target.with_context(skip_mdm_similarity=True, skip_mdm_api_sync=True).sudo().write(values)
 
     def call_api_insert(self, record, line=None):
         data = self._prepare_api_payload(record, 'insert', line=line)
-        self._call_api_khach_hang(data, "API RESPONSE:", "API ERROR:")
+        success, message = self._call_api_khach_hang(data, "API RESPONSE:", "API ERROR:")
+        self._mark_api_result(record, success, message, line=line)
+        return success
 
     def call_api_update(self, record):
         data = self._prepare_api_payload(record, 'update')
-        self._call_api_khach_hang(data, "API RESPONSE:", "API ERROR:")
+        success, message = self._call_api_khach_hang(data, "API RESPONSE:", "API ERROR:")
+        self._mark_api_result(record, success, message)
+        return success
+
+    @api.model
+    def cron_call_api_insert_all_khach_hang(self, limit=None):
+        records = self.search([], limit=limit)
+        for record in records:
+            record.call_api_insert(record)
+            for line in record.bang_con_ids:
+                record.call_api_insert(record, line=line)
+        return True
 
     def action_view_popup(self):
         self.ensure_one()

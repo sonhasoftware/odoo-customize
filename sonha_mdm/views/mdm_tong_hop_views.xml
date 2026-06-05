@@ -40,6 +40,8 @@
                             <field name="linh_vuc" domain="[('key_map', '=', key_linh_vuc)]" options="{'no_create': True, 'no_open': True}"/>
                             <field name="nganh_hang" domain="[('key_map', '=', key_nganh_hang)]" options="{'no_create': True, 'no_open': True}"/>
                             <field name="nhan_hang" domain="[('key_map', '=', key_nhan_hang)]" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="da_call_api"/>
+                            <field name="thoi_gian_call_api"/>
                         </group>
 
                     </group>
@@ -65,6 +67,8 @@
                                 <field name="ma_mdm" readonly="1"/>
                                 <field name="ma_dv"/>
                                 <field name="dvcs" readonly="1"/>
+                                <field name="da_call_api" readonly="1"/>
+                                <field name="thoi_gian_call_api" readonly="1"/>
                             </tree>
                         </field>
                     </page>
@@ -150,6 +154,8 @@
                 <field name="dung_tich_plus" optional="show"/>
                 <field name="dvt_dung_tich" optional="show"/>
                 <field name="bom_sale" optional="show"/>
+                <field name="da_call_api" optional="show"/>
+                <field name="thoi_gian_call_api" optional="hide"/>
             </tree>
         </field>
     </record>
