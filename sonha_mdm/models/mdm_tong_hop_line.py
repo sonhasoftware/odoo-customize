@@ -13,6 +13,9 @@ class MDMTongHopLine(models.Model):
 
     dvt = fields.Many2one('mdm.dvt', string="Đơn vị tính", related='tong_hop_id.dvt', store=True)
     bom_sale = fields.Many2one('bom.sale',  string="Loại Bom Sale", related='tong_hop_id.bom_sale', store=True)
+    da_call_api = fields.Boolean(string="Đã call API", copy=False, readonly=True)
+    thoi_gian_call_api = fields.Datetime(string="Thời gian call API", copy=False, readonly=True)
+    ket_qua_call_api = fields.Text(string="Kết quả call API", copy=False, readonly=True)
 
     @api.model_create_multi
     def create(self, vals_list):

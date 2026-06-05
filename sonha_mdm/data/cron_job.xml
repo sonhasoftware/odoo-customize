@@ -35,5 +35,29 @@
             <field name="numbercall">-1</field>
             <field name="active">false</field>
         </record>
+
+        <record id="ir_cron_call_api_insert_hang_hoa" model="ir.cron">
+            <field name="name">Call API insert toàn bộ MDM hàng hóa</field>
+            <field name="model_id" ref="model_mdm_tong_hop"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_call_api_insert_all_hang_hoa()</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="active">false</field>
+        </record>
+
+        <record id="ir_cron_call_api_insert_khach_hang" model="ir.cron">
+            <field name="name">Call API insert toàn bộ MDM khách hàng</field>
+            <field name="model_id" ref="model_mdm_khach_hang"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_call_api_insert_all_khach_hang()</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="active">false</field>
+        </record>
     </data>
 </odoo>
