@@ -30,8 +30,14 @@
     <menuitem id="menu_excel_hang_hoa"
               name="Excel Hàng Hóa"
               parent="menu_sonha_mdm"
-              action="action_excel_tong_hop"
+              action="action_excel_hang_hoa"
               sequence="5"/>
+
+    <menuitem id="menu_excel_hang_hoa_line"
+              name="Excel Hàng Hóa trùng"
+              parent="menu_sonha_mdm"
+              action="excel_hang_hoa_line_action"
+              sequence="6"/>
 
     <menuitem id="menu_bang_con_dv_hh"
               name="Bảng con đv Hàng Hóa"

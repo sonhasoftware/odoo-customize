@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_excel_hang_hoa_line_tree" model="ir.ui.view">
+        <field name="name">excel.hang.hoa.line.tree</field>
+        <field name="model">excel.hang.hoa.line</field>
+        <field name="arch" type="xml">
+            <tree string="Excel Hàng hóa trùng" default_order="create_date desc">
+                <field name="ma"/>
+                <field name="ten"/>
+                <field name="ma_mdm"/>
+                <field name="ten_mdm"/>
+                <field name="percent"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="excel_hang_hoa_line_action" model="ir.actions.act_window">
+        <field name="name">Dữ liệu excel trùng</field>
+        <field name="res_model">excel.hang.hoa.line</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>
+

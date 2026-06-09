@@ -5,7 +5,7 @@
         <field name="model">excel.hang.hoa</field>
         <field name="arch" type="xml">
             <tree string="Excel Hàng hóa" default_order="create_date desc">
-                <field name="ma" optional="show" string="Mã MDM"/>
+                <field name="ma" optional="show"/>
                 <field name="ten" optional="show"/>
             </tree>
         </field>
@@ -48,7 +48,7 @@
         </field>
     </record>
 
-    <record id="action_excel_tong_hop" model="ir.actions.act_window">
+    <record id="action_excel_hang_hoa" model="ir.actions.act_window">
             <field name="name">Excel Hàng hóa</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">excel.hang.hoa</field>
