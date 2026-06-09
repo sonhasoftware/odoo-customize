@@ -110,3 +110,8 @@ class ExcelHangHoa(models.Model):
             return 0.0
 
         return dot / (norm1 * norm2)
+
+    def unlink(self):
+        for r in self:
+            self.env['excel.hang.hoa.line'].search([('key', '=', r.id)]).sudo().unlink()
+        return super(ExcelHangHoa, self).unlink()
