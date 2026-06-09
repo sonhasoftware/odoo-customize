@@ -700,7 +700,7 @@ class EmployeeAttendanceV2(models.Model):
                 r.check_no_out = split_utc
 
     def _float_time_to_local_datetime(self, base_date, hour_float):
-        if base_date is None or hour_float in (None, False):
+        if base_date is None or hour_float is None:
             return None
         if not isinstance(hour_float, (int, float)) or hour_float < 0:
             raise ValueError(f"Invalid time value: {hour_float}")
@@ -712,12 +712,20 @@ class EmployeeAttendanceV2(models.Model):
             minute = minute % 60
         return datetime.combine(base_date, time(0, 0, 0)) + timedelta(hours=hour, minutes=minute)
 
-    def _get_time_word_slip_points_utc(self, word_slip):
-        check_in = self._float_time_to_local_datetime(word_slip.from_date, word_slip.time_to)
-        check_out = self._float_time_to_local_datetime(word_slip.to_date, word_slip.time_from)
-        if check_in and check_out and check_out <= check_in:
-            check_out += timedelta(days=1)
-        return self._to_utc_datetime(check_in), self._to_utc_datetime(check_out)
+    def _get_time_word_slip_pairs_utc(self, word_slip):
+        if not word_slip.from_date or not word_slip.to_date:
+            return []
+
+        pairs = []
+        current_date = word_slip.from_date
+        while current_date <= word_slip.to_date:
+            check_in = self._float_time_to_local_datetime(current_date, word_slip.time_to)
+            check_out = self._float_time_to_local_datetime(current_date, word_slip.time_from)
+            if check_in and check_out and check_out <= check_in:
+                check_out += timedelta(days=1)
+            pairs.append((self._to_utc_datetime(check_in), self._to_utc_datetime(check_out)))
+            current_date += timedelta(days=1)
+        return pairs
 
     def _get_time_word_slips_in_window(self, employee, window_start_utc, window_end_utc):
         if not employee or not window_start_utc or not window_end_utc:
@@ -727,7 +735,7 @@ class EmployeeAttendanceV2(models.Model):
         window_end_local = self._to_local_datetime(window_end_utc)
         word_slips = self.env['word.slip'].sudo().search([
             ('from_date', '<=', window_end_local.date()),
-            ('to_date', '>=', window_start_local.date()),
+            ('to_date', '>=', window_start_local.date() - timedelta(days=1)),
             ('type.date_and_time', '=', 'time'),
             ('word_slip.status', '=', 'done'),
         ])
@@ -737,7 +745,8 @@ class EmployeeAttendanceV2(models.Model):
         return word_slips.filtered(
             lambda line: any(
                 window_start_utc <= point <= window_end_utc
-                for point in self._get_time_word_slip_points_utc(line)
+                for pair in self._get_time_word_slip_pairs_utc(line)
+                for point in pair
                 if point
             )
         )
@@ -772,14 +781,14 @@ class EmployeeAttendanceV2(models.Model):
 
             in_outs = self._get_time_word_slips_in_window(r.employee_id, r.time_check_in, r.time_check_out)
             for in_out in in_outs:
-                ci, co = self._get_time_word_slip_points_utc(in_out)
-                if (ci and r.time_check_in <= ci <= r.time_check_out and r.check_no_in and ci <= r.check_no_in
-                        and (not check_in or check_in > ci)):
-                    check_in = ci
+                for ci, co in self._get_time_word_slip_pairs_utc(in_out):
+                    if (ci and r.time_check_in <= ci <= r.time_check_out and r.check_no_in and ci <= r.check_no_in
+                            and (not check_in or check_in > ci)):
+                        check_in = ci
 
-                if (co and r.time_check_in <= co <= r.time_check_out and r.check_no_out and co > r.check_no_out
-                        and (not check_out or check_out < co)):
-                    check_out = co
+                    if (co and r.time_check_in <= co <= r.time_check_out and r.check_no_out and co > r.check_no_out
+                            and (not check_out or check_out < co)):
+                        check_out = co
 
             r.check_in = check_in
             r.check_out = check_out
