@@ -24,7 +24,7 @@
                 </header>
                     <group>
                         <group>
-                            <field name="ma"/>
+                            <field name="ma" string="Mã"/>
                         </group>
                         <group>
                             <field name="ten"/>
@@ -34,7 +34,7 @@
                     <notebook>
                     <page string="Dữ liệu so sánh">
                         <field name="so_sanh">
-                        <tree default_order="score desc">
+                        <tree default_order="percent desc">
                             <field name="ma"/>
                             <field name="ten"/>
                             <field name="ma_mdm"/>

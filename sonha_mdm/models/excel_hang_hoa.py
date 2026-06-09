@@ -62,19 +62,51 @@ class ExcelHangHoa(models.Model):
 
                 old_vec = json.loads(r['vector'])
 
-                score = self._cosine_similarity_dict(new_vec, old_vec)
+                percent = self._cosine_similarity_dict(new_vec, old_vec)
 
-                if score >= 0.8:
+                if percent >= 0.8:
                     logs.append({
                         'key': record.id,
                         'ma': record.ma,
                         'ten': record.ten,
                         'ma_mdm': r['ma'],
                         'ten_mdm': r['ten'],
-                        'percent': score * 100,
+                        'percent': percent * 100,
                     })
 
             offset += limit
         self.env['excel.hang.hoa.line'].sudo().search([('key', '=', record.id)]).unlink()
         if logs:
             self.env['excel.hang.hoa.line'].sudo().create(logs)
+
+    def _normalize_name(self, text):
+        text = (text or "").lower()
+        text = unicodedata.normalize('NFD', text)
+        text = ''.join(c for c in text if unicodedata.category(c) != 'Mn')
+        text = re.sub(r'[^a-z0-9\s]', '', text)
+        text = re.sub(r'\s+', ' ', text).strip()
+        return text
+
+    def _name_to_vector(self, text, n=2):
+        text = self._normalize_name(text).replace(" ", "")
+        if len(text) < n:
+            return {}
+
+        ngrams = [text[i:i + n] for i in range(len(text) - n + 1)]
+        return dict(Counter(ngrams))
+
+    def _cosine_similarity_dict(self, vec1, vec2):
+        dot = 0.0
+
+        # dot product
+        for key in vec1:
+            if key in vec2:
+                dot += vec1[key] * vec2[key]
+
+        norm1 = math.sqrt(sum(v * v for v in vec1.values()))
+        norm2 = math.sqrt(sum(v * v for v in vec2.values()))
+
+        if norm1 == 0 or norm2 == 0:
+            return 0.0
+
+        return dot / (norm1 * norm2)
