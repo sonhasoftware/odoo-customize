@@ -43,17 +43,9 @@ patch(ListRenderer.prototype, {
         tags.forEach(tag => {
             inputValues.push(tag.textContent);
         });
-        var Domain =[]
-        if (inputValues.length>1) {
-            for (let input=0; input<inputValues.length; input++) {
-                if (input != inputValues.length-1){
-                    Domain.splice(input, 0, '|');
-                }
-                Domain.push([name, 'ilike', inputValues[input]])
-            }
-        }
-        else {
-            Domain.push([name, 'ilike', inputValues[0]])
+        const Domain = []
+        for (const inputValue of inputValues) {
+            Domain.push([name, 'ilike', inputValue])
         }
         return Domain;
     },
@@ -97,12 +89,6 @@ patch(ListRenderer.prototype, {
             }
             return true;
         });
-        if (found) {
-            const index = this.domain.indexOf("|");
-            if (index !== -1) {
-                this.domain.splice(index, 1);
-            }
-        }
         this.env.searchModel.clearQuery();
         this.env.searchModel.splitAndAddDomain(this.domain);
         tag.remove();
