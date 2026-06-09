@@ -35,6 +35,8 @@
                     <group>
                         <field name="mst"/>
                         <field name="cccd"/>
+                        <field name="da_call_api"/>
+                        <field name="thoi_gian_call_api"/>
                     </group>
                 </group>
                 <notebook>
@@ -59,6 +61,8 @@
                                 <field name="ma_mdm" readonly="1"/>
                                 <field name="ma_dv"/>
                                 <field name="dvcs" readonly="1"/>
+                                <field name="da_call_api" readonly="1"/>
+                                <field name="thoi_gian_call_api" readonly="1"/>
                             </tree>
                         </field>
                     </page>
@@ -152,6 +156,8 @@
                 <field name="khu_vuc" optional="show"/>
                 <field name="mien_lon" optional="show"/>
                 <field name="mien_nho" optional="show"/>
+                <field name="da_call_api" optional="show"/>
+                <field name="thoi_gian_call_api" optional="hide"/>
             </tree>
         </field>
     </record>

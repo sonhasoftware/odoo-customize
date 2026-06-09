@@ -9,6 +9,9 @@ class MDMKhachHangLine(models.Model):
     ma_mdm = fields.Char(string='Mã MDM')
     ma_dv = fields.Char(string='Mã đơn vị')
     dvcs = fields.Many2one('res.company', string='ĐVCS')
+    da_call_api = fields.Boolean(string="Đã call API", copy=False, readonly=True)
+    thoi_gian_call_api = fields.Datetime(string="Thời gian call API", copy=False, readonly=True)
+    ket_qua_call_api = fields.Text(string="Kết quả call API", copy=False, readonly=True)
 
     @api.model_create_multi
     def create(self, vals_list):
