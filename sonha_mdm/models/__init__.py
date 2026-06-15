@@ -34,3 +34,7 @@ from . import bom_sale
 from . import mdm_tong_hop_line
 
 from . import mdm_khach_hang_line
+
+
+from . import excel_hang_hoa
+from . import excel_hang_hoa_line

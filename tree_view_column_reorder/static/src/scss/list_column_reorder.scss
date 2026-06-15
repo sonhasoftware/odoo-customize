@@ -1,0 +1,15 @@
+.o_list_table {
+    thead th.o_col_reorder_draggable {
+        cursor: move;
+        user-select: none;
+    }
+
+    thead th.o_col_reorder_dragging {
+        opacity: 0.45;
+    }
+
+    thead th.o_col_reorder_over {
+        outline: 2px dashed var(--primary);
+        outline-offset: -2px;
+    }
+}

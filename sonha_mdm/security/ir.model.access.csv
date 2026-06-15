@@ -44,3 +44,7 @@ access_mdm_khach_hang_import_wizard,mdm.khach.hang.import.wizard,model_mdm_khach
 access_mdm_tong_hop_line,mdm.tong.hop.line,model_mdm_tong_hop_line,,1,1,1,1
 
 access_mdm_khach_hang_line,mdm.khach.hang.line,model_mdm_khach_hang_line,,1,1,1,1
+
+
+access_excel_hang_hoa,excel.hang.hoa,model_excel_hang_hoa,,1,1,1,1
+access_excel_hang_hoa_line,excel.hang.hoa.line,model_excel_hang_hoa_line,,1,1,1,1

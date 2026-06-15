@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_excel_hang_hoa_tree" model="ir.ui.view">
+        <field name="name">excel.hang.hoa.tree</field>
+        <field name="model">excel.hang.hoa</field>
+        <field name="arch" type="xml">
+            <tree string="Excel Hàng hóa" default_order="create_date desc">
+                <field name="ma" optional="show"/>
+                <field name="ten" optional="show"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_excel_hang_hoa_form" model="ir.ui.view">
+        <field name="name">excel.hang.hoa.form</field>
+        <field name="model">excel.hang.hoa</field>
+        <field name="arch" type="xml">
+            <form string="Excel Hàng hóa">
+                <header>
+                    <button name="action_confirm_data"
+                        type="object"
+                        string="Đối chiếu dữ liệu so sánh"
+                        class="btn-primary"/>
+                </header>
+                    <group>
+                        <group>
+                            <field name="ma" string="Mã"/>
+                        </group>
+                        <group>
+                            <field name="ten"/>
+                        </group>
+
+                    </group>
+                    <notebook>
+                    <page string="Dữ liệu so sánh">
+                        <field name="so_sanh">
+                        <tree default_order="percent desc">
+                            <field name="ma"/>
+                            <field name="ten"/>
+                            <field name="ma_mdm"/>
+                            <field name="ten_mdm"/>
+                            <field name="percent"/>
+                        </tree>
+                    </field>
+                    </page>
+                </notebook>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_excel_hang_hoa" model="ir.actions.act_window">
+            <field name="name">Excel Hàng hóa</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">excel.hang.hoa</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('view_excel_hang_hoa_tree')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('view_excel_hang_hoa_form')})]"/>
+        </record>
+</odoo>

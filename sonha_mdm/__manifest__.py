@@ -39,6 +39,8 @@
         'views/bom_sale_views.xml',
         'views/view_popup_con.xml',
         'views/bang_con_dv_hang_hoa.xml',
+        'views/excel_hang_hoa_views.xml',
+        'views/excel_hang_hoa_trung_views.xml',
         'data/cron_job.xml',
         'views/menu_views.xml',
     ],
