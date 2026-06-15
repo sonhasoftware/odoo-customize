@@ -33,7 +33,6 @@ class BaoCaoNhuCauVatTuWizard(models.TransientModel):
         selection=_month_selection,
         string='Đến tháng',
         required=True,
-        default=lambda self: str(date.today().month),
     )
     to_year = fields.Selection(
         selection=_year_selection,

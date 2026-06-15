@@ -50,11 +50,16 @@ DELETE FROM ke_hoach_kinh_doanh WHERE period_id IN (SELECT id FROM demo_period);
 DELETE FROM ke_hoach_vat_tu WHERE code = 'KHVT_SHE_0001';
 
 -- Kỳ kế hoạch SHE bắt đầu từ tháng 06/2026.
-INSERT INTO ke_hoach_vat_tu (code, period_month, state, company_id, create_uid, write_uid, create_date, write_date)
+INSERT INTO ke_hoach_vat_tu (
+    code, period_month, state, approval_state, approval_current_sequence,
+    company_id, create_uid, write_uid, create_date, write_date
+)
 SELECT
     'KHVT_SHE_0001',
     '06/2026',
     'ke_hoach',
+    'draft',
+    0,
     c.id,
     1, 1, NOW(), NOW()
 FROM res_company c

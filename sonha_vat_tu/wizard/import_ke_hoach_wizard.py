@@ -277,7 +277,7 @@ class ImportKeHoachWizard(models.TransientModel):
         Period = self.env['ke.hoach.vat.tu']
         vals_by_key = {}
         errors = []
-        company = self.env.user.company_id
+        company = self.env.company
         if company.company_code not in ('BNH', 'SSP'):
             raise UserError(_('Công ty hiện tại không phải công ty sản xuất BNH/SSP. Vui lòng chọn đúng công ty trước khi import kế hoạch sản xuất.'))
 

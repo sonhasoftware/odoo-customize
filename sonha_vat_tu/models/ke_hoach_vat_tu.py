@@ -43,18 +43,54 @@ class KeHoachVatTu(models.Model):
     ], default='ke_hoach', tracking=True, string='Trạng thái')
     note = fields.Text(string='Ghi chú')
 
+    approval_company_id = fields.Many2one(
+        'res.company',
+        string='Đơn vị phê duyệt',
+        compute='_compute_approval_company',
+    )
+    approval_flow_id = fields.Many2one(
+        'luong.duyet',
+        string='Luồng duyệt',
+        copy=False,
+        tracking=True,
+    )
+    approval_step_ids = fields.One2many(
+        'buoc.duyet.ke.hoach.vat.tu',
+        'period_id',
+        string='Các bước duyệt',
+        copy=False,
+    )
+    approval_state = fields.Selection(
+        [
+            ('draft', 'Chưa gửi duyệt'),
+            ('pending', 'Đang duyệt'),
+            ('approved', 'Đã duyệt'),
+        ],
+        string='Trạng thái phê duyệt',
+        default='draft',
+        required=True,
+        copy=False,
+        tracking=True,
+    )
+    approval_current_sequence = fields.Integer(
+        string='Bước duyệt hiện tại',
+        default=0,
+        copy=False,
+    )
+    can_approve = fields.Boolean(compute='_compute_can_approve')
+
     ngay_du_phong_b4 = fields.Float(
         string='Số ngày (dự phòng)',
         default=15.0,
         digits=(16, 2),
-        help='Dùng cho B4: số lượng dự phòng = VT cần dùng ÷ (28 × số ngày này).',
+        help='Dùng cho B4: số lượng dự phòng = VT cần dùng ÷ 28 × số ngày này.',
         tracking=True,
     )
     ngay_du_tru_b5 = fields.Float(
         string='Số ngày (dự trữ)',
         default=20.0,
         digits=(16, 2),
-        help='Dùng cho B5: số lượng dự trữ tối thiểu = VT cần dùng ÷ (28 × số ngày này).',
+        help='Dùng cho B5: số lượng dự trữ tối thiểu = VT cần dùng ÷ 28 × số ngày này.',
         tracking=True,
     )
 
@@ -73,6 +109,38 @@ class KeHoachVatTu(models.Model):
     tinh_toan_vat_tu_count = fields.Integer(compute='_compute_counts')
     tong_hop_vat_tu_count = fields.Integer(compute='_compute_counts')
     kh_dat_vat_tu_count = fields.Integer(compute='_compute_counts')
+
+    @api.depends(
+        'kh_dat_vat_tu_ids.company_id',
+        'ke_hoach_vat_tu_line_ids.company_id',
+    )
+    def _compute_approval_company(self):
+        for rec in self:
+            companies = rec.kh_dat_vat_tu_ids.mapped('company_id')
+            if not companies:
+                companies = rec.ke_hoach_vat_tu_line_ids.mapped('company_id')
+            rec.approval_company_id = companies[:1] if len(companies) == 1 else False
+
+    @api.depends(
+        'approval_state',
+        'approval_current_sequence',
+        'approval_step_ids.sequence',
+        'approval_step_ids.nguoi_duyet_id',
+        'approval_step_ids.da_duyet',
+    )
+    def _compute_can_approve(self):
+        current_user = self.env.user
+        for rec in self:
+            current_steps = rec.approval_step_ids.filtered(
+                lambda step: (
+                    step.sequence == rec.approval_current_sequence
+                    and not step.da_duyet
+                )
+            )
+            rec.can_approve = (
+                rec.approval_state == 'pending'
+                and any(step.nguoi_duyet_id == current_user for step in current_steps)
+            )
     month_ids_preview = fields.Char(
         string='Các tháng có dữ liệu',
         compute='_compute_month_preview')
@@ -98,7 +166,7 @@ class KeHoachVatTu(models.Model):
             return False
 
     def _get_current_production_company(self):
-        user_company = self.env.user.company_id
+        user_company = self.env.company
         if user_company.company_code in ('BNH', 'SSP'):
             return user_company
         raise UserError(_(
@@ -196,14 +264,12 @@ class KeHoachVatTu(models.Model):
 
     def _production_company_for_auto_seed(self):
         self.ensure_one()
-        if self.ke_hoach_san_xuat_ids:
-            return self.ke_hoach_san_xuat_ids[:1].company_id
-        if self.env.user.company_id.company_code in ('BNH', 'SSP'):
-            return self.env.user.company_id
-        company = self.env['res.company'].sudo().search([('company_code', 'in', ('BNH', 'SSP'))], limit=1)
-        if not company:
-            raise UserError(_('Chưa cấu hình công ty sản xuất BNH/SSP để tạo kế hoạch sản xuất.'))
-        return company
+        production_companies = self.ke_hoach_san_xuat_ids.mapped('company_id')
+        if len(production_companies) == 1:
+            return production_companies
+        if self.env.company.company_code in ('BNH', 'SSP'):
+            return self.env.company
+        return self.env['res.company'].browse()
 
     def _sync_production_from_business(self):
         self.ensure_one()
@@ -212,17 +278,17 @@ class KeHoachVatTu(models.Model):
         Production = self.env['ke.hoach.san.xuat'].sudo()
         company = self._production_company_for_auto_seed()
         existing = {
-            (line.company_id.id, line.ma_hang_id.id, line.ma_sap, line.month_key)
+            (line.ma_hang_id.id, line.ma_sap, line.month_key)
             for line in self.ke_hoach_san_xuat_ids
         }
         vals_list = []
         for line in self.ke_hoach_kinh_doanh_ids:
-            key = (company.id, line.ma_hang_id.id, line.ma_sap, line.month_key)
+            key = (line.ma_hang_id.id, line.ma_sap, line.month_key)
             if key in existing:
                 continue
             vals_list.append({
                 'period_id': self.id,
-                'company_id': company.id,
+                'company_id': company.id or False,
                 'nganh_hang': line.nganh_hang,
                 'dong_hang': line.dong_hang,
                 'ma_hang_id': line.ma_hang_id.id,
@@ -233,9 +299,12 @@ class KeHoachVatTu(models.Model):
                 'note': line.note,
             })
         if vals_list:
-            Production.with_context(is_importing=True).create(vals_list)
+            Production.with_context(
+                is_importing=True,
+                allow_unassigned_production_company=True,
+            ).create(vals_list)
 
-    def _prepare_material_plan_values_from_production(self):
+    def _prepare_material_plan_values_from_production(self, production_company):
         self.ensure_one()
         business_by_key = {
             (line.ma_hang_id.id, line.ma_sap, line.month_key): line
@@ -264,7 +333,7 @@ class KeHoachVatTu(models.Model):
             business_qty = business_by_key[key].qty if key in business_by_key else 0.0
             vals_list.append({
                 'period_id': self.id,
-                'company_id': line.company_id.id,
+                'company_id': production_company.id,
                 'nganh_hang': line.nganh_hang,
                 'dong_hang': line.dong_hang,
                 'ma_hang_id': line.ma_hang_id.id,
@@ -286,11 +355,34 @@ class KeHoachVatTu(models.Model):
             raise UserError(_('Chưa có kế hoạch sản xuất để tạo kế hoạch vật tư.'))
         if self.ke_hoach_vat_tu_line_ids:
             raise UserError(_('Kế hoạch vật tư đã có dữ liệu. Vui lòng xóa dữ liệu cũ nếu cần tạo lại.'))
-        vals_list = self._prepare_material_plan_values_from_production()
+
+        production_company = self._get_current_production_company()
+        other_company_lines = self.ke_hoach_san_xuat_ids.filtered(
+            lambda line: line.company_id and line.company_id != production_company
+        )
+        if other_company_lines:
+            other_codes = ', '.join(sorted(set(
+                other_company_lines.mapped('company_id.company_code')
+            )))
+            raise UserError(_(
+                'Kế hoạch sản xuất đã thuộc đơn vị %s, trong khi công ty hiện tại của bạn là %s. '
+                'Vui lòng chuyển đúng công ty trước khi tạo kế hoạch vật tư.'
+            ) % (other_codes, production_company.company_code))
+
+        unassigned_lines = self.ke_hoach_san_xuat_ids.filtered(lambda line: not line.company_id)
+        if unassigned_lines:
+            unassigned_lines.with_context(
+                is_importing=True,
+                allow_unassigned_production_company=True,
+            ).write({'company_id': production_company.id})
+
+        vals_list = self._prepare_material_plan_values_from_production(production_company)
         if vals_list:
             self.env['ke.hoach.vat.tu.line'].sudo().with_context(skip_period_lock=True).create(vals_list)
         self.with_context(vat_tu_chatter_scope='vt').message_post(
-            body=_('Đã tạo %s dòng kế hoạch vật tư từ kế hoạch sản xuất.') % len(vals_list)
+            body=_(
+                'Đã tạo %s dòng kế hoạch vật tư theo đơn vị sản xuất %s.'
+            ) % (len(vals_list), production_company.company_code)
         )
         return self.action_open_workflow_vt()
     def action_compute_b3(self):
@@ -317,16 +409,128 @@ class KeHoachVatTu(models.Model):
         self.state = 'dat_hang'
         return self.action_open_step_b5()
 
+    def _approval_manager_user(self):
+        self.ensure_one()
+        return self.env.user
+
+    def action_submit_approval(self):
+        self.ensure_one()
+        if self.state != 'dat_hang' or not self.kh_dat_vat_tu_ids:
+            raise UserError(_('Chỉ có thể gửi duyệt sau khi đã sinh kế hoạch đặt vật tư.'))
+        if self.approval_state != 'draft':
+            raise UserError(_('Kế hoạch này đã được gửi duyệt.'))
+        if not self.approval_flow_id:
+            raise UserError(_('Vui lòng chọn Luồng duyệt trước khi gửi duyệt.'))
+        if self.approval_flow_id.model_id.model != self._name:
+            raise UserError(_(
+                'Luồng duyệt đã chọn không áp dụng cho model Kế hoạch vật tư.'
+            ))
+        if not self.approval_company_id:
+            raise UserError(_(
+                'Không xác định được duy nhất một đơn vị sản xuất để phê duyệt.'
+            ))
+        if self.approval_flow_id.dvcs != self.approval_company_id:
+            raise UserError(_(
+                'Luồng duyệt thuộc đơn vị %s, nhưng kế hoạch đặt vật tư thuộc đơn vị %s.'
+            ) % (
+                self.approval_flow_id.dvcs.company_code or self.approval_flow_id.dvcs.name,
+                self.approval_company_id.company_code or self.approval_company_id.name,
+            ))
+
+        configured_steps = self.approval_flow_id.sudo().step_ids.sorted(
+            key=lambda step: (step.sequence, step.id)
+        )
+        if not configured_steps:
+            raise UserError(_('Luồng duyệt chưa có bước duyệt nào.'))
+
+        step_values = []
+        for configured_step in configured_steps:
+            if configured_step.phuong_thuc == 'ql':
+                approvers = self._approval_manager_user()
+            else:
+                approvers = configured_step.ten_nguoi_duyet
+            if not approvers:
+                raise UserError(_(
+                    'Bước duyệt STT %s chưa xác định được người duyệt.'
+                ) % configured_step.sequence)
+            for approver in approvers:
+                step_values.append({
+                    'period_id': self.id,
+                    'sequence': configured_step.sequence,
+                    'phuong_thuc': configured_step.phuong_thuc,
+                    'vai_tro_id': configured_step.vai_tro.id or False,
+                    'nguoi_duyet_id': approver.id,
+                })
+
+        self.approval_step_ids.sudo().unlink()
+        self.env['buoc.duyet.ke.hoach.vat.tu'].sudo().create(step_values)
+        first_sequence = min(value['sequence'] for value in step_values)
+        self.write({
+            'approval_state': 'pending',
+            'approval_current_sequence': first_sequence,
+        })
+        self.message_post(body=_(
+            '%s đã gửi duyệt kế hoạch đặt vật tư theo luồng "%s".'
+        ) % (self.env.user.name, self.approval_flow_id.ten))
+        self.invalidate_recordset([
+            'approval_step_ids',
+            'approval_state',
+            'approval_current_sequence',
+        ])
+        return self.action_approve_material_plan()
+
+    def action_approve_material_plan(self):
+        self.ensure_one()
+        if self.approval_state != 'pending':
+            raise UserError(_('Kế hoạch không ở trạng thái đang duyệt.'))
+
+        current_steps = self.approval_step_ids.filtered(
+            lambda step: step.sequence == self.approval_current_sequence
+        )
+        my_steps = current_steps.filtered(
+            lambda step: step.nguoi_duyet_id == self.env.user and not step.da_duyet
+        )
+        if not my_steps:
+            raise UserError(_('Chưa đến lượt bạn duyệt kế hoạch này.'))
+
+        my_steps.sudo().write({
+            'da_duyet': True,
+            'ngay_duyet': self.env.cr.now(),
+        })
+        self.message_post(body=_(
+            '%s đã duyệt bước %s.'
+        ) % (self.env.user.name, self.approval_current_sequence))
+
+        if all(current_steps.mapped('da_duyet')):
+            next_sequences = self.approval_step_ids.filtered(
+                lambda step: step.sequence > self.approval_current_sequence
+            ).mapped('sequence')
+            if next_sequences:
+                self.approval_current_sequence = min(next_sequences)
+            else:
+                self.write({
+                    'approval_state': 'approved',
+                    'approval_current_sequence': 0,
+                })
+                self.message_post(body=_('Kế hoạch đặt vật tư đã được phê duyệt hoàn tất.'))
+        return self.action_open_step_b5()
+
     def action_reset_to_draft(self):
         for period in self:
             period.with_context(vat_tu_chatter_scope='vt').message_post(
                 body=_('%s đã reset về nháp.') % self.env.user.name
             )
+            period.sudo().approval_step_ids.unlink()
             period.sudo().dinh_muc_ids.unlink()
             period.sudo().tinh_toan_vat_tu_ids.unlink()
             period.sudo().tong_hop_vat_tu_ids.unlink()
             period.sudo().kh_dat_vat_tu_ids.unlink()
-            period.state = 'ke_hoach'
+            period.write({
+                'state': 'ke_hoach',
+                'approval_flow_id': False,
+                'approval_state': 'draft',
+                'approval_current_sequence': 0,
+            })
 
     def _apply_plan_excel_style(self, ws, header_row, max_col):
         base_font = Font(name='Times New Roman', size=10)

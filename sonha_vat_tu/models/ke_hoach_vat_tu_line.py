@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 
 
 class KeHoachVatTuLine(models.Model):
@@ -12,7 +12,7 @@ class KeHoachVatTuLine(models.Model):
     period_id = fields.Many2one(
         'ke.hoach.vat.tu', string='Kỳ', ondelete='cascade', index=True)
     company_id = fields.Many2one(
-        'res.company', string='Công ty sản xuất', index=True)
+        'res.company', string='Công ty sản xuất', index=True, required=True)
     nganh_hang = fields.Char(string='Ngành hàng', index=True)
     dong_hang = fields.Char(string='Dòng hàng', index=True)
     ma_hang_id = fields.Many2one(
@@ -41,6 +41,16 @@ class KeHoachVatTuLine(models.Model):
     def _compute_qty_chenh_lech(self):
         for rec in self:
             rec.qty_chenh_lech = (rec.qty_san_xuat or 0.0) - (rec.qty_kinh_doanh or 0.0)
+
+    @api.constrains('company_id')
+    def _check_production_company(self):
+        invalid = self.filtered(
+            lambda rec: rec.company_id.company_code not in ('BNH', 'SSP')
+        )
+        if invalid:
+            raise ValidationError(_(
+                'Công ty sản xuất của kế hoạch vật tư chỉ được là BNH hoặc SSP.'
+            ))
 
     @api.model_create_multi
     def create(self, vals_list):

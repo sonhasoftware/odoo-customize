@@ -206,7 +206,7 @@ BEGIN
         v_ve_du_kien := COALESCE(v_ve_du_kien, 0);
 
         v_sl_du_phong := CASE WHEN COALESCE(rec.vt_can_dung, 0) > 0
-                              THEN rec.vt_can_dung / (28.0 * p_ngay_dp)
+                              THEN rec.vt_can_dung / 28.0 * p_ngay_dp
                               ELSE 0 END;
         v_ton_cuoi    := v_ton_dau + v_ve_du_kien - COALESCE(rec.vt_can_dung, 0);
         v_sl_thieu    := GREATEST(0.0, v_sl_du_phong - v_ton_cuoi);
@@ -308,7 +308,7 @@ BEGIN
             b4.ve_du_kien,
             COALESCE(b4.vt_can_dung, 0)              AS vt_can_dung,
             CASE WHEN COALESCE(b4.vt_can_dung, 0) > 0
-                 THEN b4.vt_can_dung / (28.0 * p_ngay_dt)
+                 THEN b4.vt_can_dung / 28.0 * p_ngay_dt
                  ELSE 0 END                           AS sl_du_tru_toi_thieu,
             NULL::NUMERIC                             AS sl_can_mua_theo_moq,
             CASE
@@ -316,7 +316,7 @@ BEGIN
                 WHEN COALESCE(tk.tdu, 0) != 0 THEN tk.ttdu / tk.tdu
                 ELSE 0
             END                                       AS don_gia_ton_kho,
-            (b4.ton_dau - COALESCE(b4.vt_can_dung, 0) + b4.ve_du_kien - (CASE WHEN COALESCE(b4.vt_can_dung, 0) > 0 THEN b4.vt_can_dung / (28.0 * p_ngay_dt) ELSE 0 END)) AS sl_dat_mua_de_xuat,
+            (b4.ton_dau - COALESCE(b4.vt_can_dung, 0) + b4.ve_du_kien - (CASE WHEN COALESCE(b4.vt_can_dung, 0) > 0 THEN b4.vt_can_dung / 28.0 * p_ngay_dt ELSE 0 END)) AS sl_dat_mua_de_xuat,
             (b4.ton_dau - COALESCE(b4.vt_can_dung, 0) + b4.ve_du_kien + 0) AS sl_ton_kho,
             b4.ghi_chu
         FROM tong_hop_vat_tu b4

@@ -9,7 +9,7 @@
     """,
     'author': 'Sơn Hà',
     'website': 'https://sonha.com.vn',
-    'depends': ['base', 'mail', 'hr', 'sonha_mdm'],
+    'depends': ['base', 'mail', 'hr', 'sonha_mdm', 'sonha_luong_duyet'],
     'data': [
         'security/security.xml',
         'security/ir.model.access.csv',

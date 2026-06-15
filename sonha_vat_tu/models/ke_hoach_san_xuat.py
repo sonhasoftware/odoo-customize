@@ -20,7 +20,7 @@ class KeHoachSanXuat(models.Model):
 
     company_id = fields.Many2one(
         'res.company', string='Công ty',
-        default=lambda self: self.env.user.company_id, index=True)
+        default=lambda self: self.env.company, index=True)
 
     nganh_hang = fields.Char(string='Ngành hàng', index=True)
     dong_hang = fields.Char(string='Dòng hàng', index=True)
@@ -52,6 +52,17 @@ class KeHoachSanXuat(models.Model):
                 raise ValidationError(
                     'Tháng phải đúng định dạng MM/YYYY, ví dụ 04/2026.'
                 )
+
+    @api.constrains('company_id')
+    def _check_production_company(self):
+        invalid = self.filtered(
+            lambda rec: rec.company_id
+            and rec.company_id.company_code not in ('BNH', 'SSP')
+        )
+        if invalid:
+            raise ValidationError(_(
+                'Đơn vị sản xuất chỉ được phép là BNH hoặc SSP.'
+            ))
 
     @api.onchange('ma_hang_id')
     def _onchange_ma_hang(self):
@@ -85,7 +96,15 @@ class KeHoachSanXuat(models.Model):
                     vals.setdefault('nganh_hang', master.nganh_hang)
 
             if not vals.get('company_id') and vals.get('period_id'):
-                vals['company_id'] = self.env.user.company_id.id
+                if self.env.context.get('allow_unassigned_production_company'):
+                    vals['company_id'] = False
+                else:
+                    company = self.env.company
+                    if company.company_code not in ('BNH', 'SSP'):
+                        raise UserError(_(
+                            'Công ty hiện tại không phải công ty sản xuất BNH/SSP.'
+                        ))
+                    vals['company_id'] = company.id
                     
         records = super().create(vals_list)
         
@@ -198,6 +217,10 @@ class KeHoachSanXuat(models.Model):
 
         if not self.env.context.get('skip_period_lock'):
             self._check_period_editable()
+
+        if 'company_id' in vals and not vals.get('company_id'):
+            if not self.env.context.get('allow_unassigned_production_company'):
+                raise UserError(_('Đơn vị sản xuất không được để trống.'))
 
         if 'month_key' in vals:
             vals = dict(vals)

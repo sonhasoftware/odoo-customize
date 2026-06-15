@@ -317,12 +317,22 @@
         <field name="arch" type="xml">
             <form string="Kế hoạch đặt vật tư">
                 <header>
+                    <button name="action_submit_approval" type="object" string="Duyệt"
+                            class="btn-primary"
+                            groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"
+                            invisible="state != 'dat_hang' or approval_state != 'draft'"/>
+                    <button name="action_approve_material_plan" type="object" string="Duyệt"
+                            class="btn-primary"
+                            invisible="not can_approve"/>
 <!--                    <button name="action_reset_to_draft" type="object" string="Reset về nháp"-->
 <!--                            groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"-->
 <!--                            invisible="state == 'ke_hoach'" confirm="Dữ liệu các bước tính sẽ bị xoá, bạn chắc chứ?"/>-->
                     <field name="state" widget="statusbar" statusbar_visible="ke_hoach,dinh_muc,tinh_toan,tong_hop,dat_hang"/>
                 </header>
                 <sheet>
+                    <field name="can_approve" invisible="1"/>
+                    <field name="approval_state" invisible="1"/>
+                    <field name="approval_company_id" invisible="1"/>
                     <div class="oe_button_box" name="button_box">
                         <button name="action_open_step_b4" type="object" class="oe_stat_button" icon="fa-arrow-left"
                                 groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu">
@@ -345,27 +355,49 @@
                                    context="{'vat_tu_company_code_display': True}"/>
                         </group>
                     </group>
-                    <field name="kh_dat_vat_tu_ids">
-                        <tree editable="bottom" create="false" delete="false" class="sh_free_width_tree">
-                            <field name="month_key" required="1" readonly="1"/>
-                            <field name="ma_sap" string="Mã NVL" required="1" readonly="1"/>
-                            <field name="ten_nvl" string="Tên NVL" readonly="1"/>
-                            <field name="chung_loai" string="Chủng loại" readonly="1"/>
-                            <field name="don_vi_tinh" readonly="1"/>
-                            <field name="tong_ton_nvl_sl" readonly="1"/>
-                            <field name="tong_hang_di_duong_sl" readonly="1"/>
-                            <field name="tong_sl_vt_can_dung" readonly="1"/>
-                            <field name="sl_du_tru_toi_thieu" readonly="1"/>
-                            <field name="sl_can_mua_theo_moq" readonly="1"/>
-                            <field name="sl_dat_mua_de_xuat" readonly="1"/>
-                            <field name="sl_dat_mua_chot" readonly="1"/>
-                            <field name="sl_ton_kho" readonly="1"/>
-                            <field name="so_ngay_vong_quay_ton" readonly="1"/>
-                            <field name="don_gia_ton_kho" readonly="1"/>
-                            <field name="gia_tri_ton_kho" readonly="1"/>
-                            <field name="ghi_chu" readonly="1"/>
-                        </tree>
-                    </field>
+                    <notebook>
+                        <page string="Kế hoạch đặt vật tư">
+                            <field name="kh_dat_vat_tu_ids">
+                                <tree editable="bottom" create="false" delete="false" class="sh_free_width_tree">
+                                    <field name="month_key" required="1" readonly="1"/>
+                                    <field name="ma_sap" string="Mã NVL" required="1" readonly="1"/>
+                                    <field name="ten_nvl" string="Tên NVL" readonly="1"/>
+                                    <field name="chung_loai" string="Chủng loại" readonly="1"/>
+                                    <field name="don_vi_tinh" readonly="1"/>
+                                    <field name="tong_ton_nvl_sl" readonly="1"/>
+                                    <field name="tong_hang_di_duong_sl" readonly="1"/>
+                                    <field name="tong_sl_vt_can_dung" readonly="1"/>
+                                    <field name="sl_du_tru_toi_thieu" readonly="1"/>
+                                    <field name="sl_can_mua_theo_moq" readonly="1"/>
+                                    <field name="sl_dat_mua_de_xuat" readonly="1"/>
+                                    <field name="sl_dat_mua_chot" readonly="1"/>
+                                    <field name="sl_ton_kho" readonly="1"/>
+                                    <field name="so_ngay_vong_quay_ton" readonly="1"/>
+                                    <field name="don_gia_ton_kho" readonly="1"/>
+                                    <field name="gia_tri_ton_kho" readonly="1"/>
+                                    <field name="ghi_chu" readonly="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Phê duyệt">
+                            <group>
+                                <field name="approval_flow_id"
+                                       readonly="approval_state != 'draft'"
+                                       options="{'no_create': True, 'no_open': True}"
+                                       domain="[('model_id.model', '=', 'ke.hoach.vat.tu'), ('dvcs', '=', approval_company_id)]"/>
+                            </group>
+                            <field name="approval_step_ids" readonly="1">
+                                <tree create="false" delete="false" edit="false">
+                                    <field name="sequence"/>
+                                    <field name="phuong_thuc"/>
+                                    <field name="vai_tro_id"/>
+                                    <field name="nguoi_duyet_id"/>
+                                    <field name="da_duyet"/>
+                                    <field name="ngay_duyet"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
                 </sheet>
                 <div class="oe_chatter">
                     <field name="message_follower_ids"/>
