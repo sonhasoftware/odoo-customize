@@ -134,11 +134,11 @@ BEGIN
         company_id,
         month_key,
         COALESCE(month_date, TO_DATE(month_key, 'MM/YYYY')) AS month_date,
-        ma_sap,
+        ma_nvl,
         so_luong
     FROM vat_tu_di_duong;
 
-    CREATE INDEX ON _tmp_vdd (company_id, month_date, ma_sap);
+    CREATE INDEX ON _tmp_vdd (company_id, month_date, ma_nvl);
 
     -- Buoc 3: Vong lap cuon chieu ton kho.
     FOR rec IN
@@ -202,7 +202,7 @@ BEGIN
         FROM _tmp_vdd
         WHERE company_id = rec.company_id
           AND month_date = rec.month_date
-          AND ma_sap     = rec.material_code;
+          AND ma_nvl     = rec.material_code;
         v_ve_du_kien := COALESCE(v_ve_du_kien, 0);
 
         v_sl_du_phong := CASE WHEN COALESCE(rec.vt_can_dung, 0) > 0

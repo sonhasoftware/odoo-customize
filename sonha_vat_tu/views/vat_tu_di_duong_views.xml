@@ -6,8 +6,9 @@
         <field name="model">vat.tu.di.duong</field>
         <field name="arch" type="xml">
             <tree string="Vật tư đi đường" editable="bottom">
-                <field name="company_id"/>
-                <field name="ma_sap" required="1"/>
+                <field name="company_id" context="{'vat_tu_company_code_display': True}"/>
+                <field name="ma_nvl" required="1"/>
+                <field name="ten_nvl"/>
                 <field name="month_key" required="1"/>
                 <field name="so_luong" sum="SL"/>
             </tree>
@@ -19,16 +20,17 @@
         <field name="model">vat.tu.di.duong</field>
         <field name="arch" type="xml">
             <search>
-                <field name="company_id"/>
-                <field name="ma_sap"/>
+                <field name="company_id" context="{'vat_tu_company_code_display': True}"/>
+                <field name="ma_nvl"/>
+                <field name="ten_nvl"/>
                 <field name="month_key"/>
                 <group expand="0" string="Nhóm theo">
                     <filter name="group_company" string="Đơn vị"
-                            context="{'group_by': 'company_id'}"/>
+                            context="{'group_by': 'company_id', 'vat_tu_company_code_display': True}"/>
                     <filter name="group_month" string="Tháng"
                             context="{'group_by': 'month_key'}"/>
-                    <filter name="group_sap" string="Mã SAP"
-                            context="{'group_by': 'ma_sap'}"/>
+                    <filter name="group_nvl" string="Mã NVL"
+                            context="{'group_by': 'ma_nvl'}"/>
                 </group>
             </search>
         </field>
@@ -39,6 +41,7 @@
         <field name="res_model">vat.tu.di.duong</field>
         <field name="view_mode">tree</field>
         <field name="search_view_id" ref="view_vat_tu_di_duong_search"/>
+        <field name="context">{'vat_tu_company_code_display': True}</field>
     </record>
 
 </odoo>

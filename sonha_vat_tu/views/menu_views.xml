@@ -2,6 +2,7 @@
 <odoo>
 
     <menuitem id="menu_ke_hoach_vat_tu_root" name="Kế hoạch vật tư" sequence="55"
+              web_icon="sonha_vat_tu,static/description/icon.png"
               groups="sonha_vat_tu.group_ban_cung_ung_vat_tu,sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"/>
 
     <menuitem id="menu_ke_hoach_vat_tu" name="Kế hoạch"

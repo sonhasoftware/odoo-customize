@@ -35,6 +35,12 @@ class DuLieuTongHopVatTu(models.Model):
         'ke.hoach.vat.tu', string='Kỳ', ondelete='cascade', index=True, readonly=True)
     company_id = fields.Many2one(
         'res.company', string='Đơn vị sản xuất', index=True, readonly=True)
+    currency_id = fields.Many2one(
+        'res.currency',
+        string='Tiền tệ',
+        related='company_id.currency_id',
+        readonly=True,
+    )
     period_company_id = fields.Many2one(
         'res.company', string='Đơn vị yêu cầu', index=True, readonly=True)
     period_code = fields.Char(string='Số chứng từ', index=True, readonly=True)
@@ -99,8 +105,16 @@ class DuLieuTongHopVatTu(models.Model):
     sl_dat_mua_chot = fields.Float(string='SL đặt mua chốt', digits=(16, 3), readonly=True)
     sl_ton_kho = fields.Float(string='SL tồn kho', digits=(16, 3), readonly=True)
     so_ngay_vong_quay_ton = fields.Float(string='Ngày vòng quay tồn', digits=(16, 2), readonly=True)
-    don_gia_ton_kho = fields.Float(string='Đơn giá tồn kho', digits=(16, 3), readonly=True)
-    gia_tri_ton_kho = fields.Float(string='Giá trị tồn kho', digits=(16, 3), readonly=True)
+    don_gia_ton_kho = fields.Monetary(
+        string='Đơn giá tồn kho',
+        currency_field='currency_id',
+        readonly=True,
+    )
+    gia_tri_ton_kho = fields.Monetary(
+        string='Giá trị tồn kho',
+        currency_field='currency_id',
+        readonly=True,
+    )
 
     display_name = fields.Char(compute='_compute_display_name')
 

@@ -18,6 +18,7 @@
                 <field name="source_res_id"/>
                 <field name="period_id"/>
                 <field name="company_id"/>
+                <field name="currency_id" column_invisible="True"/>
                 <field name="period_company_id"/>
                 <field name="period_code"/>
                 <field name="period_month"/>
@@ -67,8 +68,8 @@
                 <field name="sl_dat_mua_chot"/>
                 <field name="sl_ton_kho"/>
                 <field name="so_ngay_vong_quay_ton"/>
-                <field name="don_gia_ton_kho"/>
-                <field name="gia_tri_ton_kho"/>
+                <field name="don_gia_ton_kho" widget="monetary"/>
+                <field name="gia_tri_ton_kho" widget="monetary"/>
             </tree>
         </field>
     </record>
@@ -90,6 +91,7 @@
                             <field name="source_res_id"/>
                             <field name="period_id"/>
                             <field name="company_id"/>
+                            <field name="currency_id" invisible="1"/>
                             <field name="period_company_id"/>
                             <field name="period_code"/>
                             <field name="period_month"/>
@@ -135,8 +137,8 @@
                             <field name="sl_dat_mua_chot"/>
                             <field name="sl_ton_kho"/>
                             <field name="so_ngay_vong_quay_ton"/>
-                            <field name="don_gia_ton_kho"/>
-                            <field name="gia_tri_ton_kho"/>
+                            <field name="don_gia_ton_kho" widget="monetary"/>
+                            <field name="gia_tri_ton_kho" widget="monetary"/>
                         </group>
                     </group>
                 </sheet>

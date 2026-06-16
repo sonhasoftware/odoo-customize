@@ -14,6 +14,12 @@ class KhDatVatTu(models.Model):
     month_date = fields.Date(string='Tháng tính toán', index=True)
     company_id = fields.Many2one(
         'res.company', string='Đơn vị', index=True)
+    currency_id = fields.Many2one(
+        'res.currency',
+        string='Tiền tệ',
+        related='company_id.currency_id',
+        readonly=True,
+    )
     ma_sap = fields.Char(string='Mã NVL', index=True)
     ten_nvl = fields.Char(string='Tên NVL')
     chung_loai = fields.Char(string='Chủng loại')
@@ -33,9 +39,16 @@ class KhDatVatTu(models.Model):
         string='SL tồn sau mua', compute='_compute_core_values', store=True, digits=(16, 3))
     so_ngay_vong_quay_ton = fields.Float(
         string='Ngày vòng quay tồn', compute='_compute_core_values', store=True, digits=(16, 2))
-    don_gia_ton_kho = fields.Float(string='Đơn giá tồn kho', digits=(16, 3))
-    gia_tri_ton_kho = fields.Float(
-        string='Giá trị tồn kho', compute='_compute_core_values', store=True, digits=(16, 3))
+    don_gia_ton_kho = fields.Monetary(
+        string='Đơn giá tồn kho',
+        currency_field='currency_id',
+    )
+    gia_tri_ton_kho = fields.Monetary(
+        string='Giá trị tồn kho',
+        compute='_compute_core_values',
+        store=True,
+        currency_field='currency_id',
+    )
     ghi_chu = fields.Char(string='Ghi chú')
 
     @api.depends(

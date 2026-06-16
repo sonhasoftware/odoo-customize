@@ -373,8 +373,9 @@
                                     <field name="sl_dat_mua_chot" readonly="1"/>
                                     <field name="sl_ton_kho" readonly="1"/>
                                     <field name="so_ngay_vong_quay_ton" readonly="1"/>
-                                    <field name="don_gia_ton_kho" readonly="1"/>
-                                    <field name="gia_tri_ton_kho" readonly="1"/>
+                                    <field name="currency_id" column_invisible="True"/>
+                                    <field name="don_gia_ton_kho" readonly="1" widget="monetary"/>
+                                    <field name="gia_tri_ton_kho" readonly="1" widget="monetary"/>
                                     <field name="ghi_chu" readonly="1"/>
                                 </tree>
                             </field>

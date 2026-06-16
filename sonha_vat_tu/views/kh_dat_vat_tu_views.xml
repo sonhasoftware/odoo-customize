@@ -20,8 +20,9 @@
                 <field name="sl_dat_mua_chot" string="Số lượng đặt mua chốt" sum="Tổng chốt"/>
                 <field name="sl_ton_kho" string="Số lượng tồn kho" sum="Tổng tồn kho"/>
                 <field name="so_ngay_vong_quay_ton" string="Số ngày vòng quay"/>
-                <field name="don_gia_ton_kho" string="Đơn giá tồn kho"/>
-                <field name="gia_tri_ton_kho" string="Giá trị tồn kho" sum="Tổng giá trị tồn kho"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="don_gia_ton_kho" string="Đơn giá tồn kho" widget="monetary"/>
+                <field name="gia_tri_ton_kho" string="Giá trị tồn kho" widget="monetary" sum="Tổng giá trị tồn kho"/>
                 <field name="ghi_chu"/>
             </tree>
         </field>
@@ -60,8 +61,9 @@
                             <field name="sl_dat_mua_chot" readonly="1"/>
                             <field name="sl_ton_kho" readonly="1"/>
                             <field name="so_ngay_vong_quay_ton" readonly="1"/>
-                            <field name="don_gia_ton_kho"/>
-                            <field name="gia_tri_ton_kho" readonly="1"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="don_gia_ton_kho" widget="monetary"/>
+                            <field name="gia_tri_ton_kho" widget="monetary" readonly="1"/>
                         </group>
                     </group>
                 </sheet>
