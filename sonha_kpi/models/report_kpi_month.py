@@ -18,9 +18,9 @@ class ReportKpiMonth(models.Model):
     dv_comply_regulations = fields.Float("Chấp hành nội quy, quy chế", default=0)
     dv_initiative = fields.Float("Cải tiến, đề xuất, sáng kiến", default=0)
     dv_description = fields.Text("Mô tả chi tiết công việc")
-    dv_do_luong = fields.Char("Chỉ tiêu đo lường", compute="_get_dv_do_luong")
+    dv_do_luong = fields.Char("Chỉ tiêu đo lường", compute="_get_dv_do_luong", store=True)
 
-    @api.depends('small_items_each_month')
+    @api.depends('small_items_each_month.dv_do_luong')
     def _get_dv_do_luong(self):
         for r in self:
             if r.small_items_each_month and r.small_items_each_month.dv_do_luong:

@@ -53,7 +53,7 @@ class SonHaKPIResultMonth(models.Model):
     quy_doi_tq_initiative = fields.Float("Điểm quy đổi theo tỉ trọng ĐVTQ (Cải tiến, đề xuất, sáng kiến)")
 
     dv_description = fields.Text("Mô tả chi tiết công việc", compute="get_dv_description")
-    dv_do_luong = fields.Char("Chỉ tiêu đo lường", compute="get_dv_do_luong")
+    dv_do_luong = fields.Char("Chỉ tiêu đo lường", compute="get_dv_do_luong", store=True)
 
     note = fields.Text("Nhận xét cấp thẩm quyền", compute="get_tq_description")
     sonha_kpi = fields.Many2one('company.sonha.kpi')
@@ -61,7 +61,7 @@ class SonHaKPIResultMonth(models.Model):
     converted_start_date = fields.Char("Bắt đầu")
     converted_end_date = fields.Char("Kết thúc")
 
-    @api.depends('kpi_month')
+    @api.depends('kpi_month.dv_do_luong')
     def get_dv_do_luong(self):
         for r in self:
             if r.kpi_month and r.kpi_month.dv_do_luong:
