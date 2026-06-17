@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_exp_shipment_tree" model="ir.ui.view">
+        <field name="name">view.exp.shipment.tree</field>
+        <field name="model">exp.shipment</field>
+        <field name="arch" type="xml">
+            <tree string="Xuất hàng" editable="bottom">
+                <field name="contract_id"/>
+                <field name="so_cont_number"/>
+                <field name="quantity"/>
+                <field name="date_shipment"/>
+                <field name="status"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_create_invoice_form" model="ir.ui.view">
+        <field name="name">view.create.invoice.form</field>
+        <field name="model">exp.shipment</field>
+        <field name="arch" type="xml">
+            <form string="Tạo Invoice, Packing list">
+                <field name="so_cont_number" readonly="1" style="font-size: 20px; font-weight: bold;"/>
+                <header>
+<!--                    <button name="action_create_invoice" string="Tạo Invoice" type="object" class="oe_highlight"/>-->
+<!--                    <button name="action_create_pkl" string="Tạo Packing List" type="object" class="oe_highlight"/>-->
+                    <field name="status" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="contract_no" class="upper_field" readonly="1"/>
+                            <field name="sign_date" class="lower_field" readonly="1"/>
+                            <field name="customer_id" class="lower_field"  options="{'no_create': True, 'no_open': True}" readonly="1"/>
+                            <field name="export_required_date" class="lower_field" readonly="1"/>
+                            <field name="po_number" class="upper_field" readonly="1"/>
+                            <field name="state_id" class="lower_field" readonly="1" options="{'no_open': True}"/>
+                            <field name="lc_required" class="lower_field" readonly="1"/>
+                            <field name="lc_file" widget="many2many_binary" readonly="1" invisible="lc_file == False"/>
+                            <field name="lc_file_name" invisible="1"/>
+                            <field name="readonly_file_char" class="upper_field" readonly="1" string="File điều kiện LC" invisible="lc_file != False"/>
+                            <field name="contract_file" widget="many2many_binary" readonly="1" invisible="contract_file == False"/>
+                            <field name="contract_file_name" invisible="1"/>
+                            <field name="readonly_file_char" class="upper_field" readonly="1" string="File hợp đồng cứng" invisible="contract_file != False"/>
+                            <field name="deposit_payment_file" widget="many2many_binary" readonly="1" invisible="deposit_payment_file == False"/>
+                            <field name="deposit_payment_file_name" invisible="1"/>
+                            <field name="readonly_file_char" class="upper_field" readonly="1" string="File điện chuyển tiền cọc" invisible="deposit_payment_file != False"/>
+                            <field name="created_by" class="lower_field" readonly="1" options="{'no_open': True}"/>
+                            <field name="created_date" class="lower_field" readonly="1"/>
+                            <field name="cont_request" class="lower_field" readonly="1"/>
+                        </group>
+                        <group>
+                            <separator string="Vận chuyển"/>
+                            <field name="shipping_time" class="upper_field" readonly="1"/>
+                            <field name="shipping_port_from" class="lower_field" options="{'no_open': True}" readonly="1"/>
+                            <field name="shipping_port_to" class="lower_field" options="{'no_open': True}" readonly="1"/>
+                            <field name="shipping_country" class="lower_field" options="{'no_open': True}" readonly="1"/>
+                            <separator string="Thanh toán"/>
+                            <field name="payment_term" class="lower_field" options="{'no_open': True}" readonly="1"/>
+                            <field name="bank" class="lower_field" options="{'no_open': True}" readonly="1"/>
+                            <field name="payment_note" class="lower_field" readonly="1"/>
+                            <field name="deposit_percent" class="lower_field" widget="percentage" readonly="1"/>
+                            <field name="currency" class="lower_field"  readonly="1"/>
+                            <field name="deposit_amount" class="lower_field" readonly="1"/>
+                            <field name="total_amount" class="lower_field" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="invoice" class="lower_field" readonly="1"/>
+                            <field name="file_invoice" widget="many2many_binary" readonly="0"/>
+                            <field name="file_invoice_name" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="packing_list" class="lower_field" readonly="1"/>
+                            <field name="file_pkl" widget="many2many_binary" readonly="0"/>
+                            <field name="file_pkl_name" invisible="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="note_contract" class="lower_field" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_product_detail_form" model="ir.ui.view">
+        <field name="name">view.product.detail.form</field>
+        <field name="model">exp.shipment</field>
+        <field name="arch" type="xml">
+            <form string="Chi tiết hàng hóa xuất">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="so_cont_number" class="upper_field" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="date_shipment" class="lower_field" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="line_product" string="" readonly="1">
+                            <tree no_open="1">
+                                <field name="number_order"/>
+                                <field name="product_code"/>
+                                <field name="product_name"/>
+                                <field name="quantity"/>
+                                <field name="unit"/>
+                            </tree>
+                        </field>
+                    </group>
+                    <footer>
+                        <button string="Đóng" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_exp_shipment" model="ir.actions.act_window">
+        <field name="name">Xuất hàng</field>
+        <field name="res_model">exp.shipment</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

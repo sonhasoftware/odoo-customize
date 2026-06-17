@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <menuitem id="menu_sonha_ql_xuat_khau"
+              name="Quản lý đơn xuất khẩu"
+              sequence="12"/>
+
+    <menuitem id="menu_exp_contract"
+              name="Hợp đồng"
+              parent="menu_sonha_ql_xuat_khau"
+              action="action_exp_contract"
+              sequence="1"/>
+
+    <menuitem id="menu_report_exp_contract"
+              name="Báo cáo"
+              parent="menu_sonha_ql_xuat_khau"
+              action="action_report_exp_contract"
+              sequence="2"/>
+
+<!--    <menuitem id="menu_exp_production_order"-->
+<!--              name="Đơn đặt hàng"-->
+<!--              parent="menu_sonha_ql_xuat_khau"-->
+<!--              action="action_exp_production_order"-->
+<!--              sequence="2"/>-->
+
+<!--    <menuitem id="menu_exp_shipment"-->
+<!--              name="Xuất kho"-->
+<!--              parent="menu_sonha_ql_xuat_khau"-->
+<!--              action="action_exp_shipment"-->
+<!--              sequence="3"/>-->
+
+<!--    <menuitem id="menu_exp_task_reminder"-->
+<!--              name="Công việc"-->
+<!--              parent="menu_sonha_ql_xuat_khau"-->
+<!--              action="action_exp_task_reminder"-->
+<!--              sequence="4"/>-->
+
+    <menuitem id="menu_exp_contract_state_log"
+              name="Log chuyển trạng thái"
+              parent="menu_sonha_ql_xuat_khau"
+              groups="sonha_ql_xuat_khau.group_exp_backup"
+              action="action_exp_contract_state_log"
+              sequence="5"/>
+
+<!--    Màn cấu hình-->
+    <menuitem id="menu_exp_config_ql_xuat_khau"
+              name="Cấu hình"
+              parent="menu_sonha_ql_xuat_khau"
+              groups="sonha_ql_xuat_khau.group_exp_backup"
+              sequence="10"/>
+
+    <menuitem id="menu_exp_contract_state"
+              name="Trạng thái hợp đồng"
+              parent="menu_exp_config_ql_xuat_khau"
+              action="action_exp_contract_state"
+              sequence="1"/>
+
+<!--    <menuitem id="menu_exp_document_type"-->
+<!--              name="Loại chứng từ"-->
+<!--              parent="menu_exp_config_ql_xuat_khau"-->
+<!--              action="action_exp_document_type"-->
+<!--              sequence="2"/>-->
+
+    <menuitem id="menu_exp_state_transition_rule"
+              name="Quy tắc chuyển trạng thái"
+              parent="menu_exp_config_ql_xuat_khau"
+              action="action_exp_state_transition_rule"
+              sequence="3"/>
+
+    <menuitem id="menu_exp_contract_api"
+              name="API hợp đồng"
+              parent="menu_exp_config_ql_xuat_khau"
+              action="action_exp_contract_api"
+              sequence="4"/>
+
+    <menuitem id="menu_exp_co_bh_reminder"
+              name="Cấu hình nhắc tạo CO, BH"
+              parent="menu_exp_config_ql_xuat_khau"
+              action="action_exp_co_bh_reminder"
+              sequence="5"/>
+
+    <menuitem id="menu_exp_config_data"
+              name="Danh mục dữ liệu"
+              parent="menu_exp_config_ql_xuat_khau"
+              action="action_exp_config_data"
+              sequence="6"/>
+
+    <menuitem id="menu_exp_export_document"
+              name="Cấu hình tài liệu xuất"
+              parent="menu_exp_config_ql_xuat_khau"
+              action="action_exp_export_document"
+              sequence="7"/>
+
+    <menuitem id="menu_exp_customer"
+              name="Danh mục khách hàng"
+              parent="menu_exp_config_ql_xuat_khau"
+              action="action_exp_customer"
+              sequence="8"/>
+
+    <menuitem id="menu_exp_group_users"
+              name="Danh mục nhóm người dùng"
+              parent="menu_exp_config_ql_xuat_khau"
+              action="action_exp_group_users"
+              sequence="9"/>
+
+    <menuitem id="menu_exp_distribute_group_user"
+              name="Danh mục phân nhóm người dùng"
+              parent="menu_exp_config_ql_xuat_khau"
+              action="action_exp_distribute_group_user"
+              sequence="9"/>
+
+    <menuitem id="menu_exp_mail_config"
+              name="Cấu hình người nhận mail"
+              parent="menu_exp_config_ql_xuat_khau"
+              action="action_exp_mail_config"
+              sequence="10"/>
+
+    <menuitem id="menu_exp_config_country"
+              name="Danh mục quốc gia"
+              parent="menu_exp_config_ql_xuat_khau"
+              action="action_exp_config_country"
+              sequence="11"/>
+
+    <menuitem id="menu_exp_config_term"
+              name="Danh mục điều khoản thanh toán"
+              parent="menu_exp_config_ql_xuat_khau"
+              action="action_exp_config_term"
+              sequence="12"/>
+
+    <menuitem id="menu_exp_config_port"
+              name="Danh mục cảng"
+              parent="menu_exp_config_ql_xuat_khau"
+              action="action_exp_config_port"
+              sequence="13"/>
+
+    <menuitem id="menu_exp_config_bank"
+              name="Danh mục ngân hàng"
+              parent="menu_exp_config_ql_xuat_khau"
+              action="action_exp_config_bank"
+              sequence="14"/>
+
+    <menuitem id="menu_exp_config_currency"
+              name="Danh mục tiền tệ"
+              parent="menu_exp_config_ql_xuat_khau"
+              action="action_exp_config_currency"
+              sequence="15"/>
+</odoo>

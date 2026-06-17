@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_exp_production_order_tree" model="ir.ui.view">
+        <field name="name">view.exp.production.order.tree</field>
+        <field name="model">exp.production.order</field>
+        <field name="arch" type="xml">
+            <tree string="Đơn đặt hàng" editable="bottom">
+                <field name="order_no"/>
+                <field name="contract_id"/>
+                <field name="product_code"/>
+                <field name="product_name"/>
+                <field name="quantity"/>
+                <field name="status"/>
+                <field name="excel_file"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_exp_production_order" model="ir.actions.act_window">
+        <field name="name">Đơn đặt hàng</field>
+        <field name="res_model">exp.production.order</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

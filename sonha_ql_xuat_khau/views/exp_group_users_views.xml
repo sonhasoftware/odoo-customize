@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_exp_group_users_tree" model="ir.ui.view">
+        <field name="name">view.exp.group.users.tree</field>
+        <field name="model">exp.group.users</field>
+        <field name="arch" type="xml">
+            <tree string="Nhóm người dùng">
+                <field name="group_id"/>
+                <field name="group_name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_exp_group_users_form" model="ir.ui.view">
+        <field name="name">view.exp.group.users.form</field>
+        <field name="model">exp.group.users</field>
+        <field name="arch" type="xml">
+            <form string="Nhóm người dùng">
+                <group>
+                    <group>
+                        <field name="group_id"/>
+                    </group>
+                    <group>
+                        <field name="group_name"/>
+                    </group>
+                </group>
+                <group>
+                    <group>
+                        <field name="create_access"/>
+                    </group>
+                    <group>
+                        <field name="write_access"/>
+                    </group>
+                    <group>
+                        <field name="unlink_access"/>
+                    </group>
+                </group>
+                <group>
+                    <field name="group_user_id">
+                        <tree editable="bottom" string="Nhân viên">
+                            <field name="employee_id"/>
+                        </tree>
+                    </field>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_exp_group_users" model="ir.actions.act_window">
+        <field name="name">Nhóm người dùng</field>
+        <field name="res_model">exp.group.users</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

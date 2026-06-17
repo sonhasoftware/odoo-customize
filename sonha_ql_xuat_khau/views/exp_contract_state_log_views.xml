@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_exp_contract_state_log_tree" model="ir.ui.view">
+        <field name="name">view.exp.contract.state.log.tree</field>
+        <field name="model">exp.contract.state.log</field>
+        <field name="arch" type="xml">
+            <tree string="Log chuyển trạng thái" editable="bottom">
+                <field name="contract_id"/>
+                <field name="from_state_id"/>
+                <field name="to_state_id"/>
+                <field name="change_by"/>
+                <field name="change_date"/>
+                <field name="note"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_exp_contract_state_log" model="ir.actions.act_window">
+        <field name="name">Log chuyển trạng thái</field>
+        <field name="res_model">exp.contract.state.log</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

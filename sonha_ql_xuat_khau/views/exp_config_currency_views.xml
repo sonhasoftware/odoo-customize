@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_exp_config_currency_tree" model="ir.ui.view">
+        <field name="name">view.exp.config.currency.tree</field>
+        <field name="model">exp.config.currency</field>
+        <field name="arch" type="xml">
+            <tree string="Danh mục tiền tệ" editable="bottom">
+                <field name="code"/>
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_exp_config_currency" model="ir.actions.act_window">
+        <field name="name">Danh mục tiền tệ</field>
+        <field name="res_model">exp.config.currency</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

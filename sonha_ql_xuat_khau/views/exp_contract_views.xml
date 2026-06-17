@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_exp_contract_tree" model="ir.ui.view">
+        <field name="name">view.exp.contract.tree</field>
+        <field name="model">exp.contract</field>
+        <field name="arch" type="xml">
+            <tree string="Hợp đồng" class="custom_status">
+                <field name="contract_no"/>
+                <field name="sign_date"/>
+                <field name="po_number"/>
+                <field name="customer_id"/>
+                <field name="created_by"/>
+                <field name="state_id" widget="badge" decoration-info="state_code == 'sign'" decoration-warning="state_code not in ['sign', 'done']" decoration-success="state_code == 'done'"/>
+                <field name="total_amount" widget="float" options="{'enable_formatting': True}"/>
+                <field name="currency"/>
+                <field name="state_code" column_invisible="True"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="exp_contract_report_tree_view" model="ir.ui.view">
+        <field name="name">view.exp.contract.report.tree</field>
+        <field name="model">exp.contract</field>
+        <field name="arch" type="xml">
+            <tree string="Hợp đồng">
+                <field name="contract_no"/>
+                <field name="sign_date"/>
+                <field name="customer_id"/>
+                <field name="state_id" widget="badge" decoration-info="state_code == 'sign'" decoration-warning="state_code not in ['sign', 'done']" decoration-success="state_code == 'done'"/>
+                <field name="total_amount" widget="float" options="{'enable_formatting': True}"/>
+                <field name="currency"/>
+                <field name="cont_request"/>
+                <field name="export_cont"/>
+                <field name="cont_left"/>
+                <field name="view_weight_request"/>
+                <field name="view_export_weight"/>
+                <field name="view_weight_left"/>
+                <field name="state_code" column_invisible="True"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_exp_contract_form" model="ir.ui.view">
+        <field name="name">view.exp.contract.form</field>
+        <field name="model">exp.contract</field>
+        <field name="arch" type="xml">
+            <form class="o_chatter_position_bottom" string="Hợp đồng">
+                <div class="exp_contract_header">
+                    <field name="contract_no" readonly="1" style="font-size: 20px; font-weight: bold; margin-bottom: 8px; margin-top: 0px !important;"/>
+                    <field name="follow_user" widget="m2m_user_widget" readonly="created_by != uid"/>
+                </div>
+                <header>
+                    <button name="action_get_sap_data" string="Lấy dữ liệu SAP" type="object" class="oe_highlight" invisible="state_code != 'export'"/>
+                    <button name="attach_multi" string="Tạo Invoice, Packing List" type="object" class="oe_highlight" invisible="state_code != 'export'"/>
+                    <button name="action_confirm_produce" string="Hoàn thành sản xuất" type="object" class="oe_highlight" invisible="state_code != 'request' or produce_status != 'accept'"/>
+                    <button name="action_accept_produce" string="Xác nhận sản xuất" type="object" class="oe_highlight" invisible="state_code != 'request' or produce_status != 'draft'"/>
+                    <button name="action_create_co" string="Tạo CO" type="object" class="oe_highlight" invisible="state_code != 'co_bh'"/>
+                    <button name="action_create_bh" string="Tạo BH" type="object" class="oe_highlight" invisible="state_code != 'co_bh'"/>
+                    <button name="action_complete" string="Hoàn thành" type="object" class="oe_highlight" invisible="state_code != 'send'"/>
+<!--                    <button name="action_create_bl" string="Đính kèm BL" type="object" class="oe_highlight" invisible="state_code != 'bill_of_lading'"/>-->
+                    <button name="action_change_state" type="object"  class="oe_highlight" invisible="button_label == False">
+                        <field name="button_label" style="margin: 0px !important;"/>
+                    </button>
+                    <button name="action_back_state" string="Hoàn về nháp" type="object" class="oe_highlight" invisible="state_code not in ['request'] or created_by != uid"/>
+                    <field name="state_id" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <separator string="Thông tin chung" invisible="state_code in ['request', 'export', 'invoice']"/>
+                            <field name="state_code" invisible="1"/>
+                            <field name="contract_no" class="upper_field" readonly="state_code != 'sign'"/>
+                            <field name="sign_date" class="lower_field" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
+                            <field name="po_number" class="upper_field" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
+                            <field name="customer_id" class="lower_field" options="{'no_create': True, 'no_open': True}" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
+                            <field name="export_required_date" class="lower_field" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
+                            <field name="state_id" class="lower_field" readonly="1" options="{'no_open': True}" invisible="state_code in ['request', 'export', 'invoice']"/>
+                            <field name="lc_required" class="lower_field" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
+                            <field name="lc_file" widget="many2many_binary" required="lc_required != False" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice'] or lc_required != True"/>
+
+                            <field name="readonly_file_char" string="File điều kiện LC" class="upper_field" readonly="1" invisible="state_code not in ['sign'] or lc_required != False"/>
+
+                            <field name="lc_file_name" invisible="1"/>
+                            <field name="contract_file" widget="many2many_binary" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
+                            <field name="contract_file_name" invisible="1"/>
+                            <field name="deposit_payment_file" widget="many2many_binary" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
+                            <field name="deposit_payment_file_name" invisible="1"/>
+                            <field name="payment_file"  widget="many2many_binary" readonly="1" invisible="state_code not in ['send', 'done']"/>
+                            <field name="payment_file_name" invisible="1"/>
+                            <field name="created_by" class="lower_field" readonly="1" options="{'no_open': True}" invisible="state_code in ['request', 'export', 'invoice']"/>
+                            <field name="created_date" class="lower_field" readonly="1" invisible="state_code in ['request', 'export', 'invoice']"/>
+                            <field name="cont_request" class="lower_field" readonly="state_code != 'sign'" invisible="state_code in ['request', 'invoice']"/>
+                            <field name="weight_request" class="lower_field" readonly="state_code != 'sign'" invisible="state_code in ['request', 'invoice', 'export']"/>
+                            <field name="export_cont" class="lower_field" readonly="1" invisible="state_code not in ['export']"/>
+                            <field name="cont_left" class="lower_field" readonly="1" invisible="state_code not in ['export']"/>
+
+                            <field name="product_file" widget="many2many_binary" readonly="1" invisible="state_code != 'request'"/>
+                            <field name="product_file_name" invisible="1"/>
+                            <field name="produce_status" invisible="1"/>
+                            <field name="produce_status" class="lower_field" widget="badge" decoration-info="produce_status == 'draft'" decoration-warning="produce_status not in ['draft', 'done']" decoration-success="produce_status == 'done'" readonly="1" invisible="state_code != 'request'"/>
+
+                            <field name="declaration_file" widget="many2many_binary" readonly="state_code not in ['bill_of_lading']" invisible="state_code not in ['bill_of_lading', 'co_bh']"/>
+                            <field name="declaration_file_name" invisible="1"/>
+                            <field name="bol_file" widget="many2many_binary" invisible="state_code not in ['bill_of_lading'] or si_file == False"/>
+                            <field name="bol_file_name" invisible="1"/>
+
+                            <field name="readonly_file_char" string="File Bill of Lading" class="upper_field" readonly="1" invisible="state_code not in ['bill_of_lading'] or si_file != False"/>
+
+                            <field name="si_file" widget="many2many_binary" invisible="state_code not in ['bill_of_lading']"/>
+                            <field name="si_file_name" invisible="1"/>
+                            <field name="expect_date" class="lower_field" readonly="state_code != 'bill_of_lading'" invisible="state_code not in ['bill_of_lading']"/>
+                        </group>
+                        <group class="custom-block">
+                            <separator string="Vận chuyển" invisible="state_code in ['request', 'export', 'invoice']"/>
+                            <field name="shipping_time" class="upper_field" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
+                            <field name="shipping_port_from" class="lower_field" options="{'no_open': True}" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
+                            <field name="shipping_port_to" class="lower_field" options="{'no_open': True}" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
+                            <field name="shipping_country" class="lower_field" options="{'no_open': True}" readonly="1" invisible="state_code in ['request', 'export', 'invoice']"/>
+                            <separator string="Thanh toán" invisible="state_code in ['request', 'export', 'invoice']"/>
+                            <field name="payment_term" class="lower_field" options="{'no_open': True}" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
+                            <field name="bank" class="lower_field" options="{'no_open': True}" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
+                            <field name="payment_note" class="lower_field" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
+                            <field name="deposit_percent" widget="percentage" class="lower_field" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice', 'bill_of_lading']"/>
+                            <field name="currency" class="lower_field" options="{'no_open': True}" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice', 'bill_of_lading']"/>
+                            <field name="deposit_amount" class="lower_field" widget="float" options="{'enable_formatting': True}" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice', 'bill_of_lading']"/>
+                            <field name="total_amount" class="lower_field" widget="float" options="{'enable_formatting': True}" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice', 'bill_of_lading']"/>
+                            <field name="produce_code" class="upper_field" readonly="produce_status != 'accept'" invisible="state_code != 'request'"/>
+                            <field name="export_required_date" class="lower_field" readonly="1" invisible="state_code not in ['request']"/>
+
+                            <field name="export_status" invisible="1"/>
+                            <field name="export_status" class="lower_field" widget="badge" decoration-info="export_status == 'draft'" decoration-warning="export_status not in ['draft', 'done']" decoration-success="export_status == 'done'" invisible="state_code != 'export'"/>
+                            <field name="view_weight_request" class="lower_field" readonly="state_code != 'sign'" invisible="state_code not in ['export']"/>
+                            <field name="view_export_weight" class="lower_field" readonly="1" invisible="state_code not in ['export']"/>
+                            <field name="view_weight_left" class="lower_field" readonly="1" invisible="state_code not in ['export']"/>
+
+                            <field name="state_id" class="lower_field" readonly="1" options="{'no_open': True}" invisible="state_code not in ['invoice']"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <group>
+                            <field name="co" class="lower_field" readonly="1" invisible="state_code not in ['co_bh']"/>
+                            <field name="co_status" invisible="1"/>
+                            <field name="co_status" class="lower_field" widget="badge" decoration-info="co_status == 'draft'" decoration-success="co_status == 'done'" readonly="1" invisible="state_code not in ['co_bh']"/>
+                            <field name="co_file" widget="many2many_binary" readonly="1" invisible="state_code not in ['co_bh'] or co_file == False"/>
+                            <field name="co_file_name" invisible="1"/>
+                            <field name="readonly_file_char" class="upper_field" readonly="1" string="File CO" invisible="state_code not in ['co_bh'] or co_file != False"/>
+                        </group>
+
+                        <group>
+                            <field name="bh" class="lower_field" readonly="1" invisible="state_code not in ['co_bh']"/>
+                            <field name="bh_status" invisible="1"/>
+                            <field name="bh_status" class="lower_field" widget="badge" decoration-info="bh_status == 'draft'" decoration-success="bh_status == 'done'" readonly="1" invisible="state_code not in ['co_bh']"/>
+                            <field name="bh_file" widget="many2many_binary" readonly="1" invisible="state_code not in ['co_bh'] or bh_file == False"/>
+                            <field name="bh_file_name" invisible="1"/>
+                            <field name="readonly_file_char" class="upper_field" readonly="1" string="File BH" invisible="state_code not in ['co_bh'] or bh_file != False"/>
+                        </group>
+                    </group>
+
+                    <div style="margin-bottom: 10px;" invisible="state_code != 'export'">
+                        <b>Chi tiết xuất hàng:</b>
+                    </div>
+<!--                    <div style="margin-bottom: 10px;" invisible="state_code != 'request'">-->
+<!--                        <b>Chi tiết mặt hàng:</b>-->
+<!--                    </div>-->
+                    <div style="margin-bottom: 10px;" invisible="state_code != 'invoice'">
+                        <b>Chi tiết trạng thái hóa đơn:</b>
+                    </div>
+
+                    <group>
+<!--                        <field name="attachment_ids" widget="many2many_binary" invisible="state_code not in ['send']"/>-->
+                        <field name="mtr_file" widget="many2many_binary" invisible="state_code not in ['send', 'done'] or mtr_file == False" readonly="state_code not in ['send']"/>
+                        <field name="mtr_file_name" invisible="1"/>
+
+                        <field name="note" class="lower_field" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
+
+<!--                        <field name="product_list" string="" readonly="1" invisible="state_code != 'request'">-->
+<!--                            <tree>-->
+<!--                                <field name="product_code"/>-->
+<!--                                <field name="product_name"/>-->
+<!--                                <field name="quantity"/>-->
+<!--                                <field name="unit"/>-->
+<!--                            </tree>-->
+<!--                        </field>-->
+
+                        <field name="export_detail" string="" readonly="1" invisible="state_code != 'export'">
+                            <tree no_open="1" class="custom_list_button">
+                                <field name="number_time" string="Lần xuất" readonly="1"/>
+                                <field name="invoice_number" readonly="1"/>
+                                <field name="so_cont_number" readonly="1"/>
+                                <field name="date_shipment" readonly="1"/>
+                                <field name="note"/>
+                                <field name="status" column_invisible="1"/>
+                                <field name="status" widget="badge" decoration-info="status == 'draft'" decoration-warning="status not in ['draft', 'done']" decoration-success="status == 'done'" readonly="1"/>
+<!--                                <button name="action_popup_invoice" string="Tạo hóa đơn" type="object" class="oe_highlight tiny_font_size" invisible="0"/>-->
+                                <button name="action_show_detail" string="Xem đơn hàng" type="object" class="oe_highlight tiny_font_size" invisible="0"/>
+                            </tree>
+                        </field>
+
+                        <field name="export_detail" string="" readonly="1" invisible="state_code != 'invoice'">
+                            <tree no_open="1">
+                                <field name="number_time" string="Lần xuất"/>
+                                <field name="invoice_number"/>
+                                <field name="so_cont_number"/>
+                                <field name="date_invoice"/>
+                                <field name="date_packing_list"/>
+                                <field name="status" column_invisible="1"/>
+                                <field name="status" widget="badge" decoration-info="status == 'draft'" decoration-warning="status not in ['draft', 'done']" decoration-success="status == 'done'"/>
+                                <field name="file_invoice" widget="many2many_binary" readonly="1" string="Invoice"/>
+                                <field name="file_invoice_name" column_invisible="True"/>
+                                <field name="file_pkl" widget="many2many_binary" readonly="1" string="Packing List"/>
+                                <field name="file_pkl_name" column_invisible="True"/>
+                            </tree>
+                        </field>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_exp_contract_search" model="ir.ui.view">
+        <field name="name">exp.contract.search</field>
+        <field name="model">exp.contract</field>
+        <field name="arch" type="xml">
+            <search string="Tìm kiếm hợp đồng">
+                <field name="contract_no" string="Hợp đồng"/>
+                <field name="shipping_country" string="Quốc gia"/>
+                <searchpanel>
+                    <field name="state_id" enable_counters="1" expand="1"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_exp_contract_report_search" model="ir.ui.view">
+        <field name="name">exp.contract.report.search</field>
+        <field name="model">exp.contract</field>
+        <field name="arch" type="xml">
+            <search string="Tìm kiếm hợp đồng">
+                <field name="contract_no" string="Hợp đồng"/>
+                <field name="shipping_country" string="Quốc gia"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_exp_contract" model="ir.actions.act_window">
+        <field name="name">Hợp đồng</field>
+        <field name="res_model">exp.contract</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="sonha_ql_xuat_khau.view_exp_contract_tree"/>
+        <field name="search_view_id" ref="view_exp_contract_search"/>
+    </record>
+
+    <record id="action_report_exp_contract" model="ir.actions.act_window">
+        <field name="name">Báo cáo</field>
+        <field name="res_model">exp.contract</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="sonha_ql_xuat_khau.exp_contract_report_tree_view"/>
+        <field name="search_view_id" ref="view_exp_contract_report_search"/>
+    </record>
+</odoo>

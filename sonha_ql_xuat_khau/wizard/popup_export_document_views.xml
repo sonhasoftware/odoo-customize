@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_popup_export_document_form" model="ir.ui.view">
+        <field name="name">popup.export.document.form</field>
+        <field name="model">popup.export.document</field>
+        <field name="arch" type="xml">
+            <form string="Chọn mẫu tài liệu" edit="true">
+                <group>
+                    <field name="document_date" string="Ngày hóa đơn" invisible="key != 'invoice'"/>
+                    <field name="document_date" string="Ngày Packing list" invisible="key != 'pkl'"/>
+                    <field name="documents">
+                        <tree editable="bottom" delete="0" create="0">
+                            <field name="radio_tick" string=""/>
+                            <field name="file_name"/>
+                            <field name="document" column_invisible="1"/>
+                        </tree>
+                    </field>
+                    <field name="key" invisible="1"/>
+                    <field name="contract_id" invisible="1"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Xuất tài liệu" class="btn-primary"/>
+                    <button string="Hủy" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_popup_export_document_form" model="ir.actions.act_window">
+        <field name="name">Chọn mẫu tài liệu</field>
+        <field name="res_model">popup.export.document</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>
