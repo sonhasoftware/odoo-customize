@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="ai_website_livechat.AILivechatOption">
+    <BuilderRow label.translate="Chat Style">
+        <BuilderSelect action="'setChatStyle'" preview="false">
+            <BuilderSelectItem actionParam="'popup'" title.translate="Popup Window">Popup Window</BuilderSelectItem>
+            <BuilderSelectItem actionParam="'fullscreen'" title.translate="Fullscreen">Fullscreen</BuilderSelectItem>
+        </BuilderSelect>
+    </BuilderRow>
+    <BuilderRow label.translate="AI Agent">
+        <BuilderMany2One action="'setAIAgent'" model="'ai.agent'" domain="[['is_system_agent', '=', False]]"/>
+    </BuilderRow>
+    <BuilderRow label.translate="Livechat Channel">
+        <BuilderMany2One action="'setLivechatChannel'" model="'im_livechat.channel'"/>
+    </BuilderRow>
+    <BuilderRow label.translate="Prompt Placeholder">
+        <BuilderTextInput action="'setPromptPlaceholder'" placeholder.translate="e.g. Ask AI"/>
+    </BuilderRow>
+    <BuilderRow label.translate="Fallback Button">
+        <BuilderCheckbox action="'toggleHasFallbackButton'" id="'aiLivechatFallbackButton'" preview="false"/>
+    </BuilderRow>
+    <BuilderRow label.translate="Text" level="1" t-if="isActiveItem('aiLivechatFallbackButton')">
+        <BuilderTextInput action="'setFallbackButtonText'" placeholder.translate="e.g. Contact Us" default="''"/>
+    </BuilderRow>
+    <BuilderRow label.translate="URL" level="1" t-if="isActiveItem('aiLivechatFallbackButton')">
+        <WebsiteUrlPicker action="'setFallbackButtonURL'" placeholder.translate="e.g. /contactus" default="''"/>
+    </BuilderRow>
+</t>
+
+</templates>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<templates xml:space="preserve">
+    <t t-name="ai.AiModelFieldSelectorPopover" t-inherit="web.ModelFieldSelectorPopover" t-inherit-mode="primary">
+        <xpath expr="//div[hasclass('o_model_field_selector_popover_body')]" position="before">
+            <div>
+                <div
+                    class="badge bg-primary m-1 text-white rounded d-inline-flex flex-row align-items-center"
+                    t-foreach="aiFieldsState.selected"
+                    t-as="field"
+                    t-key="field.map(f => f.name).join('.')"
+                >
+                    <span t-out="field.map(f => f.string).join(' > ')"/>
+                    <a href="#" class="ms-1 fa fa-close text-white my-0 py-0" t-on-click="() => this.onRemoveField(field[0])"/>
+                </div>
+            </div>
+        </xpath>
+        <xpath expr="//div[hasclass('o_model_field_selector_popover_body')]//t[@t-if='fieldDef.record_name']" position="attributes">
+            <attribute name="t-if">fieldDef.record_name &amp;&amp; (!fieldDef.is_property || state.page.previousPage?.previousPage)</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('o_model_field_selector_popover_footer')]" position="replace">
+            <div t-if="aiFieldsState.selected.length" class="d-flex flex-row m-2">
+                <button class="btn btn-primary me-2" t-on-click="onInsert">
+                    Insert
+                </button>
+                <button class="btn btn-secondary" t-on-click="() => this.props.close()">
+                    Discard
+                </button>
+            </div>
+        </xpath>
+        <xpath expr="//div[hasclass('o_model_field_selector_popover')]" position="attributes">
+            <attribute name="class" add="o_ai_model_field_selector_popover" separator=" "/>
+        </xpath>
+    </t>
+</templates>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="knowledge.WysiwygArticleHelper" t-inherit-mode="extension">
+        <xpath expr="//a[hasclass('o_knowledge_add_item_calendar')]" position="after">
+            <a href="#" class="o_knowledge_generate_article p-2 text-muted" data-hotkey="G" t-on-click="onGenerateArticleClick">
+                <i class="fa fa-lg fa-magic me-1"/> Generate an Article with AI
+            </a>
+        </xpath>
+    </t>
+</templates>

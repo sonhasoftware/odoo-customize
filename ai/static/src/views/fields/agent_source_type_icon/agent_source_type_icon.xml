@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="ai.AgentSourceTypeIcon">
+        <t t-set="config" t-value="this.iconConfig"/>
+        <i t-if="config.type === 'fontawesome'"
+            t-att-class="config.class"
+            t-att-title="config.title"/>
+
+        <i t-elif="config.type === 'mimetype'"
+            t-att-class="config.class"
+            t-att-data-mimetype="config.dataMimetype"
+            t-att-title="config.title"/>
+
+        <img t-elif="config.type === 'image'"
+            t-att-src="config.src"
+            t-att-alt="config.title"
+            t-att-title="config.title"
+            class="o_agent_source_icon"/>
+    </t>
+</templates>

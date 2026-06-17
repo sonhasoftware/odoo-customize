@@ -1,0 +1,115 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* ai_website
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-09-11 14:27+0000\n"
+"PO-Revision-Date: 2025-09-11 14:27+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: ai_website
+#. odoo-javascript
+#: code:addons/ai_website/static/src/components/dialog/add_page_dialog.xml:0
+#: model_terms:ir.ui.view,arch_db:ai_website.snippets
+msgid "AI"
+msgstr ""
+
+#. module: ai_website
+#: model_terms:ir.ui.view,arch_db:ai_website.snippets
+msgid "AI Livechat"
+msgstr ""
+
+#. module: ai_website
+#. odoo-javascript
+#: code:addons/ai_website/static/src/components/dialog/add_page_dialog.js:0
+msgid "Concise"
+msgstr ""
+
+#. module: ai_website
+#. odoo-javascript
+#: code:addons/ai_website/static/src/components/dialog/add_page_dialog.js:0
+msgid "Create"
+msgstr ""
+
+#. module: ai_website
+#. odoo-javascript
+#: code:addons/ai_website/static/src/components/dialog/add_page_dialog.js:0
+msgid "Create with AI"
+msgstr ""
+
+#. module: ai_website
+#. odoo-javascript
+#: code:addons/ai_website/static/src/components/dialog/add_page_dialog.xml:0
+msgid "Describe the page with keywords..."
+msgstr ""
+
+#. module: ai_website
+#: model:ir.model.fields,field_description:ai_website.field_website_page__display_name
+msgid "Display Name"
+msgstr ""
+
+#. module: ai_website
+#. odoo-javascript
+#: code:addons/ai_website/static/src/components/dialog/add_page_dialog.js:0
+msgid "Friendly"
+msgstr ""
+
+#. module: ai_website
+#. odoo-javascript
+#: code:addons/ai_website/static/src/components/dialog/add_page_dialog.xml:0
+msgid "Generate text"
+msgstr ""
+
+#. module: ai_website
+#. odoo-javascript
+#: code:addons/ai_website/static/src/components/dialog/add_page_dialog.xml:0
+msgid "Generating content..."
+msgstr ""
+
+#. module: ai_website
+#: model:ir.model.fields,field_description:ai_website.field_website_page__id
+msgid "ID"
+msgstr ""
+
+#. module: ai_website
+#. odoo-javascript
+#: code:addons/ai_website/static/src/components/dialog/add_page_dialog.js:0
+msgid "Informative"
+msgstr ""
+
+#. module: ai_website
+#. odoo-javascript
+#: code:addons/ai_website/static/src/components/dialog/add_page_dialog.xml:0
+msgid "Instructions"
+msgstr ""
+
+#. module: ai_website
+#: model:ir.model,name:ai_website.model_website_page
+msgid "Page"
+msgstr ""
+
+#. module: ai_website
+#. odoo-javascript
+#: code:addons/ai_website/static/src/components/dialog/add_page_dialog.js:0
+msgid "Persuasive"
+msgstr ""
+
+#. module: ai_website
+#. odoo-javascript
+#: code:addons/ai_website/static/src/components/dialog/add_page_dialog.js:0
+msgid "Professional"
+msgstr ""
+
+#. module: ai_website
+#. odoo-javascript
+#: code:addons/ai_website/static/src/components/dialog/add_page_dialog.xml:0
+msgid "Tone Selection"
+msgstr ""

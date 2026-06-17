@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="ai_composer_form" model="ir.ui.view">
+        <field name="name">ai.composer.form</field>
+        <field name="model">ai.composer</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <field name="is_system_default" invisible="1"/>
+                    <div class="oe_title">
+                        <label for="name" string="Rule Name"/>
+                        <h2>
+                            <field name="name" readonly="is_system_default" placeholder="Mail Template extra prompt"/>
+                        </h2>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="interface_key" readonly="is_system_default" string="When users need to" placeholder="Select an action... "/>
+                        </group>
+                        <group>
+                            <label for="focused_models" string="On the Model"/>
+                            <field name="focused_models" widget="many2many_tags" readonly="is_system_default" placeholder="All Models" nolabel="1" invisible="is_system_default and not focused_models"/>
+                            <span class="text-muted" invisible="not is_system_default or focused_models">All Models</span>
+                        </group>
+                        <group>
+                            <field name="ai_agent" widget="many2one_avatar" options="{'no_create': True}" string="Call the Agent"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="default_prompt" placeholder="Write your prompt..."/>
+                    </group>
+                    <notebook>
+                        <page name="user_prompts_page" string="Buttons">
+                            <field name="available_prompts" mode="list">
+                                <tree editable="bottom" open_form_view="False">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="ai_composer_tree" model="ir.ui.view">
+        <field name="name">ai.composer.list</field>
+        <field name="model">ai.composer</field>
+        <field name="arch" type="xml">
+            <tree string="Default Prompts">
+                <field name="name" readonly="1" string="Name"/>
+                <field name="interface_key"/>
+                <field name="focused_models" widget="many2many_tags" optional="hide"/>
+                <field name="ai_agent" widget="many2one_avatar"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="ai_composer_kanban" model="ir.ui.view">
+        <field name="name">ai.composer.kanban</field>
+        <field name="model">ai.composer</field>
+        <field name="priority">10</field>
+        <field name="arch" type="xml">
+            <kanban>
+                <templates>
+                    <t t-name="kanban-box">
+                        <field name="name" class="fw-bolder" string="Name"/>
+                        <div class="d-flex flex-column">
+                            <field name="interface_key"/>
+                            <field name="focused_models"/>
+                            <div class="d-flex gap-2 align-items-center mt-2">
+                                <field name="ai_agent" widget="many2one_avatar"/>
+                                <field name="ai_agent"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="ai_composer_view_search" model="ir.ui.view">
+        <field name="name">ai.composer.view.search</field>
+        <field name="model">ai.composer</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="interface_key"/>
+                <field name="focused_models"/>
+                <field name="ai_agent"/>
+                <filter name="filter_is_system_rule" string="System Rules"
+                    domain="[('is_system_default', '=', True)]"/>
+                <filter name="filter_is_custom_rule" string="Custom Rules"
+                    domain="[('is_system_default', '=', False)]"/>
+                <filter name="group_by_key" string="Key" context="{'group_by': 'interface_key'}"/>
+                <filter name="group_by_models" context="{'group_by': 'focused_models'}"/>
+                <filter name="group_by_agent" context="{'group_by': 'ai_agent'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="ai_composer_action" model="ir.actions.act_window">
+        <field name="name">Default Prompts</field>
+        <field name="res_model">ai.composer</field>
+        <field name="view_id" ref="ai_composer_tree"/>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Default Prompts found!
+            </p>
+            <p>
+                Those are used to configure when to call a specific agent, or to add an extra prompt to your request.
+            </p>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<templates xml:space="preserve">
+    <t t-name="ai.AiPrompt">
+        <span t-if="props.readonly" class="o_readonly_ai_prompt" t-out="value"/>
+        <t t-else="">
+            <div class="o_ai_prompt border-bottom" t-on-click="this.onClick">
+                <Wysiwyg
+                    config="this.getConfig()"
+                    onBlur.bind="onBlur"
+                    onLoad.bind="onEditorLoad"
+                    t-key="state.key"/>
+            </div>
+            <div t-if="missingRecordsWarning" t-out="missingRecordsWarning" class="alert alert-warning mt-1 mb-0" role="alert"/>
+        </t>
+    </t>
+
+    <t t-name="ai.AiPromptDialog">
+        <Dialog size="md" bodyClass="'o_ai_prompt_dialog'" title.translate="Edit Field Prompt">
+            <h5 class="mb-3">Prompt</h5>
+            <AiPrompt t-props="aiPromptProps"/>
+            <t t-set-slot="footer">
+                <button class="btn btn-primary" t-on-click="confirm">
+                    Save &amp; Generate
+                </button>
+                <button class="btn btn-secondary" t-on-click="props.close">
+                    Discard
+                </button>
+            </t>
+        </Dialog>
+    </t>
+</templates>

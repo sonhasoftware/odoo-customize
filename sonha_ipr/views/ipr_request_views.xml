@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_ipr_request_tree" model="ir.ui.view">
+        <field name="name">ipr.request.tree</field>
+        <field name="model">ipr.request</field>
+        <field name="arch" type="xml">
+            <tree string="Purchase Requests"
+                  decoration-danger="state == 'reject'"
+                  decoration-warning="state == 'confirm'"
+                  decoration-success="state == 'approve'">
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="department_id"/>
+                <field name="company_id"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="total_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="approver_id"/>
+                <field name="approval_level"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_ipr_request_kanban" model="ir.ui.view">
+        <field name="name">ipr.request.kanban</field>
+        <field name="model">ipr.request</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state">
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="department_id"/>
+                <field name="company_id"/>
+                <field name="currency_id"/>
+                <field name="total_amount"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click">
+                            <div class="o_kanban_record_title">
+                                <strong><field name="name"/></strong>
+                            </div>
+                            <div><field name="employee_id"/></div>
+                            <div class="text-muted"><field name="department_id"/></div>
+                            <div class="mt8">
+                                <span>Tổng tiền: </span>
+                                <field name="total_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            </div>
+                            <div class="mt8">
+                                <field name="company_id"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_ipr_request_form" model="ir.ui.view">
+        <field name="name">ipr.request.form</field>
+        <field name="model">ipr.request</field>
+        <field name="arch" type="xml">
+            <form string="Purchase Request">
+                <header>
+                    <button name="action_confirm" type="object" string="Confirm" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_open_approval_wizard" type="object" string="Approve" class="btn-primary"
+                            invisible="state != 'confirm'"/>
+                    <button name="action_reject" type="object" string="Reject" class="btn-secondary"
+                            invisible="state not in ('draft', 'confirm')"/>
+                    <button name="action_export_excel" type="object" string="Export Excel" class="btn-secondary"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirm,approve,reject"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="employee_id" readonly="state != 'draft'"/>
+                            <field name="department_id"/>
+                            <field name="company_id" readonly="state != 'draft'"/>
+                            <field name="is_multi_company"/>
+                        </group>
+                        <group>
+                            <field name="total_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            <field name="is_two_step_approval"/>
+                            <field name="approval_level"/>
+                            <field name="approver_id"/>
+                            <field name="first_approver_id"/>
+                            <field name="second_approver_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Lines">
+                            <field name="line_ids" readonly="state != 'draft'">
+                                <tree editable="bottom">
+                                    <field name="product_id"/>
+                                    <field name="quantity"/>
+                                    <field name="price_unit" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="subtotal" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Notes">
+                            <field name="note"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_ipr_request_search" model="ir.ui.view">
+        <field name="name">ipr.request.search</field>
+        <field name="model">ipr.request</field>
+        <field name="arch" type="xml">
+            <search string="Search Purchase Requests">
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="department_id"/>
+                <field name="company_id"/>
+                <filter string="Draft" name="filter_draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Pending" name="filter_confirm" domain="[('state', '=', 'confirm')]"/>
+                <filter string="Approved" name="filter_approve" domain="[('state', '=', 'approve')]"/>
+                <filter string="Rejected" name="filter_reject" domain="[('state', '=', 'reject')]"/>
+                <separator/>
+                <filter string="My Company" name="filter_my_company" domain="[('company_id', '=', context.get('allowed_company_ids')[0])]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Company" name="group_company" context="{'group_by': 'company_id'}"/>
+                    <filter string="State" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Department" name="group_department" context="{'group_by': 'department_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_ipr_request" model="ir.actions.act_window">
+        <field name="name">Purchase Requests</field>
+        <field name="res_model">ipr.request</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="search_view_id" ref="view_ipr_request_search"/>
+        <field name="context">{}</field>
+    </record>
+
+    <record id="action_ipr_request_export_excel" model="ir.actions.server">
+        <field name="name">Export Excel</field>
+        <field name="model_id" ref="model_ipr_request"/>
+        <field name="binding_model_id" ref="model_ipr_request"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_export_excel()</field>
+    </record>
+</odoo>
+

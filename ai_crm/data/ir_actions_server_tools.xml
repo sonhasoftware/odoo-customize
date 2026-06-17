@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_actions_server_ai_create_lead" model="ir.actions.server">
+        <field name="name">AI CRM: Create Lead</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="ai_tool_allow_end_message" eval="True"/>
+        <field name="code">ai['result'] = record.sudo()._ai_create_lead(name, contact_name, description, email, phone, team_id, tag_ids, priority, country_id, state_id, city, zip_code, street, job_position)</field>
+        <field name="model_id" ref="crm.model_crm_lead"/>
+        <field name="ai_tool_description">## Tool: Create a Lead
+Use when the customer has provided the required information and you are ready to register the lead.</field>
+        <field name="ai_tool_schema">
+        {
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Name of the lead record"
+                },
+                "contact_name": {
+                    "type": "string",
+                    "description": "Name of the contact for which the lead record is created"
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Lead record description"
+                },
+                "email": {
+                    "type": "string",
+                    "description": "Email of the contact"
+                },
+                "phone": {
+                    "type": "string",
+                    "description": "Phone number of the contact"
+                },
+                "team_id": {
+                    "type": "number",
+                    "description": "The id of the team to assign the lead to"
+                },
+                "tag_ids": {
+                    "type": "array",
+                    "description": "Array of ids of the tags to assign to the lead",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "priority": {
+                    "type": "string",
+                    "description": "The key of the priority (choose between the ones provided by the 'get lead creation parameters' tool"
+                },
+                "country_id": {
+                    "type": "number",
+                    "description": "The id of the contact's country"
+                },
+                "state_id": {
+                    "type": "number",
+                    "description": "The id of the contact's state"
+                },
+                "city": {
+                    "type": "string",
+                    "description": "The contact's city"
+                },
+                "zip_code": {
+                    "type": "string",
+                    "description": "The contact's zip code"
+                },
+                "street": {
+                    "type": "string",
+                    "description": "The contact's street name and number"
+                },
+                "job_position": {
+                    "type": "string",
+                    "description": "The contact's job title"
+                }
+            },
+            "required": ["name", "contact_name", "description", "email", "phone", "team_id", "tag_ids", "priority"],
+            "type": "object"
+        }
+        </field>
+    </record>
+
+    <record id="ir_actions_server_ai_get_lead_create_available_params" model="ir.actions.server">
+        <field name="name">AI CRM: Get Lead creation available parameters</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">ai['result'] = record.sudo()._ai_get_lead_create_available_params(country_code)</field>
+        <field name="model_id" ref="crm.model_crm_lead"/>
+        <field name="ai_tool_description">## Tool: Get Lead Creation Parameters
+Retrieves available teams and tags for lead creation.
+Use this tool only immediately before calling the lead creation tool (never at other times).
+When the customer provides their country (or if it can be clearly inferred from the conversation),
+use the country’s code as parameter to retrieve the country and its states IDs.</field>
+        <field name="ai_tool_schema">
+        {
+            "properties": {
+                "country_code": {
+                    "type": "string",
+                    "description": "ISO 3166-1 alpha-2 code of the customer's country"
+                }
+            },
+            "required": [],
+            "type": "object"
+        }
+        </field>
+    </record>
+</odoo>

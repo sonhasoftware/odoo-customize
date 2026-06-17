@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ============================================================
+         PARENT MENU: Dynamic Modules (Top-level)
+         Đây là menu cha - các model động sẽ được gắn vào đây
+         ============================================================ -->
+    <menuitem
+        id="menu_dynamic_modules_root"
+        name="Dynamic Modules"
+        sequence="100"
+        web_icon="base,static/description/icon.png"
+    />
+
+    <!-- Sub-menu: Builder (công cụ cấu hình) -->
+    <menuitem
+        id="menu_dynamic_modules_builder"
+        name="Model Builder"
+        parent="menu_dynamic_modules_root"
+        sequence="1"
+    />
+
+    <!-- Action: Quản lý Dynamic Models -->
+    <menuitem
+        id="menu_dynamic_model_list"
+        name="Quản lý Dynamic Models"
+        parent="menu_dynamic_modules_builder"
+        action="action_dynamic_model"
+        sequence="1"
+    />
+</odoo>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+<template id="s_ai_livechat" name="AI Livechat">
+    <section class="s_ai_livechat p-3">
+        <div class="container" data-name="ai_livechat_container">
+            <h2 class="display-3-fs mb-1">Need help?</h2>
+            <div class="ai_livechat_component"></div>
+        </div>
+    </section>
+</template>
+
+</odoo>

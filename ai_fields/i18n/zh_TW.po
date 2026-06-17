@@ -1,0 +1,270 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* ai_fields
+# 
+# Translators:
+# Wil Odoo, 2025
+# Tony Ng, 2025
+# 
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server saas~18.3+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-06 09:46+0000\n"
+"PO-Revision-Date: 2025-05-06 11:00+0000\n"
+"Last-Translator: Tony Ng, 2025\n"
+"Language-Team: Chinese (Taiwan) (https://app.transifex.com/odoo/teams/41243/zh_TW/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Language: zh_TW\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/ai_prompt/ai_prompt.js:0
+msgid "%s records"
+msgstr "%s 項記錄"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/properties_field_patch/properties_field_patch.xml:0
+#: model_terms:ir.ui.view,arch_db:ai_fields.view_model_fields_form
+#: model_terms:ir.ui.view,arch_db:ai_fields.view_model_form
+msgid "AI"
+msgstr "AI 人工智能"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Checkbox"
+msgstr "AI 勾選方格"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Date"
+msgstr "AI 日期"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Date & Time"
+msgstr "AI 日期時間"
+
+#. module: ai_fields
+#: model:ir.actions.server,name:ai_fields.ir_cron_fill_ai_fields_ir_actions_server
+msgid "AI Fields: Compute AI fields"
+msgstr "AI 欄位：計算 AI 欄位"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Float"
+msgstr "AI 浮點數"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Html"
+msgstr "AI Html"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Integer"
+msgstr "AI 整數"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Many2Many Tags"
+msgstr "AI 多對多（Many2Many）標籤"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Many2Many Tags Avatar"
+msgstr "AI 多對多（Many2Many）標籤頭像"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Many2One"
+msgstr "AI 多對一（Many2One）"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Monetary"
+msgstr "AI 貨幣金額"
+
+#. module: ai_fields
+#: model:ir.model.fields,field_description:ai_fields.field_ir_model_fields__system_prompt
+msgid "AI Prompt"
+msgstr "AI 提示"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/ai_prompt/ai_field_selector_plugin.js:0
+msgid "AI Prompt Tools"
+msgstr "AI 提示工具"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Selection"
+msgstr "AI 選單"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Text"
+msgstr "AI 文字"
+
+#. module: ai_fields
+#: model:ir.model.fields,help:ai_fields.field_ir_model_fields__ai
+msgid "AI computed field"
+msgstr "AI 經計算欄位"
+
+#. module: ai_fields
+#: model:ir.model.fields,field_description:ai_fields.field_ir_model_fields__ai
+msgid "AI field"
+msgstr "AI 欄位"
+
+#. module: ai_fields
+#: model:ir.model.fields,field_description:ai_fields.field_ir_model_fields__ai_domain
+msgid "AI field domain"
+msgstr "AI 欄位域"
+
+#. module: ai_fields
+#: model:ir.model,name:ai_fields.model_base
+msgid "Base"
+msgstr "計稅基數"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/ai_model_field_selector/ai_model_field_selector_popover.xml:0
+#: code:addons/ai_fields/static/src/ai_prompt/ai_prompt.xml:0
+#: code:addons/ai_fields/static/src/views/records_selector_popover/records_selector_popover.xml:0
+msgid "Discard"
+msgstr "捨棄"
+
+#. module: ai_fields
+#: model:ir.model.fields,field_description:ai_fields.field_ir_model_fields__display_name
+#: model:ir.model.fields,field_description:ai_fields.field_mail_message__display_name
+msgid "Display Name"
+msgstr "顯示名稱"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/ai_prompt/ai_prompt.xml:0
+msgid "Edit Field Prompt"
+msgstr "編輯欄位提示"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/ai_prompt/ai_field_selector_plugin.js:0
+msgid "Field Selector"
+msgstr "欄位選擇器"
+
+#. module: ai_fields
+#: model:ir.model,name:ai_fields.model_ir_model_fields
+msgid "Fields"
+msgstr "欄位"
+
+#. module: ai_fields
+#: model:ir.model.fields,field_description:ai_fields.field_ir_model_fields__id
+#: model:ir.model.fields,field_description:ai_fields.field_mail_message__id
+msgid "ID"
+msgstr "識別碼"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/ai_model_field_selector/ai_model_field_selector_popover.xml:0
+#: code:addons/ai_fields/static/src/views/records_selector_popover/records_selector_popover.xml:0
+msgid "Insert"
+msgstr "插入"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/ai_prompt/ai_field_selector_plugin.js:0
+msgid "Insert a field"
+msgstr "插入欄位"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/ai_prompt/ai_records_selector_plugin.js:0
+msgid "Insert records"
+msgstr "插入記錄"
+
+#. module: ai_fields
+#: model:ir.model,name:ai_fields.model_mail_message
+msgid "Message"
+msgstr "訊息"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "Oops! No suitable response could be generated by the AI."
+msgstr "哎唷，AI 未能產生合適的答案。"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/ai_prompt/ai_prompt.xml:0
+#: code:addons/ai_fields/static/src/views/fields/properties_field_patch/properties_field_patch.xml:0
+msgid "Prompt"
+msgstr "提示"
+
+#. module: ai_fields
+#: model:ir.model.fields,help:ai_fields.field_ir_model_fields__system_prompt
+msgid "Prompt given to the AI model to compute the field value"
+msgstr "提供給 AI 模型計算欄位值的提示"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/ai_prompt/ai_records_selector_plugin.js:0
+msgid "Records Selector"
+msgstr "記錄選擇器"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.xml:0
+msgid "Refresh value"
+msgstr "更新值"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/ai_prompt/ai_prompt.xml:0
+msgid "Save & Generate"
+msgstr "儲存並產生"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/records_selector_popover/records_selector_popover.xml:0
+msgid "Select a record"
+msgstr "選擇一項記錄"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/properties_field_patch/properties_field_patch.xml:0
+msgid "Write a prompt, use '/field' to insert dynamic values"
+msgstr "輸入提示，使用 /field 插入動態值"
+
+#. module: ai_fields
+#. odoo-python
+#: code:addons/ai_fields/models/models.py:0
+msgid "You can not use that prompt expression."
+msgstr "你不可使用該提示語句。"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.xml:0
+msgid "ai icon"
+msgstr "ai 圖示"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/ai_prompt/ai_field_selector_plugin.js:0
+msgid "fa-hashtag"
+msgstr "fa-hashtag"

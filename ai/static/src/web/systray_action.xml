@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="ai.SystrayAction">
+        <button class="btn d-flex justify-content-center align-items-center o_nav_entry"
+            t-on-click="onClickLaunchAIChat" title="Ask AI">
+            <img class="ai-systray-icon" src="/ai/static/description/icon.png" alt="AI" />
+        </button>
+    </t>
+</templates>

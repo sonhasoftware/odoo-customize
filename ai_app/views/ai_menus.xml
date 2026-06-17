@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="ai_menu_root" name="AI" web_icon="ai_app,static/description/icon.png" sequence="50">
+        <menuitem id="ai_menu" name="Agents" sequence="45">
+            <menuitem id="ai_agent_menu_action" name="Agents" action="ai_agent_action" sequence="30"/>
+            <menuitem id="ai_topic_menu_action" name="Topics" action="ai_topic_action" sequence="35"/>
+        </menuitem>
+        <menuitem id="ai_config_menu" name="Configuration" sequence="50">
+            <menuitem id="ai_general_settings_menu" name="Settings" action="ai_settings_action" groups="base.group_system" sequence="10"/>
+            <menuitem id="menu_ai_composer" name="Default Prompts" action="ai_composer_action"  groups="base.group_system" sequence="20"/>
+        </menuitem>
+    </menuitem>
+</odoo>

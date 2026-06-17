@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="ai_log_action">
+        Action <b t-out="action.name"/> executed.
+        <t t-if="tool_calls">
+            <br/>
+            It used the following tools:
+            <ul>
+                <li t-foreach="tool_calls" t-as="call">
+                    <a href="#" class="o_ai_tool_summary text-black">
+                        <b t-out="call['action'].name"/>
+                        <div t-if="call['arguments']" class="o_ai_tool_arguments">
+                            <span>with arguments</span>
+                            <span t-foreach="call['arguments']" t-as="arg">
+                                <t t-out="arg"/> = <i t-out="call['arguments'][arg] or 'False'"/>
+                            </span>
+                        </div>
+                    </a>
+                    <t t-if="call['error']">
+                        <br/>
+                        <i class="fa fa-arrow-right text-danger" aria-hidden="true"/>
+                        <span class="text-danger" t-out="call['error']"/>
+                    </t>
+                    <t t-elif="call['result']">
+                        <br/>
+                        <i class="fa fa-arrow-right" aria-hidden="true"/>
+                        <t t-out="call['result']"/>
+                    </t>
+                </li>
+            </ul>
+        </t>
+        <span t-else="">
+            No tool was executed.
+        </span>
+    </template>
+</odoo>

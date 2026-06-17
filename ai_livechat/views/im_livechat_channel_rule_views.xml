@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<odoo>
+    <data>
+
+        <record id="im_livechat_channel_rule_view_tree" model="ir.ui.view">
+            <field name="name">im.livechat.channel.rule.list.inherit.ai_livechat</field>
+            <field name="model">im_livechat.channel.rule</field>
+            <field name="inherit_id" ref="im_livechat.im_livechat_channel_rule_view_tree"/>
+            <field name="arch" type="xml">
+                <field name="chatbot_script_id" position="after">
+                    <field name="ai_agent_id"/>
+                </field>
+            </field>
+        </record>
+
+        <record id="im_livechat_channel_rule_view_form" model="ir.ui.view">
+            <field name="name">im_livechat.channel.rule.form.inherit.ai_livechat</field>
+            <field name="model">im_livechat.channel.rule</field>
+            <field name="inherit_id" ref="im_livechat.im_livechat_channel_rule_view_form"/>
+            <field name="arch" type="xml">
+                <field name="action" position="before">
+                    <div class="text-center alert alert-info" role="alert" nolabel="1" colspan="2" invisible="not chatbot_script_id or not ai_agent_id">
+                        <div>
+                            As both a scripted chatbot and an AI Agent are configured, the priority will be given to the AI Agent.
+                        </div>
+                    </div>
+                </field>
+                <label for="chatbot_script_id" position="attributes">
+                    <attribute name="string">Scripted Bot</attribute>
+                </label>
+
+                <field name="chatbot_enabled_condition" position="before">
+                    <label for="ai_agent_id" string="AI Agent" invisible="action == 'hide_button'"/>
+                    <div invisible="action == 'hide_button'">
+                        <field name="ai_agent_id" class="oe_inline" style="width: 60% !important;"
+                                options="{'no_create': True, 'no_open': True}"/>
+                    </div>
+                </field>
+
+                <field name="chatbot_enabled_condition" position="attributes">
+                    <attribute name="invisible" add='not ai_agent_id' separator="and"></attribute>
+                </field>
+            </field>
+        </record>
+
+    </data>
+</odoo>

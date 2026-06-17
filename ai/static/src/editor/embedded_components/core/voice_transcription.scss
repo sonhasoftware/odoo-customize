@@ -1,0 +1,58 @@
+[data-embedded="voice-transcription"] {
+  $rounding: 4px;
+
+  .transcript-block {
+    padding: 0.5em 0.5em 0;
+    border-radius: $rounding;
+  }
+
+  .transcript-block>summary {
+    margin: -0.5em -0.5em 0;
+    border-radius: $rounding;
+
+    &::marker {
+      content: "a";
+    }
+  }
+
+  .transcript-block[open] {
+    padding: 0.5em;
+  }
+
+  .transcript-block .detail-content {
+    max-height: 500px;
+  }
+
+  .transcript-block[open]>summary {
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 0.5em;
+    border-radius: $rounding $rounding 0 0;
+  }
+
+  .ai-icon-sm {
+    width: 1rem;
+  }
+
+  .o-ai-summary-processing * {
+    color: #6c757d;
+  }
+
+  .o-ai-transcription-listening {
+    color: #6c757d;
+    animation: fade-in-out 2s infinite;
+  }
+
+  @keyframes fade-in-out {
+    0% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.4;
+    }
+
+    100% {
+      opacity: 1;
+    }
+  }
+}

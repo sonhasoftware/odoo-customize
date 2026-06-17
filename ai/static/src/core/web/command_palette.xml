@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+    <t t-name="ai.AskAICommand">
+        <div class="o_command_default position-relative d-flex align-items-center px-4 py-2 cursor-pointer">
+            <img class="rounded me-2 object-fit-cover" t-if="props.imgUrl" t-att-src="props.imgUrl"  style="width: 25px; height: 25px"/>
+            <t t-slot="name"/>
+            <span class="mx-1 flex-shrink-0">"<t t-esc="props.searchValue"/>"</span>
+        </div>
+    </t>
+
+</templates>

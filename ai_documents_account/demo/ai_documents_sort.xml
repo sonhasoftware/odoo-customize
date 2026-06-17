@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <function model="ai_documents.sort" name="_activate_demo_prompt">
+        <value model="documents.document" eval="ref('documents.document_inbox_folder')"/>
+    </function>
+</odoo>

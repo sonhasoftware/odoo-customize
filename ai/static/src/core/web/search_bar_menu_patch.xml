@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+    <t t-inherit="web.SearchBarMenu" t-inherit-mode="extension">
+        <xpath expr="//Dropdown//DropdownItem[@onSelected.bind='onAddCustomFilterClick']" position="after">
+            <AskAIButton/>
+        </xpath>
+    </t>
+
+</templates>

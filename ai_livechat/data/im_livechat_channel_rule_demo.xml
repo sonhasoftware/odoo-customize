@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+        <record id="im_livechat.im_livechat_channel_rule_demo" model="im_livechat.channel.rule">
+            <field name="ai_agent_id" ref="ai_livechat.ai_agent_livechat"/>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+<t t-name="ai_website.AddPageConfirmDialog" t-inherit="website.AddPageConfirmDialog" t-inherit-mode="extension">
+    <xpath expr="//WebsiteDialog" position="attributes">
+        <attribute name="primaryTitle">buttonTitle</attribute>
+    </xpath>
+    <xpath expr="//div[@class='row gy-4']" position="attributes">
+        <attribute name="t-att-class">state.loading ? 'row gy-4 opacity-50 pe-none' : 'row gy-4'</attribute>
+    </xpath>
+    <xpath expr="//div[@class='row gy-4']" position="inside">
+        <div t-if="state.loading" class="d-flex justify-content-center w-100 position-absolute" style="bottom: 160px;">
+            <div class="text-muted">
+                <i class="fa fa-spinner fa-spin me-2"></i>
+                Generating content...
+            </div>
+        </div>
+    </xpath>
+    <xpath expr="//Switch[contains(@label.translate, 'Add to menu')]" position="after">
+        <div t-if="!!state.sectionsArch" class="offset-md-3 col-md-9">
+            <label class="o_switch d-inline-flex align-items-center text-start">
+                <input type="checkbox" t-att-checked="state.generateText" t-on-change="(ev) => this.onChangeGenerateText(ev.target.checked)" class="visually-hidden"/>
+                <span class="switch-slider"/>
+                <img src="/ai/static/description/icon.png" style="height: 20px; width: 20px;" class="ms-2" alt="AI"/>
+                <span class="ms-2">Generate text</span>
+            </label>
+        </div>
+        <t t-if="state.generateText">
+            <label class="col-form-label col-md-3">
+                Instructions
+            </label>
+            <div class="col-md-9">
+                <textarea t-model="state.instructions"
+                        class="form-control"
+                        rows="4"
+                        placeholder="Describe the page with keywords..."></textarea>
+            </div>
+            <div class="btn-group offset-md-3 col-md-9 text-start" role="group" aria-label="Tone Selection">
+                <t t-foreach="Object.keys(tones)" t-as="toneOption" t-key="toneOption">
+                    <button
+                        t-att-class="'btn btn-sm me-1 rounded-pill ' + (state.tone === toneOption ? 'btn-primary' : 'btn-outline-secondary')"
+                        t-att-title="tones[toneOption].title"
+                        t-on-click="onToneSelect"
+                        t-att-data-tone="toneOption"
+                    >
+                        <t t-esc="tones[toneOption].title"/>
+                    </button>
+                </t>
+            </div>
+        </t>
+    </xpath>
+</t>
+</templates>

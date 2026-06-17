@@ -1,0 +1,24 @@
+.agent-source-card {
+    .card-body {
+        background: linear-gradient(to right, $card-bg, rgba($card-bg, .95));
+        border-radius: inherit;
+    }
+
+    &:hover {
+        background: $o-action;
+        border-radius: inherit;
+    }
+
+    .agent-source-icon {
+        &.fa {
+            font-size: 48px;
+            line-height: 48px;
+        }
+    }
+
+    .agent-source-image {
+        max-width: 48px;
+        max-height: 48px;
+        object-fit: contain;
+    }
+}

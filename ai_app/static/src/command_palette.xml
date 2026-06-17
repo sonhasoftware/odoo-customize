@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+    <t t-name="ai_app.AICommand">
+        <div class="o-mail-DiscussCommand o_command_default d-flex align-items-center ps-3 pe-4" t-att-class="{ 'o-uiSmall': ui.isSmall }">
+            <i class="fa fa-fw fa-gear opacity-50 text-muted me-2"/>
+            <img class="rounded me-2 object-fit-cover" t-if="props.imgUrl" t-att-src="props.imgUrl"  style="width: 25px; height: 25px"/>
+            <span class="pe-1 text-ellipsis d-flex align-items-center fw-bold">
+                <t t-slot="name" />
+            </span>
+            <span t-if="props.subtitle" class="text-muted smaller text-truncate mw-50" t-out="'- ' + props.subtitle"/>
+        </div>
+    </t>
+
+</templates>

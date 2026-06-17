@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<odoo>
+    <data>
+        <!-- Used only when documents are sent by email to not block the email cron -->
+        <record id="ir_cron_ai_documents_sort" model="ir.cron">
+            <field name="name">AI Documents: Sort documents with AI</field>
+            <field name="model_id" ref="ai_documents.model_documents_document"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_ai_sort()</field>
+            <field name="user_id" ref="base.user_root" />
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+        </record>
+    </data>
+</odoo>

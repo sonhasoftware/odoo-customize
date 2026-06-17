@@ -1,0 +1,24 @@
+.o-mail-ChatHub-bubbles {
+    z-index: $zindex-sticky;
+}
+
+.o-mail-ChatHub .o-mail-ChatWindow {
+    z-index: $zindex-sticky + 1;
+}
+
+.btn-ai-chatter {
+    padding: 3px 5px 5px 5px;
+}
+
+.o-mail-ChatWindow {
+    .o-mail-Message.o-selfAuthored {
+        .o-mail-Message-core {
+            align-items: flex-start;
+        }
+
+        .o-mail-Message-sidebar {
+            align-self: flex-start;
+            margin-top: 18px; /* Offset the timestamp height to align avatar vertically with the bubble */
+        }
+    }
+}

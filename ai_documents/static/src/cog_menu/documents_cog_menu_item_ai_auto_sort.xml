@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<templates id="template" xml:space="preserve">
+    <t t-name="ai_documents.DocumentsCogMenuItemAiAutoSort">
+        <DropdownItem closingMode="'all'" onSelected.bind="onSelected">
+            <label for="ai_documents_auto_sort" class="d-flex justify-content-between">
+                <span>
+                    <img src="/ai/static/description/icon.png" width="18"/>
+                    Auto-sort
+                    <i t-if="this.folder.ai_sort_prompt" class="fa fa-check ps-1"/>
+                </span>
+            </label>
+        </DropdownItem>
+    </t>
+</templates>

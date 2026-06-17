@@ -1,0 +1,67 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * ai_documents_source
+#
+# "Maitê Dietze (madi)" <madi@odoo.com>, 2025.
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-09-11 14:26+0000\n"
+"PO-Revision-Date: 2025-09-19 12:11+0000\n"
+"Last-Translator: \"Maitê Dietze (madi)\" <madi@odoo.com>\n"
+"Language-Team: Portuguese (Brazil) <https://translate.odoo.com/projects/"
+"odoo-19/ai_documents_source/pt_BR/>\n"
+"Language: pt_BR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 5.12.2\n"
+
+#. module: ai_documents_source
+#: model:ir.model,name:ai_documents_source.model_ai_agent_source
+msgid "AI Agent Source"
+msgstr "Fonte do agente de IA"
+
+#. module: ai_documents_source
+#. odoo-javascript
+#: code:addons/ai_documents_source/static/src/components/agent_add_source_dialog/agent_add_source_dialog.js:0
+msgid "Add from Documents"
+msgstr ""
+
+#. module: ai_documents_source
+#: model:ir.model.fields,field_description:ai_documents_source.field_ai_agent_source__display_name
+#: model:ir.model.fields,field_description:ai_documents_source.field_documents_document__display_name
+msgid "Display Name"
+msgstr "Exibir nome"
+
+#. module: ai_documents_source
+#: model:ir.model,name:ai_documents_source.model_documents_document
+#: model:ir.model.fields.selection,name:ai_documents_source.selection__ai_agent_source__type__document
+msgid "Document"
+msgstr ""
+
+#. module: ai_documents_source
+#: model:ir.model.fields,field_description:ai_documents_source.field_ai_agent_source__id
+#: model:ir.model.fields,field_description:ai_documents_source.field_documents_document__id
+msgid "ID"
+msgstr "ID"
+
+#. module: ai_documents_source
+#. odoo-python
+#: code:addons/ai_documents_source/models/ai_agent_source.py:0
+#: model:ir.model.fields,field_description:ai_documents_source.field_ai_agent_source__document_id
+msgid "Source Document"
+msgstr "Documento de Origem"
+
+#. module: ai_documents_source
+#: model:ir.model.fields,field_description:ai_documents_source.field_ai_agent_source__type
+msgid "Type"
+msgstr ""
+
+#. module: ai_documents_source
+#. odoo-python
+#: code:addons/ai_documents_source/models/ai_agent_source.py:0
+msgid "id"
+msgstr ""

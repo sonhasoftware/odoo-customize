@@ -1,0 +1,261 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* ai_fields
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-09-11 14:27+0000\n"
+"PO-Revision-Date: 2025-09-11 14:27+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/properties_field_patch/properties_field_patch.xml:0
+#: model_terms:ir.ui.view,arch_db:ai_fields.view_model_fields_form
+#: model_terms:ir.ui.view,arch_db:ai_fields.view_model_form
+msgid "AI"
+msgstr ""
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Checkbox"
+msgstr ""
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Date"
+msgstr ""
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Date & Time"
+msgstr ""
+
+#. module: ai_fields
+#: model:ir.actions.server,name:ai_fields.ir_cron_fill_ai_fields_ir_actions_server
+msgid "AI Fields: Compute AI fields"
+msgstr ""
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Float"
+msgstr ""
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Html"
+msgstr ""
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Integer"
+msgstr ""
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Many2Many Tags"
+msgstr ""
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Many2Many Tags Avatar"
+msgstr ""
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Many2One"
+msgstr ""
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Monetary"
+msgstr ""
+
+#. module: ai_fields
+#: model:ir.model.fields,field_description:ai_fields.field_ir_model_fields__system_prompt
+msgid "AI Prompt"
+msgstr ""
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Selection"
+msgstr ""
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Text"
+msgstr ""
+
+#. module: ai_fields
+#: model:ir.model.fields,help:ai_fields.field_ir_model_fields__ai
+msgid "AI computed field"
+msgstr ""
+
+#. module: ai_fields
+#: model:ir.model.fields,field_description:ai_fields.field_ir_model_fields__ai
+msgid "AI field"
+msgstr ""
+
+#. module: ai_fields
+#: model:ir.model.fields,field_description:ai_fields.field_ir_model_fields__ai_domain
+msgid "AI field domain"
+msgstr ""
+
+#. module: ai_fields
+#: model:ir.model,name:ai_fields.model_base
+msgid "Base"
+msgstr ""
+
+#. module: ai_fields
+#: model:ir.model.fields,field_description:ai_fields.field_ir_model_fields__display_name
+#: model:ir.model.fields,field_description:ai_fields.field_mail_message__display_name
+msgid "Display Name"
+msgstr ""
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/model/relational_model/record.js:0
+msgid "Felt like a riddle I couldn’t solve"
+msgstr ""
+
+#. module: ai_fields
+#: model:ir.model,name:ai_fields.model_ir_model_fields
+msgid "Fields"
+msgstr ""
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/model/relational_model/record.js:0
+msgid "Hmm... that was a bit fuzzy for me"
+msgstr ""
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/model/relational_model/record.js:0
+msgid "I couldn't connect the dots"
+msgstr ""
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/model/relational_model/record.js:0
+msgid "I couldn't quite make sense of that"
+msgstr ""
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/model/relational_model/record.js:0
+msgid "I gave it a shot, but came up empty"
+msgstr ""
+
+#. module: ai_fields
+#: model:ir.model.fields,field_description:ai_fields.field_ir_model_fields__id
+#: model:ir.model.fields,field_description:ai_fields.field_mail_message__id
+msgid "ID"
+msgstr ""
+
+#. module: ai_fields
+#: model:ir.model,name:ai_fields.model_mail_message
+msgid "Message"
+msgstr ""
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/model/relational_model/record.js:0
+msgid "Missing a few pieces of the puzzle"
+msgstr ""
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/model/relational_model/record.js:0
+msgid "My circuits didn't quite get it"
+msgstr ""
+
+#. module: ai_fields
+#. odoo-python
+#: code:addons/ai_fields/tools.py:0
+msgid "No allowed values are provided in the prompt."
+msgstr ""
+
+#. module: ai_fields
+#. odoo-python
+#: code:addons/ai_fields/tools.py:0
+msgid "Oops, an unexpected error occurred."
+msgstr ""
+
+#. module: ai_fields
+#. odoo-python
+#: code:addons/ai_fields/tools.py:0
+msgid "Oops, the connection failed."
+msgstr ""
+
+#. module: ai_fields
+#. odoo-python
+#: code:addons/ai_fields/tools.py:0
+msgid "Oops, the request timed out."
+msgstr ""
+
+#. module: ai_fields
+#. odoo-python
+#: code:addons/ai_fields/tools.py:0
+msgid "Oops, the response could not be processed."
+msgstr ""
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/properties_field_patch/properties_field_patch.xml:0
+msgid "Prompt"
+msgstr ""
+
+#. module: ai_fields
+#: model:ir.model.fields,help:ai_fields.field_ir_model_fields__system_prompt
+msgid "Prompt given to the AI model to compute the field value"
+msgstr ""
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.xml:0
+msgid "Refresh value"
+msgstr ""
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/model/relational_model/record.js:0
+msgid "That was a bit over my head"
+msgstr ""
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/properties_field_patch/properties_field_patch.xml:0
+msgid "Write a prompt, use '/field' to insert dynamic values"
+msgstr ""
+
+#. module: ai_fields
+#. odoo-python
+#: code:addons/ai_fields/models/models.py:0
+msgid "You can not use the field %(field)s in a prompt."
+msgstr ""
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.xml:0
+msgid "ai icon"
+msgstr ""

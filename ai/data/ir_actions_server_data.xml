@@ -1,0 +1,642 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_actions_server_get_menu_details" model="ir.actions.server">
+        <field name="name">AI: Get Menu Details</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">
+            ai['result'] = record._ai_tool_get_menu_details(menu_ids)
+        </field>
+        <field name="model_id" ref="model_ai_agent"/>
+        <field name="ai_tool_description">
+            Retrieves detailed information (context, domain, search_view) for specific menus.
+            MUST be called before using any open_menu_* tool to get menu-specific details.
+
+            Returns CSV with pipe (|) delimiter:
+            ```
+            menu_id|model_name|context|domain|search_view
+            389|sale.order|{&quot;search_default_my_quotation&quot;: 1}|[]|&lt;search&gt;&lt;fields&gt;...&lt;/fields&gt;&lt;/search&gt;
+            172|account.move|{&quot;search_default_draft&quot;: 1}|[[&quot;type&quot;, &quot;=&quot;, &quot;out_invoice&quot;]]|&lt;search&gt;...&lt;/search&gt;
+            ```
+
+            Key information:
+            - Context: Default filters/groupings applied when menu opens
+            - Domain: Permanent filters that cannot be removed by users
+            - Search_view: Full XML structure with available filters, groupbys, and searchable fields
+
+            💡 Performance tip: Request multiple menu details in one call when comparing options
+            ⚠️ Always validate the returned model matches your expectations
+        </field>
+        <field name="ai_tool_schema">
+        {
+            "type": "object",
+            "properties": {
+                "menu_ids": {
+                    "type": "array",
+                    "items": {"type": "number"},
+                    "description": "List of menu IDs to get details for (available in menu data context)"
+                }
+            },
+            "required": ["menu_ids"]
+        }
+        </field>
+    </record>
+    <record id="ir_actions_server_get_fields" model="ir.actions.server">
+        <field name="name">AI: Get Fields</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">
+            ai['result'] = record._ai_tool_get_fields(model_name, include_description)
+        </field>
+        <field name="model_id" ref="model_ai_agent"/>
+        <field name="ai_tool_description">
+            Lists ONLY searchable fields for a single model that can be used in domain filters and grouping.
+            Essential for building valid domains - if a field isn't listed here, it CANNOT be used.
+
+            Returns format:
+            ```
+            field_name|display_name|type|sortable|groupable|description
+            partner_id|Customer|many2one(res.partner)|true|true|Customer for this order
+            date_order|Order Date|datetime|true|true|Date when order was placed
+            order_line|Order Lines|one2many(sale.order.line)|false|false|Lines in this order
+            state|Status|selection|true|true|Order status
+            ```
+
+            Key points:
+            - ⚠️ Only returns SEARCHABLE fields - others cannot be used in domains
+            - For relationships: Shows related model in parentheses (many2one, one2many, many2many)
+            - Only relationship fields can be used to traverse to other models
+            - Literal fields such as char/text/float CANNOT be used for traversal
+            - 'sortable' indicates if field can be used in order_by parameter
+            - 'groupable' indicates if field can be used for grouping when not available in search view
+
+            💡 Performance tip: When exploring multiple models, call this tool multiple times in ONE message
+            Example: Exploring sale.order, product.product, and res.partner? Make 3 parallel calls.
+        </field>
+        <field name="ai_tool_schema">
+        {
+            "type": "object",
+            "properties": {
+                "model_name": {
+                    "type": "string",
+                    "description": "Technical model name (e.g., 'sale.order', 'product.product', 'res.partner')"
+                },
+                "include_description": {
+                    "type": "boolean",
+                    "description": "Include field help text in output (default: true)"
+                }
+            },
+            "required": ["model_name"]
+        }
+        </field>
+    </record>
+    <record id="ir_actions_server_open_menu_list" model="ir.actions.server">
+        <field name="name">AI: Open Menu List</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="ai_tool_allow_end_message" eval="True"/>
+        <field name="code">
+            ai['result'] = record._ai_tool_open_menu_list(menu_id, model_name, selected_filters, selected_groupbys, search, custom_domain)
+        </field>
+        <field name="model_id" ref="model_ai_agent"/>
+        <field name="ai_tool_description">
+            Opens a list (table) view using search view elements.
+            Best for: "Show me", "List all", detailed record viewing, sorting data.
+
+            Key features:
+            - Apply multiple filters by name (from menu's search view)
+            - Group records by available fields
+            - Search within specific fields for text
+            - Displays records in sortable table format
+            - Ideal for reviewing, filtering, and exporting data
+
+            💡 Use search parameter to filter by any searchable field BEFORE considering custom domains
+            ⚠️ Use only filter names and groupby fields from menu data
+            ⚠️ Each search string must use format 'field=text'. Array can contain multiple search strings or be empty []
+        </field>
+        <field name="ai_tool_schema">
+        {
+            "type": "object",
+            "properties": {
+                "menu_id": {
+                    "type": "number",
+                    "description": "Menu ID from available menu data"
+                },
+                "model_name": {
+                    "type": "string",
+                    "description": "Model name - must match the menu's model"
+                },
+                "selected_filters": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Filter names from menu's available filters. Example: ['my_sale_orders', 'draft']. Empty array [] for no filters."
+                },
+                "selected_groupbys": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Field names for grouping. Priority: 1) Use group_by_field values from search view, 2) If needed field not in search view, use groupable fields from get_fields tool. Example: ['user_id', 'partner_id']. Empty array [] for no grouping."
+                },
+                "search": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Array of field=text strings for searching multiple fields. Each string uses format 'field_name=search_text' where field_name is from menu's searchable_fields. Examples: ['partner_id=Azure', 'product_id=laptop'], ['name=SO-001'], or [] for no search."
+                },
+                "custom_domain": {
+                    "type": "string",
+                    "description": "Optional custom domain as JSON string when search view elements are insufficient."
+                },
+                "__end_message": {
+                    "type": "string",
+                    "description": "The message that will be shown to the user. Provide a short summary of how this tool call answers the user's request."
+                }
+            },
+            "required": ["menu_id", "model_name", "selected_filters", "selected_groupbys", "search"]
+        }
+        </field>
+    </record>
+    <record id="ir_actions_server_open_menu_kanban" model="ir.actions.server">
+        <field name="name">AI: Open Menu Kanban</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="ai_tool_allow_end_message" eval="True"/>
+        <field name="code">
+            ai['result'] = record._ai_tool_open_menu_kanban(menu_id, model_name, selected_filters, selected_groupbys, search, custom_domain)
+        </field>
+        <field name="model_id" ref="model_ai_agent"/>
+        <field name="ai_tool_description">
+            Opens a kanban (card-based) view using search view elements.
+            Best for: Stage/status visualization, pipeline views, workflow management.
+
+            Key features:
+            - Display records as cards in columns
+            - Apply filters from menu's available options
+            - Group by workflow stages or other fields
+            - Search within specific fields
+            - Ideal for CRM pipelines, task boards, project workflows
+
+            ⚠️ Use only filter names and groupby fields from menu data
+            ⚠️ Each search string must use format 'field=text'. Array can contain multiple search strings or be empty []
+        </field>
+        <field name="ai_tool_schema">
+        {
+            "type": "object",
+            "properties": {
+                "menu_id": {
+                    "type": "number",
+                    "description": "Menu ID from available menu data"
+                },
+                "model_name": {
+                    "type": "string",
+                    "description": "Model name - must match the menu's model"
+                },
+                "selected_filters": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Filter names from menu's available filters. Empty array [] for no filters."
+                },
+                "selected_groupbys": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Field names for grouping (usually one for kanban columns). Priority: 1) Use group_by_field values from search view, 2) If needed field not in search view, use groupable fields from get_fields tool. Empty array [] for ungrouped."
+                },
+                "search": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Array of field=text strings for searching multiple fields. Each string uses format 'field_name=search_text' where field_name is from menu's searchable_fields. Examples: ['partner_id=Azure', 'product_id=laptop'], ['name=SO-001'], or [] for no search."
+                },
+                "custom_domain": {
+                    "type": "string",
+                    "description": "Optional custom domain as JSON string when search view elements are insufficient."
+                },
+                "__end_message": {
+                    "type": "string",
+                    "description": "The message that will be shown to the user. Provide a short summary of how this tool call answers the user's request."
+                }
+            },
+            "required": ["menu_id", "model_name", "selected_filters", "selected_groupbys", "search"]
+        }
+        </field>
+    </record>
+    <record id="ir_actions_server_open_menu_pivot" model="ir.actions.server">
+        <field name="name">AI: Open Menu Pivot</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="ai_tool_allow_end_message" eval="True"/>
+        <field name="code">
+            ai['result'] = record._ai_tool_open_menu_pivot(menu_id, model_name, selected_filters, row_groupbys, col_groupbys, measures, search, custom_domain)
+        </field>
+        <field name="model_id" ref="model_ai_agent"/>
+        <field name="ai_tool_description">
+            Opens a pivot table with advanced search and filtering.
+            Best for: "Top N" queries, rankings, cross-tabulation, performance metrics.
+
+            Key features:
+            - Supports filters from search view
+            - Groups data by rows AND columns simultaneously
+            - Aggregates measures (sum, avg, count)
+            - Supports text search across searchable fields
+            - Excel-like pivot table functionality
+
+            💡 ALWAYS call compute_report_measures() first to get valid measures
+            💡 For rankings: Include ordering in measures (e.g., ["amount_total desc"])
+            💡 Use search parameter to filter by any searchable field BEFORE considering custom domains
+            ⚠️ Prefer "Reporting" app menus for best pivot experience
+            ⚠️ Each search string must use format 'field=text'. Array can contain multiple search strings or be empty []
+            ⚠️ Note: Uses row_groupbys/col_groupbys (arrays) instead of selected_groupbys
+
+            Example: For "top salespeople selling office products":
+            - Use search=["categ_id", "office"] if categ_id is searchable
+            - Only use custom_domain if no searchable field matches your needs
+        </field>
+        <field name="ai_tool_schema">
+        {
+            "type": "object",
+            "properties": {
+                "menu_id": {
+                    "type": "number",
+                    "description": "Menu ID from available menu data (prefer Reporting app menus)"
+                },
+                "model_name": {
+                    "type": "string",
+                    "description": "Model name - must match the menu's model"
+                },
+                "selected_filters": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Filter names from menu's available filters. Empty array [] for no filters."
+                },
+                "row_groupbys": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Row grouping fields. Priority: 1) Use group_by_field values from search view, 2) If needed field not in search view, use groupable fields from get_fields tool. Examples: ['product_id'] for products, ['user_id'] for salespeople"
+                },
+                "col_groupbys": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Column grouping fields. Priority: 1) Use group_by_field values from search view, 2) If needed field not in search view, use groupable fields from get_fields tool. Common: ['date:month'] for monthly, ['state'] for status, [] for no columns"
+                },
+                "measures": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Measures from _compute_report_measures(). For rankings add ordering: ['amount_total desc']"
+                },
+                "search": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Array of field=text strings for searching multiple fields. Each string uses format 'field_name=search_text' where field_name is from menu's searchable_fields. Examples: ['partner_id=Azure', 'product_id=laptop'], ['name=SO-001'], or [] for no search."
+                },
+                "custom_domain": {
+                    "type": "string",
+                    "description": "Optional custom domain as JSON string when search view elements are insufficient."
+                },
+                "__end_message": {
+                    "type": "string",
+                    "description": "The message that will be shown to the user. Provide a short summary of how this tool call answers the user's request."
+                }
+            },
+            "required": ["menu_id", "model_name", "selected_filters", "row_groupbys", "col_groupbys", "measures", "search"]
+        }
+        </field>
+    </record>
+    <record id="ir_actions_server_open_menu_graph" model="ir.actions.server">
+        <field name="name">AI: Open Menu Graph</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="ai_tool_allow_end_message" eval="True"/>
+        <field name="code">
+            ai['result'] = record._ai_tool_open_menu_graph(
+                menu_id, model_name, selected_filters, selected_groupbys, measure,
+                mode, order, search, stacked, cumulated, custom_domain)
+        </field>
+        <field name="model_id" ref="model_ai_agent"/>
+        <field name="ai_tool_description">
+            Opens a graph/chart view using search view elements.
+            Best for: Trends, comparisons, distributions, visual KPIs.
+
+            Supported chart types:
+            - 'bar': Compare values across categories
+            - 'line': Show trends over time
+            - 'pie': Display proportions of a whole
+
+            Features:
+            - Apply filters from menu's available options
+            - Visualize a single measure
+            - Group by one field for the chart axis
+            - Search within specific fields
+            - Stacking and cumulation options
+            - Order control (ASC/DESC)
+
+            💡 Call compute_report_measures() first to find valid measures
+            ⚠️ Each search string must use format 'field=text'. Array can contain multiple search strings or be empty []
+            ⚠️ Mode must be exactly 'bar', 'line', or 'pie'
+            ⚠️ Order must be exactly 'ASC' or 'DESC'
+        </field>
+        <field name="ai_tool_schema">
+        {
+            "type": "object",
+            "properties": {
+                "menu_id": {
+                    "type": "number",
+                    "description": "Menu ID from available menu data"
+                },
+                "model_name": {
+                    "type": "string",
+                    "description": "Model name - must match the menu's model"
+                },
+                "selected_filters": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Filter names from menu's available filters. Empty array [] for no filters."
+                },
+                "selected_groupbys": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Field names for grouping. Priority: 1) Use group_by_field values from search view, 2) If needed field not in search view, use groupable fields from get_fields tool. Example: ['user_id', 'partner_id']. Empty array [] for no grouping."
+                },
+                "measure": {
+                    "type": "string",
+                    "description": "Measure from _compute_report_measures() or '__count' for record count"
+                },
+                "mode": {
+                    "type": "string",
+                    "description": "Chart type: 'bar' for comparisons, 'line' for trends, 'pie' for proportions"
+                },
+                "order": {
+                    "type": "string",
+                    "description": "Sort direction: 'DESC' for highest first, 'ASC' for lowest first"
+                },
+                "search": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Array of field=text strings for searching multiple fields. Each string uses format 'field_name=search_text' where field_name is from menu's searchable_fields. Examples: ['partner_id=Azure', 'product_id=laptop'], ['name=SO-001'], or [] for no search."
+                },
+                "stacked": {
+                    "type": "boolean",
+                    "description": "Stack bars/areas on top of each other (default: false)"
+                },
+                "cumulated": {
+                    "type": "boolean",
+                    "description": "Show cumulative values over time (default: false)"
+                },
+                "custom_domain": {
+                    "type": "string",
+                    "description": "Optional custom domain as JSON string when search view elements are insufficient."
+                },
+                "__end_message": {
+                    "type": "string",
+                    "description": "The message that will be shown to the user. Provide a short summary of how this tool call answers the user's request."
+                }
+            },
+            "required": ["menu_id", "model_name", "selected_filters", "selected_groupbys", "measure", "mode", "order", "search"]
+        }
+        </field>
+    </record>
+    <record id="ir_actions_server_compute_report_measures" model="ir.actions.server">
+        <field name="name">AI: Compute Report Measures</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">
+            ai['result'] = record._ai_tool_compute_report_measures(action_id, model_name)
+        </field>
+        <field name="model_id" ref="model_ai_agent"/>
+        <field name="ai_tool_description">
+            Lists numeric fields (measures) available for aggregation in pivot/graph views.
+            MUST be called before using measures in open_menu_pivot() or open_menu_graph().
+
+            Returns CSV with pipe (|) delimiter:
+            ```
+            field_name|display_name|type|aggregator|sortable
+            __count|Count|integer||true
+            amount_total|Total|monetary|sum|true
+            margin|Margin|float|sum|true
+            quantity|Quantity|float|sum|true
+            ```
+
+            Key points:
+            - __count is always available (counts records)
+            - Only numeric fields with aggregators are returned
+            - Use field_name in measures parameter
+            - For rankings in pivot: Add ordering (e.g., "amount_total desc")
+            - Call multiple times in parallel if comparing different menus
+        </field>
+        <field name="ai_tool_schema">
+        {
+            "type": "object",
+            "properties": {
+                "action_id": {
+                    "type": "number",
+                    "description": "Action ID - the id of the action linked to a menu or available in the current view context."
+                },
+                "model_name": {
+                    "type": "string",
+                    "description": "Model name - must match the action's model"
+                }
+            },
+            "required": ["action_id", "model_name"]
+        }
+        </field>
+    </record>
+    <record id="ir_actions_server_adjust_search" model="ir.actions.server">
+        <field name="name">AI: Adjust Search</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="ai_tool_allow_end_message" eval="True"/>
+        <field name="code">
+            ai['result'] = record._ai_tool_adjust_search(model_name, remove_facets, toggle_filters, toggle_groupbys, apply_searches, measures, mode, order, stacked, cumulated, custom_domain, switch_view_type)
+        </field>
+        <field name="model_id" ref="model_ai_agent"/>
+        <field name="ai_tool_description">
+            The user can continue on asking questions and if you think that the current search can just be adjusted without opening a different menu, you can use this tool.
+
+            Provided in the prompt's &lt;session_info_context&gt; is a current view info which contains the active search facets.
+            A facet can be a group of `OR`ed filters, a group of groupbys, or a group of `OR`ed search terms.
+
+            **Understanding the parameters**:
+            - `remove_facets` - Removing a facet removes the whole group of filters/groupbys/search terms. Removing a filter or a search facet reduces the constraints.
+            - `toggle_filters` - Toggling a filter will add/remove a filter from an active filter facet.
+            - `toggle_groupbys` - Toggling a groupby will add/remove a groupby from the active groupbys facet.
+            - `apply_searches` - Applying a search will `OR` the search term on an active search facet containing the same field. E.g., if there is a field facet of "name=John" and you provide search "name=Jane", the resulting search will be "name=John OR name=Jane".
+            - `measures` - Specifying measures will activate the selected measures in the current view if it's a pivot or a graph view.
+            - `mode` - Graph view only: This is the chart type. Choose from "line", "bar", or "pie" to change the chart type in the current graph view.
+            - `order` - Graph view only: Specifying the order will change the sorting of the results in the current graph view.
+            - `stacked` - Graph view only: Specifying stacked will change the stacking of the results in the current graph view.
+            - `cumulated` - Graph view only: Specifying cumulated will change the accumulation of the results in the current graph view.
+            - `custom_domain` - The search view elements may not be sufficient to express the needed domain. In that case, you can provide a custom domain as a JSON string.
+            - `switch_view_type` - Switching the view type will change the current view to the specified type. Select from the available view types in the current view info.
+        </field>
+        <field name="ai_tool_schema">
+        {
+            "type": "object",
+            "properties": {
+                "model_name": {
+                    "type": "string",
+                    "description": "The model linked to the current view."
+                },
+                "remove_facets": {
+                    "type": "array",
+                    "items": {"type": "number"},
+                    "description": "List of facet group IDs to be removed from the search view."
+                },
+                "toggle_filters": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Filter names from menu's available filters. See list from the searchable fields from the search view. Example: ['my_sale_orders', 'draft']. If a filter is already applied, it will be removed; otherwise, it will be added. Empty array [] for no filters. "
+                },
+                "toggle_groupbys": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Field names to add/remove from grouping. Priority: 1) Use group_by_field values from search view, 2) If needed field not in search view, use groupable fields from get_fields tool. Example: ['user_id', 'partner_id']. Empty array [] for no grouping changes."
+                },
+                "apply_searches": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Array of field=text strings for searching multiple fields. Each string uses format 'field_name=search_text' where field_name is from menu's searchable_fields. Examples: ['partner_id=Azure', 'product_id=laptop'], ['name=SO-001'], or [] for no search."
+                },
+                "measures": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "List of measures to be activated. Can be multiple items in pivot view but only one item in graph view."
+                },
+                "mode": {
+                    "type": "string",
+                    "description": "For graph view: Chart type: 'bar' for comparisons, 'line' for trends, 'pie' for proportions"
+                },
+                "order": {
+                    "type": "string",
+                    "description": "For graph view: Sort direction: 'DESC' for highest first, 'ASC' for lowest first"
+                },
+                "stacked": {
+                    "type": "boolean",
+                    "description": "For graph view: Stack bars/areas on top of each other (default: false)"
+                },
+                "cumulated": {
+                    "type": "boolean",
+                    "description": "For graph view: Show cumulative values over time (default: false)"
+                },
+                "custom_domain": {
+                    "type": "string",
+                    "description": "Optional custom domain as JSON string when search view elements are insufficient."
+                },
+                "switch_view_type": {
+                    "type": "string",
+                    "description": "The view type to switch to. Must be one of the available view types. Empty string for no switch."
+                },
+                "__end_message": {
+                    "type": "string",
+                    "description": "The message that will be shown to the user. Provide a short summary of what you wanted to adjust in the search view when calling this tool."
+                }
+            },
+            "required": ["model_name"]
+        }
+        </field>
+    </record>
+    <record id="ir_actions_server_search" model="ir.actions.server">
+        <field name="name">AI: Search</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">
+            ai['result'] = record._ai_tool_search(model_name, domain, fields, offset, limit, order)
+        </field>
+        <field name="model_id" ref="model_ai_agent"/>
+        <field name="ai_tool_description">
+            **Tool Name: search**
+
+            Searches a particular model using a domain. The provided domain must be in valid JSON format.
+        </field>
+        <field name="ai_tool_schema">
+        {
+            "type": "object",
+            "properties": {
+                "model_name": {
+                    "type": "string",
+                    "description": "Technical model name (e.g., 'sale.order', 'product.product', 'res.partner')"
+                },
+                "domain": {
+                    "type": "string",
+                    "description": "A search domain. Use an empty list to match all records. The domain must be a JSON parsable string."
+                },
+                "fields": {
+                    "type": "array",
+                    "description": "a collection of field names to fetch, or None for all accessible fields marked with prefetch=True",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "offset": {
+                    "type": "number",
+                    "description": "number of results to ignore (default: none)"
+                },
+                "limit": {
+                    "type": "number",
+                    "description": "optional max number of records to return (default: all)"
+                },
+                "order": {
+                    "type": "string",
+                    "description": "Optional 'order by' specification. This field should have the form `field_name DESC` (or ASC for ascending order)"
+                }
+            },
+            "required": ["model_name", "domain"]
+        }
+        </field>
+    </record>
+    <record id="ir_actions_server_read_group" model="ir.actions.server">
+        <field name="name">AI: Read group</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">
+            ai['result'] = record._ai_tool_read_group(model_name, domain, groupby, aggregates, having, offset, limit, order)
+        </field>
+        <field name="model_id" ref="model_ai_agent"/>
+        <field name="ai_tool_description">
+            **Tool Name: Read group**
+
+            Searches a particular model using a domain. The provided domain must be in valid JSON format.
+        </field>
+        <field name="ai_tool_schema">
+        {
+            "type": "object",
+            "properties": {
+                "model_name": {
+                    "type": "string",
+                    "description": "Technical model name (e.g., 'sale.order', 'product.product', 'res.partner')"
+                },
+                "domain": {
+                    "type": "string",
+                    "description": "A search domain. Use an empty list to match all records. The domain MUST be a valid JSON string."
+                },
+                "groupby": {
+                    "type": "array",
+            "description": "list of groupby descriptions by which the records will be grouped. A groupby description is either a field (then it will be grouped by that field) or a string `'field:granularity'`. Right now, the only supported granularities are `'day'`, `'week'`, `'month'`, `'quarter'` or `'year'`, and they only make sense for date/datetime fields. Additionally integer date parts are also supported: `'year_number'`, `'quarter_number'`, `'month_number'`, `'iso_week_number'`, `'day_of_year'`, `'day_of_month'`, 'day_of_week', 'hour_number', 'minute_number' and 'second_number'.",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "aggregates": {
+                    "type": "array",
+                    "description": "list of aggregates specification. Each element is `'field:agg'` (aggregate field with aggregation function `'agg'`). The possible aggregation functions are the ones provided by `PostgreSQL`, `'count_distinct'` with the expected meaning and `'recordset'` to act like `'array_agg'` converted into a recordset.",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "having": {
+                    "type": "string",
+                    "description": "A domain where the valid 'fields' are the aggregates. The provided field names must exist in the aggregate elements. The having MUST be a valid JSON string. Example '[[\"amount_total:sum\", \"&gt;\", 1000]]"
+                },
+                "offset": {
+                    "type": "number",
+                    "description": "optional number of groups to skip"
+                },
+                "limit": {
+                    "type": "number",
+                    "description": "optional max number of groups to return"
+                },
+                "order": {
+                    "type": "string",
+                    "description": "optional 'order by' specification, for overriding the natural sort ordering of the groups. The order must be a valid PostgreSQL group by, it must use a valid `aggregate` or `groupby element. The provided fields must exist in the group by or aggregate elements."
+                }
+            },
+            "required": ["model_name", "domain"]
+        }
+        </field>
+    </record>
+</odoo>

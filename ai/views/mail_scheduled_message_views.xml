@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!--
+        <record id="mail_scheduled_message_view_form" model="ir.ui.view">
+            <field name="name">mail.scheduled.message.view.form.inherit</field>
+            <field name="model">mail.scheduled.message</field>
+            <field name="inherit_id" ref="mail.mail_scheduled_message_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//footer/field[@name='attachment_ids']" position="after">
+                    <field name="body" widget="mail_composer_chatgpt"/>
+                </xpath>
+            </field>
+        </record>
+        -->
+    </data>
+</odoo>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_actions_server_rename_documents" model="ir.actions.server">
+        <field name="name">AI: Rename Document</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="ai_tool_allow_end_message" eval="True"/>
+        <field name="code">
+record.write({'name': new_name})
+ai['result'] = record.env._("The documents has been renamed to %s", new_name)
+</field>
+        <field name="model_id" ref="documents.model_documents_document"/>
+        <field name="ai_tool_schema">
+        {
+            "properties": {
+                "new_name": {
+                    "type": "string",
+                    "maxLength": 60,
+                    "description": "New name"
+                }
+            },
+            "required": ["new_name"],
+            "type": "object"
+        }
+        </field>
+        <field name="ai_tool_description">Rename Document</field>
+    </record>
+</odoo>

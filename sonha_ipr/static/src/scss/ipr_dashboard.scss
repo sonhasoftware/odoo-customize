@@ -1,0 +1,62 @@
+.o_ipr_dashboard {
+    padding: 24px;
+}
+
+.o_ipr_dashboard_header {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.o_ipr_dashboard_header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.o_ipr_dashboard_grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.o_ipr_dashboard_card {
+    background: #ffffff;
+    border: 1px solid #d8dee8;
+    border-radius: 8px;
+    color: #111827;
+    min-height: 120px;
+    padding: 18px;
+    text-align: left;
+}
+
+.o_ipr_dashboard_card:hover {
+    border-color: #5f8fd6;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+}
+
+.o_ipr_dashboard_label {
+    color: #64748b;
+    display: block;
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+.o_ipr_dashboard_card strong {
+    display: block;
+    font-size: 34px;
+    line-height: 1;
+}
+
+.o_ipr_dashboard_card_pending {
+    border-left: 4px solid #f59e0b;
+}
+
+.o_ipr_dashboard_card_approved {
+    border-left: 4px solid #22c55e;
+}
+
+.o_ipr_dashboard_card_rejected {
+    border-left: 4px solid #ef4444;
+}

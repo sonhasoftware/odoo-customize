@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Record Rule: Users can only access public sources or sources they created -->
+    <record id="ai_agent_source_visibility_rule" model="ir.rule">
+        <field name="name">AI Agent Source: Visibility Rule</field>
+        <field name="model_id" ref="model_ai_agent_source"/>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[
+            '|',
+            ('visibility', '=', 'public'),
+            ('create_uid', '=', user.id)
+        ]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+</odoo>

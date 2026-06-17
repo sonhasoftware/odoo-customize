@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-name="sonha_ipr.IprDashboard">
+        <div class="o_ipr_dashboard">
+            <div class="o_ipr_dashboard_header">
+                <h2>Internal Purchase Request Dashboard</h2>
+                <button class="btn btn-primary" t-on-click="() => openRequests(false)">Open Requests</button>
+            </div>
+            <div class="o_ipr_dashboard_grid">
+                <button class="o_ipr_dashboard_card" t-on-click="() => openRequests(false)">
+                    <span class="o_ipr_dashboard_label">Total Requests</span>
+                    <strong t-esc="state.total"/>
+                </button>
+                <button class="o_ipr_dashboard_card o_ipr_dashboard_card_pending" t-on-click="() => openRequests('confirm')">
+                    <span class="o_ipr_dashboard_label">Pending Approval</span>
+                    <strong t-esc="state.pending"/>
+                </button>
+                <button class="o_ipr_dashboard_card o_ipr_dashboard_card_approved" t-on-click="() => openRequests('approve')">
+                    <span class="o_ipr_dashboard_label">Approved</span>
+                    <strong t-esc="state.approved"/>
+                </button>
+                <button class="o_ipr_dashboard_card o_ipr_dashboard_card_rejected" t-on-click="() => openRequests('reject')">
+                    <span class="o_ipr_dashboard_label">Rejected</span>
+                    <strong t-esc="state.rejected"/>
+                </button>
+                <button class="o_ipr_dashboard_card" t-on-click="() => openRequests('draft')">
+                    <span class="o_ipr_dashboard_label">Draft</span>
+                    <strong t-esc="state.draft"/>
+                </button>
+            </div>
+        </div>
+    </t>
+</templates>

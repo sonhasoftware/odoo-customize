@@ -45,7 +45,7 @@ class EmployeeAttendance(models.Model):
     over_time_nb = fields.Float("Làm thêm hưởng NB", compute="get_hours_reinforcement")
     leave = fields.Float("Nghỉ phép", compute="_get_time_off")
     compensatory = fields.Float("Nghỉ bù", compute="_get_time_off")
-    public_leave = fields.Float("Nghỉ lễ", cumpute="_get_time_off")
+    public_leave = fields.Float("Nghỉ lễ", compute="_get_time_off")
     c2k3 = fields.Float("Ca 2 kíp 3", compute="get_shift")
     c3k4 = fields.Float("Ca 3 kíp 4", compute="get_shift")
     shift_toxic = fields.Float("Ca độc hại", compute="get_shift")

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_actions_server_move_in_folder" model="ir.actions.server">
+        <field name="name">AI: Move To Folder</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="ai_tool_allow_end_message" eval="True"/>
+        <field name="code">ai['result'] = record._ai_action_move_in_folder(folder_id)</field>
+        <field name="model_id" ref="documents.model_documents_document"/>
+        <field name="ai_tool_description">Move the documents in the given folder id</field>
+        <field name="ai_tool_schema">
+        {
+            "properties": {
+                "folder_id": {
+                    "type": "integer",
+                    "description": "Id of the new folder."
+                }
+            },
+            "required": ["folder_id"],
+            "type": "object"
+        }
+        </field>
+    </record>
+
+    <record id="ir_actions_server_add_tags" model="ir.actions.server">
+        <field name="name">AI: Add Tags</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="ai_tool_allow_end_message" eval="True"/>
+        <field name="code">ai['result'] = record._ai_action_add_tags(tag_names)</field>
+        <field name="model_id" ref="documents.model_documents_document"/>
+        <field name="ai_tool_description">Add the tags on the document</field>
+        <field name="ai_tool_schema">
+        {
+            "properties": {
+                "tag_names": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Names of the tags to add"
+                }
+            },
+            "required": ["tag_names"],
+            "type": "object"
+        }
+        </field>
+    </record>
+</odoo>

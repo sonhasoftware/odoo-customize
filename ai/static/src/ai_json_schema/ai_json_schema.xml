@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="ai.AiJsonSchema">
+        <t t-if="this.state.technical_mode">
+            <div>
+                <textarea
+                    t-ref="textarea"
+                    class="o_input"
+                    t-on-blur="onBlur"
+                    t-out="props.record.data[props.name] or ''"
+                />
+            </div>
+            <button class="btn btn-link mt-1"
+                t-on-click="() => (this.state.technical_mode = false)">
+                Pretty Edit
+            </button>
+        </t>
+        <t t-else="this.state.technical_mode">
+            <table class="table o_ai_json_schema">
+                <thead>
+                    <tr>
+                        <td>
+                            Name
+                            <i
+                                class="fa fa-question-circle ml4"
+                                role="img"
+                                title="Those parameters will be passed as global variables of the actions."
+                            />
+                        </td>
+                        <td>Description</td>
+                        <td>Type</td>
+                        <td></td>  <!-- Regex / enum -->
+                        <td>Required</td>
+                        <td>Max Length</td>
+                        <td></td>  <!-- Delete button -->
+                    </tr>
+                </thead>
+                <tbody t-ref="table">
+                    <tr t-foreach="arguments" t-as="argument" t-key="argument[0]">
+                        <t t-set="name" t-value="argument[0]"/>
+                        <t t-set="values" t-value="argument[1]"/>
+                        <t t-set="required" t-value="argument[2]"/>
+                        <t t-set="arg_type" t-value="argument[3]"/>
+                        <td>
+                            <input
+                                class="o_input"
+                                type="text"
+                                placeholder="eg: name"
+                                t-att-value="name"
+                                t-on-change="(ev) => this.onNameChange(ev.target.value, name, ev.target)"
+                            />
+                        </td>
+                        <td>
+                            <input
+                                class="o_input"
+                                type="text"
+                                placeholder="eg: New name to write"
+                                t-att-value="values.description"
+                                t-on-change="(ev) => this.onDescriptionChange(ev.target.value, name)"
+                            />
+                        </td>
+                        <td>
+                            <select
+                                class="o_input pe-3"
+                                t-on-change="(ev) => this.onTypeChange(ev.target.value, name)"
+                                t-on-click.stop="() => {}">
+                                <option
+                                    t-foreach="types"
+                                    t-as="type"
+                                    t-key="type[0]"
+                                    class="text-black"
+                                    t-att-selected="type[0] === arg_type"
+                                    t-att-value="type[0]"
+                                    t-out="type[1]"
+                                />
+                            </select>
+                        </td>
+                        <td>
+                            <input
+                                t-if="arg_type.startsWith('enum_')"
+                                class="o_input"
+                                type="text"
+                                placeholder="eg: red, blue, green"
+                                t-att-value="values.enum.join(', ')"
+                                t-on-change="(ev) => this.onEnumChange(ev.target.value, name)"
+                            />
+                            <input
+                                t-elif="arg_type === 'regex'"
+                                class="o_input"
+                                type="text"
+                                placeholder="eg: ^(\\([0-9]{3}\\))?[0-9]{3}-[0-9]{4}$"
+                                t-att-value="values.pattern"
+                                t-on-change="(ev) => this.onRegexChange(ev.target.value, name)"
+                            />
+                        </td>
+                        <td>
+                            <input
+                                class="form-check-input"
+                                type="checkbox"
+                                t-att-checked="required"
+                                t-on-change="(ev) => this.onRequiredChange(ev.target.checked, name)"
+                            />
+                        </td>
+                        <td>
+                            <input
+                                t-if="arg_type === 'string'"
+                                class="o_input"
+                                type="number"
+                                t-att-value="values.maxLength"
+                                t-on-change="(ev) => this.onMaxLengthChange(ev.target.value, name)"
+                            />
+                        </td>
+                        <td>
+                            <button class="btn text-danger p-0" t-on-click="() => this.onDelete(name)">
+                                <i class="fa fa-trash-o"/>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <button
+                class="btn btn-link mt-1"
+                t-on-click="() => this.onNewArgument()">
+                Add
+            </button>
+            <button
+                class="btn btn-link mt-1"
+                t-on-click="() => (this.state.technical_mode = true)">
+                Edit
+            </button>
+        </t>
+    </t>
+</templates>

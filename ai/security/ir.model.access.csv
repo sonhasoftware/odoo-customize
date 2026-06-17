@@ -1,0 +1,13 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_ai_agent_user,access_ai_agent_user,model_ai_agent,base.group_user,1,0,0,0
+access_ai_embedding_user,access_ai_embedding_user,model_ai_embedding,base.group_user,1,0,0,0
+access_ai_topic_user,access_ai_topic_user,model_ai_topic,base.group_user,1,0,0,0
+access_ai_agent_system,access_ai_agent_system,model_ai_agent,base.group_system,1,1,1,1
+access_ai_embedding_system,access_ai_embedding_system,model_ai_embedding,base.group_system,1,1,1,1
+access_ai_topic_system,access_ai_topic_system,model_ai_topic,base.group_system,1,1,1,1
+access_ai_composer_user,ai.composer,model_ai_composer,base.group_user,1,0,0,0
+access_ai_composer_admin,ai.composer,model_ai_composer,base.group_system,1,1,1,1
+access_ai_prompt_button_user,access_ai_prompt_button_user,model_ai_prompt_button,base.group_user,1,0,0,0
+access_ai_prompt_button_admin,ai.access_ai_prompt_button_admin.button,model_ai_prompt_button,base.group_system,1,1,1,1
+access_ai_agent_source_user,access_ai_agent_source_user,model_ai_agent_source,base.group_user,1,0,0,0
+access_ai_agent_source_system,access_ai_agent_source_system,model_ai_agent_source,base.group_system,1,1,1,1

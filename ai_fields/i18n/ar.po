@@ -1,0 +1,266 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * ai_fields
+#
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-09-11 14:27+0000\n"
+"PO-Revision-Date: 2025-09-16 13:43+0000\n"
+"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
+"Language-Team: Arabic <https://translate.odoo.com/projects/odoo-19/ai_fields/"
+"ar/>\n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
+"&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
+"X-Generator: Weblate 5.12.2\n"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/properties_field_patch/properties_field_patch.xml:0
+#: model_terms:ir.ui.view,arch_db:ai_fields.view_model_fields_form
+#: model_terms:ir.ui.view,arch_db:ai_fields.view_model_form
+msgid "AI"
+msgstr "الذكاء الاصطناعي"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Checkbox"
+msgstr "صندوق اختيار الذكاء الاصطناعي"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Date"
+msgstr "تاريخ الذكاء الاصطناعي"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Date & Time"
+msgstr "التاريخ والوقت باستخدام الذكاء الاصطناعي"
+
+#. module: ai_fields
+#: model:ir.actions.server,name:ai_fields.ir_cron_fill_ai_fields_ir_actions_server
+msgid "AI Fields: Compute AI fields"
+msgstr "حقول الذكاء الاصطناعي: احتساب حقول الذكاء الاصطناعي"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Float"
+msgstr ""
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Html"
+msgstr "Html الذكاء الاصطناعي"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Integer"
+msgstr "عدد صحيح باستخدام الذكاء الاصطناعي"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Many2Many Tags"
+msgstr "علامات Many2Many باستخدام الذكاء الاصطناعي"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Many2Many Tags Avatar"
+msgstr "الصورة الرمزية لعلامات Many2Many باستخدام الذكاء الاصطناعي"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Many2One"
+msgstr "Many2One باستخدام الذكاء الاصطناعي"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Monetary"
+msgstr "حقل مالي يستخدم الذكاء الاصطناعي"
+
+#. module: ai_fields
+#: model:ir.model.fields,field_description:ai_fields.field_ir_model_fields__system_prompt
+msgid "AI Prompt"
+msgstr "مدخلات الذكاء الاصطناعي"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Selection"
+msgstr "التحديد باستخدام الذكاء الاصطناعي"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.js:0
+msgid "AI Text"
+msgstr "نص باستخدام الذكاء الاصطناعي"
+
+#. module: ai_fields
+#: model:ir.model.fields,help:ai_fields.field_ir_model_fields__ai
+msgid "AI computed field"
+msgstr "حقل محسوب باستخدام الذكاء الاصطناعي"
+
+#. module: ai_fields
+#: model:ir.model.fields,field_description:ai_fields.field_ir_model_fields__ai
+msgid "AI field"
+msgstr "حقل الذكاء الاصطناعي"
+
+#. module: ai_fields
+#: model:ir.model.fields,field_description:ai_fields.field_ir_model_fields__ai_domain
+msgid "AI field domain"
+msgstr "نطاق حقل الذكاء الاصطناعي"
+
+#. module: ai_fields
+#: model:ir.model,name:ai_fields.model_base
+msgid "Base"
+msgstr "قاعدة"
+
+#. module: ai_fields
+#: model:ir.model.fields,field_description:ai_fields.field_ir_model_fields__display_name
+#: model:ir.model.fields,field_description:ai_fields.field_mail_message__display_name
+msgid "Display Name"
+msgstr "اسم العرض"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/model/relational_model/record.js:0
+msgid "Felt like a riddle I couldn’t solve"
+msgstr ""
+
+#. module: ai_fields
+#: model:ir.model,name:ai_fields.model_ir_model_fields
+msgid "Fields"
+msgstr "الحقول"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/model/relational_model/record.js:0
+msgid "Hmm... that was a bit fuzzy for me"
+msgstr ""
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/model/relational_model/record.js:0
+msgid "I couldn't connect the dots"
+msgstr ""
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/model/relational_model/record.js:0
+msgid "I couldn't quite make sense of that"
+msgstr ""
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/model/relational_model/record.js:0
+msgid "I gave it a shot, but came up empty"
+msgstr ""
+
+#. module: ai_fields
+#: model:ir.model.fields,field_description:ai_fields.field_ir_model_fields__id
+#: model:ir.model.fields,field_description:ai_fields.field_mail_message__id
+msgid "ID"
+msgstr "المُعرف"
+
+#. module: ai_fields
+#: model:ir.model,name:ai_fields.model_mail_message
+msgid "Message"
+msgstr "الرسالة"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/model/relational_model/record.js:0
+msgid "Missing a few pieces of the puzzle"
+msgstr ""
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/model/relational_model/record.js:0
+msgid "My circuits didn't quite get it"
+msgstr ""
+
+#. module: ai_fields
+#. odoo-python
+#: code:addons/ai_fields/tools.py:0
+msgid "No allowed values are provided in the prompt."
+msgstr ""
+
+#. module: ai_fields
+#. odoo-python
+#: code:addons/ai_fields/tools.py:0
+msgid "Oops, an unexpected error occurred."
+msgstr ""
+
+#. module: ai_fields
+#. odoo-python
+#: code:addons/ai_fields/tools.py:0
+msgid "Oops, the connection failed."
+msgstr ""
+
+#. module: ai_fields
+#. odoo-python
+#: code:addons/ai_fields/tools.py:0
+msgid "Oops, the request timed out."
+msgstr ""
+
+#. module: ai_fields
+#. odoo-python
+#: code:addons/ai_fields/tools.py:0
+msgid "Oops, the response could not be processed."
+msgstr ""
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/properties_field_patch/properties_field_patch.xml:0
+msgid "Prompt"
+msgstr "توجيه"
+
+#. module: ai_fields
+#: model:ir.model.fields,help:ai_fields.field_ir_model_fields__system_prompt
+msgid "Prompt given to the AI model to compute the field value"
+msgstr "المدخلات المعطاة لنموذج الذكاء الاصطناعي لاحتساب قيمة الحقل"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.xml:0
+msgid "Refresh value"
+msgstr "تحديث القيمة"
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/model/relational_model/record.js:0
+msgid "That was a bit over my head"
+msgstr ""
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/properties_field_patch/properties_field_patch.xml:0
+msgid "Write a prompt, use '/field' to insert dynamic values"
+msgstr "قم بكتابة المدخلات. استخدم '/field' لإدراج قيم ديناميكية"
+
+#. module: ai_fields
+#. odoo-python
+#: code:addons/ai_fields/models/models.py:0
+msgid "You can not use the field %(field)s in a prompt."
+msgstr ""
+
+#. module: ai_fields
+#. odoo-javascript
+#: code:addons/ai_fields/static/src/views/fields/ai_fields/ai_fields.xml:0
+msgid "ai icon"
+msgstr "أيقونة الذكاء الاصطناعي"

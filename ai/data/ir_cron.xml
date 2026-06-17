@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<odoo>
+    <data>
+        <record id="ir_cron_generate_embedding" model="ir.cron">
+            <field name="name">AI Embedding: Generate Embeddings</field>
+            <field name="model_id" ref="ai.model_ai_embedding"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_generate_embedding()</field>
+            <field name="user_id" ref="base.user_root" />
+            <field name="interval_number">9999</field>
+            <field name="interval_type">months</field>
+        </record>
+    </data>
+    <data>
+        <record id="ir_cron_process_sources" model="ir.cron">
+            <field name="name">AI Agent Sources: Process Sources</field>
+            <field name="model_id" ref="ai.model_ai_agent_source"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_process_sources()</field>
+            <field name="user_id" ref="base.user_root" />
+            <field name="interval_number">9999</field>
+            <field name="interval_type">months</field>
+        </record>
+    </data>
+</odoo>

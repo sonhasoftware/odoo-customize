@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sonha_ai.SystrayItem" owl="1">
+        <div class="o_sonha_ai_systray_item" t-on-click="_onClick">
+            <a role="button" class="dropdown-toggle" title="Sonha AI">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="ai-star">
+                    <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" fill="currentColor"/>
+                </svg>
+            </a>
+        </div>
+        <!-- Render chat window absolutely positioned outside -->
+        <AiChatWindow isOpen="state.isOpen" onClose.bind="_onClose"/>
+    </t>
+</templates>

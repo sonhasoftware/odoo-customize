@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Create some basic default AI prompts that are used in the UI rules below -->
+        <record id="ai_prompt_summarize_chatter" model="ai.prompt.button">
+            <field name="name">Summarize the chatter conversation</field>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="ai_prompt_write_followup_chatter" model="ai.prompt.button">
+            <field name="name">Write a followup answer</field>
+            <field name="sequence">20</field>
+        </record>
+
+        <record id="ai_prompt_write_followup_composer" model="ai.prompt.button">
+            <field name="name">Write a followup answer</field>
+        </record>
+
+        <record id="ai_prompt_rewrite_text" model="ai.prompt.button">
+            <field name="name">Rewrite selected text</field>
+        </record>
+
+        <record id="ai_prompt_optout_reason" model="ai.prompt.button">
+            <field name="name">Top reason for which people opt-out from lists</field>
+        </record>
+
+        <record id="ai_prompt_stock_move" model="ai.prompt.button">
+            <field name="name">Single most common stock move from/to</field>
+        </record>
+
+        <record id="ai_prompt_transcription_summarize_recruitment_call" model="ai.prompt.button">
+            <field name="name">Summarize this recruitment call</field>
+        </record>
+
+        <record id="ai_prompt_transcription_summarize_prospect_call" model="ai.prompt.button">
+            <field name="name">Summarize this prospect call</field>
+        </record>
+
+        <record id="ai_prompt_transcription_write_email_recap" model="ai.prompt.button">
+            <field name="name">Write an email recap</field>
+        </record>
+
+        <record id="ai_prompt_sales_by_country" model="ai.prompt.button">
+            <field name="name">Pie chart of sales by customer country</field>
+        </record>
+
+        <record id="ai_prompt_low_stock_pivot" model="ai.prompt.button">
+            <field name="name">Pivot of products with less than 5 in stock</field>
+        </record>
+
+        <record id="ai_prompt_agenda_today" model="ai.prompt.button">
+            <field name="name">What's my agenda for today?</field>
+        </record>
+
+        <record id="ai_prompt_top_sales_reps" model="ai.prompt.button">
+            <field name="name">Top 5 sales reps by revenue</field>
+        </record>
+
+        <record id="ai_prompt_sales_by_category" model="ai.prompt.button">
+            <field name="name">Show sales by product category this month</field>
+        </record>
+
+        <record id="ai_prompt_top_selling_products_chart" model="ai.prompt.button">
+            <field name="name">Bar chart of top-selling products</field>
+        </record>
+
+        <record id="ai_prompt_customer_japan" model="ai.prompt.button">
+            <field name="name">Do I have any customer in Japan?</field>
+        </record>
+
+        <record id="ai_prompt_most_expensive_project" model="ai.prompt.button">
+            <field name="name">Which project costs us the most?</field>
+        </record>
+
+        <record id="ai_prompt_cash_flow_status" model="ai.prompt.button">
+            <field name="name">Show me the current cash flow status</field>
+        </record>
+
+        <record id="ai_prompt_top_ticket_cause" model="ai.prompt.button">
+            <field name="name">Summarize what the last tickets complain about</field>
+        </record>
+
+        <record id="ai_prompt_latest_po_azure" model="ai.prompt.button">
+            <field name="name">Latest PO from supplier Azure interior</field>
+        </record>
+
+        <record id="ai_prompt_profit_margin_by_category" model="ai.prompt.button">
+            <field name="name">Display the profit margins by product category</field>
+        </record>
+
+        <record id="ai_prompt_blog_ideas_catalog" model="ai.prompt.button">
+            <field name="name">5 blog ideas from my product catalog</field>
+        </record>
+        
+        <!-- Create the basic UI rules that exist by default and are not deletable -->
+        <record id="ai_mail_composer" model="ai.composer">
+            <field name="name">Mail/Note Composer</field>
+            <field name="interface_key">mail_composer</field>
+            <field name="ai_agent" ref="ai.ai_default_agent"/>
+            <field name="default_prompt">Your job is to help with drafting messages. If the user asks you to write a reply or a message, YOUR REPLY WILL BE INSERTED AS IS for the correspondence. Follow the tone from the previous correspondence, and **WRITE ONLY THE BODY OF THE MESSAGE. DO NOT ADD ADDITIONAL COMMENTARY, A SUBJECT LINE, OR A SIGNATURE.** Format your messages like an email, beginning with a greeting, and the rest of the content in a new line.</field>
+            <field name="available_prompts" eval="[(4, ref('ai.ai_prompt_write_followup_composer'))]"/>
+            <field name="is_system_default">True</field>
+        </record>
+
+        <record id="ai_html_record" model="ai.composer">
+            <field name="name">Record HTML Fields</field>
+            <field name="interface_key">html_field_record</field>
+            <field name="ai_agent" ref="ai.ai_default_agent"/>
+            <field name="default_prompt">Your job is to help with drafting the description of an odoo record. If the user asks you to write something, **YOUR REPLY WILL BE INSERTED AS IS for the description. DO NOT ADD ANY EXTRA COMMENTARY THAT SHOULDN'T APPEAR IN THE DESCRIPTION.** Give your answers succinctly and to the point.</field>
+            <field name="is_system_default">True</field>
+        </record>
+
+        <record id="ai_html_text_selector" model="ai.composer">
+            <field name="name">Text Selector</field>
+            <field name="interface_key">html_field_text_select</field>
+            <field name="ai_agent" ref="ai.ai_default_agent"/>
+            <field name="default_prompt">Your job is to suggest alternatives to a piece of text the user has written. If the user asks you to rewrite the text in a specific way, **YOUR ANSWER WILL BE REPLACING THE ORIGINAL TEXT AS IS, thus DO NOT ADD ADDITIONAL COMMENTARY**.</field>
+            <field name="is_system_default">True</field>
+            <field name="available_prompts" eval="[(4, ref('ai.ai_prompt_rewrite_text'))]"/>
+        </record>
+
+        <record id="ai_chatter_helper" model="ai.composer">
+            <field name="name">Chatter Helper</field>
+            <field name="interface_key">chatter_ai_button</field>
+            <field name="ai_agent" ref="ai.ai_default_agent"/>
+            <field name="default_prompt">Your job is to assist the user with the chatter correspondence. If the user asks you to summarize the chatter conversation, reply with a small description for the conversation and then a list of all the key messages in the correspondence. Each bullet point should have a general title in bold and a description in plaintext. If the user asks you to write a reply or a message, **YOUR REPLY WILL BE INSERTED AS IS**. Follow the tone from the previous messages in the chatter. **WRITE ONLY THE BODY OF THE MESSAGE. DO NOT ADD ADDITIONAL COMMENTARY, A SUBJECT LINE, OR A SIGNATURE.** Format your messages like an email, beginning with a greeting, and the rest of the content in a new line.</field>
+            <field name="is_system_default">True</field>
+            <field name="available_prompts" eval="[(4, ref('ai.ai_prompt_summarize_chatter')), (4, ref('ai.ai_prompt_write_followup_chatter'))]"/>
+        </record>
+
+        <record id="ai_mail_template_prompt_evaluator" model="ai.composer">
+            <field name="name">Mail Template Prompt Evaluator</field>
+            <field name="interface_key">html_prompt_shortcut</field>
+            <field name="ai_agent" ref="ai.ai_default_agent"/>
+            <field name="default_prompt">
+You are an Email Prompt Transformer. You'll get a single instruction or rough prompt and must output a concise, professional snippet for a customer-facing email body—no commentary because your output will be inserted directly into an email, without any changes.
+
+**1. Execute**
+- Read the input as a command or sketch and produce the intended text.
+- If you can't help, return an empty string.
+
+**2. Placeholders**
+- Ideas/constructs that are linked to literals like `false`, `undefined`, `null` or bracketed value like `[value]` should be ignored and don't invent any values.
+- Don't invent dates, names, or other details.
+
+**3. Unquote**
+- Remove surrounding quotes from any quoted text.
+
+**4. Polish**
+- Eliminate redundancies, filler, apologies, or uncertainty (e.g. "I'm not sure").
+- Use the requested language.
+
+**5. Output only**
+- Return exactly the email fragment (body only), with no subject, labels, or extra formatting.
+
+---
+
+**Examples**
+
+- **Input:**
+  `Insert a greeting for the buyer, mentioning "Burger Maison" and reminding them of [deadline].`
+  **Output:**
+  `We're thrilled to announce the launch of Burger Maison—thank you for your continued partnership.`
+  **Explanation:**
+  There is no value for `[deadline]`, so that part where the input asks for reminding is ignored.
+
+- **Input:**
+  `Please thank [name] for their purchase of "Deluxe Toolkit" and mention shipment on false.`
+  **Output:**
+  `Thank you for purchasing Deluxe Toolkit. Your order will shipped shortly.`
+   **Explanation:**
+   There is no value for `[name]` so the "thank" is generic. The shipment date is also missing so the shipping information is also a generic statement.
+
+- **Input:**
+  `Add a closing line wishing them a great weekend.`
+  **Output:**
+  `Have a wonderful weekend, and feel free to reach out with any questions.`
+            </field>
+            <field name="is_system_default">True</field>
+        </record>
+
+        <record id="ai_systray_action" model="ai.composer">
+            <field name="name">Ask AI</field>
+            <field name="interface_key">systray_ai_button</field>
+            <field name="ai_agent" ref="ai.ai_agent_natural_language_search"/>
+            <field name="available_prompts" eval="[
+                (4, ref('ai.ai_prompt_optout_reason')),
+                (4, ref('ai.ai_prompt_stock_move')),
+                (4, ref('ai.ai_prompt_sales_by_country')),
+                (4, ref('ai.ai_prompt_low_stock_pivot')),
+                (4, ref('ai.ai_prompt_agenda_today')),
+                (4, ref('ai.ai_prompt_top_sales_reps')),
+                (4, ref('ai.ai_prompt_sales_by_category')),
+                (4, ref('ai.ai_prompt_top_selling_products_chart')),
+                (4, ref('ai.ai_prompt_customer_japan')),
+                (4, ref('ai.ai_prompt_most_expensive_project')),
+                (4, ref('ai.ai_prompt_cash_flow_status')),
+                (4, ref('ai.ai_prompt_top_ticket_cause')),
+                (4, ref('ai.ai_prompt_latest_po_azure')),
+                (4, ref('ai.ai_prompt_profit_margin_by_category')),
+                (4, ref('ai.ai_prompt_blog_ideas_catalog'))
+            ]"/>
+            <field name="is_system_default">True</field>
+        </record>
+
+        <record id="ai_voice_transcription" model="ai.composer">
+            <field name="name">Summarize Voice Transcription</field>
+            <field name="interface_key">voice_transcription_component</field>
+            <field name="ai_agent" ref="ai.ai_default_agent"/>
+            <field name="default_prompt">Summarize the transcript below.
+
+Your summary should be structured in a way that is easy to skim. It should only contain the essential information.
+It must be in markdown format. Do NOT put the main markup inside code blocks.</field>
+            <field name="is_system_default">True</field>
+            <field name="available_prompts" eval="[(4, ref('ai.ai_prompt_transcription_summarize_recruitment_call')), (4, ref('ai.ai_prompt_transcription_summarize_prospect_call')), (4, ref('ai.ai_prompt_transcription_write_email_recap'))]"/>
+        </record>
+    </data>
+</odoo>

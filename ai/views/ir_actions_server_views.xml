@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="ir_actions_server_view_form" model="ir.ui.view">
+        <field name="name">ir.actions.server.view.form.inherit.ai</field>
+        <field name="model">ir.actions.server</field>
+        <field name="inherit_id" ref="base.view_server_action_form"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <data>
+                <xpath expr="//notebook" position="inside">
+                    <page string="AI Usage" name="ai_usage" invisible="not ai_tool_is_candidate or context.get('is_modal')">
+                        <field name="ai_tool_is_candidate" invisible="1"/>
+                        <field name="ai_tool_has_schema" invisible="1"/>
+                        <field name="ai_tool_show_warning" invisible="1"/>
+                        <group col="6">
+                            <group>
+                                <field name="use_in_ai" invisible="not ai_tool_is_candidate" readonly="context.get('default_use_in_ai', False)"/>
+                                <field name="ai_tool_allow_end_message" invisible="not ai_tool_is_candidate" readonly="context.get('default_use_in_ai', False)"/>
+                            </group>
+                            <group colspan="5">
+                                <field name="ai_tool_description" nolabel="1"
+                                invisible="not ai_tool_is_candidate or not use_in_ai" placeholder="Short explanation of what this does"/>
+                            </group>
+                        </group>
+                        <group>
+                            <field name="ai_tool_schema"
+                                placeholder="JSON schema for the parameters of the action (leave empty if no arguments are needed)"
+                                invisible="not ai_tool_is_candidate or not use_in_ai or not ai_tool_has_schema"
+                                widget="ai_json_schema"/>
+                        </group>
+                    </page>
+                    <page string="Prompt" name="ai_action_prompt" invisible="state != 'ai'">
+                        <group>
+                            <label for="ai_tool_ids"/>
+                            <div class="d-flex flex-row align-items-baseline">
+                                <i
+                                    class="fa fa-warning text-warning me-2"
+                                    invisible="not ai_tool_show_warning"
+                                    aria-hidden="true"
+                                    title="The AI will not be limited by the groups defined on tools"/>
+                                <field name="ai_tool_ids"
+                                    nolabel="1"
+                                    widget="many2many_tags"
+                                    domain="[('use_in_ai', '=', True), ('model_name', '=', model_name)]"
+                                    options="{'no_create': True, 'no_create_edit': True}"/>
+                            </div>
+                            <field name="ai_action_prompt"
+                                widget="ai_prompt"
+                                options="{'model_reference_field': 'model_name'}"/>
+                        </group>
+                    </page>
+                </xpath>
+            </data>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ============================================================
+         FORM VIEW: dynamic.model.field (standalone, dùng khi click vào field)
+         ============================================================ -->
+    <record id="view_dynamic_model_field_form" model="ir.ui.view">
+        <field name="name">dynamic.model.field.form</field>
+        <field name="model">dynamic.model.field</field>
+        <field name="arch" type="xml">
+            <form string="Cấu hình Field">
+                <sheet>
+                    <group>
+                        <group string="Thông tin cơ bản">
+                            <field name="field_name"
+                                   placeholder="Ví dụ: title (không cần x_)"/>
+                            <field name="field_label"
+                                   placeholder="Ví dụ: Tiêu đề sách"/>
+                            <field name="field_type"/>
+                            <field name="sequence"/>
+                        </group>
+                        <group string="Thuộc tính">
+                            <field name="required"/>
+                            <field name="readonly"/>
+                            <field name="indexed"/>
+                        </group>
+                    </group>
+
+                    <!-- Options cho Char -->
+                    <group string="Tuỳ chọn Char" invisible="field_type != 'char'">
+                        <field name="char_size" string="Độ dài tối đa"/>
+                    </group>
+
+                    <!-- Options cho Selection -->
+                    <group string="Danh sách lựa chọn" invisible="field_type != 'selection'">
+                        <field name="selection_options"
+                               widget="text"
+                               nolabel="1"
+                               placeholder="draft|Nháp&#10;published|Đã xuất bản&#10;archived|Lưu trữ"/>
+                        <div class="alert alert-info" role="alert">
+                            <strong>Format:</strong> <code>value|Label</code> — mỗi lựa chọn một dòng
+                        </div>
+                    </group>
+
+                    <!-- Options cho Relational Fields -->
+                    <group string="Cấu hình Quan hệ"
+                           invisible="field_type not in ('many2one','one2many','many2many')">
+                        <field name="relation"
+                               placeholder="Ví dụ: res.partner, product.product"/>
+                        <field name="domain"
+                               placeholder="[('active', '=', True)]"
+                               invisible="field_type not in ('many2one',)"/>
+                        <field name="relation_field"
+                               placeholder="Ví dụ: book_id"
+                               invisible="field_type != 'one2many'"/>
+                    </group>
+
+                    <!-- Help text -->
+                    <group string="Tooltip/Ghi chú">
+                        <field name="help_text"
+                               nolabel="1"
+                               placeholder="Mô tả ngắn hiển thị khi hover vào field..."/>
+                    </group>
+
+                    <!-- Tóm tắt -->
+                    <group string="Tóm tắt">
+                        <field name="field_summary" string="Preview" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         FORM VIEW: Delete Wizard
+         ============================================================ -->
+    <record id="view_dynamic_model_delete_wizard_form" model="ir.ui.view">
+        <field name="name">dynamic.model.delete.wizard.form</field>
+        <field name="model">dynamic.model.delete.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Xác nhận xóa Model">
+                <sheet>
+                    <field name="warning_message" widget="html" nolabel="1"/>
+
+                    <group>
+                        <field name="model_name" readonly="1" string="Tên Model"/>
+                        <field name="record_count" readonly="1" string="Số bản ghi sẽ bị xóa"/>
+                        <field name="confirm_name"
+                               placeholder="Gõ lại tên model ở đây để xác nhận..."
+                               string="Xác nhận tên"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_confirm_delete"
+                            type="object"
+                            string="⚠️ Xác nhận Xóa"
+                            class="btn-danger"/>
+                    <button string="Hủy" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         FORM VIEW: Preview Wizard
+         ============================================================ -->
+    <record id="view_dynamic_model_preview_wizard_form" model="ir.ui.view">
+        <field name="name">dynamic.model.preview.wizard.form</field>
+        <field name="model">dynamic.model.preview.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Preview Model">
+                <sheet>
+                    <div class="alert alert-primary" role="alert">
+                        <h4>👁 Preview: <field name="model_name" readonly="1"/></h4>
+                        <small>Technical: <code><field name="model_code" readonly="1"/></code></small>
+                    </div>
+
+                    <notebook>
+                        <page string="📋 Danh sách Fields">
+                            <field name="preview_field_summary" widget="html" nolabel="1"/>
+                        </page>
+                        <page string="📄 Form View XML">
+                            <field name="preview_form_arch"
+                                   widget="text"
+                                   nolabel="1"
+                                   readonly="1"
+                                   style="font-family: monospace; font-size: 12px; background: #f8f9fa;"/>
+                        </page>
+                        <page string="📊 List View XML">
+                            <field name="preview_list_arch"
+                                   widget="text"
+                                   nolabel="1"
+                                   readonly="1"
+                                   style="font-family: monospace; font-size: 12px; background: #f8f9fa;"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <footer>
+                    <button string="Đóng" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+    <t t-name="ai.AskAIButton">
+        <DropdownItem t-if="hasAIAgent" class="'o_menu_item o_ask_ai d-flex align-items-center'" onSelected.bind="onAskAIClick">
+            <img class="rounded me-2 object-fit-cover" src="/ai/static/description/icon.png" style="width: 24px; height: 24px"/>
+            <span>Ask AI</span>
+        </DropdownItem>
+    </t>
+
+</templates>

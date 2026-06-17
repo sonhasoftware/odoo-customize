@@ -1,0 +1,1768 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * ai
+#
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-09-13 21:43+0000\n"
+"PO-Revision-Date: 2025-09-18 02:43+0000\n"
+"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
+"Language-Team: Polish <https://translate.odoo.com/projects/odoo-19/ai/pl/>\n"
+"Language: pl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: nplurals=3; plural=n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
+"|| n%100>=20) ? 1 : 2;\n"
+"X-Generator: Weblate 5.12.2\n"
+
+#. module: ai
+#: model:ir.actions.server,ai_tool_description:ai.ir_actions_server_read_group
+msgid ""
+"\n"
+"            **Tool Name: Read group**\n"
+"\n"
+"            Searches a particular model using a domain. The provided domain "
+"must be in valid JSON format.\n"
+"        "
+msgstr ""
+
+#. module: ai
+#: model:ir.actions.server,ai_tool_description:ai.ir_actions_server_search
+msgid ""
+"\n"
+"            **Tool Name: search**\n"
+"\n"
+"            Searches a particular model using a domain. The provided domain "
+"must be in valid JSON format.\n"
+"        "
+msgstr ""
+
+#. module: ai
+#: model:ir.actions.server,ai_tool_description:ai.ir_actions_server_get_fields
+msgid ""
+"\n"
+"            Lists ONLY searchable fields for a single model that can be used "
+"in domain filters and grouping.\n"
+"            Essential for building valid domains - if a field isn't listed "
+"here, it CANNOT be used.\n"
+"\n"
+"            Returns format:\n"
+"            ```\n"
+"            field_name|display_name|type|sortable|groupable|description\n"
+"            partner_id|Customer|many2one(res.partner)|true|true|Customer for "
+"this order\n"
+"            date_order|Order Date|datetime|true|true|Date when order was "
+"placed\n"
+"            order_line|Order Lines|one2many(sale.order.line)|false|false|"
+"Lines in this order\n"
+"            state|Status|selection|true|true|Order status\n"
+"            ```\n"
+"\n"
+"            Key points:\n"
+"            - ⚠️ Only returns SEARCHABLE fields - others cannot be used in "
+"domains\n"
+"            - For relationships: Shows related model in parentheses "
+"(many2one, one2many, many2many)\n"
+"            - Only relationship fields can be used to traverse to other "
+"models\n"
+"            - Literal fields such as char/text/float CANNOT be used for "
+"traversal\n"
+"            - 'sortable' indicates if field can be used in order_by "
+"parameter\n"
+"            - 'groupable' indicates if field can be used for grouping when "
+"not available in search view\n"
+"\n"
+"            💡 Performance tip: When exploring multiple models, call this "
+"tool multiple times in ONE message\n"
+"            Example: Exploring sale.order, product.product, and res.partner? "
+"Make 3 parallel calls.\n"
+"        "
+msgstr ""
+
+#. module: ai
+#: model:ir.actions.server,ai_tool_description:ai.ir_actions_server_compute_report_measures
+msgid ""
+"\n"
+"            Lists numeric fields (measures) available for aggregation in "
+"pivot/graph views.\n"
+"            MUST be called before using measures in open_menu_pivot() or "
+"open_menu_graph().\n"
+"\n"
+"            Returns CSV with pipe (|) delimiter:\n"
+"            ```\n"
+"            field_name|display_name|type|aggregator|sortable\n"
+"            __count|Count|integer||true\n"
+"            amount_total|Total|monetary|sum|true\n"
+"            margin|Margin|float|sum|true\n"
+"            quantity|Quantity|float|sum|true\n"
+"            ```\n"
+"\n"
+"            Key points:\n"
+"            - __count is always available (counts records)\n"
+"            - Only numeric fields with aggregators are returned\n"
+"            - Use field_name in measures parameter\n"
+"            - For rankings in pivot: Add ordering (e.g., \"amount_total "
+"desc\")\n"
+"            - Call multiple times in parallel if comparing different menus\n"
+"        "
+msgstr ""
+
+#. module: ai
+#: model:ir.actions.server,ai_tool_description:ai.ir_actions_server_open_menu_graph
+msgid ""
+"\n"
+"            Opens a graph/chart view using search view elements.\n"
+"            Best for: Trends, comparisons, distributions, visual KPIs.\n"
+"\n"
+"            Supported chart types:\n"
+"            - 'bar': Compare values across categories\n"
+"            - 'line': Show trends over time\n"
+"            - 'pie': Display proportions of a whole\n"
+"\n"
+"            Features:\n"
+"            - Apply filters from menu's available options\n"
+"            - Visualize a single measure\n"
+"            - Group by one field for the chart axis\n"
+"            - Search within specific fields\n"
+"            - Stacking and cumulation options\n"
+"            - Order control (ASC/DESC)\n"
+"\n"
+"            💡 Call compute_report_measures() first to find valid measures\n"
+"            ⚠️ Each search string must use format 'field=text'. Array can "
+"contain multiple search strings or be empty []\n"
+"            ⚠️ Mode must be exactly 'bar', 'line', or 'pie'\n"
+"            ⚠️ Order must be exactly 'ASC' or 'DESC'\n"
+"        "
+msgstr ""
+
+#. module: ai
+#: model:ir.actions.server,ai_tool_description:ai.ir_actions_server_open_menu_kanban
+msgid ""
+"\n"
+"            Opens a kanban (card-based) view using search view elements.\n"
+"            Best for: Stage/status visualization, pipeline views, workflow "
+"management.\n"
+"\n"
+"            Key features:\n"
+"            - Display records as cards in columns\n"
+"            - Apply filters from menu's available options\n"
+"            - Group by workflow stages or other fields\n"
+"            - Search within specific fields\n"
+"            - Ideal for CRM pipelines, task boards, project workflows\n"
+"\n"
+"            ⚠️ Use only filter names and groupby fields from menu data\n"
+"            ⚠️ Each search string must use format 'field=text'. Array can "
+"contain multiple search strings or be empty []\n"
+"        "
+msgstr ""
+
+#. module: ai
+#: model:ir.actions.server,ai_tool_description:ai.ir_actions_server_open_menu_list
+msgid ""
+"\n"
+"            Opens a list (table) view using search view elements.\n"
+"            Best for: \"Show me\", \"List all\", detailed record viewing, "
+"sorting data.\n"
+"\n"
+"            Key features:\n"
+"            - Apply multiple filters by name (from menu's search view)\n"
+"            - Group records by available fields\n"
+"            - Search within specific fields for text\n"
+"            - Displays records in sortable table format\n"
+"            - Ideal for reviewing, filtering, and exporting data\n"
+"\n"
+"            💡 Use search parameter to filter by any searchable field BEFORE "
+"considering custom domains\n"
+"            ⚠️ Use only filter names and groupby fields from menu data\n"
+"            ⚠️ Each search string must use format 'field=text'. Array can "
+"contain multiple search strings or be empty []\n"
+"        "
+msgstr ""
+
+#. module: ai
+#: model:ir.actions.server,ai_tool_description:ai.ir_actions_server_open_menu_pivot
+msgid ""
+"\n"
+"            Opens a pivot table with advanced search and filtering.\n"
+"            Best for: \"Top N\" queries, rankings, cross-tabulation, "
+"performance metrics.\n"
+"\n"
+"            Key features:\n"
+"            - Supports filters from search view\n"
+"            - Groups data by rows AND columns simultaneously\n"
+"            - Aggregates measures (sum, avg, count)\n"
+"            - Supports text search across searchable fields\n"
+"            - Excel-like pivot table functionality\n"
+"\n"
+"            💡 ALWAYS call compute_report_measures() first to get valid "
+"measures\n"
+"            💡 For rankings: Include ordering in measures (e.g., "
+"[\"amount_total desc\"])\n"
+"            💡 Use search parameter to filter by any searchable field BEFORE "
+"considering custom domains\n"
+"            ⚠️ Prefer \"Reporting\" app menus for best pivot experience\n"
+"            ⚠️ Each search string must use format 'field=text'. Array can "
+"contain multiple search strings or be empty []\n"
+"            ⚠️ Note: Uses row_groupbys/col_groupbys (arrays) instead of "
+"selected_groupbys\n"
+"\n"
+"            Example: For \"top salespeople selling office products\":\n"
+"            - Use search=[\"categ_id\", \"office\"] if categ_id is "
+"searchable\n"
+"            - Only use custom_domain if no searchable field matches your "
+"needs\n"
+"        "
+msgstr ""
+
+#. module: ai
+#: model:ir.actions.server,ai_tool_description:ai.ir_actions_server_get_menu_details
+msgid ""
+"\n"
+"            Retrieves detailed information (context, domain, search_view) "
+"for specific menus.\n"
+"            MUST be called before using any open_menu_* tool to get menu-"
+"specific details.\n"
+"\n"
+"            Returns CSV with pipe (|) delimiter:\n"
+"            ```\n"
+"            menu_id|model_name|context|domain|search_view\n"
+"            389|sale.order|{\"search_default_my_quotation\": 1}|[]|"
+"<search><fields>...</fields></search>\n"
+"            172|account.move|{\"search_default_draft\": 1}|[[\"type\", "
+"\"=\", \"out_invoice\"]]|<search>...</search>\n"
+"            ```\n"
+"\n"
+"            Key information:\n"
+"            - Context: Default filters/groupings applied when menu opens\n"
+"            - Domain: Permanent filters that cannot be removed by users\n"
+"            - Search_view: Full XML structure with available filters, "
+"groupbys, and searchable fields\n"
+"\n"
+"            💡 Performance tip: Request multiple menu details in one call "
+"when comparing options\n"
+"            ⚠️ Always validate the returned model matches your expectations\n"
+"        "
+msgstr ""
+
+#. module: ai
+#: model:ir.actions.server,ai_tool_description:ai.ir_actions_server_adjust_search
+msgid ""
+"\n"
+"            The user can continue on asking questions and if you think that "
+"the current search can just be adjusted without opening a different menu, "
+"you can use this tool.\n"
+"\n"
+"            Provided in the prompt's <session_info_context> is a current "
+"view info which contains the active search facets.\n"
+"            A facet can be a group of `OR`ed filters, a group of groupbys, "
+"or a group of `OR`ed search terms.\n"
+"\n"
+"            **Understanding the parameters**:\n"
+"            - `remove_facets` - Removing a facet removes the whole group of "
+"filters/groupbys/search terms. Removing a filter or a search facet reduces "
+"the constraints.\n"
+"            - `toggle_filters` - Toggling a filter will add/remove a filter "
+"from an active filter facet.\n"
+"            - `toggle_groupbys` - Toggling a groupby will add/remove a "
+"groupby from the active groupbys facet.\n"
+"            - `apply_searches` - Applying a search will `OR` the search term "
+"on an active search facet containing the same field. E.g., if there is a "
+"field facet of \"name=John\" and you provide search \"name=Jane\", the "
+"resulting search will be \"name=John OR name=Jane\".\n"
+"            - `measures` - Specifying measures will activate the selected "
+"measures in the current view if it's a pivot or a graph view.\n"
+"            - `mode` - Graph view only: This is the chart type. Choose from "
+"\"line\", \"bar\", or \"pie\" to change the chart type in the current graph "
+"view.\n"
+"            - `order` - Graph view only: Specifying the order will change "
+"the sorting of the results in the current graph view.\n"
+"            - `stacked` - Graph view only: Specifying stacked will change "
+"the stacking of the results in the current graph view.\n"
+"            - `cumulated` - Graph view only: Specifying cumulated will "
+"change the accumulation of the results in the current graph view.\n"
+"            - `custom_domain` - The search view elements may not be "
+"sufficient to express the needed domain. In that case, you can provide a "
+"custom domain as a JSON string.\n"
+"            - `switch_view_type` - Switching the view type will change the "
+"current view to the specified type. Select from the available view types in "
+"the current view info.\n"
+"        "
+msgstr ""
+
+#. module: ai
+#. odoo-python
+#: code:addons/ai/models/ai_agent.py:0 code:addons/ai/models/ai_composer.py:0
+msgid "%s (copy)"
+msgstr ""
+
+#. module: ai
+#: model_terms:ir.ui.view,arch_db:ai.ai_log_action
+msgid ""
+"<br/>\n"
+"            It used the following tools:"
+msgstr ""
+
+#. module: ai
+#: model_terms:ir.ui.view,arch_db:ai.ir_actions_server_view_form
+msgid ""
+"<i class=\"fa fa-warning text-warning me-2\" invisible=\"not "
+"ai_tool_show_warning\" aria-hidden=\"true\" title=\"The AI will not be "
+"limited by the groups defined on tools\"/>"
+msgstr ""
+
+#. module: ai
+#: model_terms:ir.ui.view,arch_db:ai.ai_log_action
+msgid "<span>with arguments</span>"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,help:ai.field_ai_agent__topic_ids
+msgid ""
+"A topic includes instructions and tools that guide Odoo AI in helping the "
+"user complete their tasks."
+msgstr ""
+"Temat obejmuje instrukcje i narzędzia, które wspierają Odoo AI w pomaganiu "
+"użytkownikowi dokończenia swoich zadań."
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/editor/embedded_components/plugins/voice_transcription_plugin.js:0
+#: code:addons/ai/static/src/editor/plugins/chatgpt_plugin.js:0
+#: code:addons/ai/static/src/web/systray_action.xml:0
+#: model:ir.model.fields.selection,name:ai.selection__ir_actions_server__state__ai
+msgid "AI"
+msgstr "AI"
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ir_actions_server__ai_action_prompt
+#: model:ir.model.fields,field_description:ai.field_ir_cron__ai_action_prompt
+msgid "AI Action Prompt"
+msgstr ""
+
+#. module: ai
+#: model:ir.model,name:ai.model_ai_agent
+msgid "AI Agent"
+msgstr "Agent AI"
+
+#. module: ai
+#: model:ir.model,name:ai.model_ai_agent_source
+msgid "AI Agent Source"
+msgstr ""
+
+#. module: ai
+#: model:ir.actions.server,name:ai.ir_cron_process_sources_ir_actions_server
+msgid "AI Agent Sources: Process Sources"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.constraint,message:ai.constraint_discuss_channel_ai_channel_type_check
+msgid "AI Agent can only be set for ai_chat or livechat channels."
+msgstr ""
+
+#. module: ai
+#: model:ir.actions.server,name:ai.ir_cron_generate_embedding_ir_actions_server
+msgid "AI Embedding: Generate Embeddings"
+msgstr "Osadzanie AI: Generowanie osadzeń"
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_prompt_button__name
+msgid "AI Prompt"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/ai_prompt/ai_field_selector_plugin.js:0
+msgid "AI Prompt Tools"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ir_actions_server__ai_tool_schema
+#: model:ir.model.fields,field_description:ai.field_ir_cron__ai_tool_schema
+msgid "AI Schema"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ir_actions_server__ai_tool_description
+#: model:ir.model.fields,field_description:ai.field_ir_cron__ai_tool_description
+msgid "AI Tool Description"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/editor/plugins/chatgpt_plugin.js:0
+#: model:ir.model.fields,field_description:ai.field_ai_topic__tool_ids
+msgid "AI Tools"
+msgstr "Narzędzia AI"
+
+#. module: ai
+#: model:ir.model.fields.selection,name:ai.selection__discuss_channel__channel_type__ai_chat
+msgid "AI chat"
+msgstr "Czat AI"
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/editor/embedded_components/core/voice_transcription.js:0
+#: code:addons/ai/static/src/editor/embedded_components/plugins/voice_transcription_plugin.js:0
+msgid "AI is listening..."
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/discuss/typing_patch.js:0
+msgid "AI is thinking..."
+msgstr ""
+
+#. module: ai
+#: model:ir.model,name:ai.model_ai_composer
+msgid "AI model configurations (system prompts) for text drafting."
+msgstr "Konfiguracje modelu AI (wywołania systemowe) do tworzenia tekstów."
+
+#. module: ai
+#. odoo-python
+#: code:addons/ai/models/discuss_channel.py:0
+msgid "AI not reachable, AI Agent not found."
+msgstr ""
+
+#. module: ai
+#. odoo-python
+#: code:addons/ai/models/discuss_channel.py:0
+msgid "AI: %(name)s"
+msgstr "AI: %(name)s"
+
+#. module: ai
+#: model:ir.actions.server,name:ai.ir_actions_server_adjust_search
+msgid "AI: Adjust Search"
+msgstr ""
+
+#. module: ai
+#: model:ir.actions.server,name:ai.ir_actions_server_compute_report_measures
+msgid "AI: Compute Report Measures"
+msgstr ""
+
+#. module: ai
+#: model:ir.actions.server,name:ai.ir_actions_server_get_fields
+msgid "AI: Get Fields"
+msgstr ""
+
+#. module: ai
+#: model:ir.actions.server,name:ai.ir_actions_server_get_menu_details
+msgid "AI: Get Menu Details"
+msgstr ""
+
+#. module: ai
+#: model:ir.actions.server,name:ai.ir_actions_server_open_menu_graph
+msgid "AI: Open Menu Graph"
+msgstr ""
+
+#. module: ai
+#: model:ir.actions.server,name:ai.ir_actions_server_open_menu_kanban
+msgid "AI: Open Menu Kanban"
+msgstr ""
+
+#. module: ai
+#: model:ir.actions.server,name:ai.ir_actions_server_open_menu_list
+msgid "AI: Open Menu List"
+msgstr ""
+
+#. module: ai
+#: model:ir.actions.server,name:ai.ir_actions_server_open_menu_pivot
+msgid "AI: Open Menu Pivot"
+msgstr ""
+
+#. module: ai
+#: model:ir.actions.server,name:ai.ir_actions_server_read_group
+msgid "AI: Read group"
+msgstr ""
+
+#. module: ai
+#: model:ir.actions.server,name:ai.ir_actions_server_search
+msgid "AI: Search"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/editor/embedded_components/core/voice_transcription.js:0
+msgid "Access error"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_composer__interface_key
+#: model_terms:ir.ui.view,arch_db:ai.ai_log_action
+msgid "Action"
+msgstr ""
+
+#. module: ai
+#. odoo-python
+#: code:addons/ai/models/ir_actions_server.py:0
+msgid "Action \"%(action)s\" done."
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_agent__active
+#: model:ir.model.fields,field_description:ai.field_ai_agent_source__is_active
+msgid "Active"
+msgstr ""
+
+#. module: ai
+#. odoo-python
+#: code:addons/ai/models/ir_actions_server.py:0
+msgid "Activity created for %(user)s."
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/ai_json_schema/ai_json_schema.xml:0
+msgid "Add"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/components/agent_add_source_dialog/agent_add_source_dialog.xml:0
+msgid "Add Links"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/components/agent_add_source_dialog/agent_add_source_dialog.xml:0
+msgid "Add Sources"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/components/agent_add_source_dialog/agent_add_source_dialog.js:0
+msgid "Add a Link"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/editor/embedded_components/plugins/voice_transcription_plugin.js:0
+msgid "Add notes about your upcoming meeting"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/components/agent_add_source_dialog/agent_add_source_dialog.xml:0
+msgid "Add sources to your AI Agent to get answers based on specific content."
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/components/agent_add_source_dialog/agent_add_source_dialog.xml:0
+msgid "Adding sources..."
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_agent_source__agent_id
+#: model:ir.model.fields,field_description:ai.field_ai_composer__ai_agent
+#: model:ir.model.fields,field_description:ai.field_res_partner__agent_ids
+#: model:ir.model.fields,field_description:ai.field_res_users__agent_ids
+msgid "Agent"
+msgstr "Agent"
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_agent__name
+msgid "Agent Name"
+msgstr "Nazwa agenta"
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_discuss_channel__ai_agent_id
+msgid "Ai Agent"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ir_actions_server__ai_tool_has_schema
+#: model:ir.model.fields,field_description:ai.field_ir_cron__ai_tool_has_schema
+msgid "Ai Tool Has Schema"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ir_actions_server__ai_tool_is_candidate
+#: model:ir.model.fields,field_description:ai.field_ir_cron__ai_tool_is_candidate
+msgid "Ai Tool Is Candidate"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ir_actions_server__ai_tool_show_warning
+#: model:ir.model.fields,field_description:ai.field_ir_cron__ai_tool_show_warning
+msgid "Ai Tool Show Warning"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ir_actions_server__ai_tool_allow_end_message
+#: model:ir.model.fields,field_description:ai.field_ir_cron__ai_tool_allow_end_message
+msgid "Allow End Message"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/editor/embedded_components/core/voice_transcription.js:0
+msgid "An error occured"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/discuss/core/common/thread_model_patch.js:0
+msgid "An error occurred while generating the AI response."
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields.selection,name:ai.selection__ai_agent__response_style__analytical
+msgid "Analytical"
+msgstr "Analityczne"
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/core/web/ask_ai_button.xml:0
+#: code:addons/ai/static/src/core/web/command_palette.js:0
+#: code:addons/ai/static/src/mail_composer_chatgpt.xml:0
+#: code:addons/ai/static/src/web/systray_action.xml:0
+msgid "Ask AI"
+msgstr "Zapytaj AI"
+
+#. module: ai
+#: model:ir.model.fields.selection,name:ai.selection__ai_composer__interface_key__systray_ai_button
+msgid "Ask AI for help"
+msgstr ""
+
+#. module: ai
+#: model:ir.model,name:ai.model_ir_attachment
+#: model:ir.model.fields,field_description:ai.field_ai_agent_source__attachment_id
+#: model:ir.model.fields,field_description:ai.field_ai_embedding__attachment_id
+msgid "Attachment"
+msgstr "Załącznik"
+
+#. module: ai
+#: model:ir.model,name:ai.model_ai_embedding
+msgid "Attachment Chunks Embedding"
+msgstr "Osadzanie fragmentów załączników"
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_composer__available_prompts
+msgid "Available User Prompts"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_agent__avatar_128
+msgid "Avatar"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields.selection,name:ai.selection__ai_agent__response_style__balanced
+msgid "Balanced"
+msgstr "Zbilansowany"
+
+#. module: ai
+#: model:ir.model,name:ai.model_base
+msgid "Base"
+msgstr "Baza"
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_mail_template__body_html
+msgid "Body"
+msgstr "Treść"
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_discuss_channel__channel_type
+msgid "Channel Type"
+msgstr "Typ kanału"
+
+#. module: ai
+#: model:ir.model.fields,help:ai.field_discuss_channel__channel_type
+msgid ""
+"Chat is private and unique between 2 persons. Group is private among invited "
+"persons. Channel can be freely joined (depending on its configuration)."
+msgstr ""
+"Czat między dwiema osobami jest prywatny i unikalny. Grupa jest prywatna "
+"wśród osób zaproszonych. Do kanału można dołączać bez ograniczeń (w "
+"zależności od jego ustawień)."
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_embedding__checksum
+msgid "Checksum/SHA1"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_embedding__content
+msgid "Chunk Content"
+msgstr "Zawartość fragmentu"
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/ai_natural_language_service.js:0
+#: code:addons/ai/static/src/components/agent_add_source_dialog/agent_add_source_dialog.xml:0
+msgid "Close"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_prompt_button__composer_id
+msgid "Composer"
+msgstr "Kompozytor"
+
+#. module: ai
+#: model:ir.model,name:ai.model_res_config_settings
+msgid "Config Settings"
+msgstr "Ustawienia konfiguracji"
+
+#. module: ai
+#: model:ir.model,name:ai.model_res_partner
+msgid "Contact"
+msgstr "Kontakt"
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_mail_compose_message__body
+#: model:ir.model.fields,field_description:ai.field_mail_composer_mixin__body
+msgid "Contents"
+msgstr "Zawartość"
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_discuss_channel__ai_env_context
+msgid "Context for AI agent"
+msgstr "Kontekst dla agenta AI"
+
+#. module: ai
+#: model:ir.model.fields.selection,name:ai.selection__ai_composer__interface_key__html_prompt_shortcut
+msgid "Convert a prompt in an email"
+msgstr ""
+
+#. module: ai
+#. odoo-python
+#: code:addons/ai/utils/tools_schema/validators.py:0
+msgid ""
+"Could you please provide info about '%s' as it is required to process your "
+"request"
+msgstr ""
+
+#. module: ai
+#: model:ir.model,website_form_label:ai.model_res_partner
+msgid "Create a Customer"
+msgstr "Utwórz klienta"
+
+#. module: ai
+#: model:ir.model,name:ai.model_ai_topic
+msgid ""
+"Create a topic that leverages instructions and tools to direct Odoo AI in "
+"assisting the user with their tasks."
+msgstr ""
+"Stwórz temat, którzy wykorzystuje instrukcje i narzędzia do pokierowania "
+"Odoo AI w pomocy użytkownikowi z jego zadaniami."
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_agent__create_uid
+#: model:ir.model.fields,field_description:ai.field_ai_agent_source__create_uid
+#: model:ir.model.fields,field_description:ai.field_ai_composer__create_uid
+#: model:ir.model.fields,field_description:ai.field_ai_embedding__create_uid
+#: model:ir.model.fields,field_description:ai.field_ai_prompt_button__create_uid
+#: model:ir.model.fields,field_description:ai.field_ai_topic__create_uid
+msgid "Created by"
+msgstr "Utworzono przez"
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_agent__create_date
+#: model:ir.model.fields,field_description:ai.field_ai_agent_source__create_date
+#: model:ir.model.fields,field_description:ai.field_ai_composer__create_date
+#: model:ir.model.fields,field_description:ai.field_ai_embedding__create_date
+#: model:ir.model.fields,field_description:ai.field_ai_prompt_button__create_date
+#: model:ir.model.fields,field_description:ai.field_ai_topic__create_date
+msgid "Created on"
+msgstr "Data utworzenia"
+
+#. module: ai
+#: model:ir.model.fields.selection,name:ai.selection__ai_agent__response_style__creative
+msgid "Creative"
+msgstr "Kreatywne"
+
+#. module: ai
+#: model:ir.model.fields,help:ai.field_ai_agent__system_prompt
+msgid "Customize to control relevance and formatting."
+msgstr "Spersonalizuj, aby kontrolować trafność i formatowanie."
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/ai_json_schema/ai_json_schema.xml:0
+#: model:ir.model.fields,field_description:ai.field_ai_agent__subtitle
+#: model:ir.model.fields,field_description:ai.field_ai_topic__description
+msgid "Description"
+msgstr "Opis"
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/editor/embedded_components/plugins/voice_transcription_plugin.js:0
+msgid "Dictate text or record a meeting"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/ai_model_field_selector/ai_model_field_selector_popover.xml:0
+#: code:addons/ai/static/src/ai_prompt/ai_prompt.xml:0
+#: code:addons/ai/static/src/components/agent_add_source_dialog/agent_add_source_dialog.xml:0
+#: code:addons/ai/static/src/records_selector_popover/records_selector_popover.xml:0
+msgid "Discard"
+msgstr ""
+
+#. module: ai
+#: model:ir.model,name:ai.model_discuss_channel
+msgid "Discussion Channel"
+msgstr "Kanał dyskusyjny"
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_agent__display_name
+#: model:ir.model.fields,field_description:ai.field_ai_agent_source__display_name
+#: model:ir.model.fields,field_description:ai.field_ai_composer__display_name
+#: model:ir.model.fields,field_description:ai.field_ai_embedding__display_name
+#: model:ir.model.fields,field_description:ai.field_ai_prompt_button__display_name
+#: model:ir.model.fields,field_description:ai.field_ai_topic__display_name
+#: model:ir.model.fields,field_description:ai.field_discuss_channel__display_name
+#: model:ir.model.fields,field_description:ai.field_ir_actions_server__display_name
+#: model:ir.model.fields,field_description:ai.field_ir_attachment__display_name
+#: model:ir.model.fields,field_description:ai.field_ir_http__display_name
+#: model:ir.model.fields,field_description:ai.field_mail_composer_mixin__display_name
+#: model:ir.model.fields,field_description:ai.field_mail_render_mixin__display_name
+#: model:ir.model.fields,field_description:ai.field_mail_template__display_name
+#: model:ir.model.fields,field_description:ai.field_mail_thread__display_name
+#: model:ir.model.fields,field_description:ai.field_res_config_settings__display_name
+#: model:ir.model.fields,field_description:ai.field_res_partner__display_name
+msgid "Display Name"
+msgstr "Nazwa wyświetlana"
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/ai_json_schema/ai_json_schema.xml:0
+msgid "Edit"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/ai_prompt/ai_prompt.xml:0
+msgid "Edit Field Prompt"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/editor/plugins/chatgpt_plugin.js:0
+msgid "Editor"
+msgstr "Edytor"
+
+#. module: ai
+#: model:ir.model,name:ai.model_mail_template
+msgid "Email Templates"
+msgstr "Szablony wiadomości"
+
+#. module: ai
+#: model:ir.model,name:ai.model_mail_thread
+msgid "Email Thread"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_embedding__embedding_model
+msgid "Embedding Model"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_embedding__embedding_vector
+msgid "Embedding Vector"
+msgstr "Wektor osadzający"
+
+#. module: ai
+#. odoo-python
+#: code:addons/ai/models/ai_agent_source.py:0
+msgid "Embedding generation failed using the current LLM model selected."
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_res_config_settings__google_key_enabled
+msgid "Enable custom Google API key"
+msgstr "Aktywuj niestandardowy klucz API Google"
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_res_config_settings__openai_key_enabled
+msgid "Enable custom OpenAI API key"
+msgstr "Aktywuj niestandardowy Klucz API OpenAI"
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_agent_source__error_details
+msgid "Error Details"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields.selection,name:ai.selection__ai_agent_source__status__failed
+msgid "Failed"
+msgstr ""
+
+#. module: ai
+#. odoo-python
+#: code:addons/ai/models/ai_agent.py:0
+msgid "Failed to get embeddings for the prompt."
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/ai_prompt/ai_field_selector_plugin.js:0
+msgid "Field Selector"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields.selection,name:ai.selection__ai_agent_source__type__binary
+msgid "File"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_agent_source__file_size
+msgid "File Size"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/editor/plugins/chatgpt_plugin.js:0
+msgid "Generate or transform content with AI"
+msgstr "Generuj lub przekształcaj treści z użyciem AI"
+
+#. module: ai
+#: model:ir.model.fields.selection,name:ai.selection__ai_composer__interface_key__chatter_ai_button
+msgid "Get help on a record"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields.selection,name:ai.selection__ai_embedding__embedding_model__gemini-embedding-001
+msgid "Google"
+msgstr "Google"
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_res_config_settings__google_key
+msgid "Google AI API key"
+msgstr "Klucz API Google AI"
+
+#. module: ai
+#: model:ir.model,name:ai.model_ir_http
+msgid "HTTP Routing"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_embedding__has_embedding_generation_failed
+msgid "Has Embedding Generation Failed"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/discuss/thread_patch.js:0
+msgid "Hello, what can I help you with?"
+msgstr "Dzień dobry, w czym mogę pomóc?"
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_agent__id
+#: model:ir.model.fields,field_description:ai.field_ai_agent_source__id
+#: model:ir.model.fields,field_description:ai.field_ai_composer__id
+#: model:ir.model.fields,field_description:ai.field_ai_embedding__id
+#: model:ir.model.fields,field_description:ai.field_ai_prompt_button__id
+#: model:ir.model.fields,field_description:ai.field_ai_topic__id
+#: model:ir.model.fields,field_description:ai.field_discuss_channel__id
+#: model:ir.model.fields,field_description:ai.field_ir_actions_server__id
+#: model:ir.model.fields,field_description:ai.field_ir_attachment__id
+#: model:ir.model.fields,field_description:ai.field_ir_http__id
+#: model:ir.model.fields,field_description:ai.field_mail_composer_mixin__id
+#: model:ir.model.fields,field_description:ai.field_mail_render_mixin__id
+#: model:ir.model.fields,field_description:ai.field_mail_template__id
+#: model:ir.model.fields,field_description:ai.field_mail_thread__id
+#: model:ir.model.fields,field_description:ai.field_res_config_settings__id
+#: model:ir.model.fields,field_description:ai.field_res_partner__id
+msgid "ID"
+msgstr "ID"
+
+#. module: ai
+#: model:ir.model.fields,help:ai.field_ai_agent__restrict_to_sources
+msgid "If checked, the agent will only respond based on the provided sources."
+msgstr ""
+"Jeśli to pole jest zaznaczone, agent odpowie jedynie na podstawie podanych "
+"źródeł."
+
+#. module: ai
+#: model:ir.model.fields,help:ai.field_ai_agent_source__is_active
+msgid "If the source is active, it will be used in the RAG context."
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_agent__image_128
+msgid "Image"
+msgstr "Obraz"
+
+#. module: ai
+#: model:ir.model.fields.selection,name:ai.selection__ai_agent_source__status__indexed
+msgid "Indexed"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/ai_model_field_selector/ai_model_field_selector_popover.xml:0
+#: code:addons/ai/static/src/records_selector_popover/records_selector_popover.xml:0
+msgid "Insert"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/ai_prompt/ai_field_selector_plugin.js:0
+msgid "Insert a field"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/core/html_editor/prompt_plugin.js:0
+msgid "Insert an AI prompt"
+msgstr "Wstaw wywołanie AI"
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/ai_prompt/ai_records_selector_plugin.js:0
+msgid "Insert records"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/ai_prompt/ai_prompt_field.js:0
+msgid "Insert records the AI can use with the '/record' command"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_composer__default_prompt
+#: model:ir.model.fields,field_description:ai.field_ai_topic__instructions
+msgid "Instructions"
+msgstr "Instrukcje"
+
+#. module: ai
+#. odoo-python
+#: code:addons/ai/models/ir_actions_server.py:0
+msgid "Invalid JSON schema (malformed JSON)."
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/ai_prompt/ai_records_selector_plugin.js:0
+msgid "Invalid Record"
+msgstr ""
+
+#. module: ai
+#. odoo-python
+#: code:addons/ai/models/ai_embedding.py:0
+msgid "Invalid attachment. Failed to extract content."
+msgstr ""
+
+#. module: ai
+#. odoo-python
+#: code:addons/ai/models/ai_agent.py:0
+msgid "Invalid search operator."
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_agent__is_ask_ai_agent
+msgid "Is Natural Language Query Agent"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_composer__is_system_default
+msgid "Is the rule a system default or user created"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,help:ai.field_ir_actions_server__ai_tool_schema
+#: model:ir.model.fields,help:ai.field_ir_cron__ai_tool_schema
+msgid ""
+"JSON containing the values that can be returned by the LLM along with their "
+"properties (type, length, ...)"
+msgstr ""
+
+#. module: ai
+#: model_terms:ir.ui.view,arch_db:ai.ir_actions_server_view_form
+msgid ""
+"JSON schema for the parameters of the action (leave empty if no arguments "
+"are needed)"
+msgstr ""
+
+#. module: ai
+#: model_terms:ir.ui.view,arch_db:ai.res_config_settings_view_form
+msgid "Key"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_agent__llm_model
+msgid "LLM Model"
+msgstr "Model LLM"
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_agent__write_uid
+#: model:ir.model.fields,field_description:ai.field_ai_agent_source__write_uid
+#: model:ir.model.fields,field_description:ai.field_ai_composer__write_uid
+#: model:ir.model.fields,field_description:ai.field_ai_embedding__write_uid
+#: model:ir.model.fields,field_description:ai.field_ai_prompt_button__write_uid
+#: model:ir.model.fields,field_description:ai.field_ai_topic__write_uid
+msgid "Last Updated by"
+msgstr "Ostatnio aktualizowane przez"
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_agent__write_date
+#: model:ir.model.fields,field_description:ai.field_ai_agent_source__write_date
+#: model:ir.model.fields,field_description:ai.field_ai_composer__write_date
+#: model:ir.model.fields,field_description:ai.field_ai_embedding__write_date
+#: model:ir.model.fields,field_description:ai.field_ai_prompt_button__write_date
+#: model:ir.model.fields,field_description:ai.field_ai_topic__write_date
+msgid "Last Updated on"
+msgstr "Data ostatniej aktualizacji"
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/web/systray_action.js:0
+msgid "Log Note"
+msgstr "Zapisz notatkę"
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/discuss/message_actions_patch.js:0
+msgid "Log as Note"
+msgstr "Zaloguj jako notatkę"
+
+#. module: ai
+#: model:ir.model,name:ai.model_mail_composer_mixin
+msgid "Mail Composer Mixin"
+msgstr "Mixin kompozytora wiadomości"
+
+#. module: ai
+#: model:ir.model,name:ai.model_mail_render_mixin
+msgid "Mail Render Mixin"
+msgstr "mixin renderowania poczty"
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/ai_json_schema/ai_json_schema.xml:0
+msgid "Max Length"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_agent_source__mimetype
+msgid "Mime Type"
+msgstr ""
+
+#. module: ai
+#. odoo-python
+#: code:addons/ai/utils/tools_schema/validators.py:0
+msgid "Missing definition for %(name)s"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_composer__focused_models
+msgid "Models"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/ai_json_schema/ai_json_schema.xml:0
+#: model:ir.model.fields,field_description:ai.field_ai_agent_source__name
+msgid "Name"
+msgstr "Nazwa"
+
+#. module: ai
+#. odoo-python
+#: code:addons/ai/utils/llm_api_service.py:0
+msgid "No API key set for provider '%s'"
+msgstr "Nie skonfigurowano klucza API dla dostawcy '%s'"
+
+#. module: ai
+#. odoo-python
+#: code:addons/ai/models/ai_agent.py:0
+msgid "No configured Ask AI agent. Please contact your administrator."
+msgstr ""
+
+#. module: ai
+#. odoo-python
+#: code:addons/ai/models/ai_agent.py:0
+msgid "No embedding model found for the selected provider"
+msgstr ""
+
+#. module: ai
+#. odoo-python
+#: code:addons/ai/utils/llm_providers.py:0
+msgid "No provider found for the embedding model"
+msgstr ""
+
+#. module: ai
+#. odoo-python
+#: code:addons/ai/utils/llm_providers.py:0
+msgid "No provider found for the selected model"
+msgstr "Nie znaleziono żadnego dostawcy dla wybranego modelu"
+
+#. module: ai
+#: model_terms:ir.ui.view,arch_db:ai.ai_log_action
+msgid "No tool was executed."
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/components/agent_add_source_dialog/agent_add_source_dialog.js:0
+msgid "No valid URLs found to process."
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/components/agent_add_source_dialog/agent_add_source_dialog.js:0
+msgid ""
+"No valid files to upload. Only PDF, Word, PowerPoint, Excel, Text, and "
+"OpenDocument files are allowed."
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/editor/embedded_components/core/readonly_voice_transcription.xml:0
+#: code:addons/ai/static/src/editor/embedded_components/core/voice_transcription.xml:0
+msgid "Notes"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/im_status_patch.xml:0
+msgid "Online"
+msgstr "Dostępny"
+
+#. module: ai
+#. odoo-python
+#: code:addons/ai/models/ai_agent_source.py:0
+msgid "Only administrators can create sources from URLs."
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields.selection,name:ai.selection__ai_embedding__embedding_model__text-embedding-3-small
+msgid "OpenAI"
+msgstr "OpenAI"
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_res_config_settings__openai_key
+msgid "OpenAI API key"
+msgstr "Klucz API OpenAI"
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_agent__partner_id
+msgid "Partner"
+msgstr "Kontrahent"
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/components/agent_add_source_dialog/agent_add_source_dialog.xml:0
+msgid "Paste your links, one per line"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/ai_json_schema/ai_json_schema.xml:0
+msgid "Pretty Edit"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields.selection,name:ai.selection__ai_agent_source__status__processing
+msgid "Processing"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/editor/embedded_components/core/voice_transcription.xml:0
+msgid "Processing..."
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/ai_prompt/ai_prompt.xml:0
+#: code:addons/ai/static/src/core/html_editor/prompt_plugin.js:0
+#: model_terms:ir.ui.view,arch_db:ai.ir_actions_server_view_form
+msgid "Prompt"
+msgstr "Przypomnienie"
+
+#. module: ai
+#: model:ir.model,name:ai.model_ai_prompt_button
+msgid ""
+"Prompt that can be attached to AI UI rules for quick access by the user."
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,help:ai.field_ir_actions_server__ai_action_prompt
+#: model:ir.model.fields,help:ai.field_ir_cron__ai_action_prompt
+msgid "Prompt used by \"AI\" action"
+msgstr ""
+
+#. module: ai
+#: model_terms:ir.ui.view,arch_db:ai.res_config_settings_view_form
+msgid "Provide your API key to connect with your account"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/records_selector_popover/records_selector_popover.xml:0
+msgid "Record"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/ai_prompt/ai_records_selector_plugin.js:0
+msgid "Records Selector"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/ai_json_schema/ai_json_schema.xml:0
+msgid "Required"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_agent__response_style
+msgid "Response Style"
+msgstr "Styl odpowiedzi"
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_agent__restrict_to_sources
+msgid "Restrict to Sources"
+msgstr "Ogranicz do źródeł"
+
+#. module: ai
+#: model:ir.model.fields.selection,name:ai.selection__ai_composer__interface_key__html_field_text_select
+msgid "Rewrite content"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_composer__name
+msgid "Rule Name"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/components/agent_add_source_dialog/agent_add_source_dialog.xml:0
+msgid "Save"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/ai_prompt/ai_prompt.xml:0
+msgid "Save & Generate"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/records_selector_popover/records_selector_popover.xml:0
+msgid "Select a records"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/web/systray_action.js:0
+msgid "Send Message"
+msgstr "Wyślij wiadomość"
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/discuss/message_actions_patch.js:0
+msgid "Send as Message"
+msgstr "Wyślij jako Wiadomość"
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_embedding__sequence
+#: model:ir.model.fields,field_description:ai.field_ai_prompt_button__sequence
+msgid "Sequence"
+msgstr "Sekwencja"
+
+#. module: ai
+#: model:ir.model,name:ai.model_ir_actions_server
+msgid "Server Action"
+msgstr "Akcja serwera"
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/editor/embedded_components/core/voice_transcription.xml:0
+msgid "Share by email"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/editor/embedded_components/core/voice_transcription.js:0
+msgid "Share transcript summary"
+msgstr ""
+
+#. module: ai
+#: model_terms:ir.ui.view,arch_db:ai.ir_actions_server_view_form
+msgid "Short explanation of what this does"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/components/agent_add_source_dialog/agent_add_source_dialog.js:0
+msgid ""
+"Some URLs are invalid and were skipped. URLs must start with http://, "
+"https://, or ftp://"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/components/agent_add_source_dialog/agent_add_source_dialog.js:0
+msgid ""
+"Some files have invalid formats and were skipped: %s. Only PDF, Word, "
+"PowerPoint, Excel, Text, and OpenDocument files are allowed."
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/views/fields/source_size_field.js:0
+msgid "SourceSizeIntegerField"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_agent__sources_ids
+msgid "Sources"
+msgstr "Źródła"
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_agent__sources_fully_processed
+msgid "Sources Fully Processed"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/editor/embedded_components/core/voice_transcription.xml:0
+msgid "Start Recording"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/editor/embedded_components/plugins/voice_transcription_plugin.js:0
+msgid "Start recording to get a real-time transcript of the conversation"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_agent_source__status
+msgid "Status"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/editor/embedded_components/core/voice_transcription.xml:0
+msgid "Stop Recording"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/editor/embedded_components/core/readonly_voice_transcription.xml:0
+#: code:addons/ai/static/src/editor/embedded_components/core/voice_transcription.xml:0
+msgid "Summary"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields.selection,name:ai.selection__ai_composer__interface_key__voice_transcription_component
+msgid "Summary Buttons for Voice Transcription Component"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_agent__is_system_agent
+msgid "System Agent"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_agent__system_prompt
+msgid "System Prompt"
+msgstr "Wywołanie systemowe"
+
+#. module: ai
+#. odoo-python
+#: code:addons/ai/models/ai_agent.py:0
+msgid "System agents cannot be deleted."
+msgstr ""
+
+#. module: ai
+#. odoo-python
+#: code:addons/ai/models/ai_composer.py:0
+msgid "System default prompts cannot be removed."
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/editor/plugins/chatgpt_plugin.js:0
+msgid "Text Selection"
+msgstr ""
+
+#. module: ai
+#. odoo-python
+#: code:addons/ai/models/ir_actions_server.py:0
+msgid "The action '%s' cannot be used as an AI tool."
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,help:ai.field_ai_composer__name
+msgid "The identifier for the interface component to agent rule"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/ai_json_schema/ai_json_schema.js:0
+msgid "The name should be unique"
+msgstr ""
+
+#. module: ai
+#. odoo-python
+#: code:addons/ai/models/ai_agent.py:0
+msgid "The partner linked to an AI agent can't be changed"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,help:ai.field_ai_prompt_button__name
+msgid "The prompt sent to the AI when clicked on"
+msgstr ""
+
+#. module: ai
+#. odoo-python
+#: code:addons/ai/utils/tools_schema/validators.py:0
+msgid ""
+"The type of the parameter '%(name)s' is incorrect. It should be '%"
+"(expected_param_type)s'."
+msgstr ""
+
+#. module: ai
+#. odoo-python
+#: code:addons/ai/utils/tools_schema/validators.py:0
+msgid ""
+"The value '%(value)s' of the parameter '%(name)s' doesn't match the expected "
+"pattern '%(expected_pattern)s'."
+msgstr ""
+
+#. module: ai
+#. odoo-python
+#: code:addons/ai/models/ir_actions_server.py:0
+msgid "This action cannot be executed by an AI."
+msgstr ""
+
+#. module: ai
+#. odoo-python
+#: code:addons/ai/models/ir_actions_server.py:0
+msgid "This action is interactive and cannot be executed by the agent."
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,help:ai.field_ir_actions_server__ai_tool_allow_end_message
+#: model:ir.model.fields,help:ai.field_ir_cron__ai_tool_allow_end_message
+msgid ""
+"This tool is automatically provided with `__end_message` param which when "
+"provided, the LLM processing loop is terminated."
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/ai_json_schema/ai_json_schema.xml:0
+msgid "Those parameters will be passed as global variables of the actions."
+msgstr ""
+
+#. module: ai
+#: model_terms:ir.ui.view,arch_db:ai.mail_template_view_form
+msgid ""
+"Tip: Write /field to insert values or /prompt to integrate AI-generated "
+"dynamic content!"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_topic__name
+msgid "Title"
+msgstr "Tytuł"
+
+#. module: ai
+#: model_terms:ir.ui.view,arch_db:ai.ir_actions_server_view_form
+msgid "To return a result to the AI agent, do <code>ai['result'] = ...</code>"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ir_actions_server__ai_tool_ids
+#: model:ir.model.fields,field_description:ai.field_ir_cron__ai_tool_ids
+msgid "Tools"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_agent__topic_ids
+msgid "Topics"
+msgstr "Tematy"
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/editor/embedded_components/core/readonly_voice_transcription.xml:0
+#: code:addons/ai/static/src/editor/embedded_components/core/voice_transcription.xml:0
+msgid "Transcript"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/ai_natural_language_service.js:0
+msgid "Tried to switch to %s but the app is no longer in an action window."
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/ai_json_schema/ai_json_schema.xml:0
+#: model:ir.model.fields,field_description:ai.field_ai_agent_source__type
+#: model:ir.model.fields,field_description:ai.field_ir_actions_server__state
+#: model:ir.model.fields,field_description:ai.field_ir_cron__state
+msgid "Type"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,help:ai.field_ir_actions_server__state
+#: model:ir.model.fields,help:ai.field_ir_cron__state
+msgid ""
+"Type of server action. The following values are available:\n"
+"- 'Update a Record': update the values of a record\n"
+"- 'Create Activity': create an activity (Discuss)\n"
+"- 'Send Email': post a message, a note or send an email (Discuss)\n"
+"- 'Send SMS': send SMS, log them on documents (SMS)- 'Add/Remove Followers': "
+"add or remove followers to a record (Discuss)\n"
+"- 'Create Record': create a new record with new values\n"
+"- 'Execute Code': a block of Python code that will be executed\n"
+"- 'Send Webhook Notification': send a POST request to an external system, "
+"also known as a Webhook\n"
+"- 'Multi Actions': define an action that triggers several other server "
+"actions\n"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_agent_source__url
+#: model:ir.model.fields.selection,name:ai.selection__ai_agent_source__type__url
+msgid "URL"
+msgstr ""
+
+#. module: ai
+#. odoo-python
+#: code:addons/ai/models/ai_agent_source.py:0
+msgid "URL content cannot be extracted."
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/editor/embedded_components/core/voice_transcription.js:0
+msgid "Unable to start the recording."
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/ai_natural_language_service.js:0
+msgid "Unable to switch view"
+msgstr ""
+
+#. module: ai
+#. odoo-python
+#: code:addons/ai/utils/llm_api_service.py:0
+msgid "Unsupported provider '%s'"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/components/agent_add_source_dialog/agent_add_source_dialog.js:0
+msgid "Upload a File"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ir_actions_server__use_in_ai
+#: model:ir.model.fields,field_description:ai.field_ir_cron__use_in_ai
+msgid "Use in AI"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/discuss/message_actions_patch.js:0
+msgid "Use this"
+msgstr "Użyj tego"
+
+#. module: ai
+#: model_terms:ir.ui.view,arch_db:ai.res_config_settings_view_form
+msgid "Use your own ChatGPT account"
+msgstr ""
+
+#. module: ai
+#: model_terms:ir.ui.view,arch_db:ai.res_config_settings_view_form
+msgid "Use your own Google Gemini account"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields,field_description:ai.field_ai_agent_source__user_has_access
+msgid "User Has Access"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/editor/embedded_components/core/voice_transcription.js:0
+msgid "User error"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/im_status_patch.xml:0
+msgid "User is online"
+msgstr "Użytkownik jest połączony"
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/editor/embedded_components/core/readonly_voice_transcription.xml:0
+#: code:addons/ai/static/src/editor/embedded_components/core/voice_transcription.xml:0
+msgid "Voice Recording"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/editor/embedded_components/plugins/voice_transcription_plugin.js:0
+msgid "Voice Transcript"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields.selection,name:ai.selection__ai_composer__interface_key__mail_composer
+msgid "Write an email"
+msgstr ""
+
+#. module: ai
+#: model:ir.model.fields.selection,name:ai.selection__ai_composer__interface_key__html_field_record
+msgid "Write in an HTML field"
+msgstr ""
+
+#. module: ai
+#. odoo-python
+#: code:addons/ai/utils/tools_schema/validators.py:0
+msgid "Wrong value %(value)s, should be in: %(enum)s"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/editor/embedded_components/core/voice_transcription.js:0
+msgid ""
+"You must allow the access to your microphone to start the recording. Try "
+"refreshing the page and start again."
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/ai_json_schema/ai_json_schema.xml:0
+msgid "eg: New name to write"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/ai_json_schema/ai_json_schema.xml:0
+msgid "eg: ^(\\\\([0-9]{3}\\\\))?[0-9]{3}-[0-9]{4}$"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/ai_json_schema/ai_json_schema.xml:0
+msgid "eg: name"
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/ai_json_schema/ai_json_schema.xml:0
+msgid "eg: red, blue, green"
+msgstr ""
+
+#. module: ai
+#: model_terms:ir.ui.view,arch_db:ai.ai_log_action
+msgid "executed."
+msgstr ""
+
+#. module: ai
+#. odoo-javascript
+#: code:addons/ai/static/src/ai_prompt/ai_field_selector_plugin.js:0
+msgid "fa-hashtag"
+msgstr ""

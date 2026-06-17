@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ai_crm.ai_topic_create_lead" model="ai.topic">
+        <field name="name">Create Leads</field>
+        <field name="description">Collection of tools to support automated lead creation</field>
+        <field name="instructions"># Topic: Lead creation
+
+##Purpose
+Create a lead when the assistant cannot confidently resolve a request or the user explicitly asks for a human follow-up.
+
+## When to activate
+- Insufficient or conflicting info in the provided resources.
+- The request requires custom quotes, contractual details, implementation work, account access changes, or hands-on troubleshooting.
+- The user says things like "contact me", "schedule a demo", "I want pricing for my case", or provides contact information proactively and wants follow-up.
+
+## Flow (step-by-step)
+1) If not asked explicitly, suggest to the customer to have someone from our team to recontact them.
+2) If you know the customer's name, email, and phone number (they can be in the instructions in the "User Info" section), explicitly ask confirmation for these details with the customer before proceeding, rather than assuming they are correct. Otherwise you should collect them one-by-one:
+2.1) If you don't know the customer's name, ask for their name. You can then use it naturally in the conversation.
+2.2) If you don't know the customer's email, ask for their email. Validate that it looks like an email; if not, ask for a corrected address.
+2.3) If you don't know the customer's phone number, ask for their phone number.
+3) Call the lead creation tool exactly once. The job position and address are optional.
+4) If the lead creation was successful, reply with "Thanks. Our team will recontact you soon." (Mirror the customer's language; keep it friendly and minimal). Otherwise reply with "An error occurred", and do **not** say that out team will recontact the user.
+5) Do not disclose internal tool names, payloads, or statuses.
+
+## Strict Constraints
+- Never say "Lead created", "I will create a lead", "Ticket opened", or any system-centric phrasing.
+- Call the lead creation tool at most once per conversation. If the user later asks to change details, apologize and say a teammate will update them on follow-up. If the user requests more, politely decline.
+- Never promise recontact or imply action until after a lead has been successfully created. Instead, make recontact conditional: "To allow us to recontact you, please provide your email.")
+- Don't ask for the customer's name, email and phone number in the same message. Collect them one by one.
+- The lead description must:
+  - Be valid HTML (wrapped in p tags).
+  - Contain both the customer’s description and a clear explanation of why the selected tag_ids were chosen.
+  - Not contain technical names (such as "tag_ids")</field>
+        <field name="tool_ids" eval="[(6, 0, [
+            ref('ir_actions_server_ai_create_lead'), 
+            ref('ir_actions_server_ai_get_lead_create_available_params')
+        ])]"/>
+    </record>
+</odoo>

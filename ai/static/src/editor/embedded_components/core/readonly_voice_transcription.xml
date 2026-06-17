@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="ai.ReadonlyVoiceTranscription">
+        <details class="transcript-block border border-secondary mb-2" t-att-open="state.isOpened">
+            <summary class="d-flex bg-secondary-subtle px-2 py-1 fw-bold gap-2 flex-sm-row flex-column align-items-sm-center flex-wrap" t-on-click="() => state.isOpened = !state.isOpened" t-att-class="{'py-2': !state.isOpened}">
+                <t t-if="state.isOpened">
+                    <i class="fa fa-caret-down flex-0 me-1" />
+                    <nav class="d-flex gap-1 flex-wrap">
+                        <button 
+                            class="btn flex-grow-1 flex-sm-grow-0 w-100 w-sm-auto lh-1"
+                            t-att-class="{'btn-secondary active': state.currentTab === 'summary'}"
+                            t-on-click.stop="() => this.setCurrentTab('summary')">
+                            <img src="/ai/static/description/icon.png" class="ai-icon-sm me-1 w-1" />
+                            Summary
+                        </button>
+                        <button class="btn flex-sm-grow-0 w-100 w-sm-auto" 
+                            t-att-class="{'btn-secondary active': state.currentTab === 'notes'}"
+                            t-on-click.stop="() => this.setCurrentTab('notes')">
+                            <i class="fa fa-bars me-1" />
+                            Notes
+                        </button>
+                        <button 
+                            class="btn flex-sm-grow-0 w-100 w-sm-auto"
+                            t-att-class="{'btn-secondary active': state.currentTab === 'transcript'}"
+                            t-on-click.stop="() => this.setCurrentTab('transcript')"
+                            >
+                            <i class="fa fa-microphone me-1"/>
+                            Transcript
+                        </button>
+                    </nav>
+                </t>
+                <t t-else="">
+                    <i class="fa fa-caret-right flex-0 me-1" />
+                    Voice Recording <span t-out="state.firstRecordingDate" class="ms-1"/>
+                </t>
+            </summary>
+            <div id="summary-content" class="detail-content overflow-auto"  t-att-class="{'d-none': state.currentTab !== 'summary'}" t-ref="summaryContent"/>
+            <div id="notes-content" class="detail-content overflow-auto" t-att-class="{'d-none': state.currentTab !== 'notes'}" t-ref="notesContent"/>
+            <div id="transcript-content" class="detail-content overflow-auto" t-att-class="{'d-none': state.currentTab !== 'transcript'}" t-ref="transcriptContent"/>
+        </details>
+    </t>
+</templates>

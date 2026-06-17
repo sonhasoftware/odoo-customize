@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_dynamic_model_admin,dynamic.model admin,model_dynamic_model,base.group_system,1,1,1,1
+access_dynamic_model_user,dynamic.model user,model_dynamic_model,base.group_user,1,0,0,0
+access_dynamic_model_field_admin,dynamic.model.field admin,model_dynamic_model_field,base.group_system,1,1,1,1
+access_dynamic_model_field_user,dynamic.model.field user,model_dynamic_model_field,base.group_user,1,0,0,0
+access_dynamic_model_preview_wizard_user,dynamic.model.preview.wizard user,model_dynamic_model_preview_wizard,base.group_user,1,1,1,1
+access_dynamic_model_delete_wizard_user,dynamic.model.delete.wizard user,model_dynamic_model_delete_wizard,base.group_user,1,1,1,1

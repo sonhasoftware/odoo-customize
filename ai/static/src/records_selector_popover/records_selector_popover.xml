@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-name="ai.RecordsSelectorPopover">
+        <div class="o_records_selector_popover p-2">
+            <div class="fw-bold mb-1">Select a records</div>
+            <MultiRecordSelector resModel="props.resModel" resIds="state.resIds" update.bind="update" domain="props.domain" fieldString.translate="Record"/>
+            <div class="d-flex m-2" t-if="state.resIds.length">
+                <button class="btn btn-primary me-2" t-on-click="validate">Insert</button>
+                <button class="btn btn-secondary" t-on-click="props.close">Discard</button>
+            </div>
+        </div>
+    </t>
+</templates>

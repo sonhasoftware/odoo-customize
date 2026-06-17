@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================
+         VIEW RIÊNG cho field_ids (dynamic.model.field)
+         PHẢI khai báo TRƯỚC form view của dynamic.model
+         để có thể ref vào trong views="[...]"
+         ============================================================ -->
+    <record id="view_dynamic_model_field_inline_tree" model="ir.ui.view">
+        <field name="name">dynamic.model.field.inline.tree</field>
+        <field name="model">dynamic.model.field</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="field_name"
+                       placeholder="Ví dụ: title"
+                       required="1"/>
+                <field name="field_label"
+                       placeholder="Ví dụ: Tiêu đề"
+                       required="1"/>
+                <field name="field_type" required="1"/>
+                <field name="required"/>
+                <field name="readonly" optional="hide"/>
+                <field name="relation"
+                       placeholder="res.partner"
+                       optional="show"/>
+                <field name="field_summary" optional="show"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         FORM VIEW: dynamic.model
+         ============================================================ -->
+    <record id="view_dynamic_model_form" model="ir.ui.view">
+        <field name="name">dynamic.model.form</field>
+        <field name="model">dynamic.model</field>
+        <field name="arch" type="xml">
+            <form string="Dynamic Model Builder">
+
+                <header>
+                    <button name="action_generate_module"
+                            type="object"
+                            string="Generate Module"
+                            class="btn-primary"
+                            invisible="state != 'draft'"
+                            confirm="Bạn có chắc muốn generate model này?"/>
+                    <button name="action_preview"
+                            type="object"
+                            string="Preview"
+                            class="btn-secondary"
+                            invisible="not field_ids"/>
+                    <button name="action_update_model"
+                            type="object"
+                            string="Update Model"
+                            class="btn-warning"
+                            invisible="state != 'generated'"/>
+                    <button name="action_open_generated_model"
+                            type="object"
+                            string="Mở Model"
+                            class="btn-info"
+                            invisible="state != 'generated'"/>
+                    <button name="action_delete_generated_model"
+                            type="object"
+                            string="Xóa Model"
+                            class="btn-danger"
+                            invisible="state != 'generated'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,generated"/>
+                </header>
+
+                <sheet>
+                    <div class="alert alert-success" role="alert"
+                         invisible="state != 'generated'">
+                        <strong>Model đã được generate thành công!</strong>
+                        Vào menu Dynamic Modules để sử dụng.
+                    </div>
+
+                    <group>
+                        <group string="Thông tin Model">
+                            <field name="name"
+                                   placeholder="Ví dụ: Quản lý sách"
+                                   readonly="state == 'generated'"/>
+                            <field name="model_code"
+                                   placeholder="Ví dụ: x_book"
+                                   readonly="state == 'generated'"/>
+                            <field name="description" rows="2"/>
+                        </group>
+                        <group string="Thống kê">
+                            <field name="field_count" string="Số Fields"/>
+                            <field name="state" string="Trạng thái"/>
+                            <field name="generated_model_id"
+                                   string="IR Model"
+                                   invisible="not generated_model_id"
+                                   readonly="1"/>
+                            <field name="generated_menu_id"
+                                   string="Menu"
+                                   invisible="not generated_menu_id"
+                                   readonly="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Danh sách Fields" name="fields_tab">
+                            <div class="alert alert-info" role="alert"
+                                 invisible="field_ids">
+                                <strong>Bắt đầu thêm fields!</strong>
+                                Nhấn "Thêm dòng" để định nghĩa cấu trúc dữ liệu.
+                            </div>
+
+                            <field name="field_ids"
+                                   readonly="state == 'generated'"
+                                   context="{'default_dynamic_model_id': active_id}"
+                                   views="[(ref('view_dynamic_model_field_inline_tree'), 'tree')]"
+                            />
+                        </page>
+
+                        <page string="Hướng dẫn" name="guide_tab">
+                            <group string="Các bước sử dụng">
+                                <div>
+                                    <p>1. Nhập Tên hiển thị và Technical Name (bắt đầu bằng x_)</p>
+                                    <p>2. Thêm các fields trong tab "Danh sách Fields"</p>
+                                    <p>3. Nhấn "Preview" để xem trước (không bắt buộc)</p>
+                                    <p>4. Nhấn "Generate Module" để tạo</p>
+                                    <p>5. Vào menu Dynamic Modules để dùng</p>
+                                </div>
+                            </group>
+                            <group string="Quy tắc đặt tên">
+                                <div>
+                                    <p>- Technical Name: Bắt đầu bằng x_, dùng chữ thường và _</p>
+                                    <p>- Field Name: Không cần x_ (sẽ tự thêm)</p>
+                                    <p>- Many2one: Nên kết thúc bằng _id (ví dụ: author_id)</p>
+                                    <p>- One2many: Cần điền Inverse Field Name</p>
+                                </div>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         LIST VIEW: dynamic.model
+         ============================================================ -->
+    <record id="view_dynamic_model_tree" model="ir.ui.view">
+        <field name="name">dynamic.model.tree</field>
+        <field name="model">dynamic.model</field>
+        <field name="arch" type="xml">
+            <tree string="Dynamic Models"
+                  decoration-success="state == 'generated'"
+                  decoration-muted="state == 'draft'">
+                <field name="name" string="Tên Model"/>
+                <field name="model_code" string="Technical Name"/>
+                <field name="field_count" string="Số Fields"/>
+                <field name="state" string="Trạng thái"
+                       widget="badge"
+                       decoration-success="state == 'generated'"
+                       decoration-warning="state == 'draft'"/>
+                <button name="action_generate_module"
+                        type="object"
+                        string="Generate"
+                        invisible="state == 'generated'"
+                        class="btn-primary btn-sm"/>
+                <button name="action_open_generated_model"
+                        type="object"
+                        string="Mở"
+                        invisible="state == 'draft'"
+                        class="btn-info btn-sm"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         SEARCH VIEW: dynamic.model
+         ============================================================ -->
+    <record id="view_dynamic_model_search" model="ir.ui.view">
+        <field name="name">dynamic.model.search</field>
+        <field name="model">dynamic.model</field>
+        <field name="arch" type="xml">
+            <search string="Tìm kiếm Dynamic Model">
+                <field name="name" string="Tên Model"/>
+                <field name="model_code" string="Technical Name"/>
+                <separator/>
+                <filter string="Đã Generate" name="generated"
+                        domain="[('state', '=', 'generated')]"/>
+                <filter string="Chưa Generate" name="draft"
+                        domain="[('state', '=', 'draft')]"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter string="Trạng thái" name="group_state"
+                            context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         ACTION
+         ============================================================ -->
+    <record id="action_dynamic_model" model="ir.actions.act_window">
+        <field name="name">Dynamic Model Builder</field>
+        <field name="res_model">dynamic.model</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('view_dynamic_model_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_dynamic_model_form')}),
+        ]"/>
+        <field name="search_view_id" ref="view_dynamic_model_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Chưa có Dynamic Model nào!
+            </p>
+            <p>
+                Nhấn "Tạo mới" để bắt đầu xây dựng model động đầu tiên.
+            </p>
+        </field>
+    </record>
+
+</odoo>

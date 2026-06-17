@@ -9,8 +9,8 @@
                     <group>
                         <field name="name"/>
                         <field name="vector"/>
-                        <button name="complete_approval" string="Đối chiếu" type="object" class="oe_highlight"/>
-                        <button name="complete_vector" string="Sinh vector" type="object" class="oe_highlight"/>
+<!--                        <button name="complete_approval" string="Đối chiếu" type="object" class="oe_highlight"/>-->
+<!--                        <button name="complete_vector" string="Sinh vector" type="object" class="oe_highlight"/>-->
                         <field name="data_rel">
                             <tree>
                                 <field name="code"/>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-name="ai.VoiceTranscriptionBlueprint">
+        <div data-embedded="voice-transcription" t-att-data-embedded-props="embeddedProps"
+            data-oe-protected="true">
+            <div data-embedded-editable="summaryContent" data-oe-protected="false" />
+            <div data-embedded-editable="notesContent" data-oe-protected="false" />
+            <div data-embedded-editable="transcriptContent" data-oe-protected="false" />
+        </div>
+    </t>
+</templates>

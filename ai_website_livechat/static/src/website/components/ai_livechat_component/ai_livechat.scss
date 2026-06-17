@@ -1,0 +1,31 @@
+.o_ai_livechat_message_content {
+    p {
+        margin-bottom: 0 !important;
+    }
+}
+
+.o_show_on_message_hover {
+    visibility: hidden;
+}
+
+.o_ai_livechat_message_with_copy_button:hover {
+    .o_show_on_message_hover {
+        visibility: visible;
+    }
+}
+.o_ai_livechat_container {
+    margin: auto;
+    width: 80% !important;
+    max-width: 100% !important;
+    min-height: 100vh;
+}
+
+.o_ai_livechat_input_fixed {
+    position: fixed;
+    padding-bottom: 20px;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    // Matches the width of .o_ai_livechat_container
+    width: 80%;
+}

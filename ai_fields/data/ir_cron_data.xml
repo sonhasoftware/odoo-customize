@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_cron_fill_ai_fields" model="ir.cron">
+        <field name="name">AI Fields: Compute AI fields</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="model_id" ref="model_ir_model_fields"/>
+        <field name="code">model._cron_fill_ai_fields()</field>
+        <field name="state">code</field>
+    </record>
+</odoo>

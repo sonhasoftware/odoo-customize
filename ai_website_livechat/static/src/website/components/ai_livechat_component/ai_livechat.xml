@@ -1,0 +1,66 @@
+<templates id="template" xml:space="preserve">
+    <t t-name="ai_website_livechat.AILivechatComponent">
+        <div style="padding-bottom: 10rem;" t-ref="messagesDiv" t-if="state.messages.length">
+            <div t-foreach="state.messages" t-as="message" t-key="message_index"
+                class="py-1 overflow-x-auto o_ai_livechat_message_with_copy_button"
+                t-att-class="{
+                    'mt-2': message_index,
+                    'mt-0': !message_index,
+                    'justify-content-end d-flex': message.author === 'user'
+                }"
+            >
+                <div class="rounded text-break py-2 o_ai_livechat_message_content"
+                    t-att-class="{'px-3 bg-200': message.author === 'user'}"
+                >
+                    <t t-out="message.text"/>
+                </div>
+                <div class="o_show_on_message_hover" t-if="message.author === 'assistant'">
+                    <button class="btn p-0 border-0" t-on-click="() => this.copyAnswer(message_index)">
+                        <i class="fa fa-fw fa-clone fa-sm text-muted"></i>
+                    </button>
+                </div>
+            </div>
+            <div t-if="state.assistantThinking" class="d-flex align mb-3">
+                <img src="/web/static/img/spin.svg" alt="Loading..." class="me-2"
+                    style="filter:invert(1); opacity: 0.5; width: 30px; height: 30px;"/>
+                <p class="m-0 text-muted align-self-center">
+                    <em>Thinking...</em>
+                </p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col" t-att-class="{'o_ai_livechat_input_fixed': state.messages.length,}">
+                <div class="mb-1" t-att-class="{'d-none': !state.messages.length,}">
+                    <button t-if="livechatAvailable" class="btn btn-primary small rounded-2 py-1 px-3 me-3" t-att-disabled="state.assistantThinking" t-on-click="askHuman">Ask a Human</button>
+                    <a t-elif="fallbackButtonActive" class="btn btn-primary small rounded-2 py-1 px-3 me-3" t-att-disabled="state.assistantThinking" t-att-href="props.fallbackButtonURL">
+                        <t t-out="props.fallbackButtonText"/>
+                    </a>
+                    <button class="btn btn-secondary small rounded-2 py-1 px-3 me-3" t-att-disabled="state.assistantThinking" t-on-click="closeConversation">Close</button>
+                </div>
+                <div class="d-flex align-items-center border rounded">
+                    <textarea type="text" t-ref="promptInput"
+                        name="promptInput" t-on-keydown="onTextareaKeydown"
+                        class="form-control overflow-hidden border-0 rounded shadow-none flex-grow"
+                        t-att-disabled="state.assistantThinking"
+                        style="resize:none;"
+                        t-att-placeholder="props.promptPlaceholder"
+                        autocomplete="off"
+                        t-model="state.prompt" required="required">
+                    </textarea>
+                    <div class="p-2">
+                        <button class="btn border-0 rounded-2 p-1 m1" t-att-class="state.prompt.trim().length ? 'bg-o-color-1' : 'disabled'" style="aspect-ratio:1;" t-on-click="submitPrompt">
+                            <i class="fa fa-fw fa-lg fa-paper-plane fs-5" style="scale: .75;"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div t-if="livechatAvailable || fallbackButtonActive" class="col-lg-4 col-xxl-3 d-flex align-items-center pt-4 pt-lg-0" t-att-class="{'d-none': state.messages.length}">
+                <span class="pe-4 me-2 text-600">or</span>
+                <button t-if="livechatAvailable" class="btn btn-primary w-lg-100 ask-human" t-on-click="askHuman">Ask a Human</button>
+                <a t-elif="fallbackButtonActive" class="btn btn-primary w-lg-100 fallback-btn" t-att-href="props.fallbackButtonURL">
+                    <t t-out="props.fallbackButtonText"/>
+                </a>
+            </div>
+        </div>
+    </t>
+</templates>

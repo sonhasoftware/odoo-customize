@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!--
+    <record model="ir.ui.view" id="view_server_action_form_ai_server_actions">
+        <field name="name">ir.actions.server.form.ai_server_actions</field>
+        <field name="model">ir.actions.server</field>
+        <field name="inherit_id" ref="base.view_server_action_form"/>
+        <field name="arch" type="xml">
+            <data>
+                <xpath expr="//field[@name='selection_value']" position="after">
+                    <field name="update_field_name" invisible="1"/>  <!-- Used for the `ai_prompt` widget -->
+                    <field name="update_field_relation" invisible="1"/>  <!-- Used for the `ai_prompt` widget -->
+                    <field name="ai_update_prompt"
+                        widget="ai_prompt"
+                        options="{
+                            'model_reference_field': 'model_name',
+                            'field_reference_field': 'update_field_name',
+                            'record_selector_relation_field': 'update_field_relation'
+                        }"
+                        class="flex-grow-1"
+                        invisible="evaluation_type != 'ai_computed'"
+                        placeholder="Write a prompt for Odoo AI..."/>
+                </xpath>
+                <xpath expr="//field[@name='resource_ref']" position="attributes">
+                    <attribute name="invisible" add="evaluation_type == 'ai_computed'" separator=" or "></attribute>
+                </xpath>
+                <xpath expr="//field[@name='selection_value']" position="attributes">
+                    <attribute name="invisible" add="evaluation_type == 'ai_computed'" separator=" or "></attribute>
+                </xpath>
+                <xpath expr="//span[hasclass('o_actions_server_set_a_value')]" position="attributes">
+                    <attribute name="invisible" add="evaluation_type == 'ai_computed'" separator=" or "></attribute>
+                </xpath>
+                <xpath expr="//field[@name='update_path']" position="attributes">
+                    <attribute name="required">state == 'object_write' and evaluation_type == 'ai_computed'</attribute>
+                </xpath>
+            </data>
+        </field>
+    </record>
+    -->
+</odoo>

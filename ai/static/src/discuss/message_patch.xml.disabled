@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="mail.Message" t-inherit-mode="extension">
+        <xpath expr="//*[hasclass('o-mail-Message-content')]" position="attributes">
+            <attribute name="t-att-class"></attribute>
+            <attribute name="t-attf-class" add="{{ props.thread?.type === 'ai_chat' and props.isInChatWindow ? 'flex-column' : '' }}" separator=" "/>
+            <attribute name="t-attf-class" add="{{ props.thread?.type !== 'ai_chat' and isAlignedRight ? 'flex-row-reverse' : '' }}" separator=" "/>
+        </xpath>
+        <xpath expr="//*[hasclass('o-mail-Message-textContent')]" position="attributes">
+            <attribute name="t-attf-class" add="{{ props.thread?.type === 'ai_composer' and !props.isInChatWindow ? 'flex-column' : '' }}" separator=" "/>
+        </xpath>
+    </t>
+    <t t-inherit="mail.Message.actions" t-inherit-mode="extension">
+        <xpath expr="//*[hasclass('o-mail-Message-actions')]" position="attributes">
+            <attribute name="t-attf-class" add="{{ props.thread?.type === 'ai_chat' and isAlignedRight ? 'flex-row-reverse' : '' }}" separator=" "/>
+            <attribute name="t-attf-class" add="{{ props.thread?.type === 'ai_chat' ? 'ms-0' : '' }}" separator=" "/>
+        </xpath>
+    </t>
+</templates>

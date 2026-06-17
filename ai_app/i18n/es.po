@@ -1,0 +1,278 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* ai_app
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-09-11 14:26+0000\n"
+"PO-Revision-Date: 2025-09-11 14:26+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_agent_view_form
+msgid ""
+"<i class=\"fa fa-clock-o me-2\"/>\n"
+"                            <span>Processing your sources, it might take a few minutes...</span>"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_agent_view_form
+msgid ""
+"<span class=\"me-1\">Refresh</span>\n"
+"                            <i class=\"fa fa-refresh me-1\"/>"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_composer_form
+msgid ""
+"<span class=\"text-muted\" invisible=\"not is_system_default or "
+"focused_models\">All Models</span>"
+msgstr ""
+
+#. module: ai_app
+#: model:ir.ui.menu,name:ai_app.ai_menu_root
+#: model_terms:ir.ui.view,arch_db:ai_app.res_config_settings_view_form
+msgid "AI"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_agent_view_form
+msgid "Add a source"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_agent_view_kanban
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_agent_view_search
+msgid "Agent"
+msgstr ""
+
+#. module: ai_app
+#. odoo-javascript
+#: code:addons/ai_app/static/src/command_palette.js:0
+#: model:ir.actions.act_window,name:ai_app.ai_agent_action
+#: model:ir.ui.menu,name:ai_app.ai_agent_menu_action
+#: model:ir.ui.menu,name:ai_app.ai_menu
+msgid "Agents"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.actions.act_window,help:ai_app.ai_agent_action
+msgid "Agents help you manage and organize your AI operations."
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_composer_form
+msgid "All Models"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_agent_view_form
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_agent_view_kanban
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_agent_view_search
+msgid "Archived"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_composer_form
+msgid "Buttons"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_composer_form
+msgid "Call the Agent"
+msgstr ""
+
+#. module: ai_app
+#: model:ir.ui.menu,name:ai_app.ai_config_menu
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_agent_view_kanban
+msgid "Configuration"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.actions.act_window,help:ai_app.ai_agent_action
+msgid "Create your first Agent!"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.actions.act_window,help:ai_app.ai_topic_action
+msgid "Create your first topic!"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_composer_view_search
+msgid "Custom Rules"
+msgstr ""
+
+#. module: ai_app
+#: model:ir.actions.act_window,name:ai_app.ai_composer_action
+#: model:ir.ui.menu,name:ai_app.menu_ai_composer
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_composer_tree
+msgid "Default Prompts"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_topic_view_form
+msgid "Explain to the Agent what they need to do..."
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_composer_view_search
+#: model_terms:ir.ui.view,arch_db:ai_app.res_config_settings_view_form
+msgid "Key"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_composer_form
+msgid "Mail Template extra prompt"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_agent_view_search
+msgid "Model"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_agent_view_tree
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_composer_kanban
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_composer_tree
+msgid "Name"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.actions.act_window,help:ai_app.ai_composer_action
+msgid "No Default Prompts found!"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_composer_form
+msgid "On the Model"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_agent_view_tree
+msgid "Properties"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.res_config_settings_view_form
+msgid "Provide your API key to connect with your account"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.res_config_settings_view_form
+msgid "Providers"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_agent_view_form
+msgid "Retry"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_composer_form
+msgid "Rule Name"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_composer_form
+msgid "Select an action..."
+msgstr ""
+
+#. module: ai_app
+#: model:ir.actions.act_window,name:ai_app.ai_settings_action
+#: model:ir.ui.menu,name:ai_app.ai_general_settings_menu
+msgid "Settings"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_agent_view_form
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_agent_view_search
+msgid "Sources"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_topic_view_form
+msgid "Summarize what this topic does"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_composer_view_search
+msgid "System Rules"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_agent_view_form
+msgid "Test"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.actions.act_window,help:ai_app.ai_composer_action
+msgid ""
+"Those are used to configure when to call a specific agent, or to add an "
+"extra prompt to your request."
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_topic_view_search
+msgid "Topic"
+msgstr ""
+
+#. module: ai_app
+#: model:ir.actions.act_window,name:ai_app.ai_topic_action
+#: model:ir.ui.menu,name:ai_app.ai_topic_menu_action
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_agent_view_search
+msgid "Topics"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.actions.act_window,help:ai_app.ai_topic_action
+msgid "Topics help you manage and organize your AI operations."
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.res_config_settings_view_form
+msgid "Use your own ChatGPT account"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.res_config_settings_view_form
+msgid "Use your own Google Gemini account"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_composer_form
+msgid "When users need to"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_composer_form
+msgid "Write your prompt..."
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_topic_view_form
+msgid "e.g. Chat with customers"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_agent_view_form
+msgid "e.g. Get tips to close more sales"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_agent_view_form
+msgid "e.g. SDR Advisor"
+msgstr ""
+
+#. module: ai_app
+#: model_terms:ir.ui.view,arch_db:ai_app.ai_agent_view_form
+msgid ""
+"e.g. You are a support operator, you can answer questions related to ..."
+msgstr ""

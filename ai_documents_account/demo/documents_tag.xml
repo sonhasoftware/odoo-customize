@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="documents_tag_to_split" model="documents.tag" forcecreate="0">
+            <field name="name">To Split</field>
+            <field name="sequence">15</field>
+        </record>
+    </data>
+</odoo>

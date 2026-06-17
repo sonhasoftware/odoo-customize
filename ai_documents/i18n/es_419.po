@@ -1,0 +1,360 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * ai_documents
+#
+# "Patricia Gutiérrez (pagc)" <pagc@odoo.com>, 2025.
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-09-11 14:26+0000\n"
+"PO-Revision-Date: 2025-09-19 02:40+0000\n"
+"Last-Translator: \"Patricia Gutiérrez (pagc)\" <pagc@odoo.com>\n"
+"Language-Team: Spanish (Latin America) <https://translate.odoo.com/projects/"
+"odoo-19/ai_documents/es_419/>\n"
+"Language: es_419\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.12.2\n"
+
+#. module: ai_documents
+#: model_terms:ir.ui.view,arch_db:ai_documents.ai_documents_sort_view_form
+msgid "<strong class=\"mt-3\">What actions can the AI take?</strong>"
+msgstr "<strong class=\"mt-3\">¿Qué puede hacer la IA?</strong>"
+
+#. module: ai_documents
+#: model_terms:ir.ui.view,arch_db:ai_documents.ai_documents_sort_view_form
+msgid ""
+"<strong>\n"
+"                            What do you want the AI to do?\n"
+"                        </strong>"
+msgstr ""
+"<strong>\n"
+"                            ¿Qué quieres que la IA haga?\n"
+"                        </strong>"
+
+#. module: ai_documents
+#: model:ir.actions.server,name:ai_documents.ir_cron_ai_documents_sort_ir_actions_server
+msgid "AI Documents: Sort documents with AI"
+msgstr "Documentos IA: Ordena documentos con IA"
+
+#. module: ai_documents
+#: model:ir.model.fields,field_description:ai_documents.field_ai_documents_sort__ai_sort_prompt
+#: model:ir.model.fields,field_description:ai_documents.field_documents_document__ai_sort_prompt
+msgid "AI Folder Sort Prompt"
+msgstr ""
+
+#. module: ai_documents
+#: model:ir.actions.act_window,name:ai_documents.ai_documents_sort_action
+#: model_terms:ir.ui.view,arch_db:ai_documents.ai_documents_sort_view_form
+msgid "AI Sort"
+msgstr ""
+
+#. module: ai_documents
+#: model:ir.model.fields,field_description:ai_documents.field_documents_document__ai_sortable
+msgid "AI Sortable"
+msgstr ""
+
+#. module: ai_documents
+#: model:ir.model.fields,field_description:ai_documents.field_documents_document__ai_to_sort
+#: model_terms:ir.ui.view,arch_db:ai_documents.documents_document_view_kanban
+msgid "AI To Sort"
+msgstr ""
+
+#. module: ai_documents
+#: model:ir.actions.server,name:ai_documents.ir_actions_server_add_tags
+msgid "AI: Add Tags"
+msgstr ""
+
+#. module: ai_documents
+#. odoo-python
+#: code:addons/ai_documents/models/ir_actions_server.py:0
+msgid "AI: An error occurred: %s"
+msgstr ""
+
+#. module: ai_documents
+#: model:ir.actions.server,name:ai_documents.ir_actions_server_move_in_folder
+msgid "AI: Move To Folder"
+msgstr ""
+
+#. module: ai_documents
+#: model:ir.actions.server,name:ai_documents.ir_actions_server_rename_documents
+msgid "AI: Rename Document"
+msgstr ""
+
+#. module: ai_documents
+#: model:ir.actions.server,ai_tool_description:ai_documents.ir_actions_server_add_tags
+msgid "Add the tags on the document"
+msgstr ""
+
+#. module: ai_documents
+#: model:ir.model.fields,field_description:ai_documents.field_ai_documents_sort__ai_tool_ids
+msgid "Additional Tools"
+msgstr ""
+
+#. module: ai_documents
+#: model:ir.model,name:ai_documents.model_ai_documents_sort
+msgid "Ai Documents Sort"
+msgstr ""
+
+#. module: ai_documents
+#: model:ir.model.fields,field_description:ai_documents.field_ai_documents_sort__allowed_tools_ids
+msgid "Allowed Tools"
+msgstr ""
+
+#. module: ai_documents
+#. odoo-python
+#: code:addons/ai_documents/models/documents_document.py:0
+msgid "Auto sorting has been scheduled"
+msgstr ""
+
+#. module: ai_documents
+#. odoo-javascript
+#: code:addons/ai_documents/static/src/cog_menu/documents_cog_menu_item_ai_auto_sort.xml:0
+msgid "Auto-sort"
+msgstr ""
+
+#. module: ai_documents
+#. odoo-python
+#: code:addons/ai_documents/models/documents_document.py:0
+msgid "Auto-sort documents in %s"
+msgstr ""
+
+#. module: ai_documents
+#: model:ir.model,name:ai_documents.model_base_automation
+msgid "Automation Rule"
+msgstr ""
+
+#. module: ai_documents
+#. odoo-python
+#: code:addons/ai_documents/models/documents_document.py:0
+msgid "Cannot move in a non-folder."
+msgstr ""
+
+#. module: ai_documents
+#: model_terms:ir.ui.view,arch_db:ai_documents.ai_documents_sort_view_form
+msgid "Close"
+msgstr ""
+
+#. module: ai_documents
+#: model:ir.model.fields,field_description:ai_documents.field_ai_documents_sort__create_uid
+msgid "Created by"
+msgstr ""
+
+#. module: ai_documents
+#: model:ir.model.fields,field_description:ai_documents.field_ai_documents_sort__create_date
+msgid "Created on"
+msgstr ""
+
+#. module: ai_documents
+#: model_terms:ir.ui.view,arch_db:ai_documents.ai_documents_sort_view_form
+msgid "Delete"
+msgstr ""
+
+#. module: ai_documents
+#: model_terms:ir.ui.view,arch_db:ai_documents.ai_documents_sort_view_form
+msgid "Discard"
+msgstr ""
+
+#. module: ai_documents
+#: model:ir.model.fields,field_description:ai_documents.field_ai_documents_sort__display_name
+#: model:ir.model.fields,field_description:ai_documents.field_base_automation__display_name
+#: model:ir.model.fields,field_description:ai_documents.field_documents_document__display_name
+#: model:ir.model.fields,field_description:ai_documents.field_ir_actions_server__display_name
+msgid "Display Name"
+msgstr ""
+
+#. module: ai_documents
+#: model:ir.model,name:ai_documents.model_documents_document
+msgid "Document"
+msgstr ""
+
+#. module: ai_documents
+#. odoo-python
+#: code:addons/ai_documents/models/documents_document.py:0
+msgid "Document Content"
+msgstr ""
+
+#. module: ai_documents
+#: model:ir.model.fields,help:ai_documents.field_documents_document__ai_to_sort
+msgid "Flag to mark the files as to be sorted with AI"
+msgstr ""
+
+#. module: ai_documents
+#: model:ir.model.fields,field_description:ai_documents.field_ai_documents_sort__folder_id
+msgid "Folder"
+msgstr ""
+
+#. module: ai_documents
+#. odoo-python
+#: code:addons/ai_documents/models/documents_document.py:0
+msgid ""
+"Here is a document called %(document_name)s and whose content is %(content)s"
+" and tags are %(tags)s. The mimetype of the document is %(mimetype)s."
+msgstr ""
+
+#. module: ai_documents
+#: model:ir.model.fields,field_description:ai_documents.field_ai_documents_sort__id
+#: model:ir.model.fields,field_description:ai_documents.field_base_automation__id
+#: model:ir.model.fields,field_description:ai_documents.field_documents_document__id
+#: model:ir.model.fields,field_description:ai_documents.field_ir_actions_server__id
+msgid "ID"
+msgstr ""
+
+#. module: ai_documents
+#. odoo-python
+#: code:addons/ai_documents/wizard/ai_documents_sort.py:0
+msgid "If the document is an invoice, send it to %s"
+msgstr ""
+
+#. module: ai_documents
+#: model:ir.model.fields,field_description:ai_documents.field_ai_documents_sort__is_ai_sort_prompt_set
+msgid "Is Prompt Set"
+msgstr ""
+
+#. module: ai_documents
+#: model:ir.model.fields,field_description:ai_documents.field_ai_documents_sort__write_uid
+msgid "Last Updated by"
+msgstr ""
+
+#. module: ai_documents
+#: model:ir.model.fields,field_description:ai_documents.field_ai_documents_sort__write_date
+msgid "Last Updated on"
+msgstr ""
+
+#. module: ai_documents
+#. odoo-python
+#: code:addons/ai_documents/models/documents_document.py:0
+msgid "Mimetype"
+msgstr ""
+
+#. module: ai_documents
+#: model:ir.model.fields,field_description:ai_documents.field_ai_documents_sort__model
+msgid "Model"
+msgstr ""
+
+#. module: ai_documents
+#: model:ir.actions.server,ai_tool_description:ai_documents.ir_actions_server_move_in_folder
+msgid "Move the documents in the given folder id"
+msgstr ""
+
+#. module: ai_documents
+#. odoo-python
+#: code:addons/ai_documents/models/documents_document.py:0
+msgid "Moved to \"%(folder)s\"."
+msgstr ""
+
+#. module: ai_documents
+#. odoo-python
+#: code:addons/ai_documents/models/documents_document.py:0
+msgid "Name"
+msgstr ""
+
+#. module: ai_documents
+#. odoo-python
+#: code:addons/ai_documents/models/documents_document.py:0
+msgid "No document suitable for AI sorting."
+msgstr ""
+
+#. module: ai_documents
+#: model:ir.model.constraint,message:ai_documents.constraint_base_automation_unique_ai_autosort_folder_id
+msgid "Only one automation rule can be used to sort with AI a given folder"
+msgstr ""
+
+#. module: ai_documents
+#: model:ir.model.fields,help:ai_documents.field_documents_document__ai_sort_prompt
+msgid "Prompt used to automatically sort files moved in this folder"
+msgstr ""
+
+#. module: ai_documents
+#: model:ir.model.fields,field_description:ai_documents.field_ai_documents_sort__relation
+msgid "Relation"
+msgstr ""
+
+#. module: ai_documents
+#: model:ir.actions.server,ai_tool_description:ai_documents.ir_actions_server_rename_documents
+msgid "Rename Document"
+msgstr ""
+
+#. module: ai_documents
+#: model_terms:ir.ui.view,arch_db:ai_documents.ai_documents_sort_view_form
+msgid "Save"
+msgstr ""
+
+#. module: ai_documents
+#: model:ir.model,name:ai_documents.model_ir_actions_server
+msgid "Server Action"
+msgstr ""
+
+#. module: ai_documents
+#. odoo-javascript
+#: code:addons/ai_documents/static/src/views/documents_controller_mixin.js:0
+msgid "Sort With AI"
+msgstr ""
+
+#. module: ai_documents
+#: model:ir.model.fields,field_description:ai_documents.field_base_automation__ai_autosort_folder_id
+#: model:ir.model.fields,field_description:ai_documents.field_ir_actions_server__ai_autosort_folder_id
+#: model:ir.model.fields,field_description:ai_documents.field_ir_cron__ai_autosort_folder_id
+msgid "Sorted Folder"
+msgstr ""
+
+#. module: ai_documents
+#. odoo-python
+#: code:addons/ai_documents/models/documents_document.py:0
+msgid "Tag(s) %s added"
+msgstr ""
+
+#. module: ai_documents
+#. odoo-python
+#: code:addons/ai_documents/models/documents_document.py:0
+msgid "Tags > Name"
+msgstr ""
+
+#. module: ai_documents
+#. odoo-python
+#: code:addons/ai_documents/models/documents_document.py:0
+msgid "Tags not found: %s"
+msgstr ""
+
+#. module: ai_documents
+#. odoo-python
+#: code:addons/ai_documents/models/documents_document.py:0
+msgid "The AI Sort Prompt can only be set on folder."
+msgstr ""
+
+#. module: ai_documents
+#. odoo-python
+#: code:addons/ai_documents/models/documents_document.py:0
+msgid "This document cannot be auto-sorted."
+msgstr ""
+
+#. module: ai_documents
+#. odoo-python
+#: code:addons/ai_documents/models/documents_document.py:0
+msgid ""
+"This folder isn't specified in the prompt and cannot be used as target."
+msgstr ""
+
+#. module: ai_documents
+#. odoo-python
+#: code:addons/ai_documents/models/ir_actions_server.py:0
+msgid "You can move the document in one of those folders:"
+msgstr ""
+
+#. module: ai_documents
+#: model_terms:ir.ui.view,arch_db:ai_documents.ai_documents_sort_view_form
+msgid ""
+"eg:                                     If the documents is an invoice, move"
+" it to Finance,                                     if it's an image, move "
+"it to Photos,                                     otherwise, create an "
+"activity 'Document to sort' for Admin"
+msgstr ""
+
+#. module: ai_documents
+#. odoo-javascript
+#: code:addons/ai_documents/static/src/ai_sort_documents_prompt.js:0
+msgid "⚠️ Tell the AI where to sort your documents with /record."
+msgstr ""

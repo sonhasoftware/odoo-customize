@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_model_form" model="ir.ui.view">
+        <field name="model">ir.model</field>
+        <field name="inherit_id" ref="base.view_model_form"/>
+        <field name="arch" type="xml">
+            <field name="field_id" position="attributes">
+                <attribute name="context">{'default_model': model}</attribute>
+            </field>
+            <page name="groups" position="after">
+                <page name="ai" string="AI" invisible="ttype in ('binary', 'one2many', 'reference')">
+                    <group>
+                        <field name="ai" readonly="state == 'base'"/>
+                        <field name="model" invisible="1"/> <!-- Used by the `ai_prompt` widget -->
+                        <field name="system_prompt"
+                            invisible="not ai"
+                            readonly="state == 'base'"
+                            widget="ai_prompt"
+                            options="{
+                                'model_reference_field': 'model',
+                                'field_reference_field': 'name',
+                                'record_selector_relation_field': 'relation'
+                            }"/>
+                    </group>
+                </page>
+            </page>
+        </field>
+    </record>
+
+    <record id="view_model_fields_form" model="ir.ui.view">
+        <field name="model">ir.model.fields</field>
+        <field name="inherit_id" ref="base.view_model_fields_form"/>
+        <field name="arch" type="xml">
+            <page name="groups" position="after">
+                <page name="ai" string="AI" invisible="ttype in ('binary', 'one2many', 'reference')">
+                    <group>
+                        <field name="ai" readonly="state == 'base'"/>
+                        <field name="model" invisible="1"/> <!-- Used by the `ai_prompt` widget -->
+                        <field name="system_prompt"
+                            invisible="not ai"
+                            readonly="state == 'base'"
+                            widget="ai_prompt"
+                            options="{
+                                'model_reference_field': 'model',
+                                'field_reference_field': 'name',
+                                'record_selector_relation_field': 'relation'
+                            }"/>
+                    </group>
+                </page>
+            </page>
+        </field>
+    </record>
+
+</odoo>

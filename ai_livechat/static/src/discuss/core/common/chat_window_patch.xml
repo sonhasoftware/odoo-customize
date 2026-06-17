@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="mail.ChatWindow" t-inherit-mode="extension">
+        <xpath expr="//Composer" position="before">
+            <div t-if="showForwardOperatorButton" class="m-3">
+                <button class="btn btn-primary" t-on-click="forwardOperator">Ask a Human</button>
+            </div>
+        </xpath>
+    </t>
+</templates>

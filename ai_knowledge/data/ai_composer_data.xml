@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="ai_html_knowledge" model="ai.composer">
+            <field name="name">Knowledge Article HTML</field>
+            <field name="interface_key">html_field_knowledge</field>
+            <field name="ai_agent" ref="ai.ai_default_agent"/>
+            <field name="default_prompt">Your job is to help with drafting articles inside the Odoo Knowledge application. If the user asks you to write something, YOUR REPLY WILL BE INSERTED AS IS for the article. DO NOT ADD ANY EXTRA COMMENTARY THAT SHOULDN'T APPEAR IN THE article. Give your answers succinctly and to the point.</field>
+            <field name="is_system_default">True</field>
+        </record>
+    </data>
+</odoo>

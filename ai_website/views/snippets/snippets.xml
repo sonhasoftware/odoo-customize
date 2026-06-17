@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+<template id="snippets" inherit_id="website.snippets">
+    <!-- Use xpath to make the snippet appear before other snippets -->
+    <xpath expr="//t[@t-snippet='website.s_title_form']" position="before">
+        <t t-install="ai_website_livechat" string="AI Livechat" group="contact_and_forms" label="AI"
+            t-image-preview="/ai_website/static/src/img/snippets_thumbs/ai_livechat.png"/>
+        <t id='ai_livechat_hook'/>
+    </xpath>
+</template>
+
+</odoo>

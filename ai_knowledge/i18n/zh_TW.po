@@ -1,0 +1,48 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* ai_knowledge
+# 
+# Translators:
+# Wil Odoo, 2025
+# Tony Ng, 2025
+# 
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server saas~18.3+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-09 20:44+0000\n"
+"PO-Revision-Date: 2025-05-17 15:51+0000\n"
+"Last-Translator: Tony Ng, 2025\n"
+"Language-Team: Chinese (Taiwan) (https://app.transifex.com/odoo/teams/41243/zh_TW/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Language: zh_TW\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#. module: ai_knowledge
+#: model:ir.model,name:ai_knowledge.model_discuss_channel
+msgid "Discussion Channel"
+msgstr "討論群組"
+
+#. module: ai_knowledge
+#: model:ir.model.fields,field_description:ai_knowledge.field_discuss_channel__display_name
+msgid "Display Name"
+msgstr "顯示名稱"
+
+#. module: ai_knowledge
+#. odoo-javascript
+#: code:addons/ai_knowledge/static/src/wysiwyg_article_helper_ptach.xml:0
+msgid "Generate an Article with AI"
+msgstr "用 AI 生成文章"
+
+#. module: ai_knowledge
+#: model:ir.model.fields,field_description:ai_knowledge.field_discuss_channel__id
+msgid "ID"
+msgstr "識別碼"
+
+#. module: ai_knowledge
+#. odoo-javascript
+#: code:addons/ai_knowledge/static/src/wysiwyg_article_helper_patch.js:0
+msgid "Write a knowledge article about"
+msgstr "撰寫一篇關於以下內容的知識庫文章："

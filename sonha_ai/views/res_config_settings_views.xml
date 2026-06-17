@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_sonha_ai" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.sonha_ai</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="90"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="AI Assistant" string="AI Assistant" name="sonha_ai" groups="base.group_system">
+                    <block title="AI Configuration" name="ai_config_setting_container">
+                        <setting id="sonha_ai_provider" string="AI Provider" help="Select which AI Provider to use for Ask AI">
+                            <field name="sonha_ai_provider" widget="radio"/>
+                        </setting>
+                        
+                        <setting id="sonha_ai_knowledge" string="AI Knowledge Base" help="Upload an Excel, CSV or TXT file to provide global context to the AI">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="sonha_ai_knowledge_attachment_ids" class="col-lg-3 o_light_label" string="Data Files"/>
+                                    <field name="sonha_ai_knowledge_attachment_ids" widget="many2many_binary" options="{'accepted_file_extensions': '.pdf,.docx,.xlsx,.xls,.pptx,.ppt,.csv,.json,.xml,.txt'}"/>
+                                </div>
+                                <div class="row mt16">
+                                    <button name="action_sync_vector_db" type="object" string="Đồng bộ sang SQL Server" class="btn-primary" icon="fa-refresh"/>
+                                </div>
+                            </div>
+                        </setting>
+
+                        <setting id="sonha_ai_ollama" string="Ollama Settings (Local AI)" help="Configure Ollama API settings" invisible="sonha_ai_provider != 'ollama'">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="sonha_ai_ollama_url" class="col-lg-3 o_light_label"/>
+                                    <field name="sonha_ai_ollama_url"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="sonha_ai_ollama_model" class="col-lg-3 o_light_label"/>
+                                    <field name="sonha_ai_ollama_model"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="sonha_ai_ollama_embed_model" class="col-lg-3 o_light_label"/>
+                                    <field name="sonha_ai_ollama_embed_model"/>
+                                </div>
+                            </div>
+                        </setting>
+
+                        <setting id="sonha_ai_sql_server_config" string="SQL Server (Vector DB)" help="Configure connection to MS SQL Server for Vector Storage">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="sonha_ai_sql_server" class="col-lg-3 o_light_label"/>
+                                    <field name="sonha_ai_sql_server"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="sonha_ai_sql_database" class="col-lg-3 o_light_label"/>
+                                    <field name="sonha_ai_sql_database"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="sonha_ai_sql_user" class="col-lg-3 o_light_label"/>
+                                    <field name="sonha_ai_sql_user" placeholder="Trống nếu dùng Windows Auth"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="sonha_ai_sql_password" class="col-lg-3 o_light_label"/>
+                                    <field name="sonha_ai_sql_password" password="True"/>
+                                </div>
+                            </div>
+                        </setting>
+                        
+                        <setting id="sonha_ai_openai" string="OpenAI Settings" help="Configure OpenAI API settings" invisible="sonha_ai_provider != 'openai'">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="sonha_ai_openai_api_key" class="col-lg-3 o_light_label"/>
+                                    <field name="sonha_ai_openai_api_key" password="True"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="sonha_ai_openai_model" class="col-lg-3 o_light_label"/>
+                                    <field name="sonha_ai_openai_model"/>
+                                </div>
+                            </div>
+                        </setting>
+
+                        <setting id="sonha_ai_gemini" string="Google Gemini Settings" help="Configure Gemini API settings" invisible="sonha_ai_provider != 'gemini'">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="sonha_ai_gemini_api_key" class="col-lg-3 o_light_label"/>
+                                    <field name="sonha_ai_gemini_api_key" password="True"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="sonha_ai_gemini_model" class="col-lg-3 o_light_label"/>
+                                    <field name="sonha_ai_gemini_model"/>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Menuitem to show settings under General Settings if needed, though 'app' handles it in Odoo 16/17 -->
+</odoo>

@@ -1,0 +1,96 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * ai_crm
+#
+# "Patricia Gutiérrez (pagc)" <pagc@odoo.com>, 2025.
+# "Fernanda Alvarez (mfar)" <mfar@odoo.com>, 2025.
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-09-11 14:26+0000\n"
+"PO-Revision-Date: 2025-09-23 02:40+0000\n"
+"Last-Translator: \"Fernanda Alvarez (mfar)\" <mfar@odoo.com>\n"
+"Language-Team: Spanish (Latin America) <https://translate.odoo.com/projects/"
+"odoo-19/ai_crm/es_419/>\n"
+"Language: es_419\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.12.2\n"
+
+#. module: ai_crm
+#: model:ir.actions.server,ai_tool_description:ai_crm.ir_actions_server_ai_create_lead
+msgid ""
+"## Tool: Create a Lead\n"
+"Use when the customer has provided the required information and you are ready to register the lead."
+msgstr ""
+"## Herramienta: Crear un lead\n"
+"Se debe usar cuando el cliente haya proporcionado la información necesaria y "
+"esté todo listo para registrar un lead."
+
+#. module: ai_crm
+#: model:ir.actions.server,ai_tool_description:ai_crm.ir_actions_server_ai_get_lead_create_available_params
+msgid ""
+"## Tool: Get Lead Creation Parameters\n"
+"Retrieves available teams and tags for lead creation.\n"
+"Use this tool only immediately before calling the lead creation tool (never at other times).\n"
+"When the customer provides their country (or if it can be clearly inferred from the conversation),\n"
+"use the country’s code as parameter to retrieve the country and its states IDs."
+msgstr ""
+"## Herramienta: Obtén parámetros para creación de leads\n"
+"Muestra los equipos y etiquetas disponibles para crear leads.\n"
+"Usa esta herramienta solo inmediatamente antes de llamar a la herramienta de "
+"creación de leads (nunca en otro momento).\n"
+"Cuando el cliente agrega su país (o si se puede deducir de forma clara con "
+"la conversación),\n"
+"usa el código del país como un parámetro para obtener el país y los códigos "
+"de sus estados."
+
+#. module: ai_crm
+#: model:ir.model,name:ai_crm.model_ai_agent
+msgid "AI Agent"
+msgstr "Agente de IA"
+
+#. module: ai_crm
+#: model:ir.actions.server,name:ai_crm.ir_actions_server_ai_create_lead
+msgid "AI CRM: Create Lead"
+msgstr "IA y CRM: Crear lead"
+
+#. module: ai_crm
+#: model:ir.actions.server,name:ai_crm.ir_actions_server_ai_get_lead_create_available_params
+msgid "AI CRM: Get Lead creation available parameters"
+msgstr ""
+
+#. module: ai_crm
+#: model:ir.model.fields,field_description:ai_crm.field_ai_agent__name
+msgid "Agent Name"
+msgstr "Nombre del agente"
+
+#. module: ai_crm
+#: model:ir.model,website_form_label:ai_crm.model_crm_lead
+msgid "Create an Opportunity"
+msgstr "Crear una oportunidad"
+
+#. module: ai_crm
+#: model:ir.model.fields,field_description:ai_crm.field_ai_agent__display_name
+#: model:ir.model.fields,field_description:ai_crm.field_crm_lead__display_name
+msgid "Display Name"
+msgstr ""
+
+#. module: ai_crm
+#: model:ir.model.fields,field_description:ai_crm.field_ai_agent__id
+#: model:ir.model.fields,field_description:ai_crm.field_crm_lead__id
+msgid "ID"
+msgstr ""
+
+#. module: ai_crm
+#: model:ir.model,name:ai_crm.model_crm_lead
+msgid "Lead"
+msgstr ""
+
+#. module: ai_crm
+#: model:ir.model.fields,field_description:ai_crm.field_ai_agent__source_id
+msgid "Source"
+msgstr ""

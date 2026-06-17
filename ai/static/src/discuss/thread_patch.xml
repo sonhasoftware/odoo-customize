@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="mail.discuss.Typing" t-inherit-mode="extension">
+        <xpath expr="//div[contains(@class, 'o-discuss-Typing-icon')]" position="before">
+            <t t-if="isAiTyping">
+                <div class="o-discuss-Typing-ai-avatar d-flex align-items-center justify-content-center me-1">
+                    <img class="o-discuss-Typing-ai-avatar-img" src="/ai/static/description/icon.png" style="width: 18px; height: 18px; margin-right: 4px;"/>
+                </div>
+            </t>
+        </xpath>
+    </t>
+    <t t-inherit="mail.Composer" t-inherit-mode="extension">
+        <xpath expr="//textarea[@t-ref='textarea']/parent::div" position="before">
+            <t t-if="thread and thread.type === 'ai_chat'">
+                <div class="o-mail-Composer-ai-icon d-flex align-items-center justify-content-center me-2 ms-1">
+                    <img src="/ai/static/description/icon.png" style="width: 20px; height: 20px; opacity: 0.8;"/>
+                </div>
+            </t>
+        </xpath>
+        <xpath expr="//button[@t-ref='emoji-button']" position="attributes">
+            <attribute name="t-if">thread and thread.type !== 'ai_chat'</attribute>
+        </xpath>
+    </t>
+</templates>

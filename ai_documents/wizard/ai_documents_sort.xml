@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ai_documents_sort_view_form" model="ir.ui.view">
+        <field name="name">ai_documents.sort.view.form</field>
+        <field name="model">ai_documents.sort</field>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <form string="AI Sort">
+                <sheet>
+                    <button
+                        type="button"
+                        class="btn-close float-end"
+                        aria-label="Close"
+                        special="cancel"
+                        close="1"
+                    />
+                    <div class="d-flex flex-column o_ai_documents_sort pb-4">
+                        <strong>
+                            What do you want the AI to do?
+                        </strong>
+                        <field name="folder_id" invisible="1" force_save="1"/>  <!-- Force saving -->
+                        <field name="model" invisible="1"/>  <!-- Used by the `ai_prompt` widget -->
+                        <field name="relation" invisible="1"/>  <!-- Used by the `ai_prompt` widget -->
+                            <field
+                                name="ai_sort_prompt"
+                                widget="ai_sort_documents_prompt"
+                                nolabel="1"
+                                placeholder="eg:
+                                    If the documents is an invoice, move it to Finance,
+                                    if it's an image, move it to Photos,
+                                    otherwise, create an activity 'Document to sort' for Admin
+                                "
+                                options="{
+                                    'model_reference_field': 'model',
+                                    'record_selector_relation_field': 'relation'
+                                    'record_selector_domain': '[(\'type\', \'=\', \'folder\')]'
+                                    'show_missing_records_warning': 'true'
+                                }"/>
+                            <strong class="mt-3">What actions can the AI take?</strong>
+                            <field name="ai_tool_ids"
+                                widget="many2many_tags"
+                                options="{'no_quick_create': True}"
+                                context="{'default_model_id': context.get('default_model_id')}"
+                                nolabel="1"/>
+                        </div>
+                    </sheet>
+                <footer>
+                    <button class="btn btn-primary" type="object" name="action_setup_folder" close="1">Save</button>
+                    <button class="btn btn-secondary" special="cancel" close="1">Discard</button>
+                    <button
+                        class="btn btn-secondary float-end ms-auto"
+                        icon="fa-trash"
+                        type="object"
+                        name="action_delete"
+                        close="1"
+                        invisible="not is_ai_sort_prompt_set">Delete</button>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="ai_documents_sort_action" model="ir.actions.act_window">
+        <field name="name">AI Sort</field>
+        <field name="res_model">ai_documents.sort</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="ai_documents_sort_view_form"/>
+        <field name="target">new</field>
+        <field name="context" eval="{
+            'header': False,
+            'default_model_id': ref('documents.model_documents_document'),
+        }"/>
+    </record>
+</odoo>

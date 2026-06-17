@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+        <t t-inherit="web.PropertyDefinition" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('o_field_property_definition_value')]" position="attributes">
+            <attribute name="t-if" add="and !state.propertyDefinition.ai" separator=" "/>
+        </xpath>
+        <xpath expr="//div[hasclass('o_modal_container')]" position="inside">
+            <div t-if="state.propertyDefinition.type !== 'separator'" class="d-contents mb-3 mb-sm-0">
+                <label t-att-for="getUniqueDomID('ai')" class="o_form_label align-self-center text-900">
+                    AI
+                </label>
+                <CheckBox
+                    id="getUniqueDomID('ai')"
+                    value="props.propertyDefinition.ai"
+                    disabled="props.readonly"
+                    onChange.bind="onAiChange"
+                />
+            </div>
+            <div t-if="state.propertyDefinition.ai" class="d-contents mb-3 mb-sm-0">
+                <label t-att-for="getUniqueDomID('prompt')" class="o_form_label align-self-center text-900 mb-auto">
+                    Prompt
+                </label>
+                <h6 t-if="props.readonly" t-out="state.propertyDefinition.system_prompt" class="text-truncate"/>
+                <AiPrompt
+                    t-else=""
+                    comodel="comodel"
+                    domain="this.state.propertyDefinition.domain or ''"
+                    model="props.propertiesModel"
+                    updatePrompt.bind="onSystemPromptChange"
+                    placeholder.translate="Write a prompt, use '/field' to insert dynamic values"
+                    prompt="state.propertyDefinition.system_prompt || ''"
+                    readonly="props.readonly"
+                    aiFieldPath="this.props.fieldName + '.' + this.state.propertyDefinition.name"
+                />
+            </div>
+        </xpath>
+    </t>
+</templates>

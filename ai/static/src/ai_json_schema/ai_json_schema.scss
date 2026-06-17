@@ -1,0 +1,10 @@
+.o_field_ai_json_schema {
+    .o_ai_json_schema {
+        input[type=number] {
+            max-width: 70px;
+        }
+    }
+    textarea {
+        resize: none;
+    }
+}

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="documents_document_view_kanban" model="ir.ui.view">
+        <field name="name">documents.document.view.kanban.inherit.ai</field>
+        <field name="model">documents.document</field>
+        <field name="inherit_id" ref="documents.document_view_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('o_kanban_record_body')]" position="before">
+                <field name="ai_sortable" invisible="1"/> <!-- Used by @documents_controller_mixin.js -->
+                <field name="ai_sort_prompt" invisible="1"/> <!-- Used by @documents_controller_mixin.js -->
+                <widget name="web_ribbon" title="AI To Sort" bg_color="bg-info" invisible="not ai_to_sort"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="documents_document_view_list" model="ir.ui.view">
+        <field name="name">documents.document.view.list.inherit.ai</field>
+        <field name="model">documents.document</field>
+        <field name="inherit_id" ref="documents.documents_view_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="before">
+                <field name="ai_sortable" column_invisible="True"/> <!-- Used by @documents_controller_mixin.js -->
+                <field name="ai_sort_prompt" column_invisible="True"/> <!-- Used by @documents_controller_mixin.js -->
+            </xpath>
+        </field>
+    </record>
+    <record id="documents_document_view_activity" model="ir.ui.view">
+        <field name="name">documents.document.view.activity.inherit.ai</field>
+        <field name="model">documents.document</field>
+        <field name="inherit_id" ref="documents.documents_view_activity"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="before">
+                <field name="ai_sortable" invisible="1"/> <!-- Used by @documents_controller_mixin.js -->
+                <field name="ai_sort_prompt" invisible="1"/> <!-- Used by @documents_controller_mixin.js -->
+            </xpath>
+        </field>
+    </record>
+</odoo>

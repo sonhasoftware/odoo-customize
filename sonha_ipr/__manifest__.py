@@ -1,0 +1,26 @@
+{
+    "name": "Sonha Internal Purchase Request",
+    "summary": "Internal purchase request workflow with approval and multi-company rules",
+    "version": "17.0.1.0.0",
+    "category": "Purchases",
+    "license": "LGPL-3",
+    "depends": [
+        "base",
+        "hr",
+        "mail",
+        "product",
+        "web",
+    ],
+    "data": [
+        "security/ipr_security.xml",
+        "security/ir.model.access.csv",
+        "data/sequence.xml",
+        "views/ipr_request_views.xml",
+        "views/ipr_approval_wizard_views.xml",
+        "views/hr_employee_views.xml",
+        "views/menu_views.xml",
+    ],
+    "assets": {},
+    "installable": True,
+    "application": True,
+}

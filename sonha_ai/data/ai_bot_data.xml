@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="partner_sonha_ai" model="res.partner">
+            <field name="name">Sonha AI Assistant</field>
+            <field name="company_id" eval="False"/>
+            <field name="email">ai@sonha.local</field>
+            <field name="active" eval="True"/>
+            <field name="tz">Asia/Ho_Chi_Minh</field>
+            <field name="is_company" eval="False"/>
+            <!-- Avatar can be added later if needed -->
+        </record>
+    </data>
+</odoo>

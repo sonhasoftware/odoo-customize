@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sonha_ai.ChatWindow" owl="1">
+        <div class="o_sonha_ai_chat_window" t-ref="chatWindow" 
+             t-att-class="{ 'fullscreen': state.isFullScreen, 'minimized': state.isMinimized }" 
+             t-if="props.isOpen">
+            
+            <div t-if="state.isMinimized" class="minimized-logo" t-on-pointerdown="_onDragStart" t-on-click="_onLogoClick" title="Mở rộng AI Chat">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="ai-star">
+                    <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" fill="currentColor"/>
+                </svg>
+            </div>
+            
+            <t t-else="">
+                <div class="ai-chat-header">
+                    <div class="header-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="ai-star">
+                            <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" fill="currentColor"/>
+                        </svg>
+                        Ask AI
+                    </div>
+                    <div class="header-actions">
+                        <div class="action-btn" t-on-click="_toggleMinimize" title="Thu nhỏ (Minimize)">
+                            <i class="fa fa-minus"/>
+                        </div>
+                        <div class="action-btn" t-on-click="_toggleFullScreen" title="Phóng to / Thu nhỏ (Fullscreen)">
+                            <i t-attf-class="fa #{state.isFullScreen ? 'fa-compress' : 'fa-expand'}"/>
+                        </div>
+                        <div class="action-btn close-btn" t-on-click="props.onClose" title="Đóng">
+                            <i class="fa fa-times"/>
+                        </div>
+                    </div>
+                </div>
+            
+            <div class="ai-chat-body" t-ref="chatBody">
+                <t t-foreach="state.messages" t-as="msg" t-key="msg.id">
+                    <div t-attf-class="chat-message #{msg.role}">
+                        <t t-out="msg.formattedContent"/>
+                        
+                        <div class="message-actions" t-if="msg.role === 'ai'">
+                            <button t-on-click="() => this._copyMessage(msg.content)" title="Copy">
+                                <i class="fa fa-copy"/>
+                            </button>
+                            <button t-on-click="() => this._logAsNote(msg.content)" title="Log as Note">
+                                <i class="fa fa-file-text-o"/>
+                            </button>
+                            <button t-on-click="() => this._sendAsMessage(msg.content)" title="Send as Message">
+                                <i class="fa fa-envelope-o"/>
+                            </button>
+                        </div>
+                        
+                        <div class="chart-container" t-if="msg.chartData">
+                            <div class="canvas-wrapper">
+                                <canvas t-attf-id="chart_#{msg.id}"></canvas>
+                            </div>
+                        </div>
+                        
+                        <t t-if="msg.multiChartData">
+                            <div class="multi-charts-wrapper">
+                                <t t-foreach="msg.multiChartData" t-as="chart" t-key="chart.title">
+                                    <div class="chart-container multi-chart">
+                                        <h4 class="chart-title"><t t-esc="chart.title"/></h4>
+                                        <div class="canvas-wrapper">
+                                            <canvas t-attf-id="chart_#{msg.id}_#{chart_index}"></canvas>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+                        </t>
+                        
+                        <div class="download-container" t-if="msg.fileData">
+                            <a class="btn-download" t-att-download="msg.filename" t-attf-href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,#{msg.fileData}">
+                                <i class="fa fa-download"/> Tải xuống <t t-esc="msg.filename"/>
+                            </a>
+                        </div>
+                    </div>
+                </t>
+                
+                <div class="typing-indicator-container" t-if="state.isTyping">
+                    <div class="bot-avatar">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" fill="currentColor"/>
+                        </svg>
+                    </div>
+                    <div class="typing-indicator">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="ai-chat-suggestions">
+                <div class="suggestion-chip" t-on-click="() => this._useSuggestion('Mở màn hình Bán hàng')">Mở Bán hàng</div>
+                <div class="suggestion-chip" t-on-click="() => this._useSuggestion('Tóm tắt bản ghi này')">Tóm tắt bản ghi</div>
+                <div class="suggestion-chip" t-on-click="() => this._useSuggestion('Dịch tin nhắn chatter gần nhất')">Dịch chatter</div>
+                <div class="suggestion-chip" t-on-click="() => this._useSuggestion('Gợi ý bước tiếp theo')">Gợi ý</div>
+                <div class="suggestion-chip" t-on-click="() => this._useSuggestion('Cải thiện bản nháp')">Cải thiện</div>
+            </div>
+            
+            <div class="ai-chat-input">
+                <input type="text" 
+                       placeholder="Hỏi AI..." 
+                       t-model="state.inputValue" 
+                       t-on-keydown="_onKeydown"/>
+                <button class="send-btn" 
+                        t-on-click="_sendMessage" 
+                        t-att-disabled="!state.inputValue.trim() or state.isTyping">
+                    <i class="fa fa-paper-plane"/>
+                </button>
+            </div>
+            </t>
+        </div>
+    </t>
+</templates>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="ai_topic_view_search" model="ir.ui.view">
+        <field name="name">ai.topic.view.search</field>
+        <field name="model">ai.topic</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" string="Topic" filter_domain="['|', ('name', 'ilike', self), ('description', 'ilike', self)]"/>
+                <field name="instructions"/>
+                <field name="tool_ids"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="ai_topic_view_form" model="ir.ui.view">
+        <field name="name">ai.topic.form</field>
+        <field name="model">ai.topic</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet class="o_ai_topic_form">
+                    <div class="oe_title mb-4">
+                        <div>
+                            <label for="name"/>
+                            <h1 class="mb-0">
+                                <field name="name" placeholder="e.g. Chat with customers"/>
+                            </h1>
+                            <h4>
+                                <field name="description" options="{'line_breaks': 0}" placeholder="Summarize what this topic does"/>
+                            </h4>
+                        </div>
+                    </div>
+                    <group>
+                        <field name="instructions" placeholder="Explain to the Agent what they need to do..."/>
+                        <field name="tool_ids" widget="many2many_tags" options="{'no_quick_create': True, 'edit_tags': True}" 
+                            context="{'default_use_in_ai': True}"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="ai_topic_view_list" model="ir.ui.view">
+        <field name="name">ai.topic.list</field>
+        <field name="model">ai.topic</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="description"/>
+                <field name="tool_ids" widget="many2many_tags"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="ai_topic_view_kanban" model="ir.ui.view">
+        <field name="name">ai.topic.kanban</field>
+        <field name="model">ai.topic</field>
+        <field name="arch" type="xml">
+            <kanban class="o_ai_agent_kanban">
+                <templates>
+                    <t t-name="kanban-box">
+                        <field name="name" class="fw-bold fs-5"/>
+                        <field name="description"/>
+                        <field name="tool_ids"/>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="ai_topic_action" model="ir.actions.act_window">
+        <field name="name">Topics</field>
+        <field name="res_model">ai.topic</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first topic!
+            </p>
+            <p>
+                Topics help you manage and organize your AI operations.
+            </p>
+        </field>
+    </record>
+</odoo>

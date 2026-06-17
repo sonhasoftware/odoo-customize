@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+        <record id="ai_agent_livechat" model="ai.agent">
+            <field name="name">Livechat AI Agent</field>
+            <field name="subtitle">Respond to Customers' Inquiries</field>
+            <field name="system_prompt">You are a helpful and polite live chat operator. Your primary goal is to assist users
+efficiently and professionally, resolve their issues, or guide them to the correct resources.
+            </field>
+            <field name="response_style">analytical</field>
+            <field name="llm_model">gpt-4o</field>
+            <field name="create_uid" ref="base.user_admin"/>
+        </record>
+    </data>
+</odoo>
