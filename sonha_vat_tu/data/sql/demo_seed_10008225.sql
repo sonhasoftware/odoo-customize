@@ -142,24 +142,25 @@ WHERE v.company_id = c.id
   AND v.ma_nvl = d.ma_nvl
   AND v.month_key = d.month_key;
 
-WITH demo_vdd(company_code, ma_nvl, month_key, month_date, so_luong) AS (
+WITH demo_vdd(company_code, pr_number, ma_nvl, month_key, month_date, so_luong) AS (
     VALUES
-        ('SSP', '11002356', '06/2026', DATE '2026-06-01', 100.0),
-        ('SSP', '11002360', '06/2026', DATE '2026-06-01', 200.0),
-        ('SSP', '25000038', '06/2026', DATE '2026-06-01', 300.0),
-        ('SSP', '11002495', '07/2026', DATE '2026-07-01', 150.0),
-        ('SSP', '11002498', '07/2026', DATE '2026-07-01', 250.0),
-        ('SSP', '25000038', '07/2026', DATE '2026-07-01', 100.0),
-        ('SSP', '11002889', '08/2026', DATE '2026-08-01', 80.0),
-        ('SSP', '11002890', '08/2026', DATE '2026-08-01', 120.0),
-        ('SSP', '25000033', '08/2026', DATE '2026-08-01', 60.0)
+        ('SSP', 'PR-DEMO-0626', '11002356', '06/2026', DATE '2026-06-01', 100.0),
+        ('SSP', 'PR-DEMO-0626', '11002360', '06/2026', DATE '2026-06-01', 200.0),
+        ('SSP', 'PR-DEMO-0626', '25000038', '06/2026', DATE '2026-06-01', 300.0),
+        ('SSP', 'PR-DEMO-0726', '11002495', '07/2026', DATE '2026-07-01', 150.0),
+        ('SSP', 'PR-DEMO-0726', '11002498', '07/2026', DATE '2026-07-01', 250.0),
+        ('SSP', 'PR-DEMO-0726', '25000038', '07/2026', DATE '2026-07-01', 100.0),
+        ('SSP', 'PR-DEMO-0826', '11002889', '08/2026', DATE '2026-08-01', 80.0),
+        ('SSP', 'PR-DEMO-0826', '11002890', '08/2026', DATE '2026-08-01', 120.0),
+        ('SSP', 'PR-DEMO-0826', '25000033', '08/2026', DATE '2026-08-01', 60.0)
 )
 INSERT INTO vat_tu_di_duong (
-    company_id, ma_nvl, ten_nvl, month_key, month_date,
+    company_id, pr_number, ma_nvl, ten_nvl, month_key, month_date,
     so_luong, create_uid, write_uid, create_date, write_date
 )
 SELECT
     c.id,
+    d.pr_number,
     d.ma_nvl,
     mh.ten_hang,
     d.month_key,
@@ -169,7 +170,8 @@ SELECT
 FROM demo_vdd d
 JOIN res_company c ON c.company_code = d.company_code
 LEFT JOIN ma_hang mh ON mh.ma_sap = d.ma_nvl
-ON CONFLICT (company_id, ma_nvl, month_key) DO UPDATE SET
+ON CONFLICT (company_id, ma_nvl, month_key, pr_number) DO UPDATE SET
+    pr_number = EXCLUDED.pr_number,
     ten_nvl = EXCLUDED.ten_nvl,
     month_date = EXCLUDED.month_date,
     so_luong = EXCLUDED.so_luong,

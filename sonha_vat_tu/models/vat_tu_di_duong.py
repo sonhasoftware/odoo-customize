@@ -19,15 +19,16 @@ class VatTuDiDuong(models.Model):
     )
     ma_nvl = fields.Char(string='Mã NVL', index=True)
     ten_nvl = fields.Char(string='Tên NVL', index=True)
+    pr_number = fields.Char(string='Số PR', index=True)
     month_key = fields.Char(string='Tháng', index=True)
     month_date = fields.Date(string='Tháng tính toán', index=True)
     so_luong = fields.Float(string='Số lượng', digits=(16, 3))
 
     _sql_constraints = [
         (
-            'uniq_company_nvl_month',
-            'unique(company_id, ma_nvl, month_key)',
-            'Đã có dòng vật tư đi đường cho cùng Đơn vị, Mã NVL và Tháng.',
+            'uniq_company_nvl_month_pr',
+            'unique(company_id, ma_nvl, month_key, pr_number)',
+            'Đã có dòng vật tư đi đường cho cùng Đơn vị, Mã NVL, Tháng và Số PR.',
         ),
     ]
 

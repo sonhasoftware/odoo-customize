@@ -31,7 +31,7 @@
         'views/bao_cao_nhu_cau_vat_tu_views.xml',
         'views/menu_views.xml',
         'data/cron_jobs.xml',
-        'data/sql/demo_seed_10008225.sql',
+        # 'data/sql/demo_seed_10008225.sql',
 
     ],
     'assets': {

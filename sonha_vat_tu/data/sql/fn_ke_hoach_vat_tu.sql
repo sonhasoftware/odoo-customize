@@ -135,8 +135,13 @@ BEGIN
         month_key,
         COALESCE(month_date, TO_DATE(month_key, 'MM/YYYY')) AS month_date,
         ma_nvl,
-        so_luong
-    FROM vat_tu_di_duong;
+        SUM(COALESCE(so_luong, 0)) AS so_luong
+    FROM vat_tu_di_duong
+    GROUP BY
+        company_id,
+        month_key,
+        COALESCE(month_date, TO_DATE(month_key, 'MM/YYYY')),
+        ma_nvl;
 
     CREATE INDEX ON _tmp_vdd (company_id, month_date, ma_nvl);
 

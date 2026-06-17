@@ -7,6 +7,7 @@
         <field name="arch" type="xml">
             <tree string="Vật tư đi đường" editable="bottom">
                 <field name="company_id" context="{'vat_tu_company_code_display': True}"/>
+                <field name="pr_number"/>
                 <field name="ma_nvl" required="1"/>
                 <field name="ten_nvl"/>
                 <field name="month_key" required="1"/>
@@ -21,6 +22,7 @@
         <field name="arch" type="xml">
             <search>
                 <field name="company_id" context="{'vat_tu_company_code_display': True}"/>
+                <field name="pr_number"/>
                 <field name="ma_nvl"/>
                 <field name="ten_nvl"/>
                 <field name="month_key"/>

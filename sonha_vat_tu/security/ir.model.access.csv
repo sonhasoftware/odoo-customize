@@ -2,7 +2,7 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_ma_hang_user,ma.hang.user,model_ma_hang,,1,1,1,1
 access_bom_user,bom.user,model_bom,,1,1,1,1
 access_ke_hoach_vat_tu_ban_cung_ung,ke.hoach.vat.tu.ban.cung.ung,model_ke_hoach_vat_tu,sonha_vat_tu.group_ban_cung_ung_vat_tu,1,1,1,0
-access_ke_hoach_vat_tu_bo_phan,ke.hoach.vat.tu.bo.phan,model_ke_hoach_vat_tu,sonha_vat_tu.group_bo_phan_vat_tu,1,1,1,0
+access_ke_hoach_vat_tu_bo_phan,ke.hoach.vat.tu.bo.phan,model_ke_hoach_vat_tu,sonha_vat_tu.group_bo_phan_vat_tu,1,1,0,0
 access_ke_hoach_vat_tu_truong_bo_phan,ke.hoach.vat.tu.truong.bo.phan,model_ke_hoach_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu,1,1,1,1
 access_ke_hoach_kinh_doanh_ban_cung_ung,ke.hoach.kinh.doanh.ban.cung.ung,model_ke_hoach_kinh_doanh,sonha_vat_tu.group_ban_cung_ung_vat_tu,1,1,1,1
 access_ke_hoach_kinh_doanh_bo_phan,ke.hoach.kinh.doanh.bo.phan,model_ke_hoach_kinh_doanh,sonha_vat_tu.group_bo_phan_vat_tu,1,0,0,0

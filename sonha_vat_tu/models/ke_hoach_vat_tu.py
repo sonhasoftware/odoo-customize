@@ -188,6 +188,56 @@ class KeHoachVatTu(models.Model):
                 next_no = 1
         return '%s%04d' % (prefix, next_no)
 
+    @api.model
+    def _get_view(self, view_id=None, view_type='form', **options):
+        arch, view = super()._get_view(view_id=view_id, view_type=view_type, **options)
+        if view_type not in ('tree', 'form'):
+            return arch, view
+
+        action_id = options.get('action_id')
+
+        action_kinh_doanh = self.env.ref(
+            'sonha_vat_tu.action_ke_hoach_kinh_doanh_period',
+            raise_if_not_found=False,
+        )
+        action_san_xuat = self.env.ref(
+            'sonha_vat_tu.action_ke_hoach_san_xuat_period',
+            raise_if_not_found=False,
+        )
+        action_vat_tu = self.env.ref(
+            'sonha_vat_tu.action_ke_hoach_vat_tu_period',
+            raise_if_not_found=False,
+        )
+        readonly_step_views = [
+            self.env.ref('sonha_vat_tu.view_ke_hoach_vat_tu_form_b1', raise_if_not_found=False),
+            self.env.ref('sonha_vat_tu.view_ke_hoach_vat_tu_form_b2', raise_if_not_found=False),
+            self.env.ref('sonha_vat_tu.view_ke_hoach_vat_tu_form_b3', raise_if_not_found=False),
+            self.env.ref('sonha_vat_tu.view_ke_hoach_vat_tu_form_b4', raise_if_not_found=False),
+            self.env.ref('sonha_vat_tu.view_ke_hoach_vat_tu_form_b5', raise_if_not_found=False),
+        ]
+        readonly_step_view_ids = [view.id for view in readonly_step_views if view]
+
+        is_kinh_doanh_action = action_kinh_doanh and action_id == action_kinh_doanh.id
+        is_san_xuat_or_vat_tu_action = (
+            (action_san_xuat and action_id == action_san_xuat.id)
+            or (action_vat_tu and action_id == action_vat_tu.id)
+        )
+        is_readonly_step_view = view_type == 'form' and view_id in readonly_step_view_ids
+        lock_create = (
+            (is_san_xuat_or_vat_tu_action or is_readonly_step_view)
+            and self.env.user.has_group('sonha_vat_tu.group_ban_cung_ung_vat_tu')
+        ) or (
+            is_kinh_doanh_action
+            and self.env.user.has_group('sonha_vat_tu.group_bo_phan_vat_tu')
+        )
+
+        if lock_create:
+            for tree in arch.xpath('//tree'):
+                tree.set('create', 'false')
+            for form in arch.xpath('//form'):
+                form.set('create', 'false')
+        return arch, view
+
     @api.model_create_multi
     def create(self, vals_list):
         Company = self.env['res.company']
@@ -203,6 +253,14 @@ class KeHoachVatTu(models.Model):
                 company_key = re.sub(r'[^A-Za-z0-9]+', '', company.company_code or '') or str(company.id or 'CTY')
                 vals['code'] = 'KHVT_%s_%04d' % (company_key.upper(), counters[company_id])
         return super().create(vals_list)
+
+    def unlink(self):
+        locked = self.filtered(lambda rec: rec.state != 'ke_hoach' or rec.approval_state != 'draft')
+        if locked:
+            raise UserError(_(
+                'Không thể xóa kỳ kế hoạch đã sang bước sau hoặc đã gửi/phê duyệt kế hoạch đặt vật tư.'
+            ))
+        return super().unlink()
 
     @api.constrains('period_month')
     def _check_period_month(self):
@@ -752,7 +810,7 @@ class KeHoachVatTu(models.Model):
             'KHSX_%s.xlsx' % (self.code or self.id),
         )
 
-    def _action_open_step(self, view_xmlid, context=None):
+    def _action_open_step(self, view_xmlid):
         self.ensure_one()
         return {
             'type': 'ir.actions.act_window',
@@ -762,26 +820,13 @@ class KeHoachVatTu(models.Model):
             'view_mode': 'form',
             'views': [(self.env.ref(view_xmlid).sudo().id, 'form')],
             'target': 'current',
-            'context': context or {},
         }
 
     def action_open_workflow_sx(self):
-        return self._action_open_step(
-            'sonha_vat_tu.view_ke_hoach_vat_tu_form_sx',
-            context={
-                'form_view_ref': 'sonha_vat_tu.view_ke_hoach_vat_tu_form_sx',
-                'vat_tu_chatter_scope': 'sx',
-            },
-        )
+        return self._action_open_step('sonha_vat_tu.view_ke_hoach_vat_tu_form_sx')
 
     def action_open_workflow_vt(self):
-        return self._action_open_step(
-            'sonha_vat_tu.view_ke_hoach_vat_tu_form_vt',
-            context={
-                'form_view_ref': 'sonha_vat_tu.view_ke_hoach_vat_tu_form_vt',
-                'vat_tu_chatter_scope': 'vt',
-            },
-        )
+        return self._action_open_step('sonha_vat_tu.view_ke_hoach_vat_tu_form_vt')
 
     def action_open_step_b1(self):
         return self._action_open_step('sonha_vat_tu.view_ke_hoach_vat_tu_form_b1')
