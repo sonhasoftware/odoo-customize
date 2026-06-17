@@ -47,6 +47,7 @@
                     <thead>
                         <tr>
                             <th>ND CÔNG VIỆC THÁNG</th>
+                            <th>CHỈ TIÊU ĐO LƯỜNG</th>
                             <th>TIÊU CHÍ</th>
                             <th class="unit-result">KẾT QUẢ ĐƠN VỊ</th>
                             <th>MÔ TẢ CHI TIẾT</th>
@@ -62,6 +63,7 @@
                                 <td class="kpi-department" rowspan="2"><t t-esc="kpi.department_id.id"/></td>
                                 <td rowspan="2" class="work-volume"><t t-esc="kpi.small_items_each_month.small_items_each_month"/></td>
                                 <td rowspan="2" class="start-date"><t t-esc="kpi.start_date"/></td>
+                                <td rowspan="2"><t t-esc="kpi.dv_do_luong"/></td>
                                 <td>Khối lượng công việc thực hiện</td>
                                 <td class="result"><t t-esc="kpi.dv_amount_work * 100"/> %</td>
                                 <td rowspan="2"><t t-esc="kpi.dv_description"/></td>
