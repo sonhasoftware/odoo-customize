@@ -63,7 +63,7 @@
 <!--                                        <field name="month"/>-->
                                         <field name="start_date" readonly="1"/>
                                         <field name="end_date" readonly="1"/>
-
+                                        <field name="dv_do_luong"/>
                                         <field name="dv_amount_work" widget="percentage"/>
                                         <field name="dv_matter_work" widget="percentage"/>
                                         <field name="state"/>
