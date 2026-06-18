@@ -109,7 +109,7 @@ th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number
     font-size: 18px !important;
 }
 
-.custom_status header.list-group-item.list-group-item-action.d-flex.align-items-center.px-0.py-lg-0.border-0:not(:has(span.o_search_panel_label_title.text-truncate.fw-bold[data-tooltip="Tất cả"])):not(:has(small.o_search_panel_counter.text-muted.mx-2.fw-bold))::after {
+.custom_status header.list-group-item.list-group-item-action.d-flex.align-items-center.px-0.py-lg-0.border-0:not(:has(span.o_search_panel_label_title.text-truncate.fw-bold)):not(:has(small.o_search_panel_counter.text-muted.mx-2.fw-bold))::after {
     content: "0";
     margin-left: 8px;
     margin-right: 8px;
