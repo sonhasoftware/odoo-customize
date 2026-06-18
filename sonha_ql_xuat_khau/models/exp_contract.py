@@ -19,7 +19,7 @@ class ExpContract(models.Model):
     total_amount = fields.Float(string="Tổng tiền", required=True, store=True, tracking=True)
     deposit_percent = fields.Float(string="% cọc", required=True, store=True, tracking=True)
     deposit_amount = fields.Float(string="Tiền cọc", required=True, store=True, tracking=True)
-    currency = fields.Many2one('exp.config.currency', string="Tiền tệ", store=True, tracking=True)
+    currency = fields.Many2one('exp.config.currency', string="Tiền tệ", required=True, store=True, tracking=True)
     sign_date = fields.Date(string="Ngày ký hợp đồng", required=True, store=True, tracking=True)
     lc_required = fields.Boolean(string="Bản LC", required=True, store=True, tracking=True)
     lc_file = fields.Many2many('ir.attachment',
@@ -31,8 +31,8 @@ class ExpContract(models.Model):
                                  default=lambda self: self.env.user, required=True, store=True)
     created_date = fields.Date(string="Ngày tạo",
                                default=fields.Date.context_today, required=True, store=True)
-    shipping = fields.Text(string="Vận chuyển", required=True, store=True, tracking=True)
-    payment = fields.Text(string="Thanh toán", required=True, store=True, tracking=True)
+    shipping = fields.Text(string="Vận chuyển", store=True, tracking=True)
+    payment = fields.Text(string="Thanh toán", store=True, tracking=True)
     shipping_port_from = fields.Many2one('exp.config.port', string="Cảng bốc hàng",
                                          domain="[('type', '=', 'port_form')]", store=True, tracking=True)
     shipping_port_to = fields.Many2one('exp.config.port', string="Cảng dỡ hàng",
@@ -76,7 +76,7 @@ class ExpContract(models.Model):
                                       ('done', "Đã hoàn tất xuất hàng")],
                                      string="Trạng thái xuất hàng",
                                      compute="_compute_export_status",
-                                     default='draft', required=True, store=True, tracking=True)
+                                     default='draft', store=True, tracking=True)
 
     state_code = fields.Char(related='state_id.code', store=True)
     button_label = fields.Char(compute="_compute_state_button")
@@ -360,6 +360,7 @@ class ExpContract(models.Model):
                             | r.declaration_file
                             | r.export_detail.mapped('file_invoice')
                             | r.export_detail.mapped('file_pkl')
+                            | r.bol_file
                     )
 
                     unique = self.env['ir.attachment']
