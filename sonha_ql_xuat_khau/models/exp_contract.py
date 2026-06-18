@@ -455,6 +455,10 @@ class ExpContract(models.Model):
                 pass
             else:
                 raise ValidationError("Bạn không có quyền xóa hợp đồng")
+            if r.state_id.is_default:
+                pass
+            else:
+                raise ValidationError("Chỉ có thể xóa khi ở trạng thái đầu tiên!")
             self.env['exp.production.order'].sudo().search([('contract_id', '=', r.id)]).unlink()
             self.env['exp.product'].sudo().search([('contract_id', '=', r.id)]).unlink()
             self.env['exp.shipment'].sudo().search([('contract_id', '=', r.id)]).unlink()
