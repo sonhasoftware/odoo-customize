@@ -1,0 +1,34 @@
+<odoo>
+    <record id="view_popup_required_document_wizard" model="ir.ui.view">
+        <field name="name">popup.required.document.form</field>
+        <field name="model">popup.required.document</field>
+        <field name="arch" type="xml">
+            <form string="Yêu cầu đính kèm file">
+                <group>
+                    <field name="file" widget="many2many_binary" required="required_file"/>
+                    <field name="file_name" invisible="1"/>
+                    <field name="contract_id" invisible="1"/>
+                    <field name="state_id" invisible="1"/>
+                    <field name="state_code" invisible="1"/>
+                    <field name="key" invisible="1"/>
+                    <field name="required_file" invisible="1"/>
+                    <field name="body_mail" invisible="1"/>
+                    <field name="mail_to" invisible="1"/>
+                    <field name="cc_to" invisible="1"/>
+                </group>
+                <footer>
+                    <button string="Xác nhận" type="object" name="action_confirm" class="btn-primary"/>
+                    <button string="Thông tin mail" invisible="key != 'change_stt' or state_code == 'send'" type="object" name="action_mail_infor" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_popup_required_document" model="ir.actions.act_window">
+        <field name="name">Yêu cầu đính kèm file</field>
+        <field name="res_model">popup.required.document</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

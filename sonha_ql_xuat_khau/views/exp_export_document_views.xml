@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_exp_export_document_tree" model="ir.ui.view">
+        <field name="name">view.exp.export.document.tree</field>
+        <field name="model">exp.export.document</field>
+        <field name="arch" type="xml">
+            <tree string="Cấu hình tài liệu xuất" editable="bottom">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="file" filename="file_name" widget="binary"/>
+                <field name="file_name" column_invisible="True"/>
+                <field name="type"/>
+                <field name="note"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_exp_export_document" model="ir.actions.act_window">
+        <field name="name">Cấu hình tài liệu xuất</field>
+        <field name="res_model">exp.export.document</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

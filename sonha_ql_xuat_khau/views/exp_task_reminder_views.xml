@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_exp_task_reminder_tree" model="ir.ui.view">
+        <field name="name">view.exp.task.reminder.tree</field>
+        <field name="model">exp.task.reminder</field>
+        <field name="arch" type="xml">
+            <tree string="Công việc" editable="bottom">
+                <field name="contract_id"/>
+                <field name="document_type_id"/>
+                <field name="due_date"/>
+                <field name="assigned_to"/>
+                <field name="status"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_exp_task_reminder" model="ir.actions.act_window">
+        <field name="name">Công việc</field>
+        <field name="res_model">exp.task.reminder</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

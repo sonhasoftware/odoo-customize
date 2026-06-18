@@ -1,0 +1,26 @@
+<odoo>
+    <record id="view_popup_multi_invoice_pkl_wizard" model="ir.ui.view">
+        <field name="name">popup.multi.invoice.pkl.form</field>
+        <field name="model">popup.multi.invoice.pkl</field>
+        <field name="arch" type="xml">
+            <form string="Đính kèm file invoice, Packing List">
+                <group>
+                    <field name="invoice_file" widget="many2many_binary"/>
+                    <field name="pkl_file" widget="many2many_binary"/>
+                    <field name="contract_id" invisible="1"/>
+                </group>
+                <footer>
+                    <button string="Xác nhận" type="object" name="action_confirm" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_popup_multi_invoice_pkl" model="ir.actions.act_window">
+        <field name="name">Đính kèm file invoice, Packing List</field>
+        <field name="res_model">popup.multi.invoice.pkl</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

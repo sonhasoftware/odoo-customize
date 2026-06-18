@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="popup_config_mail_template_form_view" model="ir.ui.view">
+        <field name="name">popup.config.mail.template.form.view</field>
+        <field name="model">popup.config.mail.template</field>
+        <field name="arch" type="xml">
+            <form string="Thông tin mail">
+                <group>
+                    <group>
+                        <field name="person_receive"/>
+                    </group>
+                    <group>
+                        <button string="Đặt làm mặc định" type="object" name="action_set_default" class="oe_highlight popup-default-button"/>
+                    </group>
+                </group>
+                <group>
+                    <field name="mail_to"/>
+                    <field name="cc_to"/>
+<!--                    <field name="attach_file" filename="attach_file_name" readonly="1" widget="binary"/>-->
+<!--                    <field name="attach_file_name" invisible="1"/>-->
+                    <field name="subject"/>
+                    <field name="body_mail"/>
+                    <field name="state_code" invisible="1"/>
+                </group>
+                <footer>
+                    <button string="Áp dụng" type="object" name="action_confirm" class="oe_highlight" invisible="state_code == 'bill_of_lading'"/>
+                    <button string="Gửi mail" type="object" name="action_send" class="oe_highlight" invisible="state_code != 'bill_of_lading'"/>
+                    <button string="Cancel" class="oe_link" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_popup_config_mail_template" model="ir.actions.act_window">
+        <field name="name">Thông tin mail</field>
+        <field name="res_model">popup.config.mail.template</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

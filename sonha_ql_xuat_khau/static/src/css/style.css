@@ -1,0 +1,166 @@
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="sign_date"] {
+    width: 12% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="customer_id"] {
+    width: 15% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="currency"] {
+    width: 8% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_badge_cell.opacity-trigger-hover[data-name="state_id"] {
+    width: 10% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="created_by"] {
+    width: 12% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.o_float_cell.opacity-trigger-hover[data-name="total_amount"] {
+    width: 12% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="product_code"] {
+    width: 16% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.opacity-trigger-hover[data-name="quantity"] {
+    width: 12% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="unit"] {
+    width: 14% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.opacity-trigger-hover[data-name="number_time"] {
+    width: 8% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="date_shipment"] {
+    width: 12% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.opacity-trigger-hover[data-name="quantity"] {
+    width: 11% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="note"] {
+    width: 20% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="so_cont_number"] {
+    width: 10% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="status"] {
+    width: 20% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="date_packing_list"] {
+    width: 12% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="date_invoice"] {
+    width: 12% !important;
+}
+
+
+
+.exp-mail th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="name"] {
+    width: 25% !important;
+}
+
+.o_chatter_position_bottom th.o_list_button {
+    width: 16% !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="remind_type"] {
+    width: 40% !important;
+}
+
+.o_group.row.align-items-start .lower_field {
+    margin-top: 10px !important;
+}
+
+.o_group.row.align-items-start .upper_field {
+    margin-top: 10px !important;
+}
+
+.o_field_widget.o_readonly_modifier.o_field_text.lower_field {
+    margin-top: 10px !important;
+}
+
+th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number_th.opacity-trigger-hover[data-name="number_order"] {
+    width: 8% !important;
+}
+
+.custom_status header.list-group-item.list-group-item-action.d-flex.align-items-center.px-0.py-lg-0.border-0 {
+    font-size: 14px !important;
+    height: 40px !important;
+}
+
+.custom_status small.o_search_panel_counter.text-muted.mx-2.fw-bold {
+    font-size: 13px !important;
+}
+
+.custom_status header.o_search_panel_section_header.pt-4.pb-2.text-uppercase.cursor-default {
+    font-size: 18px !important;
+}
+
+.custom_status header.list-group-item.list-group-item-action.d-flex.align-items-center.px-0.py-lg-0.border-0:not(:has(span.o_search_panel_label_title.text-truncate.fw-bold[data-tooltip="Tất cả"])):not(:has(small.o_search_panel_counter.text-muted.mx-2.fw-bold))::after {
+    content: "0";
+    margin-left: 8px;
+    margin-right: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #495057C2;
+}
+
+.o_chatter_position_bottom .o_form_renderer.o_form_editable.d-flex.flex-nowrap.h-100 {
+    display: block !important;
+}
+
+.o_chatter_position_bottom .o-mail-ChatterContainer.o-mail-Form-chatter.oe_chatter.o-aside {
+    margin: 0px !important;
+    width: 100% !important;
+}
+
+.custom_list_button th.o_list_button::before {
+    content: "Chi tiết đơn hàng";
+    font-weight: bold;
+    color: #212529;
+    font-size: 14px;
+}
+
+.custom_list_button th.o_list_button {
+    text-align: center !important;
+    vertical-align: middle !important;
+}
+
+button.btn.btn-primary.tiny_font_size{
+    height: 23px !important;
+    font-size: 11px !important;
+}
+
+.exp_contract_header {
+    display: flex !important;
+    justify-content: space-between !important;
+}
+
+.popup-default-button span{
+    white-space: nowrap;
+}
+
+.custom_popup th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="radio_tick"] {
+    width: 50px !important;
+}
+
+.custom_popup th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="so_cont_number"] {
+    width: 250px !important;
+}
+
+.custom_popup th.align-middle.o_column_sortable.position-relative.cursor-pointer.opacity-trigger-hover[data-name="date_shipment"] {
+    width: 250px !important;
+}

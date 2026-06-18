@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_exp_customer_tree" model="ir.ui.view">
+        <field name="name">view.exp.customer.tree</field>
+        <field name="model">exp.customer</field>
+        <field name="arch" type="xml">
+            <tree string="Khách hàng" editable="bottom">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="address"/>
+                <field name="email"/>
+                <field name="phone"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_exp_customer" model="ir.actions.act_window">
+        <field name="name">Khách hàng</field>
+        <field name="res_model">exp.customer</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

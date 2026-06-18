@@ -1,0 +1,36 @@
+<odoo>
+    <data>
+        <record id="cron_fetch_so_data" model="ir.cron">
+            <field name="name">SAP - SO Data</field>
+            <field name="model_id" ref="model_exp_contract_api"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_get_data()</field>
+            <field name="interval_type">hours</field>
+            <field name="interval_number">1</field>
+            <field name="numbercall">-1</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="cron_fill_so_data" model="ir.cron">
+            <field name="name">Điền dữ liệu SO</field>
+            <field name="model_id" ref="model_exp_contract"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_fill_data_export()</field>
+            <field name="interval_type">hours</field>
+            <field name="interval_number">1</field>
+            <field name="numbercall">-1</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="cron_co_bh_reminder" model="ir.cron">
+            <field name="name">Nhắc lịch tạo CO, BH</field>
+            <field name="model_id" ref="model_exp_contract"/>
+            <field name="state">code</field>
+            <field name="code">model.remind_co_bh_cron()</field>
+            <field name="interval_type">days</field>
+            <field name="interval_number">1</field>
+            <field name="numbercall">-1</field>
+            <field name="active">True</field>
+        </record>
+    </data>
+</odoo>
