@@ -184,8 +184,14 @@ class FormWordSlip(models.Model):
             if not line.from_date or not line.to_date:
                 continue
 
-            current = line.from_date
-            while current <= line.to_date:
+            recompute_from = line.from_date
+            recompute_to = line.to_date
+            if rec.type.date_and_time == 'time':
+                recompute_from -= timedelta(days=1)
+                recompute_to += timedelta(days=1)
+
+            current = recompute_from
+            while current <= recompute_to:
                 for emp in employees:
                     self.env['employee.attendance.v2'].sudo().recompute_for_employee(
                         emp,
@@ -208,8 +214,14 @@ class FormWordSlip(models.Model):
             if not line.from_date or not line.to_date:
                 continue
 
-            current = line.from_date
-            while current <= line.to_date:
+            recompute_from = line.from_date
+            recompute_to = line.to_date
+            if line.type.date_and_time == 'time':
+                recompute_from -= timedelta(days=1)
+                recompute_to += timedelta(days=1)
+
+            current = recompute_from
+            while current <= recompute_to:
                 for emp in employees:
                     self.env['employee.attendance.v2'].sudo().recompute_for_employee(
                         emp,
