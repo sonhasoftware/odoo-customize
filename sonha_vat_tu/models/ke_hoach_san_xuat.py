@@ -12,7 +12,7 @@ class KeHoachSanXuat(models.Model):
     _name = 'ke.hoach.san.xuat'
     _description = 'Kế hoạch sản xuất theo tháng'
     _inherit = ['mail.thread', 'mail.activity.mixin']
-    _order = 'period_id, company_id, month_date, ma_sap, id'
+    _order = 'period_id, company_id, ma_sap, id'
 
     period_id = fields.Many2one(
         'ke.hoach.vat.tu', string='Kỳ',
@@ -24,34 +24,23 @@ class KeHoachSanXuat(models.Model):
 
     nganh_hang = fields.Char(string='Ngành hàng', index=True)
     dong_hang = fields.Char(string='Dòng hàng', index=True)
-    ma_hang_id = fields.Many2one(
-        'ma.hang', string='Mã hàng', index=True)
+    ma_hang = fields.Char(string='Mã hàng', index=True)
     ma_sap = fields.Char(
         string='Mã SAP', index=True)
 
 
-    month_key = fields.Char(
-        string='Tháng', index=True)
-    month_date = fields.Date(string='Tháng tính toán', index=True)
-    qty = fields.Float(
-        string='Số lượng', digits=(16, 2))
+    qty_t0 = fields.Float(string='Số lượng T0', digits=(16, 2))
+    qty_t1 = fields.Float(string='Số lượng T+1', digits=(16, 2))
+    qty_t2 = fields.Float(string='Số lượng T+2', digits=(16, 2))
+    qty_t3 = fields.Float(string='Số lượng T+3', digits=(16, 2))
 
     note = fields.Char(string='Ghi chú')
 
     _sql_constraints = [
         ('uniq_row',
-         'unique(period_id, company_id, ma_sap, month_key)',
-         'Trùng dòng: (Kỳ, Công ty, Mã SAP, Tháng) phải duy nhất!'),
+         'unique(period_id, company_id, ma_sap)',
+         'Trùng dòng: (Kỳ, Công ty, Mã SAP) phải duy nhất!'),
     ]
-
-    @api.constrains('month_key')
-    def _check_month_key(self):
-        pattern = re.compile(r'^(0[1-9]|1[0-2])/\d{4}$')
-        for rec in self:
-            if rec.month_key and not pattern.match(rec.month_key):
-                raise ValidationError(
-                    'Tháng phải đúng định dạng MM/YYYY, ví dụ 04/2026.'
-                )
 
     @api.constrains('company_id')
     def _check_production_company(self):
@@ -64,13 +53,6 @@ class KeHoachSanXuat(models.Model):
                 'Đơn vị sản xuất chỉ được phép là BNH hoặc SSP.'
             ))
 
-    @api.onchange('ma_hang_id')
-    def _onchange_ma_hang(self):
-        for rec in self:
-            if rec.ma_hang_id:
-                rec.ma_sap = rec.ma_hang_id.ma_sap or rec.ma_sap
-                rec.nganh_hang = rec.ma_hang_id.nganh_hang or rec.nganh_hang
-
     @api.model_create_multi
     def create(self, vals_list):
         MaHang = self.env['ma.hang'].sudo()
@@ -81,18 +63,12 @@ class KeHoachSanXuat(models.Model):
                 if period.state != 'ke_hoach':
                     raise UserError(_('Kế hoạch sản xuất đã khóa vì kỳ kế hoạch đã sang bước sau.'))
 
-            if vals.get('month_key') and not vals.get('month_date'):
-                vals['month_date'] = Period._month_key_to_date(vals['month_key'])
 
-            if vals.get('ma_hang_id'):
-                master = MaHang.browse(vals['ma_hang_id'])
-                vals.setdefault('ma_sap', master.ma_sap)
-                vals.setdefault('nganh_hang', master.nganh_hang)
 
-            if not vals.get('ma_hang_id') and vals.get('ma_sap'):
+
+            if vals.get('ma_sap'):
                 master = MaHang.search([('ma_sap', '=', vals['ma_sap'])], limit=1)
                 if master:
-                    vals['ma_hang_id'] = master.id
                     vals.setdefault('nganh_hang', master.nganh_hang)
 
             if not vals.get('company_id') and vals.get('period_id'):
@@ -135,9 +111,12 @@ class KeHoachSanXuat(models.Model):
         return {
             'nganh': self.nganh_hang or '',
             'dong': self.dong_hang or '',
+            'ma_hang': self.ma_hang or '',
             'ma_sap': self.ma_sap or '',
-            'month_key': self.month_key or '',
-            'qty': self._format_qty(self.qty),
+            'qty_t0': self._format_qty(self.qty_t0),
+            'qty_t1': self._format_qty(self.qty_t1),
+            'qty_t2': self._format_qty(self.qty_t2),
+            'qty_t3': self._format_qty(self.qty_t3),
         }
 
     @api.model
@@ -168,9 +147,12 @@ class KeHoachSanXuat(models.Model):
             "<tr>"
             f"<td>{cell(vals['nganh'])}</td>"
             f"<td>{cell(vals['dong'])}</td>"
+            f"<td>{cell(vals['ma_hang'])}</td>"
             f"<td>{cell(vals['ma_sap'])}</td>"
-            f"<td>{cell(vals['month_key'])}</td>"
-            f"<td class='text-end'>{cell(vals['qty'])}</td>"
+            f"<td class='text-end'>{cell(vals['qty_t0'])}</td>"
+            f"<td class='text-end'>{cell(vals['qty_t1'])}</td>"
+            f"<td class='text-end'>{cell(vals['qty_t2'])}</td>"
+            f"<td class='text-end'>{cell(vals['qty_t3'])}</td>"
             "</tr>"
             for vals in lines
         )
@@ -182,9 +164,12 @@ class KeHoachSanXuat(models.Model):
                         <tr>
                             <th>Ngành hàng</th>
                             <th>Dòng hàng</th>
+                            <th>Mã hàng</th>
                             <th>Mã SAP</th>
-                            <th>Tháng</th>
-                            <th class="text-end">Số lượng</th>
+                            <th class="text-end">T0</th>
+                            <th class="text-end">T+1</th>
+                            <th class="text-end">T+2</th>
+                            <th class="text-end">T+3</th>
                         </tr>
                     </thead>
                     <tbody>%s</tbody>
@@ -213,7 +198,14 @@ class KeHoachSanXuat(models.Model):
             )
 
     def write(self, vals):
-        TRACKED = {'ma_sap': 'Mã SAP', 'month_key': 'Tháng', 'qty': 'Số lượng'}
+        TRACKED = {
+            'ma_hang': 'Mã hàng',
+            'ma_sap': 'Mã SAP',
+            'qty_t0': 'Số lượng T0',
+            'qty_t1': 'Số lượng T+1',
+            'qty_t2': 'Số lượng T+2',
+            'qty_t3': 'Số lượng T+3',
+        }
 
         if not self.env.context.get('skip_period_lock'):
             self._check_period_editable()
@@ -221,10 +213,6 @@ class KeHoachSanXuat(models.Model):
         if 'company_id' in vals and not vals.get('company_id'):
             if not self.env.context.get('allow_unassigned_production_company'):
                 raise UserError(_('Đơn vị sản xuất không được để trống.'))
-
-        if 'month_key' in vals:
-            vals = dict(vals)
-            vals['month_date'] = self.env['ke.hoach.vat.tu']._month_key_to_date(vals.get('month_key'))
 
         old = {f: {r.id: r[f] for r in self} for f in TRACKED if f in vals}
         res = super().write(vals)
@@ -241,7 +229,7 @@ class KeHoachSanXuat(models.Model):
                     continue
                 ov_disp = ov if ov not in (False, None, '') else 'Trống'
                 nv_disp = nv if nv not in (False, None, '') else 'Trống'
-                ma_hang_code = rec.ma_hang_id.ma_sap if rec.ma_hang_id else ''
+                ma_hang_code = rec.ma_hang or ''
                 changes_by_period.setdefault(rec.period_id, []).append((
                     str(ov_disp),
                     str(nv_disp),
@@ -250,5 +238,3 @@ class KeHoachSanXuat(models.Model):
         self._log_field_changes(changes_by_period)
 
         return res
-
-

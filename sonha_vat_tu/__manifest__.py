@@ -31,13 +31,13 @@
         'views/bao_cao_nhu_cau_vat_tu_views.xml',
         'views/menu_views.xml',
         'data/cron_jobs.xml',
-        # 'data/sql/demo_seed_10008225.sql',
 
     ],
     'assets': {
         'web.assets_backend': [
             'sonha_vat_tu/static/src/scss/list_width.scss',
             'sonha_vat_tu/static/src/js/vat_tu_chatter_scope.js',
+            'sonha_vat_tu/static/src/js/vat_tu_dynamic_headers.js',
         ],
     },
     'installable': True,

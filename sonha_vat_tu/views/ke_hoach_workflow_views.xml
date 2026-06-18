@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="view_ke_hoach_vat_tu_tree_plan" model="ir.ui.view">
         <field name="name">ke.hoach.vat.tu.tree.plan</field>
@@ -48,13 +48,15 @@
                         </button>
                     </div>
                     <field name="ke_hoach_kinh_doanh_ids" context="{'default_period_id': id}" readonly="state != 'ke_hoach'">
-                        <tree editable="bottom">
+                        <tree editable="bottom" class="sh_free_width_tree">
                             <field name="nganh_hang" options="{'no_create': True, 'no_open': True}"/>
                             <field name="dong_hang" options="{'no_create': True, 'no_open': True}"/>
-                            <field name="ma_hang_id" options="{'no_create': True, 'no_open': True}"/>
-                            <field name="ma_sap" readonly="1" required="1"/>
-                            <field name="month_key" required="1"/>
-                            <field name="qty" sum="SL kinh doanh"/>
+                            <field name="ma_hang"/>
+                            <field name="ma_sap" required="1"/>
+                            <field name="qty_t0" sum="T0"/>
+                            <field name="qty_t1" sum="T1"/>
+                            <field name="qty_t2" sum="T2"/>
+                            <field name="qty_t3" sum="T3"/>
                         </tree>
                     </field>
                 </sheet>
@@ -113,11 +115,13 @@
                         <tree editable="bottom">
                             <field name="nganh_hang" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                             <field name="dong_hang" readonly="1" options="{'no_create': True, 'no_open': True}"/>
-                            <field name="ma_hang_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="ma_hang" readonly="1"/>
                             <field name="ma_sap" readonly="1" required="1"/>
-                            <field name="month_key" readonly="1" required="1"/>
                             <field name="company_id" column_invisible="True"/>
-                            <field name="qty" sum="SL sản xuất"/>
+                            <field name="qty_t0" sum="T0"/>
+                            <field name="qty_t1" sum="T1"/>
+                            <field name="qty_t2" sum="T2"/>
+                            <field name="qty_t3" sum="T3"/>
                         </tree>
                     </field>
                 </sheet>
@@ -171,16 +175,24 @@
                     </group>
                     <field name="ke_hoach_vat_tu_line_ids" readonly="1">
                         <tree editable="bottom"
-                              decoration-danger="qty_chenh_lech &lt; 0"
-                              decoration-success="qty_chenh_lech &gt; 0">
+                              decoration-danger="qty_cl_t0 &lt; 0 or qty_cl_t1 &lt; 0 or qty_cl_t2 &lt; 0 or qty_cl_t3 &lt; 0"
+                              decoration-success="qty_cl_t0 &gt; 0 or qty_cl_t1 &gt; 0 or qty_cl_t2 &gt; 0 or qty_cl_t3 &gt; 0">
                             <field name="nganh_hang"/>
                             <field name="dong_hang"/>
-                            <field name="ma_hang_id"/>
+                            <field name="ma_hang"/>
                             <field name="ma_sap"/>
-                            <field name="month_key"/>
-                            <field name="qty_kinh_doanh" string="Số lượng kinh doanh" sum="SL kinh doanh"/>
-                            <field name="qty_san_xuat" string="Số lượng sản xuất" sum="SL sản xuất"/>
-                            <field name="qty_chenh_lech" string="Chênh lệch" sum="Chênh lệch"/>
+                            <field name="qty_kd_t0" sum="KD T0"/>
+                            <field name="qty_kd_t1" sum="KD T1"/>
+                            <field name="qty_kd_t2" sum="KD T2"/>
+                            <field name="qty_kd_t3" sum="KD T3"/>
+                            <field name="qty_sx_t0" sum="SX T0"/>
+                            <field name="qty_sx_t1" sum="SX T1"/>
+                            <field name="qty_sx_t2" sum="SX T2"/>
+                            <field name="qty_sx_t3" sum="SX T3"/>
+                            <field name="qty_cl_t0" sum="CL T0"/>
+                            <field name="qty_cl_t1" sum="CL T1"/>
+                            <field name="qty_cl_t2" sum="CL T2"/>
+                            <field name="qty_cl_t3" sum="CL T3"/>
                         </tree>
                     </field>
                 </sheet>

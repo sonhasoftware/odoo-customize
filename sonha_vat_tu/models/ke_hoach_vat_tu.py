@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 from datetime import date
 import os as _os
 import re
@@ -174,8 +174,6 @@ class KeHoachVatTu(models.Model):
             'Vui lòng kiểm tra lại công ty mặc định của user trước khi thao tác kế hoạch sản xuất.'
         ))
 
-
-
     def _build_period_code(self, company):
         company_key = re.sub(r'[^A-Za-z0-9]+', '', company.company_code or '') or str(company.id or 'CTY')
         prefix = 'KHVT_%s_' % company_key.upper()
@@ -291,19 +289,28 @@ class KeHoachVatTu(models.Model):
             rec.tong_hop_vat_tu_count = len(rec.tong_hop_vat_tu_ids)
             rec.kh_dat_vat_tu_count = len(rec.kh_dat_vat_tu_ids)
 
-    @api.depends('ke_hoach_san_xuat_ids.month_key')
+    def _get_horizon_months(self):
+        self.ensure_one()
+        if not self.period_month:
+            return []
+        try:
+            m, y = map(int, self.period_month.split('/'))
+            res = []
+            for i in range(4):
+                tm = m + i
+                ty = y
+                while tm > 12:
+                    tm -= 12
+                    ty += 1
+                res.append(f"{tm:02d}/{ty}")
+            return res
+        except Exception:
+            return []
+
+    @api.depends('period_month')
     def _compute_month_preview(self):
         for rec in self:
-            def _sort_key(mm_yyyy):
-                try:
-                    month, year = mm_yyyy.split('/')
-                    return int(year), int(month)
-                except Exception:
-                    return 0, 0
-            months = sorted(
-                {p.month_key for p in rec.ke_hoach_san_xuat_ids if p.month_key},
-                key=_sort_key
-            )
+            months = rec._get_horizon_months()
             rec.month_ids_preview = ', '.join(months) or False
 
     # ------------------------------------------------------------------
@@ -336,24 +343,24 @@ class KeHoachVatTu(models.Model):
         Production = self.env['ke.hoach.san.xuat'].sudo()
         company = self._production_company_for_auto_seed()
         existing = {
-            (line.ma_hang_id.id, line.ma_sap, line.month_key)
+            line.ma_sap
             for line in self.ke_hoach_san_xuat_ids
         }
         vals_list = []
         for line in self.ke_hoach_kinh_doanh_ids:
-            key = (line.ma_hang_id.id, line.ma_sap, line.month_key)
-            if key in existing:
+            if line.ma_sap in existing:
                 continue
             vals_list.append({
                 'period_id': self.id,
                 'company_id': company.id or False,
                 'nganh_hang': line.nganh_hang,
                 'dong_hang': line.dong_hang,
-                'ma_hang_id': line.ma_hang_id.id,
+                'ma_hang': line.ma_hang,
                 'ma_sap': line.ma_sap,
-                'month_key': line.month_key,
-                'month_date': line.month_date or self._month_key_to_date(line.month_key),
-                'qty': line.qty,
+                'qty_t0': line.qty_t0,
+                'qty_t1': line.qty_t1,
+                'qty_t2': line.qty_t2,
+                'qty_t3': line.qty_t3,
                 'note': line.note,
             })
         if vals_list:
@@ -365,19 +372,18 @@ class KeHoachVatTu(models.Model):
     def _prepare_material_plan_values_from_production(self, production_company):
         self.ensure_one()
         business_by_key = {
-            (line.ma_hang_id.id, line.ma_sap, line.month_key): line
+            line.ma_sap: line
             for line in self.ke_hoach_kinh_doanh_ids
         }
         production_keys = {
-            (line.ma_hang_id.id, line.ma_sap, line.month_key)
+            line.ma_sap
             for line in self.ke_hoach_san_xuat_ids
         }
-        missing = sorted(set(business_by_key) - production_keys, key=lambda item: (item[1] or '', item[2] or ''))
+        missing = sorted(set(business_by_key) - production_keys)
         if missing:
             messages = []
             for key in missing[:20]:
-                line = business_by_key[key]
-                messages.append('Mã SAP=%s, Tháng=%s' % (line.ma_sap or '', line.month_key or ''))
+                messages.append('Mã SAP=%s' % (key or ''))
             if len(missing) > 20:
                 messages.append('... còn %s dòng khác' % (len(missing) - 20))
             raise UserError(_(
@@ -387,20 +393,27 @@ class KeHoachVatTu(models.Model):
 
         vals_list = []
         for line in self.ke_hoach_san_xuat_ids:
-            key = (line.ma_hang_id.id, line.ma_sap, line.month_key)
-            business_qty = business_by_key[key].qty if key in business_by_key else 0.0
+            ma_sap = line.ma_sap
+            business_line = business_by_key.get(ma_sap)
             vals_list.append({
                 'period_id': self.id,
                 'company_id': production_company.id,
                 'nganh_hang': line.nganh_hang,
                 'dong_hang': line.dong_hang,
-                'ma_hang_id': line.ma_hang_id.id,
+                'ma_hang': line.ma_hang,
                 'ma_sap': line.ma_sap,
-                'month_key': line.month_key,
-                'month_date': line.month_date or self._month_key_to_date(line.month_key),
-                'qty_kinh_doanh': business_qty,
-                'qty_san_xuat': line.qty,
-                'qty': line.qty,
+                'qty_kd_t0': business_line.qty_t0 if business_line else 0.0,
+                'qty_kd_t1': business_line.qty_t1 if business_line else 0.0,
+                'qty_kd_t2': business_line.qty_t2 if business_line else 0.0,
+                'qty_kd_t3': business_line.qty_t3 if business_line else 0.0,
+                'qty_sx_t0': line.qty_t0,
+                'qty_sx_t1': line.qty_t1,
+                'qty_sx_t2': line.qty_t2,
+                'qty_sx_t3': line.qty_t3,
+                'qty_t0': line.qty_t0,
+                'qty_t1': line.qty_t1,
+                'qty_t2': line.qty_t2,
+                'qty_t3': line.qty_t3,
                 'note': line.note,
             })
         return vals_list
@@ -443,6 +456,7 @@ class KeHoachVatTu(models.Model):
             ) % (len(vals_list), production_company.company_code)
         )
         return self.action_open_workflow_vt()
+
     def action_compute_b3(self):
         self.ensure_one()
         self.env.cr.execute('CALL public.fn_tinh_toan_vat_tu(%s)', (self.id,))
@@ -683,8 +697,9 @@ class KeHoachVatTu(models.Model):
         ws = wb.active
         ws.title = 'Ke hoach kinh doanh'
         self._write_plan_metadata(ws)
+        months = self._get_horizon_months()
         headers = ['Ngành hàng', 'Dòng hàng', 'Mã hàng', 'Mã SAP']
-        headers += ['Tháng %s' % (self.period_month or '')]
+        headers += ['Tháng %s' % m for m in months]
         header_row = 6
         for col_idx, label in enumerate(headers, start=1):
             ws.cell(row=header_row, column=col_idx, value=label)
@@ -694,6 +709,9 @@ class KeHoachVatTu(models.Model):
         ws.column_dimensions['C'].width = 24
         ws.column_dimensions['D'].width = 24
         ws.column_dimensions['E'].width = 16
+        ws.column_dimensions['F'].width = 16
+        ws.column_dimensions['G'].width = 16
+        ws.column_dimensions['H'].width = 16
         return self._xlsx_download_action(
             wb,
             'KHKD_%s.xlsx' % (self.code),
@@ -756,17 +774,13 @@ class KeHoachVatTu(models.Model):
         lines = self.ke_hoach_san_xuat_ids.sorted(lambda r: (
             r.nganh_hang or '',
             r.dong_hang or '',
-            r.ma_hang_id.ma_sap or '',
+            r.ma_hang or '',
             r.ma_sap or '',
-            r.month_date or date.min,
         ))
         if not lines:
             raise UserError(_('Chưa có kế hoạch sản xuất để export.'))
 
-        months = sorted(
-            {line.month_key for line in lines if line.month_key},
-            key=lambda month: self._month_key_to_date(month) or date.min,
-        )
+        months = self._get_horizon_months()
 
         wb = Workbook()
         ws = wb.active
@@ -778,23 +792,21 @@ class KeHoachVatTu(models.Model):
         for col_idx, label in enumerate(headers, start=1):
             ws.cell(row=header_row, column=col_idx, value=label)
 
-        grouped = {}
         for line in lines:
-            key = (
+            ws.append([
                 line.nganh_hang or '',
                 line.dong_hang or '',
-                line.ma_hang_id.ma_sap or '',
+                line.ma_hang or '',
                 line.ma_sap or '',
-            )
-            grouped.setdefault(key, {})
-            grouped[key][line.month_key] = grouped[key].get(line.month_key, 0.0) + (line.qty or 0.0)
-
-        for key, qty_by_month in grouped.items():
-            ws.append(list(key) + [qty_by_month.get(month, 0.0) for month in months])
+                line.qty_t0 or 0.0,
+                line.qty_t1 or 0.0,
+                line.qty_t2 or 0.0,
+                line.qty_t3 or 0.0,
+            ])
 
         self._apply_plan_excel_style(ws, header_row, len(headers))
 
-        month_col_indexes = list(range(5, 5 + len(months)))
+        month_col_indexes = [5, 6, 7, 8]
         self._protect_plan_sheet(ws, header_row, month_col_indexes)
 
         for col_idx in range(1, len(headers) + 1):
@@ -842,4 +854,3 @@ class KeHoachVatTu(models.Model):
 
     def action_open_step_b5(self):
         return self._action_open_step('sonha_vat_tu.view_ke_hoach_vat_tu_form_b5')
-

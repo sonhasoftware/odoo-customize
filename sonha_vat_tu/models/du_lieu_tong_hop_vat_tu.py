@@ -55,7 +55,7 @@ class DuLieuTongHopVatTu(models.Model):
     # --- --
     nganh_hang = fields.Char(string='Ngành hàng', readonly=True)
     dong_hang = fields.Char(string='Dòng hàng', readonly=True)
-    ma_hang_id = fields.Many2one('ma.hang', string='Mã hàng', readonly=True)
+    ma_hang = fields.Char(string='Mã hàng', readonly=True)
 
     qty = fields.Float(string='Số lượng (B1/B2/B3)', digits=(16, 4), readonly=True)
     note = fields.Char(string='Ghi chú (B1)', readonly=True)
@@ -120,8 +120,8 @@ class DuLieuTongHopVatTu(models.Model):
 
     _sql_constraints = [
         ('uniq_dlthvt_source',
-         'unique(source_model, source_res_id)',
-         'Mỗi dòng nguồn chỉ có một bản ghi tổng hợp.'),
+         'unique(source_model, source_res_id, month_key)',
+         'Mỗi dòng nguồn và tháng chỉ có một bản ghi tổng hợp.'),
     ]
 
     @api.depends('step_code', 'ma_sap', 'month_key', 'source_res_id')

@@ -11,32 +11,25 @@ class KeHoachKinhDoanh(models.Model):
     _name = 'ke.hoach.kinh.doanh'
     _description = 'Ke hoach kinh doanh'
     _inherit = ['mail.thread', 'mail.activity.mixin']
-    _order = 'period_id, month_date, ma_sap, id'
+    _order = 'period_id, ma_sap, id'
 
     period_id = fields.Many2one(
         'ke.hoach.vat.tu', string='Kỳ', ondelete='cascade', index=True)
     nganh_hang = fields.Char(string='Ngành hàng', index=True)
     dong_hang = fields.Char(string='Dòng hàng', index=True)
-    ma_hang_id = fields.Many2one(
-        'ma.hang', string='Mã hàng', index=True)
+    ma_hang = fields.Char(string='Mã hàng', index=True)
     ma_sap = fields.Char(string='Mã SAP', index=True)
-    month_key = fields.Char(string='Tháng', index=True)
-    month_date = fields.Date(string='Tháng tính toán', index=True)
-    qty = fields.Float(string='Số lượng', digits=(16, 2))
+    qty_t0 = fields.Float(string='Số lượng T0', digits=(16, 2))
+    qty_t1 = fields.Float(string='Số lượng T+1', digits=(16, 2))
+    qty_t2 = fields.Float(string='Số lượng T+2', digits=(16, 2))
+    qty_t3 = fields.Float(string='Số lượng T+3', digits=(16, 2))
     note = fields.Char(string='Ghi chú')
 
     _sql_constraints = [
         ('uniq_business_row',
-         'unique(period_id, ma_sap, month_key)',
-         'Trùng dòng: Kỳ, Mã SAP và Tháng phải duy nhất trên kế hoạch kinh doanh!'),
+         'unique(period_id, ma_sap)',
+         'Trùng dòng: Kỳ và Mã SAP phải duy nhất trên kế hoạch kinh doanh!'),
     ]
-
-    @api.onchange('ma_hang_id')
-    def _onchange_ma_hang(self):
-        for rec in self:
-            if rec.ma_hang_id:
-                rec.ma_sap = rec.ma_hang_id.ma_sap or rec.ma_sap
-                rec.nganh_hang = rec.ma_hang_id.nganh_hang or rec.nganh_hang
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -48,17 +41,11 @@ class KeHoachKinhDoanh(models.Model):
                 if period.state != 'ke_hoach':
                     raise UserError(_('Kế hoạch kinh doanh đã khóa vì kỳ kế hoạch đã sang bước sau.'))
 
-            if vals.get('month_key') and not vals.get('month_date'):
-                vals['month_date'] = Period._month_key_to_date(vals['month_key'])
 
-            if vals.get('ma_hang_id'):
-                master = MaHang.browse(vals['ma_hang_id'])
-                vals.setdefault('ma_sap', master.ma_sap)
-                vals.setdefault('nganh_hang', master.nganh_hang)
-            elif vals.get('ma_sap'):
+
+            if vals.get('ma_sap'):
                 master = MaHang.search([('ma_sap', '=', vals['ma_sap'])], limit=1)
                 if master:
-                    vals['ma_hang_id'] = master.id
                     vals.setdefault('nganh_hang', master.nganh_hang)
         records = super().create(vals_list)
         if not self.env.context.get('is_importing'):
@@ -83,9 +70,12 @@ class KeHoachKinhDoanh(models.Model):
         return {
             'nganh': self.nganh_hang or '',
             'dong': self.dong_hang or '',
+            'ma_hang': self.ma_hang or '',
             'ma_sap': self.ma_sap or '',
-            'month_key': self.month_key or '',
-            'qty': self._format_qty(self.qty),
+            'qty_t0': self._format_qty(self.qty_t0),
+            'qty_t1': self._format_qty(self.qty_t1),
+            'qty_t2': self._format_qty(self.qty_t2),
+            'qty_t3': self._format_qty(self.qty_t3),
         }
 
     @api.model
@@ -116,9 +106,12 @@ class KeHoachKinhDoanh(models.Model):
             "<tr>"
             f"<td>{cell(vals['nganh'])}</td>"
             f"<td>{cell(vals['dong'])}</td>"
+            f"<td>{cell(vals['ma_hang'])}</td>"
             f"<td>{cell(vals['ma_sap'])}</td>"
-            f"<td>{cell(vals['month_key'])}</td>"
-            f"<td class='text-end'>{cell(vals['qty'])}</td>"
+            f"<td class='text-end'>{cell(vals['qty_t0'])}</td>"
+            f"<td class='text-end'>{cell(vals['qty_t1'])}</td>"
+            f"<td class='text-end'>{cell(vals['qty_t2'])}</td>"
+            f"<td class='text-end'>{cell(vals['qty_t3'])}</td>"
             "</tr>"
             for vals in lines
         )
@@ -130,9 +123,12 @@ class KeHoachKinhDoanh(models.Model):
                         <tr>
                             <th>Ngành hàng</th>
                             <th>Dòng hàng</th>
+                            <th>Mã hàng</th>
                             <th>Mã SAP</th>
-                            <th>Tháng</th>
-                            <th class="text-end">Số lượng</th>
+                            <th class="text-end">T0</th>
+                            <th class="text-end">T+1</th>
+                            <th class="text-end">T+2</th>
+                            <th class="text-end">T+3</th>
                         </tr>
                     </thead>
                     <tbody>%s</tbody>
@@ -161,14 +157,17 @@ class KeHoachKinhDoanh(models.Model):
             )
 
     def write(self, vals):
-        TRACKED = {'ma_sap': 'Mã SAP', 'month_key': 'Tháng', 'qty': 'Số lượng'}
+        TRACKED = {
+            'ma_hang': 'Mã hàng',
+            'ma_sap': 'Mã SAP',
+            'qty_t0': 'Số lượng T0',
+            'qty_t1': 'Số lượng T+1',
+            'qty_t2': 'Số lượng T+2',
+            'qty_t3': 'Số lượng T+3',
+        }
 
         if not self.env.context.get('skip_period_lock'):
             self._check_period_editable()
-
-        if 'month_key' in vals:
-            vals = dict(vals)
-            vals['month_date'] = self.env['ke.hoach.vat.tu']._month_key_to_date(vals.get('month_key'))
 
         old = {f: {r.id: r[f] for r in self} for f in TRACKED if f in vals}
         res = super().write(vals)
@@ -185,7 +184,7 @@ class KeHoachKinhDoanh(models.Model):
                     continue
                 ov_disp = ov if ov not in (False, None, '') else 'Trống'
                 nv_disp = nv if nv not in (False, None, '') else 'Trống'
-                ma_hang_code = rec.ma_hang_id.ma_sap if rec.ma_hang_id else ''
+                ma_hang_code = rec.ma_hang or ''
                 changes_by_period.setdefault(rec.period_id, []).append((
                     str(ov_disp),
                     str(nv_disp),

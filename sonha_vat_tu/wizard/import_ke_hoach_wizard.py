@@ -118,12 +118,14 @@ class ImportKeHoachWizard(models.TransientModel):
         header_row_idx = 5
         header = [str(c).strip() if c is not None else '' for c in rows[header_row_idx]]
         month_cols = []
+        horizon_months = self.period_id._get_horizon_months()
         for idx, label in enumerate(header):
             month_key = self._parse_month_header(label)
             if month_key and idx >= 4:
-                month_cols.append((idx, month_key))
+                if month_key in horizon_months:
+                    month_cols.append((idx, month_key))
         if not month_cols:
-            raise UserError(_('Không tìm thấy cột tháng trong bảng dữ liệu. Vui lòng kiểm tra dòng tiêu đề số 6.'))
+            raise UserError(_('Không tìm thấy cột tháng hợp lệ trong bảng dữ liệu. Vui lòng kiểm tra dòng tiêu đề số 6.'))
         return header, month_cols, header_row_idx + 1
 
     def _validate_master_row(self, row_idx, row, errors):
@@ -131,6 +133,7 @@ class ImportKeHoachWizard(models.TransientModel):
 
         nganh_raw = str(row[0]).strip() if row[0] not in (None, '') else ''
         dong_raw = str(row[1]).strip() if row[1] not in (None, '') else ''
+        ma_hang_raw = str(row[2]).strip() if row[2] not in (None, '') else ''
         ma_sap = str(row[3]).strip() if row[3] not in (None, '') else ''
 
         if not nganh_raw:
@@ -156,7 +159,7 @@ class ImportKeHoachWizard(models.TransientModel):
         return {
             'nganh_hang': ma_hang_rec.nganh_hang or nganh_raw,
             'dong_hang': dong_raw,
-            'ma_hang_id': ma_hang_rec.id,
+            'ma_hang': ma_hang_raw,
             'ma_sap': ma_sap,
         }
 
@@ -224,10 +227,10 @@ class ImportKeHoachWizard(models.TransientModel):
 
     def _import_business(self, rows, header, month_cols, data_start_idx):
         Plan = self.env['ke.hoach.kinh.doanh'].sudo()
-        Period = self.env['ke.hoach.vat.tu']
         vals_list = []
         errors = []
         seen = set()
+        horizon_months = self.period_id._get_horizon_months()
 
         for row_idx, row in enumerate(rows[data_start_idx:], start=data_start_idx + 1):
             if not row or not any(c not in (None, '') for c in row):
@@ -236,36 +239,45 @@ class ImportKeHoachWizard(models.TransientModel):
             base_vals = self._validate_master_row(row_idx, row, errors)
             if not base_vals:
                 continue
+
+            qty_by_offset = {0: 0.0, 1: 0.0, 2: 0.0, 3: 0.0}
             for col_idx, month_key in month_cols:
-                raw_qty = row[col_idx]
-                if raw_qty in (None, '', 0, 0.0):
-                    continue
-                try:
-                    qty = float(raw_qty)
-                except (TypeError, ValueError):
-                    errors.append(_('Dòng %d, tháng %s: "%s" không phải số.') % (row_idx, month_key, raw_qty))
-                    continue
-                key = (base_vals['ma_sap'], month_key)
-                if key in seen:
-                    errors.append(_('Dòng %d: trùng Mã SAP=%s, Tháng=%s trong file.') % (row_idx, base_vals['ma_sap'], month_key))
-                    continue
-                seen.add(key)
-                vals = dict(base_vals)
-                vals.update({
-                    'period_id': self.period_id.id,
-                    'month_key': month_key,
-                    'month_date': Period._month_key_to_date(month_key),
-                    'qty': qty,
-                })
-                vals_list.append(vals)
+                if month_key in horizon_months:
+                    offset = horizon_months.index(month_key)
+                    raw_qty = row[col_idx]
+                    if raw_qty in (None, ''):
+                        qty = 0.0
+                    else:
+                        try:
+                            qty = float(raw_qty)
+                        except (TypeError, ValueError):
+                            errors.append(_('Dòng %d, tháng %s: "%s" không phải số.') % (row_idx, month_key, raw_qty))
+                            qty = 0.0
+                    qty_by_offset[offset] = qty
+
+            ma_sap = base_vals['ma_sap']
+            if ma_sap in seen:
+                errors.append(_('Dòng %d: trùng Mã SAP=%s trong file.') % (row_idx, ma_sap))
+                continue
+            seen.add(ma_sap)
+
+            vals = dict(base_vals)
+            vals.update({
+                'period_id': self.period_id.id,
+                'qty_t0': qty_by_offset[0],
+                'qty_t1': qty_by_offset[1],
+                'qty_t2': qty_by_offset[2],
+                'qty_t3': qty_by_offset[3],
+            })
+            vals_list.append(vals)
 
         existing = {
-            (line.ma_sap, line.month_key)
+            line.ma_sap
             for line in Plan.search([('period_id', '=', self.period_id.id)])
         }
         for vals in vals_list:
-            if (vals['ma_sap'], vals['month_key']) in existing:
-                errors.append(_('Đã tồn tại kế hoạch kinh doanh Mã SAP=%s, Tháng=%s.') % (vals['ma_sap'], vals['month_key']))
+            if vals['ma_sap'] in existing:
+                errors.append(_('Đã tồn tại kế hoạch kinh doanh cho Mã SAP=%s.') % vals['ma_sap'])
         self._raise_errors(errors)
         if vals_list:
             Plan.with_context(is_importing=True).create(vals_list)
@@ -274,12 +286,13 @@ class ImportKeHoachWizard(models.TransientModel):
 
     def _import_production(self, rows, header, month_cols, data_start_idx):
         Plan = self.env['ke.hoach.san.xuat'].sudo()
-        Period = self.env['ke.hoach.vat.tu']
         vals_by_key = {}
         errors = []
         company = self.env.company
         if company.company_code not in ('BNH', 'SSP'):
             raise UserError(_('Công ty hiện tại không phải công ty sản xuất BNH/SSP. Vui lòng chọn đúng công ty trước khi import kế hoạch sản xuất.'))
+
+        horizon_months = self.period_id._get_horizon_months()
 
         for row_idx, row in enumerate(rows[data_start_idx:], start=data_start_idx + 1):
             if not row or not any(c not in (None, '') for c in row):
@@ -288,44 +301,55 @@ class ImportKeHoachWizard(models.TransientModel):
             base_vals = self._validate_master_row(row_idx, row, errors)
             if not base_vals:
                 continue
+
+            qty_by_offset = {0: 0.0, 1: 0.0, 2: 0.0, 3: 0.0}
             for col_idx, month_key in month_cols:
-                raw_qty = row[col_idx]
-                if raw_qty in (None, ''):
-                    continue
-                try:
-                    qty = float(raw_qty)
-                except (TypeError, ValueError):
-                    errors.append(_('Dòng %d, tháng %s: "%s" không phải số.') % (row_idx, month_key, raw_qty))
-                    continue
-                key = (company.id, base_vals['ma_hang_id'], base_vals['ma_sap'], month_key)
-                if key in vals_by_key:
-                    vals_by_key[key]['qty'] += qty
-                    continue
-                vals = dict(base_vals)
-                vals.update({
-                    'period_id': self.period_id.id,
-                    'company_id': company.id,
-                    'month_key': month_key,
-                    'month_date': Period._month_key_to_date(month_key),
-                    'qty': qty,
-                })
-                vals_by_key[key] = vals
+                if month_key in horizon_months:
+                    offset = horizon_months.index(month_key)
+                    raw_qty = row[col_idx]
+                    if raw_qty in (None, ''):
+                        qty = 0.0
+                    else:
+                        try:
+                            qty = float(raw_qty)
+                        except (TypeError, ValueError):
+                            errors.append(_('Dòng %d, tháng %s: "%s" không phải số.') % (row_idx, month_key, raw_qty))
+                            qty = 0.0
+                    qty_by_offset[offset] = qty
+
+            key = (company.id, base_vals['ma_sap'])
+            if key in vals_by_key:
+                vals_by_key[key]['qty_t0'] += qty_by_offset[0]
+                vals_by_key[key]['qty_t1'] += qty_by_offset[1]
+                vals_by_key[key]['qty_t2'] += qty_by_offset[2]
+                vals_by_key[key]['qty_t3'] += qty_by_offset[3]
+                continue
+
+            vals = dict(base_vals)
+            vals.update({
+                'period_id': self.period_id.id,
+                'company_id': company.id,
+                'qty_t0': qty_by_offset[0],
+                'qty_t1': qty_by_offset[1],
+                'qty_t2': qty_by_offset[2],
+                'qty_t3': qty_by_offset[3],
+            })
+            vals_by_key[key] = vals
 
         self._raise_errors(errors)
         vals_list = list(vals_by_key.values())
         business_keys = {
-            (line.ma_hang_id.id, line.ma_sap, line.month_key): line
+            line.ma_sap
             for line in self.period_id.ke_hoach_kinh_doanh_ids
         }
         imported_keys = {
-            (vals['ma_hang_id'], vals['ma_sap'], vals['month_key'])
+            vals['ma_sap']
             for vals in vals_list
         }
-        missing = sorted(set(business_keys) - imported_keys, key=lambda item: (item[1] or '', item[2] or ''))
+        missing = sorted(business_keys - imported_keys)
         if missing:
             for key in missing[:20]:
-                line = business_keys[key]
-                errors.append(_('Thiếu dòng kế hoạch kinh doanh Mã SAP=%s, Tháng=%s. Nếu không sản xuất, vui lòng giữ dòng và nhập Số lượng = 0.') % (line.ma_sap, line.month_key))
+                errors.append(_('Thiếu dòng kế hoạch kinh doanh Mã SAP=%s. Nếu không sản xuất, vui lòng giữ dòng và nhập Số lượng = 0.') % key)
             if len(missing) > 20:
                 errors.append(_('... còn %d dòng kế hoạch kinh doanh bị thiếu.') % (len(missing) - 20))
         self._raise_errors(errors)

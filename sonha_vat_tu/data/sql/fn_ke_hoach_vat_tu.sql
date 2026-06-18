@@ -11,27 +11,71 @@ BEGIN
         month_key, month_date, qty_kinh_doanh, qty_san_xuat, qty_chenh_lech, qty,
         create_uid, write_uid, create_date, write_date
     )
+    WITH months AS (
+        SELECT 
+            p.id AS period_id,
+            i AS offset_idx,
+            (TO_DATE(p.period_month, 'MM/YYYY') + (i || ' month')::INTERVAL)::DATE AS month_date,
+            TO_CHAR(TO_DATE(p.period_month, 'MM/YYYY') + (i || ' month')::INTERVAL, 'MM/YYYY') AS month_key
+        FROM ke_hoach_vat_tu p
+        CROSS JOIN generate_series(0, 3) AS i
+        WHERE p.id = p_period_id
+    ),
+    unpivoted AS (
+        SELECT
+            b1.period_id,
+            b1.company_id,
+            b1.ma_sap,
+            m.month_key,
+            m.month_date,
+            CASE m.offset_idx
+                WHEN 0 THEN COALESCE(b1.qty_kd_t0, 0)
+                WHEN 1 THEN COALESCE(b1.qty_kd_t1, 0)
+                WHEN 2 THEN COALESCE(b1.qty_kd_t2, 0)
+                WHEN 3 THEN COALESCE(b1.qty_kd_t3, 0)
+            END AS qty_kinh_doanh,
+            CASE m.offset_idx
+                WHEN 0 THEN COALESCE(b1.qty_sx_t0, 0)
+                WHEN 1 THEN COALESCE(b1.qty_sx_t1, 0)
+                WHEN 2 THEN COALESCE(b1.qty_sx_t2, 0)
+                WHEN 3 THEN COALESCE(b1.qty_sx_t3, 0)
+            END AS qty_san_xuat,
+            CASE m.offset_idx
+                WHEN 0 THEN COALESCE(b1.qty_cl_t0, 0)
+                WHEN 1 THEN COALESCE(b1.qty_cl_t1, 0)
+                WHEN 2 THEN COALESCE(b1.qty_cl_t2, 0)
+                WHEN 3 THEN COALESCE(b1.qty_cl_t3, 0)
+            END AS qty_chenh_lech,
+            CASE m.offset_idx
+                WHEN 0 THEN COALESCE(b1.qty_t0, 0)
+                WHEN 1 THEN COALESCE(b1.qty_t1, 0)
+                WHEN 2 THEN COALESCE(b1.qty_t2, 0)
+                WHEN 3 THEN COALESCE(b1.qty_t3, 0)
+            END AS qty
+        FROM ke_hoach_vat_tu_line b1
+        JOIN months m ON m.period_id = b1.period_id
+        WHERE b1.period_id = p_period_id
+    )
     SELECT
         p_period_id,
-        b1.company_id,
-        b1.ma_sap,
+        u.company_id,
+        u.ma_sap,
         bcu.ten_tp_goc,
         bcu.ma_tp_cha,
         bcu.ten_tp_cha,
         bcu.ma_con,             -- Ma NVL thuc te cuoi cung
         bcu.ten_con,
-        b1.month_key,
-        COALESCE(b1.month_date, TO_DATE(b1.month_key, 'MM/YYYY')),
-        COALESCE(b1.qty_kinh_doanh, 0) * bcu.sl_thuc_te,
-        COALESCE(b1.qty_san_xuat, 0) * bcu.sl_thuc_te,
-        (COALESCE(b1.qty_san_xuat, 0) - COALESCE(b1.qty_kinh_doanh, 0)) * bcu.sl_thuc_te,
-        b1.qty * bcu.sl_thuc_te,
+        u.month_key,
+        u.month_date,
+        u.qty_kinh_doanh * bcu.sl_thuc_te,
+        u.qty_san_xuat * bcu.sl_thuc_te,
+        u.qty_chenh_lech * bcu.sl_thuc_te,
+        u.qty * bcu.sl_thuc_te,
         1, 1, NOW(), NOW()
-    FROM ke_hoach_vat_tu_line b1
+    FROM unpivoted u
     JOIN bom_tinh_toan bcu
-        ON bcu.ma_tp_goc = b1.ma_sap
-       AND bcu.loai_vat_tu = 'NVL'
-    WHERE b1.period_id = p_period_id;
+        ON bcu.ma_tp_goc = u.ma_sap
+       AND bcu.loai_vat_tu = 'NVL';
 END;
 $BODY$;
 
@@ -74,7 +118,7 @@ END;
 $BODY$;
 
 -- ============================================================
--- B4: Tong hop vat tu va ton kho cuon chieu theo thang
+-- B4: Tong hop vat tu va ton kho theo horizon Excel
 -- ============================================================
 CREATE OR REPLACE PROCEDURE public.fn_tong_hop_vat_tu(
     p_period_id INTEGER,
@@ -83,6 +127,7 @@ CREATE OR REPLACE PROCEDURE public.fn_tong_hop_vat_tu(
 LANGUAGE 'plpgsql' AS $BODY$
 DECLARE
     v_ton_cuoi_cache JSONB DEFAULT '{}';
+    v_seen_cache     JSONB DEFAULT '{}';
     rec              RECORD;
     v_cache_key      TEXT;
     v_comp_grp       TEXT;
@@ -128,24 +173,34 @@ BEGIN
 
     CREATE INDEX ON _tmp_ton_kho (ma_hang, comp_grp);
 
-    -- Buoc 2: Pre-load vat tu di duong.
+    -- Buoc 2: Pre-load vat tu di duong theo horizon cua ky.
     CREATE TEMP TABLE _tmp_vdd ON COMMIT DROP AS
     SELECT
-        company_id,
-        month_key,
-        COALESCE(month_date, TO_DATE(month_key, 'MM/YYYY')) AS month_date,
-        ma_nvl,
-        SUM(COALESCE(so_luong, 0)) AS so_luong
-    FROM vat_tu_di_duong
+        b3.company_id,
+        b3.ma_vat_tu AS ma_nvl,
+        SUM(COALESCE(vdd.so_luong, 0)) AS so_luong
+    FROM (
+        SELECT
+            company_id,
+            ma_vat_tu,
+            MIN(COALESCE(month_date, TO_DATE(month_key, 'MM/YYYY'))) AS min_month_date,
+            MAX(COALESCE(month_date, TO_DATE(month_key, 'MM/YYYY'))) AS max_month_date
+        FROM tinh_toan_vat_tu
+        WHERE period_id = p_period_id
+        GROUP BY company_id, ma_vat_tu
+    ) b3
+    LEFT JOIN vat_tu_di_duong vdd
+        ON  vdd.company_id = b3.company_id
+        AND vdd.ma_nvl = b3.ma_vat_tu
+        AND COALESCE(vdd.month_date, TO_DATE(vdd.month_key, 'MM/YYYY'))
+            BETWEEN b3.min_month_date AND b3.max_month_date
     GROUP BY
-        company_id,
-        month_key,
-        COALESCE(month_date, TO_DATE(month_key, 'MM/YYYY')),
-        ma_nvl;
+        b3.company_id,
+        b3.ma_vat_tu;
 
-    CREATE INDEX ON _tmp_vdd (company_id, month_date, ma_nvl);
+    CREATE INDEX ON _tmp_vdd (company_id, ma_nvl);
 
-    -- Buoc 3: Vong lap cuon chieu ton kho.
+    -- Buoc 3: Vong lap theo thang, cong vat tu di duong mot lan vao dau horizon nhu Excel.
     FOR rec IN
         SELECT
             b3.company_id,
@@ -201,14 +256,20 @@ BEGIN
             ELSE 0
         END;
 
-        -- Vat tu di duong.
+        -- Vat tu di duong: cong tong horizon vao thang dau, khong cong lap lai o cac thang sau.
         v_ve_du_kien := 0;
-        SELECT COALESCE(so_luong, 0) INTO v_ve_du_kien
-        FROM _tmp_vdd
-        WHERE company_id = rec.company_id
-          AND month_date = rec.month_date
-          AND ma_nvl     = rec.material_code;
-        v_ve_du_kien := COALESCE(v_ve_du_kien, 0);
+        IF NOT (v_seen_cache ? v_cache_key) THEN
+            SELECT COALESCE(so_luong, 0) INTO v_ve_du_kien
+            FROM _tmp_vdd
+            WHERE company_id = rec.company_id
+              AND ma_nvl     = rec.material_code;
+            v_ve_du_kien := COALESCE(v_ve_du_kien, 0);
+            v_seen_cache := jsonb_set(
+                v_seen_cache,
+                ARRAY[v_cache_key]::TEXT[],
+                to_jsonb(TRUE)
+            );
+        END IF;
 
         v_sl_du_phong := CASE WHEN COALESCE(rec.vt_can_dung, 0) > 0
                               THEN rec.vt_can_dung / 28.0 * p_ngay_dp

@@ -29,7 +29,7 @@
                 <!-- -->
                 <field name="nganh_hang"/>
                 <field name="dong_hang"/>
-                <field name="ma_hang_id"/>
+                <field name="ma_hang"/>
                 <field name="qty"/>
                 <field name="note"/>
                 <!-- -->
@@ -101,7 +101,7 @@
                             <field name="ma_sap"/>
                             <field name="nganh_hang"/>
                             <field name="dong_hang"/>
-                            <field name="ma_hang_id"/>
+                            <field name="ma_hang"/>
                             <field name="qty"/>
                             <field name="note"/>
                             <field name="ma_tp"/>
@@ -161,6 +161,7 @@
                 <field name="period_company_code"/>
                 <field name="month_key"/>
                 <field name="ma_sap"/>
+                <field name="ma_hang"/>
                 <field name="ma_tp"/>
                 <field name="ten_tp"/>
                 <field name="ma_nvl"/>
