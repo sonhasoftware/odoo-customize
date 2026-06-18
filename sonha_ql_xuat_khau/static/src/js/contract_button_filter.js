@@ -16,6 +16,7 @@ export class FilterContractListController extends ListController {
             target: "new",
             context: {
                 active_model: this.props.resModel,
+                active_action_id: this.env.config.actionId,
             },
         });
    }
