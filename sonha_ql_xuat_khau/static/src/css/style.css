@@ -134,7 +134,7 @@ th.align-middle.o_column_sortable.position-relative.cursor-pointer.o_list_number
     font-size: 14px;
 }
 
-hide-search div.search-input:has(input#noteInput) {
+.custom_list_button div.search-input:has(input#noteInput) {
     display: none !important;
 }
 
