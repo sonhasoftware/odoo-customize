@@ -198,7 +198,7 @@
                         </field>
 
                         <field name="export_detail" string="" readonly="1" invisible="state_code != 'invoice'">
-                            <tree no_open="1">
+                            <tree no_open="1" class="hide-search">
                                 <field name="number_time" string="Lần xuất"/>
                                 <field name="invoice_number"/>
                                 <field name="so_cont_number"/>
