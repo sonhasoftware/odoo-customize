@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_menu_access_users_tree" model="ir.ui.view">
+        <field name="name">view.menu.access.users.tree</field>
+        <field name="model">menu.access.users</field>
+        <field name="arch" type="xml">
+            <tree string="Người dùng" editable="bottom">
+                <field name="user_id"/>
+                <field name="module"/>
+                <button name="action_create_access" string="Phân quyền" type="object" class="oe_highlight"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_menu_access_users" model="ir.actions.act_window">
+        <field name="name">Người dùng</field>
+        <field name="res_model">menu.access.users</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

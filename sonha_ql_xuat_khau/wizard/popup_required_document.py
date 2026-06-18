@@ -130,6 +130,8 @@ class PopupRequiredDocument(models.TransientModel):
                 self.env['exp.production.order'].sudo().create(vals)
 
     def action_confirm(self):
+        action_user = self.env.user.id
+        mail_from = self.env['hr.employee'].sudo().search([('user_id', '=', action_user.id)], limit=1).work_email
         if self.key == 'change_stt':
             template = self.env.ref('sonha_ql_xuat_khau.product_request_mail_template').sudo()
             if self.file:
@@ -146,6 +148,10 @@ class PopupRequiredDocument(models.TransientModel):
                 template.email_to = self.mail_to.replace(" ", "")
                 if self.cc_to:
                     template.email_cc = self.cc_to.replace(" ", "")
+                if mail_from:
+                    template.write({
+                        'email_from': mail_from,
+                    })
                 template.write({
                     'subject': self.subject,
                     'body_html': self.body_mail,
@@ -170,6 +176,10 @@ class PopupRequiredDocument(models.TransientModel):
                     template.email_to = self.mail_to.replace(" ", "")
                     if self.cc_to:
                         template.email_cc = self.cc_to.replace(" ", "")
+                    if mail_from:
+                        template.write({
+                            'email_from': mail_from,
+                        })
                     template.write({
                         'subject': self.subject,
                         'body_html': self.body_mail,
