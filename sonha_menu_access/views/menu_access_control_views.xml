@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_menu_access_control_tree" model="ir.ui.view">
+        <field name="name">view.menu.access.control.tree</field>
+        <field name="model">menu.access.control</field>
+        <field name="arch" type="xml">
+            <tree string="Quyền truy cập menu" editable="bottom">
+                <field name="user_id"/>
+                <field name="menu_id"/>
+                <field name="can_see"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_menu_access_control" model="ir.actions.act_window">
+        <field name="name">Quyền truy cập menu</field>
+        <field name="res_model">menu.access.control</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

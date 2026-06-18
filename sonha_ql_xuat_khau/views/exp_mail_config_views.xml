@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="view_exp_mail_config_tree" model="ir.ui.view">
+            <field name="name">view.exp.mail.config.tree</field>
+            <field name="model">exp.mail.config</field>
+            <field name="arch" type="xml">
+                <tree editable="bottom" class="exp-mail">
+                    <field name="default_rule"/>
+                    <field name="name"/>
+                    <field name="mail_to" widget="many2many_tags"/>
+                    <field name="mail_to_char"/>
+                    <field name="mail_cc" widget="many2many_tags"/>
+                    <field name="mail_cc_char"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_exp_mail_config" model="ir.actions.act_window">
+            <field name="name">Cấu hình người nhận mail</field>
+            <field name="res_model">exp.mail.config</field>
+            <field name="view_mode">tree</field>
+        </record>
+    </data>
+</odoo>

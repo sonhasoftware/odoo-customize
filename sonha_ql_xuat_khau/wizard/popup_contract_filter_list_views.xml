@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="popup_contract_filter_list_form_view" model="ir.ui.view">
+        <field name="name">popup.contract.filter.list.form.view</field>
+        <field name="model">popup.contract.filter.list</field>
+        <field name="arch" type="xml">
+            <form string="Lọc hợp đồng">
+                <group>
+                    <field name="from_date"/>
+                    <field name="to_date"/>
+                    <field name="contract_no"/>
+                    <field name="ship_from"/>
+                    <field name="ship_to"/>
+                    <field name="country"/>
+                </group>
+                <footer>
+                    <button string="Xem dữ liệu" type="object" name="action_confirm" class="oe_highlight"/>
+                    <button string="Cancel" class="oe_link" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_popup_contract_filter_list" model="ir.actions.act_window">
+        <field name="name">Lọc hợp đồng</field>
+        <field name="res_model">popup.contract.filter.list</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

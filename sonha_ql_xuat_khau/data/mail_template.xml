@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+   <data>
+       <record id="co_bh_reminder_mail_template" model="mail.template">
+           <field name="name">Mail nhắc nhở tạo CO, BH</field>
+           <field name="model_id" ref="sonha_ql_xuat_khau.model_exp_contract"/>
+           <field name="email_from">adminservices@sonha.com.vn</field>
+           <field name="email_to"></field>
+           <field name="subject">Nhắc nhở việc tạo CO, BH cho hợp đồng</field>
+           <field name="body_html" type="html">
+               <div style="margin: 0px; padding: 0px;">
+                   <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                       Dear anh/chị <t t-out="object.created_by.name or ''"/>,
+                       <br/>
+                       Hợp đồng <t t-out="object.contract_no or ''"/> đã đến hạn tạo <t t-out="ctx.get('type')"/>.
+                       <br/>
+                       Xem chi tiết tại đường link:
+                       <br/>
+                       <a t-att-href="ctx.get('link')" target="_blank">Xem chi tiết</a>
+                   </p>
+               </div>
+           </field>
+       </record>
+
+       <record id="product_request_mail_template" model="mail.template">
+           <field name="name">Mail thông báo</field>
+           <field name="model_id" ref="sonha_ql_xuat_khau.model_exp_contract"/>
+           <field name="email_from">adminservices@sonha.com.vn</field>
+           <field name="email_to">${context.get('email_to')}</field>
+           <field name="email_cc">${context.get('email_cc')}</field>
+       </record>
+   </data>
+</odoo>

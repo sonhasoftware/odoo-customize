@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_contract_tree_filter" model="ir.ui.view">
+       <field name="name">contract.filter.view.tree</field>
+       <field name="model">exp.contract</field>
+       <field name="inherit_id" ref="sonha_ql_xuat_khau.view_exp_contract_tree"/>
+       <field name="arch" type="xml">
+           <xpath expr="//tree" position="attributes">
+               <attribute name="js_class">contract_filter_button_tree</attribute>
+           </xpath>
+       </field>
+   </record>
+
+    <record id="view_contract_report_tree_filter" model="ir.ui.view">
+       <field name="name">contract.report.filter.view.tree</field>
+       <field name="model">exp.contract</field>
+       <field name="inherit_id" ref="sonha_ql_xuat_khau.exp_contract_report_tree_view"/>
+       <field name="arch" type="xml">
+           <xpath expr="//tree" position="attributes">
+               <attribute name="js_class">contract_filter_button_tree</attribute>
+           </xpath>
+       </field>
+   </record>
+</odoo>

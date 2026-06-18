@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <record model="ir.module.category" id="sonha_xuat_khau_scurity_cat">
+        <field name="name">Quản lý đơn xuất khẩu</field>
+        <field name="sequence">3</field>
+    </record>
+
+    <record id="group_exp_backup" model="res.groups">
+        <field name="name">Backup</field>
+        <field name="category_id" ref="sonha_xuat_khau_scurity_cat"/>
+    </record>
+
+    <record id="group_exp_user" model="res.groups">
+        <field name="name">Nhân viên</field>
+        <field name="category_id" ref="sonha_xuat_khau_scurity_cat"/>
+    </record>
+
+    <record id="group_exp_manager" model="res.groups">
+        <field name="name">Quản lý</field>
+        <field name="category_id" ref="sonha_xuat_khau_scurity_cat"/>
+    </record>
+
+    <record id="group_exp_producer" model="res.groups">
+        <field name="name">Sản xuất</field>
+        <field name="category_id" ref="sonha_xuat_khau_scurity_cat"/>
+    </record>
+
+    <record id="rule_user_exp_contract" model="ir.rule">
+        <field name="name">Rule user export contratc</field>
+        <field name="model_id" ref="model_exp_contract"/>
+        <field name="domain_force">
+            ['|', '|',
+                ('created_by', '=', user.id),
+                ('follow_user', 'in', user.id),
+                ('create_uid', '=', user.id),
+            ]
+        </field>
+        <field name="groups" eval="[(4, ref('sonha_ql_xuat_khau.group_exp_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_user_exp_contract_delete" model="ir.rule">
+        <field name="name">Rule user export contract delete</field>
+        <field name="model_id" ref="model_exp_contract"/>
+        <field name="domain_force">
+            ['|', '|',
+                ('created_by', '=', user.id),
+                ('follow_user', 'in', user.id),
+                ('create_uid', '=', user.id),
+            ]
+        </field>
+        <field name="groups" eval="[(4, ref('sonha_ql_xuat_khau.group_exp_user'))]"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="rule_manager_form_word_slip_read" model="ir.rule">
+        <field name="name">Rule DL form word slip</field>
+        <field name="model_id" ref="model_exp_contract"/>
+         <field name="domain_force">
+            ['|', '|', '|',
+                ('created_by', '=', user.id),
+                ('follow_user', 'in', user.id),
+                ('created_by.employee_id', 'child_of', [emp.id for emp in user.employee_ids]),
+                ('create_uid', '=', user.id),
+            ]
+        </field>
+        <field name="groups" eval="[(4, ref('sonha_ql_xuat_khau.group_exp_manager'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="rule_manager_exp_contract" model="ir.rule">
+        <field name="name">Rule manager export contract</field>
+        <field name="model_id" ref="model_exp_contract"/>
+         <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('sonha_ql_xuat_khau.group_exp_manager'))]"/>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="rule_backup_exp_contract" model="ir.rule">
+        <field name="name">Rule backup export contract</field>
+        <field name="model_id" ref="model_exp_contract"/>
+         <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('sonha_ql_xuat_khau.group_exp_backup'))]"/>
+    </record>
+
+    <record id="rule_producer_exp_contract" model="ir.rule">
+        <field name="name">Rule producer export contratc</field>
+        <field name="model_id" ref="model_exp_contract"/>
+        <field name="domain_force">
+            [
+                ('state_code', '=', 'request')
+            ]
+        </field>
+        <field name="groups" eval="[(4, ref('sonha_ql_xuat_khau.group_exp_producer'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+</odoo>

@@ -699,24 +699,61 @@ class EmployeeAttendanceV2(models.Model):
                 r.check_no_in = split_utc
                 r.check_no_out = split_utc
 
+    def _float_time_to_local_datetime(self, base_date, hour_float):
+        if base_date is None or hour_float is None:
+            return None
+        if not isinstance(hour_float, (int, float)) or hour_float < 0:
+            raise ValueError(f"Invalid time value: {hour_float}")
+
+        hour = int(hour_float)
+        minute = int(round((hour_float % 1) * 60))
+        if minute >= 60:
+            hour += minute // 60
+            minute = minute % 60
+        return datetime.combine(base_date, time(0, 0, 0)) + timedelta(hours=hour, minutes=minute)
+
+    def _get_time_word_slip_pairs_utc(self, word_slip):
+        if not word_slip.from_date or not word_slip.to_date:
+            return []
+
+        pairs = []
+        current_date = word_slip.from_date
+        while current_date <= word_slip.to_date:
+            check_in = self._float_time_to_local_datetime(current_date, word_slip.time_to)
+            check_out = self._float_time_to_local_datetime(current_date, word_slip.time_from)
+            if check_in and check_out and check_out <= check_in:
+                check_out += timedelta(days=1)
+            pairs.append((self._to_utc_datetime(check_in), self._to_utc_datetime(check_out)))
+            current_date += timedelta(days=1)
+        return pairs
+
+    def _get_time_word_slips_in_window(self, employee, window_start_utc, window_end_utc):
+        if not employee or not window_start_utc or not window_end_utc:
+            return self.env['word.slip']
+
+        window_start_local = self._to_local_datetime(window_start_utc)
+        window_end_local = self._to_local_datetime(window_end_utc)
+        word_slips = self.env['word.slip'].sudo().search([
+            ('from_date', '<=', window_end_local.date()),
+            ('to_date', '>=', window_start_local.date() - timedelta(days=1)),
+            ('type.date_and_time', '=', 'time'),
+            ('word_slip.status', '=', 'done'),
+        ])
+        word_slips = word_slips.filtered(
+            lambda x: (x.word_slip.employee_id and x.word_slip.employee_id.id == employee.id) or (
+                    x.word_slip.employee_ids and employee.id in x.word_slip.employee_ids.ids))
+        return word_slips.filtered(
+            lambda line: any(
+                window_start_utc <= point <= window_end_utc
+                for pair in self._get_time_word_slip_pairs_utc(line)
+                for point in pair
+                if point
+            )
+        )
+
     # Lấy thông tin check-in và check-out của nhân viên
     @api.depends('employee_id', 'time_check_in', 'time_check_out', 'check_no_in', 'check_no_out')
     def _get_check_in_out(self):
-        def calculate_time(input_time, date, default_time):
-            if not isinstance(input_time, (int, float)) or input_time < 0:
-                raise ValueError(f"Invalid time value: {input_time}")
-
-            hour = int(input_time)
-            minute = int(round((input_time % 1) * 60))
-            if minute >= 60:
-                hour += minute // 60
-                minute = minute % 60
-            if hour >= 24:
-                return datetime.combine(date, time(0, 0, 0)) + timedelta(days=1, hours=hour - 24, minutes=minute)
-            if 0 <= hour < 24:
-                return datetime.combine(date, time(hour, minute, 0))
-            return default_time
-
         for r in self:
             r.check_in, r.check_out = None, None
             if not r.time_check_in or not r.time_check_out or not r.employee_id:
@@ -742,29 +779,14 @@ class EmployeeAttendanceV2(models.Model):
             check_in = attendance_ci[0] if attendance_ci else None
             check_out = attendance_co[-1] if attendance_co else None
 
-            in_outs = self.env['word.slip'].sudo().search([
-                ('from_date', '<=', r.date),
-                ('to_date', '>=', r.date),
-                ('type.date_and_time', '=', 'time'),
-                ('word_slip.status', '=', 'done')
-            ])
-
-            in_outs = in_outs.filtered(
-                lambda x: (x.word_slip.employee_id and x.word_slip.employee_id.id == r.employee_id.id) or (
-                        x.word_slip.employee_ids and r.employee_id.id in x.word_slip.employee_ids.ids))
-
+            in_outs = self._get_time_word_slips_in_window(r.employee_id, r.time_check_in, r.time_check_out)
             for in_out in in_outs:
-                if in_out and in_out.time_to:
-                    ci = calculate_time(in_out.time_to, r.date, datetime.combine(r.date, time(0, 0, 0)))
-                    ci = ci - relativedelta(hours=7)
-                    if (r.time_check_in <= ci <= r.time_check_out and r.check_no_in and ci <= r.check_no_in
+                for ci, co in self._get_time_word_slip_pairs_utc(in_out):
+                    if (ci and r.time_check_in <= ci <= r.time_check_out and r.check_no_in and ci <= r.check_no_in
                             and (not check_in or check_in > ci)):
                         check_in = ci
 
-                if in_out and in_out.time_from:
-                    co = calculate_time(in_out.time_from, r.date, datetime.combine(r.date, time(0, 0, 0)))
-                    co = co - relativedelta(hours=7)
-                    if (r.time_check_in <= co <= r.time_check_out and r.check_no_out and co > r.check_no_out
+                    if (co and r.time_check_in <= co <= r.time_check_out and r.check_no_out and co > r.check_no_out
                             and (not check_out or check_out < co)):
                         check_out = co
 

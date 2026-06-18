@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- ICON + COUNT -->
+    <t t-name="sonha_ql_xuat_khau.M2MUserWidget">
+        <div t-on-click="showPopup"
+             style="cursor:pointer; display:flex; align-items:center; gap:5px;">
+            <i class="fa fa-users"/>
+            <span t-esc="count"/>
+        </div>
+    </t>
+
+    <!-- POPOVER -->
+    <t t-name="sonha_ql_xuat_khau.UserPopover">
+        <div style="min-width:280px; max-width:350px; background: white; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+            <!-- Header -->
+            <div style="padding: 10px 12px; border-bottom: 1px solid #e5e5e5; background: #f8f9fa; border-radius: 4px 4px 0 0;">
+                <div style="font-weight: bold; color: #333;">
+                    <i class="fa fa-users" style="margin-right: 6px;"></i>
+                    Người có thể xem hợp đồng
+                    <span style="margin-left: 6px; font-size: 12px; color: #666; font-weight: normal;">
+                        (<t t-esc="state.users.length"/>)
+                    </span>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div style="padding: 8px 0;">
+                <!-- Loading state -->
+                <t t-if="state.isLoading">
+                    <div style="padding: 20px; text-align: center; color: #666;">
+                        <i class="fa fa-spinner fa-spin" style="margin-right: 6px;"></i>
+                        Đang tải...
+                    </div>
+                </t>
+
+                <!-- List users with scroll -->
+                <t t-elif="state.users and state.users.length">
+                    <div class="o_popover_scroll"
+                         style="max-height: 300px; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch;">
+                        <t t-foreach="state.users" t-as="user" t-key="user.id">
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid #f0f0f0;">
+                                <div style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    <span t-esc="user.name"/>
+                                </div>
+                                <i class="fa fa-trash-o"
+                                   style="cursor: pointer; margin-left: 10px; padding: 3px;"
+                                   t-on-click="() => removeUser(user.id)"
+                                   title="Xóa người xem"/>
+                            </div>
+                        </t>
+                    </div>
+                </t>
+
+                <!-- Empty state -->
+                <t t-else="">
+                    <div style="padding: 30px 20px; text-align: center; color: #999;">
+                        <i class="fa fa-user-o" style="font-size: 24px; margin-bottom: 10px; display: block;"></i>
+                        Chưa có người có thể xem khác
+                    </div>
+                </t>
+            </div>
+
+            <!-- Footer with button -->
+            <div style="padding: 10px 12px; border-top: 1px solid #e5e5e5; background: #f8f9fa; border-radius: 0 0 4px 4px;">
+                <button class="btn btn-primary btn-sm"
+                        style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 5px;"
+                        t-on-click="addUsers">
+                    <i class="fa fa-plus"></i>
+                    Thêm người xem hợp đồng
+                </button>
+            </div>
+        </div>
+    </t>
+
+</templates>

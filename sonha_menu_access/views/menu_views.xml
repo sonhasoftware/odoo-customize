@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <menuitem id="menu_sonha_menu_access"
+              name="Quyền truy cập Menu"
+              groups="sonha_employee.group_back_up_employee"
+              sequence="20"/>
+
+    <menuitem id="menu_menu_access_users"
+              name="Người dùng"
+              parent="menu_sonha_menu_access"
+              action="action_menu_access_users"
+              sequence="1"/>
+
+    <menuitem id="menu_menu_access_control"
+              name="Quyền truy cập menu"
+              parent="menu_sonha_menu_access"
+              action="action_menu_access_control"
+              sequence="2"/>
+</odoo>

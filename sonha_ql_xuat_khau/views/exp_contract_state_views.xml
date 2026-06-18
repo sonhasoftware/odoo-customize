@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_exp_contract_state_tree" model="ir.ui.view">
+        <field name="name">view.exp.contract.state.tree</field>
+        <field name="model">exp.contract.state</field>
+        <field name="arch" type="xml">
+            <tree string="Trạng thái hợp đồng" editable="bottom">
+                <field name="sequence"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="description"/>
+                <field name="is_default"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_exp_contract_state" model="ir.actions.act_window">
+        <field name="name">Trạng thái hợp đồng</field>
+        <field name="res_model">exp.contract.state</field>
+        <field name="context">{'active_test': False}</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

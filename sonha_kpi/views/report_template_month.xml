@@ -52,6 +52,7 @@
                             <th rowspan="2">NỘI DUNG CÔNG VIỆC <br/>(Đã giao ở mục tiêu/ KPIs cả năm)</th>
                             <th rowspan="2">NỘI DUNG CÔNG VIỆC CỤ THỂ</th>
                             <th colspan="2">THỜI GIAN THỰC HIỆN</th>
+                            <th rowspan="2">CHỈ TIÊU ĐO LƯỜNG</th>
                             <th rowspan="2">TIÊU CHÍ ĐÁNH GIÁ RÚT GỌN</th>
                             <th rowspan="2">Tỷ trọng</th>
                             <th rowspan="2">Điểm chuẩn</th>
@@ -78,6 +79,7 @@
                                 <td rowspan="2" class="left"><t t-esc="doc.content_detail"/></td>
                                 <td rowspan="2"><t t-esc="doc.converted_start_date"/></td>
                                 <td rowspan="2"><t t-esc="doc.converted_end_date"/></td>
+                                <td rowspan="2"><t t-esc="doc.dv_do_luong"/></td>
                                 <td class="left">Khối lượng công việc thực hiện</td>
                                 <td rowspan="2"><t t-esc="round(doc.ti_trong * 100, 1)"/>%</td>
                                 <td><t t-esc="round(doc.diem_chuan_amount_work, 1)"/></td>

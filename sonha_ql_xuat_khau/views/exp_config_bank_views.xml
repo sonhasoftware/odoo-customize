@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_exp_config_bank_tree" model="ir.ui.view">
+        <field name="name">view.exp.config.bank.tree</field>
+        <field name="model">exp.config.bank</field>
+        <field name="arch" type="xml">
+            <tree string="Danh mục ngân hàng" editable="bottom">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="account_name"/>
+                <field name="account_no"/>
+                <field name="address"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_exp_config_bank" model="ir.actions.act_window">
+        <field name="name">Danh mục ngân hàng</field>
+        <field name="res_model">exp.config.bank</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>
