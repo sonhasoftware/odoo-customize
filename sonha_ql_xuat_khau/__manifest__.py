@@ -12,7 +12,6 @@
         'security/ir.model.access.csv',
         'data/cron_job.xml',
         'data/mail_template.xml',
-        'views/contract_button_filter_template.xml',
         'views/exp_contract_views.xml',
         'views/exp_contract_state_views.xml',
         'views/exp_contract_state_log_views.xml',
@@ -40,6 +39,7 @@
         'views/exp_config_port_views.xml',
         'views/exp_config_bank_views.xml',
         'views/exp_config_currency_views.xml',
+        'views/contract_button_filter_template.xml',
         'views/menu_views.xml',
     ],
     'assets': {

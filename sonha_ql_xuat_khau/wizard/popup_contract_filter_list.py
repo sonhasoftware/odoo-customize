@@ -31,10 +31,8 @@ class PopupContractFilterList(models.TransientModel):
             domain.append(('shipping_port_to', '=', self.ship_to.id))
         if self.country:
             domain.append(('shipping_country', '=', self.country.id))
-        return {
-            'type': 'ir.actions.act_window',
-            'name': 'Hợp đồng',
-            'res_model': self.env.context.get('active_model'),
-            'view_mode': 'tree,form',
-            'domain': domain,
-        }
+
+        action_id = self.env.context.get('active_action_id')
+        action = self.env['ir.actions.act_window'].browse(action_id).read()[0]
+        action['domain'] = domain
+        return action
