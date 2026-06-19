@@ -4,6 +4,7 @@ import io
 import pandas as pd
 from odoo.exceptions import ValidationError
 from datetime import datetime, time, timedelta
+import unicodedata
 
 
 class PopupRequiredDocument(models.TransientModel):
@@ -129,13 +130,27 @@ class PopupRequiredDocument(models.TransientModel):
                 }
                 self.env['exp.production.order'].sudo().create(vals)
 
+    def remove_accents(self, text):
+        text = unicodedata.normalize('NFD', text)
+        text = ''.join(
+            c for c in text
+            if unicodedata.category(c) != 'Mn'
+        )
+        return text
+
     def action_confirm(self):
         action_user = self.env.user.id
         mail_from = self.env['hr.employee'].sudo().search([('user_id', '=', action_user)], limit=1).work_email
         if self.key == 'change_stt':
             template = self.env.ref('sonha_ql_xuat_khau.product_request_mail_template').sudo()
             if self.file:
-                template.attachment_ids = [(6, 0, self.file.ids)]
+                attachment_ids = []
+                for att in self.file:
+                    new_att = att.sudo().copy({
+                        'name': self.remove_accents(att.name)
+                    })
+                    attachment_ids.append(new_att.id)
+                template.attachment_ids = [(6, 0, attachment_ids)]
             self.env['exp.contract.state.log'].sudo().create({
                 'contract_id': self.contract_id.id,
                 'from_state_id': self.state_id.id,
