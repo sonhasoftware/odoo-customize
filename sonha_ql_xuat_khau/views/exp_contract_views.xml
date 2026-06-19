@@ -72,8 +72,8 @@
                             <field name="contract_no" class="upper_field" readonly="state_code != 'sign'"/>
                             <field name="sign_date" class="lower_field" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
                             <field name="po_number" class="upper_field" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
-                            <field name="customer_id" class="lower_field" options="{'no_create': True, 'no_open': True}" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
-                            <field name="export_required_date" class="lower_field" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
+                            <field name="customer_id" required="1" class="lower_field" options="{'no_create': True, 'no_open': True}" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
+                            <field name="export_required_date" required="1" class="lower_field" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
                             <field name="state_id" class="lower_field" readonly="1" options="{'no_open': True}" invisible="state_code in ['request', 'export', 'invoice']"/>
                             <field name="lc_required" class="lower_field" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
                             <field name="lc_file" widget="many2many_binary" required="lc_required != False" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice'] or lc_required != True"/>

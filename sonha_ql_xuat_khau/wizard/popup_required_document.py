@@ -158,14 +158,23 @@ class PopupRequiredDocument(models.TransientModel):
                 })
                 template.send_mail(self.contract_id.id, force_send=True)
             if self.state_code == 'done':
+                self.file.sudo().write({
+                    'res_id': self.id
+                })
                 self.contract_id.sudo().write({
                     'mtr_file': [(6, 0, self.file.ids)],
                 })
             if self.state_code == 'send':
+                self.file.sudo().write({
+                    'res_id': self.id
+                })
                 self.contract_id.sudo().write({
                     'payment_file': [(6, 0, self.file.ids)],
                 })
             if self.state_code == 'request' and self.file:
+                self.file.sudo().write({
+                    'res_id': self.id
+                })
                 self.contract_id.sudo().write({
                     'product_file': [(6, 0, self.file.ids)],
                     'produce_status': 'draft',
@@ -189,15 +198,21 @@ class PopupRequiredDocument(models.TransientModel):
                     raise ValidationError("Chưa được cấu hình người nhận")
         else:
             if self.state_code == 'co_bh' and self.file and self.key == 'co_create':
+                self.file.sudo().write({
+                    'res_id': self.id
+                })
                 self.contract_id.sudo().write({
                     'co_file': [(6, 0, self.file.ids)],
-                    'co': True,
-                    'co_status': 'done',
+                    'co': True if self.file else False,
+                    'co_status': 'done' if self.file else 'draft',
                 })
             elif self.state_code == 'co_bh' and self.file and self.key == 'bh_create':
+                self.file.sudo().write({
+                    'res_id': self.id
+                })
                 self.contract_id.sudo().write({
                     'bh_file': [(6, 0, self.file.ids)],
-                    'bh': True,
-                    'bh_status': 'done',
+                    'bh': True if self.file else False,
+                    'bh_status': 'done' if self.file else 'draft',
                 })
 
