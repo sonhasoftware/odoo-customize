@@ -162,7 +162,7 @@ class ExpContract(models.Model):
                 'shipment_id': rec.id,
                 'invoice_number': rec.invoice_number,
                 'so_cont_number': rec.so_cont_number,
-                'date_shipment': str(rec.date_shipment),
+                'date_shipment': rec.date_shipment.strftime('%d/%m/%Y') if rec.date_shipment else '',
                 'radio_tick': False,
                 'contract_id': r.id,
             }) for rec in r.export_detail]
@@ -468,7 +468,7 @@ class ExpContract(models.Model):
             if r.state_id.is_default:
                 pass
             else:
-                raise ValidationError("Chỉ có thể xóa khi ở trạng thái đầu tiên!")
+                raise ValidationError("Chỉ có thể xóa khi ở trạng thái ký và đặt cọc!")
             self.env['exp.production.order'].sudo().search([('contract_id', '=', r.id)]).unlink()
             self.env['exp.product'].sudo().search([('contract_id', '=', r.id)]).unlink()
             self.env['exp.shipment'].sudo().search([('contract_id', '=', r.id)]).unlink()
