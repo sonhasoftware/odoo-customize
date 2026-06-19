@@ -422,6 +422,16 @@ class ExpContract(models.Model):
 
     def create(self, vals):
         res = super(ExpContract, self).create(vals)
+        for record in res:
+            record.contract_file.write({
+                'res_id': record.id,
+            })
+            record.lc_file.write({
+                'res_id': record.id,
+            })
+            record.deposit_payment_file.write({
+                'res_id': record.id,
+            })
         group_ids = self.env['exp.distribute.group.user'].sudo().search([]).group_id
         if group_ids:
             group_users = self.env['exp.distribute.group.user'].sudo().search([('group_id', 'in', group_ids.ids)])

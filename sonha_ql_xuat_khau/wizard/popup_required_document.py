@@ -131,7 +131,7 @@ class PopupRequiredDocument(models.TransientModel):
 
     def action_confirm(self):
         action_user = self.env.user.id
-        mail_from = self.env['hr.employee'].sudo().search([('user_id', '=', action_user.id)], limit=1).work_email
+        mail_from = self.env['hr.employee'].sudo().search([('user_id', '=', action_user)], limit=1).work_email
         if self.key == 'change_stt':
             template = self.env.ref('sonha_ql_xuat_khau.product_request_mail_template').sudo()
             if self.file:

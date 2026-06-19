@@ -23,7 +23,7 @@ class PopupConfigMailTemplate(models.TransientModel):
 
     def action_send(self):
         action_user = self.env.user.id
-        mail_from = self.env['hr.employee'].sudo().search([('user_id', '=', action_user.id)], limit=1).work_email
+        mail_from = self.env['hr.employee'].sudo().search([('user_id', '=', action_user)], limit=1).work_email
         state_rule = self.env['exp.state.transition.rule'].sudo().search([('from_state_id', '=', self.contract_id.state_id.id)])
         template = self.env.ref('sonha_ql_xuat_khau.product_request_mail_template').sudo()
         if self.attach_file:

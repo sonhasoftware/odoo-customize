@@ -6,7 +6,7 @@
     'summary': 'Quản lý đơn hàng xuất khẩu',
     'website': 'https://hrm.sonha.com.vn/',
     'description': "Quản lý đơn hàng xuất khẩu",
-    'depends': ['base', 'mail', 'hr'],
+    'depends': ['base', 'mail', 'hr', 'sonha_menu_access'],
     'data': [
         'security/security.xml',
         'security/ir.model.access.csv',
