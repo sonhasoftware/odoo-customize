@@ -112,13 +112,13 @@
                         </group>
                         <group class="custom-block">
                             <separator string="Vận chuyển" invisible="state_code in ['request', 'export', 'invoice']"/>
-                            <field name="shipping_time" class="upper_field" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
-                            <field name="shipping_port_from" class="lower_field" options="{'no_open': True}" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
-                            <field name="shipping_port_to" class="lower_field" options="{'no_open': True}" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
+                            <field name="shipping_time" required="1" class="upper_field" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
+                            <field name="shipping_port_from" required="1" class="lower_field" options="{'no_open': True}" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
+                            <field name="shipping_port_to" required="1" class="lower_field" options="{'no_open': True}" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
                             <field name="shipping_country" class="lower_field" options="{'no_open': True}" readonly="1" invisible="state_code in ['request', 'export', 'invoice']"/>
                             <separator string="Thanh toán" invisible="state_code in ['request', 'export', 'invoice']"/>
-                            <field name="payment_term" class="lower_field" options="{'no_open': True}" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
-                            <field name="bank" class="lower_field" options="{'no_open': True}" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
+                            <field name="payment_term" required="1" class="lower_field" options="{'no_open': True}" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
+                            <field name="bank" required="1" class="lower_field" options="{'no_open': True}" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
                             <field name="payment_note" class="lower_field" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
                             <field name="deposit_percent" widget="percentage" class="lower_field" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice', 'bill_of_lading']"/>
                             <field name="currency" class="lower_field" options="{'no_open': True}" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice', 'bill_of_lading']"/>
