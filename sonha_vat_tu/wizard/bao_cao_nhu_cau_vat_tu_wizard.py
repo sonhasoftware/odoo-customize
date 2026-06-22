@@ -61,8 +61,8 @@ class BaoCaoNhuCauVatTuWizard(models.TransientModel):
             raise UserError(_('Từ tháng không được lớn hơn Đến tháng.'))
 
         domain = [
-            ('month_date', '>=', fields.Date.to_string(date_from)),
-            ('month_date', '<=', fields.Date.to_string(date_to)),
+            ('period_start_date', '<=', fields.Date.to_string(date_to)),
+            ('period_end_date', '>=', fields.Date.to_string(date_from)),
         ]
         if self.company_id:
             domain.append(('company_id', '=', self.company_id.id))
@@ -71,7 +71,8 @@ class BaoCaoNhuCauVatTuWizard(models.TransientModel):
         action['domain'] = domain
         action['name'] = _('Báo cáo nhu cầu vật tư')
         action['context'] = {
-            'pivot_measures': ['so_luong_vat_tu_can_dung'],
             'vat_tu_company_code_display': True,
+            'nhu_cau_thang_tu': '%02d/%s' % (int(self.from_month), self.from_year),
+            'nhu_cau_thang_den': '%02d/%s' % (int(self.to_month), self.to_year),
         }
         return action

@@ -31,9 +31,6 @@ access_import_bom_wizard,import.bom.wizard,model_import_bom_wizard,base.group_us
 access_bao_cao_nhu_cau_vat_tu_wizard,bao.cao.nhu.cau.vat.tu.wizard,model_bao_cao_nhu_cau_vat_tu_wizard,base.group_user,1,1,1,1
 access_vat_tu_di_duong_user,vat.tu.di.duong.user,model_vat_tu_di_duong,base.group_user,1,1,1,1
 access_du_lieu_tong_hop_vat_tu_admin,du.lieu.tong.hop.vat.tu.admin,model_du_lieu_tong_hop_vat_tu,base.group_system,1,0,0,0
-access_bao_cao_tong_quan_vat_tu_ban_cung_ung,bao.cao.tong.quan.vat.tu.ban.cung.ung,model_bao_cao_tong_quan_vat_tu,sonha_vat_tu.group_ban_cung_ung_vat_tu,1,0,0,0
-access_bao_cao_tong_quan_vat_tu_bo_phan,bao.cao.tong.quan.vat.tu.bo.phan,model_bao_cao_tong_quan_vat_tu,sonha_vat_tu.group_bo_phan_vat_tu,1,0,0,0
-access_bao_cao_tong_quan_vat_tu_truong_bo_phan,bao.cao.tong.quan.vat.tu.truong.bo.phan,model_bao_cao_tong_quan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu,1,0,0,0
 access_bao_cao_nhu_cau_vat_tu_ban_cung_ung,bao.cao.nhu.cau.vat.tu.ban.cung.ung,model_bao_cao_nhu_cau_vat_tu,sonha_vat_tu.group_ban_cung_ung_vat_tu,1,0,0,0
 access_bao_cao_nhu_cau_vat_tu_bo_phan,bao.cao.nhu.cau.vat.tu.bo.phan,model_bao_cao_nhu_cau_vat_tu,sonha_vat_tu.group_bo_phan_vat_tu,1,0,0,0
 access_bao_cao_nhu_cau_vat_tu_truong_bo_phan,bao.cao.nhu.cau.vat.tu.truong.bo.phan,model_bao_cao_nhu_cau_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu,1,0,0,0

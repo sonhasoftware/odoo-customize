@@ -135,94 +135,90 @@ FOR EACH ROW EXECUTE PROCEDURE dlthvt_sync_b1();
 -- B2: dinh_muc → du_lieu_tong_hop_vat_tu
 -- =============================================================================
 CREATE OR REPLACE FUNCTION dlthvt_sync_b2() RETURNS TRIGGER AS $$
+DECLARE
+    v_period_month TEXT;
+    v_month_key TEXT;
+    v_month_date DATE;
+    v_qty NUMERIC;
+    v_qty_kinh_doanh NUMERIC;
+    v_qty_san_xuat NUMERIC;
+    v_qty_chenh_lech NUMERIC;
 BEGIN
     IF TG_OP = 'DELETE' THEN
         DELETE FROM du_lieu_tong_hop_vat_tu
         WHERE source_model = 'dinh.muc' AND source_res_id = OLD.id;
         RETURN OLD;
     END IF;
-    INSERT INTO du_lieu_tong_hop_vat_tu (
-        step_code, source_model, source_res_id, period_id, company_id, month_key,
-        month_date, ma_sap, ma_vat_tu, nganh_hang, dong_hang, ma_hang,
-        qty, note, ma_tp, ten_tp, ten_sap, ma_nvl,
-        ten_nvl, ten_vat_tu, qty_kinh_doanh, qty_san_xuat, qty_chenh_lech, ma_effect,
-        don_vi_tinh, do_day, kho_1, kho_2, trong_luong_kg_tam, sl_dinh_muc,
-        ma_dat_hang, chung_loai, ma_cuon, ton_dau, ve_du_kien, vt_can_dung,
-        ton_cuoi, so_luong_du_phong, so_luong_thieu, so_luong_can_mua, ghi_chu, tong_ton_nvl_sl,
-        tong_hang_di_duong_sl, tong_sl_vt_can_dung, sl_du_tru_toi_thieu, sl_can_mua_theo_moq, sl_dat_mua_de_xuat, sl_dat_mua_chot,
-        sl_ton_kho, so_ngay_vong_quay_ton, don_gia_ton_kho, gia_tri_ton_kho, create_uid, create_date,
-        write_uid, write_date
-    ) VALUES (
-        'b2', 'dinh.muc', NEW.id, NEW.period_id,
-        NEW.company_id, NEW.month_key, COALESCE(NEW.month_date, TO_DATE(NEW.month_key, 'MM/YYYY')), NEW.ma_sap,
-        NEW.ma_nvl, NULL, NULL, NULL,
-        NEW.qty, NULL, NEW.ma_tp, NEW.ten_tp,
-        NEW.ten_sap, NEW.ma_nvl, NEW.ten_nvl, NEW.ten_nvl,
-        NEW.qty_kinh_doanh, NEW.qty_san_xuat, NEW.qty_chenh_lech, NULL,
-        NULL, NULL, NULL, NULL,
-        NULL, NULL, NULL, NULL,
-        NULL, NULL, NULL, NULL,
-        NULL, NULL, NULL, NULL,
-        NULL, NULL, NULL, NULL,
-        NULL, NULL, NULL, NULL,
-        NULL, NULL, NULL, NULL,
-        NEW.create_uid, NEW.create_date, NEW.write_uid, NEW.write_date
-    )
-    ON CONFLICT (source_model, source_res_id) DO UPDATE SET
-        step_code = EXCLUDED.step_code,
-        period_id = EXCLUDED.period_id,
-        company_id = EXCLUDED.company_id,
-        month_key = EXCLUDED.month_key,
-        month_date = EXCLUDED.month_date,
-        ma_sap = EXCLUDED.ma_sap,
-        ma_vat_tu = EXCLUDED.ma_vat_tu,
-        nganh_hang = EXCLUDED.nganh_hang,
-        dong_hang = EXCLUDED.dong_hang,
-        ma_hang = EXCLUDED.ma_hang,
-        qty = EXCLUDED.qty,
-        note = EXCLUDED.note,
-        ma_tp = EXCLUDED.ma_tp,
-        ten_tp = EXCLUDED.ten_tp,
-        ten_sap = EXCLUDED.ten_sap,
-        ma_nvl = EXCLUDED.ma_nvl,
-        ten_nvl = EXCLUDED.ten_nvl,
-        ten_vat_tu = EXCLUDED.ten_vat_tu,
-        qty_kinh_doanh = EXCLUDED.qty_kinh_doanh,
-        qty_san_xuat = EXCLUDED.qty_san_xuat,
-        qty_chenh_lech = EXCLUDED.qty_chenh_lech,
-        ma_effect = EXCLUDED.ma_effect,
-        don_vi_tinh = EXCLUDED.don_vi_tinh,
-        do_day = EXCLUDED.do_day,
-        kho_1 = EXCLUDED.kho_1,
-        kho_2 = EXCLUDED.kho_2,
-        trong_luong_kg_tam = EXCLUDED.trong_luong_kg_tam,
-        sl_dinh_muc = EXCLUDED.sl_dinh_muc,
-        ma_dat_hang = EXCLUDED.ma_dat_hang,
-        chung_loai = EXCLUDED.chung_loai,
-        ma_cuon = EXCLUDED.ma_cuon,
-        ton_dau = EXCLUDED.ton_dau,
-        ve_du_kien = EXCLUDED.ve_du_kien,
-        vt_can_dung = EXCLUDED.vt_can_dung,
-        ton_cuoi = EXCLUDED.ton_cuoi,
-        so_luong_du_phong = EXCLUDED.so_luong_du_phong,
-        so_luong_thieu = EXCLUDED.so_luong_thieu,
-        so_luong_can_mua = EXCLUDED.so_luong_can_mua,
-        ghi_chu = EXCLUDED.ghi_chu,
-        tong_ton_nvl_sl = EXCLUDED.tong_ton_nvl_sl,
-        tong_hang_di_duong_sl = EXCLUDED.tong_hang_di_duong_sl,
-        tong_sl_vt_can_dung = EXCLUDED.tong_sl_vt_can_dung,
-        sl_du_tru_toi_thieu = EXCLUDED.sl_du_tru_toi_thieu,
-        sl_can_mua_theo_moq = EXCLUDED.sl_can_mua_theo_moq,
-        sl_dat_mua_de_xuat = EXCLUDED.sl_dat_mua_de_xuat,
-        sl_dat_mua_chot = EXCLUDED.sl_dat_mua_chot,
-        sl_ton_kho = EXCLUDED.sl_ton_kho,
-        so_ngay_vong_quay_ton = EXCLUDED.so_ngay_vong_quay_ton,
-        don_gia_ton_kho = EXCLUDED.don_gia_ton_kho,
-        gia_tri_ton_kho = EXCLUDED.gia_tri_ton_kho,
-        create_uid = EXCLUDED.create_uid,
-        create_date = EXCLUDED.create_date,
-        write_uid = EXCLUDED.write_uid,
-        write_date = EXCLUDED.write_date;
+
+    SELECT period_month INTO v_period_month
+    FROM ke_hoach_vat_tu
+    WHERE id = NEW.period_id;
+
+    FOR i IN 0..3 LOOP
+        v_month_date := (TO_DATE(v_period_month, 'MM/YYYY') + (i || ' month')::INTERVAL)::DATE;
+        v_month_key  := TO_CHAR(v_month_date, 'MM/YYYY');
+        
+        v_qty := CASE i
+            WHEN 0 THEN NEW.qty_t0
+            WHEN 1 THEN NEW.qty_t1
+            WHEN 2 THEN NEW.qty_t2
+            WHEN 3 THEN NEW.qty_t3
+        END;
+        v_qty_kinh_doanh := CASE i
+            WHEN 0 THEN NEW.qty_kinh_doanh_t0
+            WHEN 1 THEN NEW.qty_kinh_doanh_t1
+            WHEN 2 THEN NEW.qty_kinh_doanh_t2
+            WHEN 3 THEN NEW.qty_kinh_doanh_t3
+        END;
+        v_qty_san_xuat := CASE i
+            WHEN 0 THEN NEW.qty_san_xuat_t0
+            WHEN 1 THEN NEW.qty_san_xuat_t1
+            WHEN 2 THEN NEW.qty_san_xuat_t2
+            WHEN 3 THEN NEW.qty_san_xuat_t3
+        END;
+        v_qty_chenh_lech := CASE i
+            WHEN 0 THEN NEW.qty_chenh_lech_t0
+            WHEN 1 THEN NEW.qty_chenh_lech_t1
+            WHEN 2 THEN NEW.qty_chenh_lech_t2
+            WHEN 3 THEN NEW.qty_chenh_lech_t3
+        END;
+
+        INSERT INTO du_lieu_tong_hop_vat_tu (
+            step_code, source_model, source_res_id, period_id, company_id, month_key,
+            month_date, ma_sap, ma_vat_tu, nganh_hang, dong_hang, ma_hang,
+            qty, note, ma_tp, ten_tp, ten_sap, ma_nvl,
+            ten_nvl, ten_vat_tu, qty_kinh_doanh, qty_san_xuat, qty_chenh_lech, ma_effect,
+            create_uid, create_date, write_uid, write_date
+        ) VALUES (
+            'b2', 'dinh.muc', NEW.id, NEW.period_id,
+            NEW.company_id, v_month_key, v_month_date, NEW.ma_sap,
+            NEW.ma_nvl, NULL, NULL, NULL,
+            v_qty, NULL, NEW.ma_tp, NEW.ten_tp,
+            NEW.ten_sap, NEW.ma_nvl, NEW.ten_nvl, NEW.ten_nvl,
+            v_qty_kinh_doanh, v_qty_san_xuat, v_qty_chenh_lech, NULL,
+            NEW.create_uid, NEW.create_date, NEW.write_uid, NEW.write_date
+        )
+        ON CONFLICT (source_model, source_res_id, month_key) DO UPDATE SET
+            step_code = EXCLUDED.step_code,
+            period_id = EXCLUDED.period_id,
+            company_id = EXCLUDED.company_id,
+            month_date = EXCLUDED.month_date,
+            ma_sap = EXCLUDED.ma_sap,
+            ma_vat_tu = EXCLUDED.ma_vat_tu,
+            qty = EXCLUDED.qty,
+            ma_tp = EXCLUDED.ma_tp,
+            ten_tp = EXCLUDED.ten_tp,
+            ten_sap = EXCLUDED.ten_sap,
+            ma_nvl = EXCLUDED.ma_nvl,
+            ten_nvl = EXCLUDED.ten_nvl,
+            ten_vat_tu = EXCLUDED.ten_vat_tu,
+            qty_kinh_doanh = EXCLUDED.qty_kinh_doanh,
+            qty_san_xuat = EXCLUDED.qty_san_xuat,
+            qty_chenh_lech = EXCLUDED.qty_chenh_lech,
+            write_uid = EXCLUDED.write_uid,
+            write_date = EXCLUDED.write_date;
+    END LOOP;
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -236,94 +232,72 @@ FOR EACH ROW EXECUTE PROCEDURE dlthvt_sync_b2();
 -- B3: tinh_toan_vat_tu → du_lieu_tong_hop_vat_tu
 -- =============================================================================
 CREATE OR REPLACE FUNCTION dlthvt_sync_b3() RETURNS TRIGGER AS $$
+DECLARE
+    v_period_month TEXT;
+    v_month_key TEXT;
+    v_month_date DATE;
+    v_qty NUMERIC;
 BEGIN
     IF TG_OP = 'DELETE' THEN
         DELETE FROM du_lieu_tong_hop_vat_tu
         WHERE source_model = 'tinh.toan.vat.tu' AND source_res_id = OLD.id;
         RETURN OLD;
     END IF;
-    INSERT INTO du_lieu_tong_hop_vat_tu (
-        step_code, source_model, source_res_id, period_id, company_id, month_key,
-        month_date, ma_sap, ma_vat_tu, nganh_hang, dong_hang, ma_hang,
-        qty, note, ma_tp, ten_tp, ten_sap, ma_nvl,
-        ten_nvl, ten_vat_tu, qty_kinh_doanh, qty_san_xuat, qty_chenh_lech, ma_effect,
-        don_vi_tinh, do_day, kho_1, kho_2, trong_luong_kg_tam, sl_dinh_muc,
-        ma_dat_hang, chung_loai, ma_cuon, ton_dau, ve_du_kien, vt_can_dung,
-        ton_cuoi, so_luong_du_phong, so_luong_thieu, so_luong_can_mua, ghi_chu, tong_ton_nvl_sl,
-        tong_hang_di_duong_sl, tong_sl_vt_can_dung, sl_du_tru_toi_thieu, sl_can_mua_theo_moq, sl_dat_mua_de_xuat, sl_dat_mua_chot,
-        sl_ton_kho, so_ngay_vong_quay_ton, don_gia_ton_kho, gia_tri_ton_kho, create_uid, create_date,
-        write_uid, write_date
-    ) VALUES (
-        'b3', 'tinh.toan.vat.tu', NEW.id, NEW.period_id,
-        NEW.company_id, NEW.month_key, COALESCE(NEW.month_date, TO_DATE(NEW.month_key, 'MM/YYYY')), NEW.ma_sap,
-        NEW.ma_vat_tu, NULL, NULL, NULL,
-        NEW.qty, NULL, NULL, NULL,
-        NEW.ten_sap, NEW.ma_vat_tu, NEW.ten_vat_tu, NEW.ten_vat_tu,
-        NULL, NULL, NULL, NEW.ma_effect,
-        NEW.don_vi_tinh, NEW.do_day, NEW.kho_1, NEW.kho_2,
-        NEW.trong_luong_kg_tam, NEW.sl_dinh_muc, NULL, NULL,
-        NULL, NULL, NULL, NULL,
-        NULL, NULL, NULL, NULL,
-        NULL, NULL, NULL, NULL,
-        NULL, NULL, NULL, NULL,
-        NULL, NULL, NULL, NULL,
-        NEW.create_uid, NEW.create_date, NEW.write_uid, NEW.write_date
-    )
-    ON CONFLICT (source_model, source_res_id) DO UPDATE SET
-        step_code = EXCLUDED.step_code,
-        period_id = EXCLUDED.period_id,
-        company_id = EXCLUDED.company_id,
-        month_key = EXCLUDED.month_key,
-        month_date = EXCLUDED.month_date,
-        ma_sap = EXCLUDED.ma_sap,
-        ma_vat_tu = EXCLUDED.ma_vat_tu,
-        nganh_hang = EXCLUDED.nganh_hang,
-        dong_hang = EXCLUDED.dong_hang,
-        ma_hang = EXCLUDED.ma_hang,
-        qty = EXCLUDED.qty,
-        note = EXCLUDED.note,
-        ma_tp = EXCLUDED.ma_tp,
-        ten_tp = EXCLUDED.ten_tp,
-        ten_sap = EXCLUDED.ten_sap,
-        ma_nvl = EXCLUDED.ma_nvl,
-        ten_nvl = EXCLUDED.ten_nvl,
-        ten_vat_tu = EXCLUDED.ten_vat_tu,
-        qty_kinh_doanh = EXCLUDED.qty_kinh_doanh,
-        qty_san_xuat = EXCLUDED.qty_san_xuat,
-        qty_chenh_lech = EXCLUDED.qty_chenh_lech,
-        ma_effect = EXCLUDED.ma_effect,
-        don_vi_tinh = EXCLUDED.don_vi_tinh,
-        do_day = EXCLUDED.do_day,
-        kho_1 = EXCLUDED.kho_1,
-        kho_2 = EXCLUDED.kho_2,
-        trong_luong_kg_tam = EXCLUDED.trong_luong_kg_tam,
-        sl_dinh_muc = EXCLUDED.sl_dinh_muc,
-        ma_dat_hang = EXCLUDED.ma_dat_hang,
-        chung_loai = EXCLUDED.chung_loai,
-        ma_cuon = EXCLUDED.ma_cuon,
-        ton_dau = EXCLUDED.ton_dau,
-        ve_du_kien = EXCLUDED.ve_du_kien,
-        vt_can_dung = EXCLUDED.vt_can_dung,
-        ton_cuoi = EXCLUDED.ton_cuoi,
-        so_luong_du_phong = EXCLUDED.so_luong_du_phong,
-        so_luong_thieu = EXCLUDED.so_luong_thieu,
-        so_luong_can_mua = EXCLUDED.so_luong_can_mua,
-        ghi_chu = EXCLUDED.ghi_chu,
-        tong_ton_nvl_sl = EXCLUDED.tong_ton_nvl_sl,
-        tong_hang_di_duong_sl = EXCLUDED.tong_hang_di_duong_sl,
-        tong_sl_vt_can_dung = EXCLUDED.tong_sl_vt_can_dung,
-        sl_du_tru_toi_thieu = EXCLUDED.sl_du_tru_toi_thieu,
-        sl_can_mua_theo_moq = EXCLUDED.sl_can_mua_theo_moq,
-        sl_dat_mua_de_xuat = EXCLUDED.sl_dat_mua_de_xuat,
-        sl_dat_mua_chot = EXCLUDED.sl_dat_mua_chot,
-        sl_ton_kho = EXCLUDED.sl_ton_kho,
-        so_ngay_vong_quay_ton = EXCLUDED.so_ngay_vong_quay_ton,
-        don_gia_ton_kho = EXCLUDED.don_gia_ton_kho,
-        gia_tri_ton_kho = EXCLUDED.gia_tri_ton_kho,
-        create_uid = EXCLUDED.create_uid,
-        create_date = EXCLUDED.create_date,
-        write_uid = EXCLUDED.write_uid,
-        write_date = EXCLUDED.write_date;
+
+    SELECT period_month INTO v_period_month
+    FROM ke_hoach_vat_tu
+    WHERE id = NEW.period_id;
+
+    FOR i IN 0..3 LOOP
+        v_month_date := (TO_DATE(v_period_month, 'MM/YYYY') + (i || ' month')::INTERVAL)::DATE;
+        v_month_key  := TO_CHAR(v_month_date, 'MM/YYYY');
+        
+        v_qty := CASE i
+            WHEN 0 THEN NEW.qty_t0
+            WHEN 1 THEN NEW.qty_t1
+            WHEN 2 THEN NEW.qty_t2
+            WHEN 3 THEN NEW.qty_t3
+        END;
+
+        INSERT INTO du_lieu_tong_hop_vat_tu (
+            step_code, source_model, source_res_id, period_id, company_id, month_key,
+            month_date, ma_sap, ma_vat_tu,
+            qty, ten_sap, ma_nvl,
+            ten_nvl, ten_vat_tu, ma_effect,
+            don_vi_tinh, do_day, kho_1, kho_2, trong_luong_kg_tam, sl_dinh_muc,
+            create_uid, create_date, write_uid, write_date
+        ) VALUES (
+            'b3', 'tinh.toan.vat.tu', NEW.id, NEW.period_id,
+            NEW.company_id, v_month_key, v_month_date, NEW.ma_sap,
+            NEW.ma_vat_tu,
+            v_qty, NEW.ten_sap, NEW.ma_vat_tu, NEW.ten_vat_tu, NEW.ten_vat_tu, NEW.ma_effect,
+            NEW.don_vi_tinh, NEW.do_day, NEW.kho_1, NEW.kho_2,
+            NEW.trong_luong_kg_tam, NEW.sl_dinh_muc,
+            NEW.create_uid, NEW.create_date, NEW.write_uid, NEW.write_date
+        )
+        ON CONFLICT (source_model, source_res_id, month_key) DO UPDATE SET
+            step_code = EXCLUDED.step_code,
+            period_id = EXCLUDED.period_id,
+            company_id = EXCLUDED.company_id,
+            month_date = EXCLUDED.month_date,
+            ma_sap = EXCLUDED.ma_sap,
+            ma_vat_tu = EXCLUDED.ma_vat_tu,
+            qty = EXCLUDED.qty,
+            ten_sap = EXCLUDED.ten_sap,
+            ma_nvl = EXCLUDED.ma_nvl,
+            ten_nvl = EXCLUDED.ten_nvl,
+            ten_vat_tu = EXCLUDED.ten_vat_tu,
+            ma_effect = EXCLUDED.ma_effect,
+            don_vi_tinh = EXCLUDED.don_vi_tinh,
+            do_day = EXCLUDED.do_day,
+            kho_1 = EXCLUDED.kho_1,
+            kho_2 = EXCLUDED.kho_2,
+            trong_luong_kg_tam = EXCLUDED.trong_luong_kg_tam,
+            sl_dinh_muc = EXCLUDED.sl_dinh_muc,
+            write_uid = EXCLUDED.write_uid,
+            write_date = EXCLUDED.write_date;
+    END LOOP;
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -337,94 +311,74 @@ FOR EACH ROW EXECUTE PROCEDURE dlthvt_sync_b3();
 -- B4: tong_hop_vat_tu → du_lieu_tong_hop_vat_tu
 -- =============================================================================
 CREATE OR REPLACE FUNCTION dlthvt_sync_b4() RETURNS TRIGGER AS $$
+DECLARE
+    v_period_month TEXT;
+    v_month_key TEXT;
+    v_month_date DATE;
+    v_ve_du_kien NUMERIC;
+    v_vt_can_dung NUMERIC;
+    v_ton_cuoi NUMERIC;
 BEGIN
     IF TG_OP = 'DELETE' THEN
         DELETE FROM du_lieu_tong_hop_vat_tu
         WHERE source_model = 'tong.hop.vat.tu' AND source_res_id = OLD.id;
         RETURN OLD;
     END IF;
-    INSERT INTO du_lieu_tong_hop_vat_tu (
-        step_code, source_model, source_res_id, period_id, company_id, month_key,
-        month_date, ma_sap, ma_vat_tu, nganh_hang, dong_hang, ma_hang,
-        qty, note, ma_tp, ten_tp, ten_sap, ma_nvl,
-        ten_nvl, ten_vat_tu, qty_kinh_doanh, qty_san_xuat, qty_chenh_lech, ma_effect,
-        don_vi_tinh, do_day, kho_1, kho_2, trong_luong_kg_tam, sl_dinh_muc,
-        ma_dat_hang, chung_loai, ma_cuon, ton_dau, ve_du_kien, vt_can_dung,
-        ton_cuoi, so_luong_du_phong, so_luong_thieu, so_luong_can_mua, ghi_chu, tong_ton_nvl_sl,
-        tong_hang_di_duong_sl, tong_sl_vt_can_dung, sl_du_tru_toi_thieu, sl_can_mua_theo_moq, sl_dat_mua_de_xuat, sl_dat_mua_chot,
-        sl_ton_kho, so_ngay_vong_quay_ton, don_gia_ton_kho, gia_tri_ton_kho, create_uid, create_date,
-        write_uid, write_date
-    ) VALUES (
-        'b4', 'tong.hop.vat.tu', NEW.id, NEW.period_id,
-        NEW.company_id, NEW.month_key, COALESCE(NEW.month_date, TO_DATE(NEW.month_key, 'MM/YYYY')), NEW.ma_sap,
-        NEW.ma_sap, NULL, NULL, NULL,
-        NULL, NULL, NULL, NULL,
-        NULL, NEW.ma_sap, NEW.ten_nvl, NEW.ten_nvl,
-        NULL, NULL, NULL, NULL,
-        NEW.don_vi_tinh, NULL, NULL, NULL,
-        NULL, NULL, NEW.ma_dat_hang, NEW.chung_loai,
-        NULL, NEW.ton_dau, NEW.ve_du_kien, NEW.vt_can_dung,
-        NEW.ton_cuoi, NEW.so_luong_du_phong, NEW.so_luong_thieu, NEW.so_luong_can_mua,
-        NEW.ghi_chu, NULL, NULL, NULL,
-        NULL, NULL, NULL, NULL,
-        NULL, NULL, NULL, NULL,
-        NEW.create_uid, NEW.create_date, NEW.write_uid, NEW.write_date
-    )
-    ON CONFLICT (source_model, source_res_id) DO UPDATE SET
-        step_code = EXCLUDED.step_code,
-        period_id = EXCLUDED.period_id,
-        company_id = EXCLUDED.company_id,
-        month_key = EXCLUDED.month_key,
-        month_date = EXCLUDED.month_date,
-        ma_sap = EXCLUDED.ma_sap,
-        ma_vat_tu = EXCLUDED.ma_vat_tu,
-        nganh_hang = EXCLUDED.nganh_hang,
-        dong_hang = EXCLUDED.dong_hang,
-        ma_hang = EXCLUDED.ma_hang,
-        qty = EXCLUDED.qty,
-        note = EXCLUDED.note,
-        ma_tp = EXCLUDED.ma_tp,
-        ten_tp = EXCLUDED.ten_tp,
-        ten_sap = EXCLUDED.ten_sap,
-        ma_nvl = EXCLUDED.ma_nvl,
-        ten_nvl = EXCLUDED.ten_nvl,
-        ten_vat_tu = EXCLUDED.ten_vat_tu,
-        qty_kinh_doanh = EXCLUDED.qty_kinh_doanh,
-        qty_san_xuat = EXCLUDED.qty_san_xuat,
-        qty_chenh_lech = EXCLUDED.qty_chenh_lech,
-        ma_effect = EXCLUDED.ma_effect,
-        don_vi_tinh = EXCLUDED.don_vi_tinh,
-        do_day = EXCLUDED.do_day,
-        kho_1 = EXCLUDED.kho_1,
-        kho_2 = EXCLUDED.kho_2,
-        trong_luong_kg_tam = EXCLUDED.trong_luong_kg_tam,
-        sl_dinh_muc = EXCLUDED.sl_dinh_muc,
-        ma_dat_hang = EXCLUDED.ma_dat_hang,
-        chung_loai = EXCLUDED.chung_loai,
-        ma_cuon = EXCLUDED.ma_cuon,
-        ton_dau = EXCLUDED.ton_dau,
-        ve_du_kien = EXCLUDED.ve_du_kien,
-        vt_can_dung = EXCLUDED.vt_can_dung,
-        ton_cuoi = EXCLUDED.ton_cuoi,
-        so_luong_du_phong = EXCLUDED.so_luong_du_phong,
-        so_luong_thieu = EXCLUDED.so_luong_thieu,
-        so_luong_can_mua = EXCLUDED.so_luong_can_mua,
-        ghi_chu = EXCLUDED.ghi_chu,
-        tong_ton_nvl_sl = EXCLUDED.tong_ton_nvl_sl,
-        tong_hang_di_duong_sl = EXCLUDED.tong_hang_di_duong_sl,
-        tong_sl_vt_can_dung = EXCLUDED.tong_sl_vt_can_dung,
-        sl_du_tru_toi_thieu = EXCLUDED.sl_du_tru_toi_thieu,
-        sl_can_mua_theo_moq = EXCLUDED.sl_can_mua_theo_moq,
-        sl_dat_mua_de_xuat = EXCLUDED.sl_dat_mua_de_xuat,
-        sl_dat_mua_chot = EXCLUDED.sl_dat_mua_chot,
-        sl_ton_kho = EXCLUDED.sl_ton_kho,
-        so_ngay_vong_quay_ton = EXCLUDED.so_ngay_vong_quay_ton,
-        don_gia_ton_kho = EXCLUDED.don_gia_ton_kho,
-        gia_tri_ton_kho = EXCLUDED.gia_tri_ton_kho,
-        create_uid = EXCLUDED.create_uid,
-        create_date = EXCLUDED.create_date,
-        write_uid = EXCLUDED.write_uid,
-        write_date = EXCLUDED.write_date;
+
+    SELECT period_month INTO v_period_month
+    FROM ke_hoach_vat_tu
+    WHERE id = NEW.period_id;
+
+    FOR i IN 0..3 LOOP
+        v_month_date := (TO_DATE(v_period_month, 'MM/YYYY') + (i || ' month')::INTERVAL)::DATE;
+        v_month_key  := TO_CHAR(v_month_date, 'MM/YYYY');
+        
+        v_ve_du_kien := CASE i WHEN 0 THEN NEW.ve_du_kien_t0 WHEN 1 THEN NEW.ve_du_kien_t1 WHEN 2 THEN NEW.ve_du_kien_t2 WHEN 3 THEN NEW.ve_du_kien_t3 END;
+        v_vt_can_dung := CASE i WHEN 0 THEN NEW.vt_can_dung_t0 WHEN 1 THEN NEW.vt_can_dung_t1 WHEN 2 THEN NEW.vt_can_dung_t2 WHEN 3 THEN NEW.vt_can_dung_t3 END;
+        v_ton_cuoi := CASE i WHEN 0 THEN NEW.ton_cuoi_t0 WHEN 1 THEN NEW.ton_cuoi_t1 WHEN 2 THEN NEW.ton_cuoi_t2 WHEN 3 THEN NEW.ton_cuoi_t3 END;
+
+        INSERT INTO du_lieu_tong_hop_vat_tu (
+            step_code, source_model, source_res_id, period_id, company_id, month_key,
+            month_date, ma_sap, ma_nvl,
+            ten_nvl, ten_vat_tu, don_vi_tinh, ma_dat_hang, chung_loai,
+            ton_dau, ve_du_kien, vt_can_dung, ton_cuoi, so_luong_du_phong, so_luong_thieu, so_luong_can_mua,
+            ghi_chu,
+            create_uid, create_date, write_uid, write_date
+        ) VALUES (
+            'b4', 'tong.hop.vat.tu', NEW.id, NEW.period_id,
+            NEW.company_id, v_month_key, v_month_date, NEW.ma_sap, NEW.ma_sap,
+            NEW.ten_nvl, NEW.ten_nvl, NEW.don_vi_tinh, NEW.ma_dat_hang, NEW.chung_loai,
+            NEW.ton_dau, v_ve_du_kien, v_vt_can_dung, v_ton_cuoi,
+            CASE WHEN i = 3 THEN NEW.so_luong_du_phong ELSE 0 END,
+            CASE WHEN i = 3 THEN NEW.so_luong_thieu ELSE 0 END,
+            CASE WHEN i = 3 THEN NEW.so_luong_can_mua ELSE 0 END,
+            NEW.ghi_chu,
+            NEW.create_uid, NEW.create_date, NEW.write_uid, NEW.write_date
+        )
+        ON CONFLICT (source_model, source_res_id, month_key) DO UPDATE SET
+            step_code = EXCLUDED.step_code,
+            period_id = EXCLUDED.period_id,
+            company_id = EXCLUDED.company_id,
+            month_date = EXCLUDED.month_date,
+            ma_sap = EXCLUDED.ma_sap,
+            ma_nvl = EXCLUDED.ma_nvl,
+            ten_nvl = EXCLUDED.ten_nvl,
+            ten_vat_tu = EXCLUDED.ten_vat_tu,
+            don_vi_tinh = EXCLUDED.don_vi_tinh,
+            ma_dat_hang = EXCLUDED.ma_dat_hang,
+            chung_loai = EXCLUDED.chung_loai,
+            ton_dau = EXCLUDED.ton_dau,
+            ve_du_kien = EXCLUDED.ve_du_kien,
+            vt_can_dung = EXCLUDED.vt_can_dung,
+            ton_cuoi = EXCLUDED.ton_cuoi,
+            so_luong_du_phong = EXCLUDED.so_luong_du_phong,
+            so_luong_thieu = EXCLUDED.so_luong_thieu,
+            so_luong_can_mua = EXCLUDED.so_luong_can_mua,
+            ghi_chu = EXCLUDED.ghi_chu,
+            write_uid = EXCLUDED.write_uid,
+            write_date = EXCLUDED.write_date;
+    END LOOP;
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -434,83 +388,60 @@ CREATE TRIGGER trg_dlthvt_b4
 AFTER INSERT OR UPDATE OR DELETE ON tong_hop_vat_tu
 FOR EACH ROW EXECUTE PROCEDURE dlthvt_sync_b4();
 
+
 -- =============================================================================
 -- B5: kh_dat_vat_tu → du_lieu_tong_hop_vat_tu
 -- =============================================================================
 CREATE OR REPLACE FUNCTION dlthvt_sync_b5() RETURNS TRIGGER AS $$
+DECLARE
+    v_period_month TEXT;
+    v_month_key TEXT;
+    v_month_date DATE;
 BEGIN
     IF TG_OP = 'DELETE' THEN
         DELETE FROM du_lieu_tong_hop_vat_tu
         WHERE source_model = 'kh.dat.vat.tu' AND source_res_id = OLD.id;
         RETURN OLD;
     END IF;
+
+    SELECT period_month INTO v_period_month
+    FROM ke_hoach_vat_tu
+    WHERE id = NEW.period_id;
+
+    -- B5 now has single-value fields (not per-month), so we insert one record
+    v_month_date := TO_DATE(v_period_month, 'MM/YYYY');
+    v_month_key  := TO_CHAR(v_month_date, 'MM/YYYY');
+
     INSERT INTO du_lieu_tong_hop_vat_tu (
         step_code, source_model, source_res_id, period_id, company_id, month_key,
-        month_date, ma_sap, ma_vat_tu, nganh_hang, dong_hang, ma_hang,
-        qty, note, ma_tp, ten_tp, ten_sap, ma_nvl,
-        ten_nvl, ten_vat_tu, qty_kinh_doanh, qty_san_xuat, qty_chenh_lech, ma_effect,
-        don_vi_tinh, do_day, kho_1, kho_2, trong_luong_kg_tam, sl_dinh_muc,
-        ma_dat_hang, chung_loai, ma_cuon, ton_dau, ve_du_kien, vt_can_dung,
-        ton_cuoi, so_luong_du_phong, so_luong_thieu, so_luong_can_mua, ghi_chu, tong_ton_nvl_sl,
-        tong_hang_di_duong_sl, tong_sl_vt_can_dung, sl_du_tru_toi_thieu, sl_can_mua_theo_moq, sl_dat_mua_de_xuat, sl_dat_mua_chot,
-        sl_ton_kho, so_ngay_vong_quay_ton, don_gia_ton_kho, gia_tri_ton_kho, create_uid, create_date,
-        write_uid, write_date
+        month_date, ma_sap, ma_nvl,
+        ten_nvl, ten_vat_tu, don_vi_tinh, chung_loai,
+        tong_ton_nvl_sl, tong_hang_di_duong_sl, tong_sl_vt_can_dung,
+        sl_du_tru_toi_thieu, sl_can_mua_theo_moq, sl_dat_mua_de_xuat, sl_dat_mua_chot,
+        sl_ton_kho, so_ngay_vong_quay_ton, don_gia_ton_kho, gia_tri_ton_kho,
+        ghi_chu,
+        create_uid, create_date, write_uid, write_date
     ) VALUES (
         'b5', 'kh.dat.vat.tu', NEW.id, NEW.period_id,
-        NEW.company_id, NEW.month_key, COALESCE(NEW.month_date, TO_DATE(NEW.month_key, 'MM/YYYY')), NEW.ma_sap,
-        NEW.ma_sap, NULL, NULL, NULL,
-        NULL, NULL, NULL, NULL,
-        NULL, NEW.ma_sap, NEW.ten_nvl, NEW.ten_nvl,
-        NULL, NULL, NULL, NULL,
-        NEW.don_vi_tinh, NULL, NULL, NULL,
-        NULL, NULL, NULL, NEW.chung_loai,
-        NULL, NULL, NULL, NULL,
-        NULL, NULL, NULL, NULL,
-        NEW.ghi_chu, NEW.tong_ton_nvl_sl, NEW.tong_hang_di_duong_sl, NEW.tong_sl_vt_can_dung,
+        NEW.company_id, v_month_key, v_month_date, NEW.ma_sap, NEW.ma_sap,
+        NEW.ten_nvl, NEW.ten_nvl, NEW.don_vi_tinh, NEW.chung_loai,
+        NEW.tong_ton_nvl_sl, NEW.tong_hang_di_duong, NEW.tong_vt_can_dung,
         NEW.sl_du_tru_toi_thieu, NEW.sl_can_mua_theo_moq, NEW.sl_dat_mua_de_xuat, NEW.sl_dat_mua_chot,
-        NEW.sl_ton_kho, NEW.so_ngay_vong_quay_ton, NEW.don_gia_ton_kho, NEW.gia_tri_ton_kho,
+        NEW.sl_ton_kho_cuoi_ky, NEW.so_ngay_vong_quay_ton, NEW.don_gia_ton_kho, NEW.gia_tri_ton_kho_cuoi_ky,
+        NEW.ghi_chu,
         NEW.create_uid, NEW.create_date, NEW.write_uid, NEW.write_date
     )
-    ON CONFLICT (source_model, source_res_id) DO UPDATE SET
+    ON CONFLICT (source_model, source_res_id, month_key) DO UPDATE SET
         step_code = EXCLUDED.step_code,
         period_id = EXCLUDED.period_id,
         company_id = EXCLUDED.company_id,
-        month_key = EXCLUDED.month_key,
         month_date = EXCLUDED.month_date,
         ma_sap = EXCLUDED.ma_sap,
-        ma_vat_tu = EXCLUDED.ma_vat_tu,
-        nganh_hang = EXCLUDED.nganh_hang,
-        dong_hang = EXCLUDED.dong_hang,
-        ma_hang = EXCLUDED.ma_hang,
-        qty = EXCLUDED.qty,
-        note = EXCLUDED.note,
-        ma_tp = EXCLUDED.ma_tp,
-        ten_tp = EXCLUDED.ten_tp,
-        ten_sap = EXCLUDED.ten_sap,
         ma_nvl = EXCLUDED.ma_nvl,
         ten_nvl = EXCLUDED.ten_nvl,
         ten_vat_tu = EXCLUDED.ten_vat_tu,
-        qty_kinh_doanh = EXCLUDED.qty_kinh_doanh,
-        qty_san_xuat = EXCLUDED.qty_san_xuat,
-        qty_chenh_lech = EXCLUDED.qty_chenh_lech,
-        ma_effect = EXCLUDED.ma_effect,
         don_vi_tinh = EXCLUDED.don_vi_tinh,
-        do_day = EXCLUDED.do_day,
-        kho_1 = EXCLUDED.kho_1,
-        kho_2 = EXCLUDED.kho_2,
-        trong_luong_kg_tam = EXCLUDED.trong_luong_kg_tam,
-        sl_dinh_muc = EXCLUDED.sl_dinh_muc,
-        ma_dat_hang = EXCLUDED.ma_dat_hang,
         chung_loai = EXCLUDED.chung_loai,
-        ma_cuon = EXCLUDED.ma_cuon,
-        ton_dau = EXCLUDED.ton_dau,
-        ve_du_kien = EXCLUDED.ve_du_kien,
-        vt_can_dung = EXCLUDED.vt_can_dung,
-        ton_cuoi = EXCLUDED.ton_cuoi,
-        so_luong_du_phong = EXCLUDED.so_luong_du_phong,
-        so_luong_thieu = EXCLUDED.so_luong_thieu,
-        so_luong_can_mua = EXCLUDED.so_luong_can_mua,
-        ghi_chu = EXCLUDED.ghi_chu,
         tong_ton_nvl_sl = EXCLUDED.tong_ton_nvl_sl,
         tong_hang_di_duong_sl = EXCLUDED.tong_hang_di_duong_sl,
         tong_sl_vt_can_dung = EXCLUDED.tong_sl_vt_can_dung,
@@ -522,10 +453,10 @@ BEGIN
         so_ngay_vong_quay_ton = EXCLUDED.so_ngay_vong_quay_ton,
         don_gia_ton_kho = EXCLUDED.don_gia_ton_kho,
         gia_tri_ton_kho = EXCLUDED.gia_tri_ton_kho,
-        create_uid = EXCLUDED.create_uid,
-        create_date = EXCLUDED.create_date,
+        ghi_chu = EXCLUDED.ghi_chu,
         write_uid = EXCLUDED.write_uid,
         write_date = EXCLUDED.write_date;
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -668,11 +599,8 @@ FOR EACH ROW EXECUTE PROCEDURE dlthvt_sync_sx();
 
 -- =============================================================================
 -- SYNC: md_sap_bom → bom (ORM table)
--- Khi md_sap_bom được INSERT/UPDATE, tự động UPSERT vào bảng bom.
--- Tạm thời gán company_id = 17 (SHE). Sau này sẽ mapping từ chi_nhanh.
 -- =============================================================================
 
--- Helper: parse số SAP (xử lý dấu trừ cuối: "0.727-" → -0.727, lỗi → 0)
 CREATE OR REPLACE FUNCTION safe_sap_numeric(val TEXT)
 RETURNS NUMERIC AS $$
 DECLARE
@@ -768,11 +696,5 @@ BEGIN
             sl_dinh_muc = EXCLUDED.sl_dinh_muc,
             sl_spdm     = COALESCE(EXCLUDED.sl_spdm, bom.sl_spdm, 1.0),
             write_date  = NOW() AT TIME ZONE 'UTC';
-
-        RAISE NOTICE 'sync_md_sap_bom_to_bom: trigger created, backfill done.';
-    ELSE
-        RAISE NOTICE 'Table md_sap_bom not found, skip trigger creation.';
     END IF;
 END $$;
-
-

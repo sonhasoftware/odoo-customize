@@ -80,17 +80,17 @@ class KeHoachVatTu(models.Model):
     can_approve = fields.Boolean(compute='_compute_can_approve')
 
     ngay_du_phong_b4 = fields.Float(
-        string='Số ngày (dự phòng)',
+        string='Số ngày dự phòng (B4)',
         default=15.0,
         digits=(16, 2),
-        help='Dùng cho B4: số lượng dự phòng = VT cần dùng ÷ 28 × số ngày này.',
+        help='Dự phòng B4 = VT cần dùng tháng đầu ÷ 28 × số ngày này (mặc định 15 ≈ 2 tuần).',
         tracking=True,
     )
     ngay_du_tru_b5 = fields.Float(
-        string='Số ngày (dự trữ)',
+        string='Số ngày dự trữ (B5)',
         default=20.0,
         digits=(16, 2),
-        help='Dùng cho B5: số lượng dự trữ tối thiểu = VT cần dùng ÷ 28 × số ngày này.',
+        help='Dự trữ tối thiểu B5 = VT cần dùng tháng đầu ÷ 28 × số ngày này (mặc định 20).',
         tracking=True,
     )
 
@@ -187,53 +187,61 @@ class KeHoachVatTu(models.Model):
         return '%s%04d' % (prefix, next_no)
 
     @api.model
+    def _get_view_cache_key(self, view_id=None, view_type='form', **options):
+        key = super()._get_view_cache_key(view_id, view_type, **options)
+        u = self.env.user
+        return key + (
+            options.get('action_id'),
+            u.has_group('sonha_vat_tu.group_ban_cung_ung_vat_tu'),
+            u.has_group('sonha_vat_tu.group_bo_phan_vat_tu'),
+            u.has_group('sonha_vat_tu.group_truong_bo_phan_vat_tu'),
+        )
+
+    @api.model
     def _get_view(self, view_id=None, view_type='form', **options):
         arch, view = super()._get_view(view_id=view_id, view_type=view_type, **options)
         if view_type not in ('tree', 'form'):
             return arch, view
 
+        user = self.env.user
+        is_ban_cung_ung = user.has_group('sonha_vat_tu.group_ban_cung_ung_vat_tu')
         action_id = options.get('action_id')
+    
 
-        action_kinh_doanh = self.env.ref(
-            'sonha_vat_tu.action_ke_hoach_kinh_doanh_period',
-            raise_if_not_found=False,
-        )
-        action_san_xuat = self.env.ref(
-            'sonha_vat_tu.action_ke_hoach_san_xuat_period',
-            raise_if_not_found=False,
-        )
-        action_vat_tu = self.env.ref(
-            'sonha_vat_tu.action_ke_hoach_vat_tu_period',
-            raise_if_not_found=False,
-        )
-        readonly_step_views = [
+        action_kd = self.env.ref('sonha_vat_tu.action_ke_hoach_kinh_doanh_period', raise_if_not_found=False)
+        action_sx = self.env.ref('sonha_vat_tu.action_ke_hoach_san_xuat_period', raise_if_not_found=False)
+        action_vt = self.env.ref('sonha_vat_tu.action_ke_hoach_vat_tu_period', raise_if_not_found=False)
+
+        is_kd = action_kd and action_id == action_kd.id
+        is_sx = action_sx and action_id == action_sx.id
+        is_vt = action_vt and action_id == action_vt.id
+        if not (is_kd or is_sx or is_vt) and view_type == 'tree':
+            form_ref = self.env.context.get('form_view_ref') or ''
+            is_kd = 'view_ke_hoach_vat_tu_form_kd' in form_ref
+            is_sx = 'view_ke_hoach_vat_tu_form_sx' in form_ref
+            is_vt = 'view_ke_hoach_vat_tu_form_vt' in form_ref
+
+        step_views = [
             self.env.ref('sonha_vat_tu.view_ke_hoach_vat_tu_form_b1', raise_if_not_found=False),
+            self.env.ref('sonha_vat_tu.view_ke_hoach_vat_tu_form_vt', raise_if_not_found=False),
             self.env.ref('sonha_vat_tu.view_ke_hoach_vat_tu_form_b2', raise_if_not_found=False),
             self.env.ref('sonha_vat_tu.view_ke_hoach_vat_tu_form_b3', raise_if_not_found=False),
             self.env.ref('sonha_vat_tu.view_ke_hoach_vat_tu_form_b4', raise_if_not_found=False),
             self.env.ref('sonha_vat_tu.view_ke_hoach_vat_tu_form_b5', raise_if_not_found=False),
         ]
-        readonly_step_view_ids = [view.id for view in readonly_step_views if view]
+        is_step_form = view_type == 'form' and view_id in [v.id for v in step_views if v]
 
-        is_kinh_doanh_action = action_kinh_doanh and action_id == action_kinh_doanh.id
-        is_san_xuat_or_vat_tu_action = (
-            (action_san_xuat and action_id == action_san_xuat.id)
-            or (action_vat_tu and action_id == action_vat_tu.id)
-        )
-        is_readonly_step_view = view_type == 'form' and view_id in readonly_step_view_ids
-        lock_create = (
-            (is_san_xuat_or_vat_tu_action or is_readonly_step_view)
-            and self.env.user.has_group('sonha_vat_tu.group_ban_cung_ung_vat_tu')
-        ) or (
-            is_kinh_doanh_action
-            and self.env.user.has_group('sonha_vat_tu.group_bo_phan_vat_tu')
-        )
+        lock_create = False
+        if is_step_form and is_ban_cung_ung:
+            lock_create = True
+        elif is_kd and is_ban_cung_ung:
+            lock_create = False
+        elif is_kd or is_sx or is_vt:
+            lock_create = True
 
         if lock_create:
-            for tree in arch.xpath('//tree'):
-                tree.set('create', 'false')
-            for form in arch.xpath('//form'):
-                form.set('create', 'false')
+            for node in arch.xpath('//tree') + arch.xpath('//form'):
+                node.set('create', 'false')
         return arch, view
 
     @api.model_create_multi
@@ -841,7 +849,7 @@ class KeHoachVatTu(models.Model):
         return self._action_open_step('sonha_vat_tu.view_ke_hoach_vat_tu_form_vt')
 
     def action_open_step_b1(self):
-        return self._action_open_step('sonha_vat_tu.view_ke_hoach_vat_tu_form_b1')
+        return self._action_open_step('sonha_vat_tu.view_ke_hoach_vat_tu_form_vt')
 
     def action_open_step_b2(self):
         return self._action_open_step('sonha_vat_tu.view_ke_hoach_vat_tu_form_b2')

@@ -29,10 +29,10 @@ class KeHoachSanXuat(models.Model):
         string='Mã SAP', index=True)
 
 
-    qty_t0 = fields.Float(string='Số lượng T0', digits=(16, 2))
-    qty_t1 = fields.Float(string='Số lượng T+1', digits=(16, 2))
-    qty_t2 = fields.Float(string='Số lượng T+2', digits=(16, 2))
-    qty_t3 = fields.Float(string='Số lượng T+3', digits=(16, 2))
+    qty_t0 = fields.Float(string='Tháng T0', digits=(16, 2))
+    qty_t1 = fields.Float(string='Tháng T+1', digits=(16, 2))
+    qty_t2 = fields.Float(string='Tháng T+2', digits=(16, 2))
+    qty_t3 = fields.Float(string='Tháng T+3', digits=(16, 2))
 
     note = fields.Char(string='Ghi chú')
 
@@ -55,31 +55,44 @@ class KeHoachSanXuat(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        MaHang = self.env['ma.hang'].sudo()
-        Period = self.env['ke.hoach.vat.tu']
-        for vals in vals_list:
-            if vals.get('period_id'):
-                period = Period.browse(vals['period_id'])
-                if period.state != 'ke_hoach':
+        # 1. Gom tất cả period_id và ma_sap để query 1 lần (Bulk Fetch)
+        period_ids = list(set(v['period_id'] for v in vals_list if v.get('period_id')))
+        sap_codes = list(set(v['ma_sap'] for v in vals_list if v.get('ma_sap')))
+
+        # 2. Lấy dữ liệu Period
+        period_states = {}
+        if period_ids:
+            periods = self.env['ke.hoach.vat.tu'].browse(period_ids)
+            for p in periods:
+                period_states[p.id] = p.state
+                if p.state != 'ke_hoach':
                     raise UserError(_('Kế hoạch sản xuất đã khóa vì kỳ kế hoạch đã sang bước sau.'))
 
+        # 3. Lấy dữ liệu Mã Hàng
+        ma_hang_dict = {}
+        if sap_codes:
+            masters = self.env['ma.hang'].sudo().search_read(
+                [('ma_sap', 'in', sap_codes)],
+                ['ma_sap', 'nganh_hang']
+            )
+            for m in masters:
+                if m.get('ma_sap'):
+                    ma_hang_dict[m['ma_sap']] = m.get('nganh_hang')
 
-
-
-            if vals.get('ma_sap'):
-                master = MaHang.search([('ma_sap', '=', vals['ma_sap'])], limit=1)
-                if master:
-                    vals.setdefault('nganh_hang', master.nganh_hang)
+        # 4. Gán dữ liệu vào vals
+        company = self.env.company
+        allow_unassigned = self.env.context.get('allow_unassigned_production_company')
+        
+        for vals in vals_list:
+            if vals.get('ma_sap') and vals['ma_sap'] in ma_hang_dict:
+                vals.setdefault('nganh_hang', ma_hang_dict[vals['ma_sap']])
 
             if not vals.get('company_id') and vals.get('period_id'):
-                if self.env.context.get('allow_unassigned_production_company'):
+                if allow_unassigned:
                     vals['company_id'] = False
                 else:
-                    company = self.env.company
                     if company.company_code not in ('BNH', 'SSP'):
-                        raise UserError(_(
-                            'Công ty hiện tại không phải công ty sản xuất BNH/SSP.'
-                        ))
+                        raise UserError(_('Công ty hiện tại không phải công ty sản xuất BNH/SSP.'))
                     vals['company_id'] = company.id
                     
         records = super().create(vals_list)
@@ -106,6 +119,30 @@ class KeHoachSanXuat(models.Model):
     @api.model
     def _format_qty(self, qty):
         return "{:,.2f}".format(qty or 0.0).replace(',', 'X').replace('.', ',').replace('X', '.')
+
+    @api.model
+    def _month_labels(self, period):
+        labels = {
+            'qty_t0': 'Tháng T0',
+            'qty_t1': 'Tháng T+1',
+            'qty_t2': 'Tháng T+2',
+            'qty_t3': 'Tháng T+3',
+        }
+        period_month = period.period_month if period else False
+        if not period_month:
+            return labels
+        try:
+            month, year = [int(part) for part in period_month.split('/')]
+        except (TypeError, ValueError):
+            return labels
+        for idx in range(4):
+            cur_month = month + idx
+            cur_year = year
+            while cur_month > 12:
+                cur_month -= 12
+                cur_year += 1
+            labels[f'qty_t{idx}'] = 'Tháng %02d/%s' % (cur_month, cur_year)
+        return labels
 
     def _tracking_values(self):
         return {
@@ -134,11 +171,13 @@ class KeHoachSanXuat(models.Model):
                 f"<b>Đã xóa {len(lines)} dòng kế hoạch sản xuất:</b></span>"
             )
             period.with_context(vat_tu_chatter_scope=_SCOPE).message_post(
-                body=self._build_tracking_table_html(title, lines, action=action)
+                body=self._build_tracking_table_html(title, lines, period, action=action)
             )
 
     @api.model
-    def _build_tracking_table_html(self, title, lines, action='create'):
+    def _build_tracking_table_html(self, title, lines, period, action='create'):
+        month_labels = self._month_labels(period)
+
         def cell(value):
             value = escape(value)
             return Markup("<del class='text-muted'>%s</del>") % value if action == 'unlink' else value
@@ -166,16 +205,23 @@ class KeHoachSanXuat(models.Model):
                             <th>Dòng hàng</th>
                             <th>Mã hàng</th>
                             <th>Mã SAP</th>
-                            <th class="text-end">T0</th>
-                            <th class="text-end">T+1</th>
-                            <th class="text-end">T+2</th>
-                            <th class="text-end">T+3</th>
+                            <th class="text-end">%s</th>
+                            <th class="text-end">%s</th>
+                            <th class="text-end">%s</th>
+                            <th class="text-end">%s</th>
                         </tr>
                     </thead>
                     <tbody>%s</tbody>
                 </table>
             </div>
-        """) % (Markup(title), Markup(rows))
+        """) % (
+            Markup(title),
+            escape(month_labels['qty_t0']),
+            escape(month_labels['qty_t1']),
+            escape(month_labels['qty_t2']),
+            escape(month_labels['qty_t3']),
+            Markup(rows),
+        )
 
     @api.model
     def _log_field_changes(self, changes_by_period):
@@ -201,10 +247,10 @@ class KeHoachSanXuat(models.Model):
         TRACKED = {
             'ma_hang': 'Mã hàng',
             'ma_sap': 'Mã SAP',
-            'qty_t0': 'Số lượng T0',
-            'qty_t1': 'Số lượng T+1',
-            'qty_t2': 'Số lượng T+2',
-            'qty_t3': 'Số lượng T+3',
+            'qty_t0': False,
+            'qty_t1': False,
+            'qty_t2': False,
+            'qty_t3': False,
         }
 
         if not self.env.context.get('skip_period_lock'):
@@ -220,6 +266,7 @@ class KeHoachSanXuat(models.Model):
             return res
 
         changes_by_period = {}
+        month_label_cache = {}
         for f, label in TRACKED.items():
             if f not in old:
                 continue
@@ -227,8 +274,17 @@ class KeHoachSanXuat(models.Model):
                 ov, nv = old[f][rec.id], rec[f]
                 if ov == nv:
                     continue
-                ov_disp = ov if ov not in (False, None, '') else 'Trống'
-                nv_disp = nv if nv not in (False, None, '') else 'Trống'
+                if f.startswith('qty_t'):
+                    month_labels = month_label_cache.setdefault(
+                        rec.period_id.id,
+                        self._month_labels(rec.period_id),
+                    )
+                    label = month_labels[f]
+                    ov_disp = self._format_qty(ov)
+                    nv_disp = self._format_qty(nv)
+                else:
+                    ov_disp = ov if ov not in (False, None, '') else 'Trống'
+                    nv_disp = nv if nv not in (False, None, '') else 'Trống'
                 ma_hang_code = rec.ma_hang or ''
                 changes_by_period.setdefault(rec.period_id, []).append((
                     str(ov_disp),

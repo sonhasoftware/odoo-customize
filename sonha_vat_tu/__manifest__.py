@@ -27,7 +27,6 @@
         'views/ke_hoach_vat_tu_views.xml',
         'views/ke_hoach_workflow_views.xml',
         'views/du_lieu_tong_hop_vat_tu_views.xml',
-        'views/bao_cao_tong_quan_vat_tu_views.xml',
         'views/bao_cao_nhu_cau_vat_tu_views.xml',
         'views/menu_views.xml',
         'data/cron_jobs.xml',
@@ -37,7 +36,8 @@
         'web.assets_backend': [
             'sonha_vat_tu/static/src/scss/list_width.scss',
             'sonha_vat_tu/static/src/js/vat_tu_chatter_scope.js',
-            'sonha_vat_tu/static/src/js/vat_tu_dynamic_headers.js',
+            'sonha_vat_tu/static/src/js/vat_tu_list_header.js',
+            'sonha_vat_tu/static/src/xml/vat_tu_list_header.xml',
         ],
     },
     'installable': True,

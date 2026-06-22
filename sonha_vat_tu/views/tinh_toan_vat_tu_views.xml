@@ -13,8 +13,10 @@
                 <field name="ten_sap"/>
                 <field name="don_vi_tinh"/>
                 <field name="sl_dinh_muc" sum="Định mức"/>
-                <field name="month_key" required="1"/>
-                <field name="qty" sum="Số lượng"/>
+                <field name="qty_t0" sum="T0"/>
+                <field name="qty_t1" sum="T1"/>
+                <field name="qty_t2" sum="T2"/>
+                <field name="qty_t3" sum="T3"/>
             </tree>
         </field>
     </record>
@@ -29,11 +31,9 @@
                 <field name="ma_vat_tu"/>
                 <field name="ma_effect"/>
                 <field name="ten_sap"/>
-                <field name="month_key"/>
                 <field name="company_id"/>
                 <group expand="0" string="Nhóm theo">
                     <filter name="g_period" string="Kỳ" context="{'group_by': 'period_id'}"/>
-                    <filter name="g_month" string="Tháng" context="{'group_by': 'month_key'}"/>
                     <filter name="g_sap" string="Mã SAP" context="{'group_by': 'ma_sap'}"/>
                     <filter name="g_effect" string="Mã Effect" context="{'group_by': 'ma_effect'}"/>
                 </group>

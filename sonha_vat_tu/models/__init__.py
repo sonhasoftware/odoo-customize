@@ -14,5 +14,4 @@ from . import kh_dat_vat_tu
 from . import buoc_duyet_ke_hoach_vat_tu
 from . import vat_tu_di_duong
 from . import du_lieu_tong_hop_vat_tu
-from . import bao_cao_tong_quan_vat_tu
 from . import bao_cao_nhu_cau_vat_tu

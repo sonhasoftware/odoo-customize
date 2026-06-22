@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
-from odoo import fields, models
-
+from odoo import api, fields, models
 
 class TongHopVatTu(models.Model):
     _name = 'tong.hop.vat.tu'
     _inherit = ['mail.thread', 'mail.activity.mixin']
-    _description = 'Tổng hợp vật tư cần sản xuất'
-    _order = 'period_id, company_id, ma_sap, month_date, id'
+    _description = 'Tổng hợp vật tư'
+    _order = 'period_id, company_id, ma_sap, id'
 
     period_id = fields.Many2one(
         'ke.hoach.vat.tu', string='Kỳ', ondelete='cascade', index=True)
@@ -17,15 +16,31 @@ class TongHopVatTu(models.Model):
     ten_nvl = fields.Char(string='Tên NVL')
     chung_loai = fields.Char(string='Chủng loại')
     don_vi_tinh = fields.Many2one('mdm.dvt', string='ĐVT')
-    month_key = fields.Char(string='Tháng', index=True)
-    month_date = fields.Date(string='Tháng tính toán', index=True)
 
+    # Tồn đầu: chỉ có 1 giá trị duy nhất (đầu kỳ)
     ton_dau = fields.Float(string='Tồn đầu', digits=(16, 3))
-    ve_du_kien = fields.Float(string='Vật tư đi đường', digits=(16, 3))
-    vt_can_dung = fields.Float(string='VT cần dùng', digits=(16, 3))
-    ton_cuoi = fields.Float(string='Tồn cuối', digits=(16, 3))
 
-    so_luong_du_phong = fields.Float(string='SL dự phòng', digits=(16, 3))
-    so_luong_thieu = fields.Float(string='SL thiếu', digits=(16, 3))
-    so_luong_can_mua = fields.Float(string='SL cần mua', digits=(16, 3))
+    # Hàng đi đường: chia theo 4 tháng
+    ve_du_kien_t0 = fields.Float(string='Hàng đi đường T0', digits=(16, 3))
+    ve_du_kien_t1 = fields.Float(string='Hàng đi đường T1', digits=(16, 3))
+    ve_du_kien_t2 = fields.Float(string='Hàng đi đường T2', digits=(16, 3))
+    ve_du_kien_t3 = fields.Float(string='Hàng đi đường T3', digits=(16, 3))
+
+    # Cần dùng: chia theo 4 tháng
+    vt_can_dung_t0 = fields.Float(string='Cần dùng T0', digits=(16, 3))
+    vt_can_dung_t1 = fields.Float(string='Cần dùng T1', digits=(16, 3))
+    vt_can_dung_t2 = fields.Float(string='Cần dùng T2', digits=(16, 3))
+    vt_can_dung_t3 = fields.Float(string='Cần dùng T3', digits=(16, 3))
+
+    # Tồn cuối: chia theo 4 tháng (dồn lũy kế)
+    ton_cuoi_t0 = fields.Float(string='Tồn cuối T0', digits=(16, 3))
+    ton_cuoi_t1 = fields.Float(string='Tồn cuối T1', digits=(16, 3))
+    ton_cuoi_t2 = fields.Float(string='Tồn cuối T2', digits=(16, 3))
+    ton_cuoi_t3 = fields.Float(string='Tồn cuối T3', digits=(16, 3))
+
+    # Dự phòng, Thiếu, Cần mua: chỉ 1 giá trị cuối kỳ
+    so_luong_du_phong = fields.Float(string='Dự phòng', digits=(16, 3))
+    so_luong_thieu = fields.Float(string='Thiếu', digits=(16, 3))
+    so_luong_can_mua = fields.Float(string='Cần mua', digits=(16, 3))
+
     ghi_chu = fields.Char(string='Ghi chú')

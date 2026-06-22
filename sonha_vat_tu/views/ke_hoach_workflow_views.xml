@@ -174,25 +174,16 @@
                         </group>
                     </group>
                     <field name="ke_hoach_vat_tu_line_ids" readonly="1">
-                        <tree editable="bottom"
-                              decoration-danger="qty_cl_t0 &lt; 0 or qty_cl_t1 &lt; 0 or qty_cl_t2 &lt; 0 or qty_cl_t3 &lt; 0"
-                              decoration-success="qty_cl_t0 &gt; 0 or qty_cl_t1 &gt; 0 or qty_cl_t2 &gt; 0 or qty_cl_t3 &gt; 0">
+                        <tree editable="bottom" class="sh_free_width_tree">
                             <field name="nganh_hang"/>
                             <field name="dong_hang"/>
                             <field name="ma_hang"/>
                             <field name="ma_sap"/>
-                            <field name="qty_kd_t0" sum="KD T0"/>
-                            <field name="qty_kd_t1" sum="KD T1"/>
-                            <field name="qty_kd_t2" sum="KD T2"/>
-                            <field name="qty_kd_t3" sum="KD T3"/>
-                            <field name="qty_sx_t0" sum="SX T0"/>
-                            <field name="qty_sx_t1" sum="SX T1"/>
-                            <field name="qty_sx_t2" sum="SX T2"/>
-                            <field name="qty_sx_t3" sum="SX T3"/>
-                            <field name="qty_cl_t0" sum="CL T0"/>
-                            <field name="qty_cl_t1" sum="CL T1"/>
-                            <field name="qty_cl_t2" sum="CL T2"/>
-                            <field name="qty_cl_t3" sum="CL T3"/>
+                            <field name="qty_ton_kho" string="Tồn kho"/>
+                            <field name="qty_t0" sum="T0"/>
+                            <field name="qty_t1" sum="T1"/>
+                            <field name="qty_t2" sum="T2"/>
+                            <field name="qty_t3" sum="T3"/>
                         </tree>
                     </field>
                 </sheet>
@@ -229,4 +220,3 @@
         <field name="context">{'form_view_ref': 'sonha_vat_tu.view_ke_hoach_vat_tu_form_vt', 'vat_tu_chatter_scope': 'vt', 'vat_tu_company_code_display': True}</field>
     </record>
 </odoo>
-
