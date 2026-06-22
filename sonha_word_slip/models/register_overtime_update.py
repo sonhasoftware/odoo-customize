@@ -54,7 +54,7 @@ class RegisterOvertimeUpdate(models.Model):
     actual_compensatory_hours = fields.Text(string="Giờ nghỉ bù thực tế", default="{}")
 
     @api.constrains('date')
-    def _check_overtime_conflict(self):
+    def _check_overtime_required_fields(self):
         for r in self:
             if not r.date:
                 raise ValidationError("Dữ liệu ngày giờ không được để trống!")
@@ -91,7 +91,7 @@ class RegisterOvertimeUpdate(models.Model):
             record.all_times = "\n".join(times) if times else "Không có dữ liệu"
 
     @api.constrains('employee_id', 'employee_ids', 'date')
-    def _check_overtime_conflict(self):
+    def _check_overtime_duplicate_conflict(self):
         for record in self:
             # Lấy danh sách nhân viên của đơn đăng ký
             employee_list = record.employee_ids.ids
