@@ -2,6 +2,7 @@ from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from datetime import date, datetime, timedelta
 from dateutil.relativedelta import relativedelta
+import unicodedata
 
 
 class PopupConfigMailTemplate(models.TransientModel):
@@ -21,13 +22,27 @@ class PopupConfigMailTemplate(models.TransientModel):
     subject = fields.Char(string="Tiêu đề", store=True)
     state_code = fields.Char(store=True)
 
+    def remove_accents(self, text):
+        text = unicodedata.normalize('NFD', text)
+        text = ''.join(
+            c for c in text
+            if unicodedata.category(c) != 'Mn'
+        )
+        return text
+
     def action_send(self):
         action_user = self.env.user.id
-        mail_from = self.env['hr.employee'].sudo().search([('user_id', '=', action_user.id)], limit=1).work_email
+        mail_from = self.env['hr.employee'].sudo().search([('user_id', '=', action_user)], limit=1).work_email
         state_rule = self.env['exp.state.transition.rule'].sudo().search([('from_state_id', '=', self.contract_id.state_id.id)])
         template = self.env.ref('sonha_ql_xuat_khau.product_request_mail_template').sudo()
         if self.attach_file:
-            template.attachment_ids = [(6, 0, self.attach_file.ids)]
+            attachment_ids = []
+            for att in self.attach_file:
+                new_att = att.sudo().copy({
+                    'name': self.remove_accents(att.name)
+                })
+                attachment_ids.append(new_att.id)
+            template.attachment_ids = [(6, 0, attachment_ids)]
         self.contract_id.sudo().write({'state_id': state_rule.to_state_id.id,
                                        'date_state_change': str(datetime.now().date())})
         if self.mail_to:

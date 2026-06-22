@@ -4,6 +4,7 @@ import io
 import pandas as pd
 from odoo.exceptions import ValidationError
 from datetime import datetime, time, timedelta
+import unicodedata
 
 
 class PopupRequiredDocument(models.TransientModel):
@@ -129,13 +130,27 @@ class PopupRequiredDocument(models.TransientModel):
                 }
                 self.env['exp.production.order'].sudo().create(vals)
 
+    def remove_accents(self, text):
+        text = unicodedata.normalize('NFD', text)
+        text = ''.join(
+            c for c in text
+            if unicodedata.category(c) != 'Mn'
+        )
+        return text
+
     def action_confirm(self):
         action_user = self.env.user.id
-        mail_from = self.env['hr.employee'].sudo().search([('user_id', '=', action_user.id)], limit=1).work_email
+        mail_from = self.env['hr.employee'].sudo().search([('user_id', '=', action_user)], limit=1).work_email
         if self.key == 'change_stt':
             template = self.env.ref('sonha_ql_xuat_khau.product_request_mail_template').sudo()
             if self.file:
-                template.attachment_ids = [(6, 0, self.file.ids)]
+                attachment_ids = []
+                for att in self.file:
+                    new_att = att.sudo().copy({
+                        'name': self.remove_accents(att.name)
+                    })
+                    attachment_ids.append(new_att.id)
+                template.attachment_ids = [(6, 0, attachment_ids)]
             self.env['exp.contract.state.log'].sudo().create({
                 'contract_id': self.contract_id.id,
                 'from_state_id': self.state_id.id,
@@ -158,14 +173,23 @@ class PopupRequiredDocument(models.TransientModel):
                 })
                 template.send_mail(self.contract_id.id, force_send=True)
             if self.state_code == 'done':
+                self.file.sudo().write({
+                    'res_id': self.id
+                })
                 self.contract_id.sudo().write({
                     'mtr_file': [(6, 0, self.file.ids)],
                 })
             if self.state_code == 'send':
+                self.file.sudo().write({
+                    'res_id': self.id
+                })
                 self.contract_id.sudo().write({
                     'payment_file': [(6, 0, self.file.ids)],
                 })
             if self.state_code == 'request' and self.file:
+                self.file.sudo().write({
+                    'res_id': self.id
+                })
                 self.contract_id.sudo().write({
                     'product_file': [(6, 0, self.file.ids)],
                     'produce_status': 'draft',
@@ -189,15 +213,21 @@ class PopupRequiredDocument(models.TransientModel):
                     raise ValidationError("Chưa được cấu hình người nhận")
         else:
             if self.state_code == 'co_bh' and self.file and self.key == 'co_create':
+                self.file.sudo().write({
+                    'res_id': self.id
+                })
                 self.contract_id.sudo().write({
                     'co_file': [(6, 0, self.file.ids)],
-                    'co': True,
-                    'co_status': 'done',
+                    'co': True if self.file else False,
+                    'co_status': 'done' if self.file else 'draft',
                 })
             elif self.state_code == 'co_bh' and self.file and self.key == 'bh_create':
+                self.file.sudo().write({
+                    'res_id': self.id
+                })
                 self.contract_id.sudo().write({
                     'bh_file': [(6, 0, self.file.ids)],
-                    'bh': True,
-                    'bh_status': 'done',
+                    'bh': True if self.file else False,
+                    'bh_status': 'done' if self.file else 'draft',
                 })
 
