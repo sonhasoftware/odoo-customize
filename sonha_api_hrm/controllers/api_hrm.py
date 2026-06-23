@@ -1236,7 +1236,7 @@ class AuthAPI(http.Controller):
             date_obj = datetime.strptime(date, "%d-%m-%Y").date()
             # date_obj = datetime.strptime(date, "%d-%m-%Y")
             # new_date_str = date_obj.strftime("%d/%m/%Y")
-            record = request.env['employee.attendance'].sudo().search([
+            record = request.env['employee.attendance.v2'].sudo().search([
                 ('employee_id', '=', employee_id),
                 ('date', '=', date_obj),
             ])
@@ -1429,7 +1429,7 @@ class AuthAPI(http.Controller):
         try:
             if not employee_id:
                 raise ValueError("Không tìm thấy dữ liệu nhân viên")
-            records = request.env['employee.attendance'].sudo().search([
+            records = request.env['employee.attendance.v2'].sudo().search([
                 ('employee_id', '=', employee_id),
                 ('month', '=', month),
                 ('year', '=', year),

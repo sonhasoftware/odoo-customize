@@ -33,13 +33,13 @@ class SyntheticWork(models.Model):
     shift_three_crew_four = fields.Float("Số lần làm ca 3 kíp 4")
     on_leave = fields.Float("Nghỉ phép", compute="get_date_work")
     compensatory_leave = fields.Float("Nghỉ bù", compute="get_date_work")
-    filial_leave = fields.Float("Nghỉ bố mẹ mất")
+    filial_leave = fields.Float("Nghỉ bố mẹ mất", compute="get_date_work")
     grandparents_leave = fields.Float("Nghỉ ông bà mất")
     vacation = fields.Float("Nghỉ mát")
     public_leave = fields.Float("Nghỉ lễ", compute="get_date_work")
     total_work = fields.Float("Tổng công", compute="get_total_work")
     maternity_leave = fields.Float("Nghỉ vợ sinh")
-    wedding_leave = fields.Float("Nghỉ cưới")
+    wedding_leave = fields.Float("Nghỉ cưới", compute="get_date_work")
     unpaid_leave = fields.Float("Nghỉ không lương", compute="get_date_work")
     paid_leave_slip = fields.Float("Đơn nghỉ có hưởng lương", compute="get_date_work")
 
@@ -110,7 +110,9 @@ class SyntheticWork(models.Model):
                     COALESCE(SUM(paid_leave_slip), 0) AS paid_leave_slip,
                     COALESCE(SUM(sunday_work), 0) AS sunday_work,
                     COALESCE(SUM(normal_sunday_work), 0) AS normal_sunday_work,
-                    COALESCE(SUM(ot_sunday_work), 0) AS ot_sunday_work
+                    COALESCE(SUM(ot_sunday_work), 0) AS ot_sunday_work,
+                    COALESCE(SUM(wedding_leave), 0) AS wedding_leave,
+                    COALESCE(SUM(filial_leave), 0) AS filial_leave
                 FROM employee_attendance_v2
                 WHERE employee_id = %s
                   AND date >= %s
@@ -144,6 +146,8 @@ class SyntheticWork(models.Model):
             r.sunday_work = result['sunday_work']
             r.normal_sunday_work = result['normal_sunday_work']
             r.ot_sunday_work = result['ot_sunday_work']
+            r.wedding_leave = result['wedding_leave']
+            r.filial_leave = result['filial_leave']
 
     @api.depends('on_leave', 'compensatory_leave', 'public_leave', 'maternity_leave', 'wedding_leave', 'paid_leave_slip')
     def get_leave(self):
