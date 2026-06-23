@@ -29,9 +29,8 @@ class OvertimeRel(models.Model):
                 if not owner or not owner.shift:
                     raise ValidationError("Không thể tạo bản ghi khi bạn chưa có ca làm việc")
                 if not owner.shift.shift_ot:
-                    shift_start, shift_end = Attendance._get_shift_interval_local(owner)
-                    overlap_start, overlap_end = Attendance._intersect_interval(ot_start, ot_end, shift_start, shift_end)
-                    if overlap_start and overlap_end:
+                    overlap_hours = Attendance._get_overtime_work_overlap_hours(owner, record)
+                    if overlap_hours:
                         raise ValidationError(
                             "Khoảng thời gian bạn đăng ký đã nằm trong thời gian làm việc của ca!")
 

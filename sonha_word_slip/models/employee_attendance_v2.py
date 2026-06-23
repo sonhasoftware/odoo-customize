@@ -118,6 +118,64 @@ class EmployeeAttendanceV2(models.Model):
             shift_end += timedelta(days=1)
         return shift_start, shift_end
 
+    def _is_shift_overnight(self, record):
+        shift_start, shift_end = self._get_shift_interval_local(record)
+        return bool(shift_start and shift_end and shift_end.date() > shift_start.date())
+
+    def _get_shift_rest_interval_local(self, record):
+        if (
+                not record.shift
+                or not record.shift.from_rest
+                or not record.shift.to_rest
+                or not record.date
+                or self._is_shift_overnight(record)
+        ):
+            return None, None
+
+        shift_start, shift_end = self._get_shift_interval_local(record)
+        if not shift_start or not shift_end:
+            return None, None
+
+        rest_start_time = self._to_local_datetime(record.shift.from_rest).time()
+        rest_end_time = self._to_local_datetime(record.shift.to_rest).time()
+        rest_start = datetime.combine(record.date, rest_start_time)
+        rest_end = datetime.combine(record.date, rest_end_time)
+        if rest_end <= rest_start:
+            rest_end += timedelta(days=1)
+
+        if rest_start <= shift_start or rest_end >= shift_end:
+            return None, None
+        return rest_start, rest_end
+
+    def _get_shift_work_intervals_local(self, record):
+        shift_start, shift_end = self._get_shift_interval_local(record)
+        if not shift_start or not shift_end:
+            return []
+
+        rest_start, rest_end = self._get_shift_rest_interval_local(record)
+        if not rest_start or not rest_end:
+            return [(shift_start, shift_end)]
+
+        return [(shift_start, rest_start), (rest_end, shift_end)]
+
+    def _is_overtime_inside_shift_rest(self, record, line):
+        if not record or not line or record.shift.shift_ot:
+            return False
+        ot_start, ot_end = self._get_overtime_line_interval_local(line)
+        rest_start, rest_end = self._get_shift_rest_interval_local(record)
+        return bool(ot_start and ot_end and rest_start and rest_end and ot_start >= rest_start and ot_end <= rest_end)
+
+    def _get_overtime_work_overlap_hours(self, record, line):
+        ot_start, ot_end = self._get_overtime_line_interval_local(line)
+        if not ot_start or not ot_end:
+            return 0
+
+        total = 0
+        for work_start, work_end in self._get_shift_work_intervals_local(record):
+            overlap_start, overlap_end = self._intersect_interval(ot_start, ot_end, work_start, work_end)
+            total += self._duration_hours(overlap_start, overlap_end)
+        return total
+
     def _get_shift_split_utc(self, record):
         shift_start, shift_end = self._get_shift_interval_local(record)
         if not shift_start or not shift_end:
@@ -183,7 +241,11 @@ class EmployeeAttendanceV2(models.Model):
             if attendance.shift.shift_ot and overlap_hours:
                 key = (0, -overlap_hours, abs((ot_start - shift_start).total_seconds()))
             elif not attendance.shift.shift_ot:
-                if ot_end <= shift_start:
+                if self._is_overtime_inside_shift_rest(attendance, line):
+                    key = (0, 0, abs((ot_start - shift_start).total_seconds()))
+                elif overlap_hours:
+                    key = (0, -overlap_hours, abs((ot_start - shift_start).total_seconds()))
+                elif ot_end <= shift_start:
                     gap_hours = self._duration_hours(ot_end, shift_start)
                     priority = 1 if gap_hours <= self.MAX_OT_SHIFT_GAP_HOURS else 2 if line.date == attendance.date else 3
                     key = (priority, gap_hours, 0)
@@ -225,10 +287,10 @@ class EmployeeAttendanceV2(models.Model):
         if record.shift.shift_ot:
             return self._duration_hours(work_start, work_end)
 
-        shift_start, shift_end = self._get_shift_interval_local(record)
-        inside_start, inside_end = self._intersect_interval(work_start, work_end, shift_start, shift_end)
         total = self._duration_hours(work_start, work_end)
-        total -= self._duration_hours(inside_start, inside_end)
+        for shift_work_start, shift_work_end in self._get_shift_work_intervals_local(record):
+            inside_start, inside_end = self._intersect_interval(work_start, work_end, shift_work_start, shift_work_end)
+            total -= self._duration_hours(inside_start, inside_end)
         return max(total, 0)
 
     def _get_actual_compensatory_hours_for_overtime(self, overtime, employee):
