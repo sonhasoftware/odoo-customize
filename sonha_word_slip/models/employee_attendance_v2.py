@@ -79,6 +79,10 @@ class EmployeeAttendanceV2(models.Model):
     normal_sunday_work = fields.Float(string="Làm bình thường ngày chủ nhật", compute="_get_sunday_work", store=True)
     ot_sunday_work = fields.Float(string="Làm thêm ngày chủ nhật", compute="get_hours_reinforcement", store=True)
 
+    filial_leave = fields.Float(string="Nghỉ bố mẹ mất", store=True)
+    wedding_leave = fields.Float(string="Nghỉ cưới", store=True)
+    regime_leave = fields.Float(string="Nghỉ chế độ", store=True)
+
 
     LOCAL_TZ_OFFSET = timedelta(hours=7)
     CHECK_WINDOW_HOURS = 3
@@ -330,6 +334,9 @@ class EmployeeAttendanceV2(models.Model):
             r.vacation = 0
             r.unpaid_leave = 0
             r.paid_leave_slip = 0
+            r.regime_leave = 0
+            r.filial_leave = 0
+            r.wedding_leave = 0
 
             if not r.employee_id or not r.date:
                 continue
@@ -389,11 +396,30 @@ class EmployeeAttendanceV2(models.Model):
                             r.paid_leave_slip = 0.5
                     else:
                         r.paid_leave_slip = 0
+                elif key == "cd":
+                    if slip.start_time and slip.end_time:
+                        if slip.start_time != slip.end_time:
+                            r.regime_leave = 1
+                        else:
+                            r.regime_leave = 0.5
+                elif key == "nc":
+                    if slip.start_time and slip.end_time:
+                        if slip.start_time != slip.end_time:
+                            r.wedding_leave = 1
+                        else:
+                            r.wedding_leave = 0.5
+                elif key == "bmm":
+                    if slip.start_time and slip.end_time:
+                        if slip.start_time != slip.end_time:
+                            r.filial_leave = 1
+                        else:
+                            r.filial_leave = 0.5
 
             # Kiểm tra public leave
             if all_public_leaves.filtered(
                     lambda leave: leave.date_from.date() <= r.date <= leave.date_to.date()):
-                r.public_leave = 1
+                if r.work_day == 0 and r.over_time == 0 and r.over_time_nb == 0 and r.employee_id.onboard < r.date:
+                    r.public_leave = 1
 
     @api.depends('employee_id', 'date', 'check_in', 'check_out', 'shift')
     def get_hours_reinforcement(self):
@@ -493,7 +519,7 @@ class EmployeeAttendanceV2(models.Model):
             cur += timedelta(days=1)
 
     def create_data_attendance_new_emp(self):
-        now = datetime.now()
+        now = datetime.now().replace(day=1)
         start_date = now.replace(day=1).date() - relativedelta(months=1)
         end_date = (start_date + relativedelta(months=2)) - timedelta(days=1)
         query = """

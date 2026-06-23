@@ -90,7 +90,8 @@
             <search string="Search Phân Ca">
                 <field name="employee_id" string="Nhân viên"/>
                 <field name="department" string="Phòng ban"/>
-                <filter string="Trạng thái: Chờ duyệt" name="state_draft" domain="[('status', 'in', ['draft', 'sent'])]" />
+                <filter string="Trạng thái: Chờ duyệt" name="state_draft" domain="[('status', 'in', ['draft']), ('employee_approval.user_id', '=', uid)]"/>
+                <filter string="Trạng thái: Chờ duyệt của tôi" name="my_state_draft" domain="[('status', 'in', ['draft', 'sent'])]"/>
             </search>
         </field>
     </record>
