@@ -52,7 +52,7 @@ class AuthAPIHRM(http.Controller):
                     time_from = time_from[0]
                     time_to = d.get("time_to"),
                     time_to = time_to[0]
-                    reason = d.get("reason")
+                    reason = d.get("reason") or ''
                     if time_from not in (None, '', False):
                         time_obj = datetime.strptime(time_from, "%H:%M")
                         float_from = time_obj.hour + time_obj.minute / 60.0
