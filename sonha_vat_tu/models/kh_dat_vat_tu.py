@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class KhDatVatTu(models.Model):
@@ -26,6 +26,18 @@ class KhDatVatTu(models.Model):
     tong_ton_nvl_sl = fields.Float(string='Tồn NVL đầu kỳ', digits=(16, 3))
     don_gia_ton_kho = fields.Monetary(
         string='Đơn giá tồn kho', currency_field='currency_id')
+    gia_tri_ton_nvl_dau_ky = fields.Monetary(
+        string='Giá trị tồn NVL',
+        compute='_compute_gia_tri_ton_nvl_dau_ky',
+        currency_field='currency_id',
+    )
+
+    @api.depends('tong_ton_nvl_sl', 'don_gia_ton_kho')
+    def _compute_gia_tri_ton_nvl_dau_ky(self):
+        for rec in self:
+            rec.gia_tri_ton_nvl_dau_ky = (
+                (rec.tong_ton_nvl_sl or 0.0) * (rec.don_gia_ton_kho or 0.0)
+            )
 
     tong_sl_vt_can_dung_t0 = fields.Float(string='Cần dùng T0', digits=(16, 3))
     tong_sl_vt_can_dung_t1 = fields.Float(string='Cần dùng T1', digits=(16, 3))

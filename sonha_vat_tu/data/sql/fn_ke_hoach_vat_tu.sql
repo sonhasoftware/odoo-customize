@@ -346,7 +346,6 @@ BEGIN
             (COALESCE(b4.ve_du_kien_t0, 0) + COALESCE(b4.ve_du_kien_t1, 0) + 
              COALESCE(b4.ve_du_kien_t2, 0) + COALESCE(b4.ve_du_kien_t3, 0)) AS tdd,
             CASE
-                WHEN COALESCE(tk.tcu, 0) != 0 THEN tk.ttcu / tk.tcu
                 WHEN COALESCE(tk.tdu, 0) != 0 THEN tk.ttdu / tk.tdu
                 ELSE 0
             END AS don_gia_ton_kho
