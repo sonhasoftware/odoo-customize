@@ -61,6 +61,7 @@ class ExpContract(models.Model):
                                     'contract_id',
                                     'attachment_id', string="File excel hàng hóa", store=True)
     export_required_date = fields.Date(string="Ngày yêu cầu xuất hàng", store=True, tracking=True)
+    export_required_date_to = fields.Date(string="Ngày yêu cầu xuất hàng đến", store=True)
     product_file_name = fields.Char(string="Tên file hàng hóa", store=True)
     produce_code = fields.Char(string="Mã đơn sản xuất", store=True, tracking=True)
     produce_status = fields.Selection([('draft', "Chưa sản xuất"),
@@ -403,11 +404,11 @@ class ExpContract(models.Model):
             else:
                 raise ValidationError("Không có trạng thái tiếp theo")
 
-    @api.constrains('deposit_percent', 'deposit_amount', 'total_amount')
+    @api.constrains('total_amount')
     def validate_required_currency(self):
         for r in self:
-            if r.deposit_percent <= 0 or r.deposit_amount <= 0 or r.total_amount <= 0:
-                raise ValidationError("Cần điền đầy đủ % cọc, tiền cọc, tổng tiền")
+            if r.total_amount <= 0:
+                raise ValidationError("Cần điền đầy đủ tổng tiền!")
 
     def action_accept_produce(self):
         for r in self:

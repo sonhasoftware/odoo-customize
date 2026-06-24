@@ -73,7 +73,8 @@
                             <field name="sign_date" class="lower_field" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
                             <field name="po_number" class="upper_field" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
                             <field name="customer_id" required="1" class="lower_field" options="{'no_create': True, 'no_open': True}" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
-                            <field name="export_required_date" required="1" class="lower_field" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
+                            <field name="export_required_date" widget="daterange" options="{'end_date_field': 'export_required_date_to'}" required="1" class="lower_field" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
+                            <field name="export_required_date_to" invisible="1"/>
                             <field name="state_id" class="lower_field" readonly="1" options="{'no_open': True}" invisible="state_code in ['request', 'export', 'invoice']"/>
                             <field name="lc_required" class="lower_field" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
                             <field name="lc_file" widget="many2many_binary" required="lc_required != False" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice'] or lc_required != True"/>
@@ -125,7 +126,7 @@
                             <field name="deposit_amount" class="lower_field" widget="float" options="{'enable_formatting': True}" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice', 'bill_of_lading']"/>
                             <field name="total_amount" class="lower_field" widget="float" options="{'enable_formatting': True}" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice', 'bill_of_lading']"/>
                             <field name="produce_code" class="upper_field" readonly="produce_status != 'accept'" invisible="state_code != 'request'"/>
-                            <field name="export_required_date" class="lower_field" readonly="1" invisible="state_code not in ['request']"/>
+                            <field name="export_required_date" widget="daterange" options="{'end_date_field': 'export_required_date_to'}" class="lower_field" readonly="1" invisible="state_code not in ['request']"/>
 
                             <field name="export_status" invisible="1"/>
                             <field name="export_status" class="lower_field" widget="badge" decoration-info="export_status == 'draft'" decoration-warning="export_status not in ['draft', 'done']" decoration-success="export_status == 'done'" invisible="state_code != 'export'"/>
