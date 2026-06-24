@@ -50,7 +50,7 @@
                     <field name="ke_hoach_kinh_doanh_ids" context="{'default_period_id': id}" readonly="state != 'ke_hoach'">
                         <tree editable="bottom" class="sh_free_width_tree">
                             <field name="nganh_hang" options="{'no_create': True, 'no_open': True}"/>
-                            <field name="dong_hang" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="ten_hang" readonly="1"/>
                             <field name="ma_hang"/>
                             <field name="ma_sap" required="1"/>
                             <field name="qty_t0" sum="T0"/>
@@ -114,7 +114,7 @@
                     <field name="ke_hoach_san_xuat_ids" context="{'default_period_id': id}" readonly="state != 'ke_hoach'">
                         <tree editable="bottom">
                             <field name="nganh_hang" readonly="1" options="{'no_create': True, 'no_open': True}"/>
-                            <field name="dong_hang" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="ten_hang" readonly="1"/>
                             <field name="ma_hang" readonly="1"/>
                             <field name="ma_sap" readonly="1" required="1"/>
                             <field name="company_id" column_invisible="True"/>
@@ -176,7 +176,7 @@
                     <field name="ke_hoach_vat_tu_line_ids" readonly="1">
                         <tree editable="bottom" class="sh_free_width_tree">
                             <field name="nganh_hang"/>
-                            <field name="dong_hang"/>
+                            <field name="ten_hang" readonly="1"/>
                             <field name="ma_hang"/>
                             <field name="ma_sap"/>
                             <field name="qty_ton_kho" string="Tồn kho"/>

@@ -62,7 +62,7 @@
                                    readonly="state != 'ke_hoach'">
                                 <tree editable="bottom" class="sh_free_width_tree">
                                     <field name="nganh_hang" options="{'no_create': True, 'no_open': True}"/>
-                                    <field name="dong_hang" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="ten_hang" readonly="1"/>
                                     <field name="ma_hang"/>
                                     <field name="ma_sap" required="1"/>
                                     <field name="qty_t0" sum="T0"/>
@@ -75,7 +75,7 @@
                                    groups="sonha_vat_tu.group_bo_phan_vat_tu,!sonha_vat_tu.group_ban_cung_ung_vat_tu,!sonha_vat_tu.group_truong_bo_phan_vat_tu">
                                 <tree editable="bottom" class="sh_free_width_tree">
                                     <field name="nganh_hang"/>
-                                    <field name="dong_hang"/>
+                                    <field name="ten_hang" readonly="1"/>
                                     <field name="ma_hang"/>
                                     <field name="ma_sap"/>
                                     <field name="qty_t0" sum="T0"/>
@@ -90,7 +90,7 @@
                                    groups="sonha_vat_tu.group_ban_cung_ung_vat_tu,!sonha_vat_tu.group_bo_phan_vat_tu,!sonha_vat_tu.group_truong_bo_phan_vat_tu">
                                 <tree editable="bottom" class="sh_free_width_tree">
                                     <field name="nganh_hang"/>
-                                    <field name="dong_hang"/>
+                                    <field name="ten_hang" readonly="1"/>
                                     <field name="ma_hang"/>
                                     <field name="ma_sap"/>
                                     <field name="company_id" column_invisible="True"/>
@@ -105,7 +105,7 @@
                                    readonly="state != 'ke_hoach'">
                                 <tree editable="bottom" class="sh_free_width_tree">
                                     <field name="nganh_hang" readonly="1" options="{'no_create': True, 'no_open': True}"/>
-                                    <field name="dong_hang" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="ten_hang" readonly="1"/>
                                     <field name="ma_hang" readonly="1"/>
                                     <field name="ma_sap" readonly="1" required="1"/>
                                     <field name="company_id" column_invisible="True"/>
@@ -300,6 +300,11 @@
                             <field name="don_vi_tinh" readonly="1"/>
 
                             <field name="ton_dau" string="Tồn đầu" readonly="1"/>
+
+                            <field name="ve_du_kien_don_vi_t0"/>
+                            <field name="ve_du_kien_don_vi_t1"/>
+                            <field name="ve_du_kien_don_vi_t2"/>
+                            <field name="ve_du_kien_don_vi_t3"/>
 
                             <field name="ve_du_kien_t0" readonly="1"/>
                             <field name="ve_du_kien_t1" readonly="1"/>

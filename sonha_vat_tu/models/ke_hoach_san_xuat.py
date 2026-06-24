@@ -23,7 +23,12 @@ class KeHoachSanXuat(models.Model):
         default=lambda self: self.env.company, index=True)
 
     nganh_hang = fields.Char(string='Ngành hàng', index=True)
-    dong_hang = fields.Char(string='Dòng hàng', index=True)
+    ten_hang = fields.Char(
+        string='Tên hàng',
+        compute='_compute_ten_hang',
+        store=True,
+        readonly=True,
+    )
     ma_hang = fields.Char(string='Mã hàng', index=True)
     ma_sap = fields.Char(
         string='Mã SAP', index=True)
@@ -41,6 +46,21 @@ class KeHoachSanXuat(models.Model):
          'unique(period_id, company_id, ma_sap)',
          'Trùng dòng: (Kỳ, Công ty, Mã SAP) phải duy nhất!'),
     ]
+
+    @api.depends('ma_sap')
+    def _compute_ten_hang(self):
+        codes = {(rec.ma_sap or '').strip() for rec in self if (rec.ma_sap or '').strip()}
+        name_map = {}
+        if codes:
+            for row in self.env['ma.hang'].sudo().search_read(
+                [('ma_sap', 'in', list(codes))],
+                ['ma_sap', 'ten_hang'],
+            ):
+                if row.get('ma_sap'):
+                    name_map[row['ma_sap']] = row.get('ten_hang') or ''
+        for rec in self:
+            code = (rec.ma_sap or '').strip()
+            rec.ten_hang = name_map.get(code, '') if code else ''
 
     @api.constrains('company_id')
     def _check_production_company(self):
@@ -147,7 +167,7 @@ class KeHoachSanXuat(models.Model):
     def _tracking_values(self):
         return {
             'nganh': self.nganh_hang or '',
-            'dong': self.dong_hang or '',
+            'ten_hang': self.ten_hang or '',
             'ma_hang': self.ma_hang or '',
             'ma_sap': self.ma_sap or '',
             'qty_t0': self._format_qty(self.qty_t0),
@@ -185,7 +205,7 @@ class KeHoachSanXuat(models.Model):
         rows = ''.join(
             "<tr>"
             f"<td>{cell(vals['nganh'])}</td>"
-            f"<td>{cell(vals['dong'])}</td>"
+            f"<td>{cell(vals['ten_hang'])}</td>"
             f"<td>{cell(vals['ma_hang'])}</td>"
             f"<td>{cell(vals['ma_sap'])}</td>"
             f"<td class='text-end'>{cell(vals['qty_t0'])}</td>"
@@ -202,7 +222,7 @@ class KeHoachSanXuat(models.Model):
                     <thead class="bg-light">
                         <tr>
                             <th>Ngành hàng</th>
-                            <th>Dòng hàng</th>
+                            <th>Tên hàng</th>
                             <th>Mã hàng</th>
                             <th>Mã SAP</th>
                             <th class="text-end">%s</th>

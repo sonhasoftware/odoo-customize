@@ -362,7 +362,6 @@ class KeHoachVatTu(models.Model):
                 'period_id': self.id,
                 'company_id': company.id or False,
                 'nganh_hang': line.nganh_hang,
-                'dong_hang': line.dong_hang,
                 'ma_hang': line.ma_hang,
                 'ma_sap': line.ma_sap,
                 'qty_t0': line.qty_t0,
@@ -407,7 +406,6 @@ class KeHoachVatTu(models.Model):
                 'period_id': self.id,
                 'company_id': production_company.id,
                 'nganh_hang': line.nganh_hang,
-                'dong_hang': line.dong_hang,
                 'ma_hang': line.ma_hang,
                 'ma_sap': line.ma_sap,
                 'qty_kd_t0': business_line.qty_t0 if business_line else 0.0,
@@ -706,7 +704,7 @@ class KeHoachVatTu(models.Model):
         ws.title = 'Ke hoach kinh doanh'
         self._write_plan_metadata(ws)
         months = self._get_horizon_months()
-        headers = ['Ngành hàng', 'Dòng hàng', 'Mã hàng', 'Mã SAP']
+        headers = ['Ngành hàng', 'Tên hàng', 'Mã hàng', 'Mã SAP']
         headers += ['Tháng %s' % m for m in months]
         header_row = 6
         for col_idx, label in enumerate(headers, start=1):
@@ -781,7 +779,7 @@ class KeHoachVatTu(models.Model):
             raise UserError(_('Bạn không có quyền export kế hoạch cho sản xuất.'))
         lines = self.ke_hoach_san_xuat_ids.sorted(lambda r: (
             r.nganh_hang or '',
-            r.dong_hang or '',
+            r.ten_hang or '',
             r.ma_hang or '',
             r.ma_sap or '',
         ))
@@ -794,7 +792,7 @@ class KeHoachVatTu(models.Model):
         ws = wb.active
         ws.title = 'Ke hoach san xuat'
         self._write_plan_metadata(ws)
-        headers = ['Ngành hàng', 'Dòng hàng', 'Mã hàng', 'Mã SAP']
+        headers = ['Ngành hàng', 'Tên hàng', 'Mã hàng', 'Mã SAP']
         headers += ['Tháng %s' % month for month in months]
         header_row = 6
         for col_idx, label in enumerate(headers, start=1):
@@ -803,7 +801,7 @@ class KeHoachVatTu(models.Model):
         for line in lines:
             ws.append([
                 line.nganh_hang or '',
-                line.dong_hang or '',
+                line.ten_hang or '',
                 line.ma_hang or '',
                 line.ma_sap or '',
                 line.qty_t0 or 0.0,

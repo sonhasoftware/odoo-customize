@@ -20,11 +20,17 @@ class TongHopVatTu(models.Model):
     # Tồn đầu: chỉ có 1 giá trị duy nhất (đầu kỳ)
     ton_dau = fields.Float(string='Tồn đầu', digits=(16, 3))
 
-    # Hàng đi đường: chia theo 4 tháng
-    ve_du_kien_t0 = fields.Float(string='Hàng đi đường T0', digits=(16, 3))
-    ve_du_kien_t1 = fields.Float(string='Hàng đi đường T1', digits=(16, 3))
-    ve_du_kien_t2 = fields.Float(string='Hàng đi đường T2', digits=(16, 3))
-    ve_du_kien_t3 = fields.Float(string='Hàng đi đường T3', digits=(16, 3))
+    # Hàng đi đường đơn vị: nhập tay trên B4 (đối chiếu với BCU), chưa dùng tính toán
+    ve_du_kien_don_vi_t0 = fields.Float(string='Hàng đi đường ĐV T0', digits=(16, 3))
+    ve_du_kien_don_vi_t1 = fields.Float(string='Hàng đi đường ĐV T1', digits=(16, 3))
+    ve_du_kien_don_vi_t2 = fields.Float(string='Hàng đi đường ĐV T2', digits=(16, 3))
+    ve_du_kien_don_vi_t3 = fields.Float(string='Hàng đi đường ĐV T3', digits=(16, 3))
+
+    # Hàng đi đường BCU: từ bảng vat_tu_di_duong, readonly trên B4
+    ve_du_kien_t0 = fields.Float(string='Hàng đi đường BCU T0', digits=(16, 3))
+    ve_du_kien_t1 = fields.Float(string='Hàng đi đường BCU T1', digits=(16, 3))
+    ve_du_kien_t2 = fields.Float(string='Hàng đi đường BCU T2', digits=(16, 3))
+    ve_du_kien_t3 = fields.Float(string='Hàng đi đường BCU T3', digits=(16, 3))
 
     # Cần dùng: chia theo 4 tháng
     vt_can_dung_t0 = fields.Float(string='Cần dùng T0', digits=(16, 3))

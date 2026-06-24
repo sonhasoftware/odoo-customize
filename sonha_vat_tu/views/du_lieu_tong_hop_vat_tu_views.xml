@@ -28,7 +28,7 @@
                 <field name="ma_sap"/>
                 <!-- -->
                 <field name="nganh_hang"/>
-                <field name="dong_hang"/>
+                <field name="ten_hang"/>
                 <field name="ma_hang"/>
                 <field name="qty"/>
                 <field name="note"/>
@@ -51,6 +51,7 @@
                 <field name="chung_loai"/>
                 <field name="ma_cuon"/>
                 <field name="ton_dau"/>
+                <field name="ve_du_kien_don_vi"/>
                 <field name="ve_du_kien"/>
                 <field name="vt_can_dung"/>
                 <field name="ton_cuoi"/>
@@ -100,7 +101,7 @@
                             <field name="month_key"/>
                             <field name="ma_sap"/>
                             <field name="nganh_hang"/>
-                            <field name="dong_hang"/>
+                            <field name="ten_hang"/>
                             <field name="ma_hang"/>
                             <field name="qty"/>
                             <field name="note"/>
@@ -121,6 +122,7 @@
                             <field name="ma_dat_hang"/>
                             <field name="chung_loai"/>
                             <field name="ton_dau"/>
+                            <field name="ve_du_kien_don_vi"/>
                             <field name="ve_du_kien"/>
                             <field name="vt_can_dung"/>
                             <field name="ton_cuoi"/>

@@ -132,7 +132,7 @@ class ImportKeHoachWizard(models.TransientModel):
         MaHang = self.env['ma.hang'].sudo()
 
         nganh_raw = str(row[0]).strip() if row[0] not in (None, '') else ''
-        dong_raw = str(row[1]).strip() if row[1] not in (None, '') else ''
+        # Cột B: Tên hàng (tham khảo trên file, hệ thống tự lấy từ danh mục mã hàng)
         ma_hang_raw = str(row[2]).strip() if row[2] not in (None, '') else ''
         ma_sap = str(row[3]).strip() if row[3] not in (None, '') else ''
 
@@ -158,7 +158,6 @@ class ImportKeHoachWizard(models.TransientModel):
 
         return {
             'nganh_hang': ma_hang_rec.nganh_hang or nganh_raw,
-            'dong_hang': dong_raw,
             'ma_hang': ma_hang_raw,
             'ma_sap': ma_sap,
         }

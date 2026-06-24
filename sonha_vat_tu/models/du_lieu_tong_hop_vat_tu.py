@@ -54,7 +54,7 @@ class DuLieuTongHopVatTu(models.Model):
 
     # --- --
     nganh_hang = fields.Char(string='Ngành hàng', readonly=True)
-    dong_hang = fields.Char(string='Dòng hàng', readonly=True)
+    ten_hang = fields.Char(string='Tên hàng', readonly=True)
     ma_hang = fields.Char(string='Mã hàng', readonly=True)
 
     qty = fields.Float(string='Số lượng (B1/B2/B3)', digits=(16, 4), readonly=True)
@@ -87,7 +87,9 @@ class DuLieuTongHopVatTu(models.Model):
     chung_loai = fields.Char(string='Chủng loại', readonly=True)
     ma_cuon = fields.Char(string='Mã cuộn', readonly=True)
     ton_dau = fields.Float(string='Tồn đầu', digits=(16, 3), readonly=True)
-    ve_du_kien = fields.Float(string='Vật tư đi đường', digits=(16, 3), readonly=True)
+    ve_du_kien_don_vi = fields.Float(
+        string='Vật tư đi đường đơn vị', digits=(16, 3), readonly=True)
+    ve_du_kien = fields.Float(string='Vật tư đi đường BCU', digits=(16, 3), readonly=True)
     vt_can_dung = fields.Float(string='VT cần dùng', digits=(16, 3), readonly=True)
     ton_cuoi = fields.Float(string='Tồn cuối', digits=(16, 3), readonly=True)
     so_luong_du_phong = fields.Float(string='SL dự phòng', digits=(16, 3), readonly=True)
@@ -136,6 +138,23 @@ class DuLieuTongHopVatTu(models.Model):
 
     @api.model
     def init(self):
+        self._cr.execute("""
+            DO $$
+            BEGIN
+                IF EXISTS (
+                    SELECT 1 FROM information_schema.columns
+                    WHERE table_name = 'du_lieu_tong_hop_vat_tu'
+                      AND column_name = 'dong_hang'
+                ) AND NOT EXISTS (
+                    SELECT 1 FROM information_schema.columns
+                    WHERE table_name = 'du_lieu_tong_hop_vat_tu'
+                      AND column_name = 'ten_hang'
+                ) THEN
+                    ALTER TABLE du_lieu_tong_hop_vat_tu
+                        RENAME COLUMN dong_hang TO ten_hang;
+                END IF;
+            END $$;
+        """)
         self._cr.execute(_read_sql_file())
         try:
             self._cr.execute(_read_sql_bom_file())

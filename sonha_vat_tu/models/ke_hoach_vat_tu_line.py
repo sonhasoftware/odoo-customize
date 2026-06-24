@@ -14,7 +14,12 @@ class KeHoachVatTuLine(models.Model):
     company_id = fields.Many2one(
         'res.company', string='Công ty sản xuất', index=True, required=True)
     nganh_hang = fields.Char(string='Ngành hàng', index=True)
-    dong_hang = fields.Char(string='Dòng hàng', index=True)
+    ten_hang = fields.Char(
+        string='Tên hàng',
+        compute='_compute_ten_hang',
+        store=True,
+        readonly=True,
+    )
     ma_hang = fields.Char(string='Mã hàng', index=True)
     ma_sap = fields.Char(string='Mã SAP', index=True)
 
@@ -49,6 +54,21 @@ class KeHoachVatTuLine(models.Model):
          'unique(period_id, company_id, ma_sap)',
          'Trùng dòng kế hoạch vật tư chốt!'),
     ]
+
+    @api.depends('ma_sap')
+    def _compute_ten_hang(self):
+        codes = {(rec.ma_sap or '').strip() for rec in self if (rec.ma_sap or '').strip()}
+        name_map = {}
+        if codes:
+            for row in self.env['ma.hang'].sudo().search_read(
+                [('ma_sap', 'in', list(codes))],
+                ['ma_sap', 'ten_hang'],
+            ):
+                if row.get('ma_sap'):
+                    name_map[row['ma_sap']] = row.get('ten_hang') or ''
+        for rec in self:
+            code = (rec.ma_sap or '').strip()
+            rec.ten_hang = name_map.get(code, '') if code else ''
 
     @api.depends('ma_sap', 'company_id')
     def _compute_qty_ton_kho(self):

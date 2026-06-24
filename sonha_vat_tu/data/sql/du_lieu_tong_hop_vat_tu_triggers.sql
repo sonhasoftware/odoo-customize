@@ -94,13 +94,13 @@ BEGIN
 
         INSERT INTO du_lieu_tong_hop_vat_tu (
             step_code, source_model, source_res_id, period_id, company_id, month_key,
-            month_date, ma_sap, ma_vat_tu, nganh_hang, dong_hang, ma_hang,
+            month_date, ma_sap, ma_vat_tu, nganh_hang, ten_hang, ma_hang,
             qty, note, qty_kinh_doanh, qty_san_xuat, qty_chenh_lech,
             create_uid, create_date, write_uid, write_date
         ) VALUES (
             'b1', 'ke.hoach.vat.tu.line', NEW.id, NEW.period_id,
             NEW.company_id, v_month_key, v_month_date, NEW.ma_sap,
-            NULL, NEW.nganh_hang, NEW.dong_hang, NEW.ma_hang,
+            NULL, NEW.nganh_hang, NEW.ten_hang, NEW.ma_hang,
             v_qty, NEW.note, v_qty_kd, v_qty_sx, v_qty_cl,
             NEW.create_uid, NEW.create_date, NEW.write_uid, NEW.write_date
         )
@@ -111,7 +111,7 @@ BEGIN
             month_date = EXCLUDED.month_date,
             ma_sap = EXCLUDED.ma_sap,
             nganh_hang = EXCLUDED.nganh_hang,
-            dong_hang = EXCLUDED.dong_hang,
+            ten_hang = EXCLUDED.ten_hang,
             ma_hang = EXCLUDED.ma_hang,
             qty = EXCLUDED.qty,
             note = EXCLUDED.note,
@@ -185,7 +185,7 @@ BEGIN
 
         INSERT INTO du_lieu_tong_hop_vat_tu (
             step_code, source_model, source_res_id, period_id, company_id, month_key,
-            month_date, ma_sap, ma_vat_tu, nganh_hang, dong_hang, ma_hang,
+            month_date, ma_sap, ma_vat_tu, nganh_hang, ten_hang, ma_hang,
             qty, note, ma_tp, ten_tp, ten_sap, ma_nvl,
             ten_nvl, ten_vat_tu, qty_kinh_doanh, qty_san_xuat, qty_chenh_lech, ma_effect,
             create_uid, create_date, write_uid, write_date
@@ -315,6 +315,7 @@ DECLARE
     v_period_month TEXT;
     v_month_key TEXT;
     v_month_date DATE;
+    v_ve_du_kien_don_vi NUMERIC;
     v_ve_du_kien NUMERIC;
     v_vt_can_dung NUMERIC;
     v_ton_cuoi NUMERIC;
@@ -333,6 +334,7 @@ BEGIN
         v_month_date := (TO_DATE(v_period_month, 'MM/YYYY') + (i || ' month')::INTERVAL)::DATE;
         v_month_key  := TO_CHAR(v_month_date, 'MM/YYYY');
         
+        v_ve_du_kien_don_vi := CASE i WHEN 0 THEN NEW.ve_du_kien_don_vi_t0 WHEN 1 THEN NEW.ve_du_kien_don_vi_t1 WHEN 2 THEN NEW.ve_du_kien_don_vi_t2 WHEN 3 THEN NEW.ve_du_kien_don_vi_t3 END;
         v_ve_du_kien := CASE i WHEN 0 THEN NEW.ve_du_kien_t0 WHEN 1 THEN NEW.ve_du_kien_t1 WHEN 2 THEN NEW.ve_du_kien_t2 WHEN 3 THEN NEW.ve_du_kien_t3 END;
         v_vt_can_dung := CASE i WHEN 0 THEN NEW.vt_can_dung_t0 WHEN 1 THEN NEW.vt_can_dung_t1 WHEN 2 THEN NEW.vt_can_dung_t2 WHEN 3 THEN NEW.vt_can_dung_t3 END;
         v_ton_cuoi := CASE i WHEN 0 THEN NEW.ton_cuoi_t0 WHEN 1 THEN NEW.ton_cuoi_t1 WHEN 2 THEN NEW.ton_cuoi_t2 WHEN 3 THEN NEW.ton_cuoi_t3 END;
@@ -341,14 +343,14 @@ BEGIN
             step_code, source_model, source_res_id, period_id, company_id, month_key,
             month_date, ma_sap, ma_nvl,
             ten_nvl, ten_vat_tu, don_vi_tinh, ma_dat_hang, chung_loai,
-            ton_dau, ve_du_kien, vt_can_dung, ton_cuoi, so_luong_du_phong, so_luong_thieu, so_luong_can_mua,
+            ton_dau, ve_du_kien_don_vi, ve_du_kien, vt_can_dung, ton_cuoi, so_luong_du_phong, so_luong_thieu, so_luong_can_mua,
             ghi_chu,
             create_uid, create_date, write_uid, write_date
         ) VALUES (
             'b4', 'tong.hop.vat.tu', NEW.id, NEW.period_id,
             NEW.company_id, v_month_key, v_month_date, NEW.ma_sap, NEW.ma_sap,
             NEW.ten_nvl, NEW.ten_nvl, NEW.don_vi_tinh, NEW.ma_dat_hang, NEW.chung_loai,
-            NEW.ton_dau, v_ve_du_kien, v_vt_can_dung, v_ton_cuoi,
+            NEW.ton_dau, v_ve_du_kien_don_vi, v_ve_du_kien, v_vt_can_dung, v_ton_cuoi,
             CASE WHEN i = 3 THEN NEW.so_luong_du_phong ELSE 0 END,
             CASE WHEN i = 3 THEN NEW.so_luong_thieu ELSE 0 END,
             CASE WHEN i = 3 THEN NEW.so_luong_can_mua ELSE 0 END,
@@ -368,6 +370,7 @@ BEGIN
             ma_dat_hang = EXCLUDED.ma_dat_hang,
             chung_loai = EXCLUDED.chung_loai,
             ton_dau = EXCLUDED.ton_dau,
+            ve_du_kien_don_vi = EXCLUDED.ve_du_kien_don_vi,
             ve_du_kien = EXCLUDED.ve_du_kien,
             vt_can_dung = EXCLUDED.vt_can_dung,
             ton_cuoi = EXCLUDED.ton_cuoi,
@@ -500,12 +503,12 @@ BEGIN
 
         INSERT INTO du_lieu_tong_hop_vat_tu (
             step_code, source_model, source_res_id, period_id, company_id, month_key,
-            month_date, ma_sap, ma_vat_tu, nganh_hang, dong_hang, ma_hang,
+            month_date, ma_sap, ma_vat_tu, nganh_hang, ten_hang, ma_hang,
             qty, note, create_uid, create_date, write_uid, write_date
         ) VALUES (
             'kd', 'ke.hoach.kinh.doanh', NEW.id, NEW.period_id,
             v_company_id, v_month_key, v_month_date, NEW.ma_sap,
-            NULL, NEW.nganh_hang, NEW.dong_hang, NEW.ma_hang,
+            NULL, NEW.nganh_hang, NEW.ten_hang, NEW.ma_hang,
             v_qty, NEW.note, NEW.create_uid, NEW.create_date, NEW.write_uid, NEW.write_date
         )
         ON CONFLICT (source_model, source_res_id, month_key) DO UPDATE SET
@@ -515,7 +518,7 @@ BEGIN
             month_date = EXCLUDED.month_date,
             ma_sap = EXCLUDED.ma_sap,
             nganh_hang = EXCLUDED.nganh_hang,
-            dong_hang = EXCLUDED.dong_hang,
+            ten_hang = EXCLUDED.ten_hang,
             ma_hang = EXCLUDED.ma_hang,
             qty = EXCLUDED.qty,
             note = EXCLUDED.note,
@@ -565,12 +568,12 @@ BEGIN
 
         INSERT INTO du_lieu_tong_hop_vat_tu (
             step_code, source_model, source_res_id, period_id, company_id, month_key,
-            month_date, ma_sap, ma_vat_tu, nganh_hang, dong_hang, ma_hang,
+            month_date, ma_sap, ma_vat_tu, nganh_hang, ten_hang, ma_hang,
             qty, note, create_uid, create_date, write_uid, write_date
         ) VALUES (
             'sx', 'ke.hoach.san.xuat', NEW.id, NEW.period_id,
             NEW.company_id, v_month_key, v_month_date, NEW.ma_sap,
-            NULL, NEW.nganh_hang, NEW.dong_hang, NEW.ma_hang,
+            NULL, NEW.nganh_hang, NEW.ten_hang, NEW.ma_hang,
             v_qty, NEW.note, NEW.create_uid, NEW.create_date, NEW.write_uid, NEW.write_date
         )
         ON CONFLICT (source_model, source_res_id, month_key) DO UPDATE SET
@@ -580,7 +583,7 @@ BEGIN
             month_date = EXCLUDED.month_date,
             ma_sap = EXCLUDED.ma_sap,
             nganh_hang = EXCLUDED.nganh_hang,
-            dong_hang = EXCLUDED.dong_hang,
+            ten_hang = EXCLUDED.ten_hang,
             ma_hang = EXCLUDED.ma_hang,
             qty = EXCLUDED.qty,
             note = EXCLUDED.note,

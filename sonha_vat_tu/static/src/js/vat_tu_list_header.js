@@ -96,7 +96,8 @@ const MONTH_FIELD_LABELS = (() => {
     const simple = ["qty_t", "qty_kd_t", "qty_sx_t", "qty_cl_t"];
     const prefixed = {
         ton_dau_t: "Tồn đầu",
-        ve_du_kien_t: "Hàng đi đường",
+        ve_du_kien_don_vi_t: "Hàng đi đường đơn vị",
+        ve_du_kien_t: "Hàng đi đường BCU",
         vt_can_dung_t: "Cần dùng",
         ton_cuoi_t: "Tồn cuối",
         so_luong_du_phong_t: "Dự phòng",
@@ -151,7 +152,8 @@ patch(ListRenderer.prototype, {
 // ---------------------------------------------------------------------------
 
 const B4_PREFIX = {
-    ve_du_kien_t: "Hàng đi đường",
+    ve_du_kien_don_vi_t: "Hàng đi đường đơn vị",
+    ve_du_kien_t: "Hàng đi đường BCU",
     vt_can_dung_t: "Cần dùng",
     ton_cuoi_t: "Tồn cuối",
 };
@@ -169,7 +171,10 @@ function getMonthlyMergeInfo(fieldName, prefixMap) {
     if (!fieldName) {
         return null;
     }
-    for (const [prefix, categoryLabel] of Object.entries(prefixMap)) {
+    const prefixes = Object.entries(prefixMap).sort(
+        ([a], [b]) => b.length - a.length
+    );
+    for (const [prefix, categoryLabel] of prefixes) {
         if (!fieldName.startsWith(prefix)) {
             continue;
         }

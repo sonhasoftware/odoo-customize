@@ -8,7 +8,7 @@
             <tree string="Kế hoạch sản xuất" editable="bottom">
                 <field name="period_id" required="1"/>
                 <field name="nganh_hang"/>
-                <field name="dong_hang"/>
+                <field name="ten_hang" readonly="1"/>
                 <field name="ma_hang"/>
                 <field name="ma_sap" required="1"/>
                 <field name="qty_t0" sum="T0"/>
@@ -28,7 +28,7 @@
                 <field name="ma_sap"/>
                 <field name="company_id"/>
                 <field name="nganh_hang"/>
-                <field name="dong_hang"/>
+                <field name="ten_hang" readonly="1"/>
                 <field name="ma_hang"/>
                 <group expand="0" string="Nhóm theo">
                     <filter name="group_period" string="Kỳ"
