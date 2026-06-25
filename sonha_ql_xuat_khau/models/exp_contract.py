@@ -38,6 +38,7 @@ class ExpContract(models.Model):
     shipping_port_to = fields.Many2one('exp.config.port', string="Cảng dỡ hàng",
                                        domain="[('type', '=', 'port_to')]", store=True, tracking=True)
     shipping_time = fields.Date(string="Thời gian", store=True, tracking=True)
+    shipping_time_to = fields.Date(string="Thời gian", store=True)
     shipping_country = fields.Many2one('exp.config.country', string="Quốc gia",
                                        compute="_get_country", store=True, tracking=True)
     payment_term = fields.Many2one('exp.config.term', string="Điều khoản thanh toán", store=True, tracking=True)
@@ -545,6 +546,10 @@ class ExpContract(models.Model):
     def fill_data_sap(self, record):
 
         query = """
+        DROP TABLE IF EXISTS tmp_invoice_rel;
+        DROP TABLE IF EXISTS tmp_pkl_rel;
+        DROP TABLE IF EXISTS tmp_exp_shipment;
+        
         DELETE FROM exp_product pr
         USING (
             SELECT
