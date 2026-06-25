@@ -113,7 +113,8 @@
                         </group>
                         <group class="custom-block">
                             <separator string="Vận chuyển" invisible="state_code in ['request', 'export', 'invoice']"/>
-                            <field name="shipping_time" required="1" class="upper_field" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
+                            <field name="shipping_time" widget="daterange" options="{'end_date_field': 'shipping_time_to'}" required="1" class="upper_field" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
+                            <field name="shipping_time_to" invisible="1"/>
                             <field name="shipping_port_from" required="1" class="lower_field" options="{'no_open': True}" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
                             <field name="shipping_port_to" required="1" class="lower_field" options="{'no_open': True}" readonly="state_code != 'sign'" invisible="state_code in ['request', 'export', 'invoice']"/>
                             <field name="shipping_country" class="lower_field" options="{'no_open': True}" readonly="1" invisible="state_code in ['request', 'export', 'invoice']"/>

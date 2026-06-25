@@ -52,6 +52,7 @@ class AuthAPIHRM(http.Controller):
                     time_from = time_from[0]
                     time_to = d.get("time_to"),
                     time_to = time_to[0]
+                    reason = d.get("reason") or ''
                     if time_from not in (None, '', False):
                         time_obj = datetime.strptime(time_from, "%H:%M")
                         float_from = time_obj.hour + time_obj.minute / 60.0
@@ -62,6 +63,7 @@ class AuthAPIHRM(http.Controller):
                         "date": str(d.get("date")),
                         "start_time": float_from,
                         "end_time": float_to,
+                        "reason": reason,
                     }))
 
                 # Chuẩn bị dữ liệu tạo bản ghi
@@ -145,6 +147,7 @@ class AuthAPIHRM(http.Controller):
                             "date": str(rel.date) or '',
                             "time_to": time_start or '',
                             "time_from": time_end or '',
+                            "reason": rel.reason or '',
                         })
 
                     if r.type == 'one':
@@ -302,6 +305,7 @@ class AuthAPIHRM(http.Controller):
                         "date": str(rel.date) or '',
                         "time_to": time_start or '',
                         "time_from": time_end or '',
+                        "reason": rel.reason or '',
                     })
 
                 if r.type == 'one':
@@ -479,6 +483,7 @@ class AuthAPIHRM(http.Controller):
                         "date": str(slip.date) or '',
                         "time_to": f"{hs:02d}:{ms:02d}",
                         "time_from": f"{he:02d}:{me:02d}",
+                        "reason": slip.reason or '',
                     })
                 return slips
 
@@ -591,6 +596,7 @@ class AuthAPIHRM(http.Controller):
                             "date": str(rel.date) or '',
                             "time_to": time_start or '',
                             "time_from": time_end or '',
+                            "reason": rel.reason or '',
                         })
 
                     if r.type == 'one':
