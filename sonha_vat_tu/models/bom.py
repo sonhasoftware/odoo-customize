@@ -31,20 +31,20 @@ class Bom(models.Model):
          'BOM đã tồn tại theo mã thành phẩm và mã NVL!'),
     ]
 
-    def action_download_bom_template(self):
-        return {
-            'type': 'ir.actions.act_url',
-            'url': '/sonha_vat_tu/static/xls/bom_templates.xlsx',
-            'target': 'self',
-        }
-
-    def action_open_import_bom_wizard(self):
-        return {
-            'name': _('Import BOM'),
-            'type': 'ir.actions.act_window',
-            'res_model': 'import.bom.wizard',
-            'view_mode': 'form',
-            'target': 'new',
-        }
-
+    # def action_download_bom_template(self):
+    #     return {
+    #         'type': 'ir.actions.act_url',
+    #         'url': '/sonha_vat_tu/static/xls/bom_templates.xlsx',
+    #         'target': 'self',
+    #     }
+    #
+    # def action_open_import_bom_wizard(self):
+    #     return {
+    #         'name': _('Import BOM'),
+    #         'type': 'ir.actions.act_window',
+    #         'res_model': 'import.bom.wizard',
+    #         'view_mode': 'form',
+    #         'target': 'new',
+    #     }
+    #
 

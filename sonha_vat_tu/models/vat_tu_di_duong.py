@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
 
@@ -68,3 +68,12 @@ class VatTuDiDuong(models.Model):
             vals = dict(vals)
             vals['ten_nvl'] = self._get_ten_nvl(vals['ma_nvl'])
         return super().write(vals)
+
+    def action_open_import_wizard(self):
+        return {
+            'name': _('Import vật tư đi đường'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'import.vat.tu.di.duong.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+        }

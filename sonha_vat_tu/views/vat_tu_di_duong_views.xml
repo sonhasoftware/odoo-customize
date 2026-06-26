@@ -6,6 +6,11 @@
         <field name="model">vat.tu.di.duong</field>
         <field name="arch" type="xml">
             <tree string="Vật tư đi đường" editable="bottom">
+                <header>
+                    <button name="action_open_import_wizard" type="object"
+                            string="Import" class="btn-primary"
+                            display="always"/>
+                </header>
                 <field name="company_id" context="{'vat_tu_company_code_display': True}"/>
                 <field name="pr_number"/>
                 <field name="ma_nvl" required="1"/>
