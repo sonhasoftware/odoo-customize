@@ -11,6 +11,7 @@
                             string="Import" class="btn-primary"
                             display="always"/>
                 </header>
+                <field name="nguon"/>
                 <field name="company_id" context="{'vat_tu_company_code_display': True}"/>
                 <field name="pr_number"/>
                 <field name="ma_nvl" required="1"/>
@@ -26,12 +27,19 @@
         <field name="model">vat.tu.di.duong</field>
         <field name="arch" type="xml">
             <search>
+                <field name="nguon"/>
                 <field name="company_id" context="{'vat_tu_company_code_display': True}"/>
                 <field name="pr_number"/>
                 <field name="ma_nvl"/>
                 <field name="ten_nvl"/>
                 <field name="month_key"/>
+                <filter name="filter_bcu" string="Ban cung ứng (BCU)"
+                        domain="[('nguon', '=', 'bcu')]"/>
+                <filter name="filter_don_vi" string="Đơn vị"
+                        domain="[('nguon', '=', 'don_vi')]"/>
                 <group expand="0" string="Nhóm theo">
+                    <filter name="group_nguon" string="Nguồn"
+                            context="{'group_by': 'nguon'}"/>
                     <filter name="group_company" string="Đơn vị"
                             context="{'group_by': 'company_id', 'vat_tu_company_code_display': True}"/>
                     <filter name="group_month" string="Tháng"

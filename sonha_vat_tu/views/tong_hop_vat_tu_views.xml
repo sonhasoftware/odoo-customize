@@ -13,10 +13,10 @@
 
                 <field name="ton_dau" string="Tồn đầu"/>
 
-                <field name="ve_du_kien_don_vi_t0"/>
-                <field name="ve_du_kien_don_vi_t1"/>
-                <field name="ve_du_kien_don_vi_t2"/>
-                <field name="ve_du_kien_don_vi_t3"/>
+                <field name="ve_du_kien_don_vi_t0" readonly="1"/>
+                <field name="ve_du_kien_don_vi_t1" readonly="1"/>
+                <field name="ve_du_kien_don_vi_t2" readonly="1"/>
+                <field name="ve_du_kien_don_vi_t3" readonly="1"/>
 
                 <field name="ve_du_kien_t0" readonly="1"/>
                 <field name="ve_du_kien_t1" readonly="1"/>
@@ -65,25 +65,25 @@
                         <page string="Kế hoạch theo tháng">
                             <group col="4">
                                 <group string="T0">
-                                    <field name="ve_du_kien_don_vi_t0"/>
+                                    <field name="ve_du_kien_don_vi_t0" readonly="1"/>
                                     <field name="ve_du_kien_t0" readonly="1"/>
                                     <field name="vt_can_dung_t0"/>
                                     <field name="ton_cuoi_t0"/>
                                 </group>
                                 <group string="T+1">
-                                    <field name="ve_du_kien_don_vi_t1"/>
+                                    <field name="ve_du_kien_don_vi_t1" readonly="1"/>
                                     <field name="ve_du_kien_t1" readonly="1"/>
                                     <field name="vt_can_dung_t1"/>
                                     <field name="ton_cuoi_t1"/>
                                 </group>
                                 <group string="T+2">
-                                    <field name="ve_du_kien_don_vi_t2"/>
+                                    <field name="ve_du_kien_don_vi_t2" readonly="1"/>
                                     <field name="ve_du_kien_t2" readonly="1"/>
                                     <field name="vt_can_dung_t2"/>
                                     <field name="ton_cuoi_t2"/>
                                 </group>
                                 <group string="T+3">
-                                    <field name="ve_du_kien_don_vi_t3"/>
+                                    <field name="ve_du_kien_don_vi_t3" readonly="1"/>
                                     <field name="ve_du_kien_t3" readonly="1"/>
                                     <field name="vt_can_dung_t3"/>
                                     <field name="ton_cuoi_t3"/>

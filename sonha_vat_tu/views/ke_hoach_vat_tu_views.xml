@@ -301,10 +301,10 @@
 
                             <field name="ton_dau" string="Tồn đầu" readonly="1"/>
 
-                            <field name="ve_du_kien_don_vi_t0"/>
-                            <field name="ve_du_kien_don_vi_t1"/>
-                            <field name="ve_du_kien_don_vi_t2"/>
-                            <field name="ve_du_kien_don_vi_t3"/>
+                            <field name="ve_du_kien_don_vi_t0" readonly="1"/>
+                            <field name="ve_du_kien_don_vi_t1" readonly="1"/>
+                            <field name="ve_du_kien_don_vi_t2" readonly="1"/>
+                            <field name="ve_du_kien_don_vi_t3" readonly="1"/>
 
                             <field name="ve_du_kien_t0" readonly="1"/>
                             <field name="ve_du_kien_t1" readonly="1"/>

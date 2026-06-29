@@ -23,6 +23,16 @@ class ImportVatTuDiDuongWizard(models.TransientModel):
 
     file_data = fields.Binary(string='File Excel')
     file_name = fields.Char(string='Tên file')
+    nguon = fields.Selection(
+        selection=[
+            ('bcu', 'Ban cung ứng (BCU)'),
+            ('don_vi', 'Đơn vị'),
+        ],
+        string='Nguồn dữ liệu',
+        required=True,
+        default='bcu',
+        help='BCU: dùng cho tính toán B4/B5. Đơn vị: chỉ đối chiếu trên B4.',
+    )
 
     MONTH_RE = re.compile(r'(\d{1,2})\s*[/\-]\s*(\d{4})')
 
@@ -240,6 +250,7 @@ class ImportVatTuDiDuongWizard(models.TransientModel):
                 continue
 
             vals = {
+                'nguon': self.nguon,
                 'company_id': company.id,
                 'pr_number': pr_number,
                 'ma_nvl': ma_nvl,
@@ -249,6 +260,7 @@ class ImportVatTuDiDuongWizard(models.TransientModel):
                 'so_luong': so_luong,
             }
             existing = VatTuDiDuong.search([
+                ('nguon', '=', self.nguon),
                 ('company_id', '=', company.id),
                 ('pr_number', '=', pr_number),
                 ('ma_nvl', '=', ma_nvl),

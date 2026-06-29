@@ -96,7 +96,12 @@ DECLARE
     v_ve_du_kien_t1  NUMERIC;
     v_ve_du_kien_t2  NUMERIC;
     v_ve_du_kien_t3  NUMERIC;
+    v_ve_du_kien_don_vi_t0  NUMERIC;
+    v_ve_du_kien_don_vi_t1  NUMERIC;
+    v_ve_du_kien_don_vi_t2  NUMERIC;
+    v_ve_du_kien_don_vi_t3  NUMERIC;
     v_tong_di_duong  NUMERIC;
+    v_tong_di_duong_don_vi  NUMERIC;
     v_ton_cuoi_t0    NUMERIC;
     v_ton_cuoi_t1    NUMERIC;
     v_ton_cuoi_t2    NUMERIC;
@@ -147,8 +152,8 @@ BEGIN
 
     CREATE INDEX ON _tmp_ton_kho (ma_hang, comp_grp);
 
-    -- Buoc 2: Pre-load vat tu di duong
-    CREATE TEMP TABLE _tmp_vdd ON COMMIT DROP AS
+    -- Buoc 2: Pre-load vat tu di duong (BCU = tinh toan, don_vi = doi chieu)
+    CREATE TEMP TABLE _tmp_vdd_bcu ON COMMIT DROP AS
     SELECT
         b3.company_id,
         b3.ma_vat_tu AS ma_nvl,
@@ -163,11 +168,33 @@ BEGIN
     LEFT JOIN vat_tu_di_duong vdd
         ON  vdd.company_id = b3.company_id
         AND vdd.ma_nvl = b3.ma_vat_tu
+        AND vdd.nguon = 'bcu'
     GROUP BY
         b3.company_id,
         b3.ma_vat_tu;
 
-    CREATE INDEX ON _tmp_vdd (company_id, ma_nvl);
+    CREATE TEMP TABLE _tmp_vdd_don_vi ON COMMIT DROP AS
+    SELECT
+        b3.company_id,
+        b3.ma_vat_tu AS ma_nvl,
+        SUM(CASE WHEN vdd.month_key = v_month_t0 THEN COALESCE(vdd.so_luong, 0) ELSE 0 END) AS qty_t0,
+        SUM(CASE WHEN vdd.month_key = v_month_t1 THEN COALESCE(vdd.so_luong, 0) ELSE 0 END) AS qty_t1,
+        SUM(CASE WHEN vdd.month_key = v_month_t2 THEN COALESCE(vdd.so_luong, 0) ELSE 0 END) AS qty_t2,
+        SUM(CASE WHEN vdd.month_key = v_month_t3 THEN COALESCE(vdd.so_luong, 0) ELSE 0 END) AS qty_t3,
+        SUM(COALESCE(vdd.so_luong, 0)) AS qty_total
+    FROM (
+        SELECT DISTINCT company_id, ma_vat_tu FROM tinh_toan_vat_tu WHERE period_id = p_period_id
+    ) b3
+    LEFT JOIN vat_tu_di_duong vdd
+        ON  vdd.company_id = b3.company_id
+        AND vdd.ma_nvl = b3.ma_vat_tu
+        AND vdd.nguon = 'don_vi'
+    GROUP BY
+        b3.company_id,
+        b3.ma_vat_tu;
+
+    CREATE INDEX ON _tmp_vdd_bcu (company_id, ma_nvl);
+    CREATE INDEX ON _tmp_vdd_don_vi (company_id, ma_nvl);
 
     -- Buoc 3: Vong lap tung vat tu
     FOR rec IN
@@ -206,27 +233,45 @@ BEGIN
             v_ton_dau := COALESCE(v_ton_dau, 0);
         END IF;
 
-        -- Hang di duong: chi lay 1 lan duy nhat cho vat tu nay
-        v_ve_du_kien_t0 := 0; v_ve_du_kien_t1 := 0; v_ve_du_kien_t2 := 0; v_ve_du_kien_t3 := 0; v_tong_di_duong := 0;
+        -- Hang di duong BCU (dung tinh ton cuoi / B5)
+        v_ve_du_kien_t0 := 0; v_ve_du_kien_t1 := 0; v_ve_du_kien_t2 := 0; v_ve_du_kien_t3 := 0;
+        v_ve_du_kien_don_vi_t0 := 0; v_ve_du_kien_don_vi_t1 := 0; v_ve_du_kien_don_vi_t2 := 0; v_ve_du_kien_don_vi_t3 := 0;
+        v_tong_di_duong := 0;
         IF NOT (v_seen_cache ? v_cache_key) THEN
-            SELECT 
+            SELECT
                 COALESCE(qty_t0, 0), COALESCE(qty_t1, 0), COALESCE(qty_t2, 0), COALESCE(qty_t3, 0), COALESCE(qty_total, 0)
-            INTO 
+            INTO
                 v_ve_du_kien_t0, v_ve_du_kien_t1, v_ve_du_kien_t2, v_ve_du_kien_t3, v_tong_di_duong
-            FROM _tmp_vdd
+            FROM _tmp_vdd_bcu
             WHERE company_id = rec.company_id AND ma_nvl = rec.material_code;
-            
+
             v_ve_du_kien_t0 := COALESCE(v_ve_du_kien_t0, 0);
             v_ve_du_kien_t1 := COALESCE(v_ve_du_kien_t1, 0);
             v_ve_du_kien_t2 := COALESCE(v_ve_du_kien_t2, 0);
             v_ve_du_kien_t3 := COALESCE(v_ve_du_kien_t3, 0);
             v_tong_di_duong := COALESCE(v_tong_di_duong, 0);
-            
-            -- If total is greater than the sum of T0-T3, add the difference to T0 (older goods on the way)
+
             IF v_tong_di_duong > (v_ve_du_kien_t0 + v_ve_du_kien_t1 + v_ve_du_kien_t2 + v_ve_du_kien_t3) THEN
                 v_ve_du_kien_t0 := v_ve_du_kien_t0 + (v_tong_di_duong - (v_ve_du_kien_t0 + v_ve_du_kien_t1 + v_ve_du_kien_t2 + v_ve_du_kien_t3));
             END IF;
-            
+
+            SELECT
+                COALESCE(qty_t0, 0), COALESCE(qty_t1, 0), COALESCE(qty_t2, 0), COALESCE(qty_t3, 0), COALESCE(qty_total, 0)
+            INTO
+                v_ve_du_kien_don_vi_t0, v_ve_du_kien_don_vi_t1, v_ve_du_kien_don_vi_t2, v_ve_du_kien_don_vi_t3, v_tong_di_duong_don_vi
+            FROM _tmp_vdd_don_vi
+            WHERE company_id = rec.company_id AND ma_nvl = rec.material_code;
+
+            v_ve_du_kien_don_vi_t0 := COALESCE(v_ve_du_kien_don_vi_t0, 0);
+            v_ve_du_kien_don_vi_t1 := COALESCE(v_ve_du_kien_don_vi_t1, 0);
+            v_ve_du_kien_don_vi_t2 := COALESCE(v_ve_du_kien_don_vi_t2, 0);
+            v_ve_du_kien_don_vi_t3 := COALESCE(v_ve_du_kien_don_vi_t3, 0);
+            v_tong_di_duong_don_vi := COALESCE(v_tong_di_duong_don_vi, 0);
+
+            IF v_tong_di_duong_don_vi > (v_ve_du_kien_don_vi_t0 + v_ve_du_kien_don_vi_t1 + v_ve_du_kien_don_vi_t2 + v_ve_du_kien_don_vi_t3) THEN
+                v_ve_du_kien_don_vi_t0 := v_ve_du_kien_don_vi_t0 + (v_tong_di_duong_don_vi - (v_ve_du_kien_don_vi_t0 + v_ve_du_kien_don_vi_t1 + v_ve_du_kien_don_vi_t2 + v_ve_du_kien_don_vi_t3));
+            END IF;
+
             v_seen_cache := jsonb_set(v_seen_cache, ARRAY[v_cache_key]::TEXT[], to_jsonb(TRUE));
         END IF;
 
@@ -255,6 +300,7 @@ BEGIN
         INSERT INTO tong_hop_vat_tu (
             period_id, company_id, ma_dat_hang, ma_sap, ten_nvl, chung_loai, don_vi_tinh,
             ton_dau,
+            ve_du_kien_don_vi_t0, ve_du_kien_don_vi_t1, ve_du_kien_don_vi_t2, ve_du_kien_don_vi_t3,
             ve_du_kien_t0, ve_du_kien_t1, ve_du_kien_t2, ve_du_kien_t3,
             vt_can_dung_t0, vt_can_dung_t1, vt_can_dung_t2, vt_can_dung_t3,
             ton_cuoi_t0, ton_cuoi_t1, ton_cuoi_t2, ton_cuoi_t3,
@@ -263,6 +309,7 @@ BEGIN
         ) VALUES (
             p_period_id, rec.company_id, NULL, rec.material_code, rec.material_name, NULL, rec.don_vi_tinh,
             v_ton_dau,
+            v_ve_du_kien_don_vi_t0, v_ve_du_kien_don_vi_t1, v_ve_du_kien_don_vi_t2, v_ve_du_kien_don_vi_t3,
             v_ve_du_kien_t0, v_ve_du_kien_t1, v_ve_du_kien_t2, v_ve_du_kien_t3,
             rec.qty_t0, rec.qty_t1, rec.qty_t2, rec.qty_t3,
             v_ton_cuoi_t0, v_ton_cuoi_t1, v_ton_cuoi_t2, v_ton_cuoi_t3,
@@ -272,7 +319,8 @@ BEGIN
     END LOOP;
 
     DROP TABLE IF EXISTS _tmp_ton_kho;
-    DROP TABLE IF EXISTS _tmp_vdd;
+    DROP TABLE IF EXISTS _tmp_vdd_bcu;
+    DROP TABLE IF EXISTS _tmp_vdd_don_vi;
 END;
 $BODY$;
 

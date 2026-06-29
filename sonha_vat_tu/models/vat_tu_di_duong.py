@@ -8,8 +8,22 @@ from odoo.exceptions import ValidationError
 class VatTuDiDuong(models.Model):
     _name = 'vat.tu.di.duong'
     _description = 'Vật tư đi đường'
-    _order = 'company_id, month_date, ma_nvl'
+    _order = 'nguon, company_id, month_date, ma_nvl'
 
+    NGUON_BCU = 'bcu'
+    NGUON_DON_VI = 'don_vi'
+
+    nguon = fields.Selection(
+        [
+            (NGUON_BCU, 'Ban cung ứng'),
+            (NGUON_DON_VI, 'Đơn vị'),
+        ],
+        string='Nguồn',
+        required=True,
+        default=NGUON_BCU,
+        index=True,
+        help='BCU: dùng cho tính toán B4/B5. Đơn vị: chỉ đối chiếu trên B4.',
+    )
     company_id = fields.Many2one(
         'res.company',
         string='Đơn vị',
@@ -26,9 +40,9 @@ class VatTuDiDuong(models.Model):
 
     _sql_constraints = [
         (
-            'uniq_company_nvl_month_pr',
-            'unique(company_id, ma_nvl, month_key, pr_number)',
-            'Đã có dòng vật tư đi đường cho cùng Đơn vị, Mã NVL, Tháng và Số PR.',
+            'uniq_vdd_nguon_company_nvl_month_pr',
+            'unique(nguon, company_id, ma_nvl, month_key, pr_number)',
+            'Đã có dòng vật tư đi đường cho cùng Nguồn, Đơn vị, Mã NVL, Tháng và Số PR.',
         ),
     ]
 
