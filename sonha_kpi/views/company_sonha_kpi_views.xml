@@ -160,6 +160,7 @@
             <field name="arch" type="xml">
                 <search string="KPI tổng hợp">
                     <field name="department_id" string="Phòng ban"/>
+                    <field name="year" string="Năm"/>
                     <field name="month" string="Tháng"/>
                 </search>
             </field>
