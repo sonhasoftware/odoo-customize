@@ -1,0 +1,204 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_du_lieu_tong_hop_vat_tu_tree" model="ir.ui.view">
+        <field name="name">du.lieu.tong.hop.vat.tu.tree</field>
+        <field name="model">du.lieu.tong.hop.vat.tu</field>
+        <field name="arch" type="xml">
+            <tree string="Dữ liệu tổng hợp vật tư (đủ cột)" create="false" edit="false" delete="false"
+                  class="sh_free_width_tree">
+<!--                <header>-->
+<!--                    <button name="action_rebuild_from_sources" type="object"-->
+<!--                            string="Đồng bộ" class="btn-secondary"-->
+<!--                            display="always"/>-->
+<!--                </header>-->
+                <!-- Chung -->
+                <field name="step_code"/>
+                <field name="source_model"/>
+                <field name="source_res_id"/>
+                <field name="period_id"/>
+                <field name="company_id"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="period_company_id"/>
+                <field name="period_code"/>
+                <field name="period_month"/>
+                <field name="company_code"/>
+                <field name="period_company_code"/>
+                <field name="month_key"/>
+                <field name="ma_sap"/>
+                <!-- -->
+                <field name="nganh_hang"/>
+                <field name="ten_hang"/>
+                <field name="ma_hang"/>
+                <field name="qty"/>
+                <field name="note"/>
+                <!-- -->
+                <field name="ma_tp"/>
+                <field name="ten_tp"/>
+                <field name="ten_sap"/>
+                <field name="ma_nvl"/>
+                <field name="ten_nvl"/>
+                <field name="ten_vat_tu"/>
+                <field name="qty_kinh_doanh"/>
+                <field name="qty_san_xuat"/>
+                <field name="qty_chenh_lech"/>
+                <!-- -->
+                <field name="ma_effect"/>
+                <field name="don_vi_tinh"/>
+                <field name="sl_dinh_muc"/>
+                <!-- -->
+                <field name="ma_dat_hang"/>
+                <field name="chung_loai"/>
+                <field name="ma_cuon"/>
+                <field name="ton_dau"/>
+                <field name="ve_du_kien_don_vi"/>
+                <field name="ve_du_kien"/>
+                <field name="vt_can_dung"/>
+                <field name="ton_cuoi"/>
+                <field name="so_luong_du_phong"/>
+                <field name="so_luong_thieu"/>
+                <field name="so_luong_can_mua"/>
+                <field name="ghi_chu"/>
+                <!-- -->
+                <field name="tong_ton_nvl_sl"/>
+                <field name="tong_hang_di_duong_sl"/>
+                <field name="tong_sl_vt_can_dung"/>
+                <field name="sl_du_tru_toi_thieu"/>
+                <field name="sl_can_mua_theo_moq"/>
+                <field name="sl_dat_mua_de_xuat"/>
+                <field name="sl_dat_mua_chot"/>
+                <field name="sl_ton_kho"/>
+                <field name="so_ngay_vong_quay_ton"/>
+                <field name="don_gia_ton_kho" widget="monetary"/>
+                <field name="gia_tri_ton_kho" widget="monetary"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_du_lieu_tong_hop_vat_tu_form" model="ir.ui.view">
+        <field name="name">du.lieu.tong.hop.vat.tu.form</field>
+        <field name="model">du.lieu.tong.hop.vat.tu</field>
+        <field name="arch" type="xml">
+            <form string="Chi tiết tổng hợp" create="false" edit="false" delete="false">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="display_name"/>
+                        <h1><field name="display_name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="step_code"/>
+                            <field name="source_model"/>
+                            <field name="source_res_id"/>
+                            <field name="period_id"/>
+                            <field name="company_id"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="period_company_id"/>
+                            <field name="period_code"/>
+                            <field name="period_month"/>
+                            <field name="company_code"/>
+                            <field name="period_company_code"/>
+                            <field name="month_key"/>
+                            <field name="ma_sap"/>
+                            <field name="nganh_hang"/>
+                            <field name="ten_hang"/>
+                            <field name="ma_hang"/>
+                            <field name="qty"/>
+                            <field name="note"/>
+                            <field name="ma_tp"/>
+                            <field name="ten_tp"/>
+                            <field name="ten_sap"/>
+                            <field name="ma_nvl"/>
+                            <field name="ten_nvl"/>
+                            <field name="ten_vat_tu"/>
+                            <field name="qty_kinh_doanh"/>
+                            <field name="qty_san_xuat"/>
+                            <field name="qty_chenh_lech"/>
+                            <field name="ma_effect"/>
+                            <field name="don_vi_tinh"/>
+                            <field name="sl_dinh_muc"/>
+                        </group>
+                        <group>
+                            <field name="ma_dat_hang"/>
+                            <field name="chung_loai"/>
+                            <field name="ton_dau"/>
+                            <field name="ve_du_kien_don_vi"/>
+                            <field name="ve_du_kien"/>
+                            <field name="vt_can_dung"/>
+                            <field name="ton_cuoi"/>
+                            <field name="so_luong_du_phong"/>
+                            <field name="so_luong_thieu"/>
+                            <field name="so_luong_can_mua"/>
+                            <field name="ghi_chu"/>
+                            <field name="tong_ton_nvl_sl"/>
+                            <field name="tong_hang_di_duong_sl"/>
+                            <field name="tong_sl_vt_can_dung"/>
+                            <field name="sl_du_tru_toi_thieu"/>
+                            <field name="sl_can_mua_theo_moq"/>
+                            <field name="sl_dat_mua_de_xuat"/>
+                            <field name="sl_dat_mua_chot"/>
+                            <field name="sl_ton_kho"/>
+                            <field name="so_ngay_vong_quay_ton"/>
+                            <field name="don_gia_ton_kho" widget="monetary"/>
+                            <field name="gia_tri_ton_kho" widget="monetary"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_du_lieu_tong_hop_vat_tu_search" model="ir.ui.view">
+        <field name="name">du.lieu.tong.hop.vat.tu.search</field>
+        <field name="model">du.lieu.tong.hop.vat.tu</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="step_code"/>
+                <field name="period_id"/>
+                <field name="company_id"/>
+                <field name="period_company_id"/>
+                <field name="period_code"/>
+                <field name="period_month"/>
+                <field name="company_code"/>
+                <field name="period_company_code"/>
+                <field name="month_key"/>
+                <field name="ma_sap"/>
+                <field name="ma_hang"/>
+                <field name="ma_tp"/>
+                <field name="ten_tp"/>
+                <field name="ma_nvl"/>
+                <field name="ten_nvl"/>
+                <field name="ten_vat_tu"/>
+                <field name="ma_effect"/>
+                <field name="ma_dat_hang"/>
+                <field name="source_model"/>
+                <filter name="filter_kd" string="Kế hoạch kinh doanh" domain="[('step_code', '=', 'kd')]"/>
+                <filter name="filter_sx" string="Kế hoạch sản xuất" domain="[('step_code', '=', 'sx')]"/>
+                <filter name="filter_b1" string="B1" domain="[('step_code', '=', 'b1')]"/>
+                <filter name="filter_b2" string="B2" domain="[('step_code', '=', 'b2')]"/>
+                <filter name="filter_b3" string="B3" domain="[('step_code', '=', 'b3')]"/>
+                <filter name="filter_b4" string="B4" domain="[('step_code', '=', 'b4')]"/>
+                <filter name="filter_b5" string="B5" domain="[('step_code', '=', 'b5')]"/>
+                <group expand="0" string="Nhóm">
+                    <filter name="group_step" string="Bước" context="{'group_by': 'step_code'}"/>
+                    <filter name="group_period" string="Kỳ" context="{'group_by': 'period_id'}"/>
+                    <filter name="group_period_company" string="Đơn vị yêu cầu" context="{'group_by': 'period_company_id'}"/>
+                    <filter name="group_period_code" string="Số chứng từ" context="{'group_by': 'period_code'}"/>
+                    <filter name="group_period_month" string="Tháng bắt đầu" context="{'group_by': 'period_month'}"/>
+                    <filter name="group_month" string="Tháng" context="{'group_by': 'month_key'}"/>
+                    <filter name="group_company" string="Đơn vị sản xuất" context="{'group_by': 'company_id'}"/>
+                    <filter name="group_ma_nvl" string="Mã NVL" context="{'group_by': 'ma_nvl'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_du_lieu_tong_hop_vat_tu" model="ir.actions.act_window">
+        <field name="name">Dữ liệu tổng hợp vật tư</field>
+        <field name="res_model">du.lieu.tong.hop.vat.tu</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_du_lieu_tong_hop_vat_tu_search"/>
+    </record>
+
+</odoo>
+

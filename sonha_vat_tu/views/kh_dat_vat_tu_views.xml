@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_kh_dat_vat_tu_tree" model="ir.ui.view">
+        <field name="name">kh.dat.vat.tu.tree</field>
+        <field name="model">kh.dat.vat.tu</field>
+        <field name="arch" type="xml">
+            <tree string="Kế hoạch đặt vật tư" editable="bottom" class="sh_free_width_tree" js_class="vat_tu_merged_b5_list_view">
+                <field name="ma_sap" string="Mã NVL" required="1"/>
+                <field name="ten_nvl" string="Tên NVL"/>
+                <field name="chung_loai" string="Chủng loại"/>
+                <field name="don_vi_tinh"/>
+                <field name="currency_id" column_invisible="True"/>
+
+                <!-- Tồn đầu -->
+                <field name="tong_ton_nvl_sl" string="Tồn NVL đầu kỳ"/>
+                <field name="gia_tri_ton_nvl_dau_ky" string="Giá trị tồn NVL" widget="monetary"/>
+                <field name="don_gia_ton_kho" column_invisible="True"/>
+
+                <!-- Cần dùng T0..T3 + Tổng -->
+                <field name="tong_sl_vt_can_dung_t0"/>
+                <field name="tong_sl_vt_can_dung_t1"/>
+                <field name="tong_sl_vt_can_dung_t2"/>
+                <field name="tong_sl_vt_can_dung_t3"/>
+                <field name="tong_vt_can_dung" string="Tổng cần dùng"/>
+
+                <!-- Đi đường T0..T3 + Tổng -->
+                <field name="tong_hang_di_duong_sl_t0"/>
+                <field name="tong_hang_di_duong_sl_t1"/>
+                <field name="tong_hang_di_duong_sl_t2"/>
+                <field name="tong_hang_di_duong_sl_t3"/>
+                <field name="tong_hang_di_duong" string="Tổng đi đường"/>
+
+                <!-- Kế hoạch đặt mua & Chỉ số cuối kỳ -->
+                <field name="sl_du_tru_toi_thieu" string="Dự trữ tối thiểu"/>
+                <field name="sl_dat_mua_de_xuat" string="Đề xuất đặt mua"/>
+                <field name="sl_dat_mua_chot" string="Đặt mua chốt"/>
+                <field name="sl_can_mua_theo_moq" string="SL mua theo MOQ"/>
+                <field name="don_gia_mua" string="Đơn giá mua" widget="monetary"/>
+                <field name="gia_tri_mua_hang" string="Giá trị mua" widget="monetary"/>
+                <field name="sl_ton_kho_cuoi_ky" string="Tồn kho cuối kỳ"/>
+                <field name="vt_loi_ton_lau" string="VT lỗi, tồn lâu"/>
+                <field name="so_ngay_vong_quay_ton" string="Ngày vòng quay tồn"/>
+                <field name="don_gia_ton_kho_cuoi_ky" string="Đơn giá tồn cuối kỳ" widget="monetary"/>
+                <field name="gia_tri_ton_kho_cuoi_ky" string="Giá trị tồn cuối kỳ" widget="monetary"/>
+
+                <field name="ghi_chu"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_kh_dat_vat_tu_form" model="ir.ui.view">
+        <field name="name">kh.dat.vat.tu.form</field>
+        <field name="model">kh.dat.vat.tu</field>
+        <field name="arch" type="xml">
+            <form string="Kế hoạch đặt vật tư">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="period_id" required="1"/>
+                            <field name="company_id" required="1"/>
+                            <field name="ma_sap" string="Mã NVL" required="1"/>
+                            <field name="ten_nvl" string="Tên NVL"/>
+                        </group>
+                        <group>
+                            <field name="chung_loai" string="Chủng loại"/>
+                            <field name="don_vi_tinh"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="ghi_chu"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Tồn kho đầu kỳ">
+                            <group>
+                                <field name="tong_ton_nvl_sl"/>
+                                <field name="gia_tri_ton_nvl_dau_ky" string="Giá trị tồn NVL" widget="monetary"/>
+                                <field name="don_gia_ton_kho" invisible="1"/>
+                            </group>
+                        </page>
+                        <page string="Cần dùng &amp; Đi đường">
+                            <group col="4">
+                                <group string="Cần dùng">
+                                    <field name="tong_sl_vt_can_dung_t0"/>
+                                    <field name="tong_sl_vt_can_dung_t1"/>
+                                    <field name="tong_sl_vt_can_dung_t2"/>
+                                    <field name="tong_sl_vt_can_dung_t3"/>
+                                    <field name="tong_vt_can_dung" readonly="1"/>
+                                </group>
+                                <group string="Đi đường">
+                                    <field name="tong_hang_di_duong_sl_t0"/>
+                                    <field name="tong_hang_di_duong_sl_t1"/>
+                                    <field name="tong_hang_di_duong_sl_t2"/>
+                                    <field name="tong_hang_di_duong_sl_t3"/>
+                                    <field name="tong_hang_di_duong" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Kế hoạch đặt mua">
+                            <group>
+                                <group>
+                                    <field name="sl_du_tru_toi_thieu" readonly="1"/>
+                                    <field name="sl_dat_mua_de_xuat" readonly="1"/>
+                                    <field name="sl_dat_mua_chot" readonly="1"/>
+                                    <field name="sl_can_mua_theo_moq"/>
+                                    <field name="don_gia_mua" widget="monetary"/>
+                                    <field name="gia_tri_mua_hang" widget="monetary" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="sl_ton_kho_cuoi_ky" readonly="1"/>
+                                    <field name="vt_loi_ton_lau"/>
+                                    <field name="so_ngay_vong_quay_ton" readonly="1"/>
+                                    <field name="don_gia_ton_kho_cuoi_ky" widget="monetary" readonly="1"/>
+                                    <field name="gia_tri_ton_kho_cuoi_ky" widget="monetary" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_kh_dat_vat_tu_search" model="ir.ui.view">
+        <field name="name">kh.dat.vat.tu.search</field>
+        <field name="model">kh.dat.vat.tu</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="period_id"/>
+                <field name="ma_sap" string="Mã NVL"/>
+                <field name="ten_nvl" string="Tên NVL"/>
+                <field name="chung_loai"/>
+                <field name="company_id"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="g_period" string="Kỳ" context="{'group_by': 'period_id'}"/>
+                    <filter name="g_company" string="Đơn vị" context="{'group_by': 'company_id'}"/>
+                    <filter name="g_sap" string="Mã NVL" context="{'group_by': 'ma_sap'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_kh_dat_vat_tu" model="ir.actions.act_window">
+        <field name="name">Kế hoạch đặt vật tư</field>
+        <field name="res_model">kh.dat.vat.tu</field>
+        <field name="view_mode">tree,form</field>
+        <field name="views" eval="[(ref('view_kh_dat_vat_tu_tree'), 'tree'), (ref('view_kh_dat_vat_tu_form'), 'form')]"/>
+    </record>
+
+</odoo>

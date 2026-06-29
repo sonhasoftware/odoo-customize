@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_bom_tree" model="ir.ui.view">
+        <field name="name">bom.tree</field>
+        <field name="model">bom</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+<!--                <header>-->
+<!--                    <button name="action_download_bom_template" type="object" string="Tải template" class="btn-secondary btn-sm" display="always"/>-->
+<!--                    <button name="action_open_import_bom_wizard" type="object" string="Import" class="btn-primary btn-sm" display="always"/>-->
+<!--                </header>-->
+                <field name="ma_tp" required="1"/>
+                <field name="ten_tp" required="1"/>
+                <field name="ma_nvl" required="1"/>
+                <field name="ten_nvl" required="1"/>
+                <field name="sl_spdm" required="1"/>
+                <field name="sl_dinh_muc" required="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_bom_form" model="ir.ui.view">
+        <field name="name">bom.form</field>
+        <field name="model">bom</field>
+        <field name="arch" type="xml">
+            <form string="BOM">
+                <sheet>
+                    <group>
+                        <field name="ma_tp" required="1"/>
+                        <field name="ten_tp" required="1"/>
+                        <field name="ma_nvl" required="1"/>
+                        <field name="ten_nvl" required="1"/>
+                        <field name="sl_spdm" required="1"/>
+                        <field name="sl_dinh_muc" required="1"/>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_bom_search" model="ir.ui.view">
+        <field name="name">bom.search</field>
+        <field name="model">bom</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="ma_tp"/>
+                <field name="ten_tp"/>
+                <field name="ma_nvl"/>
+                <field name="ten_nvl"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="group_ma_tp" string="Mã thành phẩm" context="{'group_by': 'ma_tp'}"/>
+                    <filter name="group_ma_nvl" string="Mã nguyên vật liệu" context="{'group_by': 'ma_nvl'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_bom" model="ir.actions.act_window">
+        <field name="name">BOM</field>
+        <field name="res_model">bom</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

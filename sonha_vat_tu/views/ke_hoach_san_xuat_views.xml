@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_ke_hoach_san_xuat_tree" model="ir.ui.view">
+        <field name="name">ke.hoach.san.xuat.tree</field>
+        <field name="model">ke.hoach.san.xuat</field>
+        <field name="arch" type="xml">
+            <tree string="Kế hoạch sản xuất" editable="bottom">
+                <field name="period_id" required="1"/>
+                <field name="nganh_hang"/>
+                <field name="ten_hang" readonly="1"/>
+                <field name="ma_hang"/>
+                <field name="ma_sap" required="1"/>
+                <field name="qty_t0" sum="T0"/>
+                <field name="qty_t1" sum="T1"/>
+                <field name="qty_t2" sum="T2"/>
+                <field name="qty_t3" sum="T3"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_ke_hoach_san_xuat_search" model="ir.ui.view">
+        <field name="name">ke.hoach.san.xuat.search</field>
+        <field name="model">ke.hoach.san.xuat</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="period_id"/>
+                <field name="ma_sap"/>
+                <field name="company_id"/>
+                <field name="nganh_hang"/>
+                <field name="ten_hang" readonly="1"/>
+                <field name="ma_hang"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="group_period" string="Kỳ"
+                            context="{'group_by': 'period_id'}"/>
+                    <filter name="group_company" string="Công ty"
+                            context="{'group_by': 'company_id'}"/>
+                    <filter name="group_sap" string="Mã SAP"
+                            context="{'group_by': 'ma_sap'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_ke_hoach_san_xuat" model="ir.actions.act_window">
+        <field name="name">Kế hoạch sản xuất</field>
+        <field name="res_model">ke.hoach.san.xuat</field>
+        <field name="view_mode">tree</field>
+        <field name="search_view_id" ref="view_ke_hoach_san_xuat_search"/>
+    </record>
+
+</odoo>

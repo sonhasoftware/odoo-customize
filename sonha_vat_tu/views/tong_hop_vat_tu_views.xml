@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_tong_hop_vat_tu_tree" model="ir.ui.view">
+        <field name="name">tong.hop.vat.tu.tree</field>
+        <field name="model">tong.hop.vat.tu</field>
+        <field name="arch" type="xml">
+            <tree string="Tổng hợp vật tư cần sản xuất" create="0" class="sh_free_width_tree" js_class="vat_tu_merged_b4_list_view">
+                <field name="ma_sap" string="Mã NVL" required="1"/>
+                <field name="ten_nvl" string="Tên NVL"/>
+                <field name="chung_loai"/>
+                <field name="don_vi_tinh"/>
+
+                <field name="ton_dau" string="Tồn đầu"/>
+
+                <field name="ve_du_kien_don_vi_t0" readonly="1"/>
+                <field name="ve_du_kien_don_vi_t1" readonly="1"/>
+                <field name="ve_du_kien_don_vi_t2" readonly="1"/>
+                <field name="ve_du_kien_don_vi_t3" readonly="1"/>
+
+                <field name="ve_du_kien_t0" readonly="1"/>
+                <field name="ve_du_kien_t1" readonly="1"/>
+                <field name="ve_du_kien_t2" readonly="1"/>
+                <field name="ve_du_kien_t3" readonly="1"/>
+
+                <field name="vt_can_dung_t0"/>
+                <field name="vt_can_dung_t1"/>
+                <field name="vt_can_dung_t2"/>
+                <field name="vt_can_dung_t3"/>
+
+                <field name="ton_cuoi_t0"/>
+                <field name="ton_cuoi_t1"/>
+                <field name="ton_cuoi_t2"/>
+                <field name="ton_cuoi_t3"/>
+
+                <field name="so_luong_du_phong" string="Dự phòng"/>
+                <field name="so_luong_thieu" string="Thiếu"/>
+                <field name="so_luong_can_mua" string="Cần mua"/>
+                <field name="ghi_chu"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_tong_hop_vat_tu_form" model="ir.ui.view">
+        <field name="name">tong.hop.vat.tu.form</field>
+        <field name="model">tong.hop.vat.tu</field>
+        <field name="arch" type="xml">
+            <form string="Tổng hợp vật tư cần sản xuất">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="period_id" required="1"/>
+                            <field name="company_id" required="1"/>
+                            <field name="ma_sap" string="Mã NVL" required="1"/>
+                            <field name="ten_nvl" string="Tên NVL"/>
+                        </group>
+                        <group>
+                            <field name="chung_loai"/>
+                            <field name="don_vi_tinh"/>
+                            <field name="ton_dau" string="Tồn đầu"/>
+                            <field name="ghi_chu"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Kế hoạch theo tháng">
+                            <group col="4">
+                                <group string="T0">
+                                    <field name="ve_du_kien_don_vi_t0" readonly="1"/>
+                                    <field name="ve_du_kien_t0" readonly="1"/>
+                                    <field name="vt_can_dung_t0"/>
+                                    <field name="ton_cuoi_t0"/>
+                                </group>
+                                <group string="T+1">
+                                    <field name="ve_du_kien_don_vi_t1" readonly="1"/>
+                                    <field name="ve_du_kien_t1" readonly="1"/>
+                                    <field name="vt_can_dung_t1"/>
+                                    <field name="ton_cuoi_t1"/>
+                                </group>
+                                <group string="T+2">
+                                    <field name="ve_du_kien_don_vi_t2" readonly="1"/>
+                                    <field name="ve_du_kien_t2" readonly="1"/>
+                                    <field name="vt_can_dung_t2"/>
+                                    <field name="ton_cuoi_t2"/>
+                                </group>
+                                <group string="T+3">
+                                    <field name="ve_du_kien_don_vi_t3" readonly="1"/>
+                                    <field name="ve_du_kien_t3" readonly="1"/>
+                                    <field name="vt_can_dung_t3"/>
+                                    <field name="ton_cuoi_t3"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Tổng kết cuối kỳ">
+                            <group>
+                                <field name="so_luong_du_phong"/>
+                                <field name="so_luong_thieu"/>
+                                <field name="so_luong_can_mua"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_tong_hop_vat_tu_search" model="ir.ui.view">
+        <field name="name">tong.hop.vat.tu.search</field>
+        <field name="model">tong.hop.vat.tu</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="period_id"/>
+                <field name="ma_sap" string="Mã NVL"/>
+                <field name="ten_nvl" string="Tên NVL"/>
+                <field name="chung_loai"/>
+                <field name="company_id"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="g_period" string="Kỳ" context="{'group_by': 'period_id'}"/>
+                    <filter name="g_company" string="Đơn vị" context="{'group_by': 'company_id'}"/>
+                    <filter name="g_sap" string="Mã NVL" context="{'group_by': 'ma_sap'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_tong_hop_vat_tu" model="ir.actions.act_window">
+        <field name="name">Tổng hợp vật tư cần sản xuất</field>
+        <field name="res_model">tong.hop.vat.tu</field>
+        <field name="view_mode">tree,form</field>
+        <field name="views" eval="[(ref('view_tong_hop_vat_tu_tree'), 'tree'), (ref('view_tong_hop_vat_tu_form'), 'form')]"/>
+    </record>
+
+</odoo>

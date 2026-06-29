@@ -1,0 +1,10 @@
+.o_list_view.sh_free_width_tree {
+  .o_list_table {
+    table-layout: auto !important;
+  }
+  th[data-name],
+  td.o_data_cell {
+    max-width: none !important;
+    min-width: 0 !important;
+  }
+}

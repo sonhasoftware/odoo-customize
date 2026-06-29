@@ -16,7 +16,8 @@
                             <field name="sequence"/>
                             <field name="phuong_thuc"/>
                             <field name="vai_tro" required="phuong_thuc == 'vt'"/>
-                            <field name="ten_nguoi_duyet" widget="many2many_tags" readonly="1"/>
+                            <field name="ten_nguoi_duyet" widget="many2many_tags"
+                                   readonly="1" force_save="1"/>
                         </tree>
                     </field>
                 </sheet>

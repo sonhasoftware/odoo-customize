@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_tinh_toan_vat_tu_tree" model="ir.ui.view">
+        <field name="name">tinh.toan.vat.tu.tree</field>
+        <field name="model">tinh.toan.vat.tu</field>
+        <field name="arch" type="xml">
+            <tree string="Tính toán vật tư" create="0" class="sh_free_width_tree">
+                <field name="ma_sap" required="1"/>
+                <field name="ma_vat_tu"/>
+                <field name="ten_vat_tu"/>
+                <field name="ma_effect"/>
+                <field name="ten_sap"/>
+                <field name="don_vi_tinh"/>
+                <field name="sl_dinh_muc" sum="Định mức"/>
+                <field name="qty_t0" sum="T0"/>
+                <field name="qty_t1" sum="T1"/>
+                <field name="qty_t2" sum="T2"/>
+                <field name="qty_t3" sum="T3"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_tinh_toan_vat_tu_search" model="ir.ui.view">
+        <field name="name">tinh.toan.vat.tu.search</field>
+        <field name="model">tinh.toan.vat.tu</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="period_id"/>
+                <field name="ma_sap"/>
+                <field name="ma_vat_tu"/>
+                <field name="ma_effect"/>
+                <field name="ten_sap"/>
+                <field name="company_id"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="g_period" string="Kỳ" context="{'group_by': 'period_id'}"/>
+                    <filter name="g_sap" string="Mã SAP" context="{'group_by': 'ma_sap'}"/>
+                    <filter name="g_effect" string="Mã Effect" context="{'group_by': 'ma_effect'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_tinh_toan_vat_tu" model="ir.actions.act_window">
+        <field name="name">Tính toán vật tư</field>
+        <field name="res_model">tinh.toan.vat.tu</field>
+        <field name="view_mode">tree</field>
+    </record>
+
+</odoo>
