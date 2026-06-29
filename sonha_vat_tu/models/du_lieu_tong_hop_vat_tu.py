@@ -138,23 +138,6 @@ class DuLieuTongHopVatTu(models.Model):
 
     @api.model
     def init(self):
-        self._cr.execute("""
-            DO $$
-            BEGIN
-                IF EXISTS (
-                    SELECT 1 FROM information_schema.columns
-                    WHERE table_name = 'du_lieu_tong_hop_vat_tu'
-                      AND column_name = 'dong_hang'
-                ) AND NOT EXISTS (
-                    SELECT 1 FROM information_schema.columns
-                    WHERE table_name = 'du_lieu_tong_hop_vat_tu'
-                      AND column_name = 'ten_hang'
-                ) THEN
-                    ALTER TABLE du_lieu_tong_hop_vat_tu
-                        RENAME COLUMN dong_hang TO ten_hang;
-                END IF;
-            END $$;
-        """)
         self._cr.execute(_read_sql_file())
         try:
             self._cr.execute(_read_sql_bom_file())
