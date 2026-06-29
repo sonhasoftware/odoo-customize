@@ -69,6 +69,17 @@
             </field>
         </record>
 
+        <record id="plan_kpi_year_search_view" model="ir.ui.view">
+            <field name="name">plan.kpi.year.search.view</field>
+            <field name="model">parent.kpi.year</field>
+            <field name="arch" type="xml">
+                <search string="KPI Năm">
+                    <field name="department_id" string="Phòng ban"/>
+                    <field name="month" string="Tháng"/>
+                </search>
+            </field>
+        </record>
+
         <record id="action_plan_kpi_year" model="ir.actions.act_window">
             <field name="name">Đăng ký KPI Năm</field>
             <field name="type">ir.actions.act_window</field>

@@ -154,6 +154,17 @@
             </field>
         </record>
 
+        <record id="company_sonha_kpi_search_view" model="ir.ui.view">
+            <field name="name">company.sonha.kpi.search.view</field>
+            <field name="model">company.sonha.kpi</field>
+            <field name="arch" type="xml">
+                <search string="KPI tổng hợp">
+                    <field name="department_id" string="Phòng ban"/>
+                    <field name="month" string="Tháng"/>
+                </search>
+            </field>
+        </record>
+
         <record id="action_company_sonha_kpi" model="ir.actions.act_window">
             <field name="name">Đơn vị tự đánh giá KPI</field>
             <field name="type">ir.actions.act_window</field>
