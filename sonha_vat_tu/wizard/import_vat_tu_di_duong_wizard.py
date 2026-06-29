@@ -25,7 +25,7 @@ class ImportVatTuDiDuongWizard(models.TransientModel):
     file_name = fields.Char(string='Tên file')
     nguon = fields.Selection(
         selection=[
-            ('bcu', 'Ban cung ứng (BCU)'),
+            ('bcu', 'Ban cung ứng'),
             ('don_vi', 'Đơn vị'),
         ],
         string='Nguồn dữ liệu',
