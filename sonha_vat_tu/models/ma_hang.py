@@ -35,7 +35,6 @@ class MaHang(models.Model):
     active = fields.Boolean(default=True)
 
     _sql_constraints = [
-        ('vtc_ma_hang_sap_uniq', 'unique(ma_sap)', 'Mã đơn vị phải duy nhất!'),
         ('vtc_ma_hang_mdm_line_uniq', 'unique(mdm_line_id)', 'Dòng MDM đã được đồng bộ!'),
     ]
 
@@ -51,7 +50,7 @@ class MaHang(models.Model):
                 'ma_sap': ma_sap,
                 'active': True,
             }
-            rec = self.sudo().search([('ma_sap', '=', ma_sap)], limit=1)
+            rec = self.sudo().search([('mdm_line_id', '=', line.id)], limit=1)
             if rec:
                 rec.write(vals)
             else:
