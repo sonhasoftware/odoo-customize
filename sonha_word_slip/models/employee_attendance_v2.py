@@ -89,7 +89,7 @@ class EmployeeAttendanceV2(models.Model):
 
 
     LOCAL_TZ_OFFSET = timedelta(hours=7)
-    CHECK_WINDOW_HOURS = 3
+    CHECK_WINDOW_HOURS = 1
     MAX_OT_SHIFT_GAP_HOURS = 1
 
     def _to_local_datetime(self, dt):
@@ -179,6 +179,100 @@ class EmployeeAttendanceV2(models.Model):
             overlap_start, overlap_end = self._intersect_interval(ot_start, ot_end, work_start, work_end)
             total += self._duration_hours(overlap_start, overlap_end)
         return total
+
+
+    def _get_actual_attendance_interval_local(self, record):
+        """Return the actual CI/CO anchors after considering contiguous overtime."""
+        shift_start, shift_end = self._get_shift_interval_local(record)
+        if not shift_start or not shift_end:
+            return None, None
+
+        actual_start = shift_start
+        actual_end = shift_end
+        for line in self._get_owned_overtime_lines(record):
+            ot_start, ot_end = self._get_overtime_line_interval_local(line)
+            if not ot_start or not ot_end:
+                continue
+            if ot_end <= shift_start:
+                actual_start = min(actual_start, ot_start)
+            elif ot_start >= shift_end:
+                actual_end = max(actual_end, ot_end)
+            elif record.shift.shift_ot:
+                actual_start = min(actual_start, ot_start)
+                actual_end = max(actual_end, ot_end)
+
+        return actual_start, actual_end
+
+    def _get_preferred_attendance_windows_local(self, record):
+        actual_start, actual_end = self._get_actual_attendance_interval_local(record)
+        if not actual_start or not actual_end:
+            return {}
+
+        split_local = actual_start + (actual_end - actual_start) / 2
+        one_hour = timedelta(hours=self.CHECK_WINDOW_HOURS)
+        return {
+            'check_in': (actual_start - one_hour, min(actual_start + one_hour, split_local)),
+            'check_out': (max(actual_end - one_hour, split_local), actual_end + one_hour),
+            'split': split_local,
+            'actual_start': actual_start,
+            'actual_end': actual_end,
+        }
+
+    def _get_attendance_priority_windows_utc(self, record):
+        """Return preferred and fallback CI/CO windows for raw attendance matching."""
+        preferred = self._get_preferred_attendance_windows_local(record)
+        if not preferred:
+            return {}
+
+        actual_start = preferred['actual_start']
+        actual_end = preferred['actual_end']
+        split_local = preferred['split']
+
+        check_in_fallback_start = datetime.combine(actual_start.date(), time.min)
+        check_out_fallback_end = datetime.combine(actual_end.date(), time.max)
+
+        neighbor_records = self.sudo().search([
+            ('employee_id', '=', record.employee_id.id),
+            ('date', '>=', record.date - timedelta(days=1)),
+            ('date', '<=', record.date + timedelta(days=1)),
+        ])
+        for neighbor in neighbor_records:
+            if neighbor.id == record.id:
+                continue
+            neighbor_preferred = self._get_preferred_attendance_windows_local(neighbor)
+            neighbor_check_in = neighbor_preferred.get('check_in')
+            neighbor_check_out = neighbor_preferred.get('check_out')
+
+            if neighbor_check_out:
+                neighbor_co_start, neighbor_co_end = neighbor_check_out
+                if neighbor_co_end.date() == actual_start.date() and neighbor_co_end <= split_local:
+                    check_in_fallback_start = max(check_in_fallback_start, neighbor_co_end)
+                elif neighbor_co_start.date() == actual_start.date() and neighbor_co_start < split_local:
+                    check_in_fallback_start = max(check_in_fallback_start, min(neighbor_co_end, split_local))
+
+            if neighbor_check_in:
+                neighbor_ci_start, neighbor_ci_end = neighbor_check_in
+                if neighbor_ci_start.date() == actual_end.date() and neighbor_ci_start >= split_local:
+                    check_out_fallback_end = min(check_out_fallback_end, neighbor_ci_start)
+                elif neighbor_ci_end.date() == actual_end.date() and neighbor_ci_end > split_local:
+                    check_out_fallback_end = min(check_out_fallback_end, max(neighbor_ci_start, split_local))
+
+        return {
+            'check_in_preferred': (self._to_utc_datetime(preferred['check_in'][0]),
+                                   self._to_utc_datetime(preferred['check_in'][1])),
+            'check_in_fallback': (self._to_utc_datetime(check_in_fallback_start),
+                                  self._to_utc_datetime(split_local)),
+            'check_out_preferred': (self._to_utc_datetime(preferred['check_out'][0]),
+                                    self._to_utc_datetime(preferred['check_out'][1])),
+            'check_out_fallback': (self._to_utc_datetime(split_local),
+                                   self._to_utc_datetime(check_out_fallback_end)),
+        }
+
+    def _filter_attendance_values_in_window(self, attendance_values, window):
+        start, end = window
+        if not start or not end or end < start:
+            return []
+        return [value for value in attendance_values if start <= value <= end]
 
     def _get_shift_split_utc(self, record):
         shift_start, shift_end = self._get_shift_interval_local(record)
@@ -847,25 +941,42 @@ class EmployeeAttendanceV2(models.Model):
             if not r.time_check_in or not r.time_check_out or not r.employee_id:
                 continue
 
+            windows = self._get_attendance_priority_windows_utc(r)
+            search_start = min(
+                window[0]
+                for window in windows.values()
+                if window and window[0]
+            ) if windows else r.time_check_in
+            search_end = max(
+                window[1]
+                for window in windows.values()
+                if window and window[1]
+            ) if windows else r.time_check_out
+
             attendance_times = self.env['master.data.attendance'].sudo().search_read(
-                [('attendance_time', '>=', r.time_check_in),
-                 ('attendance_time', '<=', r.time_check_out),
+                [('attendance_time', '>=', search_start),
+                 ('attendance_time', '<=', search_end),
                  ('employee_id', '=', r.employee_id.id)],
                 ['attendance_time'],
                 order='attendance_time ASC'
             )
             attendance_values = [a['attendance_time'] for a in attendance_times if a['attendance_time']]
-            attendance_ci = [
-                value for value in attendance_values
-                if r.check_no_in and value <= r.check_no_in
-            ]
-            attendance_co = [
-                value for value in attendance_values
-                if r.check_no_out and value > r.check_no_out
-            ]
 
-            check_in = attendance_ci[0] if attendance_ci else None
-            check_out = attendance_co[-1] if attendance_co else None
+            preferred_ci = self._filter_attendance_values_in_window(
+                attendance_values, windows.get('check_in_preferred', (None, None))
+            )
+            fallback_ci = self._filter_attendance_values_in_window(
+                attendance_values, windows.get('check_in_fallback', (None, None))
+            )
+            preferred_co = self._filter_attendance_values_in_window(
+                attendance_values, windows.get('check_out_preferred', (None, None))
+            )
+            fallback_co = self._filter_attendance_values_in_window(
+                attendance_values, windows.get('check_out_fallback', (None, None))
+            )
+
+            check_in = preferred_ci[0] if preferred_ci else (fallback_ci[0] if fallback_ci else None)
+            check_out = preferred_co[-1] if preferred_co else (fallback_co[-1] if fallback_co else None)
 
             in_outs = self._get_time_word_slips_in_window(r.employee_id, r.time_check_in, r.time_check_out)
             for in_out in in_outs:
