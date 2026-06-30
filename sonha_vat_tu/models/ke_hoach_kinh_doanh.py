@@ -51,6 +51,13 @@ class KeHoachKinhDoanh(models.Model):
             code = (rec.ma_sap or '').strip()
             rec.ten_hang = name_map.get(code, '') if code else ''
 
+    def _trigger_production_sync(self):
+        if self.env.context.get('skip_kd_sx_sync') or self.env.context.get('is_importing'):
+            return
+        periods = self.mapped('period_id').filtered(lambda p: p.state == 'ke_hoach')
+        for period in periods:
+            period._sync_production_from_business()
+
     @api.model_create_multi
     def create(self, vals_list):
         # 1. Gom tất cả period_id và ma_sap để query 1 lần (Bulk Fetch)
@@ -85,12 +92,16 @@ class KeHoachKinhDoanh(models.Model):
         records = super().create(vals_list)
         if not self.env.context.get('is_importing'):
             self._log_action_table(records, action='create')
+        records._trigger_production_sync()
         return records
 
     def unlink(self):
         self._check_period_editable()
+        periods = self.mapped('period_id')
         self._log_action_table(self, action='unlink')
-        return super().unlink()
+        res = super().unlink()
+        periods._sync_production_from_business()
+        return res
 
     def _check_period_editable(self):
         locked = self.filtered(lambda rec: rec.period_id and rec.period_id.state != 'ke_hoach')
@@ -269,5 +280,6 @@ class KeHoachKinhDoanh(models.Model):
                     f'{label} - Mã hàng {ma_hang_code}',
                 ))
         self._log_field_changes(changes_by_period)
+        self._trigger_production_sync()
 
         return res

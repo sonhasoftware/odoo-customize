@@ -343,44 +343,61 @@ class KeHoachVatTu(models.Model):
 
     def _production_company_for_auto_seed(self):
         self.ensure_one()
-        production_companies = self.ke_hoach_san_xuat_ids.mapped('company_id')
+        production_companies = self.ke_hoach_san_xuat_ids.mapped('company_id').filtered(lambda c: c)
         if len(production_companies) == 1:
             return production_companies
+        if self.company_id.company_code in ('BNH', 'SSP'):
+            return self.company_id
         if self.env.company.company_code in ('BNH', 'SSP'):
             return self.env.company
         return self.env['res.company'].browse()
 
     def _sync_production_from_business(self):
+        """Đồng bộ ke.hoach.san.xuat theo ke.hoach.kinh.doanh (tạo/sửa/xóa)."""
         self.ensure_one()
-        if not self.ke_hoach_kinh_doanh_ids:
+        if self.state != 'ke_hoach':
             return
+
         Production = self.env['ke.hoach.san.xuat'].sudo()
-        company = self._production_company_for_auto_seed()
-        existing = {
-            line.ma_sap
-            for line in self.ke_hoach_san_xuat_ids
+        sync_ctx = {
+            'is_importing': True,
+            'allow_unassigned_production_company': True,
+            'skip_kd_sx_sync': True,
         }
-        vals_list = []
-        for line in self.ke_hoach_kinh_doanh_ids:
-            if line.ma_sap in existing:
-                continue
-            vals_list.append({
-                'period_id': self.id,
-                'company_id': company.id or False,
-                'nganh_hang': line.nganh_hang,
-                'ma_hang': line.ma_hang,
-                'ma_sap': line.ma_sap,
-                'qty_t0': line.qty_t0,
-                'qty_t1': line.qty_t1,
-                'qty_t2': line.qty_t2,
-                'qty_t3': line.qty_t3,
-                'note': line.note,
-            })
-        if vals_list:
-            Production.with_context(
-                is_importing=True,
-                allow_unassigned_production_company=True,
-            ).create(vals_list)
+        company = self._production_company_for_auto_seed()
+
+        business_lines = self.ke_hoach_kinh_doanh_ids.filtered('ma_sap')
+        business_by_sap = {line.ma_sap: line for line in business_lines}
+
+        existing_sx = self.ke_hoach_san_xuat_ids
+        sx_by_sap = {}
+        for line in existing_sx:
+            sx_by_sap.setdefault(line.ma_sap, line)
+
+        to_delete = existing_sx.filtered(lambda line: line.ma_sap not in business_by_sap)
+        if to_delete:
+            to_delete.with_context(**sync_ctx).unlink()
+
+        for ma_sap, kd_line in business_by_sap.items():
+            vals = {
+                'nganh_hang': kd_line.nganh_hang,
+                'ma_hang': kd_line.ma_hang,
+                'ma_sap': kd_line.ma_sap,
+                'qty_t0': kd_line.qty_t0,
+                'qty_t1': kd_line.qty_t1,
+                'qty_t2': kd_line.qty_t2,
+                'qty_t3': kd_line.qty_t3,
+                'note': kd_line.note,
+            }
+            sx_line = sx_by_sap.get(ma_sap)
+            if sx_line:
+                sx_line.with_context(**sync_ctx).write(vals)
+            else:
+                Production.with_context(**sync_ctx).create({
+                    **vals,
+                    'period_id': self.id,
+                    'company_id': company.id or False,
+                })
 
     def _prepare_material_plan_values_from_production(self, production_company):
         self.ensure_one()
