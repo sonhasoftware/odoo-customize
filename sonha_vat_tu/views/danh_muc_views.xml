@@ -11,7 +11,7 @@
                 <field name="don_vi_tinh_id" string="Đơn vị tính"/>
                 <field name="company_id" string="ĐVCS" context="{'vat_tu_company_code_display': True}"/>
                 <field name="bom_sale_id" column_invisible="True"/>
-                <field name="nganh_hang" column_invisible="True"/>
+                <field name="nganh_hang" string="Ngành hàng"/>
             </tree>
         </field>
     </record>

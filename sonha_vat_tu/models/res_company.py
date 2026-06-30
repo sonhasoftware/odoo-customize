@@ -11,4 +11,5 @@ class ResCompany(models.Model):
         if not self.env.context.get('vat_tu_company_code_display'):
             return
         for company in self:
-            company.display_name = company.company_code
+            code = getattr(company, 'company_code', None) or company.name
+            company.display_name = code

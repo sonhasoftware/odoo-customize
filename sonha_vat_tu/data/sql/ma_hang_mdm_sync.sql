@@ -137,3 +137,10 @@ ON CONFLICT (mdm_line_id) DO UPDATE SET
     active = TRUE,
     write_uid = 1,
     write_date = NOW();
+
+UPDATE ma_hang mh
+   SET nganh_hang = nh.ten
+  FROM mdm_tong_hop th
+  LEFT JOIN mdm_nganh_hang nh ON nh.id = th.nganh_hang
+ WHERE th.id = mh.mdm_id
+   AND mh.nganh_hang IS DISTINCT FROM nh.ten;

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os as _os
 
-from odoo import _, fields, models
+from odoo import api, fields, models, _
 
 
 class MaHang(models.Model):
@@ -37,6 +37,25 @@ class MaHang(models.Model):
     _sql_constraints = [
         ('vtc_ma_hang_mdm_line_uniq', 'unique(mdm_line_id)', 'Dòng MDM đã được đồng bộ!'),
     ]
+
+    @api.model
+    def get_sap_meta_map(self, sap_codes):
+        """{ma_sap: {ten_hang, nganh_hang_id, ma_mdm}} từ danh mục mã hàng."""
+        codes = sorted({(c or '').strip() for c in sap_codes if (c or '').strip()})
+        if not codes:
+            return {}
+        meta_map = {}
+        for rec in self.sudo().search([('ma_sap', 'in', codes), ('active', '=', True)]):
+            sap = (rec.ma_sap or '').strip()
+            if not sap:
+                continue
+            nganh = rec.mdm_id.nganh_hang if rec.mdm_id else False
+            meta_map[sap] = {
+                'ten_hang': rec.ten_hang or '',
+                'nganh_hang_id': nganh.id if nganh else False,
+                'ma_mdm': rec.ma_mdm or '',
+            }
+        return meta_map
 
     def action_sync_from_mdm(self):
         MdmLine = self.env['mdm.tong.hop.line'].sudo()

@@ -37,43 +37,70 @@ END;
 $BODY$;
 
 -- ============================================================
--- B3: Tinh toan vat tu tu dinh muc
+-- B3: Tinh toan vat tu tu ke hoach kinh doanh (theo don vi KD)
 -- ============================================================
 CREATE OR REPLACE PROCEDURE public.fn_tinh_toan_vat_tu(p_period_id INTEGER)
 LANGUAGE 'plpgsql' AS $BODY$
+DECLARE
+    v_prod_company_id INTEGER;
 BEGIN
     DELETE FROM tinh_toan_vat_tu WHERE period_id = p_period_id;
 
+    SELECT MIN(company_id) INTO v_prod_company_id
+    FROM ke_hoach_vat_tu_line
+    WHERE period_id = p_period_id AND company_id IS NOT NULL;
+
+    IF v_prod_company_id IS NULL THEN
+        SELECT MIN(company_id) INTO v_prod_company_id
+        FROM ke_hoach_san_xuat
+        WHERE period_id = p_period_id AND company_id IS NOT NULL;
+    END IF;
+
     INSERT INTO tinh_toan_vat_tu (
-        period_id, company_id, ma_sap, ma_vat_tu, ten_vat_tu, ten_sap,
-        don_vi_tinh, do_day, kho_1, kho_2, trong_luong_kg_tam,
+        period_id, company_id, don_vi_kd_id, don_vi_kd_code, ma_sap, ma_vat_tu, ten_vat_tu, ten_sap,
+        ma_effect, don_vi_tinh, do_day, kho_1, kho_2, trong_luong_kg_tam,
         sl_dinh_muc, qty_t0, qty_t1, qty_t2, qty_t3,
         create_uid, write_uid, create_date, write_date
     )
     SELECT
-        dm.period_id,
-        dm.company_id,
-        dm.ma_sap,
-        dm.ma_nvl                                                       AS ma_vat_tu,
-        COALESCE(mh.ten_hang, b.ten_nvl, dm.ma_nvl)                     AS ten_vat_tu,
-        dm.ten_sap,
-        mh.don_vi_tinh_id                                               AS don_vi_tinh,
-        0::NUMERIC                                                      AS do_day,
-        0::NUMERIC                                                      AS kho_1,
-        0::NUMERIC                                                      AS kho_2,
-        0::NUMERIC                                                      AS trong_luong_kg_tam,
-        COALESCE(bcu.sl_thuc_te, 0)::NUMERIC                           AS sl_dinh_muc,
-        dm.qty_t0, dm.qty_t1, dm.qty_t2, dm.qty_t3,
+        agg.period_id,
+        v_prod_company_id,
+        agg.don_vi_kd_id,
+        COALESCE(NULLIF(TRIM(dv.company_code), ''), dv.name)     AS don_vi_kd_code,
+        agg.ma_sap_rep,
+        agg.ma_vat_tu,
+        COALESCE(mh.ten_hang, agg.ma_vat_tu)                     AS ten_vat_tu,
+        agg.ten_sap_rep                                          AS ten_sap,
+        COALESCE(NULLIF(TRIM(mh.ma_mdm), ''), mh.ma_sap, agg.ma_vat_tu) AS ma_effect,
+        mh.don_vi_tinh_id                                        AS don_vi_tinh,
+        0::NUMERIC, 0::NUMERIC, 0::NUMERIC, 0::NUMERIC,
+        agg.sl_dinh_muc,
+        agg.qty_t0, agg.qty_t1, agg.qty_t2, agg.qty_t3,
         1, 1, NOW(), NOW()
-    FROM dinh_muc dm
-    LEFT JOIN bom_tinh_toan bcu
-           ON bcu.ma_tp_goc = dm.ma_sap
-          AND bcu.ma_tp_cha = dm.ma_tp
-          AND bcu.ma_con = dm.ma_nvl
-          AND bcu.loai_vat_tu = 'NVL'
-    LEFT JOIN bom b ON b.ma_tp = dm.ma_tp AND b.ma_nvl = dm.ma_nvl
-    LEFT JOIN ma_hang mh ON mh.ma_sap = dm.ma_nvl
-    WHERE dm.period_id = p_period_id;
+    FROM (
+        SELECT
+            kd.period_id,
+            kd.company_id                                            AS don_vi_kd_id,
+            bcu.ma_con                                               AS ma_vat_tu,
+            MIN(kd.ma_sap)                                           AS ma_sap_rep,
+            MIN(bcu.ten_tp_goc)                                      AS ten_sap_rep,
+            MAX(COALESCE(bcu.sl_thuc_te, 0))::NUMERIC               AS sl_dinh_muc,
+            SUM(COALESCE(kd.qty_t0, 0) * COALESCE(bcu.sl_thuc_te, 0)) AS qty_t0,
+            SUM(COALESCE(kd.qty_t1, 0) * COALESCE(bcu.sl_thuc_te, 0)) AS qty_t1,
+            SUM(COALESCE(kd.qty_t2, 0) * COALESCE(bcu.sl_thuc_te, 0)) AS qty_t2,
+            SUM(COALESCE(kd.qty_t3, 0) * COALESCE(bcu.sl_thuc_te, 0)) AS qty_t3
+        FROM ke_hoach_kinh_doanh kd
+        JOIN bom_tinh_toan bcu
+            ON bcu.ma_tp_goc = kd.ma_sap
+           AND bcu.loai_vat_tu = 'NVL'
+        WHERE kd.period_id = p_period_id
+          AND kd.ma_sap IS NOT NULL
+          AND TRIM(kd.ma_sap) <> ''
+          AND kd.company_id IS NOT NULL
+        GROUP BY kd.period_id, kd.company_id, bcu.ma_con
+    ) agg
+    JOIN res_company dv ON dv.id = agg.don_vi_kd_id
+    LEFT JOIN ma_hang mh ON mh.ma_sap = agg.ma_vat_tu;
 END;
 $BODY$;
 

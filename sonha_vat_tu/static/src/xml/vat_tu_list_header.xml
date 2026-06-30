@@ -309,4 +309,58 @@
         </div>
     </t>
 
+    <!-- STEP B3 PIVOT RENDERER (Tháng × Đơn vị KD) -->
+    <t t-name="sonha_vat_tu.VatTuB3PivotRenderer">
+        <div
+            class="o_list_renderer o_renderer o_vat_tu_merged_list o_vat_tu_b3_pivot"
+            t-att-class="uniqueRendererClass"
+            tabindex="-1"
+            t-ref="root"
+        >
+            <t t-if="showNoContentHelper" t-call="web.ActionHelper">
+                <t t-set="noContentHelp" t-value="props.noContentHelp"/>
+            </t>
+            <table t-attf-class="o_list_table table table-sm table-hover position-relative mb-0 o_list_table_ungrouped table-striped" t-ref="table">
+                <thead>
+                    <tr class="text-center fw-bold">
+                        <t t-foreach="getColumnGroups()" t-as="group" t-key="group.id">
+                            <th t-att-colspan="group.span"
+                                t-att-rowspan="group.rowspan || 1"
+                                class="align-middle text-center"
+                                tabindex="-1">
+                                <span t-esc="group.label"/>
+                            </th>
+                        </t>
+                    </tr>
+                    <tr class="text-center fw-bold">
+                        <t t-foreach="getQtySubColumns()" t-as="col" t-key="col.id">
+                            <th class="align-middle text-center o_list_number_th" tabindex="-1">
+                                <span t-esc="col.label"/>
+                            </th>
+                        </t>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-foreach="getPivotRows()" t-as="row" t-key="row_index">
+                        <tr>
+                            <t t-foreach="b3FixedMeta" t-as="meta" t-key="meta.key">
+                                <td class="align-middle">
+                                    <span t-esc="formatMetaValue(row, meta)"/>
+                                </td>
+                            </t>
+                            <t t-foreach="getQtySubColumns()" t-as="col" t-key="col.id">
+                                <td class="align-middle text-end o_list_number">
+                                    <span t-if="col.isTotal"
+                                          t-esc="formatQty(pivotTotal(row, col.monthOffset))"/>
+                                    <span t-else=""
+                                          t-esc="formatQty(pivotQty(row, col.monthOffset, col.companyId))"/>
+                                </td>
+                            </t>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+        </div>
+    </t>
+
 </templates>
