@@ -39,7 +39,6 @@
         'web.assets_backend': [
             'sonha_vat_tu/static/src/scss/list_width.scss',
             'sonha_vat_tu/static/src/js/list_free_width.js',
-            'sonha_vat_tu/static/src/js/workflow_form_router.js',
             'sonha_vat_tu/static/src/js/vat_tu_chatter_scope.js',
             'sonha_vat_tu/static/src/js/vat_tu_list_header.js',
             'sonha_vat_tu/static/src/xml/vat_tu_list_header.xml',
