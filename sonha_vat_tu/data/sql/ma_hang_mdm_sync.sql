@@ -30,10 +30,10 @@ BEGIN
     WHERE l.id = p_line_id
       AND l.ma_dv IS NOT NULL
       AND TRIM(l.ma_dv) != ''
-    ON CONFLICT (ma_sap) DO UPDATE SET
-        mdm_line_id = EXCLUDED.mdm_line_id,
+    ON CONFLICT (mdm_line_id) DO UPDATE SET
         mdm_id = EXCLUDED.mdm_id,
         ma_mdm = EXCLUDED.ma_mdm,
+        ma_sap = EXCLUDED.ma_sap,
         ten_hang = EXCLUDED.ten_hang,
         don_vi_tinh_id = EXCLUDED.don_vi_tinh_id,
         bom_sale_id = EXCLUDED.bom_sale_id,
@@ -58,8 +58,7 @@ BEGIN
            SET active = FALSE,
                write_uid = 1,
                write_date = NOW()
-         WHERE ma_sap = TRIM(OLD.ma_dv)
-           AND mdm_line_id = OLD.id;
+         WHERE mdm_line_id = OLD.id;
     END IF;
 
     IF NEW.ma_dv IS NOT NULL AND TRIM(NEW.ma_dv) != '' THEN
@@ -126,10 +125,10 @@ LEFT JOIN mdm_tong_hop th ON th.id = l.tong_hop_id
 LEFT JOIN mdm_nganh_hang nh ON nh.id = th.nganh_hang
 WHERE l.ma_dv IS NOT NULL
   AND TRIM(l.ma_dv) != ''
-ON CONFLICT (ma_sap) DO UPDATE SET
-    mdm_line_id = EXCLUDED.mdm_line_id,
+ON CONFLICT (mdm_line_id) DO UPDATE SET
     mdm_id = EXCLUDED.mdm_id,
     ma_mdm = EXCLUDED.ma_mdm,
+    ma_sap = EXCLUDED.ma_sap,
     ten_hang = EXCLUDED.ten_hang,
     don_vi_tinh_id = EXCLUDED.don_vi_tinh_id,
     bom_sale_id = EXCLUDED.bom_sale_id,
