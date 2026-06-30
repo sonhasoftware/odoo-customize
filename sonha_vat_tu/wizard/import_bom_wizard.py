@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import base64
 import io
+import warnings
 
 from openpyxl import load_workbook
 from odoo import _, fields, models
@@ -31,7 +32,10 @@ class ImportBomWizard(models.TransientModel):
             raise UserError(_('Vui lòng chọn file Excel.'))
 
         try:
-            wb = load_workbook(io.BytesIO(base64.b64decode(self.file_data)), data_only=True, read_only=True)
+            data = base64.b64decode(self.file_data)
+            with warnings.catch_warnings():
+                warnings.filterwarnings('ignore', message='Data Validation extension', category=UserWarning)
+                wb = load_workbook(io.BytesIO(data), data_only=True)
         except Exception as exc:
             raise UserError(_('Không đọc được file Excel: %s') % exc)
 

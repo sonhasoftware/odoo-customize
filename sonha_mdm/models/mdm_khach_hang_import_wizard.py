@@ -1,4 +1,5 @@
 import base64
+import warnings
 from io import BytesIO
 
 from openpyxl import load_workbook
@@ -138,7 +139,10 @@ class MDMKhachHangImportWizard(models.TransientModel):
         if not self.file_data:
             raise ValidationError(_('Vui lòng chọn file Excel để import.'))
 
-        workbook = load_workbook(filename=BytesIO(base64.b64decode(self.file_data)), read_only=True, data_only=True)
+        data = base64.b64decode(self.file_data)
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', message='Data Validation extension', category=UserWarning)
+            workbook = load_workbook(BytesIO(data), data_only=True)
         sheet = workbook.active
         model = self.env['mdm.khach.hang']
         line_model = self.env['mdm.khach.hang.line']

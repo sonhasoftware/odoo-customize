@@ -222,6 +222,22 @@ class VatTuMergedHeaderRenderer extends ListRenderer {
     }
 
     freezeColumnWidths() {
+        const className = this.props.archInfo?.className || "";
+        if (className.split(/\s+/).filter(Boolean).includes("sh_free_width_tree")) {
+            const table = this.tableRef.el;
+            if (table) {
+                table.style.tableLayout = "auto";
+                table.style.width = null;
+                table.querySelectorAll("thead th, tbody td, tfoot td").forEach((cell) => {
+                    cell.style.width = null;
+                    cell.style.minWidth = null;
+                    cell.style.maxWidth = null;
+                });
+            }
+            this.columnWidths = null;
+            this.keepColumnWidths = false;
+            return;
+        }
         if (!this.keepColumnWidths) {
             this.columnWidths = null;
         }

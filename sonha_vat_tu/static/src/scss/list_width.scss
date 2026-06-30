@@ -1,10 +1,117 @@
-.o_list_view.sh_free_width_tree {
-  .o_list_table {
-    table-layout: auto !important;
-  }
-  th[data-name],
-  td.o_data_cell {
-    max-width: none !important;
-    min-width: 0 !important;
-  }
+// Auto column width for list views with class="sh_free_width_tree".
+
+.sh_free_width_tree {
+    &.o_field_x2many_list {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        overflow-y: visible;
+    }
+
+    .o_list_renderer {
+        overflow-x: auto;
+        overflow-y: visible;
+        width: 100%;
+        height: auto !important;
+    }
+
+    .o_list_table {
+        table-layout: auto !important;
+        width: max-content !important;
+        min-width: 100% !important;
+
+        thead tr:first-child th[data-name] {
+            white-space: nowrap;
+        }
+
+        thead tr:has(.search-input) th {
+            width: auto !important;
+            min-width: unset !important;
+            max-width: none !important;
+        }
+
+        th[data-name],
+        td.o_data_cell {
+            width: auto !important;
+            max-width: none !important;
+            min-width: unset !important;
+        }
+
+        tbody > tr > td:not(.o_list_record_selector):not(.o_handle_cell):not(.o_list_button):not(.o_list_record_remove):not(.o_list_record_open_form_view) {
+            overflow: visible !important;
+            text-overflow: clip !important;
+            white-space: nowrap !important;
+        }
+
+        tbody > tr:not(.o_selected_row) {
+            .o_list_many2one,
+            .o_list_char,
+            .o_list_activity_cell,
+            .o_list_number {
+                white-space: nowrap !important;
+
+                .o_field_widget:not(.o_row_handle):not(.o_field_handle):not(.o_field_badge) {
+                    display: inline !important;
+
+                    span:not(.o_m2o_avatar) {
+                        overflow: visible !important;
+                        text-overflow: clip !important;
+                        white-space: nowrap !important;
+                    }
+                }
+            }
+        }
+
+        .search-input {
+            display: block;
+            width: 100%;
+            min-width: 6rem;
+            box-sizing: border-box;
+
+            > div {
+                display: flex !important;
+                width: 100%;
+            }
+
+            .input_data {
+                flex: 1 1 auto;
+                width: 100%;
+                min-width: 4rem;
+            }
+
+            .fa-search {
+                flex-shrink: 0;
+                margin-top: 0;
+                margin-left: 0.25rem;
+                transform: none;
+                align-self: center;
+            }
+        }
+
+        .dp-class,
+        .date-input {
+            width: 100%;
+            min-width: 6rem;
+            height: auto;
+            min-height: 2rem;
+            margin-top: 0;
+        }
+    }
+}
+
+
+.o_vat_tu_merged_list .o_list_table thead {
+    position: static !important;
+}
+
+
+.o_form_view .o_notebook .tab-pane .sh_free_width_tree.o_field_x2many_list .o_vat_tu_merged_list.o_list_renderer {
+    margin-top: 0 !important;
+}
+
+.o_form_view .o_field_widget:has(> .sh_free_width_tree.o_field_x2many_list) {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
 }

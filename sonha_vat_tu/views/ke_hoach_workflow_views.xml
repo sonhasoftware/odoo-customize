@@ -112,7 +112,7 @@
                         </button>
                     </div>
                     <field name="ke_hoach_san_xuat_ids" context="{'default_period_id': id}" readonly="state != 'ke_hoach'">
-                        <tree editable="bottom">
+                        <tree editable="bottom" class="sh_free_width_tree">
                             <field name="nganh_hang" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                             <field name="ten_hang" readonly="1"/>
                             <field name="ma_hang" readonly="1"/>
