@@ -136,8 +136,7 @@ class MDMTongHopImportWizard(models.TransientModel):
         if not self.file_data:
             raise ValidationError(_('Vui lòng chọn file Excel để import.'))
 
-        data = base64.b64decode(self.file_data)
-        workbook = load_workbook(BytesIO(data), data_only=True, read_only=True)
+        workbook = load_workbook(filename=BytesIO(base64.b64decode(self.file_data)), read_only=True, data_only=True)
         sheet = workbook.active
 
         model = self.env['mdm.tong.hop']
