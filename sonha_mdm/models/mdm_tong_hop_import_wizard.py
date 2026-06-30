@@ -1,5 +1,4 @@
 import base64
-import warnings
 from io import BytesIO
 
 from openpyxl import load_workbook
@@ -138,9 +137,7 @@ class MDMTongHopImportWizard(models.TransientModel):
             raise ValidationError(_('Vui lòng chọn file Excel để import.'))
 
         data = base64.b64decode(self.file_data)
-        with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', message='Data Validation extension', category=UserWarning)
-            workbook = load_workbook(BytesIO(data), data_only=True)
+        workbook = load_workbook(BytesIO(data), data_only=True, read_only=True)
         sheet = workbook.active
 
         model = self.env['mdm.tong.hop']
