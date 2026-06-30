@@ -167,7 +167,7 @@
                         </group>
                     </group>
                     <field name="dinh_muc_ids" readonly="1">
-                        <tree editable="bottom" create="false" delete="false">
+                        <tree editable="bottom" create="false" delete="false" class="sh_free_width_tree">
                             <field name="ma_sap" readonly="1"/>
                             <field name="ten_sap" readonly="1"/>
                             <field name="ma_tp" string="Mã TP" readonly="1"/>
@@ -456,9 +456,41 @@
     <record id="action_ke_hoach_vat_tu_b1" model="ir.actions.act_window">
         <field name="name">Kế hoạch vật tư</field>
         <field name="res_model">ke.hoach.vat.tu</field>
-        <field name="view_mode">tree,form</field>
-        <field name="views" eval="[(ref('view_ke_hoach_vat_tu_tree'), 'tree'), (ref('view_ke_hoach_vat_tu_form_b1'), 'form')]"/>
+        <field name="view_mode">form</field>
+        <field name="views" eval="[(ref('view_ke_hoach_vat_tu_form_b1'), 'form')]"/>
         <field name="context">{'form_view_ref': 'sonha_vat_tu.view_ke_hoach_vat_tu_form_b1'}</field>
+    </record>
+
+    <record id="action_ke_hoach_vat_tu_b2" model="ir.actions.act_window">
+        <field name="name">Định mức kỳ</field>
+        <field name="res_model">ke.hoach.vat.tu</field>
+        <field name="view_mode">form</field>
+        <field name="views" eval="[(ref('view_ke_hoach_vat_tu_form_b2'), 'form')]"/>
+        <field name="context">{'form_view_ref': 'sonha_vat_tu.view_ke_hoach_vat_tu_form_b2'}</field>
+    </record>
+
+    <record id="action_ke_hoach_vat_tu_b3" model="ir.actions.act_window">
+        <field name="name">Tính toán vật tư</field>
+        <field name="res_model">ke.hoach.vat.tu</field>
+        <field name="view_mode">form</field>
+        <field name="views" eval="[(ref('view_ke_hoach_vat_tu_form_b3'), 'form')]"/>
+        <field name="context">{'form_view_ref': 'sonha_vat_tu.view_ke_hoach_vat_tu_form_b3'}</field>
+    </record>
+
+    <record id="action_ke_hoach_vat_tu_b4" model="ir.actions.act_window">
+        <field name="name">Tổng hợp vật tư cần sản xuất</field>
+        <field name="res_model">ke.hoach.vat.tu</field>
+        <field name="view_mode">form</field>
+        <field name="views" eval="[(ref('view_ke_hoach_vat_tu_form_b4'), 'form')]"/>
+        <field name="context">{'form_view_ref': 'sonha_vat_tu.view_ke_hoach_vat_tu_form_b4'}</field>
+    </record>
+
+    <record id="action_ke_hoach_vat_tu_b5" model="ir.actions.act_window">
+        <field name="name">Kế hoạch đặt vật tư</field>
+        <field name="res_model">ke.hoach.vat.tu</field>
+        <field name="view_mode">form</field>
+        <field name="views" eval="[(ref('view_ke_hoach_vat_tu_form_b5'), 'form')]"/>
+        <field name="context">{'form_view_ref': 'sonha_vat_tu.view_ke_hoach_vat_tu_form_b5'}</field>
     </record>
 
     <record id="action_ke_hoach_vat_tu" model="ir.actions.act_window">

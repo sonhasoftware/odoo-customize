@@ -77,6 +77,12 @@ class KeHoachVatTu(models.Model):
         default=0,
         copy=False,
     )
+    workflow_form_view_id = fields.Many2one(
+        'ir.ui.view',
+        string='Form view workflow',
+        copy=False,
+        index=True,
+    )
     can_approve = fields.Boolean(compute='_compute_can_approve')
 
     ngay_du_phong_b4 = fields.Float(
@@ -828,35 +834,56 @@ class KeHoachVatTu(models.Model):
             'KHSX_%s.xlsx' % (self.code or self.id),
         )
 
-    def _action_open_step(self, view_xmlid):
+    def get_formview_id(self, access_uid=None):
+        """Giữ đúng form view khi reload URL (model + id, không có action)."""
         self.ensure_one()
-        return {
-            'type': 'ir.actions.act_window',
-            'name': _('Kế hoạch vật tư'),
-            'res_model': 'ke.hoach.vat.tu',
-            'res_id': self.id,
-            'view_mode': 'form',
-            'views': [(self.env.ref(view_xmlid).sudo().id, 'form')],
-            'target': 'current',
+        if self.workflow_form_view_id:
+            return self.workflow_form_view_id.id
+        state_view_xmlids = {
+            'dinh_muc': 'sonha_vat_tu.view_ke_hoach_vat_tu_form_b2',
+            'tinh_toan': 'sonha_vat_tu.view_ke_hoach_vat_tu_form_b3',
+            'tong_hop': 'sonha_vat_tu.view_ke_hoach_vat_tu_form_b4',
+            'dat_hang': 'sonha_vat_tu.view_ke_hoach_vat_tu_form_b5',
         }
+        xmlid = state_view_xmlids.get(self.state)
+        if xmlid:
+            view = self.env.ref(xmlid, raise_if_not_found=False)
+            if view:
+                return view.id
+        return super().get_formview_id(access_uid=access_uid)
+
+    def _action_open_step(self, action_xmlid):
+        self.ensure_one()
+        action = self.env['ir.actions.act_window']._for_xml_id(action_xmlid)
+        action['res_id'] = self.id
+        form_views = [
+            (view_id, view_type)
+            for view_id, view_type in action.get('views', [])
+            if view_type == 'form'
+        ]
+        if form_views:
+            action['views'] = form_views
+            action['view_mode'] = 'form'
+            self.sudo().write({'workflow_form_view_id': form_views[0][0]})
+        return action
 
     def action_open_workflow_sx(self):
-        return self._action_open_step('sonha_vat_tu.view_ke_hoach_vat_tu_form_sx')
+        return self._action_open_step('sonha_vat_tu.action_ke_hoach_san_xuat_period')
 
     def action_open_workflow_vt(self):
-        return self._action_open_step('sonha_vat_tu.view_ke_hoach_vat_tu_form_vt')
+        return self._action_open_step('sonha_vat_tu.action_ke_hoach_vat_tu_period')
 
     def action_open_step_b1(self):
-        return self._action_open_step('sonha_vat_tu.view_ke_hoach_vat_tu_form_vt')
+        return self._action_open_step('sonha_vat_tu.action_ke_hoach_vat_tu_period')
 
     def action_open_step_b2(self):
-        return self._action_open_step('sonha_vat_tu.view_ke_hoach_vat_tu_form_b2')
+        return self._action_open_step('sonha_vat_tu.action_ke_hoach_vat_tu_b2')
 
     def action_open_step_b3(self):
-        return self._action_open_step('sonha_vat_tu.view_ke_hoach_vat_tu_form_b3')
+        return self._action_open_step('sonha_vat_tu.action_ke_hoach_vat_tu_b3')
 
     def action_open_step_b4(self):
-        return self._action_open_step('sonha_vat_tu.view_ke_hoach_vat_tu_form_b4')
+        return self._action_open_step('sonha_vat_tu.action_ke_hoach_vat_tu_b4')
 
     def action_open_step_b5(self):
-        return self._action_open_step('sonha_vat_tu.view_ke_hoach_vat_tu_form_b5')
+        return self._action_open_step('sonha_vat_tu.action_ke_hoach_vat_tu_b5')

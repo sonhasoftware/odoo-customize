@@ -5,7 +5,7 @@
     <t t-name="sonha_vat_tu.VatTuMergedB4HeaderRenderer">
         <t t-set="_canSelectRecord" t-value="canSelectRecord"/>
         <div
-            class="o_list_renderer o_renderer table-responsive"
+            class="o_list_renderer o_renderer o_vat_tu_merged_list"
             t-att-class="uniqueRendererClass"
             tabindex="-1"
             t-ref="root"
@@ -40,7 +40,7 @@
                                     <div class="d-flex align-items-center justify-content-center"
                                          t-att-data-tooltip-template="isDebugMode ? 'web.FieldTooltip' : 'web.ListHeaderTooltip'"
                                          t-att-data-tooltip-info="makeTooltip(group.column)">
-                                        <span class="d-block min-w-0 text-truncate flex-grow-1 flex-shrink-1" t-att-class="isNumeric ? 'o_list_number_th' : ''"
+                                        <span t-att-class="(group.rowspan || 1) === 1 ? 'd-block text-nowrap' : 'd-block min-w-0 text-truncate flex-grow-1 flex-shrink-1' + (isNumeric ? ' o_list_number_th' : '')"
                                               t-esc="group.label"/>
                                         <div class="o_list_header_label_spacer"/>
                                         <i class="o_list_sortable_caret" t-att-class="getSortableIconClass(group.column)"/>
@@ -159,7 +159,7 @@
     <t t-name="sonha_vat_tu.VatTuMergedB5HeaderRenderer">
         <t t-set="_canSelectRecord" t-value="canSelectRecord"/>
         <div
-            class="o_list_renderer o_renderer table-responsive"
+            class="o_list_renderer o_renderer o_vat_tu_merged_list"
             t-att-class="uniqueRendererClass"
             tabindex="-1"
             t-ref="root"
@@ -194,7 +194,7 @@
                                     <div class="d-flex align-items-center justify-content-center"
                                          t-att-data-tooltip-template="isDebugMode ? 'web.FieldTooltip' : 'web.ListHeaderTooltip'"
                                          t-att-data-tooltip-info="makeTooltip(group.column)">
-                                        <span class="d-block min-w-0 text-truncate flex-grow-1 flex-shrink-1" t-att-class="isNumeric ? 'o_list_number_th' : ''"
+                                        <span t-att-class="(group.rowspan || 1) === 1 ? 'd-block text-nowrap' : 'd-block min-w-0 text-truncate flex-grow-1 flex-shrink-1' + (isNumeric ? ' o_list_number_th' : '')"
                                               t-esc="group.label"/>
                                         <div class="o_list_header_label_spacer"/>
                                         <i class="o_list_sortable_caret" t-att-class="getSortableIconClass(group.column)"/>

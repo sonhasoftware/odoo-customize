@@ -4,7 +4,7 @@
         <field name="name">bom.tree</field>
         <field name="model">bom</field>
         <field name="arch" type="xml">
-            <tree editable="bottom">
+            <tree editable="bottom" class="sh_free_width_tree">
 <!--                <header>-->
 <!--                    <button name="action_download_bom_template" type="object" string="Tải template" class="btn-secondary btn-sm" display="always"/>-->
 <!--                    <button name="action_open_import_bom_wizard" type="object" string="Import" class="btn-primary btn-sm" display="always"/>-->

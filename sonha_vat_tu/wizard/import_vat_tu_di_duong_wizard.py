@@ -2,6 +2,7 @@
 import base64
 import io
 import re
+import warnings
 from datetime import date, datetime
 
 from openpyxl import Workbook, load_workbook
@@ -157,11 +158,10 @@ class ImportVatTuDiDuongWizard(models.TransientModel):
         if not self.file_data:
             raise UserError(_('Vui lòng chọn file Excel.'))
         try:
-            workbook = load_workbook(
-                io.BytesIO(base64.b64decode(self.file_data)),
-                data_only=True,
-                read_only=True,
-            )
+            data = base64.b64decode(self.file_data)
+            with warnings.catch_warnings():
+                warnings.filterwarnings('ignore', message='Data Validation extension', category=UserWarning)
+                workbook = load_workbook(io.BytesIO(data), data_only=True)
         except Exception as exc:
             raise UserError(_('Không đọc được file Excel: %s') % exc)
         ws = self._get_import_worksheet(workbook)
