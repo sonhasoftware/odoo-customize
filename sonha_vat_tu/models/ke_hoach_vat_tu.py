@@ -103,7 +103,10 @@ class KeHoachVatTu(models.Model):
     ke_hoach_vat_tu_line_ids = fields.One2many('ke.hoach.vat.tu.line', 'period_id', string='Kế hoạch vật tư')
     dinh_muc_ids = fields.One2many('dinh.muc', 'period_id', string='Định mức tháng')
     tinh_toan_vat_tu_ids = fields.One2many('tinh.toan.vat.tu', 'period_id', string='Tính toán vật tư')
-    tong_hop_vat_tu_ids = fields.One2many('tong.hop.vat.tu', 'period_id', string='Tổng hợp vật tư')
+    tong_hop_vat_tu_ids = fields.One2many(
+        'tong.hop.vat.tu', 'period_id', string='Tổng hợp vật tư',
+        domain=[('don_vi_kd_id', '=', False)],
+    )
     kh_dat_vat_tu_ids = fields.One2many('kh.dat.vat.tu', 'period_id', string='Kế hoạch đặt vật tư')
 
     ke_hoach_kinh_doanh_count = fields.Integer(compute='_compute_counts')
@@ -297,7 +300,7 @@ class KeHoachVatTu(models.Model):
             rec.ke_hoach_vat_tu_line_count = len(rec.ke_hoach_vat_tu_line_ids)
             rec.dinh_muc_count = len(rec.dinh_muc_ids)
             rec.tinh_toan_vat_tu_count = len(rec.tinh_toan_vat_tu_ids)
-            rec.tong_hop_vat_tu_count = len(rec.tong_hop_vat_tu_ids)
+            rec.tong_hop_vat_tu_count = len(rec.tong_hop_vat_tu_ids.filtered(lambda r: not r.don_vi_kd_id))
             rec.kh_dat_vat_tu_count = len(rec.kh_dat_vat_tu_ids)
 
     def _get_horizon_months(self):

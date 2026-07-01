@@ -20,10 +20,24 @@ CREATE INDEX IF NOT EXISTS idx_dlthvt_period_company
 
 CREATE OR REPLACE FUNCTION dlthvt_fill_meta() RETURNS TRIGGER AS $$
 BEGIN
-    SELECT p.code, p.period_month, NULL, NULL
-      INTO NEW.period_code, NEW.period_month, NEW.period_company_id, NEW.period_company_code
+    SELECT p.code, p.period_month
+      INTO NEW.period_code, NEW.period_month
       FROM ke_hoach_vat_tu p
      WHERE p.id = NEW.period_id;
+
+    -- B3 trigger gán period_company_id = don_vi_kd_id; không ghi đè bằng NULL.
+    IF NEW.period_company_id IS NULL AND NEW.step_code IN ('kd', 'sx') THEN
+        NEW.period_company_id := NEW.company_id;
+    END IF;
+
+    IF NEW.period_company_id IS NOT NULL THEN
+        SELECT c.company_code
+          INTO NEW.period_company_code
+          FROM res_company c
+         WHERE c.id = NEW.period_company_id;
+    ELSE
+        NEW.period_company_code := NULL;
+    END IF;
 
     SELECT c.company_code
       INTO NEW.company_code
@@ -341,7 +355,7 @@ BEGIN
         v_ton_cuoi := CASE i WHEN 0 THEN NEW.ton_cuoi_t0 WHEN 1 THEN NEW.ton_cuoi_t1 WHEN 2 THEN NEW.ton_cuoi_t2 WHEN 3 THEN NEW.ton_cuoi_t3 END;
 
         INSERT INTO du_lieu_tong_hop_vat_tu (
-            step_code, source_model, source_res_id, period_id, company_id, month_key,
+            step_code, source_model, source_res_id, period_id, company_id, period_company_id, month_key,
             month_date, ma_sap, ma_nvl,
             ten_nvl, ten_vat_tu, don_vi_tinh, ma_dat_hang, chung_loai,
             ton_dau, ve_du_kien_don_vi, ve_du_kien, vt_can_dung, ton_cuoi, so_luong_du_phong, so_luong_thieu, so_luong_can_mua,
@@ -349,7 +363,7 @@ BEGIN
             create_uid, create_date, write_uid, write_date
         ) VALUES (
             'b4', 'tong.hop.vat.tu', NEW.id, NEW.period_id,
-            NEW.company_id, v_month_key, v_month_date, NEW.ma_sap, NEW.ma_sap,
+            NEW.company_id, NEW.don_vi_kd_id, v_month_key, v_month_date, NEW.ma_sap, NEW.ma_sap,
             NEW.ten_nvl, NEW.ten_nvl, NEW.don_vi_tinh, NEW.ma_dat_hang, NEW.chung_loai,
             NEW.ton_dau, v_ve_du_kien_don_vi, v_ve_du_kien, v_vt_can_dung, v_ton_cuoi,
             CASE WHEN i = 3 THEN NEW.so_luong_du_phong ELSE 0 END,
@@ -362,6 +376,7 @@ BEGIN
             step_code = EXCLUDED.step_code,
             period_id = EXCLUDED.period_id,
             company_id = EXCLUDED.company_id,
+            period_company_id = EXCLUDED.period_company_id,
             month_date = EXCLUDED.month_date,
             ma_sap = EXCLUDED.ma_sap,
             ma_nvl = EXCLUDED.ma_nvl,

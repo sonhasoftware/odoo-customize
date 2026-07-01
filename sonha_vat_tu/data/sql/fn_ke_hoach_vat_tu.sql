@@ -325,7 +325,7 @@ BEGIN
         );
 
         INSERT INTO tong_hop_vat_tu (
-            period_id, company_id, ma_dat_hang, ma_sap, ten_nvl, chung_loai, don_vi_tinh,
+            period_id, company_id, don_vi_kd_id, ma_dat_hang, ma_sap, ten_nvl, chung_loai, don_vi_tinh,
             ton_dau,
             ve_du_kien_don_vi_t0, ve_du_kien_don_vi_t1, ve_du_kien_don_vi_t2, ve_du_kien_don_vi_t3,
             ve_du_kien_t0, ve_du_kien_t1, ve_du_kien_t2, ve_du_kien_t3,
@@ -334,13 +334,54 @@ BEGIN
             so_luong_du_phong, so_luong_thieu, so_luong_can_mua,
             create_uid, write_uid, create_date, write_date
         ) VALUES (
-            p_period_id, rec.company_id, NULL, rec.material_code, rec.material_name, NULL, rec.don_vi_tinh,
+            p_period_id, rec.company_id, NULL, NULL, rec.material_code, rec.material_name, NULL, rec.don_vi_tinh,
             v_ton_dau,
             v_ve_du_kien_don_vi_t0, v_ve_du_kien_don_vi_t1, v_ve_du_kien_don_vi_t2, v_ve_du_kien_don_vi_t3,
             v_ve_du_kien_t0, v_ve_du_kien_t1, v_ve_du_kien_t2, v_ve_du_kien_t3,
             rec.qty_t0, rec.qty_t1, rec.qty_t2, rec.qty_t3,
             v_ton_cuoi_t0, v_ton_cuoi_t1, v_ton_cuoi_t2, v_ton_cuoi_t3,
             v_du_phong, v_thieu, v_thieu,
+            1, 1, NOW(), NOW()
+        );
+    END LOOP;
+
+    -- Chi tiet B4 theo don vi dat hang (KD): vt_can_dung rieng tung SHI/TM1... phuc vu bao cao.
+    -- Ton kho / di duong BCU chi tinh o dong gop (don_vi_kd_id NULL) phia tren.
+    FOR rec IN
+        SELECT
+            b3.company_id,
+            b3.don_vi_kd_id,
+            b3.ma_vat_tu AS material_code,
+            b3.ten_vat_tu AS material_name,
+            mh.don_vi_tinh_id                  AS don_vi_tinh,
+            SUM(COALESCE(b3.qty_t0, 0)) AS qty_t0,
+            SUM(COALESCE(b3.qty_t1, 0)) AS qty_t1,
+            SUM(COALESCE(b3.qty_t2, 0)) AS qty_t2,
+            SUM(COALESCE(b3.qty_t3, 0)) AS qty_t3
+        FROM tinh_toan_vat_tu b3
+        LEFT JOIN ma_hang mh ON mh.ma_sap = b3.ma_vat_tu
+        WHERE b3.period_id = p_period_id
+          AND b3.don_vi_kd_id IS NOT NULL
+        GROUP BY b3.company_id, b3.don_vi_kd_id,
+                 b3.ma_vat_tu, b3.ten_vat_tu, mh.don_vi_tinh_id
+    LOOP
+        INSERT INTO tong_hop_vat_tu (
+            period_id, company_id, don_vi_kd_id, ma_dat_hang, ma_sap, ten_nvl, chung_loai, don_vi_tinh,
+            ton_dau,
+            ve_du_kien_don_vi_t0, ve_du_kien_don_vi_t1, ve_du_kien_don_vi_t2, ve_du_kien_don_vi_t3,
+            ve_du_kien_t0, ve_du_kien_t1, ve_du_kien_t2, ve_du_kien_t3,
+            vt_can_dung_t0, vt_can_dung_t1, vt_can_dung_t2, vt_can_dung_t3,
+            ton_cuoi_t0, ton_cuoi_t1, ton_cuoi_t2, ton_cuoi_t3,
+            so_luong_du_phong, so_luong_thieu, so_luong_can_mua,
+            create_uid, write_uid, create_date, write_date
+        ) VALUES (
+            p_period_id, rec.company_id, rec.don_vi_kd_id, NULL, rec.material_code, rec.material_name, NULL, rec.don_vi_tinh,
+            0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            rec.qty_t0, rec.qty_t1, rec.qty_t2, rec.qty_t3,
+            0, 0, 0, 0,
+            0, 0, 0,
             1, 1, NOW(), NOW()
         );
     END LOOP;
@@ -434,6 +475,7 @@ BEGIN
                                    ELSE 'ALL'
                                END
         WHERE b4.period_id = p_period_id
+          AND b4.don_vi_kd_id IS NULL
     )
     SELECT
         period_id, company_id, ma_sap, ten_nvl, chung_loai, don_vi_tinh,
