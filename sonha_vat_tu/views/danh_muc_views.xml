@@ -4,7 +4,7 @@
         <field name="name">ma.hang.tree</field>
         <field name="model">ma.hang</field>
         <field name="arch" type="xml">
-            <tree create="false" edit="false" delete="false">
+            <tree create="false" edit="false" delete="false" class="sh_free_width_tree">
                 <field name="ma_mdm" string="Mã MDM"/>
                 <field name="ma_sap" string="Mã đơn vị"/>
                 <field name="ten_hang" string="Tên hàng hóa"/>
