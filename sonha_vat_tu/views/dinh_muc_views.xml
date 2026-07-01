@@ -5,7 +5,7 @@
         <field name="name">dinh.muc.tree</field>
         <field name="model">dinh.muc</field>
         <field name="arch" type="xml">
-            <tree string="Định mức kỳ" create="0">
+            <tree string="Định mức kỳ" create="0" class="sh_free_width_tree">
                 <field name="ma_sap"/>
                 <field name="ten_sap"/>
                 <field name="ma_tp" column_invisible="True"/>
