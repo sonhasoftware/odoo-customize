@@ -182,16 +182,19 @@ class KeHoachVatTu(models.Model):
         ))
 
     @api.model
-    def _period_code_prefix(self, period_month):
-        period_month = (period_month or '').strip()
-        if not period_month or '/' not in period_month:
-            return 'KHVT'
-        month, year = period_month.split('/', 1)
-        return 'KHVT_%s%s' % (month.strip(), year.strip())
+    def _get_creator_company_code(self):
+        company = self.env.company
+        code = (getattr(company, 'company_code', None) or '').strip()
+        return code or (company.name or 'XX').strip()
 
     @api.model
-    def _next_period_code(self, period_month):
-        prefix = self._period_code_prefix(period_month) + '_'
+    def _period_code_prefix(self, company_code=None):
+        code = (company_code or self._get_creator_company_code()).strip()
+        return 'KHVT_%s' % code if code else 'KHVT'
+
+    @api.model
+    def _next_period_code(self, company_code=None):
+        prefix = self._period_code_prefix(company_code) + '_'
         latest = self.sudo().search([('code', '=like', prefix + '%')], order='code desc', limit=1)
         next_no = 1
         if latest.code:
@@ -199,7 +202,7 @@ class KeHoachVatTu(models.Model):
                 next_no = int(latest.code.rsplit('_', 1)[-1]) + 1
             except (TypeError, ValueError):
                 next_no = 1
-        return '%s%02d' % (prefix, next_no)
+        return '%s%03d' % (prefix, next_no)
 
     @api.model
     def _get_view_cache_key(self, view_id=None, view_type='form', **options):
@@ -263,7 +266,7 @@ class KeHoachVatTu(models.Model):
     def create(self, vals_list):
         for vals in vals_list:
             if not vals.get('code'):
-                vals['code'] = self._next_period_code(vals.get('period_month'))
+                vals['code'] = self._next_period_code()
         return super().create(vals_list)
 
     def unlink(self):
