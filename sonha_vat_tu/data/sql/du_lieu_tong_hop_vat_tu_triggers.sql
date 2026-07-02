@@ -61,7 +61,7 @@ BEFORE INSERT OR UPDATE ON du_lieu_tong_hop_vat_tu
 FOR EACH ROW EXECUTE PROCEDURE dlthvt_fill_meta();
 
 -- =============================================================================
--- Kỳ: ke_hoach_vat_tu → cập nhật meta (công ty sở hữu kỳ) trên bảng phẳng
+-- Kỳ: ke_hoach_vat_tu → cập nhật meta (đơn vị lập kế hoạch) trên bảng phẳng
 -- =============================================================================
 CREATE OR REPLACE FUNCTION dlthvt_sync_period_meta() RETURNS TRIGGER AS $$
 BEGIN
@@ -85,13 +85,6 @@ DROP TRIGGER IF EXISTS trg_dlthvt_period_meta ON ke_hoach_vat_tu;
 CREATE TRIGGER trg_dlthvt_period_meta
 AFTER INSERT OR UPDATE OF company_id, code, period_month ON ke_hoach_vat_tu
 FOR EACH ROW EXECUTE PROCEDURE dlthvt_sync_period_meta();
-
--- Backfill công ty sở hữu kỳ cho dữ liệu phẳng đã có
-UPDATE du_lieu_tong_hop_vat_tu dl
-   SET owner_company_id = p.company_id
-  FROM ke_hoach_vat_tu p
- WHERE p.id = dl.period_id
-   AND dl.owner_company_id IS DISTINCT FROM p.company_id;
 
 -- =============================================================================
 -- B1: ke_hoach_vat_tu_line → du_lieu_tong_hop_vat_tu
