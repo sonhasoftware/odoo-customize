@@ -6,8 +6,9 @@
         <field name="model">tinh.toan.vat.tu</field>
         <field name="arch" type="xml">
             <tree string="Tính toán vật tư" create="0" class="sh_free_width_tree">
-                <field name="ma_sap" required="1"/>
                 <field name="ma_vat_tu"/>
+                <field name="don_vi_kd_id" string="Đơn vị KD" context="{'vat_tu_company_code_display': True}"/>
+                <field name="ma_sap"/>
                 <field name="ten_vat_tu"/>
                 <field name="ma_effect"/>
                 <field name="ten_sap"/>
@@ -31,11 +32,12 @@
                 <field name="ma_vat_tu"/>
                 <field name="ma_effect"/>
                 <field name="ten_sap"/>
-                <field name="company_id"/>
+                <field name="don_vi_kd_id" string="Đơn vị KD"/>
+                <field name="company_id" string="Đơn vị SX"/>
                 <group expand="0" string="Nhóm theo">
                     <filter name="g_period" string="Kỳ" context="{'group_by': 'period_id'}"/>
-                    <filter name="g_sap" string="Mã SAP" context="{'group_by': 'ma_sap'}"/>
-                    <filter name="g_effect" string="Mã Effect" context="{'group_by': 'ma_effect'}"/>
+                    <filter name="g_material" string="Mã NVL" context="{'group_by': 'ma_vat_tu'}"/>
+                    <filter name="g_kd_company" string="Đơn vị KD" context="{'group_by': 'don_vi_kd_id'}"/>
                 </group>
             </search>
         </field>

@@ -42,11 +42,12 @@ class DuLieuTongHopVatTu(models.Model):
         readonly=True,
     )
     period_company_id = fields.Many2one(
-        'res.company', string='Đơn vị yêu cầu', index=True, readonly=True)
+        'res.company', string='Đơn vị đặt hàng', index=True, readonly=True,
+        help='Đơn vị kinh doanh có kế hoạch KD (SHI, TM1…). B3/B4 chi tiết theo đơn vị này.')
     period_code = fields.Char(string='Số chứng từ', index=True, readonly=True)
     period_month = fields.Char(string='Tháng bắt đầu', index=True, readonly=True)
     company_code = fields.Char(string='Mã đơn vị sản xuất', index=True, readonly=True)
-    period_company_code = fields.Char(string='Mã đơn vị yêu cầu', index=True, readonly=True)
+    period_company_code = fields.Char(string='Mã đơn vị đặt hàng', index=True, readonly=True)
     month_key = fields.Char(string='Tháng', index=True, readonly=True)
     month_date = fields.Date(string='Tháng tính toán', index=True, readonly=True)
     ma_sap = fields.Char(string='Mã SAP', index=True, readonly=True)

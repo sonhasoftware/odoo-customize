@@ -11,14 +11,22 @@ class KeHoachKinhDoanh(models.Model):
     _name = 'ke.hoach.kinh.doanh'
     _description = 'Ke hoach kinh doanh'
     _inherit = ['mail.thread', 'mail.activity.mixin']
-    _order = 'period_id, ma_sap, id'
+    _order = 'period_id, company_id, ma_sap, id'
 
     period_id = fields.Many2one(
         'ke.hoach.vat.tu', string='Kỳ', ondelete='cascade', index=True)
-    nganh_hang = fields.Char(string='Ngành hàng', index=True)
+    company_id = fields.Many2one(
+        'res.company', string='Đơn vị', index=True, required=True)
+    nganh_hang = fields.Many2one(
+        'mdm.nganh.hang', string='Ngành hàng',
+        compute='_compute_ma_hang_meta',
+        store=True,
+        readonly=True,
+        index=True,
+        ondelete='restrict')
     ten_hang = fields.Char(
         string='Tên hàng',
-        compute='_compute_ten_hang',
+        compute='_compute_ma_hang_meta',
         store=True,
         readonly=True,
     )
@@ -32,24 +40,19 @@ class KeHoachKinhDoanh(models.Model):
 
     _sql_constraints = [
         ('uniq_business_row',
-         'unique(period_id, ma_sap)',
-         'Trùng dòng: Kỳ và Mã SAP phải duy nhất trên kế hoạch kinh doanh!'),
+         'unique(period_id, company_id, ma_sap)',
+         'Trùng dòng: Kỳ, Đơn vị và Mã SAP phải duy nhất trên kế hoạch kinh doanh!'),
     ]
 
     @api.depends('ma_sap')
-    def _compute_ten_hang(self):
+    def _compute_ma_hang_meta(self):
         codes = {(rec.ma_sap or '').strip() for rec in self if (rec.ma_sap or '').strip()}
-        name_map = {}
-        if codes:
-            for row in self.env['ma.hang'].sudo().search_read(
-                [('ma_sap', 'in', list(codes))],
-                ['ma_sap', 'ten_hang'],
-            ):
-                if row.get('ma_sap'):
-                    name_map[row['ma_sap']] = row.get('ten_hang') or ''
+        meta_map = self.env['ma.hang'].get_sap_meta_map(codes)
         for rec in self:
             code = (rec.ma_sap or '').strip()
-            rec.ten_hang = name_map.get(code, '') if code else ''
+            meta = meta_map.get(code, {}) if code else {}
+            rec.ten_hang = meta.get('ten_hang', '')
+            rec.nganh_hang = meta.get('nganh_hang_id') or False
 
     def _trigger_production_sync(self):
         if self.env.context.get('skip_kd_sx_sync') or self.env.context.get('is_importing'):
@@ -60,34 +63,11 @@ class KeHoachKinhDoanh(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        # 1. Gom tất cả period_id và ma_sap để query 1 lần (Bulk Fetch)
         period_ids = list(set(v['period_id'] for v in vals_list if v.get('period_id')))
-        sap_codes = list(set(v['ma_sap'] for v in vals_list if v.get('ma_sap')))
-
-        # 2. Lấy dữ liệu Period
-        period_states = {}
         if period_ids:
-            periods = self.env['ke.hoach.vat.tu'].browse(period_ids)
-            for p in periods:
-                period_states[p.id] = p.state
-                if p.state != 'ke_hoach':
+            for period in self.env['ke.hoach.vat.tu'].browse(period_ids):
+                if period.state != 'ke_hoach':
                     raise UserError(_('Kế hoạch kinh doanh đã khóa vì kỳ kế hoạch đã sang bước sau.'))
-
-        # 3. Lấy dữ liệu Mã Hàng
-        ma_hang_dict = {}
-        if sap_codes:
-            masters = self.env['ma.hang'].sudo().search_read(
-                [('ma_sap', 'in', sap_codes)],
-                ['ma_sap', 'nganh_hang']
-            )
-            for m in masters:
-                if m.get('ma_sap'):
-                    ma_hang_dict[m['ma_sap']] = m.get('nganh_hang')
-
-        # 4. Gán dữ liệu vào vals
-        for vals in vals_list:
-            if vals.get('ma_sap') and vals['ma_sap'] in ma_hang_dict:
-                vals.setdefault('nganh_hang', ma_hang_dict[vals['ma_sap']])
 
         records = super().create(vals_list)
         if not self.env.context.get('is_importing'):
@@ -138,7 +118,8 @@ class KeHoachKinhDoanh(models.Model):
 
     def _tracking_values(self):
         return {
-            'nganh': self.nganh_hang or '',
+            'don_vi': self.company_id.company_code or self.company_id.name or '',
+            'nganh': self.nganh_hang.ten if self.nganh_hang else '',
             'ten_hang': self.ten_hang or '',
             'ma_hang': self.ma_hang or '',
             'ma_sap': self.ma_sap or '',
@@ -176,6 +157,7 @@ class KeHoachKinhDoanh(models.Model):
 
         rows = ''.join(
             "<tr>"
+            f"<td>{cell(vals['don_vi'])}</td>"
             f"<td>{cell(vals['nganh'])}</td>"
             f"<td>{cell(vals['ten_hang'])}</td>"
             f"<td>{cell(vals['ma_hang'])}</td>"
@@ -193,6 +175,7 @@ class KeHoachKinhDoanh(models.Model):
                 <table class="table table-sm table-bordered o_main_table mb-0" style="font-size: 13px;">
                     <thead class="bg-light">
                         <tr>
+                            <th>Đơn vị</th>
                             <th>Ngành hàng</th>
                             <th>Tên hàng</th>
                             <th>Mã hàng</th>

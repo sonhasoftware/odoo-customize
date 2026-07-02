@@ -7,7 +7,6 @@
             <tree string="Kế hoạch">
                 <field name="code"/>
                 <field name="period_month"/>
-                <field name="company_id" string="Đơn vị" context="{'vat_tu_company_code_display': True}"/>
             </tree>
         </field>
     </record>
@@ -19,17 +18,12 @@
             <form string="Kế hoạch kinh doanh">
                 <sheet>
                     <field name="state" invisible="1"/>
-                    <group col="3">
+                    <group col="2">
                         <group>
                             <field name="code" string="Số chứng từ"/>
                         </group>
                         <group>
                             <field name="period_month" required="1"/>
-                        </group>
-                        <group>
-                            <field name="company_id" string="Đơn vị"
-                                   context="{'vat_tu_company_code_display': True}"
-                                   options="{'no_create': True, 'no_open': True}"/>
                         </group>
                     </group>
                     <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:8px;">
@@ -49,7 +43,8 @@
                     </div>
                     <field name="ke_hoach_kinh_doanh_ids" context="{'default_period_id': id}" readonly="state != 'ke_hoach'">
                         <tree editable="bottom" class="sh_free_width_tree">
-                            <field name="nganh_hang" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="company_id" string="Đơn vị" options="{'no_create': True, 'no_open': True}" context="{'vat_tu_company_code_display': True}"/>
+                            <field name="nganh_hang" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                             <field name="ten_hang" readonly="1"/>
                             <field name="ma_hang"/>
                             <field name="ma_sap" required="1"/>
@@ -84,16 +79,12 @@
                     <field name="state" invisible="1"/>
                     <field name="ke_hoach_san_xuat_count" invisible="1"/>
                     <field name="ke_hoach_vat_tu_line_count" invisible="1"/>
-                    <group col="3">
+                    <group col="2">
                         <group>
                             <field name="code" string="Số chứng từ"/>
                         </group>
                         <group>
                             <field name="period_month" readonly="1"/>
-                        </group>
-                        <group>
-                            <field name="company_id" string="Đơn vị" readonly="1"
-                                   context="{'vat_tu_company_code_display': True}"/>
                         </group>
                     </group>
                     <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:8px;">
@@ -161,16 +152,12 @@
                             <field name="kh_dat_vat_tu_count" string="Kế hoạch đặt vật tư" widget="statinfo"/>
                         </button>
                     </div>
-                    <group col="3">
+                    <group col="2">
                         <group>
                             <field name="code" string="Số chứng từ"/>
                         </group>
                         <group>
                             <field name="period_month" readonly="1"/>
-                        </group>
-                        <group>
-                            <field name="company_id" string="Đơn vị" readonly="1"
-                                   context="{'vat_tu_company_code_display': True}"/>
                         </group>
                     </group>
                     <field name="ke_hoach_vat_tu_line_ids" readonly="1">

@@ -407,6 +407,161 @@ registerMergedOne2Many("vat_tu_merged_b4_one2many", VatTuMergedB4HeaderRenderer)
 registerMergedOne2Many("vat_tu_merged_b5_one2many", VatTuMergedB5HeaderRenderer);
 
 // ---------------------------------------------------------------------------
+// 4) B3 pivot: header Tháng × Đơn vị KD (dynamic)
+// ---------------------------------------------------------------------------
+
+const B3_FIXED_META = [
+    { key: "ma_sap", label: "Mã SAP" },
+    { key: "ma_effect", label: "Mã EFFECT" },
+    { key: "ten_sap", label: "Tên SAP" },
+    { key: "ma_vat_tu", label: "Mã NVL" },
+    { key: "ten_vat_tu", label: "Tên NVL" },
+    { key: "don_vi_tinh", label: "ĐVT", m2o: true },
+    { key: "sl_dinh_muc", label: "Định mức", numeric: true },
+];
+
+function resolveKdCompanyCode(data, companyId) {
+    const code = (data.don_vi_kd_code || "").trim();
+    if (code) {
+        return code;
+    }
+    const label = data.don_vi_kd_id && data.don_vi_kd_id[1];
+    if (typeof label === "string" && label.trim()) {
+        return label.trim();
+    }
+    return `#${companyId}`;
+}
+
+class VatTuB3PivotRenderer extends VatTuMergedHeaderRenderer {
+    static template = "sonha_vat_tu.VatTuB3PivotRenderer";
+
+    get displayOptionalFields() {
+        return false;
+    }
+
+    get b3FixedMeta() {
+        return B3_FIXED_META;
+    }
+
+    get kdCompanies() {
+        const map = new Map();
+        for (const rec of this.props.list.records) {
+            const data = rec.data;
+            const cid = data.don_vi_kd_id && data.don_vi_kd_id[0];
+            if (!cid) {
+                continue;
+            }
+            const code = resolveKdCompanyCode(data, cid);
+            map.set(cid, code);
+        }
+        return [...map.entries()].sort((a, b) => String(a[1]).localeCompare(String(b[1])));
+    }
+
+    getPivotRows() {
+        const byMat = new Map();
+        for (const rec of this.props.list.records) {
+            const d = rec.data;
+            const key = d.ma_vat_tu || d.ma_sap || String(rec.resId);
+            if (!byMat.has(key)) {
+                byMat.set(key, { meta: d, byCompany: {} });
+            }
+            const row = byMat.get(key);
+            const cid = d.don_vi_kd_id && d.don_vi_kd_id[0];
+            if (cid) {
+                row.byCompany[cid] = d;
+            }
+        }
+        return [...byMat.values()];
+    }
+
+    pivotQty(row, monthOffset, companyId) {
+        const rec = row.byCompany[companyId];
+        if (!rec) {
+            return 0;
+        }
+        return rec[`qty_t${monthOffset}`] || 0;
+    }
+
+    pivotTotal(row, monthOffset) {
+        let total = 0;
+        for (const [cid] of this.kdCompanies) {
+            total += this.pivotQty(row, monthOffset, cid);
+        }
+        return total;
+    }
+
+    formatQty(value) {
+        return formatFloat(value || 0, { digits: [16, 3] });
+    }
+
+    formatMetaValue(row, meta) {
+        const val = row.meta[meta.key];
+        if (meta.m2o && Array.isArray(val)) {
+            return val[1] || "";
+        }
+        if (meta.numeric) {
+            return this.formatQty(val);
+        }
+        return val || "";
+    }
+
+    getColumnGroups() {
+        const groups = [];
+        for (const meta of B3_FIXED_META) {
+            groups.push({
+                id: `meta_${meta.key}`,
+                label: meta.label,
+                span: 1,
+                rowspan: 2,
+                column: null,
+            });
+        }
+        const span = this.kdCompanies.length + 1;
+        const periodMonth = getPeriodMonth(this.props.list);
+        for (let t = 0; t < 4; t++) {
+            const monthText = getMonthText(periodMonth, t) || `T${t}`;
+            groups.push({
+                id: `b3_month_${t}`,
+                label: `Tháng ${monthText}`,
+                span,
+                rowspan: 1,
+                column: null,
+            });
+        }
+        return groups;
+    }
+
+    getQtySubColumns() {
+        const out = [];
+        for (let t = 0; t < 4; t++) {
+            for (const [cid, code] of this.kdCompanies) {
+                out.push({
+                    id: `t${t}_c${cid}`,
+                    label: code,
+                    monthOffset: t,
+                    companyId: cid,
+                    isTotal: false,
+                });
+            }
+            out.push({
+                id: `t${t}_total`,
+                label: "Tổng",
+                monthOffset: t,
+                companyId: null,
+                isTotal: true,
+            });
+        }
+        return out;
+    }
+
+    getMergeColumns() {
+        return [];
+    }
+}
+
+registerMergedOne2Many("vat_tu_b3_pivot_one2many", VatTuB3PivotRenderer);
+
+// ---------------------------------------------------------------------------
 // 3) Báo cáo nhu cầu: merge header + lọc cột theo tháng wizard
 // ---------------------------------------------------------------------------
 

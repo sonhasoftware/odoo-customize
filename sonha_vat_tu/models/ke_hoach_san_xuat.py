@@ -22,10 +22,16 @@ class KeHoachSanXuat(models.Model):
         'res.company', string='Công ty',
         default=lambda self: self.env.company, index=True)
 
-    nganh_hang = fields.Char(string='Ngành hàng', index=True)
+    nganh_hang = fields.Many2one(
+        'mdm.nganh.hang', string='Ngành hàng',
+        compute='_compute_ma_hang_meta',
+        store=True,
+        readonly=True,
+        index=True,
+        ondelete='restrict')
     ten_hang = fields.Char(
         string='Tên hàng',
-        compute='_compute_ten_hang',
+        compute='_compute_ma_hang_meta',
         store=True,
         readonly=True,
     )
@@ -48,19 +54,14 @@ class KeHoachSanXuat(models.Model):
     ]
 
     @api.depends('ma_sap')
-    def _compute_ten_hang(self):
+    def _compute_ma_hang_meta(self):
         codes = {(rec.ma_sap or '').strip() for rec in self if (rec.ma_sap or '').strip()}
-        name_map = {}
-        if codes:
-            for row in self.env['ma.hang'].sudo().search_read(
-                [('ma_sap', 'in', list(codes))],
-                ['ma_sap', 'ten_hang'],
-            ):
-                if row.get('ma_sap'):
-                    name_map[row['ma_sap']] = row.get('ten_hang') or ''
+        meta_map = self.env['ma.hang'].get_sap_meta_map(codes)
         for rec in self:
             code = (rec.ma_sap or '').strip()
-            rec.ten_hang = name_map.get(code, '') if code else ''
+            meta = meta_map.get(code, {}) if code else {}
+            rec.ten_hang = meta.get('ten_hang', '')
+            rec.nganh_hang = meta.get('nganh_hang_id') or False
 
     @api.constrains('company_id')
     def _check_production_company(self):
@@ -75,38 +76,16 @@ class KeHoachSanXuat(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        # 1. Gom tất cả period_id và ma_sap để query 1 lần (Bulk Fetch)
         period_ids = list(set(v['period_id'] for v in vals_list if v.get('period_id')))
-        sap_codes = list(set(v['ma_sap'] for v in vals_list if v.get('ma_sap')))
-
-        # 2. Lấy dữ liệu Period
-        period_states = {}
         if period_ids:
-            periods = self.env['ke.hoach.vat.tu'].browse(period_ids)
-            for p in periods:
-                period_states[p.id] = p.state
-                if p.state != 'ke_hoach':
+            for period in self.env['ke.hoach.vat.tu'].browse(period_ids):
+                if period.state != 'ke_hoach':
                     raise UserError(_('Kế hoạch sản xuất đã khóa vì kỳ kế hoạch đã sang bước sau.'))
 
-        # 3. Lấy dữ liệu Mã Hàng
-        ma_hang_dict = {}
-        if sap_codes:
-            masters = self.env['ma.hang'].sudo().search_read(
-                [('ma_sap', 'in', sap_codes)],
-                ['ma_sap', 'nganh_hang']
-            )
-            for m in masters:
-                if m.get('ma_sap'):
-                    ma_hang_dict[m['ma_sap']] = m.get('nganh_hang')
-
-        # 4. Gán dữ liệu vào vals
         company = self.env.company
         allow_unassigned = self.env.context.get('allow_unassigned_production_company')
-        
-        for vals in vals_list:
-            if vals.get('ma_sap') and vals['ma_sap'] in ma_hang_dict:
-                vals.setdefault('nganh_hang', ma_hang_dict[vals['ma_sap']])
 
+        for vals in vals_list:
             if not vals.get('company_id') and vals.get('period_id'):
                 if allow_unassigned:
                     vals['company_id'] = False
@@ -114,7 +93,7 @@ class KeHoachSanXuat(models.Model):
                     if company.company_code not in ('BNH', 'SSP'):
                         raise UserError(_('Công ty hiện tại không phải công ty sản xuất BNH/SSP.'))
                     vals['company_id'] = company.id
-                    
+
         records = super().create(vals_list)
         
         # Log khi Thêm dòng trên UI (bỏ qua nếu đang chạy import wizard)
@@ -166,7 +145,7 @@ class KeHoachSanXuat(models.Model):
 
     def _tracking_values(self):
         return {
-            'nganh': self.nganh_hang or '',
+            'nganh': self.nganh_hang.ten if self.nganh_hang else '',
             'ten_hang': self.ten_hang or '',
             'ma_hang': self.ma_hang or '',
             'ma_sap': self.ma_sap or '',
