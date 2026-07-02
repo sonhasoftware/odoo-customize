@@ -23,6 +23,10 @@ CREATE INDEX IF NOT EXISTS idx_dlthvt_owner_company
 
 CREATE OR REPLACE FUNCTION dlthvt_fill_meta() RETURNS TRIGGER AS $$
 BEGIN
+    IF COALESCE(current_setting('app.dlthvt_bulk', true), '') = '1' THEN
+        RETURN NEW;
+    END IF;
+
     SELECT p.code, p.period_month, p.company_id
       INTO NEW.period_code, NEW.period_month, NEW.owner_company_id
       FROM ke_hoach_vat_tu p
