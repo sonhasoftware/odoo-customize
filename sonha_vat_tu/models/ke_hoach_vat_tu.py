@@ -30,6 +30,12 @@ class KeHoachVatTu(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
     code = fields.Char(string='Số chứng từ', readonly=True, copy=False, index=True, tracking=True)
+    company_id = fields.Many2one(
+        'res.company', string='Công ty sở hữu kỳ',
+        index=True, readonly=True, copy=False,
+        default=lambda self: self.env.company.id,
+        help='Công ty của user tạo kỳ; chỉ dùng phân quyền, không hiển thị trên form.',
+    )
     period_month = fields.Char(
         string='Tháng bắt đầu', tracking=True)
     state = fields.Selection([
@@ -265,6 +271,8 @@ class KeHoachVatTu(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
+            if not vals.get('company_id'):
+                vals['company_id'] = self.env.company.id
             if not vals.get('code'):
                 vals['code'] = self._next_period_code()
         return super().create(vals_list)
