@@ -269,7 +269,7 @@ class ExpProduct(models.Model):
                 quantity = float(r.quantity.split('.')[0])
                 cay_uom = float(r.cay_uom or 0)
                 ton_uom = float(r.ton_uom or 0)
-                total_ton = round(((quantity * (cay_uom/ton_uom)) / 1000), 2)
+                total_ton = (quantity * (cay_uom/ton_uom)) / 1000
                 r.export_ton = total_ton
             else:
                 r.export_ton = 0
