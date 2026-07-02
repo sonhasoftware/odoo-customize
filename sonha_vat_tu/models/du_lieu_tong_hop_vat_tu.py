@@ -33,6 +33,10 @@ class DuLieuTongHopVatTu(models.Model):
 
     period_id = fields.Many2one(
         'ke.hoach.vat.tu', string='Kỳ', ondelete='cascade', index=True, readonly=True)
+    owner_company_id = fields.Many2one(
+        'res.company', string='Công ty sở hữu kỳ', index=True, readonly=True,
+        help='Từ ke.hoach.vat.tu.company_id — công ty user tạo kỳ, dùng phân quyền.',
+    )
     company_id = fields.Many2one(
         'res.company', string='Đơn vị sản xuất', index=True, readonly=True)
     currency_id = fields.Many2one(
@@ -181,6 +185,7 @@ _SQL_BOM_PATH = _os.path.join(
 )
 
 _SOURCE_TABLES = (
+    'ke_hoach_vat_tu',
     'ke_hoach_kinh_doanh',
     'ke_hoach_san_xuat',
     'ke_hoach_vat_tu_line',

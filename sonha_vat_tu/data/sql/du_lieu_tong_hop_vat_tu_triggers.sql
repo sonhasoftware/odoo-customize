@@ -18,14 +18,17 @@ CREATE INDEX IF NOT EXISTS idx_dlthvt_report_b2_nvl
 CREATE INDEX IF NOT EXISTS idx_dlthvt_period_company
     ON du_lieu_tong_hop_vat_tu (step_code, period_company_id, month_date);
 
+CREATE INDEX IF NOT EXISTS idx_dlthvt_owner_company
+    ON du_lieu_tong_hop_vat_tu (step_code, owner_company_id, month_date);
+
 CREATE OR REPLACE FUNCTION dlthvt_fill_meta() RETURNS TRIGGER AS $$
 BEGIN
-    SELECT p.code, p.period_month
-      INTO NEW.period_code, NEW.period_month
+    SELECT p.code, p.period_month, p.company_id
+      INTO NEW.period_code, NEW.period_month, NEW.owner_company_id
       FROM ke_hoach_vat_tu p
      WHERE p.id = NEW.period_id;
 
-    -- B3 trigger gán period_company_id = don_vi_kd_id; không ghi đè bằng NULL.
+    -- B3/B4 trigger gán period_company_id = don_vi_kd_id; không ghi đè bằng NULL.
     IF NEW.period_company_id IS NULL AND NEW.step_code IN ('kd', 'sx') THEN
         NEW.period_company_id := NEW.company_id;
     END IF;
@@ -52,6 +55,39 @@ DROP TRIGGER IF EXISTS trg_dlthvt_fill_meta ON du_lieu_tong_hop_vat_tu;
 CREATE TRIGGER trg_dlthvt_fill_meta
 BEFORE INSERT OR UPDATE ON du_lieu_tong_hop_vat_tu
 FOR EACH ROW EXECUTE PROCEDURE dlthvt_fill_meta();
+
+-- =============================================================================
+-- Kỳ: ke_hoach_vat_tu → cập nhật meta (công ty sở hữu kỳ) trên bảng phẳng
+-- =============================================================================
+CREATE OR REPLACE FUNCTION dlthvt_sync_period_meta() RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'DELETE' THEN
+        RETURN OLD;
+    END IF;
+
+    UPDATE du_lieu_tong_hop_vat_tu
+       SET owner_company_id = NEW.company_id,
+           period_code = NEW.code,
+           period_month = NEW.period_month,
+           write_uid = COALESCE(NEW.write_uid, 1),
+           write_date = NOW()
+     WHERE period_id = NEW.id;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_dlthvt_period_meta ON ke_hoach_vat_tu;
+CREATE TRIGGER trg_dlthvt_period_meta
+AFTER INSERT OR UPDATE OF company_id, code, period_month ON ke_hoach_vat_tu
+FOR EACH ROW EXECUTE PROCEDURE dlthvt_sync_period_meta();
+
+-- Backfill công ty sở hữu kỳ cho dữ liệu phẳng đã có
+UPDATE du_lieu_tong_hop_vat_tu dl
+   SET owner_company_id = p.company_id
+  FROM ke_hoach_vat_tu p
+ WHERE p.id = dl.period_id
+   AND dl.owner_company_id IS DISTINCT FROM p.company_id;
 
 -- =============================================================================
 -- B1: ke_hoach_vat_tu_line → du_lieu_tong_hop_vat_tu
