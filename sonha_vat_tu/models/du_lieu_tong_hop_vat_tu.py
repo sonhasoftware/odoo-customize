@@ -34,8 +34,8 @@ class DuLieuTongHopVatTu(models.Model):
     period_id = fields.Many2one(
         'ke.hoach.vat.tu', string='Kỳ', ondelete='cascade', index=True, readonly=True)
     owner_company_id = fields.Many2one(
-        'res.company', string='Công ty sở hữu kỳ', index=True, readonly=True,
-        help='Từ ke.hoach.vat.tu.company_id — công ty user tạo kỳ, dùng phân quyền.',
+        'res.company', string='Đơn vị lập kế hoạch', index=True, readonly=True,
+        help='Đơn vị của user tạo kỳ kế hoạch vật tư (vd. SSP → KHVT_SSP_001). Dùng phân quyền.',
     )
     company_id = fields.Many2one(
         'res.company', string='Đơn vị sản xuất', index=True, readonly=True)
