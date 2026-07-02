@@ -31,10 +31,10 @@ class KeHoachVatTu(models.Model):
 
     code = fields.Char(string='Số chứng từ', readonly=True, copy=False, index=True, tracking=True)
     company_id = fields.Many2one(
-        'res.company', string='Công ty sở hữu kỳ',
+        'res.company', string='Đơn vị lập kế hoạch',
         index=True, readonly=True, copy=False,
         default=lambda self: self.env.company.id,
-        help='Công ty của user tạo kỳ; chỉ dùng phân quyền, không hiển thị trên form.',
+        help='Đơn vị của user tạo kỳ; chỉ dùng phân quyền, không hiển thị trên form.',
     )
     period_month = fields.Char(
         string='Tháng bắt đầu', tracking=True)
