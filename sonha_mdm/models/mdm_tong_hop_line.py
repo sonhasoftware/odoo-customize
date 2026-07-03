@@ -20,7 +20,11 @@ class MDMTongHopLine(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         records = super().create(vals_list)
-        if not self.env.context.get('skip_mdm_api_sync'):
-            for record in records.filtered('tong_hop_id'):
-                record.tong_hop_id.call_api_insert(record.tong_hop_id, line=record)
+        for record in records:
+            record.tong_hop_id.call_api_insert(record.tong_hop_id, line=record)
         return records
+
+    def write(self, vals_list):
+        for r in self:
+            r.tong_hop_id.call_api_update(r.tong_hop_id)
+        return super().write(vals_list)
