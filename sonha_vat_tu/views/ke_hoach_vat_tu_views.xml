@@ -226,7 +226,7 @@
                             <field name="ten_sap" column_invisible="True"/>
                             <field name="ma_vat_tu" column_invisible="True"/>
                             <field name="ten_vat_tu" column_invisible="True"/>
-                            <field name="don_vi_tinh" column_invisible="True"/>
+                            <field name="don_vi_tinh" readonly="1"/>
                             <field name="sl_dinh_muc" column_invisible="True"/>
                             <field name="don_vi_kd_id" column_invisible="True"/>
                             <field name="don_vi_kd_code" column_invisible="True"/>
