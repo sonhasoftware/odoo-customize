@@ -89,7 +89,7 @@ class EmployeeAttendanceV2(models.Model):
 
 
     LOCAL_TZ_OFFSET = timedelta(hours=7)
-    CHECK_WINDOW_HOURS = 3
+    CHECK_WINDOW_HOURS = 7
     MAX_OT_SHIFT_GAP_HOURS = 1
 
     def _to_local_datetime(self, dt):

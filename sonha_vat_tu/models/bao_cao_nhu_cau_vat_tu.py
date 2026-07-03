@@ -14,8 +14,14 @@ class BaoCaoNhuCauVatTu(models.Model):
     period_month = fields.Char(string='Tháng bắt đầu', readonly=True)
     period_start_date = fields.Date(string='Tháng bắt đầu (date)', readonly=True)
     period_end_date = fields.Date(string='Tháng kết thúc kỳ', readonly=True)
-    company_id = fields.Many2one('res.company', string='Đơn vị', readonly=True)
-    company_code = fields.Char(string='Mã đơn vị', readonly=True)
+    company_id = fields.Many2one(
+        'res.company', string='Đơn vị đặt hàng', readonly=True,
+        help='Đơn vị kinh doanh có kế hoạch KD (SHI, TM1…).',
+    )
+    company_sx_id = fields.Many2one(
+        'res.company', string='Đơn vị sản xuất', readonly=True,
+    )
+    company_code = fields.Char(string='Mã đơn vị đặt hàng', readonly=True)
     ma_nvl = fields.Char(string='Mã vật tư', readonly=True)
     ma_sap = fields.Char(string='Mã SAP', readonly=True)
     ma_effect = fields.Char(string='Mã effect', readonly=True)
@@ -34,12 +40,13 @@ class BaoCaoNhuCauVatTu(models.Model):
         tools.drop_view_if_exists(self.env.cr, self._table)
         self.env.cr.execute("""
             CREATE OR REPLACE VIEW bao_cao_nhu_cau_vat_tu AS (
-                WITH b4 AS (
+                WITH b4_kd AS (
                     SELECT
                         dl.*,
                         COALESCE(dl.ma_nvl, dl.ma_vat_tu, dl.ma_sap) AS ma_nvl_key
                     FROM du_lieu_tong_hop_vat_tu dl
                     WHERE dl.step_code = 'b4'
+                      AND dl.period_company_id IS NOT NULL
                       AND COALESCE(dl.ma_nvl, dl.ma_vat_tu, dl.ma_sap) IS NOT NULL
                 ),
                 grouped AS (
@@ -50,9 +57,8 @@ class BaoCaoNhuCauVatTu(models.Model):
                         b4.period_month,
                         TO_DATE(b4.period_month, 'MM/YYYY') AS period_start_date,
                         (TO_DATE(b4.period_month, 'MM/YYYY') + INTERVAL '3 month')::date AS period_end_date,
-                        b4.period_company_id,
-                        b4.period_company_code,
-                        b4.company_id,
+                        b4.period_company_id AS company_id,
+                        b4.company_id AS company_sx_id,
                         b4.ma_nvl_key,
                         MAX(COALESCE(b4.ten_nvl, b4.ten_vat_tu, b4.ten_sap)) AS ten_nvl,
                         MAX(b4.chung_loai) AS chung_loai,
@@ -77,13 +83,12 @@ class BaoCaoNhuCauVatTu(models.Model):
                                 TO_DATE(b4.period_month, 'MM/YYYY') + INTERVAL '3 month', 'MM/YYYY')
                             THEN COALESCE(b4.vt_can_dung, 0) ELSE 0
                         END) AS so_luong_t3
-                    FROM b4
+                    FROM b4_kd b4
                     GROUP BY
                         b4.period_id,
                         b4.period_code,
                         b4.period_month,
                         b4.period_company_id,
-                        b4.period_company_code,
                         b4.company_id,
                         b4.ma_nvl_key
                 )
@@ -94,8 +99,9 @@ class BaoCaoNhuCauVatTu(models.Model):
                     g.period_month,
                     g.period_start_date,
                     g.period_end_date,
-                    g.period_company_id AS company_id,
-                    g.period_company_code AS company_code,
+                    g.company_id,
+                    g.company_sx_id,
+                    rc.company_code,
                     g.ma_nvl_key AS ma_nvl,
                     g.ma_nvl_key AS ma_sap,
                     kd.ma_hang AS ma_effect,
@@ -110,12 +116,14 @@ class BaoCaoNhuCauVatTu(models.Model):
                     COALESCE(g.so_luong_t0, 0) + COALESCE(g.so_luong_t1, 0)
                         + COALESCE(g.so_luong_t2, 0) + COALESCE(g.so_luong_t3, 0) AS tong_so_luong
                 FROM grouped g
+                LEFT JOIN res_company rc ON rc.id = g.company_id
                 LEFT JOIN LATERAL (
                     SELECT kd_inner.ma_hang
                     FROM dinh_muc dm
                     JOIN ke_hoach_kinh_doanh kd_inner
                       ON kd_inner.period_id = dm.period_id
                      AND kd_inner.ma_sap = dm.ma_sap
+                     AND kd_inner.company_id = g.company_id
                     WHERE dm.period_id = g.period_id
                       AND dm.ma_nvl = g.ma_nvl_key
                     ORDER BY kd_inner.id

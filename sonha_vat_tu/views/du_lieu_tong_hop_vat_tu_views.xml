@@ -17,6 +17,7 @@
                 <field name="source_model"/>
                 <field name="source_res_id"/>
                 <field name="period_id"/>
+                <field name="owner_company_id" context="{'vat_tu_company_code_display': True}"/>
                 <field name="company_id"/>
                 <field name="currency_id" column_invisible="True"/>
                 <field name="period_company_id"/>
@@ -91,6 +92,7 @@
                             <field name="source_model"/>
                             <field name="source_res_id"/>
                             <field name="period_id"/>
+                            <field name="owner_company_id" context="{'vat_tu_company_code_display': True}"/>
                             <field name="company_id"/>
                             <field name="currency_id" invisible="1"/>
                             <field name="period_company_id"/>
@@ -155,6 +157,7 @@
             <search>
                 <field name="step_code"/>
                 <field name="period_id"/>
+                <field name="owner_company_id" context="{'vat_tu_company_code_display': True}"/>
                 <field name="company_id"/>
                 <field name="period_company_id"/>
                 <field name="period_code"/>
@@ -182,7 +185,8 @@
                 <group expand="0" string="Nhóm">
                     <filter name="group_step" string="Bước" context="{'group_by': 'step_code'}"/>
                     <filter name="group_period" string="Kỳ" context="{'group_by': 'period_id'}"/>
-                    <filter name="group_period_company" string="Đơn vị yêu cầu" context="{'group_by': 'period_company_id'}"/>
+                    <filter name="group_owner_company" string="Đơn vị lập kế hoạch" context="{'group_by': 'owner_company_id'}"/>
+                    <filter name="group_period_company" string="Đơn vị đặt hàng" context="{'group_by': 'period_company_id'}"/>
                     <filter name="group_period_code" string="Số chứng từ" context="{'group_by': 'period_code'}"/>
                     <filter name="group_period_month" string="Tháng bắt đầu" context="{'group_by': 'period_month'}"/>
                     <filter name="group_month" string="Tháng" context="{'group_by': 'month_key'}"/>

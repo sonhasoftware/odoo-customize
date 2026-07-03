@@ -42,7 +42,8 @@ class BaoCaoNhuCauVatTuWizard(models.TransientModel):
     )
     company_id = fields.Many2one(
         'res.company',
-        string='Đơn vị',
+        string='Đơn vị đặt hàng',
+        help='Đơn vị kinh doanh có kế hoạch KD (SHI, TM1…). Để trống = xem tất cả.',
     )
 
     def _month_start(self, month, year):

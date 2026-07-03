@@ -18,13 +18,33 @@ CREATE INDEX IF NOT EXISTS idx_dlthvt_report_b2_nvl
 CREATE INDEX IF NOT EXISTS idx_dlthvt_period_company
     ON du_lieu_tong_hop_vat_tu (step_code, period_company_id, month_date);
 
+CREATE INDEX IF NOT EXISTS idx_dlthvt_owner_company
+    ON du_lieu_tong_hop_vat_tu (step_code, owner_company_id, month_date);
+
 CREATE OR REPLACE FUNCTION dlthvt_fill_meta() RETURNS TRIGGER AS $$
 BEGIN
-    SELECT p.code, p.period_month, p.company_id, pc.company_code
-      INTO NEW.period_code, NEW.period_month, NEW.period_company_id, NEW.period_company_code
+    IF COALESCE(current_setting('app.dlthvt_bulk', true), '') = '1' THEN
+        RETURN NEW;
+    END IF;
+
+    SELECT p.code, p.period_month, p.company_id
+      INTO NEW.period_code, NEW.period_month, NEW.owner_company_id
       FROM ke_hoach_vat_tu p
-      LEFT JOIN res_company pc ON pc.id = p.company_id
      WHERE p.id = NEW.period_id;
+
+    -- B3/B4 trigger gán period_company_id = don_vi_kd_id; không ghi đè bằng NULL.
+    IF NEW.period_company_id IS NULL AND NEW.step_code IN ('kd', 'sx') THEN
+        NEW.period_company_id := NEW.company_id;
+    END IF;
+
+    IF NEW.period_company_id IS NOT NULL THEN
+        SELECT c.company_code
+          INTO NEW.period_company_code
+          FROM res_company c
+         WHERE c.id = NEW.period_company_id;
+    ELSE
+        NEW.period_company_code := NULL;
+    END IF;
 
     SELECT c.company_code
       INTO NEW.company_code
@@ -39,6 +59,32 @@ DROP TRIGGER IF EXISTS trg_dlthvt_fill_meta ON du_lieu_tong_hop_vat_tu;
 CREATE TRIGGER trg_dlthvt_fill_meta
 BEFORE INSERT OR UPDATE ON du_lieu_tong_hop_vat_tu
 FOR EACH ROW EXECUTE PROCEDURE dlthvt_fill_meta();
+
+-- =============================================================================
+-- Kỳ: ke_hoach_vat_tu → cập nhật meta (đơn vị lập kế hoạch) trên bảng phẳng
+-- =============================================================================
+CREATE OR REPLACE FUNCTION dlthvt_sync_period_meta() RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'DELETE' THEN
+        RETURN OLD;
+    END IF;
+
+    UPDATE du_lieu_tong_hop_vat_tu
+       SET owner_company_id = NEW.company_id,
+           period_code = NEW.code,
+           period_month = NEW.period_month,
+           write_uid = COALESCE(NEW.write_uid, 1),
+           write_date = NOW()
+     WHERE period_id = NEW.id;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_dlthvt_period_meta ON ke_hoach_vat_tu;
+CREATE TRIGGER trg_dlthvt_period_meta
+AFTER INSERT OR UPDATE OF company_id, code, period_month ON ke_hoach_vat_tu
+FOR EACH ROW EXECUTE PROCEDURE dlthvt_sync_period_meta();
 
 -- =============================================================================
 -- B1: ke_hoach_vat_tu_line → du_lieu_tong_hop_vat_tu
@@ -260,7 +306,8 @@ BEGIN
         END;
 
         INSERT INTO du_lieu_tong_hop_vat_tu (
-            step_code, source_model, source_res_id, period_id, company_id, month_key,
+            step_code, source_model, source_res_id, period_id, company_id,
+            period_company_id, month_key,
             month_date, ma_sap, ma_vat_tu,
             qty, ten_sap, ma_nvl,
             ten_nvl, ten_vat_tu, ma_effect,
@@ -268,7 +315,7 @@ BEGIN
             create_uid, create_date, write_uid, write_date
         ) VALUES (
             'b3', 'tinh.toan.vat.tu', NEW.id, NEW.period_id,
-            NEW.company_id, v_month_key, v_month_date, NEW.ma_sap,
+            NEW.company_id, NEW.don_vi_kd_id, v_month_key, v_month_date, NEW.ma_sap,
             NEW.ma_vat_tu,
             v_qty, NEW.ten_sap, NEW.ma_vat_tu, NEW.ten_vat_tu, NEW.ten_vat_tu, NEW.ma_effect,
             NEW.don_vi_tinh, NEW.do_day, NEW.kho_1, NEW.kho_2,
@@ -279,6 +326,7 @@ BEGIN
             step_code = EXCLUDED.step_code,
             period_id = EXCLUDED.period_id,
             company_id = EXCLUDED.company_id,
+            period_company_id = EXCLUDED.period_company_id,
             month_date = EXCLUDED.month_date,
             ma_sap = EXCLUDED.ma_sap,
             ma_vat_tu = EXCLUDED.ma_vat_tu,
@@ -340,7 +388,7 @@ BEGIN
         v_ton_cuoi := CASE i WHEN 0 THEN NEW.ton_cuoi_t0 WHEN 1 THEN NEW.ton_cuoi_t1 WHEN 2 THEN NEW.ton_cuoi_t2 WHEN 3 THEN NEW.ton_cuoi_t3 END;
 
         INSERT INTO du_lieu_tong_hop_vat_tu (
-            step_code, source_model, source_res_id, period_id, company_id, month_key,
+            step_code, source_model, source_res_id, period_id, company_id, period_company_id, month_key,
             month_date, ma_sap, ma_nvl,
             ten_nvl, ten_vat_tu, don_vi_tinh, ma_dat_hang, chung_loai,
             ton_dau, ve_du_kien_don_vi, ve_du_kien, vt_can_dung, ton_cuoi, so_luong_du_phong, so_luong_thieu, so_luong_can_mua,
@@ -348,7 +396,7 @@ BEGIN
             create_uid, create_date, write_uid, write_date
         ) VALUES (
             'b4', 'tong.hop.vat.tu', NEW.id, NEW.period_id,
-            NEW.company_id, v_month_key, v_month_date, NEW.ma_sap, NEW.ma_sap,
+            NEW.company_id, NEW.don_vi_kd_id, v_month_key, v_month_date, NEW.ma_sap, NEW.ma_sap,
             NEW.ten_nvl, NEW.ten_nvl, NEW.don_vi_tinh, NEW.ma_dat_hang, NEW.chung_loai,
             NEW.ton_dau, v_ve_du_kien_don_vi, v_ve_du_kien, v_vt_can_dung, v_ton_cuoi,
             CASE WHEN i = 3 THEN NEW.so_luong_du_phong ELSE 0 END,
@@ -361,6 +409,7 @@ BEGIN
             step_code = EXCLUDED.step_code,
             period_id = EXCLUDED.period_id,
             company_id = EXCLUDED.company_id,
+            period_company_id = EXCLUDED.period_company_id,
             month_date = EXCLUDED.month_date,
             ma_sap = EXCLUDED.ma_sap,
             ma_nvl = EXCLUDED.ma_nvl,
@@ -474,11 +523,11 @@ FOR EACH ROW EXECUTE PROCEDURE dlthvt_sync_b5();
 -- =============================================================================
 CREATE OR REPLACE FUNCTION dlthvt_sync_kd() RETURNS TRIGGER AS $$
 DECLARE
-    v_company_id INTEGER;
     v_period_month TEXT;
     v_month_key TEXT;
     v_month_date DATE;
     v_qty NUMERIC;
+    v_nganh_hang TEXT;
 BEGIN
     IF TG_OP = 'DELETE' THEN
         DELETE FROM du_lieu_tong_hop_vat_tu
@@ -486,7 +535,11 @@ BEGIN
         RETURN OLD;
     END IF;
 
-    SELECT company_id, period_month INTO v_company_id, v_period_month
+    SELECT nh.ten INTO v_nganh_hang
+    FROM mdm_nganh_hang nh
+    WHERE nh.id = NEW.nganh_hang;
+
+    SELECT period_month INTO v_period_month
     FROM ke_hoach_vat_tu
     WHERE id = NEW.period_id;
 
@@ -507,8 +560,8 @@ BEGIN
             qty, note, create_uid, create_date, write_uid, write_date
         ) VALUES (
             'kd', 'ke.hoach.kinh.doanh', NEW.id, NEW.period_id,
-            v_company_id, v_month_key, v_month_date, NEW.ma_sap,
-            NULL, NEW.nganh_hang, NEW.ten_hang, NEW.ma_hang,
+            NEW.company_id, v_month_key, v_month_date, NEW.ma_sap,
+            NULL, v_nganh_hang, NEW.ten_hang, NEW.ma_hang,
             v_qty, NEW.note, NEW.create_uid, NEW.create_date, NEW.write_uid, NEW.write_date
         )
         ON CONFLICT (source_model, source_res_id, month_key) DO UPDATE SET
@@ -544,12 +597,17 @@ DECLARE
     v_month_key TEXT;
     v_month_date DATE;
     v_qty NUMERIC;
+    v_nganh_hang TEXT;
 BEGIN
     IF TG_OP = 'DELETE' THEN
         DELETE FROM du_lieu_tong_hop_vat_tu
         WHERE source_model = 'ke.hoach.san.xuat' AND source_res_id = OLD.id;
         RETURN OLD;
     END IF;
+
+    SELECT nh.ten INTO v_nganh_hang
+    FROM mdm_nganh_hang nh
+    WHERE nh.id = NEW.nganh_hang;
 
     SELECT period_month INTO v_period_month
     FROM ke_hoach_vat_tu
@@ -573,7 +631,7 @@ BEGIN
         ) VALUES (
             'sx', 'ke.hoach.san.xuat', NEW.id, NEW.period_id,
             NEW.company_id, v_month_key, v_month_date, NEW.ma_sap,
-            NULL, NEW.nganh_hang, NEW.ten_hang, NEW.ma_hang,
+            NULL, v_nganh_hang, NEW.ten_hang, NEW.ma_hang,
             v_qty, NEW.note, NEW.create_uid, NEW.create_date, NEW.write_uid, NEW.write_date
         )
         ON CONFLICT (source_model, source_res_id, month_key) DO UPDATE SET

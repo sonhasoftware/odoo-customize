@@ -5,12 +5,16 @@ class TongHopVatTu(models.Model):
     _name = 'tong.hop.vat.tu'
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _description = 'Tổng hợp vật tư'
-    _order = 'period_id, company_id, ma_sap, id'
+    _order = 'period_id, company_id, don_vi_kd_id, ma_sap, id'
 
     period_id = fields.Many2one(
         'ke.hoach.vat.tu', string='Kỳ', ondelete='cascade', index=True)
     company_id = fields.Many2one(
-        'res.company', string='Đơn vị', index=True)
+        'res.company', string='Đơn vị sản xuất', index=True,
+        help='Công ty sản xuất/kho (BNH, SSP).')
+    don_vi_kd_id = fields.Many2one(
+        'res.company', string='Đơn vị đặt hàng', index=True,
+        help='Đơn vị kinh doanh (SHI, TM1…). Trống = dòng gộp all KD cho BCU/B5.')
     ma_dat_hang = fields.Char(string='Mã đặt hàng', index=True)
     ma_sap = fields.Char(string='Mã NVL', index=True)
     ten_nvl = fields.Char(string='Tên NVL')

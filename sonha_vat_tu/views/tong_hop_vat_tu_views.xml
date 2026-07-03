@@ -131,6 +131,7 @@
         <field name="name">Tổng hợp vật tư cần sản xuất</field>
         <field name="res_model">tong.hop.vat.tu</field>
         <field name="view_mode">tree,form</field>
+        <field name="domain">[('don_vi_kd_id', '=', False)]</field>
         <field name="views" eval="[(ref('view_tong_hop_vat_tu_tree'), 'tree'), (ref('view_tong_hop_vat_tu_form'), 'form')]"/>
     </record>
 

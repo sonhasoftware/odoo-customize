@@ -9,6 +9,7 @@ from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Protection
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+from openpyxl.worksheet.datavalidation import DataValidation
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
 
@@ -29,11 +30,14 @@ class KeHoachVatTu(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
     code = fields.Char(string='Số chứng từ', readonly=True, copy=False, index=True, tracking=True)
+    company_id = fields.Many2one(
+        'res.company', string='Đơn vị lập kế hoạch',
+        index=True, readonly=True, copy=False,
+        default=lambda self: self.env.company.id,
+        help='Đơn vị của user tạo kỳ; chỉ dùng phân quyền, không hiển thị trên form.',
+    )
     period_month = fields.Char(
         string='Tháng bắt đầu', tracking=True)
-    company_id = fields.Many2one(
-        'res.company', string='Công ty', tracking=True,
-        default=lambda self: self.env.company)
     state = fields.Selection([
         ('ke_hoach', 'Kế hoạch sản xuất'),
         ('dinh_muc', 'Định mức kỳ'),
@@ -105,7 +109,10 @@ class KeHoachVatTu(models.Model):
     ke_hoach_vat_tu_line_ids = fields.One2many('ke.hoach.vat.tu.line', 'period_id', string='Kế hoạch vật tư')
     dinh_muc_ids = fields.One2many('dinh.muc', 'period_id', string='Định mức tháng')
     tinh_toan_vat_tu_ids = fields.One2many('tinh.toan.vat.tu', 'period_id', string='Tính toán vật tư')
-    tong_hop_vat_tu_ids = fields.One2many('tong.hop.vat.tu', 'period_id', string='Tổng hợp vật tư')
+    tong_hop_vat_tu_ids = fields.One2many(
+        'tong.hop.vat.tu', 'period_id', string='Tổng hợp vật tư',
+        domain=[('don_vi_kd_id', '=', False)],
+    )
     kh_dat_vat_tu_ids = fields.One2many('kh.dat.vat.tu', 'period_id', string='Kế hoạch đặt vật tư')
 
     ke_hoach_kinh_doanh_count = fields.Integer(compute='_compute_counts')
@@ -153,7 +160,7 @@ class KeHoachVatTu(models.Model):
 
     _sql_constraints = [
         ('code_uniq', 'unique(code)', 'Mã kỳ phải duy nhất!'),
-        ('company_month_uniq', 'unique(company_id, period_month)', 'Công ty và tháng bắt đầu không được trùng!'),
+        ('period_month_uniq', 'unique(period_month)', 'Tháng bắt đầu không được trùng!'),
     ]
 
     @api.model
@@ -180,9 +187,20 @@ class KeHoachVatTu(models.Model):
             'Vui lòng kiểm tra lại công ty mặc định của user trước khi thao tác kế hoạch sản xuất.'
         ))
 
-    def _build_period_code(self, company):
-        company_key = re.sub(r'[^A-Za-z0-9]+', '', company.company_code or '') or str(company.id or 'CTY')
-        prefix = 'KHVT_%s_' % company_key.upper()
+    @api.model
+    def _get_creator_company_code(self):
+        company = self.env.company
+        code = (getattr(company, 'company_code', None) or '').strip()
+        return code or (company.name or 'XX').strip()
+
+    @api.model
+    def _period_code_prefix(self, company_code=None):
+        code = (company_code or self._get_creator_company_code()).strip()
+        return 'KHVT_%s' % code if code else 'KHVT'
+
+    @api.model
+    def _next_period_code(self, company_code=None):
+        prefix = self._period_code_prefix(company_code) + '_'
         latest = self.sudo().search([('code', '=like', prefix + '%')], order='code desc', limit=1)
         next_no = 1
         if latest.code:
@@ -190,7 +208,7 @@ class KeHoachVatTu(models.Model):
                 next_no = int(latest.code.rsplit('_', 1)[-1]) + 1
             except (TypeError, ValueError):
                 next_no = 1
-        return '%s%04d' % (prefix, next_no)
+        return '%s%03d' % (prefix, next_no)
 
     @api.model
     def _get_view_cache_key(self, view_id=None, view_type='form', **options):
@@ -252,18 +270,11 @@ class KeHoachVatTu(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        Company = self.env['res.company']
-        counters = {}
         for vals in vals_list:
+            if not vals.get('company_id'):
+                vals['company_id'] = self.env.company.id
             if not vals.get('code'):
-                company = Company.browse(vals.get('company_id')) if vals.get('company_id') else self.env.company
-                company_id = company.id or 0
-                if company_id not in counters:
-                    counters[company_id] = int(self._build_period_code(company).rsplit('_', 1)[-1])
-                else:
-                    counters[company_id] += 1
-                company_key = re.sub(r'[^A-Za-z0-9]+', '', company.company_code or '') or str(company.id or 'CTY')
-                vals['code'] = 'KHVT_%s_%04d' % (company_key.upper(), counters[company_id])
+                vals['code'] = self._next_period_code()
         return super().create(vals_list)
 
     def unlink(self):
@@ -300,7 +311,7 @@ class KeHoachVatTu(models.Model):
             rec.ke_hoach_vat_tu_line_count = len(rec.ke_hoach_vat_tu_line_ids)
             rec.dinh_muc_count = len(rec.dinh_muc_ids)
             rec.tinh_toan_vat_tu_count = len(rec.tinh_toan_vat_tu_ids)
-            rec.tong_hop_vat_tu_count = len(rec.tong_hop_vat_tu_ids)
+            rec.tong_hop_vat_tu_count = len(rec.tong_hop_vat_tu_ids.filtered(lambda r: not r.don_vi_kd_id))
             rec.kh_dat_vat_tu_count = len(rec.kh_dat_vat_tu_ids)
 
     def _get_horizon_months(self):
@@ -346,11 +357,27 @@ class KeHoachVatTu(models.Model):
         production_companies = self.ke_hoach_san_xuat_ids.mapped('company_id').filtered(lambda c: c)
         if len(production_companies) == 1:
             return production_companies
-        if self.company_id.company_code in ('BNH', 'SSP'):
-            return self.company_id
         if self.env.company.company_code in ('BNH', 'SSP'):
             return self.env.company
         return self.env['res.company'].browse()
+
+    @api.model
+    def _aggregate_kd_by_sap(self, kd_lines):
+        """Gom số lượng KD theo ma_sap (nhiều đơn vị cùng SAP → cộng qty)."""
+        agg = {}
+        for line in kd_lines.filtered('ma_sap'):
+            bucket = agg.setdefault(line.ma_sap, {
+                'line': line,
+                'qty_t0': 0.0,
+                'qty_t1': 0.0,
+                'qty_t2': 0.0,
+                'qty_t3': 0.0,
+            })
+            bucket['qty_t0'] += line.qty_t0 or 0.0
+            bucket['qty_t1'] += line.qty_t1 or 0.0
+            bucket['qty_t2'] += line.qty_t2 or 0.0
+            bucket['qty_t3'] += line.qty_t3 or 0.0
+        return agg
 
     def _sync_production_from_business(self):
         """Đồng bộ ke.hoach.san.xuat theo ke.hoach.kinh.doanh (tạo/sửa/xóa)."""
@@ -366,8 +393,7 @@ class KeHoachVatTu(models.Model):
         }
         company = self._production_company_for_auto_seed()
 
-        business_lines = self.ke_hoach_kinh_doanh_ids.filtered('ma_sap')
-        business_by_sap = {line.ma_sap: line for line in business_lines}
+        business_by_sap = self._aggregate_kd_by_sap(self.ke_hoach_kinh_doanh_ids)
 
         existing_sx = self.ke_hoach_san_xuat_ids
         sx_by_sap = {}
@@ -378,15 +404,15 @@ class KeHoachVatTu(models.Model):
         if to_delete:
             to_delete.with_context(**sync_ctx).unlink()
 
-        for ma_sap, kd_line in business_by_sap.items():
+        for ma_sap, bucket in business_by_sap.items():
+            kd_line = bucket['line']
             vals = {
-                'nganh_hang': kd_line.nganh_hang,
                 'ma_hang': kd_line.ma_hang,
-                'ma_sap': kd_line.ma_sap,
-                'qty_t0': kd_line.qty_t0,
-                'qty_t1': kd_line.qty_t1,
-                'qty_t2': kd_line.qty_t2,
-                'qty_t3': kd_line.qty_t3,
+                'ma_sap': ma_sap,
+                'qty_t0': bucket['qty_t0'],
+                'qty_t1': bucket['qty_t1'],
+                'qty_t2': bucket['qty_t2'],
+                'qty_t3': bucket['qty_t3'],
                 'note': kd_line.note,
             }
             sx_line = sx_by_sap.get(ma_sap)
@@ -401,10 +427,7 @@ class KeHoachVatTu(models.Model):
 
     def _prepare_material_plan_values_from_production(self, production_company):
         self.ensure_one()
-        business_by_key = {
-            line.ma_sap: line
-            for line in self.ke_hoach_kinh_doanh_ids
-        }
+        business_by_key = self._aggregate_kd_by_sap(self.ke_hoach_kinh_doanh_ids)
         production_keys = {
             line.ma_sap
             for line in self.ke_hoach_san_xuat_ids
@@ -424,17 +447,17 @@ class KeHoachVatTu(models.Model):
         vals_list = []
         for line in self.ke_hoach_san_xuat_ids:
             ma_sap = line.ma_sap
-            business_line = business_by_key.get(ma_sap)
+            kd_bucket = business_by_key.get(ma_sap)
             vals_list.append({
                 'period_id': self.id,
                 'company_id': production_company.id,
-                'nganh_hang': line.nganh_hang,
+                'nganh_hang': line.nganh_hang.ten if line.nganh_hang else '',
                 'ma_hang': line.ma_hang,
                 'ma_sap': line.ma_sap,
-                'qty_kd_t0': business_line.qty_t0 if business_line else 0.0,
-                'qty_kd_t1': business_line.qty_t1 if business_line else 0.0,
-                'qty_kd_t2': business_line.qty_t2 if business_line else 0.0,
-                'qty_kd_t3': business_line.qty_t3 if business_line else 0.0,
+                'qty_kd_t0': kd_bucket['qty_t0'] if kd_bucket else 0.0,
+                'qty_kd_t1': kd_bucket['qty_t1'] if kd_bucket else 0.0,
+                'qty_kd_t2': kd_bucket['qty_t2'] if kd_bucket else 0.0,
+                'qty_kd_t3': kd_bucket['qty_t3'] if kd_bucket else 0.0,
                 'qty_sx_t0': line.qty_t0,
                 'qty_sx_t1': line.qty_t1,
                 'qty_sx_t2': line.qty_t2,
@@ -489,6 +512,11 @@ class KeHoachVatTu(models.Model):
     def action_compute_b3(self):
         self.ensure_one()
         self.env.cr.execute('CALL public.fn_tinh_toan_vat_tu(%s)', (self.id,))
+        lines = self.env['tinh.toan.vat.tu'].sudo().search([('period_id', '=', self.id)])
+        if lines:
+            lines.invalidate_recordset(['don_vi_kd_code'])
+            lines._compute_don_vi_kd_code()
+            lines.flush_recordset(['don_vi_kd_code'])
         self.state = 'tinh_toan'
         return self.action_open_step_b3()
 
@@ -675,16 +703,38 @@ class KeHoachVatTu(models.Model):
         ws.row_dimensions[header_row].height = 22
         ws.freeze_panes = ws.cell(row=header_row + 1, column=1).coordinate
 
+    def _get_plan_company_codes(self):
+        return sorted({
+            (c.company_code or '').strip()
+            for c in self.env['res.company'].sudo().search([])
+            if (c.company_code or '').strip()
+        })
+
+    def _apply_plan_company_code_validation(self, wb, ws, header_row, company_codes):
+        if not company_codes:
+            return
+        ref_sheet = wb.create_sheet('_company_codes')
+        ref_sheet.sheet_state = 'hidden'
+        for row_idx, code in enumerate(company_codes, start=1):
+            ref_sheet.cell(row=row_idx, column=1, value=code)
+        dv = DataValidation(
+            type='list',
+            formula1=f"='_company_codes'!$A$1:$A${len(company_codes)}",
+            allow_blank=False,
+        )
+        dv.error = _('Chỉ được chọn mã đơn vị có trong danh mục.')
+        dv.errorTitle = _('Đơn vị không hợp lệ')
+        ws.add_data_validation(dv)
+        first_data_row = header_row + 1
+        dv.add(f'A{first_data_row}:A5000')
+
     def _write_plan_metadata(self, ws):
         ws.merge_cells(start_row=1, start_column=2, end_row=1, end_column=5)
         ws.merge_cells(start_row=2, start_column=2, end_row=2, end_column=5)
-        ws.merge_cells(start_row=3, start_column=2, end_row=3, end_column=5)
         ws.cell(row=1, column=1, value='Mã')
         ws.cell(row=1, column=2, value=self.code or '')
         ws.cell(row=2, column=1, value='Tháng bắt đầu')
         ws.cell(row=2, column=2, value=self.period_month or '')
-        ws.cell(row=3, column=1, value='Công ty')
-        ws.cell(row=3, column=2, value=self.company_id.name or '')
 
     def _protect_plan_sheet(self, ws, header_row, unlocked_cols):
         for row in ws.iter_rows(min_row=1, max_row=max(ws.max_row, header_row + 100), min_col=1, max_col=ws.max_column):
@@ -727,20 +777,23 @@ class KeHoachVatTu(models.Model):
         ws.title = 'Ke hoach kinh doanh'
         self._write_plan_metadata(ws)
         months = self._get_horizon_months()
-        headers = ['Ngành hàng', 'Tên hàng', 'Mã hàng', 'Mã SAP']
+        headers = ['Đơn vị', 'Ngành hàng', 'Tên hàng', 'Mã hàng', 'Mã SAP']
         headers += ['Tháng %s' % m for m in months]
         header_row = 6
         for col_idx, label in enumerate(headers, start=1):
             ws.cell(row=header_row, column=col_idx, value=label)
         self._apply_plan_excel_style(ws, header_row, len(headers))
-        ws.column_dimensions['A'].width = 18
-        ws.column_dimensions['B'].width = 22
-        ws.column_dimensions['C'].width = 24
+        self._apply_plan_company_code_validation(
+            wb, ws, header_row, self._get_plan_company_codes())
+        ws.column_dimensions['A'].width = 12
+        ws.column_dimensions['B'].width = 18
+        ws.column_dimensions['C'].width = 22
         ws.column_dimensions['D'].width = 24
-        ws.column_dimensions['E'].width = 16
+        ws.column_dimensions['E'].width = 24
         ws.column_dimensions['F'].width = 16
         ws.column_dimensions['G'].width = 16
         ws.column_dimensions['H'].width = 16
+        ws.column_dimensions['I'].width = 16
         return self._xlsx_download_action(
             wb,
             'KHKD_%s.xlsx' % (self.code),
@@ -801,7 +854,7 @@ class KeHoachVatTu(models.Model):
         ):
             raise UserError(_('Bạn không có quyền export kế hoạch cho sản xuất.'))
         lines = self.ke_hoach_san_xuat_ids.sorted(lambda r: (
-            r.nganh_hang or '',
+            r.nganh_hang.ten if r.nganh_hang else '',
             r.ten_hang or '',
             r.ma_hang or '',
             r.ma_sap or '',
@@ -823,7 +876,7 @@ class KeHoachVatTu(models.Model):
 
         for line in lines:
             ws.append([
-                line.nganh_hang or '',
+                line.nganh_hang.ten if line.nganh_hang else '',
                 line.ten_hang or '',
                 line.ma_hang or '',
                 line.ma_sap or '',
