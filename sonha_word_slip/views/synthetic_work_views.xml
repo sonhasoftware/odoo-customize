@@ -77,7 +77,7 @@
         <field name="name">synthetic.work.tree</field>
         <field name="model">synthetic.work</field>
         <field name="arch" type="xml">
-            <tree string="Bảng công tổng hợp">
+            <tree string="Bảng công tổng hợp" default_order="month dest">
                 <field name="employee_code"/>
                 <field name="employee_id"/>
                 <field name="department_id"/>
@@ -127,6 +127,16 @@
         <field name="name">Bảng công tổng hợp</field>
         <field name="res_model">synthetic.work</field>
         <field name="view_mode">tree,form</field>
+        <field name="domain">
+            [
+                '|', '|',
+                '&amp;', ('month', '=', (context_today().month)), ('year', '=', (context_today().year)),
+                '&amp;', ('month', '=', (context_today().month - 1 if context_today().month > 1 else 12)),
+                     ('year', '=', (context_today().year if context_today().month > 1 else context_today().year - 1)),
+                '&amp;', ('month', '=', (context_today().month - 2 if context_today().month > 2 else 12 + (context_today().month - 2))),
+                     ('year', '=', (context_today().year if context_today().month > 2 else context_today().year - 1))
+            ]
+        </field>
         <field name="search_view_id" ref="view_synthetic_work_search"/>
         <field name="context">{'search_default_current_month': 1}</field>
     </record>
