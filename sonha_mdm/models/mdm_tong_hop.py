@@ -374,8 +374,26 @@ class MDMTongHop(models.Model):
         for r in self:
             self.create_write_action_data(r)
 
-    def _prepare_api_payload(self, record, sync_type, line=None):
-        company = line.dvcs if line and line.dvcs else record.dvcs
+
+    def _normalize_api_company(self, company):
+        if not company:
+            return self.env['res.company']
+        if hasattr(company, 'ids'):
+            return company[:1]
+        domain = [('id', '=', company)] if isinstance(company, int) else [('company_code', '=', company)]
+        return self.env['res.company'].sudo().search(domain, limit=1)
+
+    def _get_api_line_by_company(self, record, company=None, line=None):
+        if line:
+            return line
+        company = self._normalize_api_company(company)
+        if not company:
+            return None
+        return record.bang_con_ids.filtered(lambda item: item.dvcs.id == company.id)[:1]
+
+    def _prepare_api_payload(self, record, sync_type, line=None, company=None):
+        line = self._get_api_line_by_company(record, company=company, line=line)
+        company = line.dvcs if line and line.dvcs else (False if company else record.dvcs)
         return {'ma_chung_loai1': record.chung_loai1.ma or None,
                 'ten_chung_loai1': record.chung_loai1.ten or None,
                 'ma_chung_loai2': record.chung_loai2.ma or None,
@@ -431,25 +449,30 @@ class MDMTongHop(models.Model):
         target = line or record
         target.with_context(skip_mdm_similarity=True, skip_mdm_api_sync=True).sudo().write(values)
 
-    def call_api_insert(self, record, line=None):
-        data = self._prepare_api_payload(record, 'insert', line=line)
+    def call_api_insert(self, record, line=None, company=None):
+        line = self._get_api_line_by_company(record, company=company, line=line)
+        data = self._prepare_api_payload(record, 'insert', line=line, company=company)
         success, message = self._call_api_hang_hoa(data, "API RESPONSE:", "API ERROR:")
         self._mark_api_result(record, success, message, line=line)
         return success
 
-    def call_api_update(self, record):
-        data = self._prepare_api_payload(record, 'update')
+    def call_api_update(self, record, line=None, company=None):
+        line = self._get_api_line_by_company(record, company=company, line=line)
+        data = self._prepare_api_payload(record, 'update', line=line, company=company)
         success, message = self._call_api_hang_hoa(data, "API hàng hóa:", "API hàng hóa:")
-        self._mark_api_result(record, success, message)
+        self._mark_api_result(record, success, message, line=line)
         return success
 
     @api.model
-    def cron_call_api_insert_all_hang_hoa(self, limit=None):
+    def cron_call_api_insert_all_hang_hoa(self, limit=None, company=None):
         records = self.search([], limit=limit)
         for record in records:
-            record.call_api_insert(record)
-            for line in record.bang_con_ids:
-                record.call_api_insert(record, line=line)
+            if company:
+                record.call_api_insert(record, company=company)
+            else:
+                record.call_api_insert(record)
+                for line in record.bang_con_ids:
+                    record.call_api_insert(record, line=line)
         return True
 
     def write(self, vals):
