@@ -67,51 +67,22 @@ class DataAttendance(models.Model):
             ('date_time', '>=', start_date),
             ('date_time', '<=', end_date)
         ], order='date_time')
-
-        employee_model = self.env['hr.employee'].sudo()
-        attendance_model = self.env['master.data.attendance'].sudo()
-
-        # Load toàn bộ employee
-        employee_map = {
-            emp.device_id_num: emp.id
-            for emp in employee_model.search([
-                ('device_id_num', '!=', False)
-            ])
-        }
-
-        # Load attendance đã có
-        existing_records = attendance_model.search([
-            ('attendance_time', '>=', start_date - timedelta(hours=7)),
-            ('attendance_time', '<=', end_date - timedelta(hours=7)),
-        ])
-
-        existing_set = {
-            (rec.employee_id.id, rec.attendance_time)
-            for rec in existing_records
-        }
-
-        vals_list = []
+        employee_model = self.env['hr.employee']
+        master_attendance_model = self.env['master.data.attendance']
 
         for record in attendance_records:
+            # Tìm nhân viên dựa vào mã chấm công
+            employee = employee_model.sudo().search([('device_id_num', '=', record.code)])
+            if employee:
+                # Kiểm tra xem bản ghi đã tồn tại trong master.data.attendance chưa
+                existing_record = master_attendance_model.sudo().search([
+                    ('employee_id', '=', employee.id),
+                    ('attendance_time', '=', record.date_time - timedelta(hours=7))
+                ], limit=1)
 
-            employee_id = employee_map.get(record.code)
-
-            if not employee_id:
-                continue
-
-            attendance_time = record.date_time - timedelta(hours=7)
-
-            key = (employee_id, attendance_time)
-
-            if key in existing_set:
-                continue
-
-            vals_list.append({
-                'employee_id': employee_id,
-                'attendance_time': attendance_time,
-            })
-
-            existing_set.add(key)
-
-        if vals_list:
-            attendance_model.create(vals_list)
+                if not existing_record:
+                    # Tạo bản ghi mới trong bảng master.data.attendance
+                    master_attendance_model.create({
+                        'employee_id': employee.id,
+                        'attendance_time': record.date_time - timedelta(hours=7),
+                    })
