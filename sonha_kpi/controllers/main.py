@@ -618,7 +618,7 @@ class DataChart(http.Controller):
         worksheet.fit_to_pages(1, 0)
         worksheet.set_paper(9)
         worksheet.center_horizontally()
-        worksheet.set_margins(left=0, right=0, top=0.5, bottom=0.5)
+        worksheet.set_margins(left=0.25, right=0.25, top=0.5, bottom=0.5)
 
         # Format
         title_format = workbook.add_format({
@@ -654,26 +654,31 @@ class DataChart(http.Controller):
             'font_size': 15
         })
         # Set column widths
-        worksheet.set_column('A:A', 30)
-        worksheet.set_column('B:B', 40)
-        worksheet.set_column('C:D', 12)
-        worksheet.set_column('E:E', 25)
-        worksheet.set_column('F:G', 10)
-        worksheet.set_column('H:H', 30)
-        worksheet.set_column('I:I', 25)
-        worksheet.set_column('J:K', 12)
-        worksheet.set_column('L:L', 14)
-        worksheet.set_column('M:N', 12)
-        worksheet.set_column('O:O', 14)
-        worksheet.set_column('P:P', 20)
+        worksheet.set_column('A:A', 35)
+        worksheet.set_column('B:B', 50)
+        worksheet.set_column('C:D', 15)
+        worksheet.set_column('E:E', 30)
+        worksheet.set_column('F:G', 15)
+        worksheet.set_column('H:H', 35)
+        worksheet.set_column('I:I', 30)
+        worksheet.set_column('J:K', 16)
+        worksheet.set_column('L:L', 18)
+        worksheet.set_column('M:N', 16)
+        worksheet.set_column('O:O', 18)
+        worksheet.set_column('P:P', 25)
+
+        # Set row heights
+        worksheet.set_row(0, 40)  # Tiêu đề chính
+        worksheet.set_row(1, 30)  # Header dòng 2
+        worksheet.set_row(2, 30)  # Header dòng 3
 
         # ✅ Thêm dòng tiêu đề lớn đầu tiên
         title = f'KPI tháng {month}/{year} - Ban {department_name}'
         worksheet.merge_range('A1:P1', title, title_format)
 
         # Header (bắt đầu từ dòng 2 và 3)
-        worksheet.merge_range('A2:A3', 'NỘI DUNG CÔNG VIỆC\n(Đã giao ở mục tiêu\nKPIs cả năm)', wrap_format)
-        worksheet.merge_range('B2:B3', 'NỘI DUNG CÔNG\nVIỆC CỤ THỂ', wrap_format)
+        worksheet.merge_range('A2:A3', 'MỤC TIÊU NĂM', wrap_format)
+        worksheet.merge_range('B2:B3', 'KẾ HOẠCH HÀNH\nĐỘNG THÁNG', wrap_format)
         worksheet.merge_range('C2:D2', 'THỜI GIAN THỰC HIỆN', wrap_format)
         worksheet.write('C3', 'Bắt đầu', wrap_format)
         worksheet.write('D3', 'Hoàn thành', wrap_format)
@@ -733,6 +738,158 @@ class DataChart(http.Controller):
         text = re.sub(r'\s+', '_', text)
         text = re.sub(r'[^\w_]', '', text)
         filename = f'KPI_thang_{month}_{year}_{text}.xlsx'
+
+        return request.make_response(
+            output.read(),
+            headers=[
+                ('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'),
+                ('Content-Disposition', f'attachment; filename={filename}')
+            ]
+        )
+
+    @http.route(['/kpi/report/month_rel/export/excel'], type='http', auth='none')
+    def export_kpi_month_rel_excel(self, department_id=None, year=None, month=None, **kwargs):
+        records = request.env['report.kpi.month'].sudo().search([
+            ('department_id', '=', int(department_id)),
+            ('year', '=', int(year))
+        ])
+
+        if month:
+            records = records.filtered(lambda x: x.start_date.month == int(month))
+
+        # Lấy tên phòng ban
+        department = request.env['hr.department'].sudo().browse(int(department_id))
+        department_name = department.name or "Không xác định"
+
+        output = BytesIO()
+        workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+        worksheet = workbook.add_worksheet('Đánh giá KPI')
+
+        # ✅ Cấu hình in ngang, fit trang
+        worksheet.set_landscape()
+        worksheet.fit_to_pages(1, 0)
+        worksheet.set_paper(9)
+        worksheet.center_horizontally()
+        worksheet.set_margins(left=0.25, right=0.25, top=0.5, bottom=0.5)
+
+        # Format
+        title_format = workbook.add_format({
+            'bold': True,
+            'font_size': 20,
+            'align': 'center',
+            'valign': 'vcenter'})
+        header_format = workbook.add_format(
+            {'bold': True, 'align': 'center', 'valign': 'vcenter', 'border': 1, 'text_wrap': True,
+             'bg_color': '#D9F1F1'})
+        cell_format = workbook.add_format({
+            'align': 'center',
+            'valign': 'vcenter',
+            'border': 1,
+            'text_wrap': True,
+            'font_size': 15
+        })
+        text_format = workbook.add_format({
+            'align': 'left',
+            'valign': 'top',
+            'border': 1,
+            'text_wrap': True,
+            'font_size': 15
+        })
+
+        wrap_format = workbook.add_format({
+            'bold': True,
+            'align': 'center',
+            'valign': 'vcenter',
+            'text_wrap': True,
+            'bg_color': '#D9E1F2',
+            'border': 1,
+            'font_size': 15
+        })
+
+        # Set column widths
+        worksheet.set_column('A:A', 35)
+        worksheet.set_column('B:B', 50)
+        worksheet.set_column('C:C', 30)
+        worksheet.set_column('D:D', 30)
+        worksheet.set_column('E:E', 16)  # TỶ TRỌNG
+        worksheet.set_column('F:F', 20)  # KẾT QUẢ ĐƠN VỊ
+        worksheet.set_column('G:G', 35)  # MÔ TẢ CHI TIẾT
+        worksheet.set_column('H:H', 18)  # File
+        worksheet.set_column('I:I', 20)  # % PHÊ DUYỆT
+        worksheet.set_column('J:J', 35)  # NHẬN XÉT ĐÁNH GIÁ
+
+        # Set row heights
+        worksheet.set_row(0, 40)  # Tiêu đề chính
+        worksheet.set_row(1, 30)  # Header dòng 2
+        worksheet.set_row(2, 30)  # Header dòng 3
+
+        # ✅ Thêm dòng tiêu đề lớn đầu tiên
+        title = f'Đánh giá KPI tháng {month}/{year} - Ban {department_name}'
+        worksheet.merge_range('A1:J1', title, title_format)
+
+        # Header (bắt đầu từ dòng 2 và 3)
+        worksheet.merge_range('A2:A3', 'MỤC TIÊU NĂM', wrap_format)
+        worksheet.merge_range('B2:B3', 'KẾ HOẠCH HÀNH\nĐỘNG THÁNG', wrap_format)
+        worksheet.merge_range('C2:C3', 'CHỈ TIÊU ĐO LƯỜNG', wrap_format)
+        worksheet.merge_range('D2:D3', 'TIÊU CHÍ', wrap_format)
+        worksheet.merge_range('E2:E3', 'TỶ TRỌNG', wrap_format)
+        worksheet.merge_range('F2:F3', 'KẾT QUẢ ĐƠN VỊ', wrap_format)
+        worksheet.merge_range('G2:G3', 'MÔ TẢ CHI TIẾT', wrap_format)
+        worksheet.merge_range('H2:H3', 'File', wrap_format)
+        worksheet.merge_range('I2:I3', '% PHÊ DUYỆT', wrap_format)
+        worksheet.merge_range('J2:J3', 'NHẬN XÉT ĐÁNH GIÁ', wrap_format)
+
+        # Bắt đầu dữ liệu từ dòng thứ 4 (index = 3)
+        row = 3
+        for rec in records:
+            # Lấy tỷ trọng từ model sonha.kpi.result.month
+            result_month = request.env['sonha.kpi.result.month'].sudo().search([
+                ('kpi_month', '=', rec.small_items_each_month.id)
+            ], limit=1)
+            ti_trong_val = f"{round(result_month.ti_trong * 100, 1)}%" if result_month else "0%"
+
+            worksheet.merge_range(row, 0, row + 1, 0, rec.kpi_year_id.name or '', text_format)
+            worksheet.merge_range(row, 1, row + 1, 1, rec.small_items_each_month.small_items_each_month or '', text_format)
+            worksheet.merge_range(row, 2, row + 1, 2, rec.dv_do_luong or '', text_format)
+            worksheet.write(row, 3, 'Khối lượng công việc thực hiện', cell_format)
+            worksheet.write(row + 1, 3, 'Chất lượng công việc thực hiện', cell_format)
+            worksheet.merge_range(row, 4, row + 1, 4, ti_trong_val, cell_format)
+            worksheet.write(row, 5, f"{rec.dv_amount_work * 100}%", cell_format)
+            worksheet.write(row + 1, 5, f"{rec.dv_matter_work * 100}%", cell_format)
+            worksheet.merge_range(row, 6, row + 1, 6, rec.dv_description or '', text_format)
+            worksheet.merge_range(row, 7, row + 1, 7, rec.small_items_each_month.upload_file_name or '', text_format)
+            worksheet.write(row, 8, f"{rec.tq_amount_work}%" if rec.tq_amount_work else "0%", cell_format)
+            worksheet.write(row + 1, 8, f"{rec.tq_matter_work}%" if rec.tq_matter_work else "0%", cell_format)
+            worksheet.merge_range(row, 9, row + 1, 9, rec.tq_description or '', text_format)
+
+            row += 2
+
+        # ✅ Thêm dòng chữ ký phê duyệt dưới bảng dữ liệu
+        row += 2
+        sig_header_format = workbook.add_format({
+            'bold': True,
+            'align': 'center',
+            'valign': 'vcenter',
+            'text_wrap': True,
+            'font_size': 13
+        })
+        worksheet.set_row(row, 25)
+        worksheet.set_row(row + 1, 20)
+        worksheet.set_row(row + 2, 70)  # Chừa khoảng trống 70px để ký tên
+
+        worksheet.merge_range(row, 7, row + 1, 9, 'PHÊ DUYỆT\n(Ký và ghi rõ họ tên)', sig_header_format)
+
+        # ✅ Xác định vùng in để co vừa 1 trang ngang
+        worksheet.print_area(0, 0, row + 2, 9)
+
+        workbook.close()
+        output.seek(0)
+        text = unicodedata.normalize('NFD', department_name)
+        text = text.encode('ascii', 'ignore').decode('utf-8')
+        text = text.lower()
+        text = re.sub(r'\s+', '_', text)
+        text = re.sub(r'[^\w_]', '', text)
+        filename = f'Danh_gia_KPI_thang_{month}_{year}_{text}.xlsx'
 
         return request.make_response(
             output.read(),

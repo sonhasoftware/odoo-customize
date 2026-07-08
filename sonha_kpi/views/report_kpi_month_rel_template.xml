@@ -17,6 +17,12 @@
                     </h6>
                 </div>
                 <div class="form-header">
+                    <div>
+                        <a t-attf-href="/kpi/report/month_rel/export/excel?department_id={{ kpi_records[0].department_id.id }}&amp;year={{ kpi_records[0].year }}&amp;month={{ kpi_records[0].start_date.month }}"
+                           class="btn btn-primary">
+                            📥 Tải Excel
+                        </a>
+                    </div>
                      <button class="btn btn-primary" id="hr-approve" t-if="check_hr_approve == 1">
                          Duyệt
                      </button>
@@ -36,9 +42,6 @@
                             Duyệt kế hoạch tháng sau
                         </button>
                     </div>
-                    <div>
-
-                    </div>
                     <h5 class="status tq-class">
                         Trạng thái: <t t-esc="kpi_records[0].get_status_label()"/>
                     </h5>
@@ -46,9 +49,11 @@
                 <table class="table table-bordered">
                     <thead>
                         <tr>
-                            <th>ND CÔNG VIỆC THÁNG</th>
+                            <th>MỤC TIÊU NĂM</th>
+                            <th>KẾ HOẠCH HÀNH ĐỘNG THÁNG</th>
                             <th>CHỈ TIÊU ĐO LƯỜNG</th>
                             <th>TIÊU CHÍ</th>
+                            <th>TỶ TRỌNG</th>
                             <th class="unit-result">KẾT QUẢ ĐƠN VỊ</th>
                             <th>MÔ TẢ CHI TIẾT</th>
                             <th class="file">File</th>
@@ -61,10 +66,15 @@
                             <tr>
 <!--                                Đổi rowspan từ 4 -> còn 2 giảm kích thước nhận xét đánh giá 1 nửa-->
                                 <td class="kpi-department" rowspan="2"><t t-esc="kpi.department_id.id"/></td>
+                                <td rowspan="2" style="font-weight: bold;"><t t-esc="kpi.kpi_year_id.name"/></td>
                                 <td rowspan="2" class="work-volume"><t t-esc="kpi.small_items_each_month.small_items_each_month"/></td>
                                 <td rowspan="2" class="start-date"><t t-esc="kpi.start_date"/></td>
                                 <td rowspan="2"><t t-esc="kpi.dv_do_luong"/></td>
                                 <td>Khối lượng công việc thực hiện</td>
+                                <td rowspan="2">
+                                    <t t-set="result_month" t-value="kpi.env['sonha.kpi.result.month'].sudo().search([('kpi_month', '=', kpi.small_items_each_month.id)], limit=1)"/>
+                                    <t t-if="result_month" t-esc="round(result_month.ti_trong * 100, 1)"/>%
+                                </td>
                                 <td class="result"><t t-esc="kpi.dv_amount_work * 100"/> %</td>
                                 <td rowspan="2"><t t-esc="kpi.dv_description"/></td>
                                 <td rowspan="2">
