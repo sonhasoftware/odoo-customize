@@ -16,7 +16,6 @@ class MDMKhachHangImportWizard(models.TransientModel):
         ('quan_huyen_cu', 'quan.huyen.cu', 6, 'Quận/huyện cũ'),
         ('tinh_cu', 'tinh.cu', 7, 'Tỉnh cũ'),
         ('dat_nuoc', 'mdm.quoc.gia', 8, 'Quốc gia'),
-        ('plan', 'mdm.plan', 11, 'Plant'),
         ('ma_cn', 'mdm.chi.nhanh', 12, 'CN/NPP'),
         ('nhom_khach', 'mdm.nhom.khach', 13, 'Nhóm KH_NCC'),
         ('ten_salesman', 'mdm.saleman', 14, 'Mã_salesman'),
@@ -109,6 +108,7 @@ class MDMKhachHangImportWizard(models.TransientModel):
             'dia_chi_khach': row_values[4],
             'so_dien_thoai': row_values[9],
             'mst': row_values[10],
+            'cccd': row_values[11],
             'vung': row_values[15],
         }
 
