@@ -15,3 +15,4 @@ from . import exp_group_users
 from . import exp_mail_config
 from . import exp_config_country
 from . import exp_config_bank
+from . import exp_mail_log

@@ -170,11 +170,11 @@
               action="sonha_mdm.action_tinh_cu"
               sequence="20"/>
 
-    <menuitem id="menu_mdm_plan"
-              name="Plan"
-              parent="menu_mdm_danh_muc"
-              action="sonha_mdm.action_plan"
-              sequence="21"/>
+<!--    <menuitem id="menu_mdm_plan"-->
+<!--              name="Plan"-->
+<!--              parent="menu_mdm_danh_muc"-->
+<!--              action="sonha_mdm.action_plan"-->
+<!--              sequence="21"/>-->
 
     <menuitem id="menu_mien_lon"
               name="Miền lớn"
