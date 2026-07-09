@@ -771,6 +771,7 @@ class DataChart(http.Controller):
         worksheet.set_paper(9)
         worksheet.center_horizontally()
         worksheet.set_margins(left=0.25, right=0.25, top=0.5, bottom=0.5)
+        worksheet.repeat_rows(1, 2)  # Lặp lại tiêu đề bảng ở mỗi trang khi in
 
         # Format
         title_format = workbook.add_format({
