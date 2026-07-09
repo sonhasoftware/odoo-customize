@@ -38,21 +38,6 @@ class MDMKhachHangImportWizard(models.TransientModel):
         return str(value).strip() or False
 
     @staticmethod
-    def _merge_non_empty_vals(existing_record, incoming_vals):
-        merged_vals = {}
-        for field_name, value in incoming_vals.items():
-            if value in (False, None, ''):
-                continue
-
-            existing_value = existing_record[field_name]
-            if hasattr(existing_value, 'id'):
-                existing_value = existing_value.id or False
-            if existing_value != value:
-                merged_vals[field_name] = value
-
-        return merged_vals
-
-    @staticmethod
     def _merge_non_empty_dict(base_vals, incoming_vals):
         merged_vals = dict(base_vals)
         for field_name, value in incoming_vals.items():
@@ -144,7 +129,7 @@ class MDMKhachHangImportWizard(models.TransientModel):
         line_model = self.env['mdm.khach.hang.line']
 
         imported = 0
-        updated = 0
+        existing_count = 0
         errors = []
 
         import_rows, company_codes, lookup_codes_by_model = self._read_import_rows(sheet)
@@ -184,12 +169,7 @@ class MDMKhachHangImportWizard(models.TransientModel):
                 existing = existing_by_ma.get(ma_mdm)
 
                 if existing:
-                    update_vals = self._merge_non_empty_vals(existing, vals)
-                    if existing.dvcs.id != company.id:
-                        update_vals['dvcs'] = company.id
-                    if update_vals:
-                        existing.with_context(**import_context).sudo().write(update_vals)
-                    updated += 1
+                    existing_count += 1
                 else:
                     current_create_vals = dict(vals, dvcs=company.id)
                     if ma_mdm in pending_create_vals_by_ma:
@@ -206,7 +186,7 @@ class MDMKhachHangImportWizard(models.TransientModel):
                 errors.append(_('Dòng %(row)s (Mã MDM: %(ma_mdm)s): %(error)s', row=row_data['row_index'], ma_mdm=ma_mdm or '-', error=str(exc)))
 
         if errors:
-            message = _('Import hoàn tất. Tạo mới: %(new)s, Cập nhật: %(updated)s', new=imported, updated=updated)
+            message = _('Import hoàn tất. Tạo mới: %(new)s, Mã MDM đã tồn tại: %(existing)s', new=imported, existing=existing_count)
             message = message + '\n' + '\n'.join(errors[:20])
             raise ValidationError(message)
 
