@@ -771,6 +771,7 @@ class DataChart(http.Controller):
         worksheet.set_paper(9)
         worksheet.center_horizontally()
         worksheet.set_margins(left=0.25, right=0.25, top=0.5, bottom=0.5)
+        worksheet.repeat_rows(1, 2)  # Lặp lại tiêu đề bảng ở mỗi trang khi in
 
         # Format
         title_format = workbook.add_format({
@@ -807,16 +808,16 @@ class DataChart(http.Controller):
         })
 
         # Set column widths
-        worksheet.set_column('A:A', 35)
-        worksheet.set_column('B:B', 50)
-        worksheet.set_column('C:C', 30)
-        worksheet.set_column('D:D', 30)
-        worksheet.set_column('E:E', 16)  # TỶ TRỌNG
-        worksheet.set_column('F:F', 20)  # KẾT QUẢ ĐƠN VỊ
-        worksheet.set_column('G:G', 35)  # MÔ TẢ CHI TIẾT
-        worksheet.set_column('H:H', 18)  # File
-        worksheet.set_column('I:I', 20)  # % PHÊ DUYỆT
-        worksheet.set_column('J:J', 35)  # NHẬN XÉT ĐÁNH GIÁ
+        worksheet.set_column('A:A', 45)
+        worksheet.set_column('B:B', 65)
+        worksheet.set_column('C:C', 40)
+        worksheet.set_column('D:D', 45)
+        worksheet.set_column('E:E', 22)  # TỶ TRỌNG
+        worksheet.set_column('F:F', 28)  # KẾT QUẢ ĐƠN VỊ
+        worksheet.set_column('G:G', 45)  # MÔ TẢ CHI TIẾT
+        worksheet.set_column('H:H', 25)  # File
+        worksheet.set_column('I:I', 28)  # % PHÊ DUYỆT
+        worksheet.set_column('J:J', 45)  # NHẬN XÉT ĐÁNH GIÁ
 
         # Set row heights
         worksheet.set_row(0, 40)  # Tiêu đề chính
@@ -841,12 +842,54 @@ class DataChart(http.Controller):
 
         # Bắt đầu dữ liệu từ dòng thứ 4 (index = 3)
         row = 3
+
+        def estimate_height(text, width):
+            if not text:
+                return 20
+            text = str(text)
+            lines = text.split('\n')
+            char_limit = max(10, int(width * 0.7))
+            total_lines = 0
+            for line in lines:
+                line_len = len(line)
+                if line_len == 0:
+                    total_lines += 1
+                else:
+                    total_lines += (line_len + char_limit - 1) // char_limit
+            return max(20, total_lines * 22 + 15)
+
         for rec in records:
             # Lấy tỷ trọng từ model sonha.kpi.result.month
             result_month = request.env['sonha.kpi.result.month'].sudo().search([
                 ('kpi_month', '=', rec.small_items_each_month.id)
             ], limit=1)
             ti_trong_val = f"{round(result_month.ti_trong * 100, 1)}%" if result_month else "0%"
+
+            # Tính toán chiều cao hàng dựa trên các ô dữ liệu gộp
+            h_a = estimate_height(rec.kpi_year_id.name or '', 45)
+            h_b = estimate_height(rec.small_items_each_month.small_items_each_month or '', 65)
+            h_c = estimate_height(rec.dv_do_luong or '', 40)
+            h_g = estimate_height(rec.dv_description or '', 45)
+            h_h = estimate_height(rec.small_items_each_month.upload_file_name or '', 25)
+            h_j = estimate_height(rec.tq_description or '', 45)
+
+            max_height = max(h_a, h_b, h_c, h_g, h_h, h_j)
+
+            # Chiều cao yêu cầu của các ô đơn lẻ ở dòng đầu (row)
+            h_row_single_d = estimate_height('Khối lượng công việc thực hiện', 45)
+            h_row_single_f = estimate_height(f"{rec.dv_amount_work * 100}%", 28)
+            h_row_single_i = estimate_height(f"{rec.tq_amount_work}%" if rec.tq_amount_work else "0%", 28)
+
+            # Chiều cao yêu cầu của các ô đơn lẻ ở dòng hai (row + 1)
+            h_row1_single_d = estimate_height('Chất lượng công việc thực hiện', 45)
+            h_row1_single_f = estimate_height(f"{rec.dv_matter_work * 100}%", 28)
+            h_row1_single_i = estimate_height(f"{rec.tq_matter_work}%" if rec.tq_matter_work else "0%", 28)
+
+            row_height = max(max_height / 2, h_row_single_d, h_row_single_f, h_row_single_i, 25)
+            row_height_plus1 = max(max_height / 2, h_row1_single_d, h_row1_single_f, h_row1_single_i, 25)
+
+            worksheet.set_row(row, row_height)
+            worksheet.set_row(row + 1, row_height_plus1)
 
             worksheet.merge_range(row, 0, row + 1, 0, rec.kpi_year_id.name or '', text_format)
             worksheet.merge_range(row, 1, row + 1, 1, rec.small_items_each_month.small_items_each_month or '', text_format)
