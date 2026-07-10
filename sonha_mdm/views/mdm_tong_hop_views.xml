@@ -95,27 +95,27 @@
             <form string="Nhập thêm thông tin">
                 <group>
                     <group>
-                        <field name="ma"/>
-                        <field name="mdm_hh_type"/>
-                        <field name="ten_ngan"/>
-                        <field name="ten"/>
-                        <field name="dvt"/>
-                        <field name="dung_tich_plus"/>
-                        <field name="dvt_dung_tich"/>
+                        <field name="ma" required="1"/>
+                        <field name="mdm_hh_type" required="1"/>
+                        <field name="ten_ngan" required="1"/>
+                        <field name="ten" required="1"/>
+                        <field name="dvt" required="1"/>
+                        <field name="dung_tich_plus" required="1"/>
+                        <field name="dvt_dung_tich" required="1"/>
                     </group>
                     <group>
                         <field name="key_linh_vuc" invisible="1"/>
                         <field name="key_nganh_hang" invisible="1"/>
                         <field name="key_nhan_hang" invisible="1"/>
-                        <field name="chung_loai1"/>
-                        <field name="chung_loai2" domain="[('key', '=', chung_loai1)]"/>
-                        <field name="linh_vuc" domain="[('key_map', '=', key_linh_vuc)]"/>
-                        <field name="nganh_hang" domain="[('key_map', '=', key_nganh_hang)]"/>
-                        <field name="nhan_hang"/>
-                        <field name="chat_lieu"/>
-                        <field name="do_bong"/>
-                        <field name="do_day"/>
-                        <field name="bom_sale"/>
+                        <field name="chung_loai1" required="1"/>
+                        <field name="chung_loai2" required="1" domain="[('key', '=', chung_loai1)]"/>
+                        <field name="linh_vuc" required="1" domain="[('key_map', '=', key_linh_vuc)]"/>
+                        <field name="nganh_hang" required="1" domain="[('key_map', '=', key_nganh_hang)]"/>
+                        <field name="nhan_hang" required="1"/>
+                        <field name="chat_lieu" required="1"/>
+                        <field name="do_bong" required="1"/>
+                        <field name="do_day" required="1"/>
+                        <field name="bom_sale" required="1"/>
                     </group>
                 </group>
                 <footer>
