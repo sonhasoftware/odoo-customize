@@ -104,8 +104,8 @@ class BaoCaoNhuCauVatTu(models.Model):
                     rc.company_code,
                     g.ma_nvl_key AS ma_nvl,
                     g.ma_nvl_key AS ma_sap,
-                    kd.ma_hang AS ma_effect,
-                    kd.ma_hang AS ma_cuon,
+                    NULL::varchar AS ma_effect,
+                    NULL::varchar AS ma_cuon,
                     g.ten_nvl,
                     g.chung_loai,
                     g.don_vi_tinh,
@@ -117,17 +117,5 @@ class BaoCaoNhuCauVatTu(models.Model):
                         + COALESCE(g.so_luong_t2, 0) + COALESCE(g.so_luong_t3, 0) AS tong_so_luong
                 FROM grouped g
                 LEFT JOIN res_company rc ON rc.id = g.company_id
-                LEFT JOIN LATERAL (
-                    SELECT kd_inner.ma_hang
-                    FROM dinh_muc dm
-                    JOIN ke_hoach_kinh_doanh kd_inner
-                      ON kd_inner.period_id = dm.period_id
-                     AND kd_inner.ma_sap = dm.ma_sap
-                     AND kd_inner.company_id = g.company_id
-                    WHERE dm.period_id = g.period_id
-                      AND dm.ma_nvl = g.ma_nvl_key
-                    ORDER BY kd_inner.id
-                    LIMIT 1
-                ) kd ON TRUE
             )
         """)

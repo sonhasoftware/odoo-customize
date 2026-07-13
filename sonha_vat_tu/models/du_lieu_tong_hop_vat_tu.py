@@ -107,25 +107,78 @@ class DuLieuTongHopVatTu(models.Model):
     so_luong_can_mua = fields.Float(string='SL cần mua', digits=(16, 3), readonly=True)
     ghi_chu = fields.Char(string='Ghi chú (B4/B5)', readonly=True)
 
-    # --- --
-    tong_ton_nvl_sl = fields.Float(string='Tổng tồn NVL', digits=(16, 3), readonly=True)
-    tong_hang_di_duong_sl = fields.Float(string='Tổng hàng đi đường', digits=(16, 3), readonly=True)
-    tong_sl_vt_can_dung = fields.Float(string='Tổng SL VT cần dùng', digits=(16, 3), readonly=True)
+    # --- B5 (khớp kh.dat.vat.tu) ---
+    tong_ton_nvl_sl = fields.Float(string='Tồn NVL đầu kỳ', digits=(16, 3), readonly=True)
+    don_gia_ton_kho = fields.Monetary(
+        string='Đơn giá tồn kho đầu kỳ',
+        currency_field='currency_id',
+        readonly=True,
+    )
+    gia_tri_ton_nvl_dau_ky = fields.Monetary(
+        string='Giá trị tồn NVL đầu kỳ',
+        currency_field='currency_id',
+        readonly=True,
+    )
+    tong_sl_vt_can_dung_t0 = fields.Float(string='Cần dùng T0', digits=(16, 3), readonly=True)
+    tong_sl_vt_can_dung_t1 = fields.Float(string='Cần dùng T1', digits=(16, 3), readonly=True)
+    tong_sl_vt_can_dung_t2 = fields.Float(string='Cần dùng T2', digits=(16, 3), readonly=True)
+    tong_sl_vt_can_dung_t3 = fields.Float(string='Cần dùng T3', digits=(16, 3), readonly=True)
+    tong_vt_can_dung = fields.Float(string='Tổng cần dùng', digits=(16, 3), readonly=True)
+    tong_sl_vt_can_dung = fields.Float(
+        string='Tổng SL VT cần dùng (alias)',
+        digits=(16, 3),
+        readonly=True,
+        help='Alias báo cáo; đồng bộ cùng giá trị tong_vt_can_dung.',
+    )
+    tong_hang_di_duong_sl_t0 = fields.Float(string='Đi đường T0', digits=(16, 3), readonly=True)
+    tong_hang_di_duong_sl_t1 = fields.Float(string='Đi đường T1', digits=(16, 3), readonly=True)
+    tong_hang_di_duong_sl_t2 = fields.Float(string='Đi đường T2', digits=(16, 3), readonly=True)
+    tong_hang_di_duong_sl_t3 = fields.Float(string='Đi đường T3', digits=(16, 3), readonly=True)
+    tong_hang_di_duong = fields.Float(string='Tổng đi đường', digits=(16, 3), readonly=True)
+    tong_hang_di_duong_sl = fields.Float(
+        string='Tổng hàng đi đường (alias)',
+        digits=(16, 3),
+        readonly=True,
+        help='Alias báo cáo; đồng bộ cùng giá trị tong_hang_di_duong.',
+    )
     sl_du_tru_toi_thieu = fields.Float(string='SL dự trữ tối thiểu', digits=(16, 3), readonly=True)
-    sl_can_mua_theo_moq = fields.Float(string='SL cần mua theo MOQ', digits=(16, 3), readonly=True)
     sl_dat_mua_de_xuat = fields.Float(string='SL đặt mua đề xuất', digits=(16, 3), readonly=True)
     sl_dat_mua_chot = fields.Float(string='SL đặt mua chốt', digits=(16, 3), readonly=True)
-    sl_ton_kho = fields.Float(string='SL tồn kho', digits=(16, 3), readonly=True)
+    sl_can_mua_theo_moq = fields.Float(string='SL cần mua theo MOQ', digits=(16, 3), readonly=True)
+    don_gia_mua = fields.Monetary(
+        string='Đơn giá mua',
+        currency_field='currency_id',
+        readonly=True,
+    )
+    gia_tri_mua_hang = fields.Monetary(
+        string='Giá trị mua hàng',
+        currency_field='currency_id',
+        readonly=True,
+    )
+    sl_ton_kho_cuoi_ky = fields.Float(string='Tồn kho cuối kỳ', digits=(16, 3), readonly=True)
+    sl_ton_kho = fields.Float(
+        string='SL tồn kho (alias)',
+        digits=(16, 3),
+        readonly=True,
+        help='Alias báo cáo; đồng bộ cùng giá trị sl_ton_kho_cuoi_ky.',
+    )
+    vt_loi_ton_lau = fields.Float(string='VT lỗi, tồn lâu ngày', digits=(16, 3), readonly=True)
     so_ngay_vong_quay_ton = fields.Float(string='Ngày vòng quay tồn', digits=(16, 2), readonly=True)
-    don_gia_ton_kho = fields.Monetary(
-        string='Đơn giá tồn kho',
+    don_gia_ton_kho_cuoi_ky = fields.Monetary(
+        string='Đơn giá tồn cuối kỳ',
+        currency_field='currency_id',
+        readonly=True,
+    )
+    gia_tri_ton_kho_cuoi_ky = fields.Monetary(
+        string='Giá trị tồn kho cuối kỳ',
         currency_field='currency_id',
         readonly=True,
     )
     gia_tri_ton_kho = fields.Monetary(
-        string='Giá trị tồn kho',
+        string='Giá trị tồn kho (alias)',
         currency_field='currency_id',
         readonly=True,
+        help='Alias báo cáo; đồng bộ cùng giá trị gia_tri_ton_kho_cuoi_ky.',
     )
 
     display_name = fields.Char(compute='_compute_display_name')

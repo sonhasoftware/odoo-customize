@@ -92,37 +92,3 @@ class DinhMuc(models.Model):
     qty_t2 = fields.Float(string='Số lượng T2', digits=(16, 3))
     qty_t3 = fields.Float(string='Số lượng T3', digits=(16, 3))
 
-    def init(self):
-        super().init()
-        # Backfill định mức cho dữ liệu B2 cũ (trước khi có cột sl_dinh_muc).
-        self.env.cr.execute("""
-            UPDATE dinh_muc dm
-               SET sl_dinh_muc = sub.n,
-                   write_date = NOW() AT TIME ZONE 'UTC'
-              FROM (
-                    SELECT dm2.id,
-                           CASE
-                               WHEN ABS(COALESCE(b1.qty_t0, 0)) > 1e-9
-                               THEN ROUND((dm2.qty_t0 / b1.qty_t0)::NUMERIC, 3)
-                               ELSE 0
-                           END AS n
-                      FROM dinh_muc dm2
-                      JOIN ke_hoach_vat_tu_line b1
-                        ON b1.period_id = dm2.period_id
-                       AND b1.ma_sap = dm2.ma_sap
-                     WHERE COALESCE(dm2.sl_dinh_muc, 0) = 0
-                       AND COALESCE(dm2.qty_t0, 0) <> 0
-                   ) sub
-             WHERE dm.id = sub.id
-        """)
-        self.env.cr.execute("""
-            UPDATE du_lieu_tong_hop_vat_tu dl
-               SET sl_dinh_muc = d.sl_dinh_muc,
-                   write_date = NOW() AT TIME ZONE 'UTC'
-              FROM dinh_muc d
-             WHERE dl.step_code = 'b2'
-               AND dl.source_model = 'dinh.muc'
-               AND dl.source_res_id = d.id
-               AND COALESCE(dl.sl_dinh_muc, 0) = 0
-               AND COALESCE(d.sl_dinh_muc, 0) <> 0
-        """)

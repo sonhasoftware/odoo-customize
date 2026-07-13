@@ -49,11 +49,3 @@ class TinhToanVatTu(models.Model):
                 rec.don_vi_kd_code = False
             else:
                 rec.don_vi_kd_code = company.company_code or company.name
-
-    def init(self):
-        super().init()
-        # Gỡ cột legacy B3 (đã bỏ khỏi model, grain = NVL).
-        for col in ('ma_sap', 'ma_effect', 'ten_sap', 'sl_dinh_muc'):
-            self.env.cr.execute(
-                f'ALTER TABLE tinh_toan_vat_tu DROP COLUMN IF EXISTS {col}'
-            )

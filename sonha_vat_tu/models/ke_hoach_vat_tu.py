@@ -160,7 +160,11 @@ class KeHoachVatTu(models.Model):
 
     _sql_constraints = [
         ('code_uniq', 'unique(code)', 'Mã kỳ phải duy nhất!'),
-        ('period_month_uniq', 'unique(period_month)', 'Tháng bắt đầu không được trùng!'),
+        (
+            'period_company_month_uniq',
+            'unique(company_id, period_month)',
+            'Tháng bắt đầu không được trùng trong cùng đơn vị lập kế hoạch!',
+        ),
     ]
 
     @api.model
@@ -951,28 +955,226 @@ class KeHoachVatTu(models.Model):
             'KHSX_%s.xlsx' % (self.code or self.id),
         )
 
+    def action_export_kh_dat_vat_tu(self):
+        """Xuất Excel bước 5."""
+        self.ensure_one()
+        if self.state != 'dat_hang':
+            raise UserError(_('Chỉ export được ở bước Kế hoạch đặt vật tư.'))
+        lines = self.kh_dat_vat_tu_ids.sorted(
+            key=lambda r: ((r.ma_sap or '').strip(), r.id),
+        )
+        if not lines:
+            raise UserError(_('Chưa có dữ liệu kế hoạch đặt vật tư để xuất.'))
+
+        months = self._get_horizon_months()
+        if len(months) < 4:
+            months = (months + [''] * 4)[:4]
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = 'Ke hoach dat vat tu'
+
+        ws.cell(row=1, column=1, value='Số chứng từ')
+        ws.cell(row=1, column=2, value=self.code or '')
+        ws.cell(row=2, column=1, value='Tháng bắt đầu')
+        ws.cell(row=2, column=2, value=self.period_month or '')
+
+        header_row1 = 4
+        header_row2 = 5
+        data_row = 6
+
+        fixed_start = [
+            ('Mã NVL', 'ma_sap', 'text'),
+            ('Tên NVL', 'ten_nvl', 'text'),
+            ('Chủng loại', 'chung_loai', 'text'),
+            ('ĐVT', 'don_vi_tinh', 'dvt'),
+            ('Đơn giá tồn kho', 'don_gia_ton_kho', 'money'),
+            ('Tồn NVL đầu kỳ', 'tong_ton_nvl_sl', 'qty'),
+            ('Giá trị tồn NVL', 'gia_tri_ton_nvl_dau_ky', 'money'),
+        ]
+        month_groups = [
+            ('Cần dùng', 'tong_sl_vt_can_dung_t', 'Tổng cần dùng', 'tong_vt_can_dung'),
+            ('Đi đường', 'tong_hang_di_duong_sl_t', 'Tổng đi đường', 'tong_hang_di_duong'),
+        ]
+        fixed_end = [
+            ('Dự trữ tối thiểu', 'sl_du_tru_toi_thieu', 'qty'),
+            ('Đề xuất đặt mua', 'sl_dat_mua_de_xuat', 'qty'),
+            ('Đặt mua chốt', 'sl_dat_mua_chot', 'qty'),
+            ('SL mua theo MOQ', 'sl_can_mua_theo_moq', 'qty'),
+            ('Đơn giá mua', 'don_gia_mua', 'money'),
+            ('Giá trị mua', 'gia_tri_mua_hang', 'money'),
+            ('Tồn kho cuối kỳ', 'sl_ton_kho_cuoi_ky', 'qty'),
+            ('Ngày vòng quay tồn', 'so_ngay_vong_quay_ton', 'qty2'),
+            ('Đơn giá tồn cuối kỳ', 'don_gia_ton_kho_cuoi_ky', 'money'),
+            ('Giá trị tồn cuối kỳ', 'gia_tri_ton_kho_cuoi_ky', 'money'),
+            ('Ghi chú', 'ghi_chu', 'text'),
+        ]
+
+        col_specs = []
+        col = 1
+
+        for label, field, kind in fixed_start:
+            ws.merge_cells(
+                start_row=header_row1, start_column=col,
+                end_row=header_row2, end_column=col,
+            )
+            ws.cell(row=header_row1, column=col, value=label)
+            col_specs.append((field, kind))
+            col += 1
+
+        for group_label, field_prefix, total_label, total_field in month_groups:
+            group_start = col
+            ws.merge_cells(
+                start_row=header_row1, start_column=group_start,
+                end_row=header_row1, end_column=group_start + 3,
+            )
+            ws.cell(row=header_row1, column=group_start, value=group_label)
+            for month_offset, month in enumerate(months):
+                ws.cell(
+                    row=header_row2, column=col,
+                    value='Tháng %s' % month if month else 'T%s' % month_offset,
+                )
+                col_specs.append((f'{field_prefix}{month_offset}', 'qty'))
+                col += 1
+            ws.merge_cells(
+                start_row=header_row1, start_column=col,
+                end_row=header_row2, end_column=col,
+            )
+            ws.cell(row=header_row1, column=col, value=total_label)
+            col_specs.append((total_field, 'qty'))
+            col += 1
+
+        for label, field, kind in fixed_end:
+            ws.merge_cells(
+                start_row=header_row1, start_column=col,
+                end_row=header_row2, end_column=col,
+            )
+            ws.cell(row=header_row1, column=col, value=label)
+            col_specs.append((field, kind))
+            col += 1
+
+        max_col = col - 1
+        row_idx = data_row
+        for line in lines:
+            for col_idx, (field, kind) in enumerate(col_specs, start=1):
+                ws.cell(
+                    row=row_idx, column=col_idx,
+                    value=self._b5_export_value(line, field, kind),
+                )
+            row_idx += 1
+
+        self._apply_b5_export_style(ws, header_row1, header_row2, max_col, col_specs)
+
+        ws.column_dimensions['A'].width = 14
+        ws.column_dimensions['B'].width = 28
+        ws.column_dimensions['C'].width = 12
+        ws.column_dimensions['D'].width = 8
+        for col_idx in range(5, max_col + 1):
+            ws.column_dimensions[get_column_letter(col_idx)].width = 14
+
+        code = (self.code or '').strip()
+        if code.upper().startswith('KHVT_'):
+            file_suffix = code[5:]
+        else:
+            file_suffix = code or str(self.id)
+        return self._xlsx_download_action(
+            wb,
+            'Data_KHDVT_%s.xlsx' % file_suffix,
+        )
+
+    @staticmethod
+    def _b5_export_value(line, field, kind):
+        if field == 'don_vi_tinh':
+            dvt = line.don_vi_tinh
+            return dvt.display_name if dvt else ''
+        value = getattr(line, field, False)
+        if kind == 'text':
+            return value or ''
+        if value in (False, None):
+            return 0.0 if kind != 'text' else ''
+        return value
+
+    def _apply_b5_export_style(self, ws, header_row1, header_row2, max_col, col_specs):
+        header_font = Font(name='Times New Roman', size=10, bold=True, color='FFFFFF')
+        header_fill = PatternFill(fill_type='solid', fgColor='3F6F8F')
+        header_side = Side(style='thin', color='2F556D')
+        header_border = Border(
+            left=header_side, right=header_side, top=header_side, bottom=header_side,
+        )
+        label_font = Font(name='Times New Roman', size=10, bold=True)
+        base_font = Font(name='Times New Roman', size=10)
+        center = Alignment(horizontal='center', vertical='center', wrap_text=True)
+        left = Alignment(horizontal='left', vertical='center')
+        right = Alignment(horizontal='right', vertical='center')
+        qty_fmt = '#,##0.000'
+        qty2_fmt = '#,##0.00'
+        money_fmt = '#,##0'
+
+        for row_idx in (1, 2):
+            ws.cell(row=row_idx, column=1).font = label_font
+
+        for row_idx in (header_row1, header_row2):
+            for col_idx in range(1, max_col + 1):
+                cell = ws.cell(row=row_idx, column=col_idx)
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.border = header_border
+                cell.alignment = center
+            ws.row_dimensions[row_idx].height = 22
+
+        kind_fmt = {'qty': qty_fmt, 'qty2': qty2_fmt, 'money': money_fmt}
+        for row_idx in range(header_row2 + 1, ws.max_row + 1):
+            for col_idx, (_, kind) in enumerate(col_specs, start=1):
+                cell = ws.cell(row=row_idx, column=col_idx)
+                cell.font = base_font
+                if kind == 'text':
+                    cell.alignment = left
+                else:
+                    cell.alignment = right
+                    fmt = kind_fmt.get(kind)
+                    if fmt:
+                        cell.number_format = fmt
+
+        ws.freeze_panes = ws.cell(row=header_row2 + 1, column=1).coordinate
+
     _IMPORT_BCU_ACTION_XMLID = 'sonha_vat_tu.action_import_tong_hop_bcu_server'
+    _EXPORT_B5_ACTION_XMLID = 'sonha_vat_tu.action_export_kh_dat_vat_tu_server'
     _B4_FORM_VIEW_XMLID = 'sonha_vat_tu.view_ke_hoach_vat_tu_form_b4'
+    _B5_FORM_VIEW_XMLID = 'sonha_vat_tu.view_ke_hoach_vat_tu_form_b5'
 
     @api.model
     def get_views(self, views, options=None):
-        """Chỉ hiện action Import BCU trên form bước 4 (Tổng hợp vật tư cần sản xuất)."""
+        """Ẩn Import BCU khỏi form khác B4; ẩn Export B5 khỏi form khác B5."""
         res = super().get_views(views, options=options)
         form = res.get('views', {}).get('form')
         if not form or not (options or {}).get('toolbar'):
             return res
-        b4_view = self.env.ref(self._B4_FORM_VIEW_XMLID, raise_if_not_found=False)
-        if not b4_view or form.get('id') == b4_view.id:
-            return res
-        import_action = self.env.ref(self._IMPORT_BCU_ACTION_XMLID, raise_if_not_found=False)
-        if not import_action:
-            return res
         toolbar = form.setdefault('toolbar', {})
-        for key in ('action', 'print'):
-            items = toolbar.get(key)
-            if not items:
-                continue
-            toolbar[key] = [item for item in items if item.get('id') != import_action.id]
+        form_view_id = form.get('id')
+
+        b4_view = self.env.ref(self._B4_FORM_VIEW_XMLID, raise_if_not_found=False)
+        if b4_view and form_view_id != b4_view.id:
+            import_action = self.env.ref(self._IMPORT_BCU_ACTION_XMLID, raise_if_not_found=False)
+            if import_action:
+                for key in ('action', 'print'):
+                    items = toolbar.get(key)
+                    if items:
+                        toolbar[key] = [
+                            item for item in items
+                            if item.get('id') != import_action.id
+                        ]
+
+        b5_view = self.env.ref(self._B5_FORM_VIEW_XMLID, raise_if_not_found=False)
+        if b5_view and form_view_id != b5_view.id:
+            export_action = self.env.ref(self._EXPORT_B5_ACTION_XMLID, raise_if_not_found=False)
+            if export_action:
+                for key in ('action', 'print'):
+                    items = toolbar.get(key)
+                    if items:
+                        toolbar[key] = [
+                            item for item in items
+                            if item.get('id') != export_action.id
+                        ]
         return res
 
     def get_formview_id(self, access_uid=None):

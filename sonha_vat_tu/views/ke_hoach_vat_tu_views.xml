@@ -481,4 +481,16 @@
         <field name="res_model">ke.hoach.vat.tu</field>
         <field name="view_mode">tree,form</field>
     </record>
+
+    <record id="action_export_kh_dat_vat_tu_server" model="ir.actions.server">
+        <field name="name">Xuất Kế hoạch đặt vật tư</field>
+        <field name="model_id" ref="model_ke_hoach_vat_tu"/>
+        <field name="binding_model_id" ref="model_ke_hoach_vat_tu"/>
+        <field name="binding_view_types">form</field>
+        <field name="state">code</field>
+        <field name="code">
+            if records:
+                action = records.action_export_kh_dat_vat_tu()
+        </field>
+    </record>
 </odoo>
