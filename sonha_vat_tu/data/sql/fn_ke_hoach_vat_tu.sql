@@ -39,6 +39,12 @@ BEGIN
 END;
 $$;
 
+CREATE INDEX IF NOT EXISTS idx_md_sap_ton_kho_ma_hang_trim
+    ON md_sap_ton_kho (TRIM(ma_hang));
+
+CREATE INDEX IF NOT EXISTS idx_md_sap_ton_kho_ma_hang_cn_dates
+    ON md_sap_ton_kho (TRIM(ma_hang), chi_nhanh, create_date DESC, id DESC);
+
 -- ============================================================
 -- B2: Sinh dinh muc tu bom_tinh_toan
 -- ============================================================
@@ -521,24 +527,31 @@ BEGIN
         CREATE INDEX ON _tmp_period_nvl_b5 (ma_hang);
 
         CREATE TEMP TABLE _tmp_ton_kho_price ON COMMIT DROP AS
-        WITH latest AS (
-            SELECT DISTINCT ON (TRIM(mtk.ma_hang), mtk.chi_nhanh)
+        WITH scoped AS (
+            SELECT
                 TRIM(mtk.ma_hang) AS ma_hang,
                 mtk.chi_nhanh,
+                mtk.create_date,
+                mtk.id,
                 safe_sap_numeric(mtk.ton_dau) AS ton_dau,
-                safe_sap_numeric(mtk.tien_ton_dau) AS tien_ton_dau
+                safe_sap_numeric(mtk.tien_ton_dau) AS tien_ton_dau,
+                fn_md_sap_ton_kho_month_key(
+                    mtk.from_date, mtk.to_date, mtk.tu_ngay, mtk.den_ngay, mtk.create_date
+                ) AS month_key
             FROM md_sap_ton_kho mtk
-            WHERE EXISTS (
-                SELECT 1 FROM _tmp_period_nvl_b5 n WHERE n.ma_hang = TRIM(mtk.ma_hang)
-            )
-              AND fn_md_sap_ton_kho_month_key(
-                      mtk.from_date, mtk.to_date, mtk.tu_ngay, mtk.den_ngay, mtk.create_date
-                  ) = v_month_price
-              AND (
-                  safe_sap_numeric(mtk.ton_dau) <> 0
-                  OR safe_sap_numeric(mtk.tien_ton_dau) <> 0
-              )
-            ORDER BY TRIM(mtk.ma_hang), mtk.chi_nhanh, mtk.create_date DESC, mtk.id DESC
+            INNER JOIN _tmp_period_nvl_b5 n ON n.ma_hang = TRIM(mtk.ma_hang)
+            WHERE safe_sap_numeric(mtk.ton_dau) <> 0
+               OR safe_sap_numeric(mtk.tien_ton_dau) <> 0
+        ),
+        latest AS (
+            SELECT DISTINCT ON (s.ma_hang, s.chi_nhanh)
+                s.ma_hang,
+                s.chi_nhanh,
+                s.ton_dau,
+                s.tien_ton_dau
+            FROM scoped s
+            WHERE s.month_key = v_month_price
+            ORDER BY s.ma_hang, s.chi_nhanh, s.create_date DESC, s.id DESC
         )
         SELECT ma_hang, 'BNH' AS comp_grp,
                SUM(ton_dau) AS tdu, SUM(tien_ton_dau) AS ttdu
