@@ -404,6 +404,9 @@ class KeHoachVatTu(models.Model):
         if to_delete:
             to_delete.with_context(**sync_ctx).unlink()
 
+        qty_fields = ('qty_t0', 'qty_t1', 'qty_t2', 'qty_t3')
+        to_create_sx = []
+        to_update_sx = []
         for ma_sap, bucket in business_by_sap.items():
             kd_line = bucket['line']
             vals = {
@@ -417,13 +420,22 @@ class KeHoachVatTu(models.Model):
             }
             sx_line = sx_by_sap.get(ma_sap)
             if sx_line:
-                sx_line.with_context(**sync_ctx).write(vals)
+                if any((sx_line[f] or 0.0) != (vals[f] or 0.0) for f in qty_fields) or (
+                    (sx_line.ma_hang or '') != (vals['ma_hang'] or '')
+                    or (sx_line.note or '') != (vals['note'] or '')
+                ):
+                    to_update_sx.append((sx_line.id, vals))
             else:
-                Production.with_context(**sync_ctx).create({
+                to_create_sx.append({
                     **vals,
                     'period_id': self.id,
                     'company_id': company.id or False,
                 })
+
+        if to_create_sx:
+            Production.with_context(**sync_ctx).create(to_create_sx)
+        if to_update_sx:
+            Production._sql_bulk_import_update(to_update_sx)
 
     def _prepare_material_plan_values_from_production(self, production_company):
         self.ensure_one()
@@ -436,7 +448,7 @@ class KeHoachVatTu(models.Model):
         if missing:
             messages = []
             for key in missing[:20]:
-                messages.append('Mã SAP=%s' % (key or ''))
+                messages.append('Mã=%s' % (key or ''))
             if len(missing) > 20:
                 messages.append('... còn %s dòng khác' % (len(missing) - 20))
             raise UserError(_(
@@ -444,14 +456,28 @@ class KeHoachVatTu(models.Model):
                 'Nếu không sản xuất, vui lòng giữ dòng và nhập Số lượng = 0.'
             ) % '\n'.join(messages))
 
+        sx_lines = self.ke_hoach_san_xuat_ids
+        sap_codes = sorted({(line.ma_sap or '').strip() for line in sx_lines if (line.ma_sap or '').strip()})
+        meta_map = self.env['ma.hang'].get_mdm_sap_meta_map(sap_codes) if sap_codes else {}
+        NganhHang = self.env['mdm.nganh.hang'].sudo()
+        nganh_names = {}
+        nh_ids = {m['nganh_hang_id'] for m in meta_map.values() if m.get('nganh_hang_id')}
+        if nh_ids:
+            for nh in NganhHang.browse(list(nh_ids)):
+                nganh_names[nh.id] = nh.ten or ''
+
         vals_list = []
-        for line in self.ke_hoach_san_xuat_ids:
+        for line in sx_lines:
             ma_sap = line.ma_sap
             kd_bucket = business_by_key.get(ma_sap)
+            meta = meta_map.get((ma_sap or '').strip(), {})
+            nganh_hang = line.nganh_hang.ten if line.nganh_hang else ''
+            if not nganh_hang and meta.get('nganh_hang_id'):
+                nganh_hang = nganh_names.get(meta['nganh_hang_id'], '')
             vals_list.append({
                 'period_id': self.id,
                 'company_id': production_company.id,
-                'nganh_hang': line.nganh_hang.ten if line.nganh_hang else '',
+                'nganh_hang': nganh_hang,
                 'ma_hang': line.ma_hang,
                 'ma_sap': line.ma_sap,
                 'qty_kd_t0': kd_bucket['qty_t0'] if kd_bucket else 0.0,
@@ -500,23 +526,26 @@ class KeHoachVatTu(models.Model):
             ).write({'company_id': production_company.id})
 
         vals_list = self._prepare_material_plan_values_from_production(production_company)
-        if vals_list:
-            self.env['ke.hoach.vat.tu.line'].sudo().with_context(skip_period_lock=True).create(vals_list)
+        Line = self.env['ke.hoach.vat.tu.line'].sudo()
+        import_ctx = {'skip_period_lock': True, 'is_importing': True, 'tracking_disable': True}
+        DuLieu = self.env['du.lieu.tong.hop.vat.tu'].sudo()
+
+        def _create_lines():
+            if vals_list:
+                Line.with_context(**import_ctx).create(vals_list)
+            return len(vals_list)
+
+        count = DuLieu.run_period_bulk(self.id, ['b1'], _create_lines)
         self.with_context(vat_tu_chatter_scope='vt').message_post(
             body=_(
                 'Đã tạo %s dòng kế hoạch vật tư theo đơn vị sản xuất %s.'
-            ) % (len(vals_list), production_company.company_code)
+            ) % (count, production_company.company_code)
         )
         return self.action_open_workflow_vt()
 
     def action_compute_b3(self):
         self.ensure_one()
         self.env.cr.execute('CALL public.fn_tinh_toan_vat_tu(%s)', (self.id,))
-        lines = self.env['tinh.toan.vat.tu'].sudo().search([('period_id', '=', self.id)])
-        if lines:
-            lines.invalidate_recordset(['don_vi_kd_code'])
-            lines._compute_don_vi_kd_code()
-            lines.flush_recordset(['don_vi_kd_code'])
         self.state = 'tinh_toan'
         return self.action_open_step_b3()
 
@@ -528,6 +557,24 @@ class KeHoachVatTu(models.Model):
         )
         self.state = 'tong_hop'
         return self.action_open_step_b4()
+
+    def action_open_import_bcu_wizard(self):
+        self.ensure_one()
+        if self.state != 'tong_hop':
+            raise UserError(_('Chỉ import hàng đi đường BCU khi đã ở bước Tổng hợp vật tư cần sản xuất.'))
+        if not self.tong_hop_vat_tu_ids.filtered(lambda r: not r.don_vi_kd_id):
+            raise UserError(_('Chưa có dữ liệu Tổng hợp vật tư cần sản xuất. Vui lòng chạy bước này trước khi import.'))
+        view = self.env.ref('sonha_vat_tu.view_import_tong_hop_bcu_wizard_form')
+        return {
+            'name': _('Import hàng đi đường BCU'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'import.tong.hop.bcu.wizard',
+            'view_mode': 'form',
+            'views': [(view.id, 'form')],
+            'view_id': view.id,
+            'target': 'new',
+            'context': {'default_period_id': self.id},
+        }
 
     def action_compute_b5(self):
         self.ensure_one()
@@ -777,7 +824,7 @@ class KeHoachVatTu(models.Model):
         ws.title = 'Ke hoach kinh doanh'
         self._write_plan_metadata(ws)
         months = self._get_horizon_months()
-        headers = ['Đơn vị', 'Ngành hàng', 'Tên hàng', 'Mã hàng', 'Mã SAP']
+        headers = ['Đơn vị', 'Ngành hàng', 'Tên hàng', 'Mã hàng', 'Mã']
         headers += ['Tháng %s' % m for m in months]
         header_row = 6
         for col_idx, label in enumerate(headers, start=1):
@@ -868,7 +915,7 @@ class KeHoachVatTu(models.Model):
         ws = wb.active
         ws.title = 'Ke hoach san xuat'
         self._write_plan_metadata(ws)
-        headers = ['Ngành hàng', 'Tên hàng', 'Mã hàng', 'Mã SAP']
+        headers = ['Ngành hàng', 'Tên hàng', 'Mã hàng', 'Mã']
         headers += ['Tháng %s' % month for month in months]
         header_row = 6
         for col_idx, label in enumerate(headers, start=1):
@@ -903,6 +950,30 @@ class KeHoachVatTu(models.Model):
             wb,
             'KHSX_%s.xlsx' % (self.code or self.id),
         )
+
+    _IMPORT_BCU_ACTION_XMLID = 'sonha_vat_tu.action_import_tong_hop_bcu_server'
+    _B4_FORM_VIEW_XMLID = 'sonha_vat_tu.view_ke_hoach_vat_tu_form_b4'
+
+    @api.model
+    def get_views(self, views, options=None):
+        """Chỉ hiện action Import BCU trên form bước 4 (Tổng hợp vật tư cần sản xuất)."""
+        res = super().get_views(views, options=options)
+        form = res.get('views', {}).get('form')
+        if not form or not (options or {}).get('toolbar'):
+            return res
+        b4_view = self.env.ref(self._B4_FORM_VIEW_XMLID, raise_if_not_found=False)
+        if not b4_view or form.get('id') == b4_view.id:
+            return res
+        import_action = self.env.ref(self._IMPORT_BCU_ACTION_XMLID, raise_if_not_found=False)
+        if not import_action:
+            return res
+        toolbar = form.setdefault('toolbar', {})
+        for key in ('action', 'print'):
+            items = toolbar.get(key)
+            if not items:
+                continue
+            toolbar[key] = [item for item in items if item.get('id') != import_action.id]
+        return res
 
     def get_formview_id(self, access_uid=None):
         """Giữ đúng form view khi reload URL (model + id, không có action)."""

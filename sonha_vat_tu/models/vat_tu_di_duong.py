@@ -8,22 +8,8 @@ from odoo.exceptions import ValidationError
 class VatTuDiDuong(models.Model):
     _name = 'vat.tu.di.duong'
     _description = 'Vật tư đi đường'
-    _order = 'nguon, company_id, month_date, ma_nvl'
+    _order = 'company_id, month_date, ma_nvl'
 
-    NGUON_BCU = 'bcu'
-    NGUON_DON_VI = 'don_vi'
-
-    nguon = fields.Selection(
-        [
-            (NGUON_BCU, 'Ban cung ứng'),
-            (NGUON_DON_VI, 'Đơn vị'),
-        ],
-        string='Nguồn',
-        required=True,
-        default=NGUON_BCU,
-        index=True,
-        help='BCU: dùng cho tính toán B4/B5. Đơn vị: chỉ đối chiếu trên B4.',
-    )
     company_id = fields.Many2one(
         'res.company',
         string='Đơn vị',
@@ -33,16 +19,15 @@ class VatTuDiDuong(models.Model):
     )
     ma_nvl = fields.Char(string='Mã NVL', index=True)
     ten_nvl = fields.Char(string='Tên NVL', index=True)
-    pr_number = fields.Char(string='Số PR', index=True)
     month_key = fields.Char(string='Tháng', index=True)
     month_date = fields.Date(string='Tháng tính toán', index=True)
     so_luong = fields.Float(string='Số lượng', digits=(16, 3))
 
     _sql_constraints = [
         (
-            'uniq_vdd_nguon_company_nvl_month_pr',
-            'unique(nguon, company_id, ma_nvl, month_key, pr_number)',
-            'Đã có dòng vật tư đi đường cho cùng Nguồn, Đơn vị, Mã NVL, Tháng và Số PR.',
+            'uniq_vdd_company_nvl_month',
+            'unique(company_id, ma_nvl, month_key)',
+            'Đã có dòng vật tư đi đường cho cùng Đơn vị, Mã NVL và Tháng.',
         ),
     ]
 
@@ -91,3 +76,42 @@ class VatTuDiDuong(models.Model):
             'view_mode': 'form',
             'target': 'new',
         }
+
+    def init(self):
+        """Gỡ cột pr_number (legacy) và gom dòng trùng trước unique mới."""
+        cr = self._cr
+        cr.execute("""
+            SELECT 1 FROM information_schema.table_constraints
+            WHERE table_name = 'vat_tu_di_duong'
+              AND constraint_name = 'uniq_vdd_company_nvl_month_pr'
+        """)
+        if cr.fetchone():
+            cr.execute(
+                'ALTER TABLE vat_tu_di_duong DROP CONSTRAINT uniq_vdd_company_nvl_month_pr'
+            )
+        cr.execute("""
+            WITH dups AS (
+                SELECT company_id, ma_nvl, month_key,
+                       MIN(id) AS keep_id, SUM(so_luong) AS total_qty
+                FROM vat_tu_di_duong
+                GROUP BY company_id, ma_nvl, month_key
+                HAVING COUNT(*) > 1
+            )
+            UPDATE vat_tu_di_duong v SET so_luong = d.total_qty
+            FROM dups d
+            WHERE v.id = d.keep_id
+        """)
+        cr.execute("""
+            DELETE FROM vat_tu_di_duong v
+            USING vat_tu_di_duong v2
+            WHERE v.company_id = v2.company_id
+              AND v.ma_nvl = v2.ma_nvl
+              AND v.month_key = v2.month_key
+              AND v.id > v2.id
+        """)
+        cr.execute("""
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'vat_tu_di_duong' AND column_name = 'pr_number'
+        """)
+        if cr.fetchone():
+            cr.execute('ALTER TABLE vat_tu_di_duong DROP COLUMN pr_number')

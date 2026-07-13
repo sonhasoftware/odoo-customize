@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from markupsafe import Markup, escape
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 
 
 _SCOPE = 'kd'
@@ -31,7 +31,7 @@ class KeHoachKinhDoanh(models.Model):
         readonly=True,
     )
     ma_hang = fields.Char(string='Mã hàng', index=True)
-    ma_sap = fields.Char(string='Mã SAP', index=True)
+    ma_sap = fields.Char(string='Mã', index=True)
     qty_t0 = fields.Float(string='Tháng T0', digits=(16, 2))
     qty_t1 = fields.Float(string='Tháng T+1', digits=(16, 2))
     qty_t2 = fields.Float(string='Tháng T+2', digits=(16, 2))
@@ -41,18 +41,67 @@ class KeHoachKinhDoanh(models.Model):
     _sql_constraints = [
         ('uniq_business_row',
          'unique(period_id, company_id, ma_sap)',
-         'Trùng dòng: Kỳ, Đơn vị và Mã SAP phải duy nhất trên kế hoạch kinh doanh!'),
+         'Trùng dòng: Kỳ, Đơn vị và Mã phải duy nhất trên kế hoạch kinh doanh!'),
     ]
 
     @api.depends('ma_sap')
     def _compute_ma_hang_meta(self):
         codes = {(rec.ma_sap or '').strip() for rec in self if (rec.ma_sap or '').strip()}
-        meta_map = self.env['ma.hang'].get_sap_meta_map(codes)
+        meta_map = self.env['ma.hang'].get_mdm_sap_meta_map(codes)
         for rec in self:
             code = (rec.ma_sap or '').strip()
             meta = meta_map.get(code, {}) if code else {}
             rec.ten_hang = meta.get('ten_hang', '')
             rec.nganh_hang = meta.get('nganh_hang_id') or False
+
+    @api.model
+    def _sql_bulk_import_update(self, updates):
+        """Ghi hàng loạt khi import — 1 query thay vì N lần ORM write."""
+        if not updates:
+            return
+        ids, ma_hangs = [], []
+        qty_t0s, qty_t1s, qty_t2s, qty_t3s = [], [], [], []
+        for row_id, vals in updates:
+            ids.append(row_id)
+            ma_hangs.append(vals.get('ma_hang') or '')
+            qty_t0s.append(vals.get('qty_t0') or 0.0)
+            qty_t1s.append(vals.get('qty_t1') or 0.0)
+            qty_t2s.append(vals.get('qty_t2') or 0.0)
+            qty_t3s.append(vals.get('qty_t3') or 0.0)
+        self.env.cr.execute("""
+            UPDATE ke_hoach_kinh_doanh AS k SET
+                ma_hang = data.ma_hang,
+                qty_t0 = data.qty_t0,
+                qty_t1 = data.qty_t1,
+                qty_t2 = data.qty_t2,
+                qty_t3 = data.qty_t3,
+                write_uid = %s,
+                write_date = NOW() AT TIME ZONE 'UTC'
+            FROM (
+                SELECT unnest(%s::int[]) AS id,
+                       unnest(%s::varchar[]) AS ma_hang,
+                       unnest(%s::numeric[]) AS qty_t0,
+                       unnest(%s::numeric[]) AS qty_t1,
+                       unnest(%s::numeric[]) AS qty_t2,
+                       unnest(%s::numeric[]) AS qty_t3
+            ) AS data
+            WHERE k.id = data.id
+        """, [self.env.uid, ids, ma_hangs, qty_t0s, qty_t1s, qty_t2s, qty_t3s])
+        self.browse(ids).invalidate_recordset(
+            ['ma_hang', 'qty_t0', 'qty_t1', 'qty_t2', 'qty_t3', 'write_uid', 'write_date'],
+        )
+
+    @api.constrains('ma_sap', 'period_id')
+    def _check_ma_sap_in_catalog(self):
+        if self.env.context.get('is_importing'):
+            return
+        for rec in self.filtered(
+            lambda r: r.period_id.state == 'ke_hoach' and (r.ma_sap or '').strip()
+        ):
+            if not self.env['ma.hang'].sap_exists_in_mdm(rec.ma_sap.strip()):
+                raise ValidationError(
+                    _('Mã "%s" không có trong MDM (mdm.tong.hop.line).') % rec.ma_sap
+                )
 
     def _trigger_production_sync(self):
         if self.env.context.get('skip_kd_sx_sync') or self.env.context.get('is_importing'):
@@ -179,7 +228,7 @@ class KeHoachKinhDoanh(models.Model):
                             <th>Ngành hàng</th>
                             <th>Tên hàng</th>
                             <th>Mã hàng</th>
-                            <th>Mã SAP</th>
+                            <th>Mã</th>
                             <th class="text-end">%s</th>
                             <th class="text-end">%s</th>
                             <th class="text-end">%s</th>
@@ -221,7 +270,7 @@ class KeHoachKinhDoanh(models.Model):
     def write(self, vals):
         TRACKED = {
             'ma_hang': 'Mã hàng',
-            'ma_sap': 'Mã SAP',
+            'ma_sap': 'Mã',
             'qty_t0': False,
             'qty_t1': False,
             'qty_t2': False,

@@ -17,6 +17,9 @@ CREATE TABLE IF NOT EXISTS bom_tinh_toan (
     cay_bom VARCHAR
 );
 
+CREATE INDEX IF NOT EXISTS idx_bom_tinh_toan_tp_loai
+    ON bom_tinh_toan (ma_tp_goc, loai_vat_tu);
+
 CREATE OR REPLACE PROCEDURE public.fn_bom_chuoi_cung_ung()
 LANGUAGE 'plpgsql'
 AS $BODY$
@@ -324,6 +327,3 @@ BEGIN
 
 END;
 $BODY$;
-
--- Tự động chạy procedure ngay sau khi tạo/cập nhật
-CALL public.fn_bom_chuoi_cung_ung();

@@ -21,7 +21,7 @@ class KeHoachVatTuLine(models.Model):
         readonly=True,
     )
     ma_hang = fields.Char(string='Mã hàng', index=True)
-    ma_sap = fields.Char(string='Mã SAP', index=True)
+    ma_sap = fields.Char(string='Mã', index=True)
 
     qty_ton_kho = fields.Float(
         string='Tồn kho', digits=(16, 3),
@@ -60,12 +60,8 @@ class KeHoachVatTuLine(models.Model):
         codes = {(rec.ma_sap or '').strip() for rec in self if (rec.ma_sap or '').strip()}
         name_map = {}
         if codes:
-            for row in self.env['ma.hang'].sudo().search_read(
-                [('ma_sap', 'in', list(codes))],
-                ['ma_sap', 'ten_hang'],
-            ):
-                if row.get('ma_sap'):
-                    name_map[row['ma_sap']] = row.get('ten_hang') or ''
+            meta_map = self.env['ma.hang'].get_mdm_sap_meta_map(codes)
+            name_map = {code: meta.get('ten_hang', '') for code, meta in meta_map.items()}
         for rec in self:
             code = (rec.ma_sap or '').strip()
             rec.ten_hang = name_map.get(code, '') if code else ''
@@ -143,16 +139,26 @@ class KeHoachVatTuLine(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         Period = self.env['ke.hoach.vat.tu']
-        MaHang = self.env['ma.hang'].sudo()
+        period_ids = {v['period_id'] for v in vals_list if v.get('period_id')}
+        if period_ids:
+            locked = Period.browse(list(period_ids)).filtered(lambda p: p.state != 'ke_hoach')
+            if locked:
+                raise UserError(_('Kế hoạch vật tư đã khóa vì kỳ kế hoạch đã sang bước sau.'))
+
+        sap_codes = sorted({
+            (v.get('ma_sap') or '').strip()
+            for v in vals_list if (v.get('ma_sap') or '').strip()
+        })
+        meta_map = self.env['ma.hang'].get_mdm_sap_meta_map(sap_codes) if sap_codes else {}
+        NganhHang = self.env['mdm.nganh.hang'].sudo()
+
         for vals in vals_list:
-            if vals.get('period_id'):
-                period = Period.browse(vals['period_id'])
-                if period.state != 'ke_hoach':
-                    raise UserError(_('Kế hoạch vật tư đã khóa vì kỳ kế hoạch đã sang bước sau.'))
-            if vals.get('ma_sap'):
-                master = MaHang.search([('ma_sap', '=', vals['ma_sap'])], limit=1)
-                if master:
-                    vals.setdefault('nganh_hang', master.nganh_hang)
+            ma_sap = (vals.get('ma_sap') or '').strip()
+            if ma_sap:
+                meta = meta_map.get(ma_sap, {})
+                if not vals.get('nganh_hang') and meta.get('nganh_hang_id'):
+                    nh = NganhHang.browse(meta['nganh_hang_id'])
+                    vals['nganh_hang'] = nh.ten or ''
             for idx in (0, 1, 2, 3):
                 sx_f = f'qty_sx_t{idx}'
                 qty_f = f'qty_t{idx}'
@@ -173,6 +179,15 @@ class KeHoachVatTuLine(models.Model):
     def unlink(self):
         self._check_period_editable()
         return super().unlink()
+
+    def init(self):
+        self.env.cr.execute("""
+            UPDATE ke_hoach_vat_tu_line l
+               SET ten_hang = COALESCE(NULLIF(TRIM(mdm.ten), ''), NULLIF(TRIM(th.ten), ''), '')
+              FROM mdm_tong_hop_line mdm
+              LEFT JOIN mdm_tong_hop th ON th.id = mdm.tong_hop_id
+             WHERE TRIM(mdm.ma_dv) = TRIM(l.ma_sap)
+        """)
 
     def _check_period_editable(self):
         if self.env.context.get('skip_period_lock'):

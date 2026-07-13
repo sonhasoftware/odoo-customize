@@ -167,7 +167,9 @@
                             <field name="ma_tp" string="Mã TP" readonly="1"/>
                             <field name="ten_tp" string="Tên TP" readonly="1"/>
                             <field name="ma_nvl" string="Mã NVL" readonly="1"/>
+                            <field name="bom_sale_id" string="Loại Bom Sale" readonly="1"/>
                             <field name="ten_nvl" string="Tên NVL" readonly="1"/>
+                            <field name="sl_dinh_muc" string="Định mức" readonly="1"/>
                             <field name="qty_t0" string="T0" readonly="1"/>
                             <field name="qty_t1" string="T1" readonly="1"/>
                             <field name="qty_t2" string="T2" readonly="1"/>
@@ -221,13 +223,9 @@
                     </group>
                     <field name="tinh_toan_vat_tu_ids" widget="vat_tu_b3_pivot_one2many">
                         <tree editable="bottom" create="false" delete="false" class="sh_free_width_tree">
-                            <field name="ma_sap" column_invisible="True"/>
-                            <field name="ma_effect" column_invisible="True"/>
-                            <field name="ten_sap" column_invisible="True"/>
                             <field name="ma_vat_tu" column_invisible="True"/>
                             <field name="ten_vat_tu" column_invisible="True"/>
                             <field name="don_vi_tinh" readonly="1"/>
-                            <field name="sl_dinh_muc" column_invisible="True"/>
                             <field name="don_vi_kd_id" column_invisible="True"/>
                             <field name="don_vi_kd_code" column_invisible="True"/>
                             <field name="qty_t0" column_invisible="True"/>
@@ -378,9 +376,9 @@
                                     <field name="don_vi_tinh" readonly="1"/>
                                     <field name="currency_id" column_invisible="True"/>
 
+                                    <field name="don_gia_ton_kho" string="Đơn giá tồn kho" widget="monetary" readonly="1"/>
                                     <field name="tong_ton_nvl_sl" string="Tồn NVL đầu kỳ" readonly="1"/>
                                     <field name="gia_tri_ton_nvl_dau_ky" string="Giá trị tồn NVL" readonly="1" widget="monetary"/>
-                                    <field name="don_gia_ton_kho" column_invisible="True"/>
 
                                     <field name="tong_sl_vt_can_dung_t0" readonly="1"/>
                                     <field name="tong_sl_vt_can_dung_t1" readonly="1"/>
@@ -397,13 +395,13 @@
                                     <field name="sl_du_tru_toi_thieu" string="Dự trữ tối thiểu" readonly="1"/>
                                     <field name="sl_dat_mua_de_xuat" string="Đề xuất đặt mua" readonly="1"/>
                                     <field name="sl_dat_mua_chot" string="Đặt mua chốt" readonly="1"/>
-                                    <field name="sl_can_mua_theo_moq" string="SL mua theo MOQ" readonly="1"/>
+                                    <field name="sl_can_mua_theo_moq" string="SL mua theo MOQ"/>
                                     <field name="don_gia_mua" string="Đơn giá mua" widget="monetary" readonly="1"/>
-                                    <field name="gia_tri_mua_hang" string="Giá trị mua" widget="monetary" readonly="1"/>
-                                    <field name="sl_ton_kho_cuoi_ky" string="Tồn kho cuối kỳ" readonly="1"/>
-                                    <field name="so_ngay_vong_quay_ton" string="Ngày vòng quay tồn" readonly="1"/>
-                                    <field name="don_gia_ton_kho_cuoi_ky" string="Đơn giá tồn cuối kỳ" widget="monetary" readonly="1"/>
-                                    <field name="gia_tri_ton_kho_cuoi_ky" string="Giá trị tồn cuối kỳ" widget="monetary" readonly="1"/>
+                                    <field name="gia_tri_mua_hang" string="Giá trị mua" widget="monetary" readonly="1" force_save="1"/>
+                                    <field name="sl_ton_kho_cuoi_ky" string="Tồn kho cuối kỳ" readonly="1" force_save="1"/>
+                                    <field name="so_ngay_vong_quay_ton" string="Ngày vòng quay tồn" readonly="1" force_save="1"/>
+                                    <field name="don_gia_ton_kho_cuoi_ky" string="Đơn giá tồn cuối kỳ" widget="monetary" readonly="1" force_save="1"/>
+                                    <field name="gia_tri_ton_kho_cuoi_ky" string="Giá trị tồn cuối kỳ" widget="monetary" readonly="1" force_save="1"/>
 
                                     <field name="ghi_chu" readonly="1"/>
                                 </tree>

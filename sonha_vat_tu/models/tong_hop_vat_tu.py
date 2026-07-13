@@ -24,17 +24,25 @@ class TongHopVatTu(models.Model):
     # Tồn đầu: chỉ có 1 giá trị duy nhất (đầu kỳ)
     ton_dau = fields.Float(string='Tồn đầu', digits=(16, 3))
 
-    # Hàng đi đường đơn vị: từ import vat_tu_di_duong (nguon=don_vi), chỉ đối chiếu
+    # Hàng đi đường: từ import vật tư đi đường (menu chính)
     ve_du_kien_don_vi_t0 = fields.Float(string='Hàng đi đường ĐV T0', digits=(16, 3), readonly=True)
     ve_du_kien_don_vi_t1 = fields.Float(string='Hàng đi đường ĐV T1', digits=(16, 3), readonly=True)
     ve_du_kien_don_vi_t2 = fields.Float(string='Hàng đi đường ĐV T2', digits=(16, 3), readonly=True)
     ve_du_kien_don_vi_t3 = fields.Float(string='Hàng đi đường ĐV T3', digits=(16, 3), readonly=True)
 
-    # Hàng đi đường BCU: từ import vat_tu_di_duong (nguon=bcu), dùng tính tồn cuối / B5
-    ve_du_kien_t0 = fields.Float(string='Hàng đi đường BCU T0', digits=(16, 3))
-    ve_du_kien_t1 = fields.Float(string='Hàng đi đường BCU T1', digits=(16, 3))
-    ve_du_kien_t2 = fields.Float(string='Hàng đi đường BCU T2', digits=(16, 3))
-    ve_du_kien_t3 = fields.Float(string='Hàng đi đường BCU T3', digits=(16, 3))
+    # Hàng đi đường BCU: import Excel trên B4, chỉ để đối chiếu (không ảnh hưởng tồn cuối/thiếu)
+    ve_du_kien_t0 = fields.Float(
+        string='Hàng đi đường BCU T0', digits=(16, 3), readonly=True,
+        help='Số liệu BCU import để so sánh. Không dùng trong công thức tồn cuối/thiếu.')
+    ve_du_kien_t1 = fields.Float(
+        string='Hàng đi đường BCU T1', digits=(16, 3), readonly=True,
+        help='Số liệu BCU import để so sánh. Không dùng trong công thức tồn cuối/thiếu.')
+    ve_du_kien_t2 = fields.Float(
+        string='Hàng đi đường BCU T2', digits=(16, 3), readonly=True,
+        help='Số liệu BCU import để so sánh. Không dùng trong công thức tồn cuối/thiếu.')
+    ve_du_kien_t3 = fields.Float(
+        string='Hàng đi đường BCU T3', digits=(16, 3), readonly=True,
+        help='Số liệu BCU import để so sánh. Không dùng trong công thức tồn cuối/thiếu.')
 
     # Cần dùng: chia theo 4 tháng
     vt_can_dung_t0 = fields.Float(string='Cần dùng T0', digits=(16, 3))

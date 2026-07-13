@@ -411,13 +411,9 @@ registerMergedOne2Many("vat_tu_merged_b5_one2many", VatTuMergedB5HeaderRenderer)
 // ---------------------------------------------------------------------------
 
 const B3_FIXED_META = [
-    { key: "ma_sap", label: "Mã SAP" },
-    { key: "ma_effect", label: "Mã EFFECT" },
-    { key: "ten_sap", label: "Tên SAP" },
     { key: "ma_vat_tu", label: "Mã NVL" },
     { key: "ten_vat_tu", label: "Tên NVL" },
     { key: "don_vi_tinh", label: "ĐVT", m2o: true },
-    { key: "sl_dinh_muc", label: "Định mức", numeric: true },
 ];
 
 function resolveKdCompanyCode(data, companyId) {
@@ -461,7 +457,7 @@ class VatTuB3PivotRenderer extends VatTuMergedHeaderRenderer {
         const byMat = new Map();
         for (const rec of this.props.list.records) {
             const d = rec.data;
-            const key = d.ma_vat_tu || d.ma_sap || String(rec.resId);
+            const key = d.ma_vat_tu || String(rec.resId);
             if (!byMat.has(key)) {
                 byMat.set(key, { meta: d, byCompany: {} });
             }

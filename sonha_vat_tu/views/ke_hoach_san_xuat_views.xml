@@ -35,7 +35,7 @@
                             context="{'group_by': 'period_id'}"/>
                     <filter name="group_company" string="Công ty"
                             context="{'group_by': 'company_id'}"/>
-                    <filter name="group_sap" string="Mã SAP"
+                    <filter name="group_sap" string="Mã"
                             context="{'group_by': 'ma_sap'}"/>
                 </group>
             </search>

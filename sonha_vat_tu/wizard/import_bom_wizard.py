@@ -27,7 +27,6 @@ class ImportBomWizard(models.TransientModel):
     def action_import(self):
         self.ensure_one()
         Bom = self.env['bom'].sudo()
-        MaHang = self.env['ma.hang'].sudo()
         if not self.file_data:
             raise UserError(_('Vui lòng chọn file Excel.'))
 
@@ -92,7 +91,7 @@ class ImportBomWizard(models.TransientModel):
 
         if vals_list:
             nvl_codes = sorted({v['ma_nvl'] for v in vals_list if v.get('ma_nvl')})
-            nvl_master = MaHang.search([('ma_sap', 'in', nvl_codes)])
+            nvl_master = self.env['ma.hang'].sudo().search([('ma_sap', 'in', nvl_codes)])
             nvl_map = {r.ma_sap: r for r in nvl_master if r.ma_sap}
             for vals in vals_list:
                 master = nvl_map.get(vals['ma_nvl'])

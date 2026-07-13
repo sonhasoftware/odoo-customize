@@ -19,21 +19,11 @@ class ImportVatTuDiDuongWizard(models.TransientModel):
 
     TEMPLATE_SHEET_NAME = 'Vat tu di duong'
     DATA_START_ROW = 2
-    # A=Đơn vị, B=Số PR, C=Mã NVL, D=Tên NVL (bỏ qua nếu trống), E=Tháng, F=Số lượng
-    COL_COMPANY, COL_PR, COL_MA_NVL, COL_TEN_NVL, COL_MONTH, COL_QTY = range(6)
+    # A=Đơn vị, B=Mã NVL, C=Tên NVL (tùy chọn), D=Tháng, E=Số lượng
+    COL_COMPANY, COL_MA_NVL, COL_TEN_NVL, COL_MONTH, COL_QTY = range(5)
 
     file_data = fields.Binary(string='File Excel')
     file_name = fields.Char(string='Tên file')
-    nguon = fields.Selection(
-        selection=[
-            ('bcu', 'Ban cung ứng'),
-            ('don_vi', 'Đơn vị'),
-        ],
-        string='Nguồn dữ liệu',
-        required=True,
-        default='bcu',
-        help='BCU: dùng cho tính toán B4/B5. Đơn vị: chỉ đối chiếu trên B4.',
-    )
 
     MONTH_RE = re.compile(r'(\d{1,2})\s*[/\-]\s*(\d{4})')
 
@@ -109,6 +99,13 @@ class ImportVatTuDiDuongWizard(models.TransientModel):
             if (c.company_code or '').strip()
         })
 
+    def _build_company_lookup(self):
+        return {
+            (c.company_code or '').strip(): c
+            for c in self.env['res.company'].sudo().search([])
+            if (c.company_code or '').strip()
+        }
+
     def _apply_company_code_validation(self, wb, ws, company_codes):
         if not company_codes:
             return
@@ -126,7 +123,7 @@ class ImportVatTuDiDuongWizard(models.TransientModel):
         ws.add_data_validation(dv)
         dv.add('A2:A5000')
 
-    def _apply_vdd_template_style(self, ws, max_col=6):
+    def _apply_vdd_template_style(self, ws, max_col=5):
         body_font = Font(name='Times New Roman', size=10)
         header_font = Font(name='Times New Roman', size=10, bold=True, color='FFFFFF')
         header_fill = PatternFill(fill_type='solid', fgColor='3F6F8F')
@@ -172,12 +169,12 @@ class ImportVatTuDiDuongWizard(models.TransientModel):
         wb = Workbook()
         ws = wb.active
         ws.title = self.TEMPLATE_SHEET_NAME
-        headers = ['Đơn vị', 'Số PR', 'Mã NVL', 'Tên NVL', 'Tháng', 'Số lượng']
+        headers = ['Đơn vị', 'Mã NVL', 'Tên NVL', 'Tháng', 'Số lượng']
         for col_idx, label in enumerate(headers, start=1):
             ws.cell(row=1, column=col_idx, value=label)
         self._apply_vdd_template_style(ws)
         self._apply_company_code_validation(wb, ws, self._get_company_codes())
-        for col_idx, width in enumerate([14, 24, 26, 36, 14, 16], start=1):
+        for col_idx, width in enumerate([14, 26, 36, 14, 16], start=1):
             ws.column_dimensions[ws.cell(row=1, column=col_idx).column_letter].width = width
         return self._xlsx_download_action(wb, 'Template_vat_tu_di_duong.xlsx')
 
@@ -187,18 +184,18 @@ class ImportVatTuDiDuongWizard(models.TransientModel):
         if not rows:
             raise UserError(_('File Excel không có dòng dữ liệu (từ dòng 2).'))
 
-        Company = self.env['res.company'].sudo()
-        MaHang = self.env['ma.hang'].sudo()
         VatTuDiDuong = self.env['vat.tu.di.duong'].sudo()
+        company_lookup = self._build_company_lookup()
 
         errors = []
         created = updated = 0
+        seen_keys = set()
+
         for row_number, row in enumerate(rows, start=self.DATA_START_ROW):
             if not any(cell not in (None, '') for cell in row):
                 continue
 
             company_code = str(self._cell(row, self.COL_COMPANY) or '').strip()
-            pr_number = str(self._cell(row, self.COL_PR) or '').strip()
             ma_nvl = self._normalize_ma_nvl(self._cell(row, self.COL_MA_NVL))
             ten_nvl = str(self._cell(row, self.COL_TEN_NVL) or '').strip()
             month_raw = self._cell(row, self.COL_MONTH)
@@ -207,8 +204,6 @@ class ImportVatTuDiDuongWizard(models.TransientModel):
             row_errors = []
             if not company_code:
                 row_errors.append(_('Dòng %d: thiếu Đơn vị.') % row_number)
-            if not pr_number:
-                row_errors.append(_('Dòng %d: thiếu Số PR.') % row_number)
             if not ma_nvl:
                 row_errors.append(_('Dòng %d: thiếu Mã NVL.') % row_number)
             if not month_key:
@@ -231,38 +226,33 @@ class ImportVatTuDiDuongWizard(models.TransientModel):
                 except UserError as exc:
                     row_errors.append(_('Dòng %d: %s') % (row_number, exc.args[0]))
 
-            company = self.env['res.company']
-            if company_code:
-                company = Company.search([('company_code', '=', company_code)], limit=1)
-                if not company:
-                    row_errors.append(_('Dòng %d: Đơn vị "%s" không tồn tại.') % (row_number, company_code))
+            company = company_lookup.get(company_code) if company_code else False
+            if company_code and not company:
+                row_errors.append(_('Dòng %d: Đơn vị "%s" không tồn tại.') % (row_number, company_code))
 
-            master = self.env['ma.hang']
-            if ma_nvl:
-                master = MaHang.search([('ma_sap', '=', ma_nvl)], limit=1)
-                if not master:
-                    row_errors.append(
-                        _('Dòng %d: Mã NVL "%s" không có trong danh mục mã hàng.') % (row_number, ma_nvl)
-                    )
+            if company_code and ma_nvl and month_key:
+                dup_key = (company_code, ma_nvl, month_key)
+                if dup_key in seen_keys:
+                    row_errors.append(_(
+                        'Dòng %d: trùng Đơn vị + Mã NVL + Tháng trong file.'
+                    ) % row_number)
+                else:
+                    seen_keys.add(dup_key)
 
             if row_errors:
                 errors.extend(row_errors)
                 continue
 
             vals = {
-                'nguon': self.nguon,
                 'company_id': company.id,
-                'pr_number': pr_number,
                 'ma_nvl': ma_nvl,
-                'ten_nvl': ten_nvl or master.ten_hang or False,
+                'ten_nvl': ten_nvl or False,
                 'month_key': month_key,
                 'month_date': month_date,
                 'so_luong': so_luong,
             }
             existing = VatTuDiDuong.search([
-                ('nguon', '=', self.nguon),
                 ('company_id', '=', company.id),
-                ('pr_number', '=', pr_number),
                 ('ma_nvl', '=', ma_nvl),
                 ('month_key', '=', month_key),
             ], limit=1)
