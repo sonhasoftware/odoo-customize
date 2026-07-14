@@ -34,7 +34,7 @@ class DataBiometric(models.Model):
 
         for record in attendance_records:
             # Tìm nhân viên dựa vào mã chấm công
-            employee = employee_model.sudo().search([('device_id_num', '=', record.device_id)])
+            employee = employee_model.sudo().search([('device_id_num', '=', record.device_id)], limit=1)
             if employee:
                 # Kiểm tra xem bản ghi đã tồn tại trong master.data.attendance chưa
                 existing_record = master_attendance_model.sudo().search([
