@@ -1,0 +1,11 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_topic_user,topic_chatbot.topic.user,model_topic_chatbot_topic,base.group_user,1,1,1,1
+access_topic_admin,topic_chatbot.topic.admin,model_topic_chatbot_topic,group_topic_chatbot_admin,1,1,1,1
+access_document_user,topic_chatbot.document.user,model_topic_chatbot_document,base.group_user,1,1,1,1
+access_document_admin,topic_chatbot.document.admin,model_topic_chatbot_document,group_topic_chatbot_admin,1,1,1,1
+access_chunk_user,topic_chatbot.chunk.user,model_topic_chatbot_chunk,base.group_user,1,1,1,1
+access_chunk_admin,topic_chatbot.chunk.admin,model_topic_chatbot_chunk,group_topic_chatbot_admin,1,1,1,1
+access_conversation_user,topic_chatbot.conversation.user,model_topic_chatbot_conversation,base.group_user,1,1,1,1
+access_conversation_admin,topic_chatbot.conversation.admin,model_topic_chatbot_conversation,group_topic_chatbot_admin,1,1,1,1
+access_message_user,topic_chatbot.message.user,model_topic_chatbot_message,base.group_user,1,1,1,1
+access_message_admin,topic_chatbot.message.admin,model_topic_chatbot_message,group_topic_chatbot_admin,1,1,1,1

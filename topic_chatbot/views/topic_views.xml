@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Topic Form View -->
+    <record id="view_topic_chatbot_topic_form" model="ir.ui.view">
+        <field name="name">topic_chatbot.topic.form</field>
+        <field name="model">topic_chatbot.topic</field>
+        <field name="arch" type="xml">
+            <form string="Topic">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1>
+                            <field name="name" placeholder="e.g., HR Policies, Sales Handbook"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="is_admin" invisible="1"/>
+                            <field name="is_public" readonly="not is_admin"/>
+                            <field name="create_uid" readonly="1" string="Owner"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Description" name="description">
+                            <field name="description" placeholder="Summarize the scope of this topic..."/>
+                        </page>
+                        <page string="Documents" name="documents">
+                            <field name="document_ids" context="{'default_topic_id': active_id}">
+                                <tree string="Documents" editable="bottom">
+                                    <field name="name"/>
+                                    <field name="filename" column_invisible="True"/>
+                                    <field name="datas" filename="filename" string="Upload File"/>
+                                    <field name="create_date" string="Uploaded On" readonly="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Topic Tree View -->
+    <record id="view_topic_chatbot_topic_tree" model="ir.ui.view">
+        <field name="name">topic_chatbot.topic.tree</field>
+        <field name="model">topic_chatbot.topic</field>
+        <field name="arch" type="xml">
+            <tree string="Topics">
+                <field name="name"/>
+                <field name="description"/>
+                <field name="is_public"/>
+                <field name="create_uid" string="Owner"/>
+                <field name="create_date" string="Created On"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Topic Search View -->
+    <record id="view_topic_chatbot_topic_search" model="ir.ui.view">
+        <field name="name">topic_chatbot.topic.search</field>
+        <field name="model">topic_chatbot.topic</field>
+        <field name="arch" type="xml">
+            <search string="Search Topics">
+                <field name="name"/>
+                <field name="description"/>
+                <filter string="Public" name="public" domain="[('is_public', '=', True)]"/>
+                <filter string="Private" name="private" domain="[('is_public', '=', False)]"/>
+                <filter string="My Topics" name="my_topics" domain="[('create_uid', '=', uid)]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Topic Action -->
+    <record id="action_topic_chatbot_topic" model="ir.actions.act_window">
+        <field name="name">Topics</field>
+        <field name="res_model">topic_chatbot.topic</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_topic_chatbot_topic_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new Topic!
+            </p>
+            <p>
+                Topics represent the context of your chats. Upload documents (PDF/DOCX) to a Topic so the AI can answer based on their contents.
+            </p>
+        </field>
+    </record>
+</odoo>

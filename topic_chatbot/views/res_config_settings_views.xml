@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.topic_chatbot</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="99"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Topic Chatbot" string="Topic Chatbot" name="topic_chatbot">
+                    <block title="Gemini API Configuration" id="topic_chatbot_gemini_config">
+                        <div class="row mt16 o_settings_container">
+                            <div class="col-12 col-lg-6 o_setting_box" id="gemini_api_key_setting">
+                                <div class="o_setting_right_pane">
+                                    <label for="topic_chatbot_gemini_api_key" string="Gemini API Key"/>
+                                    <div class="text-muted">
+                                        Enter your Google Gemini API Key.
+                                    </div>
+                                    <div class="content-group mt8">
+                                        <field name="topic_chatbot_gemini_api_key" password="True"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-lg-6 o_setting_box" id="gemini_model_setting">
+                                <div class="o_setting_right_pane">
+                                    <label for="topic_chatbot_gemini_model" string="Gemini Model"/>
+                                    <div class="text-muted">
+                                        Specify the model (e.g. gemini-1.5-flash, gemini-2.5-flash).
+                                    </div>
+                                    <div class="content-group mt8">
+                                        <field name="topic_chatbot_gemini_model"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_topic_chatbot_config" model="ir.actions.act_window">
+        <field name="name">Settings</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">inline</field>
+        <field name="context">{'module': 'topic_chatbot'}</field>
+    </record>
+</odoo>

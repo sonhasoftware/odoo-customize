@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="topic_chatbot.ChatbotDashboard" owl="1">
+        <div class="o_chatbot_dashboard">
+            <!-- Left Sidebar -->
+            <div class="chatbot_sidebar">
+                <!-- Topics Section -->
+                <div class="sidebar_section">
+                    <div class="section_title">
+                        <i class="fa fa-book me-2"></i>Chủ đề (Topics)
+                    </div>
+                    <div class="topic_list">
+                        <t t-foreach="state.topics" t-as="topic" t-key="topic.id">
+                            <div class="topic_item" 
+                                 t-att-class="{'active': state.selectedTopicId === topic.id}"
+                                 t-on-click="() => this.selectTopic(topic.id)">
+                                <span class="topic_name" t-out="topic.name"/>
+                                <span t-if="topic.is_public" class="badge bg-primary ms-1" style="font-size: 9px;">Public</span>
+                                <span t-else="" class="badge bg-secondary ms-1" style="font-size: 9px;">Private</span>
+                            </div>
+                        </t>
+                        <div t-if="state.topics.length === 0" class="text-muted text-center py-2" style="font-size: 12px;">
+                            Chưa có chủ đề nào.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <button class="btn btn-new-chat w-100" 
+                        t-att-disabled="!state.selectedTopicId"
+                        t-on-click="startNewConversation">
+                    <i class="fa fa-plus me-2"></i>Tạo hội thoại mới
+                </button>
+
+                <!-- Conversations History Section -->
+                <div class="sidebar_section flex-grow-1 mt-3 d-flex flex-column overflow-hidden">
+                    <div class="section_title">
+                        <i class="fa fa-history me-2"></i>Lịch sử hội thoại
+                    </div>
+                    <div class="conversation_list flex-grow-1 overflow-auto">
+                        <t t-if="state.selectedTopicId">
+                            <t t-foreach="state.conversations" t-as="conv" t-key="conv.id">
+                                <div class="conversation_item"
+                                     t-att-class="{'active': state.activeConversationId === conv.id}"
+                                     t-on-click="() => this.selectConversation(conv.id)">
+                                    <i class="fa fa-comment-o me-2"></i>
+                                    <span class="conv_name flex-grow-1" t-out="conv.name"/>
+                                    <i class="fa fa-trash-o btn-delete-conv ms-2 text-danger" 
+                                       t-on-click="(ev) => this.deleteConversation(conv.id, ev)"
+                                       title="Xóa hội thoại"/>
+                                </div>
+                            </t>
+                            <div t-if="state.conversations.length === 0" class="text-muted text-center py-4" style="font-size: 13px;">
+                                Chưa có hội thoại nào. Nhấp "Tạo hội thoại mới" để bắt đầu.
+                            </div>
+                        </t>
+                        <t t-else="">
+                            <div class="text-muted text-center py-4" style="font-size: 13px;">
+                                Vui lòng chọn một Chủ đề trước.
+                            </div>
+                        </t>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Chat Area -->
+            <div class="chatbot_main">
+                <!-- Top Nav / Info Bar -->
+                <div class="chat_header" t-if="state.selectedTopicId">
+                    <div class="d-flex align-items-center">
+                        <span class="fs-5 fw-bold" t-out="state.topics.find(t => t.id === state.selectedTopicId)?.name"/>
+                        <span class="ms-3 text-muted" style="font-size: 13px;" 
+                              t-out="state.topics.find(t => t.id === state.selectedTopicId)?.description"/>
+                    </div>
+                </div>
+
+                <!-- Chat Body Container -->
+                <div class="chat_body" t-ref="chatContainer">
+                    <t t-if="!state.selectedTopicId">
+                        <!-- Landing Screen: No Topic Selected -->
+                        <div class="landing_screen">
+                            <div class="landing_card text-center">
+                                <div class="logo_icon mb-4">
+                                    <i class="fa fa-comments-o"></i>
+                                </div>
+                                <h2 class="mb-3">Chào mừng bạn đến với Topic Chatbot</h2>
+                                <p class="text-muted mb-4">
+                                    Để bắt đầu sử dụng, vui lòng chọn một chủ đề tài liệu từ danh sách ở thanh bên trái.
+                                    AI sẽ chỉ trả lời các câu hỏi dựa trên nội dung các tài liệu đã được import trong chủ đề đó.
+                                </p>
+                            </div>
+                        </div>
+                    </t>
+                    <t t-elif="!state.activeConversationId">
+                        <!-- Landing Screen: Topic Selected but no conversation -->
+                        <div class="landing_screen">
+                            <div class="landing_card text-center">
+                                <div class="logo_icon mb-4">
+                                    <i class="fa fa-folder-open-o"></i>
+                                </div>
+                                <h3 class="mb-3">Chủ đề: <t t-out="state.topics.find(t => t.id === state.selectedTopicId)?.name"/></h3>
+                                <p class="text-muted mb-4">
+                                    Chọn một cuộc hội thoại cũ từ danh sách bên trái hoặc nhấn nút dưới đây để bắt đầu trò chuyện mới.
+                                </p>
+                                <button class="btn btn-primary btn-lg" t-on-click="startNewConversation">
+                                    <i class="fa fa-plus me-2"></i>Bắt đầu chat
+                                </button>
+                            </div>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <!-- Message Thread -->
+                        <div class="message_thread">
+                            <t t-foreach="state.messages" t-as="msg" t-key="msg.id">
+                                <div class="message_wrapper" t-att-class="msg.role">
+                                    <div class="message_avatar">
+                                        <t t-if="msg.role === 'user'">
+                                            <i class="fa fa-user"></i>
+                                        </t>
+                                        <t t-else="">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="white">
+                                                <path d="M12 2a1 1 0 0 1 .9.6l1.8 3.6 3.6 1.8a1 1 0 0 1 0 1.8l-3.6 1.8-1.8 3.6a1 1 0 0 1-1.8 0l-1.8-3.6-3.6-1.8a1 1 0 0 1 0-1.8l3.6-1.8 1.8-3.6A1 1 0 0 1 12 2zm5 12a.5.5 0 0 1 .5.3l.9 1.8 1.8.9a.5.5 0 0 1 0 .9l-1.8.9-.9 1.8a.5.5 0 0 1-.9 0l-.9-1.8-1.8-.9a.5.5 0 0 1 0-.9l1.8-.9.9-1.8a.5.5 0 0 1 .5-.3zm-10-9a.5.5 0 0 1 .5.3l.9 1.8 1.8.9a.5.5 0 0 1 0 .9l-1.8.9-.9 1.8a.5.5 0 0 1-.9 0l-.9-1.8-1.8-.9a.5.5 0 0 1 0-.9l1.8-.9.9-1.8a.5.5 0 0 1 .5-.3z"/>
+                                            </svg>
+                                        </t>
+                                    </div>
+                                    <div class="message_bubble">
+                                        <div class="message_sender" t-out="msg.role === 'user' ? 'Bạn' : 'AI Assistant'"/>
+                                        <div class="message_content" t-out="this.formatMarkdown(msg.content)"/>
+                                    </div>
+                                </div>
+                            </t>
+
+                            <!-- AI Typing Spinner -->
+                            <div class="message_wrapper model" t-if="state.isSending">
+                                <div class="message_avatar">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="white">
+                                        <path d="M12 2a1 1 0 0 1 .9.6l1.8 3.6 3.6 1.8a1 1 0 0 1 0 1.8l-3.6 1.8-1.8 3.6a1 1 0 0 1-1.8 0l-1.8-3.6-3.6-1.8a1 1 0 0 1 0-1.8l3.6-1.8 1.8-3.6A1 1 0 0 1 12 2zm5 12a.5.5 0 0 1 .5.3l.9 1.8 1.8.9a.5.5 0 0 1 0 .9l-1.8.9-.9 1.8a.5.5 0 0 1-.9 0l-.9-1.8-1.8-.9a.5.5 0 0 1 0-.9l1.8-.9.9-1.8a.5.5 0 0 1 .5-.3zm-10-9a.5.5 0 0 1 .5.3l.9 1.8 1.8.9a.5.5 0 0 1 0 .9l-1.8.9-.9 1.8a.5.5 0 0 1-.9 0l-.9-1.8-1.8-.9a.5.5 0 0 1 0-.9l1.8-.9.9-1.8a.5.5 0 0 1 .5-.3z"/>
+                                    </svg>
+                                </div>
+
+                                <div class="message_bubble">
+                                    <div class="message_sender">AI Assistant</div>
+                                    <div class="message_content pt-1">
+                                        <div class="spinner-chat">
+                                            <div class="bounce1"></div>
+                                            <div class="bounce2"></div>
+                                            <div class="bounce3"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+
+                <!-- Input Footer Box -->
+                <div class="chat_footer" t-if="state.activeConversationId">
+                    <div class="input_container">
+                        <textarea t-ref="inputMessageRef"
+                                  t-model="state.inputMessage"
+                                  t-on-keydown="handleKeyPress"
+                                  placeholder="Nhập câu hỏi của bạn tại đây... (Nhấn Enter để gửi, Shift+Enter để xuống dòng)"
+                                  rows="2"
+                                  t-att-disabled="state.isSending"/>
+                        <button class="btn btn-send" 
+                                t-att-disabled="!state.inputMessage.trim() || state.isSending"
+                                t-on-click="sendMessage">
+                            <i class="fa fa-paper-plane"></i>
+                        </button>
+                    </div>
+                    <div class="text-center text-muted mt-2" style="font-size: 11px;">
+                        Hệ thống trả lời tự động dựa trên tài liệu tham khảo của chủ đề đang chọn.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Custom Delete Confirmation Modal -->
+            <div class="chatbot_modal_overlay" t-if="state.showDeleteConfirm">
+                <div class="chatbot_modal">
+                    <div class="modal_header">
+                        <h4>Xác nhận xóa</h4>
+                    </div>
+                    <div class="modal_body">
+                        <p>Bạn có chắc chắn muốn xóa cuộc hội thoại này? Thao tác này không thể hoàn tác.</p>
+                    </div>
+                    <div class="modal_footer">
+                        <button class="btn btn-secondary" t-on-click="cancelDelete">Hủy</button>
+                        <button class="btn btn-danger" t-on-click="confirmDelete">Xóa</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>
+

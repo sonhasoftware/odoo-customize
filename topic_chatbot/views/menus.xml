@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Full-screen Client Action for OWL Chatbot Dashboard -->
+    <record id="action_topic_chatbot_dashboard" model="ir.actions.client">
+        <field name="name">Chatbot Dashboard</field>
+        <field name="tag">topic_chatbot.dashboard</field>
+        <field name="target">current</field>
+    </record>
+
+    <!-- Main Menus -->
+    <menuitem id="menu_topic_chatbot_root"
+              name="Topic Chatbot"
+              sequence="10"/>
+
+    <menuitem id="menu_topic_chatbot_dashboard"
+              name="Chatbot"
+              parent="menu_topic_chatbot_root"
+              action="action_topic_chatbot_dashboard"
+              sequence="10"/>
+
+    <menuitem id="menu_topic_chatbot_topics"
+              name="Topics"
+              parent="menu_topic_chatbot_root"
+              action="action_topic_chatbot_topic"
+              sequence="20"/>
+
+    <menuitem id="menu_topic_chatbot_config_root"
+              name="Configuration"
+              parent="menu_topic_chatbot_root"
+              groups="topic_chatbot.group_topic_chatbot_admin"
+              sequence="100"/>
+
+    <menuitem id="menu_topic_chatbot_settings"
+              name="Settings"
+              parent="menu_topic_chatbot_config_root"
+              action="action_topic_chatbot_config"
+              sequence="10"/>
+</odoo>
