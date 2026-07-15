@@ -1082,6 +1082,132 @@ class KeHoachVatTu(models.Model):
             'Data_KHDVT_%s.xlsx' % file_suffix,
         )
 
+    def action_export_vat_tu_can(self):
+        """Xuất Excel bước 3 — layout pivot giống UI (Tháng × Đơn vị KD + Tổng)."""
+        self.ensure_one()
+        lines = self.tinh_toan_vat_tu_ids
+        if not lines:
+            raise UserError(_('Chưa có dữ liệu tính toán vật tư để xuất.'))
+        if self.state in ('ke_hoach', 'dinh_muc'):
+            raise UserError(_('Chỉ export được từ bước Tính toán vật tư trở đi.'))
+
+        months = self._get_horizon_months()
+        if len(months) < 4:
+            months = (months + [''] * 4)[:4]
+
+        # Đơn vị KD xuất hiện trong B3, sort theo mã
+        kd_map = {}
+        for line in lines:
+            if not line.don_vi_kd_id:
+                continue
+            cid = line.don_vi_kd_id.id
+            code = (line.don_vi_kd_code or '').strip()
+            if not code:
+                code = (
+                    line.don_vi_kd_id.company_code
+                    or line.don_vi_kd_id.name
+                    or '#%s' % cid
+                )
+            kd_map[cid] = code
+        kd_companies = sorted(kd_map.items(), key=lambda item: str(item[1]))
+
+        # Pivot: 1 dòng / mã NVL
+        by_mat = {}
+        for line in lines:
+            key = (line.ma_vat_tu or '').strip() or ('id:%s' % line.id)
+            if key not in by_mat:
+                by_mat[key] = {
+                    'ma_vat_tu': line.ma_vat_tu or '',
+                    'ten_vat_tu': line.ten_vat_tu or '',
+                    'don_vi_tinh': (
+                        line.don_vi_tinh.display_name if line.don_vi_tinh else ''
+                    ),
+                    'by_company': {},
+                }
+            if line.don_vi_kd_id:
+                by_mat[key]['by_company'][line.don_vi_kd_id.id] = line
+        rows = [by_mat[k] for k in sorted(by_mat.keys())]
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = 'Vat tu can'
+
+        ws.cell(row=1, column=1, value='Số chứng từ')
+        ws.cell(row=1, column=2, value=self.code or '')
+        ws.cell(row=2, column=1, value='Tháng bắt đầu')
+        ws.cell(row=2, column=2, value=self.period_month or '')
+
+        header_row1 = 4
+        header_row2 = 5
+        data_row = 6
+
+        # Meta + specs cho style (qty/text)
+        col_specs = []
+        col = 1
+        for label in ('Mã NVL', 'Tên NVL', 'ĐVT'):
+            ws.merge_cells(
+                start_row=header_row1, start_column=col,
+                end_row=header_row2, end_column=col,
+            )
+            ws.cell(row=header_row1, column=col, value=label)
+            col_specs.append((None, 'text'))
+            col += 1
+
+        for month_offset, month in enumerate(months):
+            group_start = col
+            span = len(kd_companies) + 1  # KD codes + Tổng
+            ws.merge_cells(
+                start_row=header_row1, start_column=group_start,
+                end_row=header_row1, end_column=group_start + span - 1,
+            )
+            month_label = 'Tháng %s' % month if month else 'T%s' % month_offset
+            ws.cell(row=header_row1, column=group_start, value=month_label)
+            for _cid, code in kd_companies:
+                ws.cell(row=header_row2, column=col, value=code)
+                col_specs.append((None, 'qty'))
+                col += 1
+            ws.cell(row=header_row2, column=col, value='Tổng')
+            col_specs.append((None, 'qty'))
+            col += 1
+
+        max_col = col - 1
+        row_idx = data_row
+        for row in rows:
+            ws.cell(row=row_idx, column=1, value=row['ma_vat_tu'])
+            ws.cell(row=row_idx, column=2, value=row['ten_vat_tu'])
+            ws.cell(row=row_idx, column=3, value=row['don_vi_tinh'])
+            col_idx = 4
+            for month_offset in range(4):
+                month_total = 0.0
+                for cid, _code in kd_companies:
+                    line = row['by_company'].get(cid)
+                    qty = getattr(line, 'qty_t%s' % month_offset, 0.0) if line else 0.0
+                    qty = qty or 0.0
+                    month_total += qty
+                    ws.cell(row=row_idx, column=col_idx, value=qty)
+                    col_idx += 1
+                ws.cell(row=row_idx, column=col_idx, value=month_total)
+                col_idx += 1
+            row_idx += 1
+
+        self._apply_b5_export_style(ws, header_row1, header_row2, max_col, col_specs)
+
+        ws.column_dimensions['A'].width = 14
+        ws.column_dimensions['B'].width = 28
+        ws.column_dimensions['C'].width = 10
+        for col_idx in range(4, max_col + 1):
+            ws.column_dimensions[get_column_letter(col_idx)].width = 12
+
+        code = (self.code or '').strip()
+        if code.upper().startswith('KHVT_'):
+            file_suffix = code[5:]
+        else:
+            file_suffix = code or str(self.id)
+        return self._xlsx_download_action(
+            wb,
+            'Data_VatTuCan_%s.xlsx' % file_suffix,
+        )
+
     @staticmethod
     def _b5_export_value(line, field, kind):
         if field == 'don_vi_tinh':
@@ -1139,12 +1265,26 @@ class KeHoachVatTu(models.Model):
 
     _IMPORT_BCU_ACTION_XMLID = 'sonha_vat_tu.action_import_tong_hop_bcu_server'
     _EXPORT_B5_ACTION_XMLID = 'sonha_vat_tu.action_export_kh_dat_vat_tu_server'
+    _EXPORT_B3_ACTION_XMLID = 'sonha_vat_tu.action_export_vat_tu_can_server'
+    _B3_FORM_VIEW_XMLID = 'sonha_vat_tu.view_ke_hoach_vat_tu_form_b3'
     _B4_FORM_VIEW_XMLID = 'sonha_vat_tu.view_ke_hoach_vat_tu_form_b4'
     _B5_FORM_VIEW_XMLID = 'sonha_vat_tu.view_ke_hoach_vat_tu_form_b5'
 
+    def _toolbar_remove_action(self, toolbar, action_xmlid):
+        action = self.env.ref(action_xmlid, raise_if_not_found=False)
+        if not action:
+            return
+        for key in ('action', 'print'):
+            items = toolbar.get(key)
+            if items:
+                toolbar[key] = [
+                    item for item in items
+                    if item.get('id') != action.id
+                ]
+
     @api.model
     def get_views(self, views, options=None):
-        """Ẩn Import BCU khỏi form khác B4; ẩn Export B5 khỏi form khác B5."""
+        """Ẩn Import BCU / Export B3 / Export B5 khỏi form không đúng bước."""
         res = super().get_views(views, options=options)
         form = res.get('views', {}).get('form')
         if not form or not (options or {}).get('toolbar'):
@@ -1152,29 +1292,16 @@ class KeHoachVatTu(models.Model):
         toolbar = form.setdefault('toolbar', {})
         form_view_id = form.get('id')
 
+        b3_view = self.env.ref(self._B3_FORM_VIEW_XMLID, raise_if_not_found=False)
         b4_view = self.env.ref(self._B4_FORM_VIEW_XMLID, raise_if_not_found=False)
-        if b4_view and form_view_id != b4_view.id:
-            import_action = self.env.ref(self._IMPORT_BCU_ACTION_XMLID, raise_if_not_found=False)
-            if import_action:
-                for key in ('action', 'print'):
-                    items = toolbar.get(key)
-                    if items:
-                        toolbar[key] = [
-                            item for item in items
-                            if item.get('id') != import_action.id
-                        ]
-
         b5_view = self.env.ref(self._B5_FORM_VIEW_XMLID, raise_if_not_found=False)
+
+        if b4_view and form_view_id != b4_view.id:
+            self._toolbar_remove_action(toolbar, self._IMPORT_BCU_ACTION_XMLID)
+        if b3_view and form_view_id != b3_view.id:
+            self._toolbar_remove_action(toolbar, self._EXPORT_B3_ACTION_XMLID)
         if b5_view and form_view_id != b5_view.id:
-            export_action = self.env.ref(self._EXPORT_B5_ACTION_XMLID, raise_if_not_found=False)
-            if export_action:
-                for key in ('action', 'print'):
-                    items = toolbar.get(key)
-                    if items:
-                        toolbar[key] = [
-                            item for item in items
-                            if item.get('id') != export_action.id
-                        ]
+            self._toolbar_remove_action(toolbar, self._EXPORT_B5_ACTION_XMLID)
         return res
 
     def get_formview_id(self, access_uid=None):
