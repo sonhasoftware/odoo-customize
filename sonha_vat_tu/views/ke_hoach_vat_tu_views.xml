@@ -163,6 +163,22 @@
                             <field name="period_month" readonly="1"/>
                         </group>
                     </group>
+                    <field name="dinh_muc_ids" readonly="1">
+                        <tree limit="80" create="false" delete="false" class="sh_free_width_tree">
+                            <field name="company_id" string="Đơn vị" optional="show"/>
+                            <field name="ma_sap"/>
+                            <field name="ten_sap"/>
+                            <field name="ma_tp" column_invisible="True"/>
+                            <field name="ma_nvl"/>
+                            <field name="bom_sale_id" string="Loại Bom Sale" optional="hide"/>
+                            <field name="ten_nvl"/>
+                            <field name="sl_dinh_muc" string="Định mức"/>
+                            <field name="qty_t0" sum="T0"/>
+                            <field name="qty_t1" sum="T1"/>
+                            <field name="qty_t2" sum="T2"/>
+                            <field name="qty_t3" sum="T3"/>
+                        </tree>
+                    </field>
                 </sheet>
                 <div class="oe_chatter">
                     <field name="message_follower_ids"/>
