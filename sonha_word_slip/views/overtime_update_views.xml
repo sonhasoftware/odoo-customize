@@ -67,7 +67,8 @@
         <field name="model">register.overtime.update</field>
         <field name="arch" type="xml">
             <search string="Search Phân Ca">
-                <filter string="Trạng thái: Chờ duyệt" name="state_draft" domain="[('status', '=', 'draft')]" />
+                <filter string="Trạng thái: Chờ duyệt" name="state_draft" domain="['|', '&amp;', '&amp;', ('status', '=', 'draft'), ('employee_id.company_id.overtime', '!=', True), '|', ('employee_id.parent_id.user_id', '=', uid), ('department_id.manager_id.user_id', '=', uid), '&amp;', ('employee_id.company_id.overtime', '=', True), ('status_lv2', '=', 'confirm')]" />
+                <filter string="Trạng thái: Chờ duyệt của tôi" name="my_state_draft" domain="[('status', '=', 'draft')]"/>
             </search>
         </field>
     </record>

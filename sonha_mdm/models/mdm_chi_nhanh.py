@@ -3,7 +3,7 @@ from odoo import api, fields, models
 
 class MDMChiNhanh(models.Model):
     _name = 'mdm.chi.nhanh'
-    _rec_name = 'ma'
+    _rec_name = 'ten'
 
     ma = fields.Char("Mã", store=True)
     ten = fields.Text("Tên", store=True)

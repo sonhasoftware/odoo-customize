@@ -34,12 +34,25 @@
 <!--              action="action_exp_task_reminder"-->
 <!--              sequence="4"/>-->
 
-    <menuitem id="menu_exp_contract_state_log"
-              name="Log chuyển trạng thái"
+    <menuitem id="menu_exp_contract_log"
+              name="Log tổng hợp"
               parent="menu_sonha_ql_xuat_khau"
               groups="sonha_ql_xuat_khau.group_exp_backup"
-              action="action_exp_contract_state_log"
               sequence="5"/>
+
+    <menuitem id="menu_exp_contract_state_log"
+              name="Log chuyển trạng thái"
+              parent="menu_exp_contract_log"
+              groups="sonha_ql_xuat_khau.group_exp_backup"
+              action="action_exp_contract_state_log"
+              sequence="1"/>
+
+    <menuitem id="menu_exp_contract_mail_log"
+              name="Log mail"
+              parent="menu_exp_contract_log"
+              groups="sonha_ql_xuat_khau.group_exp_backup"
+              action="action_exp_mail_log"
+              sequence="2"/>
 
 <!--    Màn cấu hình-->
     <menuitem id="menu_exp_config_ql_xuat_khau"

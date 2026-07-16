@@ -47,25 +47,32 @@ class DataAttendance(models.Model):
         #             })
 
     def clone_data_mcc_old(self):
-        today = fields.Datetime.now()  # Lấy thời gian hiện tại
-        first_day_this_month = today.replace(day=1, hour=0, minute=0, second=0)  # Ngày đầu tháng, reset giờ về 00:00:00
-        first_day_last_month = first_day_this_month - relativedelta(months=1)  # Ngày đầu tháng trước
+        today = fields.Datetime.now()
 
-        # Lấy ngày đầu tháng sau để làm mốc cho "<"
-        first_day_next_month = first_day_this_month + relativedelta(months=1)
+        start_date = (today - timedelta(days=6)).replace(
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0
+        )
 
-        # Tạo domain tìm kiếm
-        domain = [
-            ('date_time', '>=', first_day_last_month),  # Từ ngày đầu tháng trước
-            ('date_time', '<', first_day_next_month)  # Đến trước ngày đầu tháng sau
-        ]
-        attendance_records = self.sudo().search(domain)
+        end_date = today.replace(
+            hour=23,
+            minute=59,
+            second=59,
+            microsecond=999999
+        )
+
+        attendance_records = self.sudo().search([
+            ('date_time', '>=', start_date),
+            ('date_time', '<=', end_date)
+        ], order='date_time')
         employee_model = self.env['hr.employee']
         master_attendance_model = self.env['master.data.attendance']
 
         for record in attendance_records:
             # Tìm nhân viên dựa vào mã chấm công
-            employee = employee_model.sudo().search([('device_id_num', '=', record.code)])
+            employee = employee_model.sudo().search([('device_id_num', '=', record.code)], limit=1)
             if employee:
                 # Kiểm tra xem bản ghi đã tồn tại trong master.data.attendance chưa
                 existing_record = master_attendance_model.sudo().search([

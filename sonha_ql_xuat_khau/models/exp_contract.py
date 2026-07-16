@@ -9,19 +9,19 @@ class ExpContract(models.Model):
     _rec_name = 'contract_no'
     _order = 'created_date desc, id desc'
 
-    contract_no = fields.Char(string="Số hợp đồng", required=True, store=True, tracking=True)
-    customer_id = fields.Many2one('exp.customer', string="Khách hàng", store=True, tracking=True)
+    contract_no = fields.Char(string="Số hợp đồng (*)", required=True, store=True, tracking=True)
+    customer_id = fields.Many2one('exp.customer', string="Khách hàng (*)", store=True, tracking=True)
     state_id = fields.Many2one('exp.contract.state',
                                group_expand="_read_group_state_ids",
                                default=lambda self: self.default_contract_state(),
                                required=True, string="Trạng thái", store=True, tracking=True)
     po_number = fields.Char(string="Số PO", store=True, tracking=True)
-    total_amount = fields.Float(string="Tổng tiền", required=True, store=True, tracking=True)
-    deposit_percent = fields.Float(string="% cọc", required=True, store=True, tracking=True)
-    deposit_amount = fields.Float(string="Tiền cọc", required=True, store=True, tracking=True)
-    currency = fields.Many2one('exp.config.currency', string="Tiền tệ", required=True, store=True, tracking=True)
-    sign_date = fields.Date(string="Ngày ký hợp đồng", required=True, store=True, tracking=True)
-    lc_required = fields.Boolean(string="Bản LC", required=True, store=True, tracking=True)
+    total_amount = fields.Float(string="Tổng tiền (*)", required=True, store=True, tracking=True)
+    deposit_percent = fields.Float(string="% cọc (*)", required=True, store=True, tracking=True)
+    deposit_amount = fields.Float(string="Tiền cọc (*)", required=True, store=True, tracking=True)
+    currency = fields.Many2one('exp.config.currency', string="Tiền tệ (*)", required=True, store=True, tracking=True)
+    sign_date = fields.Date(string="Ngày ký hợp đồng (*)", required=True, store=True, tracking=True)
+    lc_required = fields.Boolean(string="Bản LC", store=True, tracking=True)
     lc_file = fields.Many2many('ir.attachment',
                                'exp_contract_lc_attachment_rel',
                                'contract_id',
@@ -33,23 +33,23 @@ class ExpContract(models.Model):
                                default=fields.Date.context_today, required=True, store=True)
     shipping = fields.Text(string="Vận chuyển", store=True, tracking=True)
     payment = fields.Text(string="Thanh toán", store=True, tracking=True)
-    shipping_port_from = fields.Many2one('exp.config.port', string="Cảng bốc hàng",
-                                         domain="[('type', '=', 'port_form')]", store=True, tracking=True)
-    shipping_port_to = fields.Many2one('exp.config.port', string="Cảng dỡ hàng",
+    shipping_port_from = fields.Many2many('exp.config.port', string="Cảng bốc hàng (*)",
+                                          domain="[('type', '=', 'port_form')]", store=True, tracking=True)
+    shipping_port_to = fields.Many2one('exp.config.port', string="Cảng dỡ hàng (*)",
                                        domain="[('type', '=', 'port_to')]", store=True, tracking=True)
-    shipping_time = fields.Date(string="Thời gian", store=True, tracking=True)
+    shipping_time = fields.Date(string="Thời gian (*)", store=True, tracking=True)
     shipping_time_to = fields.Date(string="Thời gian", store=True)
     shipping_country = fields.Many2one('exp.config.country', string="Quốc gia",
                                        compute="_get_country", store=True, tracking=True)
-    payment_term = fields.Many2one('exp.config.term', string="Điều khoản thanh toán", store=True, tracking=True)
-    bank = fields.Many2one('exp.config.bank', string="Ngân hàng", store=True, tracking=True)
+    payment_term = fields.Many2one('exp.config.term', string="Điều khoản thanh toán (*)", store=True, tracking=True)
+    bank = fields.Many2one('exp.config.bank', string="Ngân hàng (*)", store=True, tracking=True)
     payment_note = fields.Text(string="Ghi chú thêm khác", store=True, tracking=True)
     note = fields.Text(string="Ghi chú", store=True, tracking=True)
     cont_request = fields.Integer(string="Số lượng CONT y/c", store=True, tracking=True)
     contract_file = fields.Many2many('ir.attachment',
                                      'exp_contract_contract_attachment_rel',
                                      'contract_id',
-                                     'attachment_id', string="File hợp đồng cứng", required=True, store=True)
+                                     'attachment_id', string="File hợp đồng cứng (*)", required=True, store=True)
     contract_file_name = fields.Char(string="Tên file hợp đồng cứng", store=True)
     deposit_payment_file = fields.Many2many('ir.attachment',
                                             'exp_contract_deposit_attachment_rel',
@@ -61,7 +61,7 @@ class ExpContract(models.Model):
                                     'exp_contract_product_attachment_rel',
                                     'contract_id',
                                     'attachment_id', string="File excel hàng hóa", store=True)
-    export_required_date = fields.Date(string="Ngày yêu cầu xuất hàng", store=True, tracking=True)
+    export_required_date = fields.Date(string="Ngày yêu cầu xuất hàng (*)", store=True, tracking=True)
     export_required_date_to = fields.Date(string="Ngày yêu cầu xuất hàng đến", store=True)
     product_file_name = fields.Char(string="Tên file hàng hóa", store=True)
     produce_code = fields.Char(string="Mã đơn sản xuất", store=True, tracking=True)
@@ -154,9 +154,9 @@ class ExpContract(models.Model):
     @api.depends('weight_request', 'export_weight', 'weight_left')
     def _compute_weight(self):
         for r in self:
-            r.view_weight_request = str(round(r.weight_request, 2)) + " tấn" if r.weight_request >= 0else ''
-            r.view_export_weight = str(round(r.export_weight, 2)) + " tấn" if r.export_weight >= 0 else ''
-            r.view_weight_left = str(round(r.weight_left, 2)) + " tấn" if r.weight_left >= 0 else ''
+            r.view_weight_request = f"{r.weight_request:.2f} tấn" if r.weight_request >= 0 else ''
+            r.view_export_weight = f"{r.export_weight:.2f} tấn" if r.export_weight >= 0 else ''
+            r.view_weight_left = f"{r.weight_left:.2f} tấn" if r.weight_left >= 0 else ''
 
     def attach_multi(self):
         for r in self:
@@ -812,7 +812,15 @@ class ExpContract(models.Model):
                             f"&menu_id={menu_id}"
                             f"&action={action_id}"
                         )
-                        template.with_context(type='CO', link=record_link).send_mail(contract_id, force_send=True)
+                        remind_mail = template.with_context(type='CO', link=record_link).send_mail(contract_id, force_send=True)
+                        mail_id = self.env['mail.mail'].browse(remind_mail)
+                        if mail_id and mail_id.state == 'exception':
+                            now = datetime.now()
+                            self.env['exp.mail.log'].sudo().create({
+                                'contract_id': contract_id,
+                                'note': mail_id.failure_reason,
+                                'send_date': now,
+                            })
         if bh_reminder:
             start_date = now - timedelta(days=bh_reminder.noti_day)
             string_date = start_date.strftime('%Y-%m-%d')
@@ -852,7 +860,15 @@ class ExpContract(models.Model):
                             f"&menu_id={menu_id}"
                             f"&action={action_id}"
                         )
-                        template.with_context(type='BH', link=record_link).send_mail(contract_id, force_send=True)
+                        remind_mail = template.with_context(type='BH', link=record_link).send_mail(contract_id, force_send=True)
+                        mail_id = self.env['mail.mail'].browse(remind_mail)
+                        if mail_id and mail_id.state == 'exception':
+                            now = datetime.now()
+                            self.env['exp.mail.log'].sudo().create({
+                                'contract_id': contract_id,
+                                'note': mail_id.failure_reason,
+                                'send_date': now,
+                            })
 
     def remind_co_bh_cron(self):
         self.with_delay().mail_co_bh_reminder()

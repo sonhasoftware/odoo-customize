@@ -33,6 +33,7 @@
         'views/exp_export_document_views.xml',
         'views/exp_group_users_views.xml',
         'views/exp_distribute_group_user_views.xml',
+        'views/exp_mail_log_views.xml',
         'views/exp_mail_config_views.xml',
         'views/exp_config_country_views.xml',
         'views/exp_config_term_views.xml',

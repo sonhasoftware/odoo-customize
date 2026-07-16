@@ -139,6 +139,7 @@ class PopupRequiredDocument(models.TransientModel):
         return text
 
     def action_confirm(self):
+        mail = None
         action_user = self.env.user.id
         mail_from = self.env['hr.employee'].sudo().search([('user_id', '=', action_user)], limit=1).work_email
         if self.key == 'change_stt':
@@ -171,7 +172,7 @@ class PopupRequiredDocument(models.TransientModel):
                     'subject': self.subject,
                     'body_html': self.body_mail,
                 })
-                template.send_mail(self.contract_id.id, force_send=True)
+                mail = template.send_mail(self.contract_id.id, force_send=True)
             if self.state_code == 'done':
                 self.file.sudo().write({
                     'res_id': self.id
@@ -208,7 +209,7 @@ class PopupRequiredDocument(models.TransientModel):
                         'subject': self.subject,
                         'body_html': self.body_mail,
                     })
-                    template.send_mail(self.contract_id.id, force_send=True)
+                    mail = template.send_mail(self.contract_id.id, force_send=True)
                 else:
                     raise ValidationError("Chưa được cấu hình người nhận")
         else:
@@ -230,4 +231,12 @@ class PopupRequiredDocument(models.TransientModel):
                     'bh': True if self.file else False,
                     'bh_status': 'done' if self.file else 'draft',
                 })
-
+        mail_id = self.env['mail.mail'].browse(mail) if mail else None
+        if mail_id:
+            if mail_id.state == 'exception':
+                now = datetime.now()
+                self.env['exp.mail.log'].sudo().create({
+                    'contract_id': self.contract_id.id,
+                    'note': mail_id.failure_reason,
+                    'send_date': now,
+                })
