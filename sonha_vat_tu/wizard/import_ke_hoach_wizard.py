@@ -32,6 +32,7 @@ class ImportKeHoachWizard(models.TransientModel):
     _QTY_FIELDS = ('qty_t0', 'qty_t1', 'qty_t2', 'qty_t3')
     _WRITE_FIELDS_KD = ('ma_hang', 'qty_t0', 'qty_t1', 'qty_t2', 'qty_t3')
     _WRITE_FIELDS_SX = ('ma_hang', 'qty_t0', 'qty_t1', 'qty_t2', 'qty_t3')
+    _PLAN_HEADERS = ['Đơn vị', 'Ngành hàng', 'Tên hàng', 'Mã hàng', 'Mã']
 
     def _parse_month_header(self, label):
         if not label:
@@ -95,10 +96,17 @@ class ImportKeHoachWizard(models.TransientModel):
     def _prepare_rows(self, rows, import_type):
         header_row_idx = 5
         header = [str(c).strip() if c is not None else '' for c in rows[header_row_idx]]
+        for col_idx, expected in enumerate(self._PLAN_HEADERS):
+            actual = header[col_idx] if col_idx < len(header) else ''
+            if actual.lower() != expected.lower():
+                raise UserError(_(
+                    'File Excel không đúng mẫu: cột %s phải là "%s" (đang là "%s"). '
+                    'Vui lòng tải lại template từ kỳ kế hoạch đang mở.'
+                ) % (col_idx + 1, expected, actual or '—'))
         month_cols = []
         horizon_months = self.period_id._get_horizon_months()
         month_offset_map = {month: idx for idx, month in enumerate(horizon_months)}
-        month_start_col = 5 if import_type == 'business' else 4
+        month_start_col = 5
         for idx, label in enumerate(header):
             month_key = self._parse_month_header(label)
             if month_key and idx >= month_start_col and month_key in month_offset_map:
@@ -148,7 +156,7 @@ class ImportKeHoachWizard(models.TransientModel):
 
     def _collect_import_sap_codes(self, rows, header, data_start_idx, import_type):
         codes = set()
-        ma_col = 4 if import_type == 'business' else 3
+        ma_col = 4
         for row in rows[data_start_idx:]:
             if not row or not any(c not in (None, '') for c in row):
                 continue
@@ -188,9 +196,13 @@ class ImportKeHoachWizard(models.TransientModel):
             'ma_sap': ma_sap,
         }
 
-    def _validate_production_row(self, row_idx, row, errors, mdm_codes):
-        ma_hang_raw = str(row[2]).strip() if row[2] not in (None, '') else ''
-        ma_sap = str(row[3]).strip() if row[3] not in (None, '') else ''
+    def _validate_production_row(self, row_idx, row, errors, company_lookup, mdm_codes):
+        company_rec = self._resolve_company_cached(row[0], row_idx, errors, company_lookup)
+        if not company_rec:
+            return None
+
+        ma_hang_raw = str(row[3]).strip() if row[3] not in (None, '') else ''
+        ma_sap = str(row[4]).strip() if row[4] not in (None, '') else ''
 
         if not ma_sap:
             errors.append(_('Dòng %d: thiếu Mã.') % row_idx)
@@ -202,6 +214,7 @@ class ImportKeHoachWizard(models.TransientModel):
             return None
 
         return {
+            'company_id': company_rec.id,
             'ma_hang': ma_hang_raw,
             'ma_sap': ma_sap,
         }
@@ -339,55 +352,68 @@ class ImportKeHoachWizard(models.TransientModel):
 
     def _import_production(self, rows, header, month_cols, data_start_idx):
         Plan = self.env['ke.hoach.san.xuat'].sudo()
-        vals_by_key = {}
+        vals_list = []
         errors = []
-        company = self.env.company
-        if company.company_code not in ('BNH', 'SSP'):
-            raise UserError(_('Công ty hiện tại không phải công ty sản xuất BNH/SSP. Vui lòng chọn đúng công ty trước khi import kế hoạch sản xuất.'))
+        company_sx = self.env.company
+        if company_sx.company_code not in ('BNH', 'SSP'):
+            raise UserError(_(
+                'Công ty hiện tại không phải công ty sản xuất BNH/SSP. '
+                'Vui lòng chọn đúng công ty trước khi import kế hoạch sản xuất.'
+            ))
 
+        company_lookup = self._build_company_lookup()
         mdm_codes = self.env['ma.hang'].get_mdm_sap_codes_set(
             self._collect_import_sap_codes(rows, header, data_start_idx, 'production'),
         )
+        seen = set()
 
         for row_idx, row in enumerate(rows[data_start_idx:], start=data_start_idx + 1):
             if not row or not any(c not in (None, '') for c in row):
                 continue
             row = list(row) + [None] * (len(header) - len(row))
-            base_vals = self._validate_production_row(row_idx, row, errors, mdm_codes)
+            base_vals = self._validate_production_row(
+                row_idx, row, errors, company_lookup, mdm_codes,
+            )
             if not base_vals:
                 continue
 
             qty_by_offset = self._parse_qty_row(row, row_idx, month_cols, errors)
-            key = (company.id, base_vals['ma_sap'])
-            if key in vals_by_key:
-                for idx, f in enumerate(self._QTY_FIELDS):
-                    vals_by_key[key][f] += qty_by_offset[idx]
+            key = (base_vals['company_id'], base_vals['ma_sap'])
+            if key in seen:
+                errors.append(_(
+                    'Dòng %d: trùng Đơn vị + Mã=%s trong file.'
+                ) % (row_idx, base_vals['ma_sap']))
                 continue
+            seen.add(key)
 
-            vals_by_key[key] = {
+            vals_list.append({
                 **base_vals,
                 'period_id': self.period_id.id,
-                'company_id': company.id,
+                'company_sx_id': company_sx.id,
                 'qty_t0': qty_by_offset[0],
                 'qty_t1': qty_by_offset[1],
                 'qty_t2': qty_by_offset[2],
                 'qty_t3': qty_by_offset[3],
-            }
+            })
 
         self._raise_errors(errors)
-        vals_list = list(vals_by_key.values())
 
         business_keys = {
-            row['ma_sap']
+            (row['company_id'], row['ma_sap'])
             for row in self.env['ke.hoach.kinh.doanh'].sudo().search_read(
-                [('period_id', '=', self.period_id.id)], ['ma_sap'],
+                [('period_id', '=', self.period_id.id)], ['company_id', 'ma_sap'],
             )
-            if row.get('ma_sap')
+            if row.get('ma_sap') and row.get('company_id')
         }
-        missing = sorted(business_keys - {v['ma_sap'] for v in vals_list})
+        imported_keys = {(v['company_id'], v['ma_sap']) for v in vals_list}
+        missing = sorted(business_keys - imported_keys)
         if missing:
-            for key in missing[:20]:
-                errors.append(_('Thiếu dòng kế hoạch kinh doanh Mã=%s. Nếu không sản xuất, vui lòng giữ dòng và nhập Số lượng = 0.') % key)
+            for company_id, ma_sap in missing[:20]:
+                company = self.env['res.company'].browse(company_id)
+                errors.append(_(
+                    'Thiếu dòng kế hoạch kinh doanh Đơn vị=%s, Mã=%s. '
+                    'Nếu không sản xuất, giữ dòng và nhập Số lượng = 0.'
+                ) % (company.company_code or company.name, ma_sap))
             if len(missing) > 20:
                 errors.append(_('... còn %d dòng kế hoạch kinh doanh bị thiếu.') % (len(missing) - 20))
         self._raise_errors(errors)

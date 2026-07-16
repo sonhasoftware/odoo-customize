@@ -187,6 +187,9 @@ DECLARE
     v_period_month TEXT;
     v_period_code  TEXT;
     v_owner_company_id INTEGER;
+    v_month_base   DATE;
+    v_k0 TEXT; v_k1 TEXT; v_k2 TEXT; v_k3 TEXT;
+    v_d0 DATE; v_d1 DATE; v_d2 DATE; v_d3 DATE;
 BEGIN
     DELETE FROM du_lieu_tong_hop_vat_tu
      WHERE step_code = 'b2' AND period_id = p_period_id;
@@ -196,6 +199,16 @@ BEGIN
       FROM ke_hoach_vat_tu WHERE id = p_period_id;
 
     IF v_period_month IS NULL THEN RETURN; END IF;
+
+    v_month_base := TO_DATE(v_period_month, 'MM/YYYY');
+    v_d0 := v_month_base;
+    v_d1 := (v_month_base + INTERVAL '1 month')::DATE;
+    v_d2 := (v_month_base + INTERVAL '2 month')::DATE;
+    v_d3 := (v_month_base + INTERVAL '3 month')::DATE;
+    v_k0 := TO_CHAR(v_d0, 'MM/YYYY');
+    v_k1 := TO_CHAR(v_d1, 'MM/YYYY');
+    v_k2 := TO_CHAR(v_d2, 'MM/YYYY');
+    v_k3 := TO_CHAR(v_d3, 'MM/YYYY');
 
     PERFORM set_config('app.dlthvt_bulk', '1', true);
 
@@ -212,38 +225,22 @@ BEGIN
         'b2', 'dinh.muc', d.id, d.period_id,
         v_period_code, v_period_month, v_owner_company_id,
         d.company_id, rc.company_code, d.company_id, rc.company_code,
-        TO_CHAR((TO_DATE(v_period_month, 'MM/YYYY') + (m.i || ' month')::INTERVAL)::DATE, 'MM/YYYY'),
-        (TO_DATE(v_period_month, 'MM/YYYY') + (m.i || ' month')::INTERVAL)::DATE,
+        m.month_key, m.month_date,
         d.ma_sap, d.ma_nvl,
-        CASE m.i WHEN 0 THEN d.qty_t0 WHEN 1 THEN d.qty_t1 WHEN 2 THEN d.qty_t2 ELSE d.qty_t3 END,
+        m.qty,
         d.ma_tp, d.ten_tp, d.ten_sap, d.ma_nvl, d.bom_sale_id, d.ten_nvl, d.ten_nvl, d.sl_dinh_muc,
-        CASE m.i WHEN 0 THEN d.qty_kinh_doanh_t0 WHEN 1 THEN d.qty_kinh_doanh_t1
-                 WHEN 2 THEN d.qty_kinh_doanh_t2 ELSE d.qty_kinh_doanh_t3 END,
-        CASE m.i WHEN 0 THEN d.qty_san_xuat_t0 WHEN 1 THEN d.qty_san_xuat_t1
-                 WHEN 2 THEN d.qty_san_xuat_t2 ELSE d.qty_san_xuat_t3 END,
-        CASE m.i WHEN 0 THEN d.qty_chenh_lech_t0 WHEN 1 THEN d.qty_chenh_lech_t1
-                 WHEN 2 THEN d.qty_chenh_lech_t2 ELSE d.qty_chenh_lech_t3 END,
+        m.qty_kd, m.qty_sx, m.qty_cl,
         d.create_uid, d.create_date, d.write_uid, d.write_date
     FROM dinh_muc d
-    CROSS JOIN generate_series(0, 3) AS m(i)
     LEFT JOIN res_company rc ON rc.id = d.company_id
-    WHERE d.period_id = p_period_id
-    ON CONFLICT (source_model, source_res_id, month_key) DO UPDATE SET
-        step_code = EXCLUDED.step_code, period_id = EXCLUDED.period_id,
-        period_code = EXCLUDED.period_code, period_month = EXCLUDED.period_month,
-        owner_company_id = EXCLUDED.owner_company_id,
-        company_id = EXCLUDED.company_id, company_code = EXCLUDED.company_code,
-        period_company_id = EXCLUDED.period_company_id,
-        period_company_code = EXCLUDED.period_company_code,
-        month_date = EXCLUDED.month_date,
-        ma_sap = EXCLUDED.ma_sap, ma_vat_tu = EXCLUDED.ma_vat_tu, qty = EXCLUDED.qty,
-        ma_tp = EXCLUDED.ma_tp, ten_tp = EXCLUDED.ten_tp, ten_sap = EXCLUDED.ten_sap,
-        ma_nvl = EXCLUDED.ma_nvl, bom_sale_id = EXCLUDED.bom_sale_id,
-        ten_nvl = EXCLUDED.ten_nvl, ten_vat_tu = EXCLUDED.ten_vat_tu,
-        sl_dinh_muc = EXCLUDED.sl_dinh_muc,
-        qty_kinh_doanh = EXCLUDED.qty_kinh_doanh, qty_san_xuat = EXCLUDED.qty_san_xuat,
-        qty_chenh_lech = EXCLUDED.qty_chenh_lech,
-        write_uid = EXCLUDED.write_uid, write_date = EXCLUDED.write_date;
+    CROSS JOIN LATERAL (
+        VALUES
+            (v_k0, v_d0, d.qty_t0, d.qty_kinh_doanh_t0, d.qty_san_xuat_t0, d.qty_chenh_lech_t0),
+            (v_k1, v_d1, d.qty_t1, d.qty_kinh_doanh_t1, d.qty_san_xuat_t1, d.qty_chenh_lech_t1),
+            (v_k2, v_d2, d.qty_t2, d.qty_kinh_doanh_t2, d.qty_san_xuat_t2, d.qty_chenh_lech_t2),
+            (v_k3, v_d3, d.qty_t3, d.qty_kinh_doanh_t3, d.qty_san_xuat_t3, d.qty_chenh_lech_t3)
+    ) AS m(month_key, month_date, qty, qty_kd, qty_sx, qty_cl)
+    WHERE d.period_id = p_period_id;
 
     PERFORM set_config('app.dlthvt_bulk', '', true);
 END;
@@ -418,14 +415,18 @@ BEGIN
         month_key, month_date, ma_sap, ma_nvl,
         ten_nvl, ten_vat_tu, don_vi_tinh, chung_loai,
         tong_ton_nvl_sl, don_gia_ton_kho, gia_tri_ton_nvl_dau_ky,
-        tong_sl_vt_can_dung_t0, tong_sl_vt_can_dung_t1, tong_sl_vt_can_dung_t2, tong_sl_vt_can_dung_t3,
+        tong_sl_vt_can_dung_t0, tong_sl_vt_can_dung_t1,
+        tong_sl_vt_can_dung_t2, tong_sl_vt_can_dung_t3,
         tong_vt_can_dung, tong_sl_vt_can_dung,
-        tong_hang_di_duong_sl_t0, tong_hang_di_duong_sl_t1, tong_hang_di_duong_sl_t2, tong_hang_di_duong_sl_t3,
+        tong_hang_di_duong_sl_t0, tong_hang_di_duong_sl_t1,
+        tong_hang_di_duong_sl_t2, tong_hang_di_duong_sl_t3,
         tong_hang_di_duong, tong_hang_di_duong_sl,
-        sl_du_tru_toi_thieu, sl_dat_mua_de_xuat, sl_dat_mua_chot, sl_can_mua_theo_moq,
+        sl_du_tru_toi_thieu, sl_can_mua_theo_moq,
+        sl_dat_mua_de_xuat, sl_dat_mua_chot,
         don_gia_mua, gia_tri_mua_hang,
-        sl_ton_kho_cuoi_ky, sl_ton_kho, vt_loi_ton_lau,
-        so_ngay_vong_quay_ton, don_gia_ton_kho_cuoi_ky, gia_tri_ton_kho_cuoi_ky, gia_tri_ton_kho,
+        sl_ton_kho_cuoi_ky, sl_ton_kho,
+        vt_loi_ton_lau, so_ngay_vong_quay_ton,
+        don_gia_ton_kho_cuoi_ky, gia_tri_ton_kho_cuoi_ky, gia_tri_ton_kho,
         ghi_chu, create_uid, create_date, write_uid, write_date
     )
     SELECT
@@ -436,14 +437,18 @@ BEGIN
         k.ten_nvl, k.ten_nvl, k.don_vi_tinh, k.chung_loai,
         k.tong_ton_nvl_sl, k.don_gia_ton_kho,
         COALESCE(k.tong_ton_nvl_sl, 0) * COALESCE(k.don_gia_ton_kho, 0),
-        k.tong_sl_vt_can_dung_t0, k.tong_sl_vt_can_dung_t1, k.tong_sl_vt_can_dung_t2, k.tong_sl_vt_can_dung_t3,
+        k.tong_sl_vt_can_dung_t0, k.tong_sl_vt_can_dung_t1,
+        k.tong_sl_vt_can_dung_t2, k.tong_sl_vt_can_dung_t3,
         k.tong_vt_can_dung, k.tong_vt_can_dung,
-        k.tong_hang_di_duong_sl_t0, k.tong_hang_di_duong_sl_t1, k.tong_hang_di_duong_sl_t2, k.tong_hang_di_duong_sl_t3,
+        k.tong_hang_di_duong_sl_t0, k.tong_hang_di_duong_sl_t1,
+        k.tong_hang_di_duong_sl_t2, k.tong_hang_di_duong_sl_t3,
         k.tong_hang_di_duong, k.tong_hang_di_duong,
-        k.sl_du_tru_toi_thieu, k.sl_dat_mua_de_xuat, k.sl_dat_mua_chot, k.sl_can_mua_theo_moq,
+        k.sl_du_tru_toi_thieu, k.sl_can_mua_theo_moq,
+        k.sl_dat_mua_de_xuat, k.sl_dat_mua_chot,
         k.don_gia_mua, k.gia_tri_mua_hang,
-        k.sl_ton_kho_cuoi_ky, k.sl_ton_kho_cuoi_ky, k.vt_loi_ton_lau,
-        k.so_ngay_vong_quay_ton, k.don_gia_ton_kho_cuoi_ky, k.gia_tri_ton_kho_cuoi_ky, k.gia_tri_ton_kho_cuoi_ky,
+        k.sl_ton_kho_cuoi_ky, k.sl_ton_kho_cuoi_ky,
+        k.vt_loi_ton_lau, k.so_ngay_vong_quay_ton,
+        k.don_gia_ton_kho_cuoi_ky, k.gia_tri_ton_kho_cuoi_ky, k.gia_tri_ton_kho_cuoi_ky,
         k.ghi_chu, k.create_uid, k.create_date, k.write_uid, k.write_date
     FROM kh_dat_vat_tu k
     LEFT JOIN res_company rc ON rc.id = k.company_id
@@ -473,9 +478,9 @@ BEGIN
         tong_hang_di_duong = EXCLUDED.tong_hang_di_duong,
         tong_hang_di_duong_sl = EXCLUDED.tong_hang_di_duong_sl,
         sl_du_tru_toi_thieu = EXCLUDED.sl_du_tru_toi_thieu,
+        sl_can_mua_theo_moq = EXCLUDED.sl_can_mua_theo_moq,
         sl_dat_mua_de_xuat = EXCLUDED.sl_dat_mua_de_xuat,
         sl_dat_mua_chot = EXCLUDED.sl_dat_mua_chot,
-        sl_can_mua_theo_moq = EXCLUDED.sl_can_mua_theo_moq,
         don_gia_mua = EXCLUDED.don_gia_mua,
         gia_tri_mua_hang = EXCLUDED.gia_tri_mua_hang,
         sl_ton_kho_cuoi_ky = EXCLUDED.sl_ton_kho_cuoi_ky,

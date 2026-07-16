@@ -7,6 +7,7 @@
         <field name="arch" type="xml">
             <tree string="Kế hoạch sản xuất" editable="bottom">
                 <field name="period_id" required="1"/>
+                <field name="company_id" string="Đơn vị" context="{'vat_tu_company_code_display': True}"/>
                 <field name="nganh_hang"/>
                 <field name="ten_hang" readonly="1"/>
                 <field name="ma_hang"/>
@@ -33,7 +34,7 @@
                 <group expand="0" string="Nhóm theo">
                     <filter name="group_period" string="Kỳ"
                             context="{'group_by': 'period_id'}"/>
-                    <filter name="group_company" string="Công ty"
+                    <filter name="group_company" string="Đơn vị"
                             context="{'group_by': 'company_id'}"/>
                     <filter name="group_sap" string="Mã"
                             context="{'group_by': 'ma_sap'}"/>

@@ -12,7 +12,11 @@ class KeHoachVatTuLine(models.Model):
     period_id = fields.Many2one(
         'ke.hoach.vat.tu', string='Kỳ', ondelete='cascade', index=True)
     company_id = fields.Many2one(
-        'res.company', string='Công ty sản xuất', index=True, required=True)
+        'res.company', string='Đơn vị', index=True, required=True)
+    company_sx_id = fields.Many2one(
+        'res.company', string='Nhà máy SX', index=True, required=True,
+        help='Đơn vị sản xuất (BNH/SSP) — dùng tra tồn kho SAP.',
+    )
     nganh_hang = fields.Char(string='Ngành hàng', index=True)
     ten_hang = fields.Char(
         string='Tên hàng',
@@ -52,7 +56,7 @@ class KeHoachVatTuLine(models.Model):
     _sql_constraints = [
         ('uniq_material_plan_row',
          'unique(period_id, company_id, ma_sap)',
-         'Trùng dòng kế hoạch vật tư chốt!'),
+         'Trùng dòng kế hoạch vật tư (Kỳ, Đơn vị, Mã)!'),
     ]
 
     @api.depends('ma_sap')
@@ -66,7 +70,7 @@ class KeHoachVatTuLine(models.Model):
             code = (rec.ma_sap or '').strip()
             rec.ten_hang = name_map.get(code, '') if code else ''
 
-    @api.depends('ma_sap', 'company_id')
+    @api.depends('ma_sap', 'company_sx_id')
     def _compute_qty_ton_kho(self):
         # Gom tất cả ma_sap + company_code cần query
         sap_codes = set()
@@ -108,7 +112,7 @@ class KeHoachVatTuLine(models.Model):
                 rec.qty_ton_kho = 0.0
                 continue
             comp_grp = 'ALL'
-            cc = rec.company_id.company_code or ''
+            cc = rec.company_sx_id.company_code or ''
             if cc in ('BNH',) or cc.startswith('21'):
                 comp_grp = 'BNH'
             elif cc in ('SSP',) or cc.startswith('22'):
@@ -126,14 +130,14 @@ class KeHoachVatTuLine(models.Model):
             rec.qty_cl_t2 = (rec.qty_sx_t2 or 0.0) - (rec.qty_kd_t2 or 0.0)
             rec.qty_cl_t3 = (rec.qty_sx_t3 or 0.0) - (rec.qty_kd_t3 or 0.0)
 
-    @api.constrains('company_id')
+    @api.constrains('company_sx_id')
     def _check_production_company(self):
         invalid = self.filtered(
-            lambda rec: rec.company_id.company_code not in ('BNH', 'SSP')
+            lambda rec: rec.company_sx_id.company_code not in ('BNH', 'SSP')
         )
         if invalid:
             raise ValidationError(_(
-                'Công ty sản xuất của kế hoạch vật tư chỉ được là BNH hoặc SSP.'
+                'Nhà máy sản xuất của kế hoạch vật tư chỉ được là BNH hoặc SSP.'
             ))
 
     @api.model_create_multi
@@ -179,15 +183,6 @@ class KeHoachVatTuLine(models.Model):
     def unlink(self):
         self._check_period_editable()
         return super().unlink()
-
-    def init(self):
-        self.env.cr.execute("""
-            UPDATE ke_hoach_vat_tu_line l
-               SET ten_hang = COALESCE(NULLIF(TRIM(mdm.ten), ''), NULLIF(TRIM(th.ten), ''), '')
-              FROM mdm_tong_hop_line mdm
-              LEFT JOIN mdm_tong_hop th ON th.id = mdm.tong_hop_id
-             WHERE TRIM(mdm.ma_dv) = TRIM(l.ma_sap)
-        """)
 
     def _check_period_editable(self):
         if self.env.context.get('skip_period_lock'):

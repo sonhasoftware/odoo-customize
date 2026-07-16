@@ -19,8 +19,11 @@ class KeHoachSanXuat(models.Model):
         ondelete='cascade', index=True)
 
     company_id = fields.Many2one(
-        'res.company', string='Công ty',
-        default=lambda self: self.env.company, index=True)
+        'res.company', string='Đơn vị', index=True, required=True)
+    company_sx_id = fields.Many2one(
+        'res.company', string='Nhà máy SX', index=True,
+        help='Đơn vị sản xuất (BNH/SSP) — gắn khi import hoặc tạo từ KD.',
+    )
 
     nganh_hang = fields.Many2one(
         'mdm.nganh.hang', string='Ngành hàng',
@@ -50,7 +53,7 @@ class KeHoachSanXuat(models.Model):
     _sql_constraints = [
         ('uniq_row',
          'unique(period_id, company_id, ma_sap)',
-         'Trùng dòng: (Kỳ, Công ty, Mã) phải duy nhất!'),
+         'Trùng dòng: (Kỳ, Đơn vị, Mã) phải duy nhất!'),
     ]
 
     @api.depends('ma_sap')
@@ -115,15 +118,15 @@ class KeHoachSanXuat(models.Model):
                     _('Mã "%s" không có trong MDM (mdm.tong.hop.line).') % rec.ma_sap
                 )
 
-    @api.constrains('company_id')
+    @api.constrains('company_sx_id')
     def _check_production_company(self):
         invalid = self.filtered(
-            lambda rec: rec.company_id
-            and rec.company_id.company_code not in ('BNH', 'SSP')
+            lambda rec: rec.company_sx_id
+            and rec.company_sx_id.company_code not in ('BNH', 'SSP')
         )
         if invalid:
             raise ValidationError(_(
-                'Đơn vị sản xuất chỉ được phép là BNH hoặc SSP.'
+                'Nhà máy sản xuất chỉ được phép là BNH hoặc SSP.'
             ))
 
     @api.model_create_multi
@@ -138,13 +141,11 @@ class KeHoachSanXuat(models.Model):
         allow_unassigned = self.env.context.get('allow_unassigned_production_company')
 
         for vals in vals_list:
-            if not vals.get('company_id') and vals.get('period_id'):
-                if allow_unassigned:
-                    vals['company_id'] = False
-                else:
-                    if company.company_code not in ('BNH', 'SSP'):
-                        raise UserError(_('Công ty hiện tại không phải công ty sản xuất BNH/SSP.'))
-                    vals['company_id'] = company.id
+            if not vals.get('company_sx_id') and vals.get('period_id'):
+                if company.company_code in ('BNH', 'SSP'):
+                    vals['company_sx_id'] = company.id
+            if not vals.get('company_id'):
+                raise UserError(_('Đơn vị (SHI, TM2…) không được để trống trên kế hoạch sản xuất.'))
 
         records = super().create(vals_list)
         
@@ -197,6 +198,7 @@ class KeHoachSanXuat(models.Model):
 
     def _tracking_values(self):
         return {
+            'don_vi': self.company_id.company_code or self.company_id.name or '',
             'nganh': self.nganh_hang.ten if self.nganh_hang else '',
             'ten_hang': self.ten_hang or '',
             'ma_hang': self.ma_hang or '',
@@ -235,6 +237,7 @@ class KeHoachSanXuat(models.Model):
 
         rows = ''.join(
             "<tr>"
+            f"<td>{cell(vals['don_vi'])}</td>"
             f"<td>{cell(vals['nganh'])}</td>"
             f"<td>{cell(vals['ten_hang'])}</td>"
             f"<td>{cell(vals['ma_hang'])}</td>"
@@ -252,6 +255,7 @@ class KeHoachSanXuat(models.Model):
                 <table class="table table-sm table-bordered o_main_table mb-0" style="font-size: 13px;">
                     <thead class="bg-light">
                         <tr>
+                            <th>Đơn vị</th>
                             <th>Ngành hàng</th>
                             <th>Tên hàng</th>
                             <th>Mã hàng</th>
@@ -307,9 +311,9 @@ class KeHoachSanXuat(models.Model):
         if not self.env.context.get('skip_period_lock'):
             self._check_period_editable()
 
-        if 'company_id' in vals and not vals.get('company_id'):
+        if 'company_sx_id' in vals and not vals.get('company_sx_id'):
             if not self.env.context.get('allow_unassigned_production_company'):
-                raise UserError(_('Đơn vị sản xuất không được để trống.'))
+                pass  # company_sx_id có thể trống trên dòng sync từ KD
 
         old = {f: {r.id: r[f] for r in self} for f in TRACKED if f in vals}
         res = super().write(vals)

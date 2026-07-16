@@ -19,6 +19,9 @@ access_dinh_muc_truong_bo_phan,dinh.muc.truong.bo.phan,model_dinh_muc,sonha_vat_
 access_tinh_toan_vat_tu_ban_cung_ung,tinh.toan.vat.tu.ban.cung.ung,model_tinh_toan_vat_tu,sonha_vat_tu.group_ban_cung_ung_vat_tu,1,0,0,0
 access_tinh_toan_vat_tu_bo_phan,tinh.toan.vat.tu.bo.phan,model_tinh_toan_vat_tu,sonha_vat_tu.group_bo_phan_vat_tu,1,1,1,0
 access_tinh_toan_vat_tu_truong_bo_phan,tinh.toan.vat.tu.truong.bo.phan,model_tinh_toan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu,1,1,1,1
+access_tinh_toan_vat_tu_chi_tiet_ban_cung_ung,tinh.toan.vat.tu.chi.tiet.ban.cung.ung,model_tinh_toan_vat_tu_chi_tiet,sonha_vat_tu.group_ban_cung_ung_vat_tu,1,0,0,0
+access_tinh_toan_vat_tu_chi_tiet_bo_phan,tinh.toan.vat.tu.chi.tiet.bo.phan,model_tinh_toan_vat_tu_chi_tiet,sonha_vat_tu.group_bo_phan_vat_tu,1,0,0,0
+access_tinh_toan_vat_tu_chi_tiet_truong_bo_phan,tinh.toan.vat.tu.chi.tiet.truong.bo.phan,model_tinh_toan_vat_tu_chi_tiet,sonha_vat_tu.group_truong_bo_phan_vat_tu,1,0,0,1
 access_tong_hop_vat_tu_ban_cung_ung,tong.hop.vat.tu.ban.cung.ung,model_tong_hop_vat_tu,sonha_vat_tu.group_ban_cung_ung_vat_tu,1,0,0,0
 access_tong_hop_vat_tu_bo_phan,tong.hop.vat.tu.bo.phan,model_tong_hop_vat_tu,sonha_vat_tu.group_bo_phan_vat_tu,1,1,1,0
 access_tong_hop_vat_tu_truong_bo_phan,tong.hop.vat.tu.truong.bo.phan,model_tong_hop_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu,1,1,1,1

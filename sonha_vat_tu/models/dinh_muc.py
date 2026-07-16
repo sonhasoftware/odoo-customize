@@ -23,7 +23,7 @@ class DinhMuc(models.Model):
     bom_sale_id = fields.Many2one(
         'bom.sale', string='Loại Bom Sale', readonly=True, index=True,
         ondelete='set null',
-        help='Loại Bom Sale (MDM) của NVL. Trống = chưa khai báo trên MDM, cần IT cập nhật.',
+        help='Loại Bom Sale (MDM) của NVL.',
     )
 
     @api.model
@@ -60,17 +60,21 @@ class DinhMuc(models.Model):
             ])
 
         self.env.cr.execute(
-            """
-            UPDATE du_lieu_tong_hop_vat_tu
-               SET bom_sale_id = %s,
-                   write_uid = %s,
-                   write_date = NOW() AT TIME ZONE 'UTC'
-             WHERE step_code = 'b2'
-               AND source_model = 'dinh.muc'
-               AND TRIM(ma_nvl) = %s
-            """,
-            (bom_sale_id or None, uid, code),
+            "SELECT to_regclass('public.du_lieu_tong_hop_vat_tu')"
         )
+        if self.env.cr.fetchone()[0]:
+            self.env.cr.execute(
+                """
+                UPDATE du_lieu_tong_hop_vat_tu
+                   SET bom_sale_id = %s,
+                       write_uid = %s,
+                       write_date = NOW() AT TIME ZONE 'UTC'
+                 WHERE step_code = 'b2'
+                   AND source_model = 'dinh.muc'
+                   AND TRIM(ma_nvl) = %s
+                """,
+                (bom_sale_id or None, uid, code),
+            )
 
     qty_kinh_doanh_t0 = fields.Float(string='KD T0', digits=(16, 2))
     qty_kinh_doanh_t1 = fields.Float(string='KD T1', digits=(16, 2))

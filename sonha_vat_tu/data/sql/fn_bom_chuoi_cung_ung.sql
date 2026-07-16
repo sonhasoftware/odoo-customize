@@ -20,6 +20,10 @@ CREATE TABLE IF NOT EXISTS bom_tinh_toan (
 CREATE INDEX IF NOT EXISTS idx_bom_tinh_toan_tp_loai
     ON bom_tinh_toan (ma_tp_goc, loai_vat_tu);
 
+CREATE INDEX IF NOT EXISTS idx_bom_tinh_toan_nvl_ma_tp
+    ON bom_tinh_toan (ma_tp_goc)
+    WHERE loai_vat_tu = 'NVL';
+
 CREATE OR REPLACE PROCEDURE public.fn_bom_chuoi_cung_ung()
 LANGUAGE 'plpgsql'
 AS $BODY$
@@ -327,3 +331,5 @@ BEGIN
 
 END;
 $BODY$;
+
+CALL public.fn_bom_chuoi_cung_ung();
