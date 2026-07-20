@@ -19,8 +19,11 @@ class KeHoachSanXuat(models.Model):
         ondelete='cascade', index=True)
 
     company_id = fields.Many2one(
-        'res.company', string='Công ty',
-        default=lambda self: self.env.company, index=True)
+        'res.company', string='Đơn vị', index=True, required=True)
+    company_sx_id = fields.Many2one(
+        'res.company', string='Nhà máy SX', index=True,
+        help='Đơn vị sản xuất (BNH/SSP) — gắn khi import hoặc tạo từ KD.',
+    )
 
     nganh_hang = fields.Many2one(
         'mdm.nganh.hang', string='Ngành hàng',
@@ -37,7 +40,7 @@ class KeHoachSanXuat(models.Model):
     )
     ma_hang = fields.Char(string='Mã hàng', index=True)
     ma_sap = fields.Char(
-        string='Mã SAP', index=True)
+        string='Mã', index=True)
 
 
     qty_t0 = fields.Float(string='Tháng T0', digits=(16, 2))
@@ -50,28 +53,80 @@ class KeHoachSanXuat(models.Model):
     _sql_constraints = [
         ('uniq_row',
          'unique(period_id, company_id, ma_sap)',
-         'Trùng dòng: (Kỳ, Công ty, Mã SAP) phải duy nhất!'),
+         'Trùng dòng: (Kỳ, Đơn vị, Mã) phải duy nhất!'),
     ]
 
     @api.depends('ma_sap')
     def _compute_ma_hang_meta(self):
         codes = {(rec.ma_sap or '').strip() for rec in self if (rec.ma_sap or '').strip()}
-        meta_map = self.env['ma.hang'].get_sap_meta_map(codes)
+        meta_map = self.env['ma.hang'].get_mdm_sap_meta_map(codes)
         for rec in self:
             code = (rec.ma_sap or '').strip()
             meta = meta_map.get(code, {}) if code else {}
             rec.ten_hang = meta.get('ten_hang', '')
             rec.nganh_hang = meta.get('nganh_hang_id') or False
 
-    @api.constrains('company_id')
+    @api.model
+    def _sql_bulk_import_update(self, updates):
+        """Ghi hàng loạt khi import — 1 query thay vì N lần ORM write."""
+        if not updates:
+            return
+        ids, ma_hangs, notes = [], [], []
+        qty_t0s, qty_t1s, qty_t2s, qty_t3s = [], [], [], []
+        for row_id, vals in updates:
+            ids.append(row_id)
+            ma_hangs.append(vals.get('ma_hang') or '')
+            notes.append(vals.get('note') or '')
+            qty_t0s.append(vals.get('qty_t0') or 0.0)
+            qty_t1s.append(vals.get('qty_t1') or 0.0)
+            qty_t2s.append(vals.get('qty_t2') or 0.0)
+            qty_t3s.append(vals.get('qty_t3') or 0.0)
+        self.env.cr.execute("""
+            UPDATE ke_hoach_san_xuat AS k SET
+                ma_hang = data.ma_hang,
+                note = data.note,
+                qty_t0 = data.qty_t0,
+                qty_t1 = data.qty_t1,
+                qty_t2 = data.qty_t2,
+                qty_t3 = data.qty_t3,
+                write_uid = %s,
+                write_date = NOW() AT TIME ZONE 'UTC'
+            FROM (
+                SELECT unnest(%s::int[]) AS id,
+                       unnest(%s::varchar[]) AS ma_hang,
+                       unnest(%s::varchar[]) AS note,
+                       unnest(%s::numeric[]) AS qty_t0,
+                       unnest(%s::numeric[]) AS qty_t1,
+                       unnest(%s::numeric[]) AS qty_t2,
+                       unnest(%s::numeric[]) AS qty_t3
+            ) AS data
+            WHERE k.id = data.id
+        """, [self.env.uid, ids, ma_hangs, notes, qty_t0s, qty_t1s, qty_t2s, qty_t3s])
+        self.browse(ids).invalidate_recordset(
+            ['ma_hang', 'note', 'qty_t0', 'qty_t1', 'qty_t2', 'qty_t3', 'write_uid', 'write_date'],
+        )
+
+    @api.constrains('ma_sap', 'period_id')
+    def _check_ma_sap_in_catalog(self):
+        if self.env.context.get('is_importing'):
+            return
+        for rec in self.filtered(
+            lambda r: r.period_id.state == 'ke_hoach' and (r.ma_sap or '').strip()
+        ):
+            if not self.env['ma.hang'].sap_exists_in_mdm(rec.ma_sap.strip()):
+                raise ValidationError(
+                    _('Mã "%s" không có trong MDM (mdm.tong.hop.line).') % rec.ma_sap
+                )
+
+    @api.constrains('company_sx_id')
     def _check_production_company(self):
         invalid = self.filtered(
-            lambda rec: rec.company_id
-            and rec.company_id.company_code not in ('BNH', 'SSP')
+            lambda rec: rec.company_sx_id
+            and rec.company_sx_id.company_code not in ('BNH', 'SSP')
         )
         if invalid:
             raise ValidationError(_(
-                'Đơn vị sản xuất chỉ được phép là BNH hoặc SSP.'
+                'Nhà máy sản xuất chỉ được phép là BNH hoặc SSP.'
             ))
 
     @api.model_create_multi
@@ -86,13 +141,11 @@ class KeHoachSanXuat(models.Model):
         allow_unassigned = self.env.context.get('allow_unassigned_production_company')
 
         for vals in vals_list:
-            if not vals.get('company_id') and vals.get('period_id'):
-                if allow_unassigned:
-                    vals['company_id'] = False
-                else:
-                    if company.company_code not in ('BNH', 'SSP'):
-                        raise UserError(_('Công ty hiện tại không phải công ty sản xuất BNH/SSP.'))
-                    vals['company_id'] = company.id
+            if not vals.get('company_sx_id') and vals.get('period_id'):
+                if company.company_code in ('BNH', 'SSP'):
+                    vals['company_sx_id'] = company.id
+            if not vals.get('company_id'):
+                raise UserError(_('Đơn vị (SHI, TM2…) không được để trống trên kế hoạch sản xuất.'))
 
         records = super().create(vals_list)
         
@@ -145,6 +198,7 @@ class KeHoachSanXuat(models.Model):
 
     def _tracking_values(self):
         return {
+            'don_vi': self.company_id.company_code or self.company_id.name or '',
             'nganh': self.nganh_hang.ten if self.nganh_hang else '',
             'ten_hang': self.ten_hang or '',
             'ma_hang': self.ma_hang or '',
@@ -183,6 +237,7 @@ class KeHoachSanXuat(models.Model):
 
         rows = ''.join(
             "<tr>"
+            f"<td>{cell(vals['don_vi'])}</td>"
             f"<td>{cell(vals['nganh'])}</td>"
             f"<td>{cell(vals['ten_hang'])}</td>"
             f"<td>{cell(vals['ma_hang'])}</td>"
@@ -200,10 +255,11 @@ class KeHoachSanXuat(models.Model):
                 <table class="table table-sm table-bordered o_main_table mb-0" style="font-size: 13px;">
                     <thead class="bg-light">
                         <tr>
+                            <th>Đơn vị</th>
                             <th>Ngành hàng</th>
                             <th>Tên hàng</th>
                             <th>Mã hàng</th>
-                            <th>Mã SAP</th>
+                            <th>Mã</th>
                             <th class="text-end">%s</th>
                             <th class="text-end">%s</th>
                             <th class="text-end">%s</th>
@@ -245,7 +301,7 @@ class KeHoachSanXuat(models.Model):
     def write(self, vals):
         TRACKED = {
             'ma_hang': 'Mã hàng',
-            'ma_sap': 'Mã SAP',
+            'ma_sap': 'Mã',
             'qty_t0': False,
             'qty_t1': False,
             'qty_t2': False,
@@ -255,9 +311,9 @@ class KeHoachSanXuat(models.Model):
         if not self.env.context.get('skip_period_lock'):
             self._check_period_editable()
 
-        if 'company_id' in vals and not vals.get('company_id'):
+        if 'company_sx_id' in vals and not vals.get('company_sx_id'):
             if not self.env.context.get('allow_unassigned_production_company'):
-                raise UserError(_('Đơn vị sản xuất không được để trống.'))
+                pass  # company_sx_id có thể trống trên dòng sync từ KD
 
         old = {f: {r.id: r[f] for r in self} for f in TRACKED if f in vals}
         res = super().write(vals)

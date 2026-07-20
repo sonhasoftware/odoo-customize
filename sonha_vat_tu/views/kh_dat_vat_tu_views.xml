@@ -13,9 +13,9 @@
                 <field name="currency_id" column_invisible="True"/>
 
                 <!-- Tồn đầu -->
+                <field name="don_gia_ton_kho" string="Đơn giá tồn kho" widget="monetary" readonly="1"/>
                 <field name="tong_ton_nvl_sl" string="Tồn NVL đầu kỳ"/>
                 <field name="gia_tri_ton_nvl_dau_ky" string="Giá trị tồn NVL" widget="monetary"/>
-                <field name="don_gia_ton_kho" column_invisible="True"/>
 
                 <!-- Cần dùng T0..T3 + Tổng -->
                 <field name="tong_sl_vt_can_dung_t0"/>
@@ -72,9 +72,9 @@
                     <notebook>
                         <page string="Tồn kho đầu kỳ">
                             <group>
+                                <field name="don_gia_ton_kho" widget="monetary" readonly="1"/>
                                 <field name="tong_ton_nvl_sl"/>
                                 <field name="gia_tri_ton_nvl_dau_ky" string="Giá trị tồn NVL" widget="monetary"/>
-                                <field name="don_gia_ton_kho" invisible="1"/>
                             </group>
                         </page>
                         <page string="Cần dùng &amp; Đi đường">

@@ -1,8 +1,5 @@
 -- =============================================================================
 -- Trigger đồng bộ bảng phẳng du_lieu_tong_hop_vat_tu từ 5 bảng nguồn B1–B5.
--- + Trigger sync md_sap_bom → bom (ORM).
--- File này được load bởi du_lieu_tong_hop_vat_tu.py > init() và action_rebuild.
--- Chạy idempotent: CREATE OR REPLACE + DROP TRIGGER IF EXISTS.
 -- =============================================================================
 
 -- Composite index cho query báo cáo
@@ -99,6 +96,11 @@ DECLARE
     v_qty_sx NUMERIC;
     v_qty_cl NUMERIC;
 BEGIN
+    IF COALESCE(current_setting('app.dlthvt_skip', true), '') = '1' THEN
+        IF TG_OP = 'DELETE' THEN RETURN OLD; END IF;
+        RETURN NEW;
+    END IF;
+
     IF TG_OP = 'DELETE' THEN
         DELETE FROM du_lieu_tong_hop_vat_tu
         WHERE source_model = 'ke.hoach.vat.tu.line' AND source_res_id = OLD.id;
@@ -112,41 +114,22 @@ BEGIN
     FOR i IN 0..3 LOOP
         v_month_date := (TO_DATE(v_period_month, 'MM/YYYY') + (i || ' month')::INTERVAL)::DATE;
         v_month_key  := TO_CHAR(v_month_date, 'MM/YYYY');
-        
-        v_qty := CASE i
-            WHEN 0 THEN NEW.qty_t0
-            WHEN 1 THEN NEW.qty_t1
-            WHEN 2 THEN NEW.qty_t2
-            WHEN 3 THEN NEW.qty_t3
-        END;
-        v_qty_kd := CASE i
-            WHEN 0 THEN NEW.qty_kd_t0
-            WHEN 1 THEN NEW.qty_kd_t1
-            WHEN 2 THEN NEW.qty_kd_t2
-            WHEN 3 THEN NEW.qty_kd_t3
-        END;
-        v_qty_sx := CASE i
-            WHEN 0 THEN NEW.qty_sx_t0
-            WHEN 1 THEN NEW.qty_sx_t1
-            WHEN 2 THEN NEW.qty_sx_t2
-            WHEN 3 THEN NEW.qty_sx_t3
-        END;
-        v_qty_cl := CASE i
-            WHEN 0 THEN NEW.qty_cl_t0
-            WHEN 1 THEN NEW.qty_cl_t1
-            WHEN 2 THEN NEW.qty_cl_t2
-            WHEN 3 THEN NEW.qty_cl_t3
-        END;
+
+        v_qty := CASE i WHEN 0 THEN NEW.qty_t0 WHEN 1 THEN NEW.qty_t1 WHEN 2 THEN NEW.qty_t2 WHEN 3 THEN NEW.qty_t3 END;
+        v_qty_kd := CASE i WHEN 0 THEN NEW.qty_kd_t0 WHEN 1 THEN NEW.qty_kd_t1 WHEN 2 THEN NEW.qty_kd_t2 WHEN 3 THEN NEW.qty_kd_t3 END;
+        v_qty_sx := CASE i WHEN 0 THEN NEW.qty_sx_t0 WHEN 1 THEN NEW.qty_sx_t1 WHEN 2 THEN NEW.qty_sx_t2 WHEN 3 THEN NEW.qty_sx_t3 END;
+        v_qty_cl := CASE i WHEN 0 THEN NEW.qty_cl_t0 WHEN 1 THEN NEW.qty_cl_t1 WHEN 2 THEN NEW.qty_cl_t2 WHEN 3 THEN NEW.qty_cl_t3 END;
 
         INSERT INTO du_lieu_tong_hop_vat_tu (
-            step_code, source_model, source_res_id, period_id, company_id, month_key,
-            month_date, ma_sap, ma_vat_tu, nganh_hang, ten_hang, ma_hang,
+            step_code, source_model, source_res_id, period_id, company_id,
+            period_company_id, month_key, month_date, ma_sap, ma_vat_tu,
+            nganh_hang, ten_hang, ma_hang,
             qty, note, qty_kinh_doanh, qty_san_xuat, qty_chenh_lech,
             create_uid, create_date, write_uid, write_date
         ) VALUES (
-            'b1', 'ke.hoach.vat.tu.line', NEW.id, NEW.period_id,
-            NEW.company_id, v_month_key, v_month_date, NEW.ma_sap,
-            NULL, NEW.nganh_hang, NEW.ten_hang, NEW.ma_hang,
+            'b1', 'ke.hoach.vat.tu.line', NEW.id, NEW.period_id, NEW.company_id,
+            NEW.company_id, v_month_key, v_month_date, NEW.ma_sap, NULL,
+            NEW.nganh_hang, NEW.ten_hang, NEW.ma_hang,
             v_qty, NEW.note, v_qty_kd, v_qty_sx, v_qty_cl,
             NEW.create_uid, NEW.create_date, NEW.write_uid, NEW.write_date
         )
@@ -154,6 +137,7 @@ BEGIN
             step_code = EXCLUDED.step_code,
             period_id = EXCLUDED.period_id,
             company_id = EXCLUDED.company_id,
+            period_company_id = EXCLUDED.period_company_id,
             month_date = EXCLUDED.month_date,
             ma_sap = EXCLUDED.ma_sap,
             nganh_hang = EXCLUDED.nganh_hang,
@@ -190,6 +174,11 @@ DECLARE
     v_qty_san_xuat NUMERIC;
     v_qty_chenh_lech NUMERIC;
 BEGIN
+    IF COALESCE(current_setting('app.dlthvt_skip', true), '') = '1' THEN
+        IF TG_OP = 'DELETE' THEN RETURN OLD; END IF;
+        RETURN NEW;
+    END IF;
+
     IF TG_OP = 'DELETE' THEN
         DELETE FROM du_lieu_tong_hop_vat_tu
         WHERE source_model = 'dinh.muc' AND source_res_id = OLD.id;
@@ -232,15 +221,17 @@ BEGIN
         INSERT INTO du_lieu_tong_hop_vat_tu (
             step_code, source_model, source_res_id, period_id, company_id, month_key,
             month_date, ma_sap, ma_vat_tu, nganh_hang, ten_hang, ma_hang,
-            qty, note, ma_tp, ten_tp, ten_sap, ma_nvl,
-            ten_nvl, ten_vat_tu, qty_kinh_doanh, qty_san_xuat, qty_chenh_lech, ma_effect,
+            qty, note, ma_tp, ten_tp, ten_sap, ma_nvl, bom_sale_id,
+            ten_nvl, ten_vat_tu, sl_dinh_muc,
+            qty_kinh_doanh, qty_san_xuat, qty_chenh_lech, ma_effect,
             create_uid, create_date, write_uid, write_date
         ) VALUES (
             'b2', 'dinh.muc', NEW.id, NEW.period_id,
             NEW.company_id, v_month_key, v_month_date, NEW.ma_sap,
             NEW.ma_nvl, NULL, NULL, NULL,
             v_qty, NULL, NEW.ma_tp, NEW.ten_tp,
-            NEW.ten_sap, NEW.ma_nvl, NEW.ten_nvl, NEW.ten_nvl,
+            NEW.ten_sap, NEW.ma_nvl, NEW.bom_sale_id, NEW.ten_nvl, NEW.ten_nvl,
+            NEW.sl_dinh_muc,
             v_qty_kinh_doanh, v_qty_san_xuat, v_qty_chenh_lech, NULL,
             NEW.create_uid, NEW.create_date, NEW.write_uid, NEW.write_date
         )
@@ -256,8 +247,10 @@ BEGIN
             ten_tp = EXCLUDED.ten_tp,
             ten_sap = EXCLUDED.ten_sap,
             ma_nvl = EXCLUDED.ma_nvl,
+            bom_sale_id = EXCLUDED.bom_sale_id,
             ten_nvl = EXCLUDED.ten_nvl,
             ten_vat_tu = EXCLUDED.ten_vat_tu,
+            sl_dinh_muc = EXCLUDED.sl_dinh_muc,
             qty_kinh_doanh = EXCLUDED.qty_kinh_doanh,
             qty_san_xuat = EXCLUDED.qty_san_xuat,
             qty_chenh_lech = EXCLUDED.qty_chenh_lech,
@@ -284,6 +277,11 @@ DECLARE
     v_month_date DATE;
     v_qty NUMERIC;
 BEGIN
+    IF COALESCE(current_setting('app.dlthvt_skip', true), '') = '1' THEN
+        IF TG_OP = 'DELETE' THEN RETURN OLD; END IF;
+        RETURN NEW;
+    END IF;
+
     IF TG_OP = 'DELETE' THEN
         DELETE FROM du_lieu_tong_hop_vat_tu
         WHERE source_model = 'tinh.toan.vat.tu' AND source_res_id = OLD.id;
@@ -309,17 +307,16 @@ BEGIN
             step_code, source_model, source_res_id, period_id, company_id,
             period_company_id, month_key,
             month_date, ma_sap, ma_vat_tu,
-            qty, ten_sap, ma_nvl,
-            ten_nvl, ten_vat_tu, ma_effect,
-            don_vi_tinh, do_day, kho_1, kho_2, trong_luong_kg_tam, sl_dinh_muc,
+            qty, ma_nvl, ten_nvl, ten_vat_tu,
+            don_vi_tinh, do_day, kho_1, kho_2, trong_luong_kg_tam,
             create_uid, create_date, write_uid, write_date
         ) VALUES (
             'b3', 'tinh.toan.vat.tu', NEW.id, NEW.period_id,
-            NEW.company_id, NEW.don_vi_kd_id, v_month_key, v_month_date, NEW.ma_sap,
-            NEW.ma_vat_tu,
-            v_qty, NEW.ten_sap, NEW.ma_vat_tu, NEW.ten_vat_tu, NEW.ten_vat_tu, NEW.ma_effect,
+            NEW.company_id, NEW.don_vi_kd_id, v_month_key, v_month_date,
+            NEW.ma_vat_tu, NEW.ma_vat_tu,
+            v_qty, NEW.ma_vat_tu, NEW.ten_vat_tu, NEW.ten_vat_tu,
             NEW.don_vi_tinh, NEW.do_day, NEW.kho_1, NEW.kho_2,
-            NEW.trong_luong_kg_tam, NEW.sl_dinh_muc,
+            NEW.trong_luong_kg_tam,
             NEW.create_uid, NEW.create_date, NEW.write_uid, NEW.write_date
         )
         ON CONFLICT (source_model, source_res_id, month_key) DO UPDATE SET
@@ -331,17 +328,14 @@ BEGIN
             ma_sap = EXCLUDED.ma_sap,
             ma_vat_tu = EXCLUDED.ma_vat_tu,
             qty = EXCLUDED.qty,
-            ten_sap = EXCLUDED.ten_sap,
             ma_nvl = EXCLUDED.ma_nvl,
             ten_nvl = EXCLUDED.ten_nvl,
             ten_vat_tu = EXCLUDED.ten_vat_tu,
-            ma_effect = EXCLUDED.ma_effect,
             don_vi_tinh = EXCLUDED.don_vi_tinh,
             do_day = EXCLUDED.do_day,
             kho_1 = EXCLUDED.kho_1,
             kho_2 = EXCLUDED.kho_2,
             trong_luong_kg_tam = EXCLUDED.trong_luong_kg_tam,
-            sl_dinh_muc = EXCLUDED.sl_dinh_muc,
             write_uid = EXCLUDED.write_uid,
             write_date = EXCLUDED.write_date;
     END LOOP;
@@ -368,6 +362,11 @@ DECLARE
     v_vt_can_dung NUMERIC;
     v_ton_cuoi NUMERIC;
 BEGIN
+    IF COALESCE(current_setting('app.dlthvt_skip', true), '') = '1' THEN
+        IF TG_OP = 'DELETE' THEN RETURN OLD; END IF;
+        RETURN NEW;
+    END IF;
+
     IF TG_OP = 'DELETE' THEN
         DELETE FROM du_lieu_tong_hop_vat_tu
         WHERE source_model = 'tong.hop.vat.tu' AND source_res_id = OLD.id;
@@ -450,6 +449,11 @@ DECLARE
     v_month_key TEXT;
     v_month_date DATE;
 BEGIN
+    IF COALESCE(current_setting('app.dlthvt_skip', true), '') = '1' THEN
+        IF TG_OP = 'DELETE' THEN RETURN OLD; END IF;
+        RETURN NEW;
+    END IF;
+
     IF TG_OP = 'DELETE' THEN
         DELETE FROM du_lieu_tong_hop_vat_tu
         WHERE source_model = 'kh.dat.vat.tu' AND source_res_id = OLD.id;
@@ -468,18 +472,39 @@ BEGIN
         step_code, source_model, source_res_id, period_id, company_id, month_key,
         month_date, ma_sap, ma_nvl,
         ten_nvl, ten_vat_tu, don_vi_tinh, chung_loai,
-        tong_ton_nvl_sl, tong_hang_di_duong_sl, tong_sl_vt_can_dung,
-        sl_du_tru_toi_thieu, sl_can_mua_theo_moq, sl_dat_mua_de_xuat, sl_dat_mua_chot,
-        sl_ton_kho, so_ngay_vong_quay_ton, don_gia_ton_kho, gia_tri_ton_kho,
+        tong_ton_nvl_sl, don_gia_ton_kho, gia_tri_ton_nvl_dau_ky,
+        tong_sl_vt_can_dung_t0, tong_sl_vt_can_dung_t1,
+        tong_sl_vt_can_dung_t2, tong_sl_vt_can_dung_t3,
+        tong_vt_can_dung, tong_sl_vt_can_dung,
+        tong_hang_di_duong_sl_t0, tong_hang_di_duong_sl_t1,
+        tong_hang_di_duong_sl_t2, tong_hang_di_duong_sl_t3,
+        tong_hang_di_duong, tong_hang_di_duong_sl,
+        sl_du_tru_toi_thieu, sl_can_mua_theo_moq,
+        sl_dat_mua_de_xuat, sl_dat_mua_chot,
+        don_gia_mua, gia_tri_mua_hang,
+        sl_ton_kho_cuoi_ky, sl_ton_kho,
+        vt_loi_ton_lau, so_ngay_vong_quay_ton,
+        don_gia_ton_kho_cuoi_ky, gia_tri_ton_kho_cuoi_ky, gia_tri_ton_kho,
         ghi_chu,
         create_uid, create_date, write_uid, write_date
     ) VALUES (
         'b5', 'kh.dat.vat.tu', NEW.id, NEW.period_id,
         NEW.company_id, v_month_key, v_month_date, NEW.ma_sap, NEW.ma_sap,
         NEW.ten_nvl, NEW.ten_nvl, NEW.don_vi_tinh, NEW.chung_loai,
-        NEW.tong_ton_nvl_sl, NEW.tong_hang_di_duong, NEW.tong_vt_can_dung,
-        NEW.sl_du_tru_toi_thieu, NEW.sl_can_mua_theo_moq, NEW.sl_dat_mua_de_xuat, NEW.sl_dat_mua_chot,
-        NEW.sl_ton_kho_cuoi_ky, NEW.so_ngay_vong_quay_ton, NEW.don_gia_ton_kho, NEW.gia_tri_ton_kho_cuoi_ky,
+        NEW.tong_ton_nvl_sl, NEW.don_gia_ton_kho,
+        COALESCE(NEW.tong_ton_nvl_sl, 0) * COALESCE(NEW.don_gia_ton_kho, 0),
+        NEW.tong_sl_vt_can_dung_t0, NEW.tong_sl_vt_can_dung_t1,
+        NEW.tong_sl_vt_can_dung_t2, NEW.tong_sl_vt_can_dung_t3,
+        NEW.tong_vt_can_dung, NEW.tong_vt_can_dung,
+        NEW.tong_hang_di_duong_sl_t0, NEW.tong_hang_di_duong_sl_t1,
+        NEW.tong_hang_di_duong_sl_t2, NEW.tong_hang_di_duong_sl_t3,
+        NEW.tong_hang_di_duong, NEW.tong_hang_di_duong,
+        NEW.sl_du_tru_toi_thieu, NEW.sl_can_mua_theo_moq,
+        NEW.sl_dat_mua_de_xuat, NEW.sl_dat_mua_chot,
+        NEW.don_gia_mua, NEW.gia_tri_mua_hang,
+        NEW.sl_ton_kho_cuoi_ky, NEW.sl_ton_kho_cuoi_ky,
+        NEW.vt_loi_ton_lau, NEW.so_ngay_vong_quay_ton,
+        NEW.don_gia_ton_kho_cuoi_ky, NEW.gia_tri_ton_kho_cuoi_ky, NEW.gia_tri_ton_kho_cuoi_ky,
         NEW.ghi_chu,
         NEW.create_uid, NEW.create_date, NEW.write_uid, NEW.write_date
     )
@@ -495,15 +520,32 @@ BEGIN
         don_vi_tinh = EXCLUDED.don_vi_tinh,
         chung_loai = EXCLUDED.chung_loai,
         tong_ton_nvl_sl = EXCLUDED.tong_ton_nvl_sl,
-        tong_hang_di_duong_sl = EXCLUDED.tong_hang_di_duong_sl,
+        don_gia_ton_kho = EXCLUDED.don_gia_ton_kho,
+        gia_tri_ton_nvl_dau_ky = EXCLUDED.gia_tri_ton_nvl_dau_ky,
+        tong_sl_vt_can_dung_t0 = EXCLUDED.tong_sl_vt_can_dung_t0,
+        tong_sl_vt_can_dung_t1 = EXCLUDED.tong_sl_vt_can_dung_t1,
+        tong_sl_vt_can_dung_t2 = EXCLUDED.tong_sl_vt_can_dung_t2,
+        tong_sl_vt_can_dung_t3 = EXCLUDED.tong_sl_vt_can_dung_t3,
+        tong_vt_can_dung = EXCLUDED.tong_vt_can_dung,
         tong_sl_vt_can_dung = EXCLUDED.tong_sl_vt_can_dung,
+        tong_hang_di_duong_sl_t0 = EXCLUDED.tong_hang_di_duong_sl_t0,
+        tong_hang_di_duong_sl_t1 = EXCLUDED.tong_hang_di_duong_sl_t1,
+        tong_hang_di_duong_sl_t2 = EXCLUDED.tong_hang_di_duong_sl_t2,
+        tong_hang_di_duong_sl_t3 = EXCLUDED.tong_hang_di_duong_sl_t3,
+        tong_hang_di_duong = EXCLUDED.tong_hang_di_duong,
+        tong_hang_di_duong_sl = EXCLUDED.tong_hang_di_duong_sl,
         sl_du_tru_toi_thieu = EXCLUDED.sl_du_tru_toi_thieu,
         sl_can_mua_theo_moq = EXCLUDED.sl_can_mua_theo_moq,
         sl_dat_mua_de_xuat = EXCLUDED.sl_dat_mua_de_xuat,
         sl_dat_mua_chot = EXCLUDED.sl_dat_mua_chot,
+        don_gia_mua = EXCLUDED.don_gia_mua,
+        gia_tri_mua_hang = EXCLUDED.gia_tri_mua_hang,
+        sl_ton_kho_cuoi_ky = EXCLUDED.sl_ton_kho_cuoi_ky,
         sl_ton_kho = EXCLUDED.sl_ton_kho,
+        vt_loi_ton_lau = EXCLUDED.vt_loi_ton_lau,
         so_ngay_vong_quay_ton = EXCLUDED.so_ngay_vong_quay_ton,
-        don_gia_ton_kho = EXCLUDED.don_gia_ton_kho,
+        don_gia_ton_kho_cuoi_ky = EXCLUDED.don_gia_ton_kho_cuoi_ky,
+        gia_tri_ton_kho_cuoi_ky = EXCLUDED.gia_tri_ton_kho_cuoi_ky,
         gia_tri_ton_kho = EXCLUDED.gia_tri_ton_kho,
         ghi_chu = EXCLUDED.ghi_chu,
         write_uid = EXCLUDED.write_uid,
@@ -529,45 +571,48 @@ DECLARE
     v_qty NUMERIC;
     v_nganh_hang TEXT;
 BEGIN
+    IF COALESCE(current_setting('app.dlthvt_skip', true), '') = '1' THEN
+        IF TG_OP = 'DELETE' THEN RETURN OLD; END IF;
+        RETURN NEW;
+    END IF;
+
     IF TG_OP = 'DELETE' THEN
         DELETE FROM du_lieu_tong_hop_vat_tu
         WHERE source_model = 'ke.hoach.kinh.doanh' AND source_res_id = OLD.id;
         RETURN OLD;
     END IF;
 
-    SELECT nh.ten INTO v_nganh_hang
-    FROM mdm_nganh_hang nh
-    WHERE nh.id = NEW.nganh_hang;
-
     SELECT period_month INTO v_period_month
     FROM ke_hoach_vat_tu
     WHERE id = NEW.period_id;
 
+    SELECT nh.ten INTO v_nganh_hang
+    FROM mdm_nganh_hang nh
+    WHERE nh.id = NEW.nganh_hang;
+
     FOR i IN 0..3 LOOP
         v_month_date := (TO_DATE(v_period_month, 'MM/YYYY') + (i || ' month')::INTERVAL)::DATE;
         v_month_key  := TO_CHAR(v_month_date, 'MM/YYYY');
-        
-        v_qty := CASE i
-            WHEN 0 THEN NEW.qty_t0
-            WHEN 1 THEN NEW.qty_t1
-            WHEN 2 THEN NEW.qty_t2
-            WHEN 3 THEN NEW.qty_t3
-        END;
+        v_qty := CASE i WHEN 0 THEN NEW.qty_t0 WHEN 1 THEN NEW.qty_t1 WHEN 2 THEN NEW.qty_t2 WHEN 3 THEN NEW.qty_t3 END;
 
         INSERT INTO du_lieu_tong_hop_vat_tu (
-            step_code, source_model, source_res_id, period_id, company_id, month_key,
-            month_date, ma_sap, ma_vat_tu, nganh_hang, ten_hang, ma_hang,
-            qty, note, create_uid, create_date, write_uid, write_date
+            step_code, source_model, source_res_id, period_id, company_id,
+            period_company_id, month_key, month_date, ma_sap, ma_vat_tu,
+            nganh_hang, ten_hang, ma_hang,
+            qty, note,
+            create_uid, create_date, write_uid, write_date
         ) VALUES (
-            'kd', 'ke.hoach.kinh.doanh', NEW.id, NEW.period_id,
-            NEW.company_id, v_month_key, v_month_date, NEW.ma_sap,
-            NULL, v_nganh_hang, NEW.ten_hang, NEW.ma_hang,
-            v_qty, NEW.note, NEW.create_uid, NEW.create_date, NEW.write_uid, NEW.write_date
+            'kd', 'ke.hoach.kinh.doanh', NEW.id, NEW.period_id, NEW.company_id,
+            NEW.company_id, v_month_key, v_month_date, NEW.ma_sap, NULL,
+            v_nganh_hang, NEW.ten_hang, NEW.ma_hang,
+            v_qty, NEW.note,
+            NEW.create_uid, NEW.create_date, NEW.write_uid, NEW.write_date
         )
         ON CONFLICT (source_model, source_res_id, month_key) DO UPDATE SET
             step_code = EXCLUDED.step_code,
             period_id = EXCLUDED.period_id,
             company_id = EXCLUDED.company_id,
+            period_company_id = EXCLUDED.period_company_id,
             month_date = EXCLUDED.month_date,
             ma_sap = EXCLUDED.ma_sap,
             nganh_hang = EXCLUDED.nganh_hang,
@@ -599,45 +644,48 @@ DECLARE
     v_qty NUMERIC;
     v_nganh_hang TEXT;
 BEGIN
+    IF COALESCE(current_setting('app.dlthvt_skip', true), '') = '1' THEN
+        IF TG_OP = 'DELETE' THEN RETURN OLD; END IF;
+        RETURN NEW;
+    END IF;
+
     IF TG_OP = 'DELETE' THEN
         DELETE FROM du_lieu_tong_hop_vat_tu
         WHERE source_model = 'ke.hoach.san.xuat' AND source_res_id = OLD.id;
         RETURN OLD;
     END IF;
 
-    SELECT nh.ten INTO v_nganh_hang
-    FROM mdm_nganh_hang nh
-    WHERE nh.id = NEW.nganh_hang;
-
     SELECT period_month INTO v_period_month
     FROM ke_hoach_vat_tu
     WHERE id = NEW.period_id;
 
+    SELECT nh.ten INTO v_nganh_hang
+    FROM mdm_nganh_hang nh
+    WHERE nh.id = NEW.nganh_hang;
+
     FOR i IN 0..3 LOOP
         v_month_date := (TO_DATE(v_period_month, 'MM/YYYY') + (i || ' month')::INTERVAL)::DATE;
         v_month_key  := TO_CHAR(v_month_date, 'MM/YYYY');
-        
-        v_qty := CASE i
-            WHEN 0 THEN NEW.qty_t0
-            WHEN 1 THEN NEW.qty_t1
-            WHEN 2 THEN NEW.qty_t2
-            WHEN 3 THEN NEW.qty_t3
-        END;
+        v_qty := CASE i WHEN 0 THEN NEW.qty_t0 WHEN 1 THEN NEW.qty_t1 WHEN 2 THEN NEW.qty_t2 WHEN 3 THEN NEW.qty_t3 END;
 
         INSERT INTO du_lieu_tong_hop_vat_tu (
-            step_code, source_model, source_res_id, period_id, company_id, month_key,
-            month_date, ma_sap, ma_vat_tu, nganh_hang, ten_hang, ma_hang,
-            qty, note, create_uid, create_date, write_uid, write_date
+            step_code, source_model, source_res_id, period_id, company_id,
+            period_company_id, month_key, month_date, ma_sap, ma_vat_tu,
+            nganh_hang, ten_hang, ma_hang,
+            qty, note,
+            create_uid, create_date, write_uid, write_date
         ) VALUES (
-            'sx', 'ke.hoach.san.xuat', NEW.id, NEW.period_id,
-            NEW.company_id, v_month_key, v_month_date, NEW.ma_sap,
-            NULL, v_nganh_hang, NEW.ten_hang, NEW.ma_hang,
-            v_qty, NEW.note, NEW.create_uid, NEW.create_date, NEW.write_uid, NEW.write_date
+            'sx', 'ke.hoach.san.xuat', NEW.id, NEW.period_id, NEW.company_id,
+            NEW.company_id, v_month_key, v_month_date, NEW.ma_sap, NULL,
+            v_nganh_hang, NEW.ten_hang, NEW.ma_hang,
+            v_qty, NEW.note,
+            NEW.create_uid, NEW.create_date, NEW.write_uid, NEW.write_date
         )
         ON CONFLICT (source_model, source_res_id, month_key) DO UPDATE SET
             step_code = EXCLUDED.step_code,
             period_id = EXCLUDED.period_id,
             company_id = EXCLUDED.company_id,
+            period_company_id = EXCLUDED.period_company_id,
             month_date = EXCLUDED.month_date,
             ma_sap = EXCLUDED.ma_sap,
             nganh_hang = EXCLUDED.nganh_hang,

@@ -7,7 +7,6 @@
         <field name="arch" type="xml">
             <form string="Import vật tư đi đường">
                 <group>
-                    <field name="nguon" widget="radio"/>
                     <field name="file_data" filename="file_name"/>
                     <field name="file_name" invisible="1"/>
                 </group>

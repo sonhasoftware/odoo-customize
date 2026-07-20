@@ -54,7 +54,7 @@ class DuLieuTongHopVatTu(models.Model):
     period_company_code = fields.Char(string='Mã đơn vị đặt hàng', index=True, readonly=True)
     month_key = fields.Char(string='Tháng', index=True, readonly=True)
     month_date = fields.Date(string='Tháng tính toán', index=True, readonly=True)
-    ma_sap = fields.Char(string='Mã SAP', index=True, readonly=True)
+    ma_sap = fields.Char(string='Mã', index=True, readonly=True)
     ma_vat_tu = fields.Char(string='Mã nguyên vật liệu', index=True, readonly=True)
 
     # --- --
@@ -70,6 +70,9 @@ class DuLieuTongHopVatTu(models.Model):
     ten_tp = fields.Char(string='Tên thành phẩm', readonly=True)
     ten_sap = fields.Char(string='Tên SAP', readonly=True)
     ma_nvl = fields.Char(string='Mã NVL', readonly=True)
+    bom_sale_id = fields.Many2one(
+        'bom.sale', string='Loại Bom Sale', readonly=True, index=True,
+    )
     ten_nvl = fields.Char(string='Tên NVL', readonly=True)
     ten_vat_tu = fields.Char(string='Tên vật tư', readonly=True)
     qty_kinh_doanh = fields.Float(string='Kinh doanh', digits=(16, 2), readonly=True)
@@ -85,7 +88,9 @@ class DuLieuTongHopVatTu(models.Model):
     trong_luong_kg_tam = fields.Float(
         string='Trọng lượng kg/1 tấm', digits=(16, 8), readonly=True)
     sl_dinh_muc = fields.Float(
-        string='SL định mức / 1 SP', digits=(16, 3), readonly=True)
+        string='SL định mức / 1 SP', digits=(16, 3), readonly=True,
+        help='B2: định mức theo nhánh BOM.',
+    )
 
     # --- --
     ma_dat_hang = fields.Char(string='Mã đặt hàng', readonly=True)
@@ -102,25 +107,78 @@ class DuLieuTongHopVatTu(models.Model):
     so_luong_can_mua = fields.Float(string='SL cần mua', digits=(16, 3), readonly=True)
     ghi_chu = fields.Char(string='Ghi chú (B4/B5)', readonly=True)
 
-    # --- --
-    tong_ton_nvl_sl = fields.Float(string='Tổng tồn NVL', digits=(16, 3), readonly=True)
-    tong_hang_di_duong_sl = fields.Float(string='Tổng hàng đi đường', digits=(16, 3), readonly=True)
-    tong_sl_vt_can_dung = fields.Float(string='Tổng SL VT cần dùng', digits=(16, 3), readonly=True)
+    # --- B5 (khớp kh.dat.vat.tu) ---
+    tong_ton_nvl_sl = fields.Float(string='Tồn NVL đầu kỳ', digits=(16, 3), readonly=True)
+    don_gia_ton_kho = fields.Monetary(
+        string='Đơn giá tồn kho đầu kỳ',
+        currency_field='currency_id',
+        readonly=True,
+    )
+    gia_tri_ton_nvl_dau_ky = fields.Monetary(
+        string='Giá trị tồn NVL đầu kỳ',
+        currency_field='currency_id',
+        readonly=True,
+    )
+    tong_sl_vt_can_dung_t0 = fields.Float(string='Cần dùng T0', digits=(16, 3), readonly=True)
+    tong_sl_vt_can_dung_t1 = fields.Float(string='Cần dùng T1', digits=(16, 3), readonly=True)
+    tong_sl_vt_can_dung_t2 = fields.Float(string='Cần dùng T2', digits=(16, 3), readonly=True)
+    tong_sl_vt_can_dung_t3 = fields.Float(string='Cần dùng T3', digits=(16, 3), readonly=True)
+    tong_vt_can_dung = fields.Float(string='Tổng cần dùng', digits=(16, 3), readonly=True)
+    tong_sl_vt_can_dung = fields.Float(
+        string='Tổng SL VT cần dùng (alias)',
+        digits=(16, 3),
+        readonly=True,
+        help='Alias báo cáo; đồng bộ cùng giá trị tong_vt_can_dung.',
+    )
+    tong_hang_di_duong_sl_t0 = fields.Float(string='Đi đường T0', digits=(16, 3), readonly=True)
+    tong_hang_di_duong_sl_t1 = fields.Float(string='Đi đường T1', digits=(16, 3), readonly=True)
+    tong_hang_di_duong_sl_t2 = fields.Float(string='Đi đường T2', digits=(16, 3), readonly=True)
+    tong_hang_di_duong_sl_t3 = fields.Float(string='Đi đường T3', digits=(16, 3), readonly=True)
+    tong_hang_di_duong = fields.Float(string='Tổng đi đường', digits=(16, 3), readonly=True)
+    tong_hang_di_duong_sl = fields.Float(
+        string='Tổng hàng đi đường (alias)',
+        digits=(16, 3),
+        readonly=True,
+        help='Alias báo cáo; đồng bộ cùng giá trị tong_hang_di_duong.',
+    )
     sl_du_tru_toi_thieu = fields.Float(string='SL dự trữ tối thiểu', digits=(16, 3), readonly=True)
-    sl_can_mua_theo_moq = fields.Float(string='SL cần mua theo MOQ', digits=(16, 3), readonly=True)
     sl_dat_mua_de_xuat = fields.Float(string='SL đặt mua đề xuất', digits=(16, 3), readonly=True)
     sl_dat_mua_chot = fields.Float(string='SL đặt mua chốt', digits=(16, 3), readonly=True)
-    sl_ton_kho = fields.Float(string='SL tồn kho', digits=(16, 3), readonly=True)
+    sl_can_mua_theo_moq = fields.Float(string='SL cần mua theo MOQ', digits=(16, 3), readonly=True)
+    don_gia_mua = fields.Monetary(
+        string='Đơn giá mua',
+        currency_field='currency_id',
+        readonly=True,
+    )
+    gia_tri_mua_hang = fields.Monetary(
+        string='Giá trị mua hàng',
+        currency_field='currency_id',
+        readonly=True,
+    )
+    sl_ton_kho_cuoi_ky = fields.Float(string='Tồn kho cuối kỳ', digits=(16, 3), readonly=True)
+    sl_ton_kho = fields.Float(
+        string='SL tồn kho (alias)',
+        digits=(16, 3),
+        readonly=True,
+        help='Alias báo cáo; đồng bộ cùng giá trị sl_ton_kho_cuoi_ky.',
+    )
+    vt_loi_ton_lau = fields.Float(string='VT lỗi, tồn lâu ngày', digits=(16, 3), readonly=True)
     so_ngay_vong_quay_ton = fields.Float(string='Ngày vòng quay tồn', digits=(16, 2), readonly=True)
-    don_gia_ton_kho = fields.Monetary(
-        string='Đơn giá tồn kho',
+    don_gia_ton_kho_cuoi_ky = fields.Monetary(
+        string='Đơn giá tồn cuối kỳ',
+        currency_field='currency_id',
+        readonly=True,
+    )
+    gia_tri_ton_kho_cuoi_ky = fields.Monetary(
+        string='Giá trị tồn kho cuối kỳ',
         currency_field='currency_id',
         readonly=True,
     )
     gia_tri_ton_kho = fields.Monetary(
-        string='Giá trị tồn kho',
+        string='Giá trị tồn kho (alias)',
         currency_field='currency_id',
         readonly=True,
+        help='Alias báo cáo; đồng bộ cùng giá trị gia_tri_ton_kho_cuoi_ky.',
     )
 
     display_name = fields.Char(compute='_compute_display_name')
@@ -143,13 +201,53 @@ class DuLieuTongHopVatTu(models.Model):
 
     @api.model
     def init(self):
+        self._cr.execute(_read_bulk_sync_sql_file())
         self._cr.execute(_read_sql_file())
         try:
-            self._cr.execute(_read_sql_bom_file())
+            with self._cr.savepoint():
+                self._cr.execute(_read_sql_bom_file())
         except Exception:
             pass
 
+    @api.model
+    def dlthvt_set_skip(self, skip=True):
+        """Tắt trigger đồng bộ flat row-by-row trong transaction hiện tại."""
+        self.env.cr.execute(
+            "SELECT set_config('app.dlthvt_skip', %s, true)",
+            ('1' if skip else '',),
+        )
+
+    @api.model
+    def sync_flat_steps(self, period_id, steps):
+        """Rebuild bảng phẳng theo kỳ (set-based, 1 lần/bước)."""
+        proc_map = {
+            'kd': 'dlthvt_bulk_sync_kd_period',
+            'sx': 'dlthvt_bulk_sync_sx_period',
+            'b1': 'dlthvt_bulk_sync_b1_period',
+            'b2': 'dlthvt_bulk_sync_b2_period',
+            'b3': 'dlthvt_bulk_sync_b3_period',
+            'b4': 'dlthvt_bulk_sync_b4_period',
+            'b5': 'dlthvt_bulk_sync_b5_period',
+        }
+        for step in steps:
+            proc = proc_map.get(step)
+            if proc:
+                self.env.cr.execute(f'SELECT public.{proc}(%s)', (period_id,))
+
+    @api.model
+    def run_period_bulk(self, period_id, steps, callback):
+        """Bulk: skip trigger → ghi nguồn → rebuild flat set-based."""
+        self.dlthvt_set_skip(True)
+        try:
+            result = callback()
+            if steps:
+                self.sync_flat_steps(period_id, steps)
+            return result
+        finally:
+            self.dlthvt_set_skip(False)
+
     def action_rebuild_from_sources(self):
+        self.env.cr.execute(_read_bulk_sync_sql_file())
         self.env.cr.execute(_read_sql_file())
         self.env.cr.execute('DELETE FROM du_lieu_tong_hop_vat_tu')
         for tbl in _SOURCE_TABLES:
@@ -184,6 +282,11 @@ _SQL_BOM_PATH = _os.path.join(
     'data', 'sql', 'fn_bom_chuoi_cung_ung.sql',
 )
 
+_SQL_BULK_SYNC_PATH = _os.path.join(
+    _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))),
+    'data', 'sql', 'fn_dlthvt_bulk_sync.sql',
+)
+
 _SOURCE_TABLES = (
     'ke_hoach_vat_tu',
     'ke_hoach_kinh_doanh',
@@ -204,4 +307,10 @@ def _read_sql_file():
 def _read_sql_bom_file():
     """Đọc file data/sql/fn_bom_chuoi_cung_ung.sql."""
     with open(_SQL_BOM_PATH, 'r', encoding='utf-8') as f:
+        return f.read()
+
+
+def _read_bulk_sync_sql_file():
+    """Đọc file data/sql/fn_dlthvt_bulk_sync.sql."""
+    with open(_SQL_BULK_SYNC_PATH, 'r', encoding='utf-8') as f:
         return f.read()

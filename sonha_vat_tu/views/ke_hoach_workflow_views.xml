@@ -104,11 +104,11 @@
                     </div>
                     <field name="ke_hoach_san_xuat_ids" context="{'default_period_id': id}" readonly="state != 'ke_hoach'">
                         <tree editable="bottom" class="sh_free_width_tree">
+                            <field name="company_id" string="Đơn vị" readonly="1" context="{'vat_tu_company_code_display': True}"/>
                             <field name="nganh_hang" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                             <field name="ten_hang" readonly="1"/>
                             <field name="ma_hang" readonly="1"/>
                             <field name="ma_sap" readonly="1" required="1"/>
-                            <field name="company_id" column_invisible="True"/>
                             <field name="qty_t0" sum="T0"/>
                             <field name="qty_t1" sum="T1"/>
                             <field name="qty_t2" sum="T2"/>
@@ -162,6 +162,7 @@
                     </group>
                     <field name="ke_hoach_vat_tu_line_ids" readonly="1">
                         <tree editable="bottom" class="sh_free_width_tree">
+                            <field name="company_id" string="Đơn vị" readonly="1" context="{'vat_tu_company_code_display': True}"/>
                             <field name="nganh_hang"/>
                             <field name="ten_hang" readonly="1"/>
                             <field name="ma_hang"/>

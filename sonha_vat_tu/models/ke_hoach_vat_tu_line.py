@@ -12,7 +12,11 @@ class KeHoachVatTuLine(models.Model):
     period_id = fields.Many2one(
         'ke.hoach.vat.tu', string='Kỳ', ondelete='cascade', index=True)
     company_id = fields.Many2one(
-        'res.company', string='Công ty sản xuất', index=True, required=True)
+        'res.company', string='Đơn vị', index=True, required=True)
+    company_sx_id = fields.Many2one(
+        'res.company', string='Nhà máy SX', index=True, required=True,
+        help='Đơn vị sản xuất (BNH/SSP) — dùng tra tồn kho SAP.',
+    )
     nganh_hang = fields.Char(string='Ngành hàng', index=True)
     ten_hang = fields.Char(
         string='Tên hàng',
@@ -21,7 +25,7 @@ class KeHoachVatTuLine(models.Model):
         readonly=True,
     )
     ma_hang = fields.Char(string='Mã hàng', index=True)
-    ma_sap = fields.Char(string='Mã SAP', index=True)
+    ma_sap = fields.Char(string='Mã', index=True)
 
     qty_ton_kho = fields.Float(
         string='Tồn kho', digits=(16, 3),
@@ -52,7 +56,7 @@ class KeHoachVatTuLine(models.Model):
     _sql_constraints = [
         ('uniq_material_plan_row',
          'unique(period_id, company_id, ma_sap)',
-         'Trùng dòng kế hoạch vật tư chốt!'),
+         'Trùng dòng kế hoạch vật tư (Kỳ, Đơn vị, Mã)!'),
     ]
 
     @api.depends('ma_sap')
@@ -60,17 +64,13 @@ class KeHoachVatTuLine(models.Model):
         codes = {(rec.ma_sap or '').strip() for rec in self if (rec.ma_sap or '').strip()}
         name_map = {}
         if codes:
-            for row in self.env['ma.hang'].sudo().search_read(
-                [('ma_sap', 'in', list(codes))],
-                ['ma_sap', 'ten_hang'],
-            ):
-                if row.get('ma_sap'):
-                    name_map[row['ma_sap']] = row.get('ten_hang') or ''
+            meta_map = self.env['ma.hang'].get_mdm_sap_meta_map(codes)
+            name_map = {code: meta.get('ten_hang', '') for code, meta in meta_map.items()}
         for rec in self:
             code = (rec.ma_sap or '').strip()
             rec.ten_hang = name_map.get(code, '') if code else ''
 
-    @api.depends('ma_sap', 'company_id')
+    @api.depends('ma_sap', 'company_sx_id')
     def _compute_qty_ton_kho(self):
         # Gom tất cả ma_sap + company_code cần query
         sap_codes = set()
@@ -112,7 +112,7 @@ class KeHoachVatTuLine(models.Model):
                 rec.qty_ton_kho = 0.0
                 continue
             comp_grp = 'ALL'
-            cc = rec.company_id.company_code or ''
+            cc = rec.company_sx_id.company_code or ''
             if cc in ('BNH',) or cc.startswith('21'):
                 comp_grp = 'BNH'
             elif cc in ('SSP',) or cc.startswith('22'):
@@ -130,29 +130,39 @@ class KeHoachVatTuLine(models.Model):
             rec.qty_cl_t2 = (rec.qty_sx_t2 or 0.0) - (rec.qty_kd_t2 or 0.0)
             rec.qty_cl_t3 = (rec.qty_sx_t3 or 0.0) - (rec.qty_kd_t3 or 0.0)
 
-    @api.constrains('company_id')
+    @api.constrains('company_sx_id')
     def _check_production_company(self):
         invalid = self.filtered(
-            lambda rec: rec.company_id.company_code not in ('BNH', 'SSP')
+            lambda rec: rec.company_sx_id.company_code not in ('BNH', 'SSP')
         )
         if invalid:
             raise ValidationError(_(
-                'Công ty sản xuất của kế hoạch vật tư chỉ được là BNH hoặc SSP.'
+                'Nhà máy sản xuất của kế hoạch vật tư chỉ được là BNH hoặc SSP.'
             ))
 
     @api.model_create_multi
     def create(self, vals_list):
         Period = self.env['ke.hoach.vat.tu']
-        MaHang = self.env['ma.hang'].sudo()
+        period_ids = {v['period_id'] for v in vals_list if v.get('period_id')}
+        if period_ids:
+            locked = Period.browse(list(period_ids)).filtered(lambda p: p.state != 'ke_hoach')
+            if locked:
+                raise UserError(_('Kế hoạch vật tư đã khóa vì kỳ kế hoạch đã sang bước sau.'))
+
+        sap_codes = sorted({
+            (v.get('ma_sap') or '').strip()
+            for v in vals_list if (v.get('ma_sap') or '').strip()
+        })
+        meta_map = self.env['ma.hang'].get_mdm_sap_meta_map(sap_codes) if sap_codes else {}
+        NganhHang = self.env['mdm.nganh.hang'].sudo()
+
         for vals in vals_list:
-            if vals.get('period_id'):
-                period = Period.browse(vals['period_id'])
-                if period.state != 'ke_hoach':
-                    raise UserError(_('Kế hoạch vật tư đã khóa vì kỳ kế hoạch đã sang bước sau.'))
-            if vals.get('ma_sap'):
-                master = MaHang.search([('ma_sap', '=', vals['ma_sap'])], limit=1)
-                if master:
-                    vals.setdefault('nganh_hang', master.nganh_hang)
+            ma_sap = (vals.get('ma_sap') or '').strip()
+            if ma_sap:
+                meta = meta_map.get(ma_sap, {})
+                if not vals.get('nganh_hang') and meta.get('nganh_hang_id'):
+                    nh = NganhHang.browse(meta['nganh_hang_id'])
+                    vals['nganh_hang'] = nh.ten or ''
             for idx in (0, 1, 2, 3):
                 sx_f = f'qty_sx_t{idx}'
                 qty_f = f'qty_t{idx}'

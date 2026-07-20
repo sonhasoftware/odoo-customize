@@ -10,6 +10,9 @@
                 <field name="ten_sap"/>
                 <field name="ma_tp" column_invisible="True"/>
                 <field name="ma_nvl"/>
+                <field name="bom_sale_id" string="Loại Bom Sale"/>
+                <field name="ten_nvl"/>
+                <field name="sl_dinh_muc" string="Định mức"/>
                 <field name="qty_t0" sum="T0"/>
                 <field name="qty_t1" sum="T1"/>
                 <field name="qty_t2" sum="T2"/>
@@ -29,10 +32,13 @@
                 <field name="ten_sap"/>
                 <field name="ma_tp"/>
                 <field name="ma_nvl"/>
+                <field name="bom_sale_id"/>
+                <filter name="filter_missing_bom_sale" string="Chưa có Bom Sale"
+                        domain="[('bom_sale_id', '=', False)]"/>
                 <group expand="0" string="Nhóm theo">
                     <filter name="group_period" string="Kỳ" context="{'group_by': 'period_id'}"/>
                     <filter name="group_company" string="Công ty" context="{'group_by': 'company_id'}"/>
-                    <filter name="group_sap" string="Mã SAP" context="{'group_by': 'ma_sap'}"/>
+                    <filter name="group_sap" string="Mã" context="{'group_by': 'ma_sap'}"/>
                 </group>
             </search>
         </field>

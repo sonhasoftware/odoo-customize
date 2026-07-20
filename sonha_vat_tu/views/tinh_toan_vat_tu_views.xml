@@ -8,12 +8,8 @@
             <tree string="Tính toán vật tư" create="0" class="sh_free_width_tree">
                 <field name="ma_vat_tu"/>
                 <field name="don_vi_kd_id" string="Đơn vị KD" context="{'vat_tu_company_code_display': True}"/>
-                <field name="ma_sap"/>
                 <field name="ten_vat_tu"/>
-                <field name="ma_effect"/>
-                <field name="ten_sap"/>
                 <field name="don_vi_tinh"/>
-                <field name="sl_dinh_muc" sum="Định mức"/>
                 <field name="qty_t0" sum="T0"/>
                 <field name="qty_t1" sum="T1"/>
                 <field name="qty_t2" sum="T2"/>
@@ -28,10 +24,8 @@
         <field name="arch" type="xml">
             <search>
                 <field name="period_id"/>
-                <field name="ma_sap"/>
                 <field name="ma_vat_tu"/>
-                <field name="ma_effect"/>
-                <field name="ten_sap"/>
+                <field name="ten_vat_tu"/>
                 <field name="don_vi_kd_id" string="Đơn vị KD"/>
                 <field name="company_id" string="Đơn vị SX"/>
                 <group expand="0" string="Nhóm theo">

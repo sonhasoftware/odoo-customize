@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_import_tong_hop_bcu_wizard_form" model="ir.ui.view">
+        <field name="name">import.tong.hop.bcu.wizard.form</field>
+        <field name="model">import.tong.hop.bcu.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Import hàng đi đường BCU">
+                <sheet>
+                    <group>
+                        <field name="period_id" invisible="1"/>
+                        <field name="file_data" filename="file_name"/>
+                        <field name="file_name" invisible="1"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_import" type="object" string="Import" class="btn-primary"/>
+                    <button name="action_download_template" type="object" string="Tải template"/>
+                    <button string="Hủy" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_import_tong_hop_bcu_wizard" model="ir.actions.act_window">
+        <field name="name">Import hàng đi đường BCU</field>
+        <field name="res_model">import.tong.hop.bcu.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_import_tong_hop_bcu_wizard_form"/>
+        <field name="target">new</field>
+    </record>
+
+    <record id="action_import_tong_hop_bcu_server" model="ir.actions.server">
+        <field name="name">Import hàng đi đường BCU</field>
+        <field name="model_id" ref="model_ke_hoach_vat_tu"/>
+        <field name="binding_model_id" ref="model_ke_hoach_vat_tu"/>
+        <field name="binding_view_types">form</field>
+        <field name="state">code</field>
+        <field name="code">
+            if records:
+                action = records.action_open_import_bcu_wizard()
+        </field>
+    </record>
+
+</odoo>

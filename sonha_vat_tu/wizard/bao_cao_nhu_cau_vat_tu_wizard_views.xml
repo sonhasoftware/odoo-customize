@@ -11,7 +11,7 @@
                         <group>
                             <field name="from_month" required="1"/>
                             <field name="from_year" required="1"/>
-                            <field name="company_id" string="Đơn vị đặt hàng"
+                            <field name="company_id" string="Đơn vị đặt hàng" required="1"
                                    context="{'vat_tu_company_code_display': True}"/>
                         </group>
                         <group>

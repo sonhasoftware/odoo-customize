@@ -87,11 +87,11 @@
                             <field name="ke_hoach_san_xuat_ids" readonly="1"
                                    groups="sonha_vat_tu.group_ban_cung_ung_vat_tu,!sonha_vat_tu.group_bo_phan_vat_tu,!sonha_vat_tu.group_truong_bo_phan_vat_tu">
                                 <tree editable="bottom" class="sh_free_width_tree">
+                                    <field name="company_id" string="Đơn vị" readonly="1" context="{'vat_tu_company_code_display': True}"/>
                                     <field name="nganh_hang"/>
                                     <field name="ten_hang" readonly="1"/>
                                     <field name="ma_hang"/>
                                     <field name="ma_sap"/>
-                                    <field name="company_id" column_invisible="True"/>
                                     <field name="qty_t0" sum="T0"/>
                                     <field name="qty_t1" sum="T1"/>
                                     <field name="qty_t2" sum="T2"/>
@@ -102,11 +102,11 @@
                                    groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"
                                    readonly="state != 'ke_hoach'">
                                 <tree editable="bottom" class="sh_free_width_tree">
+                                    <field name="company_id" string="Đơn vị" readonly="1" context="{'vat_tu_company_code_display': True}"/>
                                     <field name="nganh_hang" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                                     <field name="ten_hang" readonly="1"/>
                                     <field name="ma_hang" readonly="1"/>
                                     <field name="ma_sap" readonly="1" required="1"/>
-                                    <field name="company_id" column_invisible="True"/>
                                     <field name="qty_t0" sum="T0"/>
                                     <field name="qty_t1" sum="T1"/>
                                     <field name="qty_t2" sum="T2"/>
@@ -142,6 +142,9 @@
                         <button name="action_open_step_b1" type="object" class="oe_stat_button" icon="fa-arrow-left">
                             <field name="ke_hoach_san_xuat_count" string="Kế hoạch vật tư" widget="statinfo"/>
                         </button>
+                        <button name="action_open_dinh_muc_period" type="object" class="oe_stat_button" icon="fa-list-alt">
+                            <field name="dinh_muc_count" string="Định mức kỳ" widget="statinfo"/>
+                        </button>
                         <button name="action_open_step_b3" type="object" class="oe_stat_button" icon="fa-calculator">
                             <field name="tinh_toan_vat_tu_count" string="Tính toán vật tư" widget="statinfo"/>
                         </button>
@@ -161,17 +164,19 @@
                         </group>
                     </group>
                     <field name="dinh_muc_ids" readonly="1">
-                        <tree editable="bottom" create="false" delete="false" class="sh_free_width_tree">
-                            <field name="ma_sap" readonly="1"/>
-                            <field name="ten_sap" readonly="1"/>
-                            <field name="ma_tp" string="Mã TP" readonly="1"/>
-                            <field name="ten_tp" string="Tên TP" readonly="1"/>
-                            <field name="ma_nvl" string="Mã NVL" readonly="1"/>
-                            <field name="ten_nvl" string="Tên NVL" readonly="1"/>
-                            <field name="qty_t0" string="T0" readonly="1"/>
-                            <field name="qty_t1" string="T1" readonly="1"/>
-                            <field name="qty_t2" string="T2" readonly="1"/>
-                            <field name="qty_t3" string="T3" readonly="1"/>
+                        <tree limit="80" create="false" delete="false" class="sh_free_width_tree">
+                            <field name="company_id" string="Đơn vị" optional="show"/>
+                            <field name="ma_sap"/>
+                            <field name="ten_sap"/>
+                            <field name="ma_tp" column_invisible="True"/>
+                            <field name="ma_nvl"/>
+                            <field name="bom_sale_id" string="Loại Bom Sale" optional="hide"/>
+                            <field name="ten_nvl"/>
+                            <field name="sl_dinh_muc" string="Định mức"/>
+                            <field name="qty_t0" sum="T0"/>
+                            <field name="qty_t1" sum="T1"/>
+                            <field name="qty_t2" sum="T2"/>
+                            <field name="qty_t3" sum="T3"/>
                         </tree>
                     </field>
                 </sheet>
@@ -221,13 +226,9 @@
                     </group>
                     <field name="tinh_toan_vat_tu_ids" widget="vat_tu_b3_pivot_one2many">
                         <tree editable="bottom" create="false" delete="false" class="sh_free_width_tree">
-                            <field name="ma_sap" column_invisible="True"/>
-                            <field name="ma_effect" column_invisible="True"/>
-                            <field name="ten_sap" column_invisible="True"/>
                             <field name="ma_vat_tu" column_invisible="True"/>
                             <field name="ten_vat_tu" column_invisible="True"/>
                             <field name="don_vi_tinh" readonly="1"/>
-                            <field name="sl_dinh_muc" column_invisible="True"/>
                             <field name="don_vi_kd_id" column_invisible="True"/>
                             <field name="don_vi_kd_code" column_invisible="True"/>
                             <field name="qty_t0" column_invisible="True"/>
@@ -378,9 +379,9 @@
                                     <field name="don_vi_tinh" readonly="1"/>
                                     <field name="currency_id" column_invisible="True"/>
 
+                                    <field name="don_gia_ton_kho" string="Đơn giá tồn kho" widget="monetary" readonly="1"/>
                                     <field name="tong_ton_nvl_sl" string="Tồn NVL đầu kỳ" readonly="1"/>
                                     <field name="gia_tri_ton_nvl_dau_ky" string="Giá trị tồn NVL" readonly="1" widget="monetary"/>
-                                    <field name="don_gia_ton_kho" column_invisible="True"/>
 
                                     <field name="tong_sl_vt_can_dung_t0" readonly="1"/>
                                     <field name="tong_sl_vt_can_dung_t1" readonly="1"/>
@@ -397,13 +398,13 @@
                                     <field name="sl_du_tru_toi_thieu" string="Dự trữ tối thiểu" readonly="1"/>
                                     <field name="sl_dat_mua_de_xuat" string="Đề xuất đặt mua" readonly="1"/>
                                     <field name="sl_dat_mua_chot" string="Đặt mua chốt" readonly="1"/>
-                                    <field name="sl_can_mua_theo_moq" string="SL mua theo MOQ" readonly="1"/>
+                                    <field name="sl_can_mua_theo_moq" string="SL mua theo MOQ"/>
                                     <field name="don_gia_mua" string="Đơn giá mua" widget="monetary" readonly="1"/>
-                                    <field name="gia_tri_mua_hang" string="Giá trị mua" widget="monetary" readonly="1"/>
-                                    <field name="sl_ton_kho_cuoi_ky" string="Tồn kho cuối kỳ" readonly="1"/>
-                                    <field name="so_ngay_vong_quay_ton" string="Ngày vòng quay tồn" readonly="1"/>
-                                    <field name="don_gia_ton_kho_cuoi_ky" string="Đơn giá tồn cuối kỳ" widget="monetary" readonly="1"/>
-                                    <field name="gia_tri_ton_kho_cuoi_ky" string="Giá trị tồn cuối kỳ" widget="monetary" readonly="1"/>
+                                    <field name="gia_tri_mua_hang" string="Giá trị mua" widget="monetary" readonly="1" force_save="1"/>
+                                    <field name="sl_ton_kho_cuoi_ky" string="Tồn kho cuối kỳ" readonly="1" force_save="1"/>
+                                    <field name="so_ngay_vong_quay_ton" string="Ngày vòng quay tồn" readonly="1" force_save="1"/>
+                                    <field name="don_gia_ton_kho_cuoi_ky" string="Đơn giá tồn cuối kỳ" widget="monetary" readonly="1" force_save="1"/>
+                                    <field name="gia_tri_ton_kho_cuoi_ky" string="Giá trị tồn cuối kỳ" widget="monetary" readonly="1" force_save="1"/>
 
                                     <field name="ghi_chu" readonly="1"/>
                                 </tree>
@@ -482,5 +483,29 @@
         <field name="name">Kế hoạch vật tư</field>
         <field name="res_model">ke.hoach.vat.tu</field>
         <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="action_export_kh_dat_vat_tu_server" model="ir.actions.server">
+        <field name="name">Xuất Kế hoạch đặt vật tư</field>
+        <field name="model_id" ref="model_ke_hoach_vat_tu"/>
+        <field name="binding_model_id" ref="model_ke_hoach_vat_tu"/>
+        <field name="binding_view_types">form</field>
+        <field name="state">code</field>
+        <field name="code">
+            if records:
+                action = records.action_export_kh_dat_vat_tu()
+        </field>
+    </record>
+
+    <record id="action_export_vat_tu_can_server" model="ir.actions.server">
+        <field name="name">Export vật tư cần</field>
+        <field name="model_id" ref="model_ke_hoach_vat_tu"/>
+        <field name="binding_model_id" ref="model_ke_hoach_vat_tu"/>
+        <field name="binding_view_types">form</field>
+        <field name="state">code</field>
+        <field name="code">
+            if records:
+                action = records.action_export_vat_tu_can()
+        </field>
     </record>
 </odoo>
