@@ -1322,6 +1322,26 @@ class EmployeeAttendanceV2(models.Model):
                 overtime._sync_actual_compensatory_for_record(overtime)
         return True
 
+    def recompute_for_overtime(self, employee_ids, date_from=None, date_to=None):
+        query = """
+            SELECT id
+            FROM employee_attendance_v2
+            WHERE employee_id = ANY(%s)
+              AND date >= %s
+              AND date <= %s
+        """
+
+        self.env.cr.execute(query, (
+            employee_ids,
+            date_from,
+            date_to
+        ))
+
+        ids = [r[0] for r in self.env.cr.fetchall()]
+        recs = self.env['employee.attendance.v2'].browse(ids)
+        if recs:
+            recs.sudo()._get_time_in_out()
+
     def action_export_excel(self, ids):
 
         records = self.browse(ids)

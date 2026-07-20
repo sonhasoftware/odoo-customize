@@ -48,7 +48,7 @@
               sequence="1"/>
 
     <menuitem id="menu_exp_contract_mail_log"
-              name="Log mail"
+              name="Log Email"
               parent="menu_exp_contract_log"
               groups="sonha_ql_xuat_khau.group_exp_backup"
               action="action_exp_mail_log"

@@ -336,9 +336,9 @@ class RegisterOvertimeUpdate(models.Model):
         res = super(RegisterOvertimeUpdate, self).write(vals)
         for rec in self:
             rec.explode_to_overtime_write(rec)
-            if not self.env.context.get('skip_overtime_actual_sync') and (rec.status == 'done' or rec.status_lv2 == 'done'):
-                rec._recompute_overtime_for_record(rec)
-                rec._sync_actual_compensatory_for_record(rec)
+            # if not self.env.context.get('skip_overtime_actual_sync') and (rec.status == 'done' or rec.status_lv2 == 'done'):
+            #     rec._recompute_overtime_for_record(rec)
+            #     rec._sync_actual_compensatory_for_record(rec)
         return res
 
     @api.onchange('employee_id', 'employee_ids', 'status_lv2', 'type_overtime')
@@ -487,19 +487,19 @@ class RegisterOvertimeUpdate(models.Model):
 
     def _recompute_overtime_for_record(self, rec):
         employees = rec.employee_ids or (rec.employee_id and [rec.employee_id]) or []
+        employee_ids = [emp.id for emp in employees]
         if not employees:
             return
 
-        for line in rec.date:
-            if not line.date:
-                continue
+        dates = [line.date for line in rec.date if line.date]
+        if not dates:
+            return
 
-            date_from = line.date - timedelta(days=1)
-            date_to = line.date + timedelta(days=1)
+        date_from = min(dates) - timedelta(days=1)
+        date_to = max(dates) + timedelta(days=1)
 
-            for emp in employees:
-                self.env['employee.attendance.v2'].sudo().recompute_for_employee(
-                    emp,
-                    date_from,
-                    date_to
-                )
+        self.env['employee.attendance.v2'].sudo().recompute_for_overtime(
+            employee_ids,
+            date_from,
+            date_to
+        )
