@@ -258,6 +258,14 @@ class ExpContract(models.Model):
             else:
                 r.state_id = None
 
+    def action_pre_state(self):
+        for r in self:
+            prev_state_rule = self.env['exp.state.transition.rule'].sudo().search([('to_state_id', '=', r.state_id.id)])
+            if prev_state_rule:
+                r.state_id = prev_state_rule.from_state_id.id
+            else:
+                raise ValidationError("Không có trạng thái nào phía trước nữa!")
+
     @api.constrains('produce_code')
     def _validate_produce_code(self):
         for r in self:
@@ -452,7 +460,19 @@ class ExpContract(models.Model):
         return res
 
     def write(self, vals):
+        log = None
+        if 'product_file' in vals:
+            log = self.env['exp.contract.state.log'].sudo().create({
+                'contract_id': self.id,
+                'change_by': self.env.user.id,
+                'note': "-Thay đổi file yêu cầu sản xuất",
+                'old_file': [(6, 0, self.product_file.ids)]
+            })
         res = super(ExpContract, self).write(vals)
+        if log:
+            log.sudo().write({
+                'new_file': [(6, 0, self.product_file.ids)]
+            })
         if self.check_write_access(self.env.user.id) or self.env.user.has_group(
                 "sonha_ql_xuat_khau.group_exp_manager") or self.env.user.has_group(
                 "sonha_ql_xuat_khau.group_exp_backup"):
