@@ -6,6 +6,7 @@ import { _t } from "@web/core/l10n/translation";
 import { patch } from "@web/core/utils/patch";
 import { useEffect } from "@odoo/owl";
 import { ListRenderer } from "@web/views/list/list_renderer";
+import { ListController } from "@web/views/list/list_controller";
 import { listView } from "@web/views/list/list_view";
 import { X2ManyField, x2ManyField } from "@web/views/fields/x2many/x2many_field";
 
@@ -391,6 +392,30 @@ function registerMergedView(key, Renderer) {
     registry.category("views").add(key, { ...listView, Renderer });
 }
 
+class VatTuBaoCaoListController extends ListController {
+    static template = "sonha_vat_tu.VatTuBaoCaoListView";
+
+    /** Chỉ bound server actions — bỏ Export/Archive/... mặc định của list view. */
+    get baoCaoCogMenuItems() {
+        const { actionMenus } = this.props.info;
+        if (!actionMenus) {
+            return { action: [], print: [] };
+        }
+        return {
+            action: actionMenus.action || [],
+            print: actionMenus.print || [],
+        };
+    }
+}
+
+function registerBaoCaoListView(key, Renderer) {
+    registry.category("views").add(key, {
+        ...listView,
+        Renderer,
+        Controller: VatTuBaoCaoListController,
+    });
+}
+
 function registerMergedOne2Many(key, Renderer) {
     class Field extends X2ManyField {}
     Field.components = { ...X2ManyField.components, ListRenderer: Renderer };
@@ -685,3 +710,253 @@ class VatTuNhuCauHeaderRenderer extends VatTuMergedHeaderRenderer {
 }
 
 registerMergedView("vat_tu_nhu_cau_list_view", VatTuNhuCauHeaderRenderer);
+
+// ---------------------------------------------------------------------------
+// 5) Báo cáo B3/B4 theo khoảng tháng lịch (wizard → line pivot)
+// ---------------------------------------------------------------------------
+
+function getBaoCaoMonthKeys(list) {
+    const raw = (list?.context?.bao_cao_month_keys || "").trim();
+    if (!raw) {
+        return [];
+    }
+    return raw.split(",").map((s) => s.trim()).filter(Boolean);
+}
+
+class VatTuBaoCaoB3PivotRenderer extends VatTuB3PivotRenderer {
+    static template = "sonha_vat_tu.VatTuBaoCaoB3PivotRenderer";
+
+    getCalendarMonths() {
+        return getBaoCaoMonthKeys(this.props.list);
+    }
+
+    get kdCompanies() {
+        const map = new Map();
+        for (const rec of this.props.list.records) {
+            const d = rec.data;
+            const cid = d.don_vi_kd_id && d.don_vi_kd_id[0];
+            if (!cid) {
+                continue;
+            }
+            const code = resolveKdCompanyCode(d, cid);
+            map.set(cid, code);
+        }
+        return [...map.entries()].sort((a, b) => String(a[1]).localeCompare(String(b[1])));
+    }
+
+    getPivotRows() {
+        const byMat = new Map();
+        for (const rec of this.props.list.records) {
+            const d = rec.data;
+            const key = d.ma_vat_tu || String(rec.resId);
+            if (!byMat.has(key)) {
+                byMat.set(key, {
+                    meta: {
+                        ma_vat_tu: d.ma_vat_tu,
+                        ten_vat_tu: d.ten_vat_tu,
+                        don_vi_tinh: d.don_vi_tinh,
+                    },
+                    cells: {},
+                });
+            }
+            const row = byMat.get(key);
+            const cid = d.don_vi_kd_id && d.don_vi_kd_id[0];
+            if (cid && d.month_key) {
+                row.cells[`${d.month_key}|${cid}`] = d.qty || 0;
+            }
+        }
+        return [...byMat.values()];
+    }
+
+    pivotQty(row, monthKey, companyId) {
+        return row.cells[`${monthKey}|${companyId}`] || 0;
+    }
+
+    pivotTotal(row, monthKey) {
+        let total = 0;
+        for (const [cid] of this.kdCompanies) {
+            total += this.pivotQty(row, monthKey, cid);
+        }
+        return total;
+    }
+
+    formatMetaValue(row, meta) {
+        const val = row.meta[meta.key];
+        if (meta.m2o && Array.isArray(val)) {
+            return val[1] || "";
+        }
+        return val || "";
+    }
+
+    getColumnGroups() {
+        const groups = [];
+        for (const meta of B3_FIXED_META) {
+            groups.push({
+                id: `meta_${meta.key}`,
+                label: meta.label,
+                span: 1,
+                rowspan: 2,
+                column: null,
+            });
+        }
+        const span = this.kdCompanies.length + 1;
+        for (const monthKey of this.getCalendarMonths()) {
+            groups.push({
+                id: `b3_report_${monthKey}`,
+                label: `Tháng ${monthKey}`,
+                span,
+                rowspan: 1,
+                column: null,
+            });
+        }
+        return groups;
+    }
+
+    getQtySubColumns() {
+        const out = [];
+        for (const monthKey of this.getCalendarMonths()) {
+            for (const [cid, code] of this.kdCompanies) {
+                out.push({
+                    id: `${monthKey}_c${cid}`,
+                    label: code,
+                    monthKey,
+                    companyId: cid,
+                    isTotal: false,
+                });
+            }
+            out.push({
+                id: `${monthKey}_total`,
+                label: "Tổng",
+                monthKey,
+                companyId: null,
+                isTotal: true,
+            });
+        }
+        return out;
+    }
+}
+
+const BAO_CAO_B4_GROUPS = [
+    { key: "ve_du_kien_don_vi", label: "Hàng đi đường đơn vị" },
+    { key: "ve_du_kien_bcu", label: "Hàng đi đường BCU" },
+    { key: "vt_can_dung", label: "Cần dùng" },
+    { key: "ton_cuoi", label: "Tồn cuối" },
+];
+
+const BAO_CAO_B4_META = [
+    { key: "ma_sap", label: "Mã NVL" },
+    { key: "ten_nvl", label: "Tên NVL" },
+    { key: "chung_loai", label: "Chủng loại" },
+    { key: "don_vi_tinh", label: "ĐVT", m2o: true },
+    { key: "ton_dau", label: "Tồn đầu", numeric: true },
+];
+
+class VatTuBaoCaoB4PivotRenderer extends VatTuMergedHeaderRenderer {
+    static template = "sonha_vat_tu.VatTuBaoCaoB4PivotRenderer";
+
+    get BAO_CAO_B4_META() {
+        return BAO_CAO_B4_META;
+    }
+
+    get displayOptionalFields() {
+        return false;
+    }
+
+    getCalendarMonths() {
+        return getBaoCaoMonthKeys(this.props.list);
+    }
+
+    getPivotRows() {
+        const byMat = new Map();
+        for (const rec of this.props.list.records) {
+            const d = rec.data;
+            const key = d.ma_sap || String(rec.resId);
+            if (!byMat.has(key)) {
+                byMat.set(key, {
+                    meta: {
+                        ma_sap: d.ma_sap,
+                        ten_nvl: d.ten_nvl,
+                        chung_loai: d.chung_loai,
+                        don_vi_tinh: d.don_vi_tinh,
+                        ton_dau: d.ton_dau,
+                    },
+                    months: {},
+                });
+            }
+            if (d.month_key) {
+                byMat.get(key).months[d.month_key] = d;
+            }
+        }
+        return [...byMat.values()];
+    }
+
+    formatMetaValue(row, meta) {
+        const val = row.meta[meta.key];
+        if (meta.m2o && Array.isArray(val)) {
+            return val[1] || "";
+        }
+        if (meta.numeric) {
+            return this.formatQty(val);
+        }
+        return val || "";
+    }
+
+    formatQty(value) {
+        return formatFloat(value || 0, { digits: [16, 3] });
+    }
+
+    metricValue(row, monthKey, field) {
+        const rec = row.months[monthKey];
+        if (!rec) {
+            return 0;
+        }
+        const data = rec.data || rec;
+        return data[field] || 0;
+    }
+
+    getColumnGroups() {
+        const groups = [];
+        for (const meta of BAO_CAO_B4_META) {
+            groups.push({
+                id: `b4_meta_${meta.key}`,
+                label: meta.label,
+                span: 1,
+                rowspan: 2,
+                column: null,
+            });
+        }
+        const months = this.getCalendarMonths();
+        for (const grp of BAO_CAO_B4_GROUPS) {
+            groups.push({
+                id: `b4_grp_${grp.key}`,
+                label: grp.label,
+                span: months.length || 1,
+                rowspan: 1,
+                column: null,
+            });
+        }
+        return groups;
+    }
+
+    getQtySubColumns() {
+        const out = [];
+        for (const grp of BAO_CAO_B4_GROUPS) {
+            for (const monthKey of this.getCalendarMonths()) {
+                out.push({
+                    id: `${grp.key}_${monthKey}`,
+                    label: `Tháng ${monthKey}`,
+                    groupKey: grp.key,
+                    monthKey,
+                });
+            }
+        }
+        return out;
+    }
+
+    getMergeColumns() {
+        return [];
+    }
+}
+
+registerBaoCaoListView("vat_tu_bao_cao_b3_list_view", VatTuBaoCaoB3PivotRenderer);
+registerBaoCaoListView("vat_tu_bao_cao_b4_list_view", VatTuBaoCaoB4PivotRenderer);

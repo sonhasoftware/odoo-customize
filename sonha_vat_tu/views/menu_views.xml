@@ -46,11 +46,20 @@
     <menuitem id="menu_bao_cao_nhu_cau_vat_tu"
               name="Báo cáo nhu cầu vật tư"
               parent="menu_bao_cao_root"
-              action="action_bao_cao_nhu_cau_vat_tu_wizard" sequence="10"/>
+              action="action_bao_cao_nhu_cau_vat_tu_wizard" sequence="10"
+              active="False"/>
+    <menuitem id="menu_bao_cao_tinh_toan_vat_tu"
+              name="Báo cáo tính toán vật tư cần"
+              parent="menu_bao_cao_root"
+              action="action_bao_cao_tinh_toan_vat_tu_wizard" sequence="20"/>
+    <menuitem id="menu_bao_cao_tong_hop_vat_tu"
+              name="Báo cáo tổng hợp vật tư cần sản xuất"
+              parent="menu_bao_cao_root"
+              action="action_bao_cao_tong_hop_vat_tu_wizard" sequence="30"/>
     <menuitem id="menu_du_lieu_tong_hop_vat_tu"
               name="Dữ liệu tổng hợp vật tư"
               parent="menu_bao_cao_root"
-              action="action_du_lieu_tong_hop_vat_tu" sequence="30"
+              action="action_du_lieu_tong_hop_vat_tu" sequence="40"
               groups="base.group_system"/>
 
     <menuitem id="menu_danh_muc_root" name="Danh mục"

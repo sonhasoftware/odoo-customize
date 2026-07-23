@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ========== B3: Tính toán vật tư cần ========== -->
+    <record id="view_bao_cao_tinh_toan_vat_tu_wizard_form" model="ir.ui.view">
+        <field name="name">bao.cao.tinh.toan.vat.tu.wizard.form</field>
+        <field name="model">bao.cao.tinh.toan.vat.tu.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Báo cáo tính toán vật tư cần">
+                <group string="Khoảng tháng">
+                    <field name="from_month"/>
+                    <field name="from_year"/>
+                    <field name="to_month"/>
+                    <field name="to_year"/>
+                </group>
+                <field name="company_ids" invisible="1"/>
+                <footer>
+                    <button name="action_open_report" type="object"
+                            string="Xem báo cáo" class="btn-primary"/>
+                    <button string="Huỷ" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_bao_cao_tinh_toan_vat_tu_wizard" model="ir.actions.act_window">
+        <field name="name">Báo cáo tính toán vật tư cần</field>
+        <field name="res_model">bao.cao.tinh.toan.vat.tu.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="view_bao_cao_tinh_toan_vat_tu_wizard_form"/>
+    </record>
+
+    <record id="view_bao_cao_tinh_toan_vat_tu_line_tree" model="ir.ui.view">
+        <field name="name">bao.cao.tinh.toan.vat.tu.line.tree</field>
+        <field name="model">bao.cao.tinh.toan.vat.tu.line</field>
+        <field name="arch" type="xml">
+            <tree string="Báo cáo tính toán vật tư cần"
+                  create="false" edit="false" delete="false"
+                  export_xlsx="0" import="0"
+                  class="sh_free_width_tree"
+                  js_class="vat_tu_bao_cao_b3_list_view">
+                <field name="ma_vat_tu"/>
+                <field name="ten_vat_tu"/>
+                <field name="don_vi_tinh"/>
+                <field name="don_vi_kd_id"/>
+                <field name="don_vi_kd_code"/>
+                <field name="month_key"/>
+                <field name="qty"/>
+                <field name="period_code" optional="hide"/>
+                <field name="qty_offset" optional="hide"/>
+                <field name="wizard_id" column_invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_bao_cao_tinh_toan_vat_tu_line" model="ir.actions.act_window">
+        <field name="name">Báo cáo tính toán vật tư cần</field>
+        <field name="res_model">bao.cao.tinh.toan.vat.tu.line</field>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_bao_cao_tinh_toan_vat_tu_line_tree"/>
+    </record>
+
+    <record id="action_export_bao_cao_tinh_toan_vat_tu_server" model="ir.actions.server">
+        <field name="name">Xuất Excel</field>
+        <field name="model_id" ref="model_bao_cao_tinh_toan_vat_tu_line"/>
+        <field name="binding_model_id" ref="model_bao_cao_tinh_toan_vat_tu_line"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+action = (records or env['bao.cao.tinh.toan.vat.tu.line']).action_export_excel()
+        </field>
+    </record>
+
+    <!-- ========== B4: Tổng hợp vật tư cần sản xuất ========== -->
+    <record id="view_bao_cao_tong_hop_vat_tu_wizard_form" model="ir.ui.view">
+        <field name="name">bao.cao.tong.hop.vat.tu.wizard.form</field>
+        <field name="model">bao.cao.tong.hop.vat.tu.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Báo cáo tổng hợp vật tư cần sản xuất">
+                <group string="Khoảng tháng">
+                    <field name="from_month"/>
+                    <field name="from_year"/>
+                    <field name="to_month"/>
+                    <field name="to_year"/>
+                </group>
+                <footer>
+                    <button name="action_open_report" type="object"
+                            string="Xem báo cáo" class="btn-primary"/>
+                    <button string="Huỷ" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_bao_cao_tong_hop_vat_tu_wizard" model="ir.actions.act_window">
+        <field name="name">Báo cáo tổng hợp vật tư cần sản xuất</field>
+        <field name="res_model">bao.cao.tong.hop.vat.tu.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="view_bao_cao_tong_hop_vat_tu_wizard_form"/>
+    </record>
+
+    <record id="view_bao_cao_tong_hop_vat_tu_line_tree" model="ir.ui.view">
+        <field name="name">bao.cao.tong.hop.vat.tu.line.tree</field>
+        <field name="model">bao.cao.tong.hop.vat.tu.line</field>
+        <field name="arch" type="xml">
+            <tree string="Báo cáo tổng hợp vật tư cần sản xuất"
+                  create="false" edit="false" delete="false"
+                  export_xlsx="0" import="0"
+                  class="sh_free_width_tree"
+                  js_class="vat_tu_bao_cao_b4_list_view">
+                <field name="ma_sap"/>
+                <field name="ten_nvl"/>
+                <field name="chung_loai"/>
+                <field name="don_vi_tinh"/>
+                <field name="ton_dau"/>
+                <field name="month_key"/>
+                <field name="ve_du_kien_don_vi"/>
+                <field name="ve_du_kien_bcu"/>
+                <field name="vt_can_dung"/>
+                <field name="ton_cuoi"/>
+                <field name="period_code" optional="hide"/>
+                <field name="qty_offset" optional="hide"/>
+                <field name="wizard_id" column_invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_export_bao_cao_tong_hop_vat_tu_server" model="ir.actions.server">
+        <field name="name">Xuất Excel</field>
+        <field name="model_id" ref="model_bao_cao_tong_hop_vat_tu_line"/>
+        <field name="binding_model_id" ref="model_bao_cao_tong_hop_vat_tu_line"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+action = (records or env['bao.cao.tong.hop.vat.tu.line']).action_export_excel()
+        </field>
+    </record>
+
+</odoo>

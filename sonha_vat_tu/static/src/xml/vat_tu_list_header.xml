@@ -1,6 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
 
+    <!-- Báo cáo B3/B4: hiện bánh răng + action server khi chưa chọn dòng -->
+    <t t-name="sonha_vat_tu.VatTuBaoCaoListView" t-inherit="web.ListView" t-inherit-mode="primary">
+        <xpath expr="//t[@t-set-slot='control-panel-additional-actions']/CogMenu" position="replace">
+            <CogMenu t-if="!nbSelected and props.info.actionMenus"
+                getActiveIds="() => []"
+                context="props.context"
+                domain="props.domain"
+                items="baoCaoCogMenuItems"
+                isDomainSelected="model.root.isDomainSelected"
+                resModel="model.root.resModel"
+                onActionExecuted="() => model.load()"/>
+        </xpath>
+    </t>
+
     <!-- STEP B4 RENDERER TEMPLATE -->
     <t t-name="sonha_vat_tu.VatTuMergedB4HeaderRenderer">
         <t t-set="_canSelectRecord" t-value="canSelectRecord"/>
@@ -354,6 +368,111 @@
                                           t-esc="formatQty(pivotTotal(row, col.monthOffset))"/>
                                     <span t-else=""
                                           t-esc="formatQty(pivotQty(row, col.monthOffset, col.companyId))"/>
+                                </td>
+                            </t>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+        </div>
+    </t>
+
+    <!-- Báo cáo B3 theo khoảng tháng -->
+    <t t-name="sonha_vat_tu.VatTuBaoCaoB3PivotRenderer">
+        <div
+            class="o_list_renderer o_renderer o_vat_tu_merged_list o_vat_tu_b3_pivot"
+            t-att-class="uniqueRendererClass"
+            tabindex="-1"
+            t-ref="root"
+        >
+            <t t-if="showNoContentHelper" t-call="web.ActionHelper">
+                <t t-set="noContentHelp" t-value="props.noContentHelp"/>
+            </t>
+            <table t-attf-class="o_list_table table table-sm table-hover position-relative mb-0 o_list_table_ungrouped table-striped" t-ref="table">
+                <thead>
+                    <tr class="text-center fw-bold">
+                        <t t-foreach="getColumnGroups()" t-as="group" t-key="group.id">
+                            <th t-att-colspan="group.span"
+                                t-att-rowspan="group.rowspan || 1"
+                                class="align-middle text-center"
+                                tabindex="-1">
+                                <span t-esc="group.label"/>
+                            </th>
+                        </t>
+                    </tr>
+                    <tr class="text-center fw-bold">
+                        <t t-foreach="getQtySubColumns()" t-as="col" t-key="col.id">
+                            <th class="align-middle text-center o_list_number_th" tabindex="-1">
+                                <span t-esc="col.label"/>
+                            </th>
+                        </t>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-foreach="getPivotRows()" t-as="row" t-key="row_index">
+                        <tr>
+                            <t t-foreach="b3FixedMeta" t-as="meta" t-key="meta.key">
+                                <td class="align-middle">
+                                    <span t-esc="formatMetaValue(row, meta)"/>
+                                </td>
+                            </t>
+                            <t t-foreach="getQtySubColumns()" t-as="col" t-key="col.id">
+                                <td class="align-middle text-end o_list_number">
+                                    <span t-if="col.isTotal"
+                                          t-esc="formatQty(pivotTotal(row, col.monthKey))"/>
+                                    <span t-else=""
+                                          t-esc="formatQty(pivotQty(row, col.monthKey, col.companyId))"/>
+                                </td>
+                            </t>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+        </div>
+    </t>
+
+    <!-- Báo cáo B4 theo khoảng tháng -->
+    <t t-name="sonha_vat_tu.VatTuBaoCaoB4PivotRenderer">
+        <div
+            class="o_list_renderer o_renderer o_vat_tu_merged_list"
+            t-att-class="uniqueRendererClass"
+            tabindex="-1"
+            t-ref="root"
+        >
+            <t t-if="showNoContentHelper" t-call="web.ActionHelper">
+                <t t-set="noContentHelp" t-value="props.noContentHelp"/>
+            </t>
+            <table t-attf-class="o_list_table table table-sm table-hover position-relative mb-0 o_list_table_ungrouped table-striped" t-ref="table">
+                <thead>
+                    <tr class="text-center fw-bold">
+                        <t t-foreach="getColumnGroups()" t-as="group" t-key="group.id">
+                            <th t-att-colspan="group.span"
+                                t-att-rowspan="group.rowspan || 1"
+                                class="align-middle text-center"
+                                tabindex="-1">
+                                <span t-esc="group.label"/>
+                            </th>
+                        </t>
+                    </tr>
+                    <tr class="text-center fw-bold">
+                        <t t-foreach="getQtySubColumns()" t-as="col" t-key="col.id">
+                            <th class="align-middle text-center o_list_number_th" tabindex="-1">
+                                <span t-esc="col.label"/>
+                            </th>
+                        </t>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-foreach="getPivotRows()" t-as="row" t-key="row_index">
+                        <tr>
+                            <t t-foreach="BAO_CAO_B4_META" t-as="meta" t-key="meta.key">
+                                <td class="align-middle">
+                                    <span t-esc="formatMetaValue(row, meta)"/>
+                                </td>
+                            </t>
+                            <t t-foreach="getQtySubColumns()" t-as="col" t-key="col.id">
+                                <td class="align-middle text-end o_list_number">
+                                    <span t-esc="formatQty(metricValue(row, col.monthKey, col.groupKey))"/>
                                 </td>
                             </t>
                         </tr>
