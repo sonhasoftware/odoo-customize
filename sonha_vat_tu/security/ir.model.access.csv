@@ -2,7 +2,7 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_ma_hang_user,ma.hang.user,model_ma_hang,,1,0,0,0
 access_bom_user,bom.user,model_bom,,1,1,1,1
 access_ke_hoach_vat_tu_ban_cung_ung,ke.hoach.vat.tu.ban.cung.ung,model_ke_hoach_vat_tu,sonha_vat_tu.group_ban_cung_ung_vat_tu,1,1,1,0
-access_ke_hoach_vat_tu_bo_phan,ke.hoach.vat.tu.bo.phan,model_ke_hoach_vat_tu,sonha_vat_tu.group_bo_phan_vat_tu,1,1,0,0
+access_ke_hoach_vat_tu_bo_phan,ke.hoach.vat.tu.bo.phan,model_ke_hoach_vat_tu,sonha_vat_tu.group_bo_phan_vat_tu,1,1,1,0
 access_ke_hoach_vat_tu_truong_bo_phan,ke.hoach.vat.tu.truong.bo.phan,model_ke_hoach_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu,1,1,1,1
 access_ke_hoach_kinh_doanh_ban_cung_ung,ke.hoach.kinh.doanh.ban.cung.ung,model_ke_hoach_kinh_doanh,sonha_vat_tu.group_ban_cung_ung_vat_tu,1,1,1,1
 access_ke_hoach_kinh_doanh_bo_phan,ke.hoach.kinh.doanh.bo.phan,model_ke_hoach_kinh_doanh,sonha_vat_tu.group_bo_phan_vat_tu,1,0,0,0
@@ -34,6 +34,10 @@ access_import_bom_wizard,import.bom.wizard,model_import_bom_wizard,base.group_us
 access_import_vat_tu_di_duong_wizard,import.vat.tu.di.duong.wizard,model_import_vat_tu_di_duong_wizard,base.group_user,1,1,1,1
 access_import_tong_hop_bcu_wizard,import.tong.hop.bcu.wizard,model_import_tong_hop_bcu_wizard,base.group_user,1,1,1,1
 access_bao_cao_nhu_cau_vat_tu_wizard,bao.cao.nhu.cau.vat.tu.wizard,model_bao_cao_nhu_cau_vat_tu_wizard,base.group_user,1,1,1,1
+access_bao_cao_tinh_toan_vat_tu_wizard,bao.cao.tinh.toan.vat.tu.wizard,model_bao_cao_tinh_toan_vat_tu_wizard,base.group_user,1,1,1,1
+access_bao_cao_tinh_toan_vat_tu_line,bao.cao.tinh.toan.vat.tu.line,model_bao_cao_tinh_toan_vat_tu_line,base.group_user,1,1,1,1
+access_bao_cao_tong_hop_vat_tu_wizard,bao.cao.tong.hop.vat.tu.wizard,model_bao_cao_tong_hop_vat_tu_wizard,base.group_user,1,1,1,1
+access_bao_cao_tong_hop_vat_tu_line,bao.cao.tong.hop.vat.tu.line,model_bao_cao_tong_hop_vat_tu_line,base.group_user,1,1,1,1
 access_vat_tu_di_duong_user,vat.tu.di.duong.user,model_vat_tu_di_duong,base.group_user,1,1,1,1
 access_du_lieu_tong_hop_vat_tu_admin,du.lieu.tong.hop.vat.tu.admin,model_du_lieu_tong_hop_vat_tu,base.group_system,1,0,0,0
 access_bao_cao_nhu_cau_vat_tu_ban_cung_ung,bao.cao.nhu.cau.vat.tu.ban.cung.ung,model_bao_cao_nhu_cau_vat_tu,sonha_vat_tu.group_ban_cung_ung_vat_tu,1,0,0,0

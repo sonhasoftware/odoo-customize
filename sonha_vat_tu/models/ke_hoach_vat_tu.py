@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import calendar
 from datetime import date
 import os as _os
 import re
@@ -190,6 +191,64 @@ class KeHoachVatTu(models.Model):
             return date(int(year), int(month), 1)
         except Exception:
             return False
+
+    @api.model
+    def _parse_month_key(self, month_key):
+        """'MM/YYYY' -> (month, year) hoặc raise ValueError."""
+        parts = (month_key or '').strip().split('/')
+        if len(parts) != 2:
+            raise ValueError(month_key)
+        month, year = int(parts[0]), int(parts[1])
+        if month < 1 or month > 12:
+            raise ValueError(month_key)
+        return month, year
+
+    @api.model
+    def _format_month_key(self, month, year):
+        return f'{month:02d}/{year}'
+
+    @api.model
+    def _add_months(self, month, year, delta):
+        month += delta
+        while month > 12:
+            month -= 12
+            year += 1
+        while month < 1:
+            month += 12
+            year -= 1
+        return month, year
+
+    @api.model
+    def month_start_from_key(self, month_key):
+        month, year = self._parse_month_key(month_key)
+        return date(year, month, 1)
+
+    @api.model
+    def month_end_from_key(self, month_key):
+        month, year = self._parse_month_key(month_key)
+        last = calendar.monthrange(year, month)[1]
+        return date(year, month, last)
+
+    @api.model
+    def iter_calendar_months(self, date_from, date_to):
+        """Sinh danh sách 'MM/YYYY' từ date_from → date_to (bao gồm 2 đầu)."""
+        cur = date(date_from.year, date_from.month, 1)
+        end = date(date_to.year, date_to.month, 1)
+        if cur > end:
+            return []
+        out = []
+        while cur <= end:
+            out.append(self._format_month_key(cur.month, cur.year))
+            if cur.month == 12:
+                cur = date(cur.year + 1, 1, 1)
+            else:
+                cur = date(cur.year, cur.month + 1, 1)
+        return out
+
+    @api.model
+    def validate_report_month_range(self, date_from, date_to):
+        if date_from > date_to:
+            raise UserError(_('Từ tháng không được lớn hơn Đến tháng.'))
 
     def _get_current_production_company(self):
         user_company = self.env.company
@@ -1233,6 +1292,138 @@ class KeHoachVatTu(models.Model):
             'Data_VatTuCan_%s.xlsx' % file_suffix,
         )
 
+    @api.model
+    def load_periods_for_report(self, period_states):
+        """Kỳ ở state trong phạm vi record rule của user."""
+        return self.search([
+            ('state', 'in', period_states),
+        ], order='period_month desc, id desc')
+
+    @api.model
+    def resolve_period_plans(self, calendar_month, periods):
+        """Tháng lịch → danh sách (kỳ, offset T0–T3)."""
+        out = []
+        for period in periods:
+            horizon = period._get_horizon_months()
+            if calendar_month not in horizon:
+                continue
+            out.append((period, horizon.index(calendar_month)))
+        return out
+
+    def action_export_tong_hop_vat_tu(self):
+        """Xuất Excel bước 4 — layout 2 tầng header giống form Tổng hợp vật tư."""
+        self.ensure_one()
+        lines = self.tong_hop_vat_tu_ids.filtered(lambda r: not r.don_vi_kd_id).sorted(
+            key=lambda r: ((r.ma_sap or '').strip(), r.id),
+        )
+        if not lines:
+            raise UserError(_('Chưa có dữ liệu tổng hợp vật tư để xuất.'))
+        if self.state in ('ke_hoach', 'dinh_muc', 'tinh_toan'):
+            raise UserError(_('Chỉ export được từ bước Tổng hợp vật tư cần sản xuất trở đi.'))
+
+        months = self._get_horizon_months()
+        if len(months) < 4:
+            months = (months + [''] * 4)[:4]
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = 'Tong hop vat tu'
+
+        ws.cell(row=1, column=1, value='Số chứng từ')
+        ws.cell(row=1, column=2, value=self.code or '')
+        ws.cell(row=2, column=1, value='Tháng bắt đầu')
+        ws.cell(row=2, column=2, value=self.period_month or '')
+
+        header_row1 = 4
+        header_row2 = 5
+        data_row = 6
+
+        fixed_start = [
+            ('Mã NVL', 'ma_sap', 'text'),
+            ('Tên NVL', 'ten_nvl', 'text'),
+            ('Chủng loại', 'chung_loai', 'text'),
+            ('ĐVT', 'don_vi_tinh', 'dvt'),
+            ('Tồn đầu', 'ton_dau', 'qty'),
+        ]
+        month_groups = [
+            ('Hàng đi đường đơn vị', 've_du_kien_don_vi_t'),
+            ('Hàng đi đường BCU', 've_du_kien_t'),
+            ('Cần dùng', 'vt_can_dung_t'),
+            ('Tồn cuối', 'ton_cuoi_t'),
+        ]
+        fixed_end = [
+            ('Dự phòng', 'so_luong_du_phong', 'qty'),
+            ('Thiếu', 'so_luong_thieu', 'qty'),
+            ('Cần mua', 'so_luong_can_mua', 'qty'),
+            ('Ghi chú', 'ghi_chu', 'text'),
+        ]
+
+        col_specs = []
+        col = 1
+
+        for label, field, kind in fixed_start:
+            ws.merge_cells(
+                start_row=header_row1, start_column=col,
+                end_row=header_row2, end_column=col,
+            )
+            ws.cell(row=header_row1, column=col, value=label)
+            col_specs.append((field, kind))
+            col += 1
+
+        for group_label, field_prefix in month_groups:
+            group_start = col
+            ws.merge_cells(
+                start_row=header_row1, start_column=group_start,
+                end_row=header_row1, end_column=group_start + 3,
+            )
+            ws.cell(row=header_row1, column=group_start, value=group_label)
+            for month_offset, month in enumerate(months):
+                ws.cell(
+                    row=header_row2, column=col,
+                    value='Tháng %s' % month if month else 'T%s' % month_offset,
+                )
+                col_specs.append((f'{field_prefix}{month_offset}', 'qty'))
+                col += 1
+
+        for label, field, kind in fixed_end:
+            ws.merge_cells(
+                start_row=header_row1, start_column=col,
+                end_row=header_row2, end_column=col,
+            )
+            ws.cell(row=header_row1, column=col, value=label)
+            col_specs.append((field, kind))
+            col += 1
+
+        max_col = col - 1
+        row_idx = data_row
+        for line in lines:
+            for col_idx, (field, kind) in enumerate(col_specs, start=1):
+                ws.cell(
+                    row=row_idx, column=col_idx,
+                    value=self._b5_export_value(line, field, kind),
+                )
+            row_idx += 1
+
+        self._apply_b5_export_style(ws, header_row1, header_row2, max_col, col_specs, meta_rows=3)
+
+        ws.column_dimensions['A'].width = 14
+        ws.column_dimensions['B'].width = 28
+        ws.column_dimensions['C'].width = 14
+        ws.column_dimensions['D'].width = 8
+        ws.column_dimensions['E'].width = 12
+        for col_idx in range(6, max_col + 1):
+            ws.column_dimensions[get_column_letter(col_idx)].width = 12
+
+        code = (self.code or '').strip()
+        if code.upper().startswith('KHVT_'):
+            file_suffix = code[5:]
+        else:
+            file_suffix = code or str(self.id)
+        return self._xlsx_download_action(
+            wb,
+            'Data_TongHopVT_%s.xlsx' % file_suffix,
+        )
+
     @staticmethod
     def _b5_export_value(line, field, kind):
         if field == 'don_vi_tinh':
@@ -1245,7 +1436,8 @@ class KeHoachVatTu(models.Model):
             return 0.0 if kind != 'text' else ''
         return value
 
-    def _apply_b5_export_style(self, ws, header_row1, header_row2, max_col, col_specs):
+    def _apply_b5_export_style(self, ws, header_row1, header_row2, max_col, col_specs, meta_rows=2,
+                               header_row1_height=22, header_row2_height=22):
         header_font = Font(name='Times New Roman', size=10, bold=True, color='FFFFFF')
         header_fill = PatternFill(fill_type='solid', fgColor='3F6F8F')
         header_side = Side(style='thin', color='2F556D')
@@ -1261,17 +1453,18 @@ class KeHoachVatTu(models.Model):
         qty2_fmt = '#,##0.00'
         money_fmt = '#,##0'
 
-        for row_idx in (1, 2):
+        for row_idx in range(1, meta_rows + 1):
             ws.cell(row=row_idx, column=1).font = label_font
 
         for row_idx in (header_row1, header_row2):
+            height = header_row1_height if row_idx == header_row1 else header_row2_height
             for col_idx in range(1, max_col + 1):
                 cell = ws.cell(row=row_idx, column=col_idx)
                 cell.font = header_font
                 cell.fill = header_fill
                 cell.border = header_border
                 cell.alignment = center
-            ws.row_dimensions[row_idx].height = 22
+            ws.row_dimensions[row_idx].height = height
 
         kind_fmt = {'qty': qty_fmt, 'qty2': qty2_fmt, 'money': money_fmt}
         for row_idx in range(header_row2 + 1, ws.max_row + 1):
@@ -1290,6 +1483,7 @@ class KeHoachVatTu(models.Model):
 
     _IMPORT_BCU_ACTION_XMLID = 'sonha_vat_tu.action_import_tong_hop_bcu_server'
     _EXPORT_B5_ACTION_XMLID = 'sonha_vat_tu.action_export_kh_dat_vat_tu_server'
+    _EXPORT_B4_ACTION_XMLID = 'sonha_vat_tu.action_export_tong_hop_vat_tu_server'
     _EXPORT_B3_ACTION_XMLID = 'sonha_vat_tu.action_export_vat_tu_can_server'
     _B3_FORM_VIEW_XMLID = 'sonha_vat_tu.view_ke_hoach_vat_tu_form_b3'
     _B4_FORM_VIEW_XMLID = 'sonha_vat_tu.view_ke_hoach_vat_tu_form_b4'
@@ -1323,6 +1517,7 @@ class KeHoachVatTu(models.Model):
 
         if b4_view and form_view_id != b4_view.id:
             self._toolbar_remove_action(toolbar, self._IMPORT_BCU_ACTION_XMLID)
+            self._toolbar_remove_action(toolbar, self._EXPORT_B4_ACTION_XMLID)
         if b3_view and form_view_id != b3_view.id:
             self._toolbar_remove_action(toolbar, self._EXPORT_B3_ACTION_XMLID)
         if b5_view and form_view_id != b5_view.id:

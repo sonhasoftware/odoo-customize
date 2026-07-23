@@ -20,6 +20,7 @@
         'wizard/import_vat_tu_di_duong_wizard_views.xml',
         'wizard/import_tong_hop_bcu_wizard_views.xml',
         'wizard/bao_cao_nhu_cau_vat_tu_wizard_views.xml',
+        'wizard/bao_cao_vat_tu_wizard_views.xml',
         'views/danh_muc_views.xml',
         'views/bom_views.xml',
         'views/ke_hoach_san_xuat_views.xml',
