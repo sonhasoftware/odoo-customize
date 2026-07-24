@@ -31,6 +31,7 @@ BEGIN
 
     -- Xóa dữ liệu cũ
     TRUNCATE TABLE bom_tinh_toan;
+    DELETE FROM md_sap_bom WHERE sl_dm LIKE '%-%';
 
     -- Insert dữ liệu mới từ CTE
     INSERT INTO bom_tinh_toan (
