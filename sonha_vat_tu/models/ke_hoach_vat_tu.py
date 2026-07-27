@@ -170,11 +170,6 @@ class KeHoachVatTu(models.Model):
 
     _sql_constraints = [
         ('code_uniq', 'unique(code)', 'Mã kỳ phải duy nhất!'),
-        (
-            'period_company_month_uniq',
-            'unique(company_id, period_month)',
-            'Tháng bắt đầu không được trùng trong cùng đơn vị lập kế hoạch!',
-        ),
     ]
 
     @api.model
