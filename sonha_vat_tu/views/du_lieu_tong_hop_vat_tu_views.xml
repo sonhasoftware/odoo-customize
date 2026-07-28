@@ -47,6 +47,8 @@
                 <field name="ma_effect"/>
                 <field name="don_vi_tinh"/>
                 <field name="sl_dinh_muc"/>
+                <field name="sl_dinh_muc_thay_doi"/>
+                <field name="sl_dinh_muc_ap_dung" optional="hide"/>
                 <!-- -->
                 <field name="ma_dat_hang"/>
                 <field name="chung_loai"/>
@@ -136,6 +138,8 @@
                             <field name="ma_effect"/>
                             <field name="don_vi_tinh"/>
                             <field name="sl_dinh_muc"/>
+                <field name="sl_dinh_muc_thay_doi"/>
+                <field name="sl_dinh_muc_ap_dung" optional="hide"/>
                         </group>
                         <group>
                             <field name="ma_dat_hang"/>

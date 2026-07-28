@@ -47,6 +47,18 @@ LANGUAGE 'plpgsql' AS $BODY$
 BEGIN
     ALTER TABLE dinh_muc DISABLE TRIGGER trg_dlthvt_b2;
     BEGIN
+        DROP TABLE IF EXISTS _tmp_dm_override;
+        CREATE TEMP TABLE _tmp_dm_override ON COMMIT DROP AS
+        SELECT
+            company_id,
+            TRIM(ma_sap) AS ma_sap,
+            TRIM(ma_nvl) AS ma_nvl,
+            sl_dinh_muc_thay_doi,
+            co_sl_dinh_muc_override
+        FROM dinh_muc
+        WHERE period_id = p_period_id
+          AND co_sl_dinh_muc_override IS TRUE;
+
         DELETE FROM dinh_muc WHERE period_id = p_period_id;
 
         -- Chỉ lấy BOM NVL của mã TP trong kỳ (tránh join full bom_tinh_toan).
@@ -98,7 +110,8 @@ BEGIN
         CREATE INDEX ON _tmp_mdm_bom_sale (ma_nvl);
 
         INSERT INTO dinh_muc (
-        period_id, company_id, ma_sap, ten_sap, ma_tp, ten_tp, ma_nvl, ten_nvl, sl_dinh_muc, bom_sale_id,
+        period_id, company_id, ma_sap, ten_sap, ma_tp, ten_tp, ma_nvl, ten_nvl, sl_dinh_muc,
+        sl_dinh_muc_thay_doi, co_sl_dinh_muc_override, bom_sale_id,
         qty_kinh_doanh_t0, qty_kinh_doanh_t1, qty_kinh_doanh_t2, qty_kinh_doanh_t3,
         qty_san_xuat_t0, qty_san_xuat_t1, qty_san_xuat_t2, qty_san_xuat_t3,
         qty_chenh_lech_t0, qty_chenh_lech_t1, qty_chenh_lech_t2, qty_chenh_lech_t3,
@@ -115,17 +128,41 @@ BEGIN
         bcu.ma_con,
         bcu.ten_con,
         COALESCE(bcu.sl_thuc_te, 0),
+        CASE WHEN o.co_sl_dinh_muc_override THEN o.sl_dinh_muc_thay_doi ELSE NULL END,
+        COALESCE(o.co_sl_dinh_muc_override, FALSE),
         mdm_bs.bom_sale_id,
-        COALESCE(b1.qty_kd_t0, 0) * bcu.sl_thuc_te, COALESCE(b1.qty_kd_t1, 0) * bcu.sl_thuc_te, COALESCE(b1.qty_kd_t2, 0) * bcu.sl_thuc_te, COALESCE(b1.qty_kd_t3, 0) * bcu.sl_thuc_te,
-        COALESCE(b1.qty_sx_t0, 0) * bcu.sl_thuc_te, COALESCE(b1.qty_sx_t1, 0) * bcu.sl_thuc_te, COALESCE(b1.qty_sx_t2, 0) * bcu.sl_thuc_te, COALESCE(b1.qty_sx_t3, 0) * bcu.sl_thuc_te,
-        COALESCE(b1.qty_cl_t0, 0) * bcu.sl_thuc_te, COALESCE(b1.qty_cl_t1, 0) * bcu.sl_thuc_te, COALESCE(b1.qty_cl_t2, 0) * bcu.sl_thuc_te, COALESCE(b1.qty_cl_t3, 0) * bcu.sl_thuc_te,
-        COALESCE(b1.qty_t0, 0) * bcu.sl_thuc_te, COALESCE(b1.qty_t1, 0) * bcu.sl_thuc_te, COALESCE(b1.qty_t2, 0) * bcu.sl_thuc_te, COALESCE(b1.qty_t3, 0) * bcu.sl_thuc_te,
+        COALESCE(b1.qty_kd_t0, 0) * eff.sl_ap_dung,
+        COALESCE(b1.qty_kd_t1, 0) * eff.sl_ap_dung,
+        COALESCE(b1.qty_kd_t2, 0) * eff.sl_ap_dung,
+        COALESCE(b1.qty_kd_t3, 0) * eff.sl_ap_dung,
+        COALESCE(b1.qty_sx_t0, 0) * eff.sl_ap_dung,
+        COALESCE(b1.qty_sx_t1, 0) * eff.sl_ap_dung,
+        COALESCE(b1.qty_sx_t2, 0) * eff.sl_ap_dung,
+        COALESCE(b1.qty_sx_t3, 0) * eff.sl_ap_dung,
+        COALESCE(b1.qty_cl_t0, 0) * eff.sl_ap_dung,
+        COALESCE(b1.qty_cl_t1, 0) * eff.sl_ap_dung,
+        COALESCE(b1.qty_cl_t2, 0) * eff.sl_ap_dung,
+        COALESCE(b1.qty_cl_t3, 0) * eff.sl_ap_dung,
+        COALESCE(b1.qty_t0, 0) * eff.sl_ap_dung,
+        COALESCE(b1.qty_t1, 0) * eff.sl_ap_dung,
+        COALESCE(b1.qty_t2, 0) * eff.sl_ap_dung,
+        COALESCE(b1.qty_t3, 0) * eff.sl_ap_dung,
         1, 1, NOW(), NOW()
     FROM ke_hoach_vat_tu_line b1
     JOIN _tmp_bom_nvl_period bcu
         ON bcu.ma_tp_goc = TRIM(b1.ma_sap)
     LEFT JOIN _tmp_mdm_bom_sale mdm_bs
         ON mdm_bs.ma_nvl = bcu.ma_con
+    LEFT JOIN _tmp_dm_override o
+        ON  o.company_id = b1.company_id
+        AND o.ma_sap = TRIM(b1.ma_sap)
+        AND o.ma_nvl = bcu.ma_con
+    CROSS JOIN LATERAL (
+        SELECT CASE
+            WHEN o.co_sl_dinh_muc_override THEN COALESCE(o.sl_dinh_muc_thay_doi, 0)
+            ELSE COALESCE(bcu.sl_thuc_te, 0)
+        END AS sl_ap_dung
+    ) eff
     WHERE b1.period_id = p_period_id;
 
     EXCEPTION
@@ -210,20 +247,31 @@ BEGIN
         NULLIF(TRIM(bcu.ten_tp_cha), '') AS ten_tp_cha,
         TRIM(bcu.ma_con) AS ma_nvl,
         NULLIF(TRIM(bcu.ten_con), '') AS ten_nvl,
-        COALESCE(bcu.sl_thuc_te, 0) AS sl_thuc_te,
+        eff.sl_ap_dung AS sl_thuc_te,
         bcu.cap_bom,
         COALESCE(khvt.qty_t0, 0) AS qty_kh_t0,
         COALESCE(khvt.qty_t1, 0) AS qty_kh_t1,
         COALESCE(khvt.qty_t2, 0) AS qty_kh_t2,
         COALESCE(khvt.qty_t3, 0) AS qty_kh_t3,
-        COALESCE(khvt.qty_t0, 0) * COALESCE(bcu.sl_thuc_te, 0) AS qty_nvl_t0,
-        COALESCE(khvt.qty_t1, 0) * COALESCE(bcu.sl_thuc_te, 0) AS qty_nvl_t1,
-        COALESCE(khvt.qty_t2, 0) * COALESCE(bcu.sl_thuc_te, 0) AS qty_nvl_t2,
-        COALESCE(khvt.qty_t3, 0) * COALESCE(bcu.sl_thuc_te, 0) AS qty_nvl_t3
+        COALESCE(khvt.qty_t0, 0) * eff.sl_ap_dung AS qty_nvl_t0,
+        COALESCE(khvt.qty_t1, 0) * eff.sl_ap_dung AS qty_nvl_t1,
+        COALESCE(khvt.qty_t2, 0) * eff.sl_ap_dung AS qty_nvl_t2,
+        COALESCE(khvt.qty_t3, 0) * eff.sl_ap_dung AS qty_nvl_t3
     FROM ke_hoach_vat_tu_line khvt
     JOIN _tmp_bom_nvl_period bcu
         ON bcu.ma_tp_goc = TRIM(khvt.ma_sap)
     JOIN res_company dv ON dv.id = khvt.company_id
+    LEFT JOIN dinh_muc dm
+        ON  dm.period_id = khvt.period_id
+        AND dm.company_id = khvt.company_id
+        AND TRIM(dm.ma_sap) = TRIM(khvt.ma_sap)
+        AND TRIM(dm.ma_nvl) = TRIM(bcu.ma_con)
+    CROSS JOIN LATERAL (
+        SELECT CASE
+            WHEN dm.co_sl_dinh_muc_override THEN COALESCE(dm.sl_dinh_muc_thay_doi, 0)
+            ELSE COALESCE(dm.sl_dinh_muc, bcu.sl_thuc_te, 0)
+        END AS sl_ap_dung
+    ) eff
     WHERE khvt.period_id = p_period_id
       AND khvt.company_id IS NOT NULL;
 
@@ -730,19 +778,31 @@ BEGIN
     calc AS (
         SELECT
             b.*,
-            CASE WHEN cd_t0 > 0 THEN (cd_t0 / 28.0) * p_ngay_dt ELSE 0.0 END AS sl_du_tru,
-            0.0 AS sl_moq,
+            CASE WHEN cd_t0 > 0 THEN (cd_t0 / 28.0) * p_ngay_dt ELSE 0.0 END AS sl_du_tru
+        FROM b4_data b
+    ),
+    calc_moq AS (
+        SELECT
+            c.*,
+            (ton_dau - tcd + tdd - sl_du_tru) AS sl_de_xuat,
+            CASE WHEN (ton_dau - tcd + tdd - sl_du_tru) > 0 THEN 0.0
+                 ELSE -(ton_dau - tcd + tdd - sl_du_tru)
+            END AS sl_chot
+        FROM calc c
+    ),
+    calc_final AS (
+        SELECT
+            m.*,
+            sl_chot AS sl_moq,
             0.0 AS don_gia_mua_val,
             0.0 AS gia_tri_mua,
-            -- ton_cuoi = ton_dau - tcd + tdd + moq
-            (ton_dau - tcd + tdd + 0.0) AS sl_ton_kho,
-            -- don_gia_cuoi = (gia_tri_ton_dau + gia_tri_mua) / (ton_dau + tdd + moq)
+            (ton_dau - tcd + tdd + sl_chot) AS sl_ton_kho,
             CASE
-                WHEN (ton_dau + tdd + 0.0) > 0
-                THEN (gia_tri_ton_dau + 0.0) / (ton_dau + tdd + 0.0)
+                WHEN (ton_dau + tdd + sl_chot) > 0
+                THEN (gia_tri_ton_dau + 0.0) / (ton_dau + tdd + sl_chot)
                 ELSE 0.0
             END AS don_gia_cuoi
-        FROM b4_data b
+        FROM calc_moq m
     )
     SELECT
         period_id, company_id, ma_sap, ten_nvl, chung_loai, don_vi_tinh,
@@ -752,10 +812,8 @@ BEGIN
         dd_t0, dd_t1, dd_t2, dd_t3,
         tdd,
         sl_du_tru,
-        (ton_dau - tcd + tdd - sl_du_tru) AS sl_de_xuat,
-        CASE WHEN (ton_dau - tcd + tdd - sl_du_tru) > 0 THEN 0.0
-             ELSE -(ton_dau - tcd + tdd - sl_du_tru)
-        END AS sl_chot,
+        sl_de_xuat,
+        sl_chot,
         sl_moq,
         don_gia_mua_val,
         gia_tri_mua,
@@ -781,7 +839,7 @@ BEGIN
         don_gia_cuoi,
         don_gia_cuoi * sl_ton_kho AS gia_tri_cuoi,
         1, 1, NOW(), NOW()
-        FROM calc;
+        FROM calc_final;
 
         PERFORM dlthvt_bulk_sync_b5_period(p_period_id);
     EXCEPTION

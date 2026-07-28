@@ -100,7 +100,7 @@
                                 <group>
                                     <field name="sl_du_tru_toi_thieu" readonly="1"/>
                                     <field name="sl_dat_mua_de_xuat" readonly="1"/>
-                                    <field name="sl_dat_mua_chot" readonly="1"/>
+                                    <field name="sl_dat_mua_chot"/>
                                     <field name="sl_can_mua_theo_moq"/>
                                     <field name="don_gia_mua" widget="monetary"/>
                                     <field name="gia_tri_mua_hang" widget="monetary" readonly="1"/>

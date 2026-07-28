@@ -2,7 +2,7 @@
 from odoo import api, fields, models
 
 
-VAT_TU_CHATTER_SCOPES = ('kd', 'sx', 'vt')
+VAT_TU_CHATTER_SCOPES = ('kd', 'sx', 'vt', 'dm')
 
 
 class MailMessage(models.Model):
@@ -13,6 +13,7 @@ class MailMessage(models.Model):
             ('kd', 'Kế hoạch kinh doanh'),
             ('sx', 'Kế hoạch sản xuất'),
             ('vt', 'Kế hoạch vật tư'),
+            ('dm', 'Định mức kỳ'),
         ],
         string='Phạm vi chatter vật tư',
         index=True,

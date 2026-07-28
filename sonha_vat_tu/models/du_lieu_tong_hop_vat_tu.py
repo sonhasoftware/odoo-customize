@@ -89,7 +89,14 @@ class DuLieuTongHopVatTu(models.Model):
         string='Trọng lượng kg/1 tấm', digits=(16, 8), readonly=True)
     sl_dinh_muc = fields.Float(
         string='SL định mức / 1 SP', digits=(16, 3), readonly=True,
-        help='B2: định mức theo nhánh BOM.',
+        help='B2: định mức gốc theo nhánh BOM.',
+    )
+    sl_dinh_muc_thay_doi = fields.Float(
+        string='Định mức thay đổi', digits=(16, 3), readonly=True,
+    )
+    sl_dinh_muc_ap_dung = fields.Float(
+        string='Định mức áp dụng', digits=(16, 3), readonly=True,
+        help='B2: định mức thay đổi nếu có, ngược lại lấy định mức gốc.',
     )
 
     # --- --

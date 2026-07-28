@@ -7,6 +7,7 @@ from datetime import date, datetime
 
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+from openpyxl.styles.numbers import FORMAT_TEXT
 from openpyxl.worksheet.datavalidation import DataValidation
 
 from odoo import _, fields, models
@@ -24,6 +25,12 @@ class ImportVatTuDiDuongWizard(models.TransientModel):
 
     file_data = fields.Binary(string='File Excel')
     file_name = fields.Char(string='Tên file')
+    period_id = fields.Many2one(
+        'ke.hoach.vat.tu',
+        string='Kỳ kế hoạch',
+        readonly=True,
+        default=lambda self: self.env.context.get('default_period_id') or self.env.context.get('active_id'),
+    )
 
     MONTH_RE = re.compile(r'(\d{1,2})\s*[/\-]\s*(\d{4})')
 
@@ -176,7 +183,13 @@ class ImportVatTuDiDuongWizard(models.TransientModel):
         self._apply_company_code_validation(wb, ws, self._get_company_codes())
         for col_idx, width in enumerate([14, 26, 36, 14, 16], start=1):
             ws.column_dimensions[ws.cell(row=1, column=col_idx).column_letter].width = width
+        self._excel_text_column(ws, self.COL_MONTH + 1)
         return self._xlsx_download_action(wb, 'Template_vat_tu_di_duong.xlsx')
+
+    @staticmethod
+    def _excel_text_column(ws, col, start_row=2, end_row=5000):
+        for row_idx in range(start_row, end_row + 1):
+            ws.cell(row=row_idx, column=col).number_format = FORMAT_TEXT
 
     def action_import(self):
         self.ensure_one()
@@ -279,6 +292,30 @@ class ImportVatTuDiDuongWizard(models.TransientModel):
             message = _('Import thành công: %s.') % ', '.join(parts)
         else:
             message = _('Không có dữ liệu hợp lệ để import.')
+
+        if self.period_id and (created or updated):
+            self.period_id.write({'vat_tu_di_duong_imported': True})
+
+        if self.period_id:
+            b3_form = self.env.ref('sonha_vat_tu.view_ke_hoach_vat_tu_form_b3').id
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Import vật tư đi đường'),
+                    'message': message,
+                    'type': 'success' if created or updated else 'warning',
+                    'sticky': False,
+                    'next': {
+                        'type': 'ir.actions.act_window',
+                        'res_model': 'ke.hoach.vat.tu',
+                        'res_id': self.period_id.id,
+                        'view_mode': 'form',
+                        'views': [(b3_form, 'form')],
+                        'target': 'current',
+                    },
+                },
+            }
 
         return {
             'type': 'ir.actions.client',

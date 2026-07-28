@@ -11,10 +11,11 @@ class KeHoachKinhDoanh(models.Model):
     _name = 'ke.hoach.kinh.doanh'
     _description = 'Ke hoach kinh doanh'
     _inherit = ['mail.thread', 'mail.activity.mixin']
-    _order = 'period_id, company_id, ma_sap, id'
+    _order = 'period_id, sequence, id'
 
     period_id = fields.Many2one(
         'ke.hoach.vat.tu', string='Kỳ', ondelete='cascade', index=True)
+    sequence = fields.Integer(string='STT', default=10, index=True)
     company_id = fields.Many2one(
         'res.company', string='Đơn vị', index=True, required=True)
     nganh_hang = fields.Many2one(
@@ -55,15 +56,49 @@ class KeHoachKinhDoanh(models.Model):
             rec.nganh_hang = meta.get('nganh_hang_id') or False
 
     @api.model
+    def _assign_create_sequences(self, vals_list):
+        next_by_period = {}
+        for vals in vals_list:
+            if vals.get('sequence') or not vals.get('period_id'):
+                continue
+            pid = vals['period_id']
+            if pid not in next_by_period:
+                last = self.search([('period_id', '=', pid)], order='sequence desc', limit=1)
+                next_by_period[pid] = last.sequence if last else 0
+            next_by_period[pid] += 10
+            vals['sequence'] = next_by_period[pid]
+
+    def init(self):
+        super().init()
+        self._cr.execute("""
+            UPDATE ke_hoach_kinh_doanh k
+            SET sequence = sub.rn
+            FROM (
+                SELECT id, ROW_NUMBER() OVER (
+                    PARTITION BY period_id ORDER BY id
+                ) * 10 AS rn
+                FROM ke_hoach_kinh_doanh
+            ) sub
+            WHERE k.id = sub.id
+              AND k.period_id IN (
+                  SELECT period_id
+                  FROM ke_hoach_kinh_doanh
+                  GROUP BY period_id
+                  HAVING COUNT(DISTINCT sequence) = 1 AND MAX(sequence) = 10
+              )
+        """)
+
+    @api.model
     def _sql_bulk_import_update(self, updates):
         """Ghi hàng loạt khi import — 1 query thay vì N lần ORM write."""
         if not updates:
             return
-        ids, ma_hangs = [], []
+        ids, ma_hangs, sequences = [], [], []
         qty_t0s, qty_t1s, qty_t2s, qty_t3s = [], [], [], []
         for row_id, vals in updates:
             ids.append(row_id)
             ma_hangs.append(vals.get('ma_hang') or '')
+            sequences.append(vals.get('sequence') or 10)
             qty_t0s.append(vals.get('qty_t0') or 0.0)
             qty_t1s.append(vals.get('qty_t1') or 0.0)
             qty_t2s.append(vals.get('qty_t2') or 0.0)
@@ -71,6 +106,7 @@ class KeHoachKinhDoanh(models.Model):
         self.env.cr.execute("""
             UPDATE ke_hoach_kinh_doanh AS k SET
                 ma_hang = data.ma_hang,
+                sequence = data.sequence,
                 qty_t0 = data.qty_t0,
                 qty_t1 = data.qty_t1,
                 qty_t2 = data.qty_t2,
@@ -80,15 +116,16 @@ class KeHoachKinhDoanh(models.Model):
             FROM (
                 SELECT unnest(%s::int[]) AS id,
                        unnest(%s::varchar[]) AS ma_hang,
+                       unnest(%s::int[]) AS sequence,
                        unnest(%s::numeric[]) AS qty_t0,
                        unnest(%s::numeric[]) AS qty_t1,
                        unnest(%s::numeric[]) AS qty_t2,
                        unnest(%s::numeric[]) AS qty_t3
             ) AS data
             WHERE k.id = data.id
-        """, [self.env.uid, ids, ma_hangs, qty_t0s, qty_t1s, qty_t2s, qty_t3s])
+        """, [self.env.uid, ids, ma_hangs, sequences, qty_t0s, qty_t1s, qty_t2s, qty_t3s])
         self.browse(ids).invalidate_recordset(
-            ['ma_hang', 'qty_t0', 'qty_t1', 'qty_t2', 'qty_t3', 'write_uid', 'write_date'],
+            ['ma_hang', 'sequence', 'qty_t0', 'qty_t1', 'qty_t2', 'qty_t3', 'write_uid', 'write_date'],
         )
 
     @api.constrains('ma_sap', 'period_id')
@@ -118,6 +155,7 @@ class KeHoachKinhDoanh(models.Model):
                 if period.state != 'ke_hoach':
                     raise UserError(_('Kế hoạch kinh doanh đã khóa vì kỳ kế hoạch đã sang bước sau.'))
 
+        self._assign_create_sequences(vals_list)
         records = super().create(vals_list)
         if not self.env.context.get('is_importing'):
             self._log_action_table(records, action='create')
@@ -167,7 +205,7 @@ class KeHoachKinhDoanh(models.Model):
 
     def _tracking_values(self):
         return {
-            'don_vi': self.company_id.company_code or self.company_id.name or '',
+            'don_vi': self.company_id.sudo().company_code or self.company_id.sudo().name or '',
             'nganh': self.nganh_hang.ten if self.nganh_hang else '',
             'ten_hang': self.ten_hang or '',
             'ma_hang': self.ma_hang or '',

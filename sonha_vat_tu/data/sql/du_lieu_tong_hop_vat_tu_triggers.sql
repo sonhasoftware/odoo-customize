@@ -222,7 +222,7 @@ BEGIN
             step_code, source_model, source_res_id, period_id, company_id, month_key,
             month_date, ma_sap, ma_vat_tu, nganh_hang, ten_hang, ma_hang,
             qty, note, ma_tp, ten_tp, ten_sap, ma_nvl, bom_sale_id,
-            ten_nvl, ten_vat_tu, sl_dinh_muc,
+            ten_nvl, ten_vat_tu, sl_dinh_muc, sl_dinh_muc_thay_doi, sl_dinh_muc_ap_dung,
             qty_kinh_doanh, qty_san_xuat, qty_chenh_lech, ma_effect,
             create_uid, create_date, write_uid, write_date
         ) VALUES (
@@ -232,6 +232,8 @@ BEGIN
             v_qty, NULL, NEW.ma_tp, NEW.ten_tp,
             NEW.ten_sap, NEW.ma_nvl, NEW.bom_sale_id, NEW.ten_nvl, NEW.ten_nvl,
             NEW.sl_dinh_muc,
+            CASE WHEN NEW.co_sl_dinh_muc_override THEN NEW.sl_dinh_muc_thay_doi ELSE NULL END,
+            CASE WHEN NEW.co_sl_dinh_muc_override THEN NEW.sl_dinh_muc_thay_doi ELSE NEW.sl_dinh_muc END,
             v_qty_kinh_doanh, v_qty_san_xuat, v_qty_chenh_lech, NULL,
             NEW.create_uid, NEW.create_date, NEW.write_uid, NEW.write_date
         )
@@ -251,6 +253,8 @@ BEGIN
             ten_nvl = EXCLUDED.ten_nvl,
             ten_vat_tu = EXCLUDED.ten_vat_tu,
             sl_dinh_muc = EXCLUDED.sl_dinh_muc,
+            sl_dinh_muc_thay_doi = EXCLUDED.sl_dinh_muc_thay_doi,
+            sl_dinh_muc_ap_dung = EXCLUDED.sl_dinh_muc_ap_dung,
             qty_kinh_doanh = EXCLUDED.qty_kinh_doanh,
             qty_san_xuat = EXCLUDED.qty_san_xuat,
             qty_chenh_lech = EXCLUDED.qty_chenh_lech,

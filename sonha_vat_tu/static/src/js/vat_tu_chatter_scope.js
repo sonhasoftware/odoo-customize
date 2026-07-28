@@ -8,7 +8,7 @@ import { patch } from "@web/core/utils/patch";
 import { setAttributes } from "@web/core/utils/xml";
 
 const VAT_TU_MODEL = "ke.hoach.vat.tu";
-const SCOPES = new Set(["kd", "sx", "vt"]);
+const SCOPES = new Set(["kd", "sx", "vt", "dm"]);
 
 function isVatTuScopedThread(thread) {
     return thread?.model === VAT_TU_MODEL && SCOPES.has(thread.vatTuScope);

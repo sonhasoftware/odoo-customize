@@ -13,6 +13,8 @@
                 <field name="bom_sale_id" string="Loại Bom Sale"/>
                 <field name="ten_nvl"/>
                 <field name="sl_dinh_muc" string="Định mức"/>
+                <field name="sl_dinh_muc_thay_doi" string="Định mức thay đổi"/>
+                <field name="sl_dinh_muc_ap_dung" string="Định mức áp dụng" optional="hide"/>
                 <field name="qty_t0" sum="T0"/>
                 <field name="qty_t1" sum="T1"/>
                 <field name="qty_t2" sum="T2"/>
