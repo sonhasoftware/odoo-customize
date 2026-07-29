@@ -31,11 +31,18 @@ class VatTuDiDuong(models.Model):
         ),
     ]
 
+    @api.model
+    def _ten_nvl_map(self, codes):
+        codes = [code for code in set(codes) if code]
+        if not codes:
+            return {}
+        return {
+            rec.ma_sap: rec.ten_hang
+            for rec in self.env['ma.hang'].search([('ma_sap', 'in', codes)])
+        }
+
     def _get_ten_nvl(self, ma_nvl):
-        if not ma_nvl:
-            return False
-        master = self.env['ma.hang'].search([('ma_sap', '=', ma_nvl)], limit=1)
-        return master.ten_hang or False
+        return self._ten_nvl_map([ma_nvl]).get(ma_nvl) or False
 
     @api.onchange('ma_nvl')
     def _onchange_ma_nvl(self):
@@ -52,11 +59,15 @@ class VatTuDiDuong(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         Period = self.env['ke.hoach.vat.tu']
+        name_by_code = self._ten_nvl_map([
+            vals['ma_nvl'] for vals in vals_list
+            if vals.get('ma_nvl') and not vals.get('ten_nvl')
+        ])
         for vals in vals_list:
             if vals.get('month_key') and not vals.get('month_date'):
                 vals['month_date'] = Period._month_key_to_date(vals['month_key'])
             if vals.get('ma_nvl') and not vals.get('ten_nvl'):
-                vals['ten_nvl'] = self._get_ten_nvl(vals['ma_nvl'])
+                vals['ten_nvl'] = name_by_code.get(vals['ma_nvl']) or False
         return super().create(vals_list)
 
     def write(self, vals):

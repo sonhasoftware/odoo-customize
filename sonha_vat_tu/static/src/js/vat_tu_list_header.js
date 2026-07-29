@@ -188,6 +188,8 @@ function getMonthlyMergeInfo(fieldName, prefixMap) {
 }
 
 class VatTuMergedHeaderRenderer extends ListRenderer {
+    static template = "sonha_vat_tu.VatTuMergedHeaderRenderer";
+
     onClickSortColumn(column) {
         if (!column?.name) {
             return;
@@ -365,8 +367,6 @@ function labelThang(periodMonth, info) {
 }
 
 class VatTuMergedB4HeaderRenderer extends VatTuMergedHeaderRenderer {
-    static template = "sonha_vat_tu.VatTuMergedB4HeaderRenderer";
-
     getColumnGroups() {
         return this._buildColumnGroups((n) => getMonthlyMergeInfo(n, B4_PREFIX), "b4");
     }
@@ -377,8 +377,6 @@ class VatTuMergedB4HeaderRenderer extends VatTuMergedHeaderRenderer {
 }
 
 class VatTuMergedB5HeaderRenderer extends VatTuMergedHeaderRenderer {
-    static template = "sonha_vat_tu.VatTuMergedB5HeaderRenderer";
-
     getColumnGroups() {
         return this._buildColumnGroups((n) => getMonthlyMergeInfo(n, B5_PREFIX), "b5");
     }
@@ -559,7 +557,7 @@ class VatTuB3PivotRenderer extends VatTuMergedHeaderRenderer {
                 out.push({
                     id: `t${t}_c${cid}`,
                     label: code,
-                    monthOffset: t,
+                    monthRef: t,
                     companyId: cid,
                     isTotal: false,
                 });
@@ -567,7 +565,7 @@ class VatTuB3PivotRenderer extends VatTuMergedHeaderRenderer {
             out.push({
                 id: `t${t}_total`,
                 label: "Tổng",
-                monthOffset: t,
+                monthRef: t,
                 companyId: null,
                 isTotal: true,
             });
@@ -640,8 +638,6 @@ function filterNhuCauColumns(columns, list) {
 }
 
 class VatTuNhuCauHeaderRenderer extends VatTuMergedHeaderRenderer {
-    static template = "sonha_vat_tu.VatTuMergedB4HeaderRenderer";
-
     get displayOptionalFields() {
         return false;
     }
@@ -724,24 +720,8 @@ function getBaoCaoMonthKeys(list) {
 }
 
 class VatTuBaoCaoB3PivotRenderer extends VatTuB3PivotRenderer {
-    static template = "sonha_vat_tu.VatTuBaoCaoB3PivotRenderer";
-
     getCalendarMonths() {
         return getBaoCaoMonthKeys(this.props.list);
-    }
-
-    get kdCompanies() {
-        const map = new Map();
-        for (const rec of this.props.list.records) {
-            const d = rec.data;
-            const cid = d.don_vi_kd_id && d.don_vi_kd_id[0];
-            if (!cid) {
-                continue;
-            }
-            const code = resolveKdCompanyCode(d, cid);
-            map.set(cid, code);
-        }
-        return [...map.entries()].sort((a, b) => String(a[1]).localeCompare(String(b[1])));
     }
 
     getPivotRows() {
@@ -819,7 +799,7 @@ class VatTuBaoCaoB3PivotRenderer extends VatTuB3PivotRenderer {
                 out.push({
                     id: `${monthKey}_c${cid}`,
                     label: code,
-                    monthKey,
+                    monthRef: monthKey,
                     companyId: cid,
                     isTotal: false,
                 });
@@ -827,7 +807,7 @@ class VatTuBaoCaoB3PivotRenderer extends VatTuB3PivotRenderer {
             out.push({
                 id: `${monthKey}_total`,
                 label: "Tổng",
-                monthKey,
+                monthRef: monthKey,
                 companyId: null,
                 isTotal: true,
             });

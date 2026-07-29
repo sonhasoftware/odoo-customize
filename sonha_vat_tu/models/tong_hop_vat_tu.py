@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-from odoo import api, fields, models
+from odoo import fields, models
+
 
 class TongHopVatTu(models.Model):
     _name = 'tong.hop.vat.tu'
@@ -23,6 +24,11 @@ class TongHopVatTu(models.Model):
 
     # Tồn đầu: chỉ có 1 giá trị duy nhất (đầu kỳ)
     ton_dau = fields.Float(string='Tồn đầu', digits=(16, 3))
+    don_gia_ton_kho = fields.Float(
+        string='Đơn giá tồn kho',
+        digits=(16, 2),
+        help='Đơn giá SAP đầu tháng T-1 (tien_ton_dau/ton_dau). B5 đọc từ đây, không query lại SAP.',
+    )
 
     # Hàng đi đường: từ import vật tư đi đường (menu chính)
     ve_du_kien_don_vi_t0 = fields.Float(string='Hàng đi đường ĐV T0', digits=(16, 3), readonly=True)

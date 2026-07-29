@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+from . import vat_tu_excel_mixin
 from . import ke_hoach_vat_tu
 from . import res_company
 from . import mail_message
 from . import ma_hang_phan_tram
 from . import ma_hang
 from . import bom
+from . import ke_hoach_line_mixin
 from . import ke_hoach_kinh_doanh
 from . import ke_hoach_san_xuat
 from . import ke_hoach_vat_tu_line

@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-import logging
 import os as _os
 
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError
+
 
 class MaHang(models.Model):
     _name = 'ma.hang'
@@ -35,12 +34,6 @@ class MaHang(models.Model):
 
     @api.depends('company_id', 'ma_sap')
     def _compute_phan_tram(self):
-        if not self:
-            return
-        if 'ma.hang.phan.tram' not in self.env:
-            for rec in self:
-                rec.phan_tram = 0.0
-            return
         company_ids = list({r.company_id.id for r in self if r.company_id and r.ma_sap})
         ma_saps = list({(r.ma_sap or '').strip() for r in self if r.ma_sap})
         mapping = {}
@@ -54,24 +47,6 @@ class MaHang(models.Model):
         for rec in self:
             key = (rec.company_id.id, (rec.ma_sap or '').strip())
             rec.phan_tram = mapping.get(key, 0.0)
-
-    @api.model
-    def get_sap_meta_map(self, sap_codes):
-        """{ma_sap: {ten_hang, nganh_hang_id, ma_mdm}} từ danh mục ma.hang (v_mdm_hang_hoa_bcu)."""
-        codes = sorted({(c or '').strip() for c in sap_codes if (c or '').strip()})
-        if not codes:
-            return {}
-        meta_map = {}
-        for rec in self.sudo().search([('ma_sap', 'in', codes)]):
-            sap = (rec.ma_sap or '').strip()
-            if not sap:
-                continue
-            meta_map[sap] = {
-                'ten_hang': rec.ten_hang or '',
-                'nganh_hang_id': rec.nganh_hang_id.id if rec.nganh_hang_id else False,
-                'ma_mdm': rec.ma_mdm or '',
-            }
-        return meta_map
 
     @api.model
     def get_mdm_sap_meta_map(self, sap_codes):
@@ -109,30 +84,6 @@ class MaHang(models.Model):
         if not code:
             return False
         return code in self.get_mdm_sap_codes_set([code])
-
-    @api.model
-    def assert_sap_in_catalog(self, ma_sap, label=None):
-        """Raise UserError nếu ma_sap không có trong danh mục ma.hang BCU."""
-        code = (ma_sap or '').strip()
-        if not code:
-            return
-        if not self.sudo().search_count([('ma_sap', '=', code)]):
-            raise UserError(
-                _('Mã "%s" không có trong danh mục mã hàng BCU.')
-                % (label or code)
-            )
-
-    @api.model
-    def assert_sap_in_mdm(self, ma_sap, label=None):
-        """Raise UserError nếu ma_sap không có trong mdm.tong.hop.line."""
-        code = (ma_sap or '').strip()
-        if not code:
-            return
-        if not self.sap_exists_in_mdm(code):
-            raise UserError(
-                _('Mã "%s" không có trong MDM (mdm.tong.hop.line).')
-                % (label or code)
-            )
 
     def action_open_import_wizard(self):
         return {

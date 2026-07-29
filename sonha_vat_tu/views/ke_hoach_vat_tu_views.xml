@@ -485,14 +485,6 @@
         </field>
     </record>
 
-    <record id="action_ke_hoach_vat_tu_b1" model="ir.actions.act_window">
-        <field name="name">Kế hoạch vật tư</field>
-        <field name="res_model">ke.hoach.vat.tu</field>
-        <field name="view_mode">form</field>
-        <field name="views" eval="[(ref('view_ke_hoach_vat_tu_form_b1'), 'form')]"/>
-        <field name="context">{'form_view_ref': 'sonha_vat_tu.view_ke_hoach_vat_tu_form_b1'}</field>
-    </record>
-
     <record id="action_ke_hoach_vat_tu_b2" model="ir.actions.act_window">
         <field name="name">Định mức kỳ</field>
         <field name="res_model">ke.hoach.vat.tu</field>

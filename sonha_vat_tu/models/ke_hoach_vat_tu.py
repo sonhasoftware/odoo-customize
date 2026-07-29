@@ -3,20 +3,14 @@ import calendar
 from datetime import date
 import os as _os
 import re
-import base64
-import io
 
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
-from openpyxl.styles import Protection
-from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Protection, Side
 from openpyxl.styles.numbers import FORMAT_TEXT
-from openpyxl.worksheet.datavalidation import DataValidation
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools.safe_eval import safe_eval
-
-from .mail_message import VAT_TU_CHATTER_SCOPES
 
 
 _SQL_FUNCTIONS_PATH = _os.path.join(
@@ -30,7 +24,7 @@ class KeHoachVatTu(models.Model):
     _description = 'Kỳ kế hoạch vật tư cần'
     _rec_name = 'code'
     _order = 'period_month desc, id desc'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _inherit = ['mail.thread', 'mail.activity.mixin', 'vat.tu.excel.mixin']
 
     code = fields.Char(string='Số chứng từ', readonly=True, copy=False, index=True, tracking=True)
     company_id = fields.Many2one(
@@ -122,20 +116,16 @@ class KeHoachVatTu(models.Model):
     ke_hoach_vat_tu_line_ids = fields.One2many('ke.hoach.vat.tu.line', 'period_id', string='Kế hoạch vật tư')
     dinh_muc_ids = fields.One2many('dinh.muc', 'period_id', string='Định mức tháng')
     tinh_toan_vat_tu_ids = fields.One2many('tinh.toan.vat.tu', 'period_id', string='Tính toán vật tư')
-    tinh_toan_vat_tu_chi_tiet_ids = fields.One2many(
-        'tinh.toan.vat.tu.chi.tiet', 'period_id', string='Chi tiết tính toán VT')
     tong_hop_vat_tu_ids = fields.One2many(
         'tong.hop.vat.tu', 'period_id', string='Tổng hợp vật tư',
         domain=[('don_vi_kd_id', '=', False)],
     )
     kh_dat_vat_tu_ids = fields.One2many('kh.dat.vat.tu', 'period_id', string='Kế hoạch đặt vật tư')
 
-    ke_hoach_kinh_doanh_count = fields.Integer(compute='_compute_counts')
     ke_hoach_san_xuat_count = fields.Integer(compute='_compute_counts')
     ke_hoach_vat_tu_line_count = fields.Integer(compute='_compute_counts')
     dinh_muc_count = fields.Integer(compute='_compute_counts')
     tinh_toan_vat_tu_count = fields.Integer(compute='_compute_counts')
-    tinh_toan_vat_tu_chi_tiet_count = fields.Integer(compute='_compute_counts')
     tong_hop_vat_tu_count = fields.Integer(compute='_compute_counts')
     kh_dat_vat_tu_count = fields.Integer(compute='_compute_counts')
 
@@ -171,9 +161,6 @@ class KeHoachVatTu(models.Model):
                 rec.approval_state == 'pending'
                 and any(step.nguoi_duyet_id == current_user for step in current_steps)
             )
-    month_ids_preview = fields.Char(
-        string='Các tháng có dữ liệu',
-        compute='_compute_month_preview')
 
     _sql_constraints = [
         ('code_uniq', 'unique(code)', 'Mã kỳ phải duy nhất!'),
@@ -208,17 +195,6 @@ class KeHoachVatTu(models.Model):
     @api.model
     def _format_month_key(self, month, year):
         return f'{month:02d}/{year}'
-
-    @api.model
-    def _add_months(self, month, year, delta):
-        month += delta
-        while month > 12:
-            month -= 12
-            year += 1
-        while month < 1:
-            month += 12
-            year -= 1
-        return month, year
 
     @api.model
     def month_start_from_key(self, month_key):
@@ -382,31 +358,20 @@ class KeHoachVatTu(models.Model):
 
     @api.depends(
         'state',
-        'ke_hoach_kinh_doanh_ids', 'ke_hoach_san_xuat_ids', 'ke_hoach_vat_tu_line_ids',
+        'ke_hoach_san_xuat_ids', 'ke_hoach_vat_tu_line_ids',
         'dinh_muc_ids', 'tinh_toan_vat_tu_ids',
         'tong_hop_vat_tu_ids', 'kh_dat_vat_tu_ids',
     )
     def _compute_counts(self):
-        KinhDoanh = self.env['ke.hoach.kinh.doanh']
-        SanXuat = self.env['ke.hoach.san.xuat']
-        KHVTLine = self.env['ke.hoach.vat.tu.line']
-        DinhMuc = self.env['dinh.muc']
-        TinhToan = self.env['tinh.toan.vat.tu']
-        ChiTiet = self.env['tinh.toan.vat.tu.chi.tiet']
-        TongHop = self.env['tong.hop.vat.tu']
-        KHDat = self.env['kh.dat.vat.tu']
+        """Đếm bằng len() trên chính One2many đã prefetch, thay vì 8 search_count
+        cho mỗi kỳ."""
         for rec in self:
-            pid = rec.id
-            rec.ke_hoach_kinh_doanh_count = KinhDoanh.search_count([('period_id', '=', pid)])
-            rec.ke_hoach_san_xuat_count = SanXuat.search_count([('period_id', '=', pid)])
-            rec.ke_hoach_vat_tu_line_count = KHVTLine.search_count([('period_id', '=', pid)])
-            rec.dinh_muc_count = DinhMuc.search_count([('period_id', '=', pid)])
-            rec.tinh_toan_vat_tu_count = TinhToan.search_count([('period_id', '=', pid)])
-            rec.tinh_toan_vat_tu_chi_tiet_count = ChiTiet.search_count([('period_id', '=', pid)])
-            rec.tong_hop_vat_tu_count = TongHop.search_count([
-                ('period_id', '=', pid), ('don_vi_kd_id', '=', False),
-            ])
-            rec.kh_dat_vat_tu_count = KHDat.search_count([('period_id', '=', pid)])
+            rec.ke_hoach_san_xuat_count = len(rec.ke_hoach_san_xuat_ids)
+            rec.ke_hoach_vat_tu_line_count = len(rec.ke_hoach_vat_tu_line_ids)
+            rec.dinh_muc_count = len(rec.dinh_muc_ids)
+            rec.tinh_toan_vat_tu_count = len(rec.tinh_toan_vat_tu_ids)
+            rec.tong_hop_vat_tu_count = len(rec.tong_hop_vat_tu_ids)
+            rec.kh_dat_vat_tu_count = len(rec.kh_dat_vat_tu_ids)
 
     def _get_horizon_months(self):
         self.ensure_one()
@@ -426,12 +391,6 @@ class KeHoachVatTu(models.Model):
         except Exception:
             return []
 
-    @api.depends('period_month')
-    def _compute_month_preview(self):
-        for rec in self:
-            months = rec._get_horizon_months()
-            rec.month_ids_preview = ', '.join(months) or False
-
     # ------------------------------------------------------------------
     # Actions — gọi thẳng SQL Procedure
     # ------------------------------------------------------------------
@@ -442,22 +401,12 @@ class KeHoachVatTu(models.Model):
             raise UserError(_(
                 'Chưa có kế hoạch vật tư. Vui lòng tạo kế hoạch vật tư từ kế hoạch sản xuất trước khi sinh định mức.'
             ))
-        period_id = self.id
-        uid = self.env.uid
-        registry = self.env.registry
 
-        self.env.cr.execute('CALL public.fn_sinh_dinh_muc(%s)', (period_id,))
+        self.env.cr.execute('CALL public.fn_sinh_dinh_muc(%s)', (self.id,))
         self.write({'state': 'dinh_muc'})
         self.invalidate_recordset([
             'dinh_muc_ids', 'dinh_muc_count', 'state',
         ])
-
-        @self.env.cr.postcommit.add
-        def _sync_flat_b2():
-            with registry.cursor() as cr:
-                env = api.Environment(cr, uid, {})
-                env['du.lieu.tong.hop.vat.tu'].sync_flat_steps(period_id, ['b2'])
-
         return self.action_open_step_b2()
 
     def _production_company_for_auto_seed(self):
@@ -632,14 +581,9 @@ class KeHoachVatTu(models.Model):
         vals_list = self._prepare_material_plan_values_from_production(production_company)
         Line = self.env['ke.hoach.vat.tu.line'].sudo()
         import_ctx = {'skip_period_lock': True, 'is_importing': True, 'tracking_disable': True}
-        DuLieu = self.env['du.lieu.tong.hop.vat.tu'].sudo()
-
-        def _create_lines():
-            if vals_list:
-                Line.with_context(**import_ctx).create(vals_list)
-            return len(vals_list)
-
-        count = DuLieu.run_period_bulk(self.id, ['b1'], _create_lines)
+        if vals_list:
+            Line.with_context(**import_ctx).create(vals_list)
+        count = len(vals_list)
         self.with_context(vat_tu_chatter_scope='vt').message_post(
             body=_('Đã tạo %s dòng kế hoạch vật tư.') % count
         )
@@ -651,7 +595,7 @@ class KeHoachVatTu(models.Model):
         self.write({'state': 'tinh_toan', 'vat_tu_di_duong_imported': False})
         self.invalidate_recordset([
             'tinh_toan_vat_tu_ids', 'tinh_toan_vat_tu_count',
-            'tinh_toan_vat_tu_chi_tiet_count', 'state', 'vat_tu_di_duong_imported',
+            'state', 'vat_tu_di_duong_imported',
         ])
         return self.action_open_step_b3()
 
@@ -865,23 +809,7 @@ class KeHoachVatTu(models.Model):
         company = company.sudo()
         return company.company_code or company.name or ''
 
-    def _get_plan_company_codes(self):
-        return sorted({
-            (c.company_code or '').strip()
-            for c in self.env['res.company'].sudo().search([])
-            if (c.company_code or '').strip()
-        })
-
     _PLAN_EXPORT_HEADERS = ['Đơn vị', 'Ngành hàng', 'Tên hàng', 'Mã hàng', 'Mã']
-
-    def _plan_export_sort_key(self, line):
-        return (
-            self._company_display_code(line.company_id),
-            line.nganh_hang.ten if line.nganh_hang else '',
-            line.ten_hang or '',
-            line.ma_hang or '',
-            line.ma_sap or '',
-        )
 
     def _plan_export_row_vals(self, line):
         return [
@@ -917,8 +845,7 @@ class KeHoachVatTu(models.Model):
             for col_idx, value in enumerate(self._plan_export_row_vals(line), start=1):
                 ws.cell(row=header_row + row_offset, column=col_idx, value=value)
         self._apply_plan_excel_style(ws, header_row, len(headers))
-        self._apply_plan_company_code_validation(
-            wb, ws, header_row, self._get_plan_company_codes())
+        self._apply_company_code_validation(wb, ws, first_data_row=header_row + 1)
         if lock_meta:
             self._protect_plan_sheet(ws, header_row, [6, 7, 8, 9])
         for col_idx in range(1, len(headers) + 1):
@@ -935,34 +862,11 @@ class KeHoachVatTu(models.Model):
         for letter in ('F', 'G', 'H', 'I'):
             ws.column_dimensions[letter].width = 16
 
-    def _apply_plan_company_code_validation(self, wb, ws, header_row, company_codes):
-        if not company_codes:
-            return
-        ref_sheet = wb.create_sheet('_company_codes')
-        ref_sheet.sheet_state = 'hidden'
-        for row_idx, code in enumerate(company_codes, start=1):
-            ref_sheet.cell(row=row_idx, column=1, value=code)
-        dv = DataValidation(
-            type='list',
-            formula1=f"='_company_codes'!$A$1:$A${len(company_codes)}",
-            allow_blank=False,
-        )
-        dv.error = _('Chỉ được chọn mã đơn vị có trong danh mục.')
-        dv.errorTitle = _('Đơn vị không hợp lệ')
-        ws.add_data_validation(dv)
-        first_data_row = header_row + 1
-        dv.add(f'A{first_data_row}:A5000')
-
     @api.model
     def _excel_text_cell(self, ws, row, col, value):
         cell = ws.cell(row=row, column=col, value='' if value is None else str(value))
         cell.number_format = FORMAT_TEXT
         return cell
-
-    @api.model
-    def _excel_text_column(self, ws, col, start_row=2, end_row=5000):
-        for row_idx in range(start_row, end_row + 1):
-            ws.cell(row=row_idx, column=col).number_format = FORMAT_TEXT
 
     def _write_plan_metadata(self, ws):
         ws.cell(row=1, column=1, value='Mã')
@@ -979,31 +883,17 @@ class KeHoachVatTu(models.Model):
                 ws.cell(row=row_idx, column=col_idx).protection = Protection(locked=False)
         ws.protection.sheet = True
 
-    def _xlsx_download_action(self, wb, filename):
-        output = io.BytesIO()
-        wb.save(output)
-        attachment = self.env['ir.attachment'].sudo().create({
-            'name': filename,
-            'type': 'binary',
-            'datas': base64.b64encode(output.getvalue()),
-            'res_model': self._name,
-            'res_id': self.id,
-            'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        })
-        return {
-            'type': 'ir.actions.act_url',
-            'url': '/web/content/%s?download=true' % attachment.id,
-            'target': 'self',
-        }
+    def _has_plan_edit_rights(self):
+        return (
+            self.env.user.has_group('sonha_vat_tu.group_bo_phan_vat_tu')
+            or self.env.user.has_group('sonha_vat_tu.group_truong_bo_phan_vat_tu')
+        )
 
     def action_download_b1_template(self):
         self.ensure_one()
         if self.state != 'ke_hoach':
             raise UserError(_('Kế hoạch đã sang bước sau, không thể tải template để import lại.'))
-        if not (
-            self.env.user.has_group('sonha_vat_tu.group_bo_phan_vat_tu') or
-            self.env.user.has_group('sonha_vat_tu.group_truong_bo_phan_vat_tu')
-        ):
+        if not self._has_plan_edit_rights():
             raise UserError(_('Bạn không có quyền tải template kế hoạch kinh doanh.'))
 
         wb = Workbook()
@@ -1016,59 +906,36 @@ class KeHoachVatTu(models.Model):
             'KHKD_%s.xlsx' % (self.code),
         )
 
-    def action_open_import_kinh_doanh_wizard(self):
+    def _open_import_plan_wizard(self, import_type, label):
         self.ensure_one()
         if self.state != 'ke_hoach':
-            raise UserError(_('Kế hoạch kinh doanh đã khóa vì kỳ kế hoạch đã sang bước sau.'))
-        if not (
-            self.env.user.has_group('sonha_vat_tu.group_bo_phan_vat_tu') or
-            self.env.user.has_group('sonha_vat_tu.group_truong_bo_phan_vat_tu')
-        ):
-            raise UserError(_('Bạn không có quyền import kế hoạch kinh doanh.'))
+            raise UserError(
+                _('%s đã khóa vì kỳ kế hoạch đã sang bước sau.') % label.capitalize())
+        if not self._has_plan_edit_rights():
+            raise UserError(_('Bạn không có quyền import %s.') % label)
         return {
-            'name': _('Import kế hoạch kinh doanh'),
+            'name': _('Import %s') % label,
             'type': 'ir.actions.act_window',
             'res_model': 'import.ke.hoach.wizard',
             'view_mode': 'form',
             'target': 'new',
             'context': {
                 'default_period_id': self.id,
-                'default_import_type': 'business',
+                'default_import_type': import_type,
             },
         }
+
+    def action_open_import_kinh_doanh_wizard(self):
+        return self._open_import_plan_wizard('business', 'kế hoạch kinh doanh')
 
     def action_open_import_san_xuat_wizard(self):
-        self.ensure_one()
-        if self.state != 'ke_hoach':
-            raise UserError(_('Kế hoạch sản xuất đã khóa vì kỳ kế hoạch đã sang bước sau.'))
-        if not (
-            self.env.user.has_group('sonha_vat_tu.group_bo_phan_vat_tu') or
-            self.env.user.has_group('sonha_vat_tu.group_truong_bo_phan_vat_tu')
-        ):
-            raise UserError(_('Bạn không có quyền import kế hoạch sản xuất.'))
-        return {
-            'name': _('Import kế hoạch sản xuất'),
-            'type': 'ir.actions.act_window',
-            'res_model': 'import.ke.hoach.wizard',
-            'view_mode': 'form',
-            'target': 'new',
-            'context': {
-                'default_period_id': self.id,
-                'default_import_type': 'production',
-            },
-        }
-
-    def action_open_import_wizard(self):
-        return self.action_open_import_kinh_doanh_wizard()
+        return self._open_import_plan_wizard('production', 'kế hoạch sản xuất')
 
     def action_export_san_xuat(self):
         self.ensure_one()
         if self.state != 'ke_hoach':
             raise UserError(_('Kế hoạch đã sang bước sau, không thể export lại cho sản xuất.'))
-        if not (
-            self.env.user.has_group('sonha_vat_tu.group_bo_phan_vat_tu') or
-            self.env.user.has_group('sonha_vat_tu.group_truong_bo_phan_vat_tu')
-        ):
+        if not self._has_plan_edit_rights():
             raise UserError(_('Bạn không có quyền export kế hoạch cho sản xuất.'))
         lines = self._get_lines_for_sx_export()
         if not lines:
@@ -1512,7 +1379,7 @@ class KeHoachVatTu(models.Model):
 
         kind_fmt = {'qty': qty_fmt, 'qty2': qty2_fmt, 'money': money_fmt}
         for row_idx in range(header_row2 + 1, ws.max_row + 1):
-            for col_idx, (_, kind) in enumerate(col_specs, start=1):
+            for col_idx, (_label, kind) in enumerate(col_specs, start=1):
                 cell = ws.cell(row=row_idx, column=col_idx)
                 cell.font = base_font
                 if kind == 'text':
@@ -1629,7 +1496,6 @@ class KeHoachVatTu(models.Model):
             'kh_dat_vat_tu_ids', 'kh_dat_vat_tu_count',
             'tong_hop_vat_tu_ids', 'tong_hop_vat_tu_count',
             'tinh_toan_vat_tu_ids', 'tinh_toan_vat_tu_count',
-            'tinh_toan_vat_tu_chi_tiet_count',
             'dinh_muc_ids', 'dinh_muc_count',
             'approval_step_ids', 'approval_state', 'approval_current_sequence',
         ])

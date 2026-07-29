@@ -54,13 +54,6 @@
         </field>
     </record>
 
-    <record id="action_bao_cao_tinh_toan_vat_tu_line" model="ir.actions.act_window">
-        <field name="name">Báo cáo tính toán vật tư cần</field>
-        <field name="res_model">bao.cao.tinh.toan.vat.tu.line</field>
-        <field name="view_mode">tree</field>
-        <field name="view_id" ref="view_bao_cao_tinh_toan_vat_tu_line_tree"/>
-    </record>
-
     <record id="action_export_bao_cao_tinh_toan_vat_tu_server" model="ir.actions.server">
         <field name="name">Xuất Excel</field>
         <field name="model_id" ref="model_bao_cao_tinh_toan_vat_tu_line"/>

@@ -7,11 +7,6 @@
         <field name="arch" type="xml">
             <tree string="Dữ liệu tổng hợp vật tư (đủ cột)" create="false" edit="false" delete="false"
                   class="sh_free_width_tree">
-<!--                <header>-->
-<!--                    <button name="action_rebuild_from_sources" type="object"-->
-<!--                            string="Đồng bộ" class="btn-secondary"-->
-<!--                            display="always"/>-->
-<!--                </header>-->
                 <!-- Chung -->
                 <field name="step_code"/>
                 <field name="source_model"/>
@@ -52,7 +47,6 @@
                 <!-- -->
                 <field name="ma_dat_hang"/>
                 <field name="chung_loai"/>
-                <field name="ma_cuon"/>
                 <field name="ton_dau"/>
                 <field name="ve_du_kien_don_vi"/>
                 <field name="ve_du_kien"/>

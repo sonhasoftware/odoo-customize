@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 import os as _os
 
-from psycopg2 import sql
-
-from odoo import _, api, fields, models
+from odoo import api, fields, models
 
 
 class DuLieuTongHopVatTu(models.Model):
@@ -99,7 +97,6 @@ class DuLieuTongHopVatTu(models.Model):
     # --- --
     ma_dat_hang = fields.Char(string='Mã đặt hàng', readonly=True)
     chung_loai = fields.Char(string='Chủng loại', readonly=True)
-    ma_cuon = fields.Char(string='Mã cuộn', readonly=True)
     ton_dau = fields.Float(string='Tồn đầu', digits=(16, 3), readonly=True)
     ve_du_kien_don_vi = fields.Float(
         string='Vật tư đi đường đơn vị', digits=(16, 3), readonly=True)
@@ -205,116 +202,25 @@ class DuLieuTongHopVatTu(models.Model):
 
     @api.model
     def init(self):
-        self._cr.execute(_read_bulk_sync_sql_file())
-        self._cr.execute(_read_sql_file())
-        try:
-            with self._cr.savepoint():
-                self._cr.execute(_read_sql_bom_file())
-        except Exception:
-            pass
-
-    @api.model
-    def dlthvt_set_skip(self, skip=True):
-        """Tắt trigger đồng bộ flat row-by-row trong transaction hiện tại."""
-        self.env.cr.execute(
-            "SELECT set_config('app.dlthvt_skip', %s, true)",
-            ('1' if skip else '',),
-        )
-
-    @api.model
-    def sync_flat_steps(self, period_id, steps):
-        """Rebuild bảng phẳng theo kỳ (set-based, 1 lần/bước)."""
-        proc_map = {
-            'kd': 'dlthvt_bulk_sync_kd_period',
-            'sx': 'dlthvt_bulk_sync_sx_period',
-            'b1': 'dlthvt_bulk_sync_b1_period',
-            'b2': 'dlthvt_bulk_sync_b2_period',
-            'b3': 'dlthvt_bulk_sync_b3_period',
-            'b4': 'dlthvt_bulk_sync_b4_period',
-            'b5': 'dlthvt_bulk_sync_b5_period',
-        }
-        for step in steps:
-            proc = proc_map.get(step)
-            if proc:
-                self.env.cr.execute(f'SELECT public.{proc}(%s)', (period_id,))
-
-    @api.model
-    def run_period_bulk(self, period_id, steps, callback):
-        """Bulk: skip trigger → ghi nguồn → rebuild flat set-based."""
-        self.dlthvt_set_skip(True)
-        try:
-            result = callback()
-            if steps:
-                self.sync_flat_steps(period_id, steps)
-            return result
-        finally:
-            self.dlthvt_set_skip(False)
-
-    def action_rebuild_from_sources(self):
-        self.env.cr.execute(_read_bulk_sync_sql_file())
-        self.env.cr.execute(_read_sql_file())
-        self.env.cr.execute('DELETE FROM du_lieu_tong_hop_vat_tu')
-        for tbl in _SOURCE_TABLES:
-            self.env.cr.execute(
-                sql.SQL('UPDATE {} SET id = id WHERE id IS NOT NULL').format(
-                    sql.Identifier(tbl)
-                )
-            )
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'title': _('Đồng bộ'),
-                'message': _('Đã làm mới dữ liệu bảng tổng hợp.'),
-                'type': 'success',
-                'sticky': False,
-            },
-        }
+        # Một file duy nhất: trigger + mapping + rebuild + sync BOM từ SAP.
+        # fn_bom_chuoi_cung_ung / bom_tinh_toan do a QL quản trên DB, không
+        # nằm trong module — tránh CREATE OR REPLACE ghi đè khi upgrade.
+        self._cr.execute(_read_dlthvt_sync_sql())
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
-_SQL_PATH = _os.path.join(
+_SQL_DIR = _os.path.join(
     _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))),
-    'data', 'sql', 'du_lieu_tong_hop_vat_tu_triggers.sql',
+    'data', 'sql',
 )
 
-_SQL_BOM_PATH = _os.path.join(
-    _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))),
-    'data', 'sql', 'fn_bom_chuoi_cung_ung.sql',
-)
-
-_SQL_BULK_SYNC_PATH = _os.path.join(
-    _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))),
-    'data', 'sql', 'fn_dlthvt_bulk_sync.sql',
-)
-
-_SOURCE_TABLES = (
-    'ke_hoach_vat_tu',
-    'ke_hoach_kinh_doanh',
-    'ke_hoach_san_xuat',
-    'ke_hoach_vat_tu_line',
-    'dinh_muc',
-    'tinh_toan_vat_tu',
-    'tong_hop_vat_tu',
-    'kh_dat_vat_tu',
-)
+_SQL_DLTHVT_SYNC_PATH = _os.path.join(_SQL_DIR, 'dlthvt_sync.sql')
 
 
-def _read_sql_file():
-    """Đọc file data/sql/du_lieu_tong_hop_vat_tu_triggers.sql."""
-    with open(_SQL_PATH, 'r', encoding='utf-8') as f:
-        return f.read()
-
-def _read_sql_bom_file():
-    """Đọc file data/sql/fn_bom_chuoi_cung_ung.sql."""
-    with open(_SQL_BOM_PATH, 'r', encoding='utf-8') as f:
-        return f.read()
-
-
-def _read_bulk_sync_sql_file():
-    """Đọc file data/sql/fn_dlthvt_bulk_sync.sql."""
-    with open(_SQL_BULK_SYNC_PATH, 'r', encoding='utf-8') as f:
+def _read_dlthvt_sync_sql():
+    """Đọc file data/sql/dlthvt_sync.sql (toàn bộ tầng đồng bộ bảng phẳng)."""
+    with open(_SQL_DLTHVT_SYNC_PATH, 'r', encoding='utf-8') as f:
         return f.read()
