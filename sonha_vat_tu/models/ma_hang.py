@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
+import logging
 import os as _os
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
-
 
 class MaHang(models.Model):
     _name = 'ma.hang'
@@ -19,6 +19,9 @@ class MaHang(models.Model):
     ma_mdm = fields.Char(string='Mã MDM', readonly=True, index=True)
     ma_sap = fields.Char(string='Mã đơn vị', readonly=True, index=True)
     ten_hang = fields.Char(string='Tên hàng hóa', readonly=True)
+    phan_tram = fields.Float(
+        string='Phần trăm', digits=(16, 2), compute='_compute_phan_tram',
+        help='Hệ số mua dư so với nhu cầu tính toán (áp dụng ở B4).')
     don_vi_tinh_id = fields.Many2one(
         'mdm.dvt', string='Đơn vị tính', readonly=True)
     bom_sale_id = fields.Many2one(
@@ -30,9 +33,31 @@ class MaHang(models.Model):
         'mdm.nganh.hang', string='Ngành hàng MDM', readonly=True, index=True)
     active = fields.Boolean(default=True, readonly=True)
 
+    @api.depends('company_id', 'ma_sap')
+    def _compute_phan_tram(self):
+        if not self:
+            return
+        if 'ma.hang.phan.tram' not in self.env:
+            for rec in self:
+                rec.phan_tram = 0.0
+            return
+        company_ids = list({r.company_id.id for r in self if r.company_id and r.ma_sap})
+        ma_saps = list({(r.ma_sap or '').strip() for r in self if r.ma_sap})
+        mapping = {}
+        if company_ids and ma_saps:
+            rows = self.env['ma.hang.phan.tram'].sudo().search([
+                ('company_id', 'in', company_ids),
+                ('ma_sap', 'in', ma_saps),
+            ])
+            for row in rows:
+                mapping[(row.company_id.id, (row.ma_sap or '').strip())] = row.phan_tram or 0.0
+        for rec in self:
+            key = (rec.company_id.id, (rec.ma_sap or '').strip())
+            rec.phan_tram = mapping.get(key, 0.0)
+
     @api.model
     def get_sap_meta_map(self, sap_codes):
-        """{ma_sap: {ten_hang, nganh_hang_id, ma_mdm}} từ danh mục ma.hang (bom_sale 1C)."""
+        """{ma_sap: {ten_hang, nganh_hang_id, ma_mdm}} từ danh mục ma.hang (v_mdm_hang_hoa_bcu)."""
         codes = sorted({(c or '').strip() for c in sap_codes if (c or '').strip()})
         if not codes:
             return {}
@@ -87,13 +112,13 @@ class MaHang(models.Model):
 
     @api.model
     def assert_sap_in_catalog(self, ma_sap, label=None):
-        """Raise UserError nếu ma_sap không có trong danh mục ma.hang (bom_sale 1C)."""
+        """Raise UserError nếu ma_sap không có trong danh mục ma.hang BCU."""
         code = (ma_sap or '').strip()
         if not code:
             return
         if not self.sudo().search_count([('ma_sap', '=', code)]):
             raise UserError(
-                _('Mã "%s" không có trong danh mục mã hàng (bom_sale 1C).')
+                _('Mã "%s" không có trong danh mục mã hàng BCU.')
                 % (label or code)
             )
 
@@ -109,9 +134,26 @@ class MaHang(models.Model):
                 % (label or code)
             )
 
-    def init(self):
+    def action_open_import_wizard(self):
+        return {
+            'name': _('Import phần trăm'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'import.ma.hang.phan.tram.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+        }
+
+    @api.model
+    def _reload_ma_hang_view(self):
+        cr = self.env.cr
+        cr.execute("SELECT to_regclass('public.v_mdm_hang_hoa_bcu')")
+        if not cr.fetchone()[0]:
+            return
         with open(_SQL_VIEW_PATH, 'r', encoding='utf-8-sig') as f:
-            self.env.cr.execute(f.read())
+            cr.execute(f.read())
+
+    def init(self):
+        self._reload_ma_hang_view()
 
 
 _SQL_VIEW_PATH = _os.path.join(

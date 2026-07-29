@@ -40,7 +40,7 @@ END;
 $$;
 
 -- ============================================================
--- B2: Sinh dinh muc tu bom_tinh_toan
+-- B2: Sinh dinh muc — nguồn lọc ma.hang (các bước sau ăn theo dinh_muc)
 -- ============================================================
 CREATE OR REPLACE PROCEDURE public.fn_sinh_dinh_muc(p_period_id INTEGER)
 LANGUAGE 'plpgsql' AS $BODY$
@@ -61,7 +61,7 @@ BEGIN
 
         DELETE FROM dinh_muc WHERE period_id = p_period_id;
 
-        -- Chỉ lấy BOM NVL của mã TP trong kỳ (tránh join full bom_tinh_toan).
+        -- Chỉ lấy BOM NVL của mã TP trong kỳ.
         DROP TABLE IF EXISTS _tmp_period_tp;
         CREATE TEMP TABLE _tmp_period_tp ON COMMIT DROP AS
         SELECT DISTINCT TRIM(ma_sap) AS ma_tp_goc
@@ -71,6 +71,16 @@ BEGIN
           AND TRIM(ma_sap) <> '';
 
         CREATE INDEX ON _tmp_period_tp (ma_tp_goc);
+
+        -- Chi NVL co trong danh muc ma.hang (view QL v_mdm_hang_hoa_bcu).
+        DROP TABLE IF EXISTS _tmp_ma_hang_sap;
+        CREATE TEMP TABLE _tmp_ma_hang_sap ON COMMIT DROP AS
+        SELECT DISTINCT TRIM(ma_sap) AS ma_sap
+        FROM ma_hang
+        WHERE ma_sap IS NOT NULL
+          AND TRIM(ma_sap) <> '';
+
+        CREATE INDEX ON _tmp_ma_hang_sap (ma_sap);
 
         DROP TABLE IF EXISTS _tmp_bom_nvl_period;
         CREATE TEMP TABLE _tmp_bom_nvl_period ON COMMIT DROP AS
@@ -83,6 +93,8 @@ BEGIN
             b.ten_con,
             b.sl_thuc_te
         FROM bom_tinh_toan b
+        INNER JOIN _tmp_ma_hang_sap mh
+            ON mh.ma_sap = TRIM(b.ma_con)
         WHERE b.loai_vat_tu = 'NVL'
           AND b.ma_tp_goc IN (SELECT ma_tp_goc FROM _tmp_period_tp)
           AND b.ma_con IS NOT NULL
@@ -90,28 +102,9 @@ BEGIN
 
         CREATE INDEX ON _tmp_bom_nvl_period (ma_tp_goc);
 
-        DROP TABLE IF EXISTS _tmp_period_nvl;
-        CREATE TEMP TABLE _tmp_period_nvl ON COMMIT DROP AS
-        SELECT DISTINCT ma_con AS ma_nvl
-        FROM _tmp_bom_nvl_period;
-
-        CREATE INDEX ON _tmp_period_nvl (ma_nvl);
-
-        -- Lookup bom_sale_id theo ma_nvl: chỉ mã NVL của kỳ.
-        DROP TABLE IF EXISTS _tmp_mdm_bom_sale;
-        CREATE TEMP TABLE _tmp_mdm_bom_sale ON COMMIT DROP AS
-        SELECT DISTINCT ON (TRIM(l.ma_dv))
-            TRIM(l.ma_dv) AS ma_nvl,
-            l.bom_sale      AS bom_sale_id
-        FROM mdm_tong_hop_line l
-        INNER JOIN _tmp_period_nvl n ON n.ma_nvl = TRIM(l.ma_dv)
-        ORDER BY TRIM(l.ma_dv), l.id;
-
-        CREATE INDEX ON _tmp_mdm_bom_sale (ma_nvl);
-
         INSERT INTO dinh_muc (
         period_id, company_id, ma_sap, ten_sap, ma_tp, ten_tp, ma_nvl, ten_nvl, sl_dinh_muc,
-        sl_dinh_muc_thay_doi, co_sl_dinh_muc_override, bom_sale_id,
+        sl_dinh_muc_thay_doi, co_sl_dinh_muc_override,
         qty_kinh_doanh_t0, qty_kinh_doanh_t1, qty_kinh_doanh_t2, qty_kinh_doanh_t3,
         qty_san_xuat_t0, qty_san_xuat_t1, qty_san_xuat_t2, qty_san_xuat_t3,
         qty_chenh_lech_t0, qty_chenh_lech_t1, qty_chenh_lech_t2, qty_chenh_lech_t3,
@@ -130,7 +123,6 @@ BEGIN
         COALESCE(bcu.sl_thuc_te, 0),
         CASE WHEN o.co_sl_dinh_muc_override THEN o.sl_dinh_muc_thay_doi ELSE NULL END,
         COALESCE(o.co_sl_dinh_muc_override, FALSE),
-        mdm_bs.bom_sale_id,
         COALESCE(b1.qty_kd_t0, 0) * eff.sl_ap_dung,
         COALESCE(b1.qty_kd_t1, 0) * eff.sl_ap_dung,
         COALESCE(b1.qty_kd_t2, 0) * eff.sl_ap_dung,
@@ -151,8 +143,6 @@ BEGIN
     FROM ke_hoach_vat_tu_line b1
     JOIN _tmp_bom_nvl_period bcu
         ON bcu.ma_tp_goc = TRIM(b1.ma_sap)
-    LEFT JOIN _tmp_mdm_bom_sale mdm_bs
-        ON mdm_bs.ma_nvl = bcu.ma_con
     LEFT JOIN _tmp_dm_override o
         ON  o.company_id = b1.company_id
         AND o.ma_sap = TRIM(b1.ma_sap)
@@ -175,8 +165,8 @@ END;
 $BODY$;
 
 -- ============================================================
--- B3: Tinh toan vat tu tu ke hoach vat tu line (1:1 theo don vi + ma)
--- Ghi bang chi tiet (audit) roi SUM ra tinh_toan_vat_tu.
+-- B3: Tính toán vật tư — CHỈ đọc dinh_muc (B2), không join bom_tinh_toan
+-- Ghi bảng chi tiết (audit) rồi SUM ra tinh_toan_vat_tu.
 -- ============================================================
 CREATE OR REPLACE PROCEDURE public.fn_tinh_toan_vat_tu(p_period_id INTEGER)
 LANGUAGE 'plpgsql' AS $BODY$
@@ -192,32 +182,14 @@ BEGIN
         RAISE EXCEPTION 'Ky % chua co nha may san xuat. Hay tao ke hoach vat tu truoc.', p_period_id;
     END IF;
 
-    -- Chỉ BOM NVL của mã TP trong kỳ (cùng pattern B2).
-    DROP TABLE IF EXISTS _tmp_period_tp;
-    CREATE TEMP TABLE _tmp_period_tp ON COMMIT DROP AS
-    SELECT DISTINCT TRIM(ma_sap) AS ma_tp_goc
-    FROM ke_hoach_vat_tu_line
-    WHERE period_id = p_period_id
-      AND ma_sap IS NOT NULL
-      AND TRIM(ma_sap) <> '';
-
-    CREATE INDEX ON _tmp_period_tp (ma_tp_goc);
-
-    DROP TABLE IF EXISTS _tmp_bom_nvl_period;
-    CREATE TEMP TABLE _tmp_bom_nvl_period ON COMMIT DROP AS
-    SELECT b.*
-    FROM bom_tinh_toan b
-    INNER JOIN _tmp_period_tp t ON t.ma_tp_goc = TRIM(b.ma_tp_goc)
-    WHERE b.loai_vat_tu = 'NVL'
-      AND b.ma_con IS NOT NULL
-      AND TRIM(b.ma_con) <> '';
-
-    CREATE INDEX ON _tmp_bom_nvl_period (ma_tp_goc);
-
+    -- B3 đọc từ dinh_muc (B2) — chỉ NVL đã lọc ma.hang, giữ override định mức.
     DROP TABLE IF EXISTS _tmp_period_nvl;
     CREATE TEMP TABLE _tmp_period_nvl ON COMMIT DROP AS
-    SELECT DISTINCT TRIM(ma_con) AS ma_nvl
-    FROM _tmp_bom_nvl_period;
+    SELECT DISTINCT TRIM(ma_nvl) AS ma_nvl
+    FROM dinh_muc
+    WHERE period_id = p_period_id
+      AND ma_nvl IS NOT NULL
+      AND TRIM(ma_nvl) <> '';
 
     CREATE INDEX ON _tmp_period_nvl (ma_nvl);
 
@@ -232,48 +204,42 @@ BEGIN
 
     CREATE INDEX ON _tmp_mdm_dvt (ma_nvl);
 
-    -- 1 lần join KHVT × BOM (đã lọc) → temp; insert chi tiết + B3 đều đọc từ temp
+    -- 1 lần đọc dinh_muc (B2) × KHVT → temp; insert chi tiết + B3 đều đọc từ temp
     DROP TABLE IF EXISTS tmp_b3_nvl_detail;
     CREATE TEMP TABLE tmp_b3_nvl_detail ON COMMIT DROP AS
     SELECT
-        khvt.period_id,
+        dm.period_id,
         v_prod_company_id AS company_id,
-        khvt.company_id AS don_vi_kd_id,
+        dm.company_id AS don_vi_kd_id,
         COALESCE(NULLIF(TRIM(dv.company_code), ''), dv.name) AS don_vi_kd_code,
-        TRIM(khvt.ma_sap) AS ma,
+        TRIM(dm.ma_sap) AS ma,
         NULLIF(TRIM(khvt.ma_hang), '') AS ma_hang,
         NULLIF(TRIM(khvt.ten_hang), '') AS ten_kh,
-        NULLIF(TRIM(bcu.ma_tp_cha), '') AS ma_tp_cha,
-        NULLIF(TRIM(bcu.ten_tp_cha), '') AS ten_tp_cha,
-        TRIM(bcu.ma_con) AS ma_nvl,
-        NULLIF(TRIM(bcu.ten_con), '') AS ten_nvl,
-        eff.sl_ap_dung AS sl_thuc_te,
-        bcu.cap_bom,
+        NULLIF(TRIM(dm.ma_tp), '') AS ma_tp_cha,
+        NULLIF(TRIM(dm.ten_tp), '') AS ten_tp_cha,
+        TRIM(dm.ma_nvl) AS ma_nvl,
+        NULLIF(TRIM(dm.ten_nvl), '') AS ten_nvl,
+        CASE
+            WHEN dm.co_sl_dinh_muc_override THEN COALESCE(dm.sl_dinh_muc_thay_doi, 0)
+            ELSE COALESCE(dm.sl_dinh_muc, 0)
+        END AS sl_thuc_te,
+        NULL::INTEGER AS cap_bom,
         COALESCE(khvt.qty_t0, 0) AS qty_kh_t0,
         COALESCE(khvt.qty_t1, 0) AS qty_kh_t1,
         COALESCE(khvt.qty_t2, 0) AS qty_kh_t2,
         COALESCE(khvt.qty_t3, 0) AS qty_kh_t3,
-        COALESCE(khvt.qty_t0, 0) * eff.sl_ap_dung AS qty_nvl_t0,
-        COALESCE(khvt.qty_t1, 0) * eff.sl_ap_dung AS qty_nvl_t1,
-        COALESCE(khvt.qty_t2, 0) * eff.sl_ap_dung AS qty_nvl_t2,
-        COALESCE(khvt.qty_t3, 0) * eff.sl_ap_dung AS qty_nvl_t3
-    FROM ke_hoach_vat_tu_line khvt
-    JOIN _tmp_bom_nvl_period bcu
-        ON bcu.ma_tp_goc = TRIM(khvt.ma_sap)
-    JOIN res_company dv ON dv.id = khvt.company_id
-    LEFT JOIN dinh_muc dm
-        ON  dm.period_id = khvt.period_id
-        AND dm.company_id = khvt.company_id
-        AND TRIM(dm.ma_sap) = TRIM(khvt.ma_sap)
-        AND TRIM(dm.ma_nvl) = TRIM(bcu.ma_con)
-    CROSS JOIN LATERAL (
-        SELECT CASE
-            WHEN dm.co_sl_dinh_muc_override THEN COALESCE(dm.sl_dinh_muc_thay_doi, 0)
-            ELSE COALESCE(dm.sl_dinh_muc, bcu.sl_thuc_te, 0)
-        END AS sl_ap_dung
-    ) eff
-    WHERE khvt.period_id = p_period_id
-      AND khvt.company_id IS NOT NULL;
+        COALESCE(dm.qty_t0, 0) AS qty_nvl_t0,
+        COALESCE(dm.qty_t1, 0) AS qty_nvl_t1,
+        COALESCE(dm.qty_t2, 0) AS qty_nvl_t2,
+        COALESCE(dm.qty_t3, 0) AS qty_nvl_t3
+    FROM dinh_muc dm
+    JOIN res_company dv ON dv.id = dm.company_id
+    LEFT JOIN ke_hoach_vat_tu_line khvt
+        ON  khvt.period_id = dm.period_id
+        AND khvt.company_id = dm.company_id
+        AND TRIM(khvt.ma_sap) = TRIM(dm.ma_sap)
+    WHERE dm.period_id = p_period_id
+      AND dm.company_id IS NOT NULL;
 
     CREATE INDEX ON tmp_b3_nvl_detail (don_vi_kd_id, ma_nvl);
     CREATE INDEX ON tmp_b3_nvl_detail (ma_nvl);
@@ -350,7 +316,7 @@ END;
 $BODY$;
 
 -- ============================================================
--- B4: Tong hop vat tu - Tinh don luy ke theo Excel (set-based)
+-- B4: Tổng hợp vật tư — CHỈ đọc tinh_toan_vat_tu (B3)
 -- ============================================================
 CREATE OR REPLACE PROCEDURE public.fn_tong_hop_vat_tu(
     p_period_id INTEGER,
@@ -399,6 +365,39 @@ BEGIN
       AND TRIM(ma_vat_tu) <> '';
 
     CREATE INDEX ON _tmp_period_nvl (ma_vat_tu);
+
+    -- B3 qty thuần × (1 + phần trăm mua dư từ ma_hang_phan_tram) → vt_can_dung B4
+    DROP TABLE IF EXISTS _tmp_b3_adj;
+    CREATE TEMP TABLE _tmp_b3_adj ON COMMIT DROP AS
+    SELECT
+        b3.id,
+        b3.period_id,
+        b3.company_id,
+        b3.don_vi_kd_id,
+        b3.don_vi_kd_code,
+        b3.ma_vat_tu,
+        b3.ten_vat_tu,
+        b3.don_vi_tinh,
+        COALESCE(b3.qty_t0, 0) * (
+            1 + COALESCE(NULLIF(p.phan_tram, 0), 0) / 100.0
+        ) AS qty_t0,
+        COALESCE(b3.qty_t1, 0) * (
+            1 + COALESCE(NULLIF(p.phan_tram, 0), 0) / 100.0
+        ) AS qty_t1,
+        COALESCE(b3.qty_t2, 0) * (
+            1 + COALESCE(NULLIF(p.phan_tram, 0), 0) / 100.0
+        ) AS qty_t2,
+        COALESCE(b3.qty_t3, 0) * (
+            1 + COALESCE(NULLIF(p.phan_tram, 0), 0) / 100.0
+        ) AS qty_t3
+    FROM tinh_toan_vat_tu b3
+    LEFT JOIN ma_hang_phan_tram p
+        ON  p.company_id = b3.don_vi_kd_id
+        AND TRIM(p.ma_sap) = TRIM(b3.ma_vat_tu)
+    WHERE b3.period_id = p_period_id;
+
+    CREATE INDEX ON _tmp_b3_adj (company_id, ma_vat_tu);
+    CREATE INDEX ON _tmp_b3_adj (don_vi_kd_id, ma_vat_tu);
 
     -- Ton kho SAP: chi ma NVL cua ky (khong quet full bang)
     DROP TABLE IF EXISTS _tmp_ton_kho;
@@ -554,7 +553,7 @@ BEGIN
                     - SUM(COALESCE(b3.qty_t3, 0))
                 )
             )                                                         AS so_luong_thieu
-        FROM tinh_toan_vat_tu b3
+        FROM _tmp_b3_adj b3
         JOIN res_company c ON c.id = b3.company_id
         LEFT JOIN _tmp_ton_kho tk
             ON  tk.ma_hang = b3.ma_vat_tu
@@ -641,9 +640,8 @@ BEGIN
         0, 0, 0, 0,
         0, 0, 0,
         1, 1, NOW(), NOW()
-    FROM tinh_toan_vat_tu b3
-    WHERE b3.period_id = p_period_id
-      AND b3.don_vi_kd_id IS NOT NULL
+    FROM _tmp_b3_adj b3
+    WHERE b3.don_vi_kd_id IS NOT NULL
     GROUP BY
         b3.company_id, b3.don_vi_kd_id,
         b3.ma_vat_tu, b3.ten_vat_tu;
@@ -659,7 +657,7 @@ END;
 $BODY$;
 
 -- ============================================================
--- B5: Ke hoach dat vat tu tu B4 (cau truc moi)
+-- B5: Kế hoạch đặt vật tư — CHỈ đọc tong_hop_vat_tu gộp (B4, don_vi_kd_id NULL)
 -- ============================================================
 CREATE OR REPLACE PROCEDURE public.fn_ke_hoach_dat_vat_tu(
     p_period_id INTEGER,

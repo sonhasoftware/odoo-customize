@@ -45,3 +45,5 @@ access_du_lieu_tong_hop_vat_tu_admin,du.lieu.tong.hop.vat.tu.admin,model_du_lieu
 access_bao_cao_nhu_cau_vat_tu_ban_cung_ung,bao.cao.nhu.cau.vat.tu.ban.cung.ung,model_bao_cao_nhu_cau_vat_tu,sonha_vat_tu.group_ban_cung_ung_vat_tu,1,0,0,0
 access_bao_cao_nhu_cau_vat_tu_bo_phan,bao.cao.nhu.cau.vat.tu.bo.phan,model_bao_cao_nhu_cau_vat_tu,sonha_vat_tu.group_bo_phan_vat_tu,1,0,0,0
 access_bao_cao_nhu_cau_vat_tu_truong_bo_phan,bao.cao.nhu.cau.vat.tu.truong.bo.phan,model_bao_cao_nhu_cau_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu,1,0,0,0
+access_ma_hang_phan_tram_user,ma.hang.phan.tram.user,model_ma_hang_phan_tram,,1,1,1,1
+access_import_ma_hang_phan_tram_wizard,import.ma.hang.phan.tram.wizard,model_import_ma_hang_phan_tram_wizard,base.group_user,1,1,1,1

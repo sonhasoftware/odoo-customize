@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Sơn Hà Vật tư',
-    'version': '17.0.1.0.1',
+    'version': '17.0.1.0.7',
     'category': 'Kế hoạch vật tư',
     'summary': 'Lập kế hoạch đặt mua vật tư cần theo kỳ',
     'description': """
@@ -18,6 +18,7 @@
         'wizard/import_bom_wizard_views.xml',
         'wizard/import_ke_hoach_wizard_views.xml',
         'wizard/import_vat_tu_di_duong_wizard_views.xml',
+        'wizard/import_ma_hang_phan_tram_wizard_views.xml',
         'wizard/import_tong_hop_bcu_wizard_views.xml',
         'wizard/bao_cao_nhu_cau_vat_tu_wizard_views.xml',
         'wizard/bao_cao_vat_tu_wizard_views.xml',

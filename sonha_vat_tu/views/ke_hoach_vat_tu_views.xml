@@ -177,7 +177,6 @@
                             <field name="ten_sap" readonly="1"/>
                             <field name="ma_tp" column_invisible="True"/>
                             <field name="ma_nvl" readonly="1"/>
-                            <field name="bom_sale_id" string="Loại Bom Sale" optional="hide" readonly="1"/>
                             <field name="ten_nvl" readonly="1"/>
                             <field name="sl_dinh_muc" string="Định mức" readonly="1"/>
                             <field name="sl_dinh_muc_thay_doi" string="Định mức thay đổi"/>
@@ -196,7 +195,6 @@
                             <field name="ten_sap"/>
                             <field name="ma_tp" column_invisible="True"/>
                             <field name="ma_nvl"/>
-                            <field name="bom_sale_id" string="Loại Bom Sale" optional="hide"/>
                             <field name="ten_nvl"/>
                             <field name="sl_dinh_muc" string="Định mức"/>
                             <field name="sl_dinh_muc_thay_doi" string="Định mức thay đổi"/>

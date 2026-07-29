@@ -221,7 +221,7 @@ BEGIN
         INSERT INTO du_lieu_tong_hop_vat_tu (
             step_code, source_model, source_res_id, period_id, company_id, month_key,
             month_date, ma_sap, ma_vat_tu, nganh_hang, ten_hang, ma_hang,
-            qty, note, ma_tp, ten_tp, ten_sap, ma_nvl, bom_sale_id,
+            qty, note, ma_tp, ten_tp, ten_sap, ma_nvl,
             ten_nvl, ten_vat_tu, sl_dinh_muc, sl_dinh_muc_thay_doi, sl_dinh_muc_ap_dung,
             qty_kinh_doanh, qty_san_xuat, qty_chenh_lech, ma_effect,
             create_uid, create_date, write_uid, write_date
@@ -230,7 +230,7 @@ BEGIN
             NEW.company_id, v_month_key, v_month_date, NEW.ma_sap,
             NEW.ma_nvl, NULL, NULL, NULL,
             v_qty, NULL, NEW.ma_tp, NEW.ten_tp,
-            NEW.ten_sap, NEW.ma_nvl, NEW.bom_sale_id, NEW.ten_nvl, NEW.ten_nvl,
+            NEW.ten_sap, NEW.ma_nvl, NEW.ten_nvl, NEW.ten_nvl,
             NEW.sl_dinh_muc,
             CASE WHEN NEW.co_sl_dinh_muc_override THEN NEW.sl_dinh_muc_thay_doi ELSE NULL END,
             CASE WHEN NEW.co_sl_dinh_muc_override THEN NEW.sl_dinh_muc_thay_doi ELSE NEW.sl_dinh_muc END,
@@ -249,7 +249,6 @@ BEGIN
             ten_tp = EXCLUDED.ten_tp,
             ten_sap = EXCLUDED.ten_sap,
             ma_nvl = EXCLUDED.ma_nvl,
-            bom_sale_id = EXCLUDED.bom_sale_id,
             ten_nvl = EXCLUDED.ten_nvl,
             ten_vat_tu = EXCLUDED.ten_vat_tu,
             sl_dinh_muc = EXCLUDED.sl_dinh_muc,

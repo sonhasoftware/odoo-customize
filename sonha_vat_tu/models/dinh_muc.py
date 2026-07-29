@@ -44,11 +44,6 @@ class DinhMuc(models.Model):
         string='Định mức áp dụng', digits=(16, 3),
         compute='_compute_sl_dinh_muc_ap_dung', store=True, readonly=True,
     )
-    bom_sale_id = fields.Many2one(
-        'bom.sale', string='Loại Bom Sale', readonly=True, index=True,
-        ondelete='set null',
-        help='Loại Bom Sale (MDM) của NVL.',
-    )
 
     qty_kinh_doanh_t0 = fields.Float(string='KD T0', digits=(16, 2))
     qty_kinh_doanh_t1 = fields.Float(string='KD T1', digits=(16, 2))
@@ -206,53 +201,3 @@ class DinhMuc(models.Model):
             )
         self._log_override_changes(changes_by_period)
         return res
-
-    @api.model
-    def _patch_bom_sale_for_ma_nvl(self, ma_nvl_code, bom_sale_id):
-        """Đồng bộ bom_sale_id từ MDM sang mọi dòng định mức cùng mã NVL."""
-        code = (ma_nvl_code or '').strip()
-        if not code:
-            return
-
-        uid = self.env.uid
-        self.env.cr.execute(
-            """
-            UPDATE dinh_muc
-               SET bom_sale_id = %s,
-                   write_uid = %s,
-                   write_date = NOW() AT TIME ZONE 'UTC'
-             WHERE TRIM(ma_nvl) = %s
-            """,
-            (bom_sale_id or None, uid, code),
-        )
-        if not self.env.cr.rowcount:
-            return
-
-        self.env.cr.execute(
-            """
-            SELECT id FROM dinh_muc WHERE TRIM(ma_nvl) = %s
-            """,
-            (code,),
-        )
-        dm_ids = [row[0] for row in self.env.cr.fetchall()]
-        if dm_ids:
-            self.browse(dm_ids).invalidate_recordset([
-                'bom_sale_id', 'write_uid', 'write_date',
-            ])
-
-        self.env.cr.execute(
-            "SELECT to_regclass('public.du_lieu_tong_hop_vat_tu')"
-        )
-        if self.env.cr.fetchone()[0]:
-            self.env.cr.execute(
-                """
-                UPDATE du_lieu_tong_hop_vat_tu
-                   SET bom_sale_id = %s,
-                       write_uid = %s,
-                       write_date = NOW() AT TIME ZONE 'UTC'
-                 WHERE step_code = 'b2'
-                   AND source_model = 'dinh.muc'
-                   AND TRIM(ma_nvl) = %s
-                """,
-                (bom_sale_id or None, uid, code),
-            )

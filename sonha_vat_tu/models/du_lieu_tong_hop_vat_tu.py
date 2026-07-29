@@ -70,9 +70,6 @@ class DuLieuTongHopVatTu(models.Model):
     ten_tp = fields.Char(string='Tên thành phẩm', readonly=True)
     ten_sap = fields.Char(string='Tên SAP', readonly=True)
     ma_nvl = fields.Char(string='Mã NVL', readonly=True)
-    bom_sale_id = fields.Many2one(
-        'bom.sale', string='Loại Bom Sale', readonly=True, index=True,
-    )
     ten_nvl = fields.Char(string='Tên NVL', readonly=True)
     ten_vat_tu = fields.Char(string='Tên vật tư', readonly=True)
     qty_kinh_doanh = fields.Float(string='Kinh doanh', digits=(16, 2), readonly=True)

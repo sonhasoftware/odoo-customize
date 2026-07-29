@@ -217,7 +217,7 @@ BEGIN
         period_code, period_month, owner_company_id,
         company_id, company_code, period_company_id, period_company_code,
         month_key, month_date, ma_sap, ma_vat_tu,
-        qty, ma_tp, ten_tp, ten_sap, ma_nvl, bom_sale_id, ten_nvl, ten_vat_tu,
+        qty, ma_tp, ten_tp, ten_sap, ma_nvl, ten_nvl, ten_vat_tu,
         sl_dinh_muc, sl_dinh_muc_thay_doi, sl_dinh_muc_ap_dung,
         qty_kinh_doanh, qty_san_xuat, qty_chenh_lech,
         create_uid, create_date, write_uid, write_date
@@ -229,7 +229,7 @@ BEGIN
         m.month_key, m.month_date,
         d.ma_sap, d.ma_nvl,
         m.qty,
-        d.ma_tp, d.ten_tp, d.ten_sap, d.ma_nvl, d.bom_sale_id, d.ten_nvl, d.ten_nvl,
+        d.ma_tp, d.ten_tp, d.ten_sap, d.ma_nvl, d.ten_nvl, d.ten_nvl,
         d.sl_dinh_muc,
         CASE WHEN d.co_sl_dinh_muc_override THEN d.sl_dinh_muc_thay_doi ELSE NULL END,
         CASE WHEN d.co_sl_dinh_muc_override THEN d.sl_dinh_muc_thay_doi ELSE d.sl_dinh_muc END,
