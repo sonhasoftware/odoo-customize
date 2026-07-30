@@ -1,63 +1,7 @@
 -- ############################################################################
 -- ĐỒNG BỘ BẢNG PHẲNG  du_lieu_tong_hop_vat_tu
 -- ============================================================================
--- PHẦN 1. DROP TRIGGER / HÀM
--- ============================================================================
-
-DROP TRIGGER IF EXISTS trg_dlthvt_fill_meta   ON du_lieu_tong_hop_vat_tu;
-DROP TRIGGER IF EXISTS trg_dlthvt_period_meta ON ke_hoach_vat_tu;
-DROP TRIGGER IF EXISTS trg_dlthvt_kd          ON ke_hoach_kinh_doanh;
-DROP TRIGGER IF EXISTS trg_dlthvt_sx          ON ke_hoach_san_xuat;
-DROP TRIGGER IF EXISTS trg_dlthvt_b1          ON ke_hoach_vat_tu_line;
-DROP TRIGGER IF EXISTS trg_dlthvt_b2          ON dinh_muc;
-DROP TRIGGER IF EXISTS trg_dlthvt_b3          ON tinh_toan_vat_tu;
-DROP TRIGGER IF EXISTS trg_dlthvt_b4          ON tong_hop_vat_tu;
-DROP TRIGGER IF EXISTS trg_dlthvt_b5          ON kh_dat_vat_tu;
-
-DROP TRIGGER IF EXISTS trg_dlthvt_kd_ins ON ke_hoach_kinh_doanh;
-DROP TRIGGER IF EXISTS trg_dlthvt_kd_upd ON ke_hoach_kinh_doanh;
-DROP TRIGGER IF EXISTS trg_dlthvt_kd_del ON ke_hoach_kinh_doanh;
-DROP TRIGGER IF EXISTS trg_dlthvt_sx_ins ON ke_hoach_san_xuat;
-DROP TRIGGER IF EXISTS trg_dlthvt_sx_upd ON ke_hoach_san_xuat;
-DROP TRIGGER IF EXISTS trg_dlthvt_sx_del ON ke_hoach_san_xuat;
-DROP TRIGGER IF EXISTS trg_dlthvt_b1_ins ON ke_hoach_vat_tu_line;
-DROP TRIGGER IF EXISTS trg_dlthvt_b1_upd ON ke_hoach_vat_tu_line;
-DROP TRIGGER IF EXISTS trg_dlthvt_b1_del ON ke_hoach_vat_tu_line;
-DROP TRIGGER IF EXISTS trg_dlthvt_b2_ins ON dinh_muc;
-DROP TRIGGER IF EXISTS trg_dlthvt_b2_upd ON dinh_muc;
-DROP TRIGGER IF EXISTS trg_dlthvt_b2_del ON dinh_muc;
-DROP TRIGGER IF EXISTS trg_dlthvt_b3_ins ON tinh_toan_vat_tu;
-DROP TRIGGER IF EXISTS trg_dlthvt_b3_upd ON tinh_toan_vat_tu;
-DROP TRIGGER IF EXISTS trg_dlthvt_b3_del ON tinh_toan_vat_tu;
-DROP TRIGGER IF EXISTS trg_dlthvt_b4_ins ON tong_hop_vat_tu;
-DROP TRIGGER IF EXISTS trg_dlthvt_b4_upd ON tong_hop_vat_tu;
-DROP TRIGGER IF EXISTS trg_dlthvt_b4_del ON tong_hop_vat_tu;
-DROP TRIGGER IF EXISTS trg_dlthvt_b5_ins ON kh_dat_vat_tu;
-DROP TRIGGER IF EXISTS trg_dlthvt_b5_upd ON kh_dat_vat_tu;
-DROP TRIGGER IF EXISTS trg_dlthvt_b5_del ON kh_dat_vat_tu;
-DROP TRIGGER IF EXISTS trg_dlthvt_period_upd ON ke_hoach_vat_tu;
-
-DROP FUNCTION IF EXISTS dlthvt_fill_meta();
-DROP FUNCTION IF EXISTS dlthvt_sync_period_meta();
-DROP FUNCTION IF EXISTS dlthvt_sync_kd();
-DROP FUNCTION IF EXISTS dlthvt_sync_sx();
-DROP FUNCTION IF EXISTS dlthvt_sync_b1();
-DROP FUNCTION IF EXISTS dlthvt_sync_b2();
-DROP FUNCTION IF EXISTS dlthvt_sync_b3();
-DROP FUNCTION IF EXISTS dlthvt_sync_b4();
-DROP FUNCTION IF EXISTS dlthvt_sync_b5();
-
-DROP FUNCTION IF EXISTS public.dlthvt_bulk_sync_kd_period(INTEGER);
-DROP FUNCTION IF EXISTS public.dlthvt_bulk_sync_sx_period(INTEGER);
-DROP FUNCTION IF EXISTS public.dlthvt_bulk_sync_b1_period(INTEGER);
-DROP FUNCTION IF EXISTS public.dlthvt_bulk_sync_b2_period(INTEGER);
-DROP FUNCTION IF EXISTS public.dlthvt_bulk_sync_b3_period(INTEGER);
-DROP FUNCTION IF EXISTS public.dlthvt_bulk_sync_b4_period(INTEGER);
-DROP FUNCTION IF EXISTS public.dlthvt_bulk_sync_b5_period(INTEGER);
-
-
--- ============================================================================
--- PHẦN 2. INDEX (báo cáo trên du_lieu_tong_hop_vat_tu)
+-- PHẦN 1. INDEX (báo cáo trên du_lieu_tong_hop_vat_tu)
 -- ============================================================================
 
 CREATE INDEX IF NOT EXISTS idx_dlthvt_report
@@ -77,7 +21,7 @@ CREATE INDEX IF NOT EXISTS idx_dlthvt_owner_company
 
 
 -- ============================================================================
--- PHẦN 3. HÀM TIỆN ÍCH
+-- PHẦN 2. HÀM TIỆN ÍCH
 -- ============================================================================
 
 -- Quy tắc tháng T0..T+3: period_month 'MM/YYYY' + offset tháng.
@@ -108,7 +52,7 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 -- ============================================================================
--- PHẦN 4. HÀM MAPPING (KD, SX, B1–B5)
+-- PHẦN 3. HÀM MAPPING (KD, SX, B1–B5)
 -- ----------------------------------------------------------------------------
 -- Mỗi hàm: DELETE dòng phẳng của source_res_id trong p_ids, rồi INSERT lại.
 -- Chỉ map kỳ có period_month đúng định dạng MM/YYYY.
@@ -463,7 +407,7 @@ $$;
 
 
 -- ============================================================================
--- PHẦN 5. TRIGGER trên bảng nguồn
+-- PHẦN 4. TRIGGER trên bảng nguồn
 -- ----------------------------------------------------------------------------
 -- dlthvt_after_change: INSERT/UPDATE -> map lại dòng phẳng (tham số bước qua TG_ARGV).
 -- dlthvt_after_delete: DELETE -> xóa dòng phẳng theo source_model + source_res_id.
@@ -620,7 +564,7 @@ EXECUTE FUNCTION dlthvt_after_delete('kh.dat.vat.tu');
 
 
 -- ============================================================================
--- PHẦN 6. DỰNG LẠI BẢNG PHẲNG (chạy tay khi cần)
+-- PHẦN 5. DỰNG LẠI BẢNG PHẲNG (chạy tay khi cần)
 -- ----------------------------------------------------------------------------
 -- dlthvt_rebuild_period(id): xóa + map lại một kỳ.
 -- dlthvt_rebuild_all(): dọn mồ côi + rebuild mọi kỳ.
@@ -660,7 +604,7 @@ $$;
 
 
 -- ============================================================================
--- PHẦN 7. TRIGGER ke_hoach_vat_tu (đổi period_month / code / company_id)
+-- PHẦN 6. TRIGGER ke_hoach_vat_tu (đổi period_month / code / company_id)
 -- ----------------------------------------------------------------------------
 -- Đổi period_month -> dlthvt_rebuild_period (month_key phụ thuộc tháng bắt đầu).
 -- Chỉ đổi code hoặc company_id -> UPDATE meta trên bảng phẳng tại chỗ.
@@ -718,7 +662,7 @@ EXECUTE FUNCTION dlthvt_after_period_update();
 
 
 -- ============================================================================
--- PHẦN 8. ĐỒNG BỘ BOM: md_sap_bom -> bom
+-- PHẦN 7. ĐỒNG BỘ BOM: md_sap_bom -> bom
 -- ----------------------------------------------------------------------------
 -- bom_sync_from_sap: UPSERT từ SAP; DISTINCT ON (ma_tp, ma_nvl) lấy bản mới nhất.
 -- do_day / kho_1 / kho_2 chỉ set 0 khi tạo mới, không ghi đè khi UPDATE.
