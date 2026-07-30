@@ -14,7 +14,7 @@ class DataAttendance(models.Model):
     device_ip = fields.Char("Địa chỉ IP")
 
     def clone_attendance_data(self):
-        self.clone_data_mcc_old()
+        self.with_delay().clone_data_mcc_old()
         # today = fields.Datetime.now()  # Lấy thời gian hiện tại
         # first_day_this_month = today.replace(day=1, hour=0, minute=0, second=0)  # Ngày đầu tháng, reset giờ về 00:00:00
         # first_day_last_month = first_day_this_month - relativedelta(months=1)  # Ngày đầu tháng trước
