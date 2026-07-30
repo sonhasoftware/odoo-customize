@@ -58,10 +58,13 @@ class DataAttendance(models.Model):
             )
         end_date = today.replace(day=1) + relativedelta(months=1)
 
-        print(start_date)
-        print(end_date)
+        start_date_text = start_date.strftime('%d/%m/%Y')
+        end_date_text = end_date.strftime('%d/%m/%Y')
 
-        self.env.cr.execute("call PR_DL_MCC_OLD(%s, %s);", [str(start_date.date()), str(end_date.date())])
+        self.env.cr.execute(
+            "CALL PR_DL_MCC_OLD(%s, %s);",
+            (start_date_text, end_date_text)
+        )
         rows = self.env.cr.dictfetchall()
 
         return rows
