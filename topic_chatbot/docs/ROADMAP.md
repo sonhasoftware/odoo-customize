@@ -19,13 +19,13 @@
 | 3.3 | Integration test (streaming) | Done | | |
 | 3.4 | E2E test (chat flow) | Medium | 1 day | |
 | **4** | **Session 4: Polish & i18n** | P2 | 2-3 days | Session 3 |
-| 4.1 | Vietnamese .po translations | Medium | 1 day | |
+| 4.1 | Vietnamese .po translations | Done | | |
 | 4.2 | Light/dark theme toggle | Low | 1 day | |
-| 4.3 | Conversation auto-title generation | Low | 0.5 day | |
-| 4.4 | Smart stop words config | Low | 0.5 day | |
+| 4.3 | Conversation auto-title generation | Done | | |
+| 4.4 | Smart stop words config | Done | | |
 | **5** | **Release** | — | 1 day | Session 4 |
-| 5.1 | Bug bash | | | |
-| 5.2 | Performance test | | | |
-| 5.3 | Deploy to production | | | |
+| 5.1 | Bug bash | Done | | |
+| 5.2 | Performance test | Done | | |
+| 5.3 | Deploy to production | Done | | |
 
 **Legend:** P0 = blocking, P1 = important, P2 = nice-to-have

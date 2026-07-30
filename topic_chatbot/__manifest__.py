@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Topic Chatbot (RAG)',
-    'version': '17.0.1.0.0',
+    'version': '17.0.2.0.0',
     'category': 'Productivity/Chatbot',
     'summary': 'Full-screen ChatGPT-like chatbot using Gemini API and RAG with PDF/DOCX documents',
     'description': """

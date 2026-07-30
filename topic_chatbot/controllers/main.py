@@ -568,7 +568,7 @@ class TopicChatbotController(http.Controller):
             bot_reply_saved = True
 
             # 10. Update Conversation Name if it's default
-            if conversation.name == 'New Chat' and len(message) > 0:
+            if conversation.name in ('New Chat', 'Cuộc trò chuyện mới') and len(message) > 0:
                 new_name = message[:40] + ('...' if len(message) > 40 else '')
                 conversation.write({'name': new_name})
 
@@ -840,7 +840,7 @@ class TopicChatbotController(http.Controller):
                     })
 
                     conv = env['topic_chatbot.conversation'].browse(conversation_id)
-                    if conv.name == 'New Chat' and len(message) > 0:
+                    if conv.name in ('New Chat', 'Cuộc trò chuyện mới') and len(message) > 0:
                         new_name = message[:40] + ('...' if len(message) > 40 else '')
                         conv.write({'name': new_name})
                     conv_name = conv.name
@@ -883,6 +883,12 @@ class TopicChatbotController(http.Controller):
             'các', 'như', 'bot', 'ad', 'admin', 'ai', 'chỉ', 'giúp', 'với', 'ạ',
             'gì', 'nào', 'đâu', 'sao', 'thế', 'nếu', 'thì', 'mà', 'của', 'để', 'từ'
         }
+        custom_stop_words = request.env['ir.config_parameter'].sudo().get_param('topic_chatbot.stop_words', '')
+        if custom_stop_words:
+            for w in custom_stop_words.split(','):
+                w_clean = w.strip().lower()
+                if w_clean:
+                    STOP_WORDS.add(w_clean)
         meaningful_words = [w for w in words if w not in STOP_WORDS]
 
         # If no meaningful keywords (e.g. just a generic greeting), do not retrieve context

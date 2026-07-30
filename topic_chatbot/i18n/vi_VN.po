@@ -1,0 +1,183 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* topic_chatbot
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 17.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-30 10:00+0000\n"
+"PO-Revision-Date: 2026-07-30 10:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Vietnamese\n"
+"Language: vi_VN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. module: topic_chatbot
+#: model:ir.module.category,name:topic_chatbot.module_category_topic_chatbot
+#: model:ir.ui.menu,name:topic_chatbot.menu_topic_chatbot_root
+msgid "Topic Chatbot"
+msgstr "Topic Chatbot"
+
+#. module: topic_chatbot
+#: model:res.groups,name:topic_chatbot.group_topic_chatbot_user
+msgid "User"
+msgstr "Người dùng"
+
+#. module: topic_chatbot
+#: model:res.groups,name:topic_chatbot.group_topic_chatbot_admin
+msgid "Administrator"
+msgstr "Quản trị viên"
+
+#. module: topic_chatbot
+#: model:ir.actions.client,name:topic_chatbot.action_topic_chatbot_dashboard
+#: model:ir.ui.menu,name:topic_chatbot.menu_topic_chatbot_dashboard
+msgid "Chatbot"
+msgstr "Trợ lý AI"
+
+#. module: topic_chatbot
+#: model:ir.actions.act_window,name:topic_chatbot.action_topic_chatbot_topic
+#: model:ir.ui.menu,name:topic_chatbot.menu_topic_chatbot_topics
+#: model:ir.model,name:topic_chatbot.model_topic_chatbot_topic
+#: field:topic_chatbot.document,topic_id:0
+#: field:topic_chatbot.chunk,topic_id:0
+#: field:topic_chatbot.conversation,topic_id:0
+msgid "Topics"
+msgstr "Chủ đề"
+
+#. module: topic_chatbot
+#: model:ir.model.fields,field_description:topic_chatbot.field_topic_chatbot_topic__name
+msgid "Topic Name"
+msgstr "Tên chủ đề"
+
+#. module: topic_chatbot
+#: model:ir.model.fields,field_description:topic_chatbot.field_topic_chatbot_topic__description
+msgid "Description"
+msgstr "Mô tả"
+
+#. module: topic_chatbot
+#: model:ir.model.fields,field_description:topic_chatbot.field_topic_chatbot_topic__is_public
+msgid "Is Public"
+msgstr "Công khai"
+
+#. module: topic_chatbot
+#: model:ir.model.fields,field_description:topic_chatbot.field_topic_chatbot_topic__user_id
+msgid "Owner"
+msgstr "Người sở hữu"
+
+#. module: topic_chatbot
+#: model:ir.model,name:topic_chatbot.model_topic_chatbot_document
+#: model:ir.model.fields,field_description:topic_chatbot.field_topic_chatbot_topic__document_ids
+msgid "Documents"
+msgstr "Tài liệu"
+
+#. module: topic_chatbot
+#: model:ir.model.fields,field_description:topic_chatbot.field_topic_chatbot_document__name
+msgid "Document Name"
+msgstr "Tên tài liệu"
+
+#. module: topic_chatbot
+#: model:ir.model.fields,field_description:topic_chatbot.field_topic_chatbot_document__datas
+msgid "File Content"
+msgstr "Nội dung tập tin"
+
+#. module: topic_chatbot
+#: model:ir.model.fields,field_description:topic_chatbot.field_topic_chatbot_document__filename
+msgid "Filename"
+msgstr "Tên file"
+
+#. module: topic_chatbot
+#: model:ir.model.fields,field_description:topic_chatbot.field_topic_chatbot_document__text_content
+msgid "Extracted Text"
+msgstr "Văn bản đã bóc tách"
+
+#. module: topic_chatbot
+#: model:ir.model.fields,field_description:topic_chatbot.field_topic_chatbot_document__state
+msgid "Status"
+msgstr "Trạng thái"
+
+#. module: topic_chatbot
+#: selection:topic_chatbot.document,state:0
+msgid "Draft"
+msgstr "Nháp"
+
+#. module: topic_chatbot
+#: selection:topic_chatbot.document,state:0
+msgid "Processing"
+msgstr "Đang xử lý"
+
+#. module: topic_chatbot
+#: selection:topic_chatbot.document,state:0
+msgid "Done"
+msgstr "Hoàn thành"
+
+#. module: topic_chatbot
+#: selection:topic_chatbot.document,state:0
+msgid "Error"
+msgstr "Lỗi"
+
+#. module: topic_chatbot
+#: model:ir.model,name:topic_chatbot.model_topic_chatbot_chunk
+#: model:ir.model.fields,field_description:topic_chatbot.field_topic_chatbot_topic__chunk_ids
+#: model:ir.model.fields,field_description:topic_chatbot.field_topic_chatbot_document__chunk_ids
+msgid "Chunks"
+msgstr "Phân đoạn văn bản"
+
+#. module: topic_chatbot
+#: model:ir.model.fields,field_description:topic_chatbot.field_topic_chatbot_chunk__content
+msgid "Chunk Content"
+msgstr "Nội dung phân đoạn"
+
+#. module: topic_chatbot
+#: model:ir.model,name:topic_chatbot.model_topic_chatbot_conversation
+#: model:ir.model.fields,field_description:topic_chatbot.field_topic_chatbot_topic__conversation_ids
+msgid "Conversations"
+msgstr "Hội thoại"
+
+#. module: topic_chatbot
+#: model:ir.model.fields,field_description:topic_chatbot.field_topic_chatbot_conversation__name
+msgid "Conversation Name"
+msgstr "Tên cuộc hội thoại"
+
+#. module: topic_chatbot
+#: model:ir.model.fields,field_description:topic_chatbot.field_topic_chatbot_conversation__user_id
+msgid "User"
+msgstr "Người dùng"
+
+#. module: topic_chatbot
+#: model:ir.model,name:topic_chatbot.model_topic_chatbot_message
+#: model:ir.model.fields,field_description:topic_chatbot.field_topic_chatbot_conversation__message_ids
+msgid "Messages"
+msgstr "Tin nhắn"
+
+#. module: topic_chatbot
+#: model:ir.model.fields,field_description:topic_chatbot.field_topic_chatbot_message__role
+msgid "Role"
+msgstr "Vai trò"
+
+#. module: topic_chatbot
+#: model:ir.model.fields,field_description:topic_chatbot.field_topic_chatbot_message__content
+msgid "Content"
+msgstr "Nội dung"
+
+#. module: topic_chatbot
+#: model:ir.ui.menu,name:topic_chatbot.menu_topic_chatbot_config_root
+msgid "Configuration"
+msgstr "Cấu hình"
+
+#. module: topic_chatbot
+#: model:ir.ui.menu,name:topic_chatbot.menu_topic_chatbot_settings
+msgid "Settings"
+msgstr "Thiết lập"
+
+#. module: topic_chatbot
+#: model:ir.model.fields,field_description:topic_chatbot.field_res_config_settings__topic_chatbot_gemini_api_key
+msgid "Gemini API Key"
+msgstr "Khóa API Gemini"
+
+#. module: topic_chatbot
+#: model:ir.model.fields,field_description:topic_chatbot.field_res_config_settings__topic_chatbot_gemini_model
+msgid "Gemini Model"
+msgstr "Mô hình Gemini"

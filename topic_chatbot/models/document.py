@@ -36,6 +36,18 @@ class TopicChatbotDocument(models.Model):
         ('error', 'Error')
     ], string='Status', default='draft', required=True, readonly=True)
 
+    @api.constrains('filename', 'datas')
+    def _check_file_extension(self):
+        ALLOWED_EXTENSIONS = ('.docx', '.txt')
+        for doc in self:
+            if doc.filename and doc.datas:
+                filename_lower = doc.filename.lower()
+                if not filename_lower.endswith(ALLOWED_EXTENSIONS):
+                    raise UserError(
+                        f"Tệp '{doc.filename}' không đúng định dạng. "
+                        "Hệ thống chỉ chấp nhận tệp định dạng .docx hoặc .txt!"
+                    )
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
@@ -71,16 +83,16 @@ class TopicChatbotDocument(models.Model):
                 filename = (doc.filename or '').lower()
                 extracted_text = ""
 
-                # Extract text based on file type
-                if filename.endswith('.pdf'):
-                    extracted_text = doc._extract_pdf_text(file_content)
-                elif filename.endswith('.docx'):
+                # Extract text based on file type (.docx and .txt only)
+                if filename.endswith('.docx'):
                     extracted_text = doc._extract_docx_text(file_content)
-                elif filename.endswith(('.txt', '.csv', '.json', '.xml', '.html', '.md')):
+                elif filename.endswith('.txt'):
                     extracted_text = file_content.decode('utf-8', errors='ignore')
                 else:
-                    # Default fallback: try to decode as text
-                    extracted_text = file_content.decode('utf-8', errors='ignore')
+                    raise UserError(
+                        f"Tệp '{doc.filename}' không được hỗ trợ. "
+                        "Hệ thống chỉ chấp nhận tệp định dạng .docx hoặc .txt!"
+                    )
 
                 doc.write({'text_content': extracted_text})
                 doc._warn_prompt_injection_patterns(extracted_text)

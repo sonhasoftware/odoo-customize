@@ -19,4 +19,8 @@ class ResConfigSettings(models.TransientModel):
        default='gemini-1.5-flash',
        help="Select the Gemini model for the chatbot."
     )
-
+    topic_chatbot_stop_words = fields.Char(
+        string='Custom Stop Words',
+        config_parameter='topic_chatbot.stop_words',
+        help="Comma-separated custom stop words to ignore during RAG search (e.g., xin, chao, giup)."
+    )

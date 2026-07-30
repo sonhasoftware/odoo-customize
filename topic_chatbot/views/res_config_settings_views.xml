@@ -32,6 +32,17 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="col-12 col-lg-6 o_setting_box" id="stop_words_setting">
+                                <div class="o_setting_right_pane">
+                                    <label for="topic_chatbot_stop_words" string="Custom Stop Words"/>
+                                    <div class="text-muted">
+                                        Comma-separated stop words to ignore during RAG search.
+                                    </div>
+                                    <div class="content-group mt8">
+                                        <field name="topic_chatbot_stop_words"/>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </block>
                 </app>

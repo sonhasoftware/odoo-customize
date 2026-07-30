@@ -29,7 +29,7 @@
                                 <tree string="Documents" editable="bottom">
                                     <field name="name"/>
                                     <field name="filename" column_invisible="True"/>
-                                    <field name="datas" filename="filename" string="Upload File"/>
+                                    <field name="datas" filename="filename" string="Upload File" options="{'accepted_file_extensions': '.docx,.txt'}"/>
                                     <field name="state" readonly="1" decoration-info="state == 'draft'" decoration-warning="state == 'processing'" decoration-success="state == 'done'" decoration-danger="state == 'error'"/>
                                     <field name="create_date" string="Uploaded On" readonly="1"/>
                                 </tree>
@@ -78,13 +78,5 @@
         <field name="res_model">topic_chatbot.topic</field>
         <field name="view_mode">tree,form</field>
         <field name="search_view_id" ref="view_topic_chatbot_topic_search"/>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Create a new Topic!
-            </p>
-            <p>
-                Topics represent the context of your chats. Upload documents (PDF/DOCX) to a Topic so the AI can answer based on their contents.
-            </p>
-        </field>
     </record>
 </odoo>

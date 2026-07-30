@@ -220,18 +220,16 @@ class TestTopicChatbotModels(TransactionCase):
         chunks = doc._chunk_text(normal_text)
         self.assertGreater(len(chunks), 0)
         
-    def test_14_document_error_handling(self):
-        """Test error handling in document processing."""
-        doc = self.env['topic_chatbot.document'].with_user(self.AdminUser).create({
-            'name': 'Error Test',
-            'topic_id': self.PublicTopic.id,
-            'datas': base64.b64encode(b'content'),
-            'filename': 'test.unsupported',
-        })
-        
-        # Should handle gracefully and use fallback text extraction
-        doc._process_document()
-        self.assertEqual(doc.state, 'done')
+    def test_14_document_unsupported_file_extension_raises_user_error(self):
+        """Test uploading unsupported file format raises UserError."""
+        from odoo.exceptions import UserError
+        with self.assertRaises(UserError):
+            self.env['topic_chatbot.document'].with_user(self.AdminUser).create({
+                'name': 'Error Test',
+                'topic_id': self.PublicTopic.id,
+                'datas': base64.b64encode(b'content'),
+                'filename': 'test.unsupported',
+            })
         
     def test_15_document_prompt_injection_warning(self):
         """Test prompt injection pattern detection."""
