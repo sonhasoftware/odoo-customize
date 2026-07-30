@@ -30,6 +30,7 @@
                                     <field name="name"/>
                                     <field name="filename" column_invisible="True"/>
                                     <field name="datas" filename="filename" string="Upload File"/>
+                                    <field name="state" readonly="1" decoration-info="state == 'draft'" decoration-warning="state == 'processing'" decoration-success="state == 'done'" decoration-danger="state == 'error'"/>
                                     <field name="create_date" string="Uploaded On" readonly="1"/>
                                 </tree>
                             </field>

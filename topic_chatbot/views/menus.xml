@@ -10,6 +10,7 @@
     <!-- Main Menus -->
     <menuitem id="menu_topic_chatbot_root"
               name="Topic Chatbot"
+              groups="topic_chatbot.group_topic_chatbot_user"
               sequence="10"/>
 
     <menuitem id="menu_topic_chatbot_dashboard"

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <function model="topic_chatbot.chunk" name="_create_fts_index"/>
+</odoo>

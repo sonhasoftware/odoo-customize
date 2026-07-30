@@ -26,69 +26,84 @@ class TopicChatbotDocument(models.Model):
         required=True, 
         ondelete='cascade'
     )
-    datas = fields.Binary(string='File Content', required=True)
+    datas = fields.Binary(string='File Content', required=True, attachment=True)
     filename = fields.Char(string='Filename')
     text_content = fields.Text(string='Extracted Text', readonly=True)
+    state = fields.Selection([
+        ('draft', 'Draft'),
+        ('processing', 'Processing'),
+        ('done', 'Done'),
+        ('error', 'Error')
+    ], string='Status', default='draft', required=True, readonly=True)
 
     @api.model_create_multi
     def create(self, vals_list):
+        for vals in vals_list:
+            if 'datas' in vals or 'filename' in vals:
+                vals['state'] = 'draft'
         records = super().create(vals_list)
-        for record in records:
-            record._process_document()
         return records
 
     def write(self, vals):
-        res = super().write(vals)
         if 'datas' in vals or 'filename' in vals:
-            for record in self:
-                record._process_document()
+            vals['state'] = 'draft'
+        res = super().write(vals)
         return res
 
+    @api.model
+    def _cron_process_documents(self):
+        """Cron job to process draft documents."""
+        documents = self.search([('state', '=', 'draft')], limit=5)
+        for doc in documents:
+            doc._process_document()
+
     def _process_document(self):
-        self.ensure_one()
-        if not self.datas:
-            return
+        for doc in self:
+            if not doc.datas:
+                doc.write({'state': 'done'})
+                continue
 
-        # Decode base64 file content
-        try:
-            file_content = base64.b64decode(self.datas)
-        except Exception as e:
-            _logger.error("Failed to decode base64 for document %s: %s", self.name, str(e))
-            raise UserError("Invalid file encoding.")
+            try:
+                doc.write({'state': 'processing'})
+                
+                # Decode base64 file content
+                file_content = base64.b64decode(doc.datas)
+                filename = (doc.filename or '').lower()
+                extracted_text = ""
 
-        filename = (self.filename or '').lower()
-        extracted_text = ""
+                # Extract text based on file type
+                if filename.endswith('.pdf'):
+                    extracted_text = doc._extract_pdf_text(file_content)
+                elif filename.endswith('.docx'):
+                    extracted_text = doc._extract_docx_text(file_content)
+                elif filename.endswith(('.txt', '.csv', '.json', '.xml', '.html', '.md')):
+                    extracted_text = file_content.decode('utf-8', errors='ignore')
+                else:
+                    # Default fallback: try to decode as text
+                    extracted_text = file_content.decode('utf-8', errors='ignore')
 
-        # Extract text based on file type
-        try:
-            if filename.endswith('.pdf'):
-                extracted_text = self._extract_pdf_text(file_content)
-            elif filename.endswith('.docx'):
-                extracted_text = self._extract_docx_text(file_content)
-            elif filename.endswith(('.txt', '.csv', '.json', '.xml', '.html', '.md')):
-                extracted_text = file_content.decode('utf-8', errors='ignore')
-            else:
-                # Default fallback: try to decode as text
-                extracted_text = file_content.decode('utf-8', errors='ignore')
-        except Exception as e:
-            _logger.error("Error extracting text from %s: %s", self.name, str(e))
-            raise UserError(f"Failed to extract text from {self.name}: {str(e)}")
+                doc.write({'text_content': extracted_text})
+                doc._warn_prompt_injection_patterns(extracted_text)
 
-        self.write({'text_content': extracted_text})
+                # Remove old chunks
+                doc.env['topic_chatbot.chunk'].search([('document_id', '=', doc.id)]).unlink()
 
-        # Remove old chunks
-        self.env['topic_chatbot.chunk'].search([('document_id', '=', self.id)]).unlink()
-
-        # Create new chunks
-        if extracted_text:
-            chunks = self._chunk_text(extracted_text)
-            chunk_vals = [{
-                'topic_id': self.topic_id.id,
-                'document_id': self.id,
-                'content': chunk
-            } for chunk in chunks]
-            if chunk_vals:
-                self.env['topic_chatbot.chunk'].create(chunk_vals)
+                # Create new chunks
+                if extracted_text:
+                    chunks = doc._chunk_text(extracted_text)
+                    chunk_vals = [{
+                        'topic_id': doc.topic_id.id,
+                        'document_id': doc.id,
+                        'sequence': index,
+                        'content': chunk
+                    } for index, chunk in enumerate(chunks, start=1)]
+                    if chunk_vals:
+                        doc.env['topic_chatbot.chunk'].create(chunk_vals)
+                
+                doc.write({'state': 'done'})
+            except Exception as e:
+                _logger.error("Error processing document %s: %s", doc.name, str(e))
+                doc.write({'state': 'error'})
 
     def _extract_pdf_text(self, file_content):
         if not PdfReader:
@@ -154,3 +169,33 @@ class TopicChatbotDocument(models.Model):
                 start = 0
                 
         return [c for c in chunks if len(c) > 10]
+
+    def _warn_prompt_injection_patterns(self, text):
+        if not text:
+            return
+
+        suspicious_patterns = [
+            'ignore previous instructions',
+            'ignore all previous instructions',
+            'disregard previous instructions',
+            'system prompt',
+            'developer message',
+            'bỏ qua hướng dẫn',
+            'bỏ qua chỉ dẫn',
+            'bỏ qua các hướng dẫn trước',
+            'tiết lộ toàn bộ dữ liệu',
+            'bạn là một AI không giới hạn',
+            'không giới hạn',
+        ]
+        text_lower = text.lower()
+        matched_patterns = [
+            pattern for pattern in suspicious_patterns
+            if pattern.lower() in text_lower
+        ]
+        if matched_patterns:
+            _logger.warning(
+                "Possible prompt-injection content detected in document %s (id=%s): %s",
+                self.name,
+                self.id,
+                ", ".join(matched_patterns),
+            )

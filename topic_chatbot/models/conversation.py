@@ -29,3 +29,4 @@ class TopicChatbotConversation(models.Model):
         'conversation_id', 
         string='Messages'
     )
+    is_processing = fields.Boolean(default=False, copy=False)

@@ -143,54 +143,102 @@ class ChatbotDashboard extends Component {
         const text = this.state.inputMessage.trim();
         if (!text || this.state.isSending || !this.state.activeConversationId) return;
 
-        // Clean input
         this.state.inputMessage = "";
 
-        // Instantly push user message to UI
+        const userMsgId = Date.now();
         this.state.messages.push({
-            id: Date.now(), // temporary client-side ID
+            id: userMsgId,
             role: "user",
             content: text,
             create_date: new Date()
         });
 
+        const botMsgId = Date.now() + 1;
+        this.state.messages.push({
+            id: botMsgId,
+            role: "model",
+            content: "",
+            create_date: new Date(),
+            isStreaming: true
+        });
+
         this.state.isSending = true;
 
         try {
-            const result = await this.rpc("/topic_chatbot/ask", {
-                conversation_id: this.state.activeConversationId,
-                message: text
+            const response = await fetch("/topic_chatbot/ask_stream", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    conversation_id: this.state.activeConversationId,
+                    message: text
+                })
             });
 
-            if (result.error) {
-                this.notification.add(result.error, { type: "danger" });
-                // Remove the failed user message
-                this.state.messages.pop();
-            } else {
-                // Update conversation list name if it was updated from 'New Chat'
-                const currentConv = this.state.conversations.find(c => c.id === this.state.activeConversationId);
-                if (currentConv && result.conversation_name) {
-                    currentConv.name = result.conversation_name;
-                }
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.error || `HTTP ${response.status}`);
+            }
 
-                // Add assistant response
-                this.state.messages.push({
-                    id: Date.now() + 1,
-                    role: "model",
-                    content: result.response,
-                    create_date: new Date()
-                });
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = "";
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split("\n");
+                buffer = lines.pop() || "";
+
+                for (const line of lines) {
+                    if (line.startsWith("data: ")) {
+                        try {
+                            const event = JSON.parse(line.slice(6));
+                            this._handleStreamEvent(event, botMsgId);
+                        } catch (_e) {
+                            // skip malformed event
+                        }
+                    }
+                }
             }
         } catch (error) {
-            this.notification.add(_("Lỗi kết nối API: ") + error.message, { type: "danger" });
-            this.state.messages.push({
-                id: Date.now() + 1,
-                role: "model",
-                content: "Đã xảy ra lỗi kết nối: " + error.message,
-                create_date: new Date()
-            });
+            const botMsg = this.state.messages.find(m => m.id === botMsgId);
+            if (botMsg) {
+                botMsg.content = "Đã xảy ra lỗi kết nối: " + error.message;
+                botMsg.isStreaming = false;
+            }
         } finally {
+            const botMsg = this.state.messages.find(m => m.id === botMsgId);
+            if (botMsg) {
+                botMsg.isStreaming = false;
+            }
             this.state.isSending = false;
+        }
+    }
+
+    _handleStreamEvent(event, botMsgId) {
+        const botMsg = this.state.messages.find(m => m.id === botMsgId);
+        if (!botMsg) return;
+
+        switch (event.type) {
+            case "token":
+                botMsg.content += event.content;
+                break;
+            case "error":
+                botMsg.content = event.content;
+                botMsg.isStreaming = false;
+                break;
+            case "done":
+                botMsg.isStreaming = false;
+                if (event.conversation_name) {
+                    const conv = this.state.conversations.find(
+                        c => c.id === this.state.activeConversationId
+                    );
+                    if (conv) conv.name = event.conversation_name;
+                }
+                break;
+            // "status" events are ignored (shown via typing indicator already)
         }
     }
 
@@ -210,31 +258,90 @@ class ChatbotDashboard extends Component {
     formatMarkdown(text) {
         if (!text) return "";
         let cleaned = text.replace(/<br\s*\/?>/gi, "\n");
-        let formatted = cleaned
+        const codeBlocks = [];
+        cleaned = cleaned.replace(/```([\s\S]*?)```/g, (match, code) => {
+            const index = codeBlocks.length;
+            const escapedCode = code.trim()
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;");
+            codeBlocks.push(`<div class="md-code-block-wrap"><button class="md-copy-btn" onclick="copyCode(this)" data-code="${escapedCode}" title="Copy code"><i class="fa fa-copy"></i></button><pre class="md-code-block"><code>${escapedCode}</code></pre></div>`);
+            return `\n@@CODEBLOCK_${index}@@\n`;
+        });
+
+        let escaped = cleaned
             .replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;");
 
+        const applyInlineMarkdown = (value) => value
+            .replace(/`([^`\n]+)`/g, "<code class='md-inline-code'>$1</code>")
+            .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+            .replace(/\*([^*]+)\*/g, "<em>$1</em>");
 
-        // Code blocks
-        formatted = formatted.replace(/```([\s\S]*?)```/g, (match, code) => {
-            return `<pre class="bg-gray-800 text-white p-3 rounded my-2 overflow-x-auto font-mono text-sm"><code>${code.trim()}</code></pre>`;
-        });
+        const splitTableRow = (line) => line
+            .trim()
+            .replace(/^\|/, "")
+            .replace(/\|$/, "")
+            .split("|")
+            .map((cell) => applyInlineMarkdown(cell.trim()));
 
-        // Inline code
-        formatted = formatted.replace(/`([^`\n]+)`/g, "<code class='bg-gray-200 text-red-600 px-1 py-0.5 rounded font-mono text-xs'>$1</code>");
+        const lines = escaped.split("\n");
+        const blocks = [];
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            const codeMatch = line.match(/^@@CODEBLOCK_(\d+)@@$/);
+            if (codeMatch) {
+                blocks.push(codeBlocks[Number(codeMatch[1])] || "");
+                continue;
+            }
+            if (!line) {
+                blocks.push("");
+                continue;
+            }
 
-        // Bold
-        formatted = formatted.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+            const nextLine = (lines[i + 1] || "").trim();
+            if (line.startsWith("|") && /^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/.test(nextLine)) {
+                const headerCells = splitTableRow(line);
+                i += 2;
+                const bodyRows = [];
+                while (i < lines.length && lines[i].trim().startsWith("|")) {
+                    bodyRows.push(splitTableRow(lines[i]));
+                    i++;
+                }
+                i--;
+                const header = headerCells.map((cell) => `<th>${cell}</th>`).join("");
+                const body = bodyRows
+                    .map((row) => `<tr>${row.map((cell) => `<td>${cell}</td>`).join("")}</tr>`)
+                    .join("");
+                blocks.push(`<div class="md-table-wrap"><table class="md-table"><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table></div>`);
+                continue;
+            }
 
-        // Italic
-        formatted = formatted.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+            const heading = line.match(/^(#{1,4})\s+(.+)$/);
+            if (heading) {
+                const level = Math.min(heading[1].length, 4);
+                blocks.push(`<h${level + 2} class="md-heading md-heading-${level}">${applyInlineMarkdown(heading[2])}</h${level + 2}>`);
+                continue;
+            }
 
-        // Bullet lists
-        formatted = formatted.replace(/^\s*[-*]\s+(.+)$/gm, "<li class='ml-4 list-disc mt-1'>$1</li>");
+            const bullet = line.match(/^[-*]\s+(.+)$/);
+            if (bullet) {
+                blocks.push(`<div class="md-list-item"><span class="md-list-marker">•</span><span>${applyInlineMarkdown(bullet[1])}</span></div>`);
+                continue;
+            }
 
-        // Line breaks
-        formatted = formatted.replace(/\n/g, "<br/>");
+            const numbered = line.match(/^(\d+)\.\s+(.+)$/);
+            if (numbered) {
+                blocks.push(`<div class="md-list-item"><span class="md-list-marker">${numbered[1]}.</span><span>${applyInlineMarkdown(numbered[2])}</span></div>`);
+                continue;
+            }
+
+            blocks.push(`<div class="md-paragraph">${applyInlineMarkdown(line)}</div>`);
+        }
+
+        const formatted = blocks.join("");
 
         return markup(formatted);
 
@@ -243,4 +350,16 @@ class ChatbotDashboard extends Component {
 
 ChatbotDashboard.template = "topic_chatbot.ChatbotDashboard";
 registry.category("actions").add("topic_chatbot.dashboard", ChatbotDashboard);
+
+window.copyCode = function (btn) {
+    const code = btn.getAttribute("data-code");
+    navigator.clipboard.writeText(code).then(() => {
+        const icon = btn.querySelector("i");
+        icon.className = "fa fa-check";
+        setTimeout(() => { icon.className = "fa fa-copy"; }, 2000);
+    }).catch(() => {
+        // clipboard not available
+    });
+};
+
 export { ChatbotDashboard };

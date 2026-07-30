@@ -16,10 +16,12 @@ It supports:
 - Permissions: Public topics (Admin-created) and Private topics (User-created).
     """,
     'author': 'Sonha',
-    'depends': ['base', 'web', 'mail'],
+    'depends': ['base', 'web', 'mail', 'hr', 'sonha_kpi'],
     'data': [
         'security/security.xml',
         'security/ir.model.access.csv',
+        'data/fts_index.xml',
+        'data/cron.xml',
         'views/res_config_settings_views.xml',
         'views/topic_views.xml',
         'views/menus.xml',

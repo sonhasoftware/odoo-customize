@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <templates xml:space="preserve">
     <t t-name="topic_chatbot.ChatbotDashboard" owl="1">
         <div class="o_chatbot_dashboard">
@@ -118,37 +118,32 @@
                                             <i class="fa fa-user"></i>
                                         </t>
                                         <t t-else="">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="white">
-                                                <path d="M12 2a1 1 0 0 1 .9.6l1.8 3.6 3.6 1.8a1 1 0 0 1 0 1.8l-3.6 1.8-1.8 3.6a1 1 0 0 1-1.8 0l-1.8-3.6-3.6-1.8a1 1 0 0 1 0-1.8l3.6-1.8 1.8-3.6A1 1 0 0 1 12 2zm5 12a.5.5 0 0 1 .5.3l.9 1.8 1.8.9a.5.5 0 0 1 0 .9l-1.8.9-.9 1.8a.5.5 0 0 1-.9 0l-.9-1.8-1.8-.9a.5.5 0 0 1 0-.9l1.8-.9.9-1.8a.5.5 0 0 1 .5-.3zm-10-9a.5.5 0 0 1 .5.3l.9 1.8 1.8.9a.5.5 0 0 1 0 .9l-1.8.9-.9 1.8a.5.5 0 0 1-.9 0l-.9-1.8-1.8-.9a.5.5 0 0 1 0-.9l1.8-.9.9-1.8a.5.5 0 0 1 .5-.3z"/>
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none">
+                                                <rect x="4" y="8" width="16" height="11" rx="4" fill="white"/>
+                                                <circle cx="9" cy="13.5" r="1.4" fill="#4A5568"/>
+                                                <circle cx="15" cy="13.5" r="1.4" fill="#4A5568"/>
+                                                <path d="M12 8V4.5" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+                                                <circle cx="12" cy="3" r="1.5" fill="white"/>
+                                                <path d="M2 12v3M22 12v3" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
                                             </svg>
                                         </t>
                                     </div>
                                     <div class="message_bubble">
                                         <div class="message_sender" t-out="msg.role === 'user' ? 'Bạn' : 'AI Assistant'"/>
-                                        <div class="message_content" t-out="this.formatMarkdown(msg.content)"/>
+                                        <div class="message_content" t-if="!msg.isStreaming" t-out="this.formatMarkdown(msg.content)"/>
+                                        <t t-else="">
+                                            <div class="message_content streaming-text" t-if="msg.content" t-out="msg.content"/>
+                                            <div class="message_content pt-1" t-else="">
+                                                <div class="spinner-chat">
+                                                    <div class="bounce1"></div>
+                                                    <div class="bounce2"></div>
+                                                    <div class="bounce3"></div>
+                                                </div>
+                                            </div>
+                                        </t>
                                     </div>
                                 </div>
                             </t>
-
-                            <!-- AI Typing Spinner -->
-                            <div class="message_wrapper model" t-if="state.isSending">
-                                <div class="message_avatar">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="white">
-                                        <path d="M12 2a1 1 0 0 1 .9.6l1.8 3.6 3.6 1.8a1 1 0 0 1 0 1.8l-3.6 1.8-1.8 3.6a1 1 0 0 1-1.8 0l-1.8-3.6-3.6-1.8a1 1 0 0 1 0-1.8l3.6-1.8 1.8-3.6A1 1 0 0 1 12 2zm5 12a.5.5 0 0 1 .5.3l.9 1.8 1.8.9a.5.5 0 0 1 0 .9l-1.8.9-.9 1.8a.5.5 0 0 1-.9 0l-.9-1.8-1.8-.9a.5.5 0 0 1 0-.9l1.8-.9.9-1.8a.5.5 0 0 1 .5-.3zm-10-9a.5.5 0 0 1 .5.3l.9 1.8 1.8.9a.5.5 0 0 1 0 .9l-1.8.9-.9 1.8a.5.5 0 0 1-.9 0l-.9-1.8-1.8-.9a.5.5 0 0 1 0-.9l1.8-.9.9-1.8a.5.5 0 0 1 .5-.3z"/>
-                                    </svg>
-                                </div>
-
-                                <div class="message_bubble">
-                                    <div class="message_sender">AI Assistant</div>
-                                    <div class="message_content pt-1">
-                                        <div class="spinner-chat">
-                                            <div class="bounce1"></div>
-                                            <div class="bounce2"></div>
-                                            <div class="bounce3"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </t>
                 </div>
@@ -192,4 +187,3 @@
         </div>
     </t>
 </templates>
-
