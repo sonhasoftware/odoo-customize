@@ -65,9 +65,7 @@ class DataAttendance(models.Model):
             "CALL PR_DL_MCC_OLD(%s, %s);",
             (start_date_text, end_date_text)
         )
-        rows = self.env.cr.dictfetchall()
-
-        return rows
+        return True
 
         # attendance_records = self.sudo().search([
         #     ('date_time', '>=', start_date),
