@@ -209,12 +209,14 @@ class ImportTongHopBcuWizard(models.TransientModel):
                 've_du_kien_t0', 've_du_kien_t1', 've_du_kien_t2', 've_du_kien_t3',
                 'write_date', 'write_uid',
             ])
-            message = _(
-                'Import thành công: cập nhật %d dòng hàng đi đường BCU '
-                '(chỉ cột đối chiếu, không tính lại tồn cuối/thiếu).'
-            ) % updated
+            self._post_period_import_file_log(
+                self.period_id,
+                '<p><b>Đã import file vật tư đi đường BCU %s.</b></p>'
+                % (self.file_name or '-'),
+            )
+            title = _('Hoàn tất import hàng đi đường BCU.')
+            success = True
         else:
-            message = _('Không có dữ liệu hợp lệ để import.')
-
-        return self._notify_and_close(
-            _('Import hàng đi đường BCU'), message, success=bool(updated))
+            title = _('Không có dữ liệu hợp lệ để import.')
+            success = False
+        return self._notify_and_close(title, '', success=success)

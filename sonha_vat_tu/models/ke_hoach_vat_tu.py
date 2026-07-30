@@ -69,7 +69,6 @@ class KeHoachVatTu(models.Model):
     approval_state = fields.Selection(
         [
             ('draft', 'Chưa gửi duyệt'),
-            ('pending', 'Đang duyệt'),
             ('approved', 'Đã duyệt'),
         ],
         string='Trạng thái phê duyệt',
@@ -80,7 +79,7 @@ class KeHoachVatTu(models.Model):
     )
     approval_current_sequence = fields.Integer(
         string='Bước duyệt hiện tại',
-        default=0,
+        default=1,
         copy=False,
     )
     workflow_form_view_id = fields.Many2one(
@@ -109,6 +108,13 @@ class KeHoachVatTu(models.Model):
         string='Đã import vật tư đi đường (B3)',
         default=False,
         copy=False,
+    )
+    co_ke_hoach_vat_tu = fields.Boolean(
+        string='Đã tạo kế hoạch vật tư',
+        default=False,
+        copy=False,
+        readonly=True,
+        help='Bật khi nhấn Tạo kế hoạch vật tư từ màn sản xuất; menu Kế hoạch vật tư chỉ hiện kỳ có cờ này.',
     )
 
     ke_hoach_kinh_doanh_ids = fields.One2many('ke.hoach.kinh.doanh', 'period_id', string='Kế hoạch kinh doanh')
@@ -142,6 +148,7 @@ class KeHoachVatTu(models.Model):
                 rec.approval_company_id = companies[:1] if len(companies) == 1 else False
 
     @api.depends(
+        'state',
         'approval_state',
         'approval_current_sequence',
         'approval_step_ids.sequence',
@@ -151,16 +158,74 @@ class KeHoachVatTu(models.Model):
     def _compute_can_approve(self):
         current_user = self.env.user
         for rec in self:
+            if rec.state != 'dat_hang' or rec.approval_state == 'approved':
+                rec.can_approve = False
+                continue
             current_steps = rec.approval_step_ids.filtered(
-                lambda step: (
-                    step.sequence == rec.approval_current_sequence
-                    and not step.da_duyet
-                )
+                lambda step: step.sequence == rec.approval_current_sequence
             )
-            rec.can_approve = (
-                rec.approval_state == 'pending'
-                and any(step.nguoi_duyet_id == current_user for step in current_steps)
+            rec.can_approve = any(
+                step.nguoi_duyet_id == current_user and not step.da_duyet
+                for step in current_steps
             )
+
+    def _approval_step_commands_from_flow(self, flow):
+        """Sinh lệnh One2many cho các bước duyệt từ luồng cấu hình."""
+        if not flow:
+            return [(5, 0, 0)], 1
+
+        lines = [(5, 0, 0)]
+        configured_steps = flow.sudo().step_ids.sorted(
+            key=lambda step: (step.sequence, step.id)
+        )
+        for step in configured_steps:
+            if step.phuong_thuc == 'ql':
+                lines.append((0, 0, {
+                    'sequence': step.sequence,
+                    'phuong_thuc': step.phuong_thuc,
+                    'vai_tro_id': step.vai_tro.id or False,
+                    'nguoi_duyet_id': self.env.user.id,
+                }))
+            else:
+                for user in step.ten_nguoi_duyet:
+                    lines.append((0, 0, {
+                        'sequence': step.sequence,
+                        'phuong_thuc': step.phuong_thuc,
+                        'vai_tro_id': step.vai_tro.id or False,
+                        'nguoi_duyet_id': user.id,
+                    }))
+        first_sequence = min(configured_steps.mapped('sequence')) if configured_steps else 1
+        return lines, first_sequence
+
+    def _sync_approval_steps_from_flow(self):
+        """Ghi bước duyệt từ luồng (sudo) — tránh mất line khi field readonly trên form."""
+        for rec in self:
+            if rec.approval_state == 'approved':
+                continue
+            lines, first_sequence = rec._approval_step_commands_from_flow(rec.approval_flow_id)
+            rec.sudo().write({
+                'approval_step_ids': lines,
+                'approval_current_sequence': first_sequence,
+            })
+
+    @api.onchange('approval_flow_id')
+    def _onchange_approval_flow_id(self):
+        """Giống MDM: chọn luồng duyệt → sinh luôn các bước trên tab Phê duyệt."""
+        lines, first_sequence = self._approval_step_commands_from_flow(self.approval_flow_id)
+        self.approval_step_ids = lines
+        self.approval_current_sequence = first_sequence
+
+    def write(self, vals):
+        flow_changed = 'approval_flow_id' in vals
+        if flow_changed:
+            vals = dict(vals)
+            vals.pop('approval_step_ids', None)
+        res = super().write(vals)
+        if flow_changed:
+            self.filtered(
+                lambda rec: rec.approval_state != 'approved'
+            )._sync_approval_steps_from_flow()
+        return res
 
     _sql_constraints = [
         ('code_uniq', 'unique(code)', 'Mã kỳ phải duy nhất!'),
@@ -332,10 +397,12 @@ class KeHoachVatTu(models.Model):
         return super().create(vals_list)
 
     def unlink(self):
-        locked = self.filtered(lambda rec: rec.state != 'ke_hoach' or rec.approval_state != 'draft')
+        locked = self.filtered(
+            lambda rec: rec.state != 'ke_hoach' or rec.approval_state == 'approved'
+        )
         if locked:
             raise UserError(_(
-                'Không thể xóa kỳ kế hoạch đã sang bước sau hoặc đã gửi/phê duyệt kế hoạch đặt vật tư.'
+                'Không thể xóa kỳ kế hoạch đã sang bước sau hoặc đã phê duyệt kế hoạch đặt vật tư.'
             ))
         return super().unlink()
 
@@ -390,6 +457,58 @@ class KeHoachVatTu(models.Model):
             return res
         except Exception:
             return []
+
+    def _vat_tu_di_duong_template_rows(self):
+        """Sinh dòng template import vật tư đi đường từ B3: mỗi NVL × đơn vị KD, 4 cột tháng."""
+        self.ensure_one()
+        months = self._get_horizon_months()
+        if len(months) < 4:
+            months = (months + [''] * 4)[:4]
+        month_keys = months[:4]
+
+        lines = self.tinh_toan_vat_tu_ids.sorted(
+            key=lambda line: (
+                (line.don_vi_kd_code or '').strip(),
+                (line.ma_vat_tu or '').strip(),
+                line.id,
+            )
+        )
+        if not lines:
+            return []
+
+        company_ids = lines.mapped('don_vi_kd_id').ids
+        ma_nvls = sorted({
+            (line.ma_vat_tu or '').strip()
+            for line in lines if (line.ma_vat_tu or '').strip()
+        })
+
+        existing = {}
+        if company_ids and ma_nvls and month_keys:
+            for rec in self.env['vat.tu.di.duong'].sudo().search([
+                ('company_id', 'in', company_ids),
+                ('ma_nvl', 'in', ma_nvls),
+                ('month_key', 'in', month_keys),
+            ]):
+                existing[(rec.company_id.id, rec.ma_nvl, rec.month_key)] = rec.so_luong or 0.0
+
+        rows = []
+        for line in lines:
+            if not line.don_vi_kd_id or not (line.ma_vat_tu or '').strip():
+                continue
+            company_code = (line.don_vi_kd_code or '').strip()
+            if not company_code:
+                company_code = self._company_display_code(line.don_vi_kd_id)
+            ma_nvl = (line.ma_vat_tu or '').strip()
+            rows.append({
+                'company_code': company_code,
+                'ma_nvl': ma_nvl,
+                'ten_nvl': line.ten_vat_tu or '',
+                'qtys': [
+                    existing.get((line.don_vi_kd_id.id, ma_nvl, mk), 0.0)
+                    for mk in month_keys
+                ],
+            })
+        return rows
 
     # ------------------------------------------------------------------
     # Actions — gọi thẳng SQL Procedure
@@ -569,7 +688,10 @@ class KeHoachVatTu(models.Model):
             raise UserError(_('Kế hoạch vật tư đã có dữ liệu. Vui lòng xóa dữ liệu cũ nếu cần tạo lại.'))
 
         production_company = self._get_current_production_company()
-        self.write({'company_sx_id': production_company.id})
+        self.write({
+            'company_sx_id': production_company.id,
+            'co_ke_hoach_vat_tu': True,
+        })
 
         unassigned_sx = self.ke_hoach_san_xuat_ids.filtered(lambda line: not line.company_sx_id)
         if unassigned_sx:
@@ -629,8 +751,8 @@ class KeHoachVatTu(models.Model):
 
     def action_open_import_bcu_wizard(self):
         self.ensure_one()
-        if self.state != 'tong_hop':
-            raise UserError(_('Chỉ import hàng đi đường BCU khi đã ở bước Tổng hợp vật tư cần sản xuất.'))
+        # if self.state != 'tong_hop':
+        #     raise UserError(_('Chỉ import hàng đi đường BCU khi đã ở bước Tổng hợp vật tư cần sản xuất.'))
         if not self.tong_hop_vat_tu_ids.filtered(lambda r: not r.don_vi_kd_id):
             raise UserError(_('Chưa có dữ liệu Tổng hợp vật tư cần sản xuất. Vui lòng chạy bước này trước khi import.'))
         view = self.env.ref('sonha_vat_tu.view_import_tong_hop_bcu_wizard_form')
@@ -654,80 +776,16 @@ class KeHoachVatTu(models.Model):
         self.state = 'dat_hang'
         return self.action_open_step_b5()
 
-    def _approval_manager_user(self):
-        self.ensure_one()
-        return self.env.user
-
-    def action_submit_approval(self):
-        self.ensure_one()
-        if self.state != 'dat_hang' or not self.kh_dat_vat_tu_ids:
-            raise UserError(_('Chỉ có thể gửi duyệt sau khi đã sinh kế hoạch đặt vật tư.'))
-        if self.approval_state != 'draft':
-            raise UserError(_('Kế hoạch này đã được gửi duyệt.'))
-        if not self.approval_flow_id:
-            raise UserError(_('Vui lòng chọn Luồng duyệt trước khi gửi duyệt.'))
-        if self.approval_flow_id.model_id.model != self._name:
-            raise UserError(_(
-                'Luồng duyệt đã chọn không áp dụng cho model Kế hoạch vật tư.'
-            ))
-        if not self.approval_company_id:
-            raise UserError(_(
-                'Không xác định được duy nhất một đơn vị sản xuất để phê duyệt.'
-            ))
-        if self.approval_flow_id.dvcs != self.approval_company_id:
-            raise UserError(_(
-                'Luồng duyệt thuộc đơn vị %s, nhưng kế hoạch đặt vật tư thuộc đơn vị %s.'
-            ) % (
-                self._company_display_code(self.approval_flow_id.dvcs),
-                self._company_display_code(self.approval_company_id),
-            ))
-
-        configured_steps = self.approval_flow_id.sudo().step_ids.sorted(
-            key=lambda step: (step.sequence, step.id)
-        )
-        if not configured_steps:
-            raise UserError(_('Luồng duyệt chưa có bước duyệt nào.'))
-
-        step_values = []
-        for configured_step in configured_steps:
-            if configured_step.phuong_thuc == 'ql':
-                approvers = self._approval_manager_user()
-            else:
-                approvers = configured_step.ten_nguoi_duyet
-            if not approvers:
-                raise UserError(_(
-                    'Bước duyệt STT %s chưa xác định được người duyệt.'
-                ) % configured_step.sequence)
-            for approver in approvers:
-                step_values.append({
-                    'period_id': self.id,
-                    'sequence': configured_step.sequence,
-                    'phuong_thuc': configured_step.phuong_thuc,
-                    'vai_tro_id': configured_step.vai_tro.id or False,
-                    'nguoi_duyet_id': approver.id,
-                })
-
-        self.approval_step_ids.sudo().unlink()
-        self.env['buoc.duyet.ke.hoach.vat.tu'].sudo().create(step_values)
-        first_sequence = min(value['sequence'] for value in step_values)
-        self.write({
-            'approval_state': 'pending',
-            'approval_current_sequence': first_sequence,
-        })
-        self.message_post(body=_(
-            '%s đã gửi duyệt kế hoạch đặt vật tư theo luồng "%s".'
-        ) % (self.env.user.name, self.approval_flow_id.ten))
-        self.invalidate_recordset([
-            'approval_step_ids',
-            'approval_state',
-            'approval_current_sequence',
-        ])
-        return self.action_approve_material_plan()
-
     def action_approve_material_plan(self):
         self.ensure_one()
-        if self.approval_state != 'pending':
-            raise UserError(_('Kế hoạch không ở trạng thái đang duyệt.'))
+        if self.state != 'dat_hang' or not self.kh_dat_vat_tu_ids:
+            raise UserError(_('Chỉ có thể duyệt sau khi đã sinh kế hoạch đặt vật tư.'))
+        if self.approval_state == 'approved':
+            raise UserError(_('Kế hoạch đặt vật tư đã được phê duyệt.'))
+        if not self.approval_flow_id:
+            raise UserError(_('Vui lòng chọn Luồng duyệt trước khi duyệt.'))
+        if not self.approval_step_ids:
+            raise UserError(_('Chưa có bước duyệt. Vui lòng chọn lại Luồng duyệt.'))
 
         current_steps = self.approval_step_ids.filtered(
             lambda step: step.sequence == self.approval_current_sequence
@@ -996,7 +1054,7 @@ class KeHoachVatTu(models.Model):
             ('Dự trữ tối thiểu', 'sl_du_tru_toi_thieu', 'qty'),
             ('Đề xuất đặt mua', 'sl_dat_mua_de_xuat', 'qty'),
             ('Đặt mua chốt', 'sl_dat_mua_chot', 'qty'),
-            ('SL mua theo MOQ', 'sl_can_mua_theo_moq', 'qty'),
+            ('SL cần mua dựa theo MOQ NCC', 'sl_can_mua_theo_moq', 'qty'),
             ('Đơn giá mua', 'don_gia_mua', 'money'),
             ('Giá trị mua', 'gia_tri_mua_hang', 'money'),
             ('Tồn kho cuối kỳ', 'sl_ton_kho_cuoi_ky', 'qty'),
@@ -1480,7 +1538,7 @@ class KeHoachVatTu(models.Model):
             period.approval_step_ids.unlink()
             period.write({
                 'approval_state': 'draft',
-                'approval_current_sequence': 0,
+                'approval_current_sequence': 1,
             })
         elif from_state == 'tong_hop':
             period.tong_hop_vat_tu_ids.with_context(**ctx).unlink()
@@ -1539,9 +1597,9 @@ class KeHoachVatTu(models.Model):
         mapping = self._RESET_PREVIOUS.get(self.state)
         if not mapping:
             raise UserError(_('Không thể quay lại bước trước từ trạng thái hiện tại.'))
-        if self.state == 'dat_hang' and self.approval_state != 'draft':
+        if self.state == 'dat_hang' and self.approval_state == 'approved':
             raise UserError(_(
-                'Không thể quay lại khi kế hoạch đặt vật tư đã gửi hoặc đang phê duyệt.'
+                'Không thể quay lại khi kế hoạch đặt vật tư đã được phê duyệt.'
             ))
         target_state, action_xmlid = mapping
         extra = {}

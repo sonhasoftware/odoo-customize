@@ -108,7 +108,7 @@ const MONTH_FIELD_LABELS = (() => {
         tong_hang_di_duong_sl_t: "Hàng đi đường",
         tong_sl_vt_can_dung_t: "Vật tư cần dùng",
         sl_du_tru_toi_thieu_t: "Dự trữ tối thiểu",
-        sl_can_mua_theo_moq_t: "Cần mua theo MOQ",
+        sl_can_mua_theo_moq_t: "SL cần mua dựa theo MOQ NCC",
         sl_dat_mua_de_xuat_t: "Đặt mua đề xuất",
         sl_dat_mua_chot_t: "Đặt mua chốt",
         sl_ton_kho_t: "Tồn sau mua",

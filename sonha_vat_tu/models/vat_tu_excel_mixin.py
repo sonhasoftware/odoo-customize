@@ -8,6 +8,8 @@ from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
 
+from markupsafe import Markup
+
 from odoo import api, models, _
 from odoo.exceptions import UserError
 
@@ -20,9 +22,7 @@ DV_LAST_ROW = 5000
 
 
 class VatTuExcelMixin(models.AbstractModel):
-    """Đọc/ghi file Excel dùng chung cho các wizard import và các action export.
-    Wizard dùng phần đọc file cần có 2 field `file_data` và `file_name`.
-    """
+    """Đọc/ghi file Excel dùng chung cho các wizard import và các action export."""
     _name = 'vat.tu.excel.mixin'
     _description = 'Helper Excel dùng chung cho vật tư'
 
@@ -152,8 +152,7 @@ class VatTuExcelMixin(models.AbstractModel):
 
     @api.model
     def _style_excel_body(self, ws, max_col, first_row, last_row):
-        """Chỉ tô các dòng thực sự có dữ liệu — tô sẵn vài nghìn dòng trống
-        làm file phình to và chậm mà không đem lại gì."""
+        """Chỉ tô các dòng thực sự có dữ liệu"""
         if not last_row or last_row < first_row:
             return
         body_font = Font(name=EXCEL_FONT_NAME, size=EXCEL_FONT_SIZE)
@@ -190,6 +189,22 @@ class VatTuExcelMixin(models.AbstractModel):
     # ------------------------------------------------------------------
     # Kết quả import
     # ------------------------------------------------------------------
+    def _post_period_import_file_log(self, period, body_html):
+        """Ghi log import file lên chatter kỳ kế hoạch kèm file Excel."""
+        self.ensure_one()
+        if not period or not self.file_data:
+            return
+        filename = self.file_name or 'import.xlsx'
+        attachment = self.env['ir.attachment'].sudo().create({
+            'name': filename,
+            'type': 'binary',
+            'datas': self.file_data,
+            'res_model': 'ke.hoach.vat.tu',
+            'res_id': period.id,
+            'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        })
+        period.message_post(body=Markup(body_html), attachment_ids=[attachment.id])
+
     @api.model
     def _raise_import_errors(self, errors, header=None):
         if not errors:

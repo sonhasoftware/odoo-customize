@@ -1,82 +1,36 @@
 -- ############################################################################
 -- ĐỒNG BỘ BẢNG PHẲNG  du_lieu_tong_hop_vat_tu
 -- ----------------------------------------------------------------------------
--- File này là TOÀN BỘ tầng đồng bộ của module. Trước đây phần việc này nằm ở
--- 2 file (du_lieu_tong_hop_vat_tu_triggers.sql + fn_dlthvt_bulk_sync.sql) với
--- 2 bản mapping song song, 3 cơ chế bật/tắt trigger và 1 hook postcommit.
--- Nay gộp về 1 file, 1 bản mapping duy nhất, không còn công tắc nào.
---
--- Yêu cầu PostgreSQL >= 14 (REFERENCING NEW/OLD TABLE + EXECUTE FUNCTION).
--- Local/server 15–17 đều ổn.
---
+-- Trigger + hàm mapping: bảng nguồn (KD/SX/B1–B5) -> du_lieu_tong_hop_vat_tu.
+-- Chạy lại mỗi lần install/upgrade module sonha_vat_tu.
 -- ============================================================================
--- NGUYÊN TẮC THIẾT KẾ  (đọc phần này trước khi sửa bất cứ thứ gì)
+-- THIẾT KẾ
 -- ============================================================================
 --
--- 1) TRIGGER Ở MỨC CÂU LỆNH, KHÔNG PHẢI MỨC DÒNG.
---    Mỗi trigger khai báo FOR EACH STATEMENT kèm REFERENCING NEW/OLD TABLE
---    (PostgreSQL >= 10; local/server hiện dùng 15–17 đều ổn). Nhờ vậy trigger
---    chỉ chạy ĐÚNG MỘT LẦN cho mỗi câu lệnh SQL, bất kể câu lệnh đó chạm 1
---    dòng hay 50.000 dòng.
---      - Sửa 1 ô trên giao diện Odoo  -> 1 câu UPDATE  -> trigger chạy 1 lần.
---      - Procedure sinh 50.000 dòng   -> 1 câu INSERT  -> trigger chạy 1 lần.
---    Đây là lý do KHÔNG CẦN tắt trigger khi ghi hàng loạt. Mọi cờ điều khiển
---    cũ (app.dlthvt_skip, app.dlthvt_bulk) và mọi câu ALTER TABLE ... DISABLE
---    TRIGGER đã bị bỏ. Không được thêm lại: hễ có công tắc là có ngày quên
---    bật, và bảng phẳng lệch âm thầm.
+-- 1) Trigger mức câu lệnh (FOR EACH STATEMENT + REFERENCING NEW/OLD TABLE).
+--    Một câu INSERT/UPDATE/DELETE dù 1 hay nhiều dòng chỉ kích hoạt trigger 1 lần.
 --
--- 2) MỖI BƯỚC CHỈ CÓ ĐÚNG MỘT HÀM MAPPING.
---    dlthvt_map_<bước>(p_ids) là nguồn chân lý duy nhất cho phép chiếu từ bảng
---    nguồn sang bảng phẳng. Trigger gọi nó, hàm rebuild cũng gọi nó. Vì vậy
---    dữ liệu sinh ra khi sửa tay trên UI và khi import/tính toán hàng loạt
---    LUÔN giống nhau tuyệt đối - không còn khả năng lệch như kiến trúc cũ.
+-- 2) Mỗi bước một hàm dlthvt_map_<bước>(p_ids) — trigger và rebuild đều gọi hàm này.
 --
--- 3) MỖI HÀM MAPPING LÀ "XOÁ RỒI CHÈN", KHÔNG DÙNG ON CONFLICT.
---    Vì month_key nằm trong khoá duy nhất, nếu dòng nguồn đổi kỳ (period_id)
---    hoặc kỳ đổi tháng bắt đầu thì month_key đổi theo, và cách upsert cũ sẽ
---    để lại dòng phẳng mồ côi với month_key cũ. Xoá trước rồi chèn lại thì
---    luôn đúng trong mọi trường hợp, chi phí tương đương (trong MVCC thì
---    UPDATE cũng là xoá + chèn), lại bỏ được ~350 dòng "DO UPDATE SET".
---    Hệ quả phụ: mỗi hàm mapping là idempotent, gọi bao nhiêu lần cũng thế.
+-- 3) Mapping: DELETE dòng phẳng của nguồn rồi INSERT lại (idempotent).
 --
--- 4) MỌI CỘT META ĐƯỢC ĐIỀN NGAY TRONG CÂU MAPPING.
---    Kiến trúc cũ có thêm trigger BEFORE trên chính bảng phẳng
---    (dlthvt_fill_meta) để tra period_code / owner_company_id / company_code,
---    tốn 3 câu SELECT cho MỖI dòng phẳng. Nay các cột đó lấy bằng JOIN sẵn
---    trong câu mapping nên trigger đó đã bị xoá.
+-- 4) Cột meta (period_code, company_code, …) điền trong câu INSERT, không trigger riêng.
 --
 -- ============================================================================
--- HƯỚNG DẪN BẢO TRÌ
+-- BẢO TRÌ
 -- ============================================================================
 --
--- * Thêm một cột mới vào bảng phẳng:
---     sửa DUY NHẤT hàm dlthvt_map_<bước> tương ứng ở PHẦN 4 (thêm tên cột vào
---     danh sách INSERT và thêm biểu thức vào SELECT ở đúng vị trí).
---
--- * Thêm một bước mới (ví dụ b6):
---     (a) viết dlthvt_map_b6 ở PHẦN 4 theo đúng khuôn của các hàm khác;
---     (b) thêm nhánh WHEN 'b6' vào dlthvt_after_change ở PHẦN 5;
---     (c) thêm 3 trigger ins/upd/del cho bảng nguồn ở PHẦN 5;
---     (d) thêm 1 dòng vào dlthvt_rebuild_period ở PHẦN 6.
---
--- * Đổi quy tắc tháng T0..T+3:
---     sửa DUY NHẤT hàm dlthvt_month_date ở PHẦN 3.
---
--- * Nghi ngờ bảng phẳng lệch so với bảng nguồn:
---     chạy  SELECT dlthvt_rebuild_period(<id kỳ>);  hoặc dlthvt_rebuild_all().
---     Hai hàm này an toàn, chạy lại bao nhiêu lần cũng cho ra cùng kết quả.
---
--- * Tuyệt đối KHÔNG dùng TRUNCATE trên các bảng nguồn: TRUNCATE không kích
---   hoạt trigger nên bảng phẳng sẽ không được dọn theo. Dùng DELETE.
+-- * Thêm cột bảng phẳng: sửa dlthvt_map_<bước> tương ứng (PHẦN 4).
+-- * Thêm bước mới: map + nhánh trong dlthvt_after_change + 3 trigger + dlthvt_rebuild_period.
+-- * Đổi quy tắc tháng T0..T+3: sửa dlthvt_month_date (PHẦN 3).
+-- * Sửa/dựng lại bảng phẳng tay: SELECT dlthvt_rebuild_period(<id>); hoặc dlthvt_rebuild_all();
+-- * Không TRUNCATE bảng nguồn (TRUNCATE không kích hoạt trigger).
 --
 -- ############################################################################
 
 
 -- ============================================================================
--- PHẦN 1. DỌN KIẾN TRÚC CŨ
--- ----------------------------------------------------------------------------
--- Phải xoá hết trigger mức dòng và các hàm cũ trước khi tạo cái mới, vì file
--- này được chạy lại mỗi lần cập nhật module. Thứ tự: trigger trước, hàm sau.
+-- PHẦN 1. DROP TRIGGER / HÀM (idempotent trước khi CREATE lại)
 -- ============================================================================
 
 DROP TRIGGER IF EXISTS trg_dlthvt_fill_meta   ON du_lieu_tong_hop_vat_tu;
@@ -89,7 +43,6 @@ DROP TRIGGER IF EXISTS trg_dlthvt_b3          ON tinh_toan_vat_tu;
 DROP TRIGGER IF EXISTS trg_dlthvt_b4          ON tong_hop_vat_tu;
 DROP TRIGGER IF EXISTS trg_dlthvt_b5          ON kh_dat_vat_tu;
 
--- Trigger mức câu lệnh (phiên bản mới) — xoá trước khi tạo lại ở PHẦN 5.
 DROP TRIGGER IF EXISTS trg_dlthvt_kd_ins ON ke_hoach_kinh_doanh;
 DROP TRIGGER IF EXISTS trg_dlthvt_kd_upd ON ke_hoach_kinh_doanh;
 DROP TRIGGER IF EXISTS trg_dlthvt_kd_del ON ke_hoach_kinh_doanh;
@@ -133,12 +86,7 @@ DROP FUNCTION IF EXISTS public.dlthvt_bulk_sync_b5_period(INTEGER);
 
 
 -- ============================================================================
--- PHẦN 2. INDEX
--- ----------------------------------------------------------------------------
--- Khoá duy nhất (source_model, source_res_id, month_key) do Odoo tạo từ
--- _sql_constraints; nó cũng là index phục vụ hai việc nóng nhất của file này:
--- xoá theo dòng nguồn trong hàm mapping, và xoá theo dòng nguồn khi DELETE.
--- Các index dưới đây phục vụ câu truy vấn báo cáo.
+-- PHẦN 2. INDEX (báo cáo trên du_lieu_tong_hop_vat_tu)
 -- ============================================================================
 
 CREATE INDEX IF NOT EXISTS idx_dlthvt_report
@@ -161,17 +109,14 @@ CREATE INDEX IF NOT EXISTS idx_dlthvt_owner_company
 -- PHẦN 3. HÀM TIỆN ÍCH
 -- ============================================================================
 
--- Quy tắc tháng của cả module: kỳ có period_month dạng 'MM/YYYY', các cột
--- *_t0..*_t3 tương ứng tháng đó và 3 tháng kế tiếp. Đây là NƠI DUY NHẤT định
--- nghĩa phép cộng tháng - mọi hàm mapping đều gọi hàm này.
+-- Quy tắc tháng T0..T+3: period_month 'MM/YYYY' + offset tháng.
 CREATE OR REPLACE FUNCTION dlthvt_month_date(p_period_month TEXT, p_offset INT)
 RETURNS DATE
 LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE AS $$
     SELECT (TO_DATE(p_period_month, 'MM/YYYY') + (p_offset || ' month')::INTERVAL)::DATE;
 $$;
 
--- Đọc số từ chuỗi SAP: chịu được dấu trừ đứng sau ('123-'), dấu phân cách
--- nghìn, chuỗi rỗng và cả rác. Không bao giờ raise, trả 0 nếu không đọc được.
+-- Parse số từ chuỗi SAP (dấu trừ đuôi, phân cách nghìn, rác -> 0).
 CREATE OR REPLACE FUNCTION safe_sap_numeric(val TEXT)
 RETURNS NUMERIC AS $$
 DECLARE
@@ -192,28 +137,11 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 -- ============================================================================
--- PHẦN 4. BẢY HÀM MAPPING  -- NGUỒN CHÂN LÝ DUY NHẤT
+-- PHẦN 4. HÀM MAPPING (KD, SX, B1–B5)
 -- ----------------------------------------------------------------------------
--- Cả 7 hàm cùng một khuôn, đọc cạnh nhau sẽ thấy ngay chỗ khác biệt:
---
---   1. DELETE các dòng phẳng của những dòng nguồn được chỉ định.
---   2. INSERT lại từ bảng nguồn.
---
--- Điều kiện JOIN chung của mọi hàm:
---   JOIN ke_hoach_vat_tu p ... AND p.period_month ~ '^\d{2}/\d{4}$'
--- Bộ lọc regex này cố ý bỏ qua các kỳ có period_month rỗng hoặc sai định dạng.
--- Kiến trúc cũ không lọc nên TO_DATE sẽ raise và làm HỎNG luôn câu ghi vào
--- bảng nguồn - tức một kỳ dữ liệu bẩn chặn toàn bộ thao tác của người dùng.
--- Nay kỳ bẩn chỉ đơn giản là không có dòng phẳng, sửa period_month rồi chạy
--- dlthvt_rebuild_period là xong.
---
--- 13 cột đầu của mọi hàm là khối chung theo đúng một thứ tự:
---   step_code, source_model, source_res_id,
---   period_id, period_code, period_month, owner_company_id,
---   company_id, company_code, period_company_id, period_company_code,
---   month_key, month_date
--- 4 cột cuối cũng vậy: create_uid, create_date, write_uid, write_date.
--- Phần giữa là các cột riêng của từng bước.
+-- Mỗi hàm: DELETE dòng phẳng của source_res_id trong p_ids, rồi INSERT lại.
+-- Chỉ map kỳ có period_month đúng định dạng MM/YYYY.
+-- Khối cột meta đầu/cuối giống nhau giữa các bước; phần giữa là cột riêng từng bước.
 -- ============================================================================
 
 -- ---------------------------------------------------------------------------
@@ -345,10 +273,8 @@ $$;
 
 -- ---------------------------------------------------------------------------
 -- B2: dinh_muc -> 4 dòng/tháng
--- sl_dinh_muc_ap_dung = định mức thay đổi nếu người dùng có ghi đè, ngược lại
--- là định mức gốc. Đây là cột mà các bước sau thực sự dùng để tính.
--- period_company_id = company_id giống bản bulk cũ (đường sinh định mức thực tế);
--- trigger row cũ để NULL nên hai đường từng lệch nhau - nay chốt theo bulk.
+-- sl_dinh_muc_ap_dung = override nếu có, không thì sl_dinh_muc gốc.
+-- period_company_id = company_id của dòng định mức.
 -- ---------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION dlthvt_map_b2(p_ids INTEGER[])
 RETURNS void LANGUAGE sql AS $$
@@ -499,12 +425,9 @@ RETURNS void LANGUAGE sql AS $$
 $$;
 
 -- ---------------------------------------------------------------------------
--- B5: kh_dat_vat_tu -> ĐÚNG 1 dòng (không tách theo tháng)
--- Bảng nguồn của B5 đã gộp cả kỳ thành một dòng cho mỗi mã NVL, các cột *_t0..t3
--- nằm ngang trên chính dòng đó. Vì vậy chỉ sinh 1 dòng phẳng ở tháng T0.
--- Ba cặp cột "alias" (tong_sl_vt_can_dung, tong_hang_di_duong_sl, sl_ton_kho,
--- gia_tri_ton_kho) là bản sao để các view báo cáo cũ gọi được tên quen thuộc.
--- B5 là mức BCU nên không thuộc đơn vị đặt hàng nào -> period_company_id NULL.
+-- B5: kh_dat_vat_tu -> 1 dòng/tháng T0 (bảng nguồn đã gộp cả kỳ)
+-- Một số cột lặp tên alias phục vụ view báo cáo.
+-- BCU: period_company_id NULL.
 -- ---------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION dlthvt_map_b5(p_ids INTEGER[])
 RETURNS void LANGUAGE sql AS $$
@@ -569,23 +492,14 @@ $$;
 
 
 -- ============================================================================
--- PHẦN 5. TRIGGER
+-- PHẦN 5. TRIGGER trên bảng nguồn
 -- ----------------------------------------------------------------------------
--- Chỉ có ĐÚNG HAI hàm trigger cho cả 7 bước. Bước nào được truyền vào qua
--- tham số TG_ARGV[0] khi khai báo trigger, nên thêm bước mới không phải viết
--- thêm hàm trigger.
---
--- Mỗi bảng nguồn cần 3 trigger riêng vì PostgreSQL không cho phép một trigger
--- vừa có transition table vừa gắn nhiều sự kiện:
---     "transition tables cannot be specified for triggers with more than one event"
--- INSERT và UPDATE dùng chung hàm (cùng đọc newtab), DELETE dùng hàm riêng.
---
--- Về INSERT ... ON CONFLICT DO UPDATE trên bảng nguồn: PostgreSQL tách đúng
--- phần chèn sang trigger INSERT và phần cập nhật sang trigger UPDATE, nên cả
--- hai được xử lý đầy đủ mà không trùng nhau.
+-- dlthvt_after_change: INSERT/UPDATE -> map lại dòng phẳng (tham số bước qua TG_ARGV).
+-- dlthvt_after_delete: DELETE -> xóa dòng phẳng theo source_model + source_res_id.
+-- Mỗi bảng 3 trigger (ins/upd/del) — PostgreSQL yêu cầu tách sự kiện khi dùng transition table.
 -- ============================================================================
 
--- Dòng nguồn được thêm hoặc sửa: dựng lại các dòng phẳng của chúng.
+-- INSERT/UPDATE nguồn: map lại bảng phẳng.
 CREATE OR REPLACE FUNCTION dlthvt_after_change() RETURNS TRIGGER
 LANGUAGE plpgsql AS $$
 DECLARE
@@ -610,8 +524,7 @@ BEGIN
 END;
 $$;
 
--- Dòng nguồn bị xoá: dọn các dòng phẳng tương ứng. Điều kiện lọc khớp đúng
--- hai cột đầu của khoá duy nhất nên luôn đi bằng index.
+-- DELETE nguồn: xóa dòng phẳng tương ứng.
 CREATE OR REPLACE FUNCTION dlthvt_after_delete() RETURNS TRIGGER
 LANGUAGE plpgsql AS $$
 BEGIN
@@ -736,17 +649,15 @@ EXECUTE FUNCTION dlthvt_after_delete('kh.dat.vat.tu');
 
 
 -- ============================================================================
--- PHẦN 6. DỰNG LẠI BẢNG PHẲNG
+-- PHẦN 6. DỰNG LẠI BẢNG PHẲNG (chạy tay khi cần)
 -- ----------------------------------------------------------------------------
--- Dùng khi kỳ đổi tháng bắt đầu, khi cập nhật module, hoặc khi cần kiểm tra
--- lại tính đúng đắn. Cả hai hàm đều idempotent.
+-- dlthvt_rebuild_period(id): xóa + map lại một kỳ.
+-- dlthvt_rebuild_all(): dọn mồ côi + rebuild mọi kỳ.
 -- ============================================================================
 
 CREATE OR REPLACE FUNCTION dlthvt_rebuild_period(p_period_id INTEGER)
 RETURNS void LANGUAGE plpgsql AS $$
 BEGIN
-    -- Xoá sạch theo kỳ trước, vì nếu period_month đổi thì month_key của mọi
-    -- dòng cũ đều sai và không thể đối chiếu lại theo khoá được nữa.
     DELETE FROM du_lieu_tong_hop_vat_tu WHERE period_id = p_period_id;
 
     PERFORM dlthvt_map_kd(ARRAY(SELECT id FROM ke_hoach_kinh_doanh  WHERE period_id = p_period_id));
@@ -764,12 +675,12 @@ RETURNS void LANGUAGE plpgsql AS $$
 DECLARE
     r RECORD;
 BEGIN
-    -- Dọn cả những dòng mồ côi không còn kỳ nào trỏ tới.
+    -- Dòng phẳng (period_id NULL hoặc kỳ không còn tồn tại).
     DELETE FROM du_lieu_tong_hop_vat_tu
      WHERE period_id IS NULL
         OR period_id NOT IN (SELECT id FROM ke_hoach_vat_tu);
 
-    -- Đi theo từng kỳ để mảng id không phình quá lớn.
+    -- Rebuild từng kỳ (tránh mảng id quá lớn).
     FOR r IN SELECT id FROM ke_hoach_vat_tu ORDER BY id LOOP
         PERFORM dlthvt_rebuild_period(r.id);
     END LOOP;
@@ -778,12 +689,10 @@ $$;
 
 
 -- ============================================================================
--- PHẦN 7. KỲ ĐỔI THÔNG TIN
+-- PHẦN 7. TRIGGER ke_hoach_vat_tu (đổi period_month / code / company_id)
 -- ----------------------------------------------------------------------------
--- period_month quyết định month_key/month_date của MỌI dòng phẳng thuộc kỳ,
--- mà month_key lại nằm trong khoá duy nhất, nên đổi nó thì buộc phải dựng lại
--- cả kỳ. Còn đổi code hay đơn vị lập kế hoạch thì chỉ là cột meta, cập nhật
--- tại chỗ bằng một câu UPDATE là đủ.
+-- Đổi period_month -> dlthvt_rebuild_period (month_key phụ thuộc tháng bắt đầu).
+-- Chỉ đổi code hoặc company_id -> UPDATE meta trên bảng phẳng tại chỗ.
 -- ============================================================================
 
 CREATE OR REPLACE FUNCTION dlthvt_after_period_update() RETURNS TRIGGER
@@ -791,7 +700,7 @@ LANGUAGE plpgsql AS $$
 DECLARE
     r RECORD;
 BEGIN
-    -- Bỏ qua câu UPDATE không đụng 3 cột meta của kỳ.
+    -- Bỏ qua UPDATE không đụng period_month, code, company_id.
     IF NOT EXISTS (
         SELECT 1
           FROM newtab n
@@ -803,7 +712,7 @@ BEGIN
         RETURN NULL;
     END IF;
 
-    -- (a) Kỳ đổi tháng bắt đầu -> dựng lại toàn bộ.
+    -- Đổi period_month -> rebuild kỳ.
     FOR r IN
         SELECT n.id
           FROM newtab n
@@ -813,7 +722,7 @@ BEGIN
         PERFORM dlthvt_rebuild_period(r.id);
     END LOOP;
 
-    -- (b) Kỳ chỉ đổi số chứng từ / đơn vị lập kế hoạch -> sửa meta tại chỗ.
+    -- Chỉ đổi code / company_id -> cập nhật meta bảng phẳng.
     UPDATE du_lieu_tong_hop_vat_tu d
        SET period_code      = n.code,
            owner_company_id = n.company_id,
@@ -831,8 +740,6 @@ END;
 $$;
 
 DROP TRIGGER IF EXISTS trg_dlthvt_period_upd ON ke_hoach_vat_tu;
--- Không dùng "UPDATE OF col1, col2": PostgreSQL cấm kết hợp danh sách cột
--- với transition table. Lọc cột thay đổi nằm trong thân hàm ở trên.
 CREATE TRIGGER trg_dlthvt_period_upd
 AFTER UPDATE ON ke_hoach_vat_tu
 REFERENCING OLD TABLE AS oldtab NEW TABLE AS newtab FOR EACH STATEMENT
@@ -840,21 +747,11 @@ EXECUTE FUNCTION dlthvt_after_period_update();
 
 
 -- ============================================================================
--- PHẦN 8. ĐỒNG BỘ BOM TỪ SAP:  md_sap_bom -> bom
+-- PHẦN 8. ĐỒNG BỘ BOM: md_sap_bom -> bom
 -- ----------------------------------------------------------------------------
--- Bảng md_sap_bom do module MDM nạp về từ SAP và rất lớn (hàng trăm nghìn
--- dòng), nên trigger mức dòng ở kiến trúc cũ là không dùng được: mỗi lần nạp
--- lại SAP là hàng trăm nghìn lần gọi trigger. Nay cũng dùng trigger mức câu
--- lệnh, và quan trọng hơn: phần backfill dùng CHUNG hàm với trigger.
---
--- Kiến trúc cũ có hai bản mapping (thân trigger và câu backfill) và chúng ĐÃ
--- lệch nhau thật: trigger điền sl_spdm = 1.0 khi giá trị rỗng, còn backfill
--- để NULL - làm các bước sau chia cho NULL. Nay chỉ còn một bản nên hết lệch.
---
--- Một mã (ma_tp, ma_nvl) có thể xuất hiện nhiều lần trong md_sap_bom;
--- DISTINCT ON ... ORDER BY id DESC lấy bản ghi mới nhất.
--- do_day / kho_1 / kho_2 chỉ đặt 0 khi tạo mới và không bao giờ ghi đè, vì đó
--- là số người dùng tự nhập trong Odoo, SAP không có.
+-- bom_sync_from_sap: UPSERT từ SAP; DISTINCT ON (ma_tp, ma_nvl) lấy bản mới nhất.
+-- do_day / kho_1 / kho_2 chỉ set 0 khi tạo mới, không ghi đè khi UPDATE.
+-- Trigger mức câu lệnh trên md_sap_bom + nạp lần đầu lúc cài module.
 -- ============================================================================
 
 CREATE OR REPLACE FUNCTION bom_sync_from_sap(p_ids INTEGER[] DEFAULT NULL)
@@ -898,7 +795,6 @@ BEGIN
 END;
 $$;
 
--- md_sap_bom thuộc module khác nên có thể chưa tồn tại khi cài module này.
 DO $$
 BEGIN
     IF EXISTS (
@@ -917,23 +813,7 @@ BEGIN
         REFERENCING NEW TABLE AS newtab FOR EACH STATEMENT
         EXECUTE FUNCTION bom_after_sap_change();
 
-        -- Backfill dữ liệu SAP đã có sẵn, dùng đúng hàm mà trigger dùng.
-        -- NULL = quét toàn bộ bảng, không dựng mảng id hàng trăm nghìn phần tử.
+        -- Nạp toàn bộ md_sap_bom hiện có sang bom (lần đầu cài module).
         PERFORM bom_sync_from_sap(NULL);
     END IF;
 END $$;
-
-DROP FUNCTION IF EXISTS sync_md_sap_bom_to_bom();
-
-
--- ============================================================================
--- PHẦN 9. DỰNG LẠI BẢNG PHẲNG SAU KHI CẬP NHẬT MODULE
--- ----------------------------------------------------------------------------
--- Phép chiếu ở PHẦN 4 có thể thay đổi giữa các phiên bản module, nên dữ liệu
--- phẳng cũ có khả năng đã lỗi thời. Câu dưới đây dựng lại toàn bộ bằng 7 câu
--- lệnh set-based cho mỗi kỳ, chạy mỗi lần cập nhật module.
--- Nếu về sau bảng phẳng lớn tới mức làm chậm việc cập nhật module, có thể bỏ
--- dòng này và chỉ chạy dlthvt_rebuild_period() cho từng kỳ khi cần.
--- ============================================================================
-
-SELECT dlthvt_rebuild_all();

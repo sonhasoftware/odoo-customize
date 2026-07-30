@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
+from markupsafe import Markup, escape
+
 from odoo import api, fields, models
+
+_B5_TRACKED_FIELDS = {
+    'sl_dat_mua_chot': 'Đặt mua chốt',
+    'sl_can_mua_theo_moq': 'SL cần mua dựa theo MOQ NCC',
+}
 
 
 class KhDatVatTu(models.Model):
@@ -54,7 +61,7 @@ class KhDatVatTu(models.Model):
     sl_du_tru_toi_thieu = fields.Float(string='Dự trữ tối thiểu', digits=(16, 3))
     sl_dat_mua_de_xuat = fields.Float(string='SL đặt mua đề xuất', digits=(16, 3))
     sl_dat_mua_chot = fields.Float(string='SL đặt mua chốt', digits=(16, 3))
-    sl_can_mua_theo_moq = fields.Float(string='SL cần mua theo MOQ', digits=(16, 3))
+    sl_can_mua_theo_moq = fields.Float(string='SL cần mua dựa theo MOQ NCC', digits=(16, 3))
     don_gia_mua = fields.Monetary(
         string='Đơn giá mua', currency_field='currency_id')
     gia_tri_mua_hang = fields.Monetary(
@@ -151,3 +158,57 @@ class KhDatVatTu(models.Model):
             rec.don_gia_ton_kho_cuoi_ky = derived['don_gia_ton_kho_cuoi_ky']
             rec.gia_tri_ton_kho_cuoi_ky = derived['gia_tri_ton_kho_cuoi_ky']
             rec.gia_tri_mua_hang = derived['gia_tri_mua_hang']
+
+    @api.model
+    def _format_b5_qty(self, qty):
+        return '{:,.3f}'.format(qty or 0.0).replace(',', 'X').replace('.', ',').replace('X', '.')
+
+    def _log_b5_tracked_changes(self, old):
+        """Ghi log lên chatter kỳ khi sửa đặt mua chốt / SL MOQ trên tree B5."""
+        changes_by_period = {}
+        for fname, static_label in _B5_TRACKED_FIELDS.items():
+            if fname not in old:
+                continue
+            for rec in self:
+                ov, nv = old[fname][rec.id], rec[fname]
+                if abs((ov or 0.0) - (nv or 0.0)) <= 1e-9:
+                    continue
+                if not rec.period_id:
+                    continue
+                label = '%s — Mã NVL %s' % (static_label, rec.ma_sap or '')
+                changes_by_period.setdefault(rec.period_id, []).append((
+                    self._format_b5_qty(ov),
+                    self._format_b5_qty(nv),
+                    label,
+                ))
+
+        for period, changes in changes_by_period.items():
+            if not changes:
+                continue
+            items = ''.join(
+                "<li>"
+                "<b class='o-mail-Message-trackingOld me-1 px-1 text-muted fw-bold'>%s</b>"
+                "<i class='o_TrackingValue_separator fa fa-long-arrow-right mx-1 text-600' role='img'></i>"
+                "<b class='o-mail-Message-trackingNew me-1 fw-bold text-info'>%s</b>"
+                "<span class='o-mail-Message-trackingField ms-1 fst-italic text-muted'>(%s)</span>"
+                "</li>" % (escape(old_val), escape(new_val), escape(label))
+                for old_val, new_val, label in changes
+            )
+            period.message_post(body=Markup("<ul>%s</ul>") % Markup(items))
+
+    def write(self, vals):
+        tracked = [fname for fname in _B5_TRACKED_FIELDS if fname in vals]
+        if (
+            not tracked
+            or self.env.context.get('tracking_disable')
+            or self.env.context.get('is_importing')
+        ):
+            return super().write(vals)
+
+        old = {
+            fname: {rec.id: rec[fname] for rec in self}
+            for fname in tracked
+        }
+        res = super().write(vals)
+        self._log_b5_tracked_changes(old)
+        return res

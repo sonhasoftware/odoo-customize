@@ -43,9 +43,6 @@ $$;
 CREATE INDEX IF NOT EXISTS idx_md_sap_ton_kho_ma_hang_trim
     ON md_sap_ton_kho ((TRIM(BOTH FROM ma_hang)));
 
-ALTER TABLE tong_hop_vat_tu
-    ADD COLUMN IF NOT EXISTS don_gia_ton_kho NUMERIC;
-
 -- ============================================================
 -- B2: Sinh dinh muc — nguồn lọc ma.hang (các bước sau ăn theo dinh_muc)
 -- ============================================================

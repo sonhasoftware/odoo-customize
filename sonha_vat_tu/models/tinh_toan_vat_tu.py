@@ -43,9 +43,12 @@ class TinhToanVatTu(models.Model):
 
     @api.depends('don_vi_kd_id')
     def _compute_don_vi_kd_code(self):
+        companies = self.env['res.company'].sudo().browse(
+            self.mapped('don_vi_kd_id').ids
+        )
+        code_by_id = {
+            company.id: company.company_code or company.name
+            for company in companies
+        }
         for rec in self:
-            company = rec.don_vi_kd_id
-            if not company:
-                rec.don_vi_kd_code = False
-            else:
-                rec.don_vi_kd_code = company.company_code or company.name
+            rec.don_vi_kd_code = code_by_id.get(rec.don_vi_kd_id.id) if rec.don_vi_kd_id else False

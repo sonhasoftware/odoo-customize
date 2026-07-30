@@ -85,39 +85,12 @@ class KeHoachLineMixin(models.AbstractModel):
             next_by_period[pid] += 10
             vals['sequence'] = next_by_period[pid]
 
-    def init(self):
-        """Đánh lại STT cho các kỳ cũ còn để sequence mặc định (=10 toàn bộ)."""
-        super().init()
-        if self._abstract:
-            return
-        self._cr.execute("""
-            UPDATE {table} k
-            SET sequence = sub.rn
-            FROM (
-                SELECT id, ROW_NUMBER() OVER (
-                    PARTITION BY period_id ORDER BY id
-                ) * 10 AS rn
-                FROM {table}
-            ) sub
-            WHERE k.id = sub.id
-              AND k.period_id IN (
-                  SELECT period_id
-                  FROM {table}
-                  GROUP BY period_id
-                  HAVING COUNT(DISTINCT sequence) = 1 AND MAX(sequence) = 10
-              )
-        """.format(table=self._table))
-
     # ------------------------------------------------------------------
     # Ghi hàng loạt khi import
     # ------------------------------------------------------------------
     @api.model
     def _sql_bulk_import_update(self, updates):
-        """Ghi hàng loạt khi import — 1 query thay vì N lần ORM write.
-
-        Chỉ cập nhật những cột thực sự có trong `updates` để không xóa mất
-        giá trị của các cột mà file import không mang theo.
-        """
+        """Ghi hàng loạt khi import"""
         if not updates:
             return
         columns = [

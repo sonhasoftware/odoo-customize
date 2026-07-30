@@ -145,7 +145,7 @@ class DuLieuTongHopVatTu(models.Model):
     sl_du_tru_toi_thieu = fields.Float(string='SL dự trữ tối thiểu', digits=(16, 3), readonly=True)
     sl_dat_mua_de_xuat = fields.Float(string='SL đặt mua đề xuất', digits=(16, 3), readonly=True)
     sl_dat_mua_chot = fields.Float(string='SL đặt mua chốt', digits=(16, 3), readonly=True)
-    sl_can_mua_theo_moq = fields.Float(string='SL cần mua theo MOQ', digits=(16, 3), readonly=True)
+    sl_can_mua_theo_moq = fields.Float(string='SL cần mua dựa theo MOQ NCC', digits=(16, 3), readonly=True)
     don_gia_mua = fields.Monetary(
         string='Đơn giá mua',
         currency_field='currency_id',
@@ -219,8 +219,8 @@ _SQL_DIR = _os.path.join(
 
 _SQL_DLTHVT_SYNC_PATH = _os.path.join(_SQL_DIR, 'dlthvt_sync.sql')
 
-
 def _read_dlthvt_sync_sql():
     """Đọc file data/sql/dlthvt_sync.sql (toàn bộ tầng đồng bộ bảng phẳng)."""
     with open(_SQL_DLTHVT_SYNC_PATH, 'r', encoding='utf-8') as f:
         return f.read()
+

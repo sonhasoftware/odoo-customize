@@ -5,7 +5,7 @@
         <field name="name">ke.hoach.san.xuat.tree</field>
         <field name="model">ke.hoach.san.xuat</field>
         <field name="arch" type="xml">
-            <tree string="Kế hoạch sản xuất" editable="bottom">
+            <tree duplicate="0" string="Kế hoạch sản xuất" editable="bottom">
                 <field name="period_id" required="1"/>
                 <field name="company_id" string="Đơn vị" context="{'vat_tu_company_code_display': True}"/>
                 <field name="nganh_hang"/>

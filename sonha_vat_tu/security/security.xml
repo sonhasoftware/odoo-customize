@@ -22,6 +22,18 @@
     </record>
 
 
+    <!-- Ban cung ứng xem kỳ mọi đơn vị đọc được mọi công ty. -->
+    <record id="rule_res_company_ban_cung_ung_vat_tu" model="ir.rule">
+        <field name="name">Res company - Ban cung ung vat tu - read all</field>
+        <field name="model_id" ref="base.model_res_company"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('sonha_vat_tu.group_ban_cung_ung_vat_tu'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
     <!-- Ban cung ứng: xem tất cả kỳ kế hoạch -->
     <record id="rule_ke_hoach_vat_tu_ban_cung_ung" model="ir.rule">
         <field name="name">Ke hoach vat tu - Ban cung ung - all</field>
