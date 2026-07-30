@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <record id="view_import_vat_tu_di_duong_wizard_form" model="ir.ui.view">
-        <field name="name">import.vat.tu.di.duong.wizard.form</field>
-        <field name="model">import.vat.tu.di.duong.wizard</field>
+    <record id="view_import_ma_hang_phan_tram_wizard_form" model="ir.ui.view">
+        <field name="name">import.ma.hang.phan.tram.wizard.form</field>
+        <field name="model">import.ma.hang.phan.tram.wizard</field>
         <field name="arch" type="xml">
-            <form string="Import vật tư đi đường">
+            <form string="Import phần trăm mã hàng">
                 <group>
-                    <field name="period_id" invisible="1"/>
                     <field name="file_data" filename="file_name"/>
                     <field name="file_name" invisible="1"/>
                 </group>

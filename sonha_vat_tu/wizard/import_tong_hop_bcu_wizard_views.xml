@@ -22,19 +22,12 @@
         </field>
     </record>
 
-    <record id="action_import_tong_hop_bcu_wizard" model="ir.actions.act_window">
-        <field name="name">Import hàng đi đường BCU</field>
-        <field name="res_model">import.tong.hop.bcu.wizard</field>
-        <field name="view_mode">form</field>
-        <field name="view_id" ref="view_import_tong_hop_bcu_wizard_form"/>
-        <field name="target">new</field>
-    </record>
-
     <record id="action_import_tong_hop_bcu_server" model="ir.actions.server">
         <field name="name">Import hàng đi đường BCU</field>
         <field name="model_id" ref="model_ke_hoach_vat_tu"/>
         <field name="binding_model_id" ref="model_ke_hoach_vat_tu"/>
         <field name="binding_view_types">form</field>
+        <field name="groups_id" eval="[(4, ref('sonha_vat_tu.group_ban_cung_ung_vat_tu'))]"/>
         <field name="state">code</field>
         <field name="code">
             if records:

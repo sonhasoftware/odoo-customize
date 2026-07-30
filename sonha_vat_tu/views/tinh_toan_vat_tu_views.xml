@@ -5,7 +5,7 @@
         <field name="name">tinh.toan.vat.tu.tree</field>
         <field name="model">tinh.toan.vat.tu</field>
         <field name="arch" type="xml">
-            <tree string="Tính toán vật tư" create="0" class="sh_free_width_tree">
+            <tree duplicate="0" string="Tính toán vật tư" create="0" class="sh_free_width_tree">
                 <field name="ma_vat_tu"/>
                 <field name="don_vi_kd_id" string="Đơn vị KD" context="{'vat_tu_company_code_display': True}"/>
                 <field name="ten_vat_tu"/>

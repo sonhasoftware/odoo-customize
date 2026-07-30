@@ -5,7 +5,7 @@
         <field name="name">tong.hop.vat.tu.tree</field>
         <field name="model">tong.hop.vat.tu</field>
         <field name="arch" type="xml">
-            <tree string="Tổng hợp vật tư cần sản xuất" create="0" class="sh_free_width_tree" js_class="vat_tu_merged_b4_list_view">
+            <tree duplicate="0" string="Tổng hợp vật tư cần sản xuất" create="0" class="sh_free_width_tree" js_class="vat_tu_merged_b4_list_view">
                 <field name="ma_sap" string="Mã NVL" required="1"/>
                 <field name="ten_nvl" string="Tên NVL"/>
                 <field name="chung_loai"/>
@@ -45,7 +45,7 @@
         <field name="name">tong.hop.vat.tu.form</field>
         <field name="model">tong.hop.vat.tu</field>
         <field name="arch" type="xml">
-            <form string="Tổng hợp vật tư cần sản xuất">
+            <form duplicate="0" string="Tổng hợp vật tư cần sản xuất">
                 <sheet>
                     <group>
                         <group>

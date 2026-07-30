@@ -5,8 +5,9 @@ from datetime import date
 
 from openpyxl import Workbook
 
-from odoo import _, api, fields, models
+from odoo import _, fields, models
 from odoo.exceptions import UserError
+
 
 class BaoCaoTongHopVatTuWizard(models.TransientModel):
     _name = 'bao.cao.tong.hop.vat.tu.wizard'

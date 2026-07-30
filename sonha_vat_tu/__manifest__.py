@@ -18,6 +18,7 @@
         'wizard/import_bom_wizard_views.xml',
         'wizard/import_ke_hoach_wizard_views.xml',
         'wizard/import_vat_tu_di_duong_wizard_views.xml',
+        'wizard/import_ma_hang_phan_tram_wizard_views.xml',
         'wizard/import_tong_hop_bcu_wizard_views.xml',
         'wizard/bao_cao_nhu_cau_vat_tu_wizard_views.xml',
         'wizard/bao_cao_vat_tu_wizard_views.xml',

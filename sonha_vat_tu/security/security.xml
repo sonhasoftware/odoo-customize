@@ -22,32 +22,46 @@
     </record>
 
 
-    <record id="rule_ke_hoach_vat_tu_ban_cung_ung" model="ir.rule">
-        <field name="name">Ke hoach vat tu - Ban cung ung - own records</field>
-        <field name="model_id" ref="model_ke_hoach_vat_tu"/>
-        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+    <!-- Ban cung ứng xem kỳ mọi đơn vị đọc được mọi công ty. -->
+    <record id="rule_res_company_ban_cung_ung_vat_tu" model="ir.rule">
+        <field name="name">Res company - Ban cung ung vat tu - read all</field>
+        <field name="model_id" ref="base.model_res_company"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
         <field name="groups" eval="[(4, ref('sonha_vat_tu.group_ban_cung_ung_vat_tu'))]"/>
         <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="True"/>
-        <field name="perm_create" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
         <field name="perm_unlink" eval="False"/>
     </record>
 
-    <record id="rule_ke_hoach_kinh_doanh_ban_cung_ung" model="ir.rule">
-        <field name="name">B1 ke hoach kinh doanh - Ban cung ung - own period</field>
-        <field name="model_id" ref="model_ke_hoach_kinh_doanh"/>
-        <field name="domain_force">[('period_id.create_uid', '=', user.id)]</field>
+    <!-- Ban cung ứng: xem tất cả kỳ kế hoạch -->
+    <record id="rule_ke_hoach_vat_tu_ban_cung_ung" model="ir.rule">
+        <field name="name">Ke hoach vat tu - Ban cung ung - all</field>
+        <field name="model_id" ref="model_ke_hoach_vat_tu"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
         <field name="groups" eval="[(4, ref('sonha_vat_tu.group_ban_cung_ung_vat_tu'))]"/>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
-        <field name="perm_create" eval="True"/>
-        <field name="perm_unlink" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- B1-B3: ban cung ứng chỉ xem -->
+    <record id="rule_ke_hoach_kinh_doanh_ban_cung_ung" model="ir.rule">
+        <field name="name">Ke hoach kinh doanh - Ban cung ung - read all</field>
+        <field name="model_id" ref="model_ke_hoach_kinh_doanh"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('sonha_vat_tu.group_ban_cung_ung_vat_tu'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
     </record>
 
     <record id="rule_ke_hoach_san_xuat_ban_cung_ung" model="ir.rule">
-        <field name="name">B1 ke hoach san xuat - Ban cung ung - own period</field>
+        <field name="name">Ke hoach san xuat - Ban cung ung - read all</field>
         <field name="model_id" ref="model_ke_hoach_san_xuat"/>
-        <field name="domain_force">[('period_id.create_uid', '=', user.id)]</field>
+        <field name="domain_force">[(1, '=', 1)]</field>
         <field name="groups" eval="[(4, ref('sonha_vat_tu.group_ban_cung_ung_vat_tu'))]"/>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="False"/>
@@ -56,9 +70,9 @@
     </record>
 
     <record id="rule_ke_hoach_vat_tu_line_ban_cung_ung" model="ir.rule">
-        <field name="name">Ke hoach vat tu line - Ban cung ung - own period</field>
+        <field name="name">Ke hoach vat tu line - Ban cung ung - read all</field>
         <field name="model_id" ref="model_ke_hoach_vat_tu_line"/>
-        <field name="domain_force">[('period_id.create_uid', '=', user.id)]</field>
+        <field name="domain_force">[(1, '=', 1)]</field>
         <field name="groups" eval="[(4, ref('sonha_vat_tu.group_ban_cung_ung_vat_tu'))]"/>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="False"/>
@@ -67,9 +81,9 @@
     </record>
 
     <record id="rule_dinh_muc_ban_cung_ung" model="ir.rule">
-        <field name="name">B2 dinh muc - Ban cung ung - own period</field>
+        <field name="name">Dinh muc - Ban cung ung - read all</field>
         <field name="model_id" ref="model_dinh_muc"/>
-        <field name="domain_force">[('period_id.create_uid', '=', user.id)]</field>
+        <field name="domain_force">[(1, '=', 1)]</field>
         <field name="groups" eval="[(4, ref('sonha_vat_tu.group_ban_cung_ung_vat_tu'))]"/>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="False"/>
@@ -78,9 +92,9 @@
     </record>
 
     <record id="rule_tinh_toan_vat_tu_ban_cung_ung" model="ir.rule">
-        <field name="name">B3 tinh toan vat tu - Ban cung ung - own period</field>
+        <field name="name">Tinh toan vat tu - Ban cung ung - read all</field>
         <field name="model_id" ref="model_tinh_toan_vat_tu"/>
-        <field name="domain_force">[('period_id.create_uid', '=', user.id)]</field>
+        <field name="domain_force">[(1, '=', 1)]</field>
         <field name="groups" eval="[(4, ref('sonha_vat_tu.group_ban_cung_ung_vat_tu'))]"/>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="False"/>
@@ -88,39 +102,51 @@
         <field name="perm_unlink" eval="False"/>
     </record>
 
-    <record id="rule_tong_hop_vat_tu_ban_cung_ung" model="ir.rule">
-        <field name="name">B4 tong hop vat tu - Ban cung ung - own period</field>
-        <field name="model_id" ref="model_tong_hop_vat_tu"/>
-        <field name="domain_force">[('period_id.create_uid', '=', user.id)]</field>
+    <record id="rule_tinh_toan_vat_tu_chi_tiet_ban_cung_ung" model="ir.rule">
+        <field name="name">Tinh toan vat tu chi tiet - Ban cung ung - read all</field>
+        <field name="model_id" ref="model_tinh_toan_vat_tu_chi_tiet"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
         <field name="groups" eval="[(4, ref('sonha_vat_tu.group_ban_cung_ung_vat_tu'))]"/>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- B4-B5: ban cung ứng xem + sửa -->
+    <record id="rule_tong_hop_vat_tu_ban_cung_ung" model="ir.rule">
+        <field name="name">Tong hop vat tu - Ban cung ung - all</field>
+        <field name="model_id" ref="model_tong_hop_vat_tu"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('sonha_vat_tu.group_ban_cung_ung_vat_tu'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
         <field name="perm_create" eval="False"/>
         <field name="perm_unlink" eval="False"/>
     </record>
 
     <record id="rule_kh_dat_vat_tu_ban_cung_ung" model="ir.rule">
-        <field name="name">B5 ke hoach dat vat tu - Ban cung ung - own period</field>
+        <field name="name">KH dat vat tu - Ban cung ung - all</field>
         <field name="model_id" ref="model_kh_dat_vat_tu"/>
-        <field name="domain_force">[('period_id.create_uid', '=', user.id)]</field>
+        <field name="domain_force">[(1, '=', 1)]</field>
         <field name="groups" eval="[(4, ref('sonha_vat_tu.group_ban_cung_ung_vat_tu'))]"/>
         <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="False"/>
+        <field name="perm_write" eval="True"/>
         <field name="perm_create" eval="False"/>
         <field name="perm_unlink" eval="False"/>
     </record>
 
-    <record id="rule_buoc_duyet_ke_hoach_ban_cung_ung_own" model="ir.rule">
-        <field name="name">Buoc duyet ke hoach - Ban cung ung - own period</field>
+    <record id="rule_buoc_duyet_ke_hoach_ban_cung_ung" model="ir.rule">
+        <field name="name">Buoc duyet ke hoach - Ban cung ung - all</field>
         <field name="model_id" ref="model_buoc_duyet_ke_hoach_vat_tu"/>
-        <field name="domain_force">[('period_id.create_uid', '=', user.id)]</field>
+        <field name="domain_force">[(1, '=', 1)]</field>
         <field name="groups" eval="[(4, ref('sonha_vat_tu.group_ban_cung_ung_vat_tu'))]"/>
     </record>
 
-    <record id="rule_bao_cao_nhu_cau_ban_cung_ung_own" model="ir.rule">
-        <field name="name">Bao cao nhu cau - Ban cung ung - own period</field>
+    <record id="rule_bao_cao_nhu_cau_ban_cung_ung" model="ir.rule">
+        <field name="name">Bao cao nhu cau - Ban cung ung - all</field>
         <field name="model_id" ref="model_bao_cao_nhu_cau_vat_tu"/>
-        <field name="domain_force">[('period_id.create_uid', '=', user.id)]</field>
+        <field name="domain_force">[(1, '=', 1)]</field>
         <field name="groups" eval="[(4, ref('sonha_vat_tu.group_ban_cung_ung_vat_tu'))]"/>
     </record>
 

@@ -1,11 +1,5 @@
 # -*- coding: utf-8 -*-
-import logging
-
-from odoo import _, api, fields, models
-from odoo.exceptions import UserError
-
-_logger = logging.getLogger(__name__)
-
+from odoo import fields, models
 
 
 class Bom(models.Model):
@@ -30,21 +24,3 @@ class Bom(models.Model):
         ('uniq_bom_tp_nvl', 'unique(ma_tp, ma_nvl)',
          'BOM đã tồn tại theo mã thành phẩm và mã NVL!'),
     ]
-
-    # def action_download_bom_template(self):
-    #     return {
-    #         'type': 'ir.actions.act_url',
-    #         'url': '/sonha_vat_tu/static/xls/bom_templates.xlsx',
-    #         'target': 'self',
-    #     }
-    #
-    # def action_open_import_bom_wizard(self):
-    #     return {
-    #         'name': _('Import BOM'),
-    #         'type': 'ir.actions.act_window',
-    #         'res_model': 'import.bom.wizard',
-    #         'view_mode': 'form',
-    #         'target': 'new',
-    #     }
-    #
-
