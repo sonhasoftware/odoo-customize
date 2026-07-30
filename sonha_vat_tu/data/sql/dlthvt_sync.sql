@@ -1,7 +1,7 @@
 -- ############################################################################
 -- ĐỒNG BỘ BẢNG PHẲNG  du_lieu_tong_hop_vat_tu
 -- ============================================================================
--- PHẦN 1. DROP TRIGGER / HÀM (idempotent trước khi CREATE lại)
+-- PHẦN 1. DROP TRIGGER / HÀM
 -- ============================================================================
 
 DROP TRIGGER IF EXISTS trg_dlthvt_fill_meta   ON du_lieu_tong_hop_vat_tu;
