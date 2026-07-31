@@ -18,9 +18,6 @@ class MaHang(models.Model):
     ma_mdm = fields.Char(string='Mã MDM', readonly=True, index=True)
     ma_sap = fields.Char(string='Mã đơn vị', readonly=True, index=True)
     ten_hang = fields.Char(string='Tên hàng hóa', readonly=True)
-    phan_tram = fields.Float(
-        string='Phần trăm', digits=(16, 2), compute='_compute_phan_tram',
-        help='Hệ số mua dư so với nhu cầu tính toán (áp dụng ở B4).')
     don_vi_tinh_id = fields.Many2one(
         'mdm.dvt', string='Đơn vị tính', readonly=True)
     bom_sale_id = fields.Many2one(
@@ -32,21 +29,32 @@ class MaHang(models.Model):
         'mdm.nganh.hang', string='Ngành hàng MDM', readonly=True, index=True)
     active = fields.Boolean(default=True, readonly=True)
 
-    @api.depends('company_id', 'ma_sap')
-    def _compute_phan_tram(self):
-        company_ids = list({r.company_id.id for r in self if r.company_id and r.ma_sap})
-        ma_saps = list({(r.ma_sap or '').strip() for r in self if r.ma_sap})
-        mapping = {}
-        if company_ids and ma_saps:
-            rows = self.env['ma.hang.phan.tram'].sudo().search([
-                ('company_id', 'in', company_ids),
-                ('ma_sap', 'in', ma_saps),
-            ])
-            for row in rows:
-                mapping[(row.company_id.id, (row.ma_sap or '').strip())] = row.phan_tram or 0.0
+    @api.model
+    def _display_ma_code_only(self):
+        return bool(self.env.context.get('vat_tu_display_ma_code_only'))
+
+    @api.model
+    def _label_ma_code_only(self, rec):
+        return (rec.ma_sap or '').strip() or str(rec.id)
+
+    @api.depends('ma_sap', 'ten_hang')
+    def _compute_display_name(self):
+        if not self._display_ma_code_only():
+            return super()._compute_display_name()
         for rec in self:
-            key = (rec.company_id.id, (rec.ma_sap or '').strip())
-            rec.phan_tram = mapping.get(key, 0.0)
+            rec.display_name = self._label_ma_code_only(rec)
+
+    def name_get(self):
+        if not self._display_ma_code_only():
+            return super().name_get()
+        return [(rec.id, self._label_ma_code_only(rec)) for rec in self]
+
+    @api.model
+    def _name_search(self, name='', args=None, operator='ilike', limit=100, order=None):
+        args = list(args or [])
+        if name:
+            args += ['|', ('ma_sap', operator, name), ('ten_hang', operator, name)]
+        return self._search(args, limit=limit, order=order)
 
     @api.model
     def get_mdm_sap_meta_map(self, sap_codes):
@@ -84,15 +92,6 @@ class MaHang(models.Model):
         if not code:
             return False
         return code in self.get_mdm_sap_codes_set([code])
-
-    def action_open_import_wizard(self):
-        return {
-            'name': _('Import phần trăm'),
-            'type': 'ir.actions.act_window',
-            'res_model': 'import.ma.hang.phan.tram.wizard',
-            'view_mode': 'form',
-            'target': 'new',
-        }
 
     @api.model
     def _reload_ma_hang_view(self):

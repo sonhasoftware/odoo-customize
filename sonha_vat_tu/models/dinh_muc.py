@@ -170,6 +170,8 @@ class DinhMuc(models.Model):
         vals = dict(vals)
         if vals['sl_dinh_muc_thay_doi'] in (False, None, ''):
             vals.update(sl_dinh_muc_thay_doi=0.0, co_sl_dinh_muc_override=False)
+        elif not vals['sl_dinh_muc_thay_doi']:
+            vals.update(sl_dinh_muc_thay_doi=0.0, co_sl_dinh_muc_override=False)
         else:
             vals['co_sl_dinh_muc_override'] = True
 
@@ -200,4 +202,30 @@ class DinhMuc(models.Model):
                 rec._override_tracking_row()
             )
         self._log_override_changes(changes_by_period)
+        if not self.env.context.get('skip_bom_dinh_muc_sync'):
+            self._sync_to_bom_dinh_muc()
         return res
+
+    def _sync_to_bom_dinh_muc(self):
+        BomDinhMuc = self.env['bom.dinh.muc']
+        for rec in self:
+            BomDinhMuc._upsert_from_dinh_muc(rec, update_override=True)
+
+    def _apply_master_override(self, master):
+        self.ensure_one()
+        old_eff = self._effective_sl_dinh_muc()
+        if master.sl_dinh_muc_thay_doi:
+            vals = {
+                'sl_dinh_muc_thay_doi': master.sl_dinh_muc_thay_doi,
+                'co_sl_dinh_muc_override': True,
+            }
+            new_eff = master.sl_dinh_muc_thay_doi
+        else:
+            vals = {
+                'sl_dinh_muc_thay_doi': 0.0,
+                'co_sl_dinh_muc_override': False,
+            }
+            new_eff = self.sl_dinh_muc or 0.0
+        if old_eff and abs(old_eff - new_eff) > 1e-12:
+            vals.update(self._scale_qty_vals(old_eff, new_eff))
+        return super(DinhMuc, self.with_context(skip_bom_dinh_muc_sync=True)).write(vals)

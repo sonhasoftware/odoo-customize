@@ -53,14 +53,14 @@ BEGIN
         DROP TABLE IF EXISTS _tmp_dm_override;
         CREATE TEMP TABLE _tmp_dm_override ON COMMIT DROP AS
         SELECT
-            company_id,
-            TRIM(ma_sap) AS ma_sap,
-            TRIM(ma_nvl) AS ma_nvl,
-            sl_dinh_muc_thay_doi,
-            co_sl_dinh_muc_override
-        FROM dinh_muc
-        WHERE period_id = p_period_id
-          AND co_sl_dinh_muc_override IS TRUE;
+            b.company_id,
+            TRIM(b.ma_tp) AS ma_sap,
+            TRIM(b.ma_nvl) AS ma_nvl,
+            b.sl_dinh_muc_thay_doi,
+            TRUE AS co_sl_dinh_muc_override
+        FROM bom_dinh_muc b
+        WHERE b.sl_dinh_muc_thay_doi IS NOT NULL
+          AND b.sl_dinh_muc_thay_doi <> 0;
 
         DELETE FROM dinh_muc WHERE period_id = p_period_id;
 
@@ -75,13 +75,26 @@ BEGIN
 
         CREATE INDEX ON _tmp_period_tp (ma_tp_goc);
 
---         -- Chi NVL co trong danh muc ma.hang (view QL v_mdm_hang_hoa_bcu).
+        -- NVL thuộc BOM kỳ này (trước khi lọc ma.hang).
+        DROP TABLE IF EXISTS _tmp_period_nvl_bom;
+        CREATE TEMP TABLE _tmp_period_nvl_bom ON COMMIT DROP AS
+        SELECT DISTINCT TRIM(b.ma_con) AS ma_sap
+        FROM bom_tinh_toan b
+        WHERE b.loai_vat_tu = 'NVL'
+          AND b.ma_tp_goc IN (SELECT ma_tp_goc FROM _tmp_period_tp)
+          AND b.ma_con IS NOT NULL
+          AND TRIM(b.ma_con) <> '';
+
+        CREATE INDEX ON _tmp_period_nvl_bom (ma_sap);
+
+        -- Chỉ NVL có trong danh mục ma.hang VÀ thuộc BOM kỳ (không quét cả catalog).
         DROP TABLE IF EXISTS _tmp_ma_hang_sap;
         CREATE TEMP TABLE _tmp_ma_hang_sap ON COMMIT DROP AS
-        SELECT DISTINCT TRIM(ma_sap) AS ma_sap
-        FROM ma_hang
-        WHERE ma_sap IS NOT NULL
-          AND TRIM(ma_sap) <> '';
+        SELECT DISTINCT TRIM(mh.ma_sap) AS ma_sap
+        FROM ma_hang mh
+        INNER JOIN _tmp_period_nvl_bom n ON n.ma_sap = TRIM(mh.ma_sap)
+        WHERE mh.ma_sap IS NOT NULL
+          AND TRIM(mh.ma_sap) <> '';
 
         CREATE INDEX ON _tmp_ma_hang_sap (ma_sap);
 
@@ -365,21 +378,28 @@ BEGIN
         b3.ten_vat_tu,
         b3.don_vi_tinh,
         COALESCE(b3.qty_t0, 0) * (
-            1 + COALESCE(NULLIF(p.phan_tram, 0), 0) / 100.0
+            1 + COALESCE(NULLIF(pt.phan_tram, 0), 0) / 100.0
         ) AS qty_t0,
         COALESCE(b3.qty_t1, 0) * (
-            1 + COALESCE(NULLIF(p.phan_tram, 0), 0) / 100.0
+            1 + COALESCE(NULLIF(pt.phan_tram, 0), 0) / 100.0
         ) AS qty_t1,
         COALESCE(b3.qty_t2, 0) * (
-            1 + COALESCE(NULLIF(p.phan_tram, 0), 0) / 100.0
+            1 + COALESCE(NULLIF(pt.phan_tram, 0), 0) / 100.0
         ) AS qty_t2,
         COALESCE(b3.qty_t3, 0) * (
-            1 + COALESCE(NULLIF(p.phan_tram, 0), 0) / 100.0
+            1 + COALESCE(NULLIF(pt.phan_tram, 0), 0) / 100.0
         ) AS qty_t3
     FROM tinh_toan_vat_tu b3
-    LEFT JOIN ma_hang_phan_tram p
-        ON  p.company_id = b3.don_vi_kd_id
-        AND TRIM(p.ma_sap) = TRIM(b3.ma_vat_tu)
+    LEFT JOIN (
+        SELECT
+            p.company_id,
+            TRIM(mh.ma_sap) AS ma_sap,
+            p.phan_tram
+        FROM ma_hang_phan_tram p
+        INNER JOIN ma_hang mh ON mh.id = p.ma_nvl_id
+    ) pt
+        ON  pt.company_id = b3.don_vi_kd_id
+        AND pt.ma_sap = TRIM(b3.ma_vat_tu)
     WHERE b3.period_id = p_period_id;
 
     CREATE INDEX ON _tmp_b3_adj (company_id, ma_vat_tu);

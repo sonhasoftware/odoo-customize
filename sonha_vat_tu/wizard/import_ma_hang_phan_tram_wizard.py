@@ -108,9 +108,18 @@ class ImportMaHangPhanTramWizard(models.TransientModel):
 
     def _apply_rows(self, parsed):
         PhanTram = self.env['ma.hang.phan.tram'].sudo()
+        MaHang = self.env['ma.hang'].sudo()
         existing_map = {
-            (rec.company_id.id, rec.ma_sap): rec
+            (rec.company_id.id, rec.ma_nvl_id.ma_sap): rec
             for rec in PhanTram.search([
+                ('company_id', 'in', list({item['company'].id for item in parsed})),
+                ('ma_nvl_id.ma_sap', 'in', list({item['ma_nvl'] for item in parsed})),
+            ])
+            if rec.ma_nvl_id
+        }
+        ten_nvl_map = {
+            (rec.company_id.id, rec.ma_sap): rec
+            for rec in MaHang.search([
                 ('company_id', 'in', list({item['company'].id for item in parsed})),
                 ('ma_sap', 'in', list({item['ma_nvl'] for item in parsed})),
             ])
@@ -126,9 +135,12 @@ class ImportMaHangPhanTramWizard(models.TransientModel):
                 ids_by_value.setdefault(item['phan_tram'], []).append(existing.id)
                 updated_items.append(label)
             else:
+                ma_hang = ten_nvl_map.get((item['company'].id, item['ma_nvl']))
+                if not ma_hang:
+                    continue
                 to_create.append({
                     'company_id': item['company'].id,
-                    'ma_sap': item['ma_nvl'],
+                    'ma_nvl_id': ma_hang.id,
                     'phan_tram': item['phan_tram'],
                 })
                 created_items.append(label)

@@ -75,10 +75,22 @@
     <menuitem id="menu_ma_hang"
               name="Mã hàng"
               parent="menu_danh_muc_root"
-              action="action_ma_hang" sequence="10"/>
+              action="action_ma_hang" sequence="10"
+              groups="base.group_system"/>
+    <menuitem id="menu_ma_hang_phan_tram"
+              name="Phần trăm mã NVL"
+              parent="menu_danh_muc_root"
+              action="action_ma_hang_phan_tram" sequence="15"
+              groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"/>
     <menuitem id="menu_dinh_muc"
               name="BOM"
               parent="menu_danh_muc_root"
-              action="action_bom" sequence="20"/>
+              action="action_bom" sequence="20"
+              active="False"/>
+    <menuitem id="menu_bom_dinh_muc"
+              name="BOM"
+              parent="menu_danh_muc_root"
+              action="action_bom_dinh_muc" sequence="20"
+              groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"/>
 
 </odoo>

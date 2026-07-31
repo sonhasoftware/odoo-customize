@@ -4,6 +4,7 @@ from . import ke_hoach_vat_tu
 from . import res_company
 from . import mail_message
 from . import ma_hang_phan_tram
+from . import mdm_tong_hop_line
 from . import ma_hang
 from . import bom
 from . import ke_hoach_line_mixin
@@ -11,6 +12,7 @@ from . import ke_hoach_kinh_doanh
 from . import ke_hoach_san_xuat
 from . import ke_hoach_vat_tu_line
 from . import dinh_muc
+from . import bom_dinh_muc
 from . import tinh_toan_vat_tu
 from . import tinh_toan_vat_tu_chi_tiet
 from . import tong_hop_vat_tu

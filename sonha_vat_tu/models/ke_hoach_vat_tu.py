@@ -104,11 +104,6 @@ class KeHoachVatTu(models.Model):
         help='Dự trữ tối thiểu B5 = VT cần dùng tháng đầu ÷ 28 × số ngày này (mặc định 20).',
         tracking=True,
     )
-    vat_tu_di_duong_imported = fields.Boolean(
-        string='Đã import vật tư đi đường (B3)',
-        default=False,
-        copy=False,
-    )
     co_ke_hoach_vat_tu = fields.Boolean(
         string='Đã tạo kế hoạch vật tư',
         default=False,
@@ -522,6 +517,7 @@ class KeHoachVatTu(models.Model):
             ))
 
         self.env.cr.execute('CALL public.fn_sinh_dinh_muc(%s)', (self.id,))
+        self.env.invalidate_all()
         self.write({'state': 'dinh_muc'})
         self.invalidate_recordset([
             'dinh_muc_ids', 'dinh_muc_count', 'state',
@@ -714,10 +710,9 @@ class KeHoachVatTu(models.Model):
     def action_compute_b3(self):
         self.ensure_one()
         self.env.cr.execute('CALL public.fn_tinh_toan_vat_tu(%s)', (self.id,))
-        self.write({'state': 'tinh_toan', 'vat_tu_di_duong_imported': False})
+        self.write({'state': 'tinh_toan'})
         self.invalidate_recordset([
-            'tinh_toan_vat_tu_ids', 'tinh_toan_vat_tu_count',
-            'state', 'vat_tu_di_duong_imported',
+            'tinh_toan_vat_tu_ids', 'tinh_toan_vat_tu_count', 'state',
         ])
         return self.action_open_step_b3()
 
@@ -738,10 +733,6 @@ class KeHoachVatTu(models.Model):
 
     def action_compute_b4(self):
         self.ensure_one()
-        if not self.vat_tu_di_duong_imported:
-            raise UserError(_(
-                'Vui lòng import vật tư đi đường trước khi chạy Tổng hợp vật tư cần sản xuất.'
-            ))
         self.env.cr.execute(
             'CALL public.fn_tong_hop_vat_tu(%s, %s)',
             (self.id, self.ngay_du_phong_b4 or 15.0)
@@ -1602,11 +1593,8 @@ class KeHoachVatTu(models.Model):
                 'Không thể quay lại khi kế hoạch đặt vật tư đã được phê duyệt.'
             ))
         target_state, action_xmlid = mapping
-        extra = {}
-        if self.state == 'tinh_toan':
-            extra['vat_tu_di_duong_imported'] = False
         self._clear_step_data(self.state)
-        return self._action_reset_step(target_state, action_xmlid, extra or None)
+        return self._action_reset_step(target_state, action_xmlid, None)
 
     def action_open_workflow_sx(self):
         return self._action_open_step('sonha_vat_tu.action_ke_hoach_san_xuat_period')
