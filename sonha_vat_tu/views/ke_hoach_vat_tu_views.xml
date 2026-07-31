@@ -230,15 +230,14 @@
                             string="Import vật tư đi đường"
                             class="btn-primary" icon="fa-upload"
                             groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"
-                            invisible="state != 'tinh_toan' or vat_tu_di_duong_imported"/>
+                            invisible="state != 'tinh_toan'"/>
                     <button name="action_compute_b4" type="object" string="Tổng hợp vật tư cần sản xuất"
                             class="btn-primary"
                             groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"
-                            invisible="state != 'tinh_toan' or not vat_tu_di_duong_imported"/>
+                            invisible="state != 'tinh_toan'"/>
                     <field name="state" widget="statusbar" statusbar_visible="ke_hoach,dinh_muc,tinh_toan,tong_hop,dat_hang"/>
                 </header>
                 <sheet>
-                    <field name="vat_tu_di_duong_imported" invisible="1"/>
                     <div class="oe_button_box" name="button_box">
                         <button name="action_open_step_b1" type="object" class="oe_stat_button" icon="fa-arrow-left">
                             <field name="ke_hoach_san_xuat_count" string="Kế hoạch vật tư" widget="statinfo"/>

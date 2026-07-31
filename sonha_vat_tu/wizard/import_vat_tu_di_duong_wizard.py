@@ -450,8 +450,6 @@ class ImportVatTuDiDuongWizard(models.TransientModel):
 
         next_action = None
         if self.period_id:
-            if created or updated:
-                self.period_id.write({'vat_tu_di_duong_imported': True})
             next_action = {
                 'type': 'ir.actions.act_window',
                 'res_model': 'ke.hoach.vat.tu',

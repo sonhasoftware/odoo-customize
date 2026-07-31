@@ -13,5 +13,17 @@
             <field name="numbercall">-1</field>
             <field name="active">True</field>
         </record>
+
+        <record id="cron_clear_ma_hang_phan_tram" model="ir.cron">
+            <field name="name">Vật tư: Reset phần trăm mã NVL đầu tháng</field>
+            <field name="model_id" ref="model_ma_hang_phan_tram"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_clear_monthly()</field>
+            <field name="interval_type">months</field>
+            <field name="interval_number">1</field>
+            <field name="nextcall" eval="DateTime.now().replace(day=1, hour=2, minute=0, second=0).strftime('%Y-%m-%d %H:%M:%S')"/>
+            <field name="numbercall">-1</field>
+            <field name="active">True</field>
+        </record>
     </data>
 </odoo>

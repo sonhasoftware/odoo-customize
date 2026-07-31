@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_ma_hang_phan_tram_tree" model="ir.ui.view">
+        <field name="name">Phần trăm dư mua theo mã NVL</field>
+        <field name="model">ma.hang.phan.tram</field>
+        <field name="arch" type="xml">
+            <tree string="Phần trăm dư mua theo mã NVL" duplicate="0" editable="bottom" class="sh_free_width_tree">
+                <header>
+                    <button name="action_open_import_wizard" type="object"
+                            string="Import" class="btn-primary"
+                            display="always"/>
+                </header>
+                <field name="company_id" string="Đơn vị"
+                       options="{'no_create': True}"
+                       context="{'vat_tu_company_code_display': True}"/>
+                <field name="ma_nvl_id" string="Mã NVL"
+                       context="{'vat_tu_display_ma_code_only': True}"
+                       options="{'no_create': True, 'no_open': True}"/>
+                <field name="ten_nvl" string="Tên NVL" readonly="1"/>
+                <field name="phan_tram" string="Phần trăm"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_ma_hang_phan_tram_search" model="ir.ui.view">
+        <field name="name">Phần trăm dư mua theo mã NVL</field>
+        <field name="model">ma.hang.phan.tram</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="company_id" context="{'vat_tu_company_code_display': True}"/>
+                <field name="ma_nvl_id" string="Mã NVL"
+                       context="{'vat_tu_display_ma_code_only': True}"/>
+                <field name="ten_nvl"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_ma_hang_phan_tram" model="ir.actions.act_window">
+        <field name="name">Phần trăm dư mua theo mã NVL</field>
+        <field name="res_model">ma.hang.phan.tram</field>
+        <field name="view_mode">tree</field>
+        <field name="context">{'vat_tu_company_code_display': True}</field>
+    </record>
+</odoo>

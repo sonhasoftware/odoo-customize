@@ -23,6 +23,8 @@
         'wizard/bao_cao_nhu_cau_vat_tu_wizard_views.xml',
         'wizard/bao_cao_vat_tu_wizard_views.xml',
         'views/danh_muc_views.xml',
+        'views/ma_hang_phan_tram_views.xml',
+        'views/bom_dinh_muc_views.xml',
         'views/bom_views.xml',
         'views/ke_hoach_san_xuat_views.xml',
         'views/dinh_muc_views.xml',
