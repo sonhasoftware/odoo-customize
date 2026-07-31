@@ -87,6 +87,8 @@ class EmployeeAttendanceV2(models.Model):
     wedding_leave = fields.Float(string="Nghỉ cưới", store=True)
     regime_leave = fields.Float(string="Nghỉ chế độ", store=True)
 
+    part_time_hour = fields.Float(string="Giờ làm partime", store=True)
+
 
     LOCAL_TZ_OFFSET = timedelta(hours=7)
     CHECK_WINDOW_HOURS = 1
@@ -1045,6 +1047,7 @@ class EmployeeAttendanceV2(models.Model):
     @api.depends('check_in', 'check_out', 'shift')
     def _get_work_day(self):
         for r in self:
+            part_time_hour = 0
             weekday = r.date.weekday()
             week_number = r.date.isocalendar()[1]
             free_time = self.env['free.timekeeping'].sudo().search([('employee_id', '=', r.employee_id.id),
@@ -1067,6 +1070,21 @@ class EmployeeAttendanceV2(models.Model):
                 r.work_day = 0
             elif r.shift.shift_ot:
                 r.work_day = 0
+            elif r.shift.part_time:
+                r.work_day = 0
+                shift_start, shift_end = self._get_shift_interval_local(r)
+                if r.check_in and r.check_out:
+                    check_in = self._to_local_datetime(r.check_in)
+                    check_out = self._to_local_datetime(r.check_out)
+                    if check_in <= shift_start and check_out >= shift_end:
+                        part_time_hour = round(((shift_end - shift_start).total_seconds() / 3600), 2)
+                    elif check_in <= shift_start and check_out < shift_end:
+                        part_time_hour = round(((check_out - shift_start).total_seconds() / 3600), 2)
+                    elif check_in > shift_start and check_out >= shift_end:
+                        part_time_hour = round(((shift_end - check_in).total_seconds() / 3600), 2)
+                    else:
+                        part_time_hour = round(((check_out - check_in).total_seconds() / 3600), 2)
+                r.part_time_hour = part_time_hour
             else:
                 if free_time:
                     if r.compensatory > 0:
@@ -1183,6 +1201,12 @@ class EmployeeAttendanceV2(models.Model):
                 pass
             if (r.employee_id.company_id.calender_work != 'odd' and (weekday == 6 or weekday == 5)):
                 r.color = None
+
+            if r.shift.part_time:
+                if r.part_time_hour > 0 and r.minutes_late == 0 and r.minutes_early == 0:
+                    r.color = 'green'
+                else:
+                    r.color = 'red'
 
     @api.depends('minutes_late', 'minutes_early')
     def get_times_late(self):
