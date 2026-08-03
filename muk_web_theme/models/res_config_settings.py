@@ -51,6 +51,26 @@ class ResConfigSettings(models.TransientModel):
     theme_color_appbar_background = fields.Char(
         string='AppsBar Background Color'
     )
+
+    # Compatibility fields for settings views left by recaptcha modules.
+    # Some databases can still contain inherited settings views referencing
+    # these fields even when the original module that defined them is no
+    # longer loaded, which breaks the Settings app before it can render.
+    recaptcha_public_key = fields.Char(
+        string='reCAPTCHA Site Key',
+        config_parameter='recaptcha_public_key'
+    )
+
+    recaptcha_private_key = fields.Char(
+        string='reCAPTCHA Secret Key',
+        config_parameter='recaptcha_private_key'
+    )
+
+    recaptcha_min_score = fields.Float(
+        string='reCAPTCHA Minimum Score',
+        config_parameter='recaptcha_min_score',
+        default=0.5
+    )
     
     #----------------------------------------------------------
     # Helper
