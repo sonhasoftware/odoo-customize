@@ -2,6 +2,11 @@ from odoo import models, fields, api
 from datetime import timedelta
 
 
+def _attendance_v2_date_window(attendance_time):
+    local_date = (attendance_time + timedelta(hours=7)).date()
+    return local_date - timedelta(days=1), local_date + timedelta(days=1)
+
+
 class MasterDataAttendance(models.Model):
     _name = 'master.data.attendance'
     _description = 'Master Data Attendance'
@@ -24,33 +29,37 @@ class MasterDataAttendance(models.Model):
         for r in self:
             r.department_id = r.employee_id.department_id.id if r.employee_id.department_id.id else None
 
-    def create(self, vals):
-        rec = super().create(vals)
-        if rec.employee_id and rec.attendance_time:
-            self.env['employee.attendance.v2'].sudo().recompute_for_employee(
-                rec.employee_id,
-                (rec.attendance_time + timedelta(hours=7)).date() - timedelta(days=1),
-                (rec.attendance_time + timedelta(hours=7)).date() + timedelta(days=1)
-            )
-        return rec
+    @api.model_create_multi
+    def create(self, vals_list):
+        recs = super().create(vals_list)
+        recs._recompute_attendance_v2_for_punches()
+        return recs
 
     def write(self, vals):
+        old_punches = self._get_attendance_v2_recompute_payload()
         res = super().write(vals)
-        for rec in self:
-            if rec.employee_id:
-                self.env['employee.attendance.v2'].sudo().recompute_for_employee(
-                    rec.employee_id,
-                    (rec.attendance_time + timedelta(hours=7)).date() - timedelta(days=1),
-                    (rec.attendance_time + timedelta(hours=7)).date() + timedelta(days=1)
-                )
+        self._recompute_attendance_v2_payload(old_punches)
+        self._recompute_attendance_v2_for_punches()
         return res
 
     def unlink(self):
+        old_punches = self._get_attendance_v2_recompute_payload()
+        res = super().unlink()
+        self._recompute_attendance_v2_payload(old_punches)
+        return res
+
+    def _get_attendance_v2_recompute_payload(self):
+        payload = []
         for rec in self:
             if rec.employee_id and rec.attendance_time:
-                self.env['employee.attendance.v2'].sudo().recompute_for_employee(
-                    rec.employee_id,
-                    (rec.attendance_time + timedelta(hours=7)).date() - timedelta(days=1),
-                    (rec.attendance_time + timedelta(hours=7)).date() + timedelta(days=1)
-                )
-        return super().unlink()
+                payload.append((rec.employee_id.id, rec.attendance_time))
+        return payload
+
+    def _recompute_attendance_v2_for_punches(self):
+        self._recompute_attendance_v2_payload(self._get_attendance_v2_recompute_payload())
+
+    def _recompute_attendance_v2_payload(self, payload):
+        attendance_v2 = self.env['employee.attendance.v2'].sudo()
+        for employee_id, attendance_time in payload:
+            date_from, date_to = _attendance_v2_date_window(attendance_time)
+            attendance_v2.recompute_for_employee(employee_id, date_from, date_to)
