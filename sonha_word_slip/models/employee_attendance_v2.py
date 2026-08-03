@@ -1277,6 +1277,35 @@ class EmployeeAttendanceV2(models.Model):
                 application_id=0,
             )
 
+    def _should_auto_recompute_before_read(self, field_names=None):
+        if self.env.context.get('skip_attendance_v2_auto_recompute'):
+            return False
+        if not field_names:
+            return True
+        raw_dependent_fields = {
+            'check_in', 'check_out', 'duration', 'note', 'work_day',
+            'minutes_late', 'minutes_early', 'over_time', 'over_time_nb',
+            'sunday_work', 'normal_sunday_work', 'ot_sunday_work',
+            'work_hc', 'work_sp', 'times_late', 'actual_work',
+            'forgot_time', 'work_eat', 'color',
+        }
+        return bool(raw_dependent_fields.intersection(field_names))
+
+    def _auto_recompute_before_read(self, field_names=None):
+        if self and self._should_auto_recompute_before_read(field_names):
+            records = self.sudo().with_context(skip_attendance_v2_auto_recompute=True)
+            records._recompute_attendance_v2_fields()
+        return True
+
+    def read(self, fields=None, load='_classic_read'):
+        self._auto_recompute_before_read(set(fields or []))
+        return super().read(fields=fields, load=load)
+
+    def search_read(self, domain=None, fields=None, offset=0, limit=None, order=None):
+        records = self.search(domain or [], offset=offset, limit=limit, order=order)
+        records._auto_recompute_before_read(set(fields or []))
+        return records.with_context(skip_attendance_v2_auto_recompute=True).read(fields)
+
     def _recompute_attendance_v2_fields(self):
         """Recompute stored fields in dependency order without bypassing ORM dependencies.
 

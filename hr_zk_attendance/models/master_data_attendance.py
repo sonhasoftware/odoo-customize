@@ -60,6 +60,14 @@ class MasterDataAttendance(models.Model):
 
     def _recompute_attendance_v2_payload(self, payload):
         attendance_v2 = self.env['employee.attendance.v2'].sudo()
+        recompute_windows = {}
         for employee_id, attendance_time in payload:
             date_from, date_to = _attendance_v2_date_window(attendance_time)
+            if employee_id not in recompute_windows:
+                recompute_windows[employee_id] = [date_from, date_to]
+            else:
+                recompute_windows[employee_id][0] = min(recompute_windows[employee_id][0], date_from)
+                recompute_windows[employee_id][1] = max(recompute_windows[employee_id][1], date_to)
+
+        for employee_id, (date_from, date_to) in recompute_windows.items():
             attendance_v2.recompute_for_employee(employee_id, date_from, date_to)
