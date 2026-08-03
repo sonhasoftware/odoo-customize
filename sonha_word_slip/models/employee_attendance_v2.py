@@ -1820,3 +1820,80 @@ class EmployeeAttendanceV2(models.Model):
     #     output.seek(0)
     #
     #     return base64.b64encode(output.read())
+
+    def init(self):
+        self.env.cr.execute("""
+            CREATE INDEX IF NOT EXISTS master_data_attendance_employee_time_idx
+                ON master_data_attendance (employee_id, attendance_time);
+
+            CREATE INDEX IF NOT EXISTS employee_attendance_v2_employee_date_idx
+                ON employee_attendance_v2 (employee_id, date);
+
+            CREATE OR REPLACE FUNCTION sync_employee_attendance_v2_check_in_out(
+                p_employee_id integer,
+                p_attendance_time timestamp without time zone
+            ) RETURNS void AS $$
+            BEGIN
+                IF p_employee_id IS NULL OR p_attendance_time IS NULL THEN
+                    RETURN;
+                END IF;
+
+                UPDATE employee_attendance_v2 AS v2
+                SET
+                    check_in = ci.check_in,
+                    check_out = co.check_out
+                FROM LATERAL (
+                    SELECT MIN(mda.attendance_time) AS check_in
+                    FROM master_data_attendance AS mda
+                    WHERE mda.employee_id = v2.employee_id
+                      AND mda.attendance_time >= v2.time_check_in
+                      AND mda.attendance_time <= v2.time_check_out
+                      AND v2.check_no_in IS NOT NULL
+                      AND mda.attendance_time <= v2.check_no_in
+                ) AS ci,
+                LATERAL (
+                    SELECT MAX(mda.attendance_time) AS check_out
+                    FROM master_data_attendance AS mda
+                    WHERE mda.employee_id = v2.employee_id
+                      AND mda.attendance_time >= v2.time_check_in
+                      AND mda.attendance_time <= v2.time_check_out
+                      AND v2.check_no_out IS NOT NULL
+                      AND mda.attendance_time >= v2.check_no_out
+                ) AS co
+                WHERE v2.employee_id = p_employee_id
+                  AND v2.time_check_in IS NOT NULL
+                  AND v2.time_check_out IS NOT NULL
+                  AND v2.date BETWEEN ((p_attendance_time + interval '7 hours')::date - 1)
+                                  AND ((p_attendance_time + interval '7 hours')::date + 1)
+                  AND p_attendance_time BETWEEN (v2.time_check_in - interval '1 day')
+                                           AND (v2.time_check_out + interval '1 day');
+            END;
+            $$ LANGUAGE plpgsql;
+
+            CREATE OR REPLACE FUNCTION trg_sync_employee_attendance_v2_check_in_out()
+            RETURNS trigger AS $$
+            BEGIN
+                IF TG_OP IN ('INSERT', 'UPDATE') THEN
+                    PERFORM sync_employee_attendance_v2_check_in_out(NEW.employee_id, NEW.attendance_time);
+                END IF;
+
+                IF TG_OP IN ('UPDATE', 'DELETE') THEN
+                    PERFORM sync_employee_attendance_v2_check_in_out(OLD.employee_id, OLD.attendance_time);
+                END IF;
+
+                IF TG_OP = 'DELETE' THEN
+                    RETURN OLD;
+                END IF;
+                RETURN NEW;
+            END;
+            $$ LANGUAGE plpgsql;
+
+            DROP TRIGGER IF EXISTS master_data_attendance_sync_v2_check_in_out
+                ON master_data_attendance;
+
+            CREATE TRIGGER master_data_attendance_sync_v2_check_in_out
+                AFTER INSERT OR UPDATE OF employee_id, attendance_time OR DELETE
+                ON master_data_attendance
+                FOR EACH ROW
+                EXECUTE FUNCTION trg_sync_employee_attendance_v2_check_in_out();
+        """)

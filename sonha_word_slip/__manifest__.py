@@ -6,7 +6,7 @@
     'summary': 'Đơn từ Sơn Hà',
     'website': 'https://',
     'description': "Đơn từ Sơn Hà",
-    'depends': ['base', 'hr', 'web', 'resource', 'hr_holidays'],
+    'depends': ['base', 'hr', 'web', 'resource', 'hr_holidays', 'hr_zk_attendance'],
     'data': [
         'security/security.xml',
         'security/ir.model.access.csv',
