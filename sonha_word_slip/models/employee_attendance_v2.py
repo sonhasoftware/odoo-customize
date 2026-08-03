@@ -1821,13 +1821,18 @@ class EmployeeAttendanceV2(models.Model):
     #
     #     return base64.b64encode(output.read())
 
-    def init(self):
+    def _setup_check_in_out_sync_sql(self):
         self.env.cr.execute("""
             CREATE INDEX IF NOT EXISTS master_data_attendance_employee_time_idx
                 ON master_data_attendance (employee_id, attendance_time);
 
             CREATE INDEX IF NOT EXISTS employee_attendance_v2_employee_date_idx
                 ON employee_attendance_v2 (employee_id, date);
+
+            DROP FUNCTION IF EXISTS sync_employee_attendance_v2_check_in_out(
+                integer,
+                timestamp without time zone
+            ) CASCADE;
 
             CREATE OR REPLACE FUNCTION sync_employee_attendance_v2_check_in_out(
                 p_employee_id integer,
@@ -1895,3 +1900,11 @@ class EmployeeAttendanceV2(models.Model):
                 FOR EACH ROW
                 EXECUTE FUNCTION trg_sync_employee_attendance_v2_check_in_out();
         """)
+
+    def init(self):
+        self._setup_check_in_out_sync_sql()
+
+    def _register_hook(self):
+        res = super()._register_hook()
+        self._setup_check_in_out_sync_sql()
+        return res
