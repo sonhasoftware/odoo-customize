@@ -1840,26 +1840,24 @@ class EmployeeAttendanceV2(models.Model):
 
                 UPDATE employee_attendance_v2 AS v2
                 SET
-                    check_in = ci.check_in,
-                    check_out = co.check_out
-                FROM LATERAL (
-                    SELECT MIN(mda.attendance_time) AS check_in
-                    FROM master_data_attendance AS mda
-                    WHERE mda.employee_id = v2.employee_id
-                      AND mda.attendance_time >= v2.time_check_in
-                      AND mda.attendance_time <= v2.time_check_out
-                      AND v2.check_no_in IS NOT NULL
-                      AND mda.attendance_time <= v2.check_no_in
-                ) AS ci,
-                LATERAL (
-                    SELECT MAX(mda.attendance_time) AS check_out
-                    FROM master_data_attendance AS mda
-                    WHERE mda.employee_id = v2.employee_id
-                      AND mda.attendance_time >= v2.time_check_in
-                      AND mda.attendance_time <= v2.time_check_out
-                      AND v2.check_no_out IS NOT NULL
-                      AND mda.attendance_time >= v2.check_no_out
-                ) AS co
+                    check_in = (
+                        SELECT MIN(mda.attendance_time)
+                        FROM master_data_attendance AS mda
+                        WHERE mda.employee_id = v2.employee_id
+                          AND mda.attendance_time >= v2.time_check_in
+                          AND mda.attendance_time <= v2.time_check_out
+                          AND v2.check_no_in IS NOT NULL
+                          AND mda.attendance_time <= v2.check_no_in
+                    ),
+                    check_out = (
+                        SELECT MAX(mda.attendance_time)
+                        FROM master_data_attendance AS mda
+                        WHERE mda.employee_id = v2.employee_id
+                          AND mda.attendance_time >= v2.time_check_in
+                          AND mda.attendance_time <= v2.time_check_out
+                          AND v2.check_no_out IS NOT NULL
+                          AND mda.attendance_time >= v2.check_no_out
+                    )
                 WHERE v2.employee_id = p_employee_id
                   AND v2.time_check_in IS NOT NULL
                   AND v2.time_check_out IS NOT NULL
