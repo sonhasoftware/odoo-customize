@@ -332,7 +332,8 @@ class EmployeeAttendanceV2(models.Model):
         best_record = self.env['employee.attendance.v2']
         best_key = None
         for attendance in records:
-            shift_start, shift_end = self._get_shift_interval_local(attendance)
+            shift_start = self.time_check_in + timedelta(hours=self.CHECK_WINDOW_HOURS)
+            shift_end = self.time_check_out - timedelta(hours=self.CHECK_WINDOW_HOURS)
             if not shift_start or not shift_end:
                 continue
             overlap_start, overlap_end = self._intersect_interval(ot_start, ot_end, shift_start, shift_end)
