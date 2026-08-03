@@ -456,7 +456,7 @@ class EmployeeAttendanceV2(models.Model):
             if r.shift and r.shift.is_office_hour and (weekday == 6 or (weekday == 5 and week_number % 2 == 1)):
                 r.work_calendar = False
 
-    @api.depends('shift')
+    @api.depends('shift', 'work_day')
     def get_work_hc_sp(self):
         for r in self:
             r.work_sp = 0
@@ -466,7 +466,7 @@ class EmployeeAttendanceV2(models.Model):
             else:
                 r.work_hc = r.work_day
 
-    @api.depends('shift')
+    @api.depends('shift', 'work_day')
     def get_shift(self):
         for r in self:
             # Reset giá trị mặc định
@@ -991,7 +991,7 @@ class EmployeeAttendanceV2(models.Model):
             r.check_out = check_out
 
     # Lấy thông tin xem nhân viên có check-in hay check-out hay không
-    @api.depends('shift', 'check_out', 'check_in')
+    @api.depends('shift', 'check_out', 'check_in', 'leave', 'compensatory', 'vacation')
     def _get_attendance(self):
         for r in self:
             if (not r.check_in and not r.check_out) or (r.check_in and r.check_out):
@@ -1008,7 +1008,7 @@ class EmployeeAttendanceV2(models.Model):
                 r.note = None
 
     # Lấy thông tin số phút nhân viên đi muộn hoặc về sớm
-    @api.depends('check_out', 'check_in', 'employee_id')
+    @api.depends('check_out', 'check_in', 'employee_id', 'shift', 'date', 'leave', 'compensatory', 'vacation')
     def _get_minute_late_early(self):
         for r in self:
             r.minutes_late, r.minutes_early = 0, 0
@@ -1042,7 +1042,7 @@ class EmployeeAttendanceV2(models.Model):
                 r.minutes_late = 0
 
     # Lấy thông tin ngày công của nhân viên
-    @api.depends('check_in', 'check_out', 'shift')
+    @api.depends('check_in', 'check_out', 'shift', 'date', 'employee_id', 'leave', 'compensatory')
     def _get_work_day(self):
         for r in self:
             weekday = r.date.weekday()
@@ -1121,7 +1121,7 @@ class EmployeeAttendanceV2(models.Model):
                 r.weekday = None
 
     # tính màu cho danh sách
-    @api.depends('date', 'check_in', 'check_out', 'minutes_late', 'minutes_early')
+    @api.depends('date', 'check_in', 'check_out', 'minutes_late', 'minutes_early', 'public_leave', 'work_day', 'over_time', 'shift', 'employee_id')
     def _compute_color(self):
         today = date.today()
         for r in self:
@@ -1277,6 +1277,74 @@ class EmployeeAttendanceV2(models.Model):
                 application_id=0,
             )
 
+    def _should_auto_recompute_before_read(self, field_names=None):
+        if self.env.context.get('skip_attendance_v2_auto_recompute'):
+            return False
+        if not field_names:
+            return True
+        raw_dependent_fields = {
+            'check_in', 'check_out', 'duration', 'note', 'work_day',
+            'minutes_late', 'minutes_early', 'over_time', 'over_time_nb',
+            'sunday_work', 'normal_sunday_work', 'ot_sunday_work',
+            'work_hc', 'work_sp', 'times_late', 'actual_work',
+            'forgot_time', 'work_eat', 'color',
+        }
+        return bool(raw_dependent_fields.intersection(field_names))
+
+    def _auto_recompute_before_read(self, field_names=None):
+        if self and self._should_auto_recompute_before_read(field_names):
+            records = self.sudo().with_context(skip_attendance_v2_auto_recompute=True)
+            records._recompute_attendance_v2_fields()
+        return True
+
+    def read(self, fields=None, load='_classic_read'):
+        self._auto_recompute_before_read(set(fields or []))
+        return super().read(fields=fields, load=load)
+
+    def search_read(self, domain=None, fields=None, offset=0, limit=None, order=None):
+        records = self.search(domain or [], offset=offset, limit=limit, order=order)
+        records._auto_recompute_before_read(set(fields or []))
+        return records.with_context(skip_attendance_v2_auto_recompute=True).read(fields)
+
+    def _recompute_attendance_v2_fields(self):
+        """Recompute stored fields in dependency order without bypassing ORM dependencies.
+
+        Raw SQL updates of check_in/check_out do not invalidate Odoo's stored computed
+        fields, so every field depending on them (and fields depending on those fields)
+        can become stale. This helper keeps all recalculation inside ORM compute
+        methods and explicitly walks the domino chain in a stable order for batch jobs
+        and attendance punch changes.
+        """
+        records = self.sudo()
+        if not records:
+            return True
+
+        records.get_department()
+        records._compute_weekday()
+        records._get_month_year()
+        records._get_shift_employee()
+        records._get_duration()
+        records.get_work_calendar()
+        records._get_time_in_out()
+        records._check_no_in_out()
+        records._get_check_in_out()
+        records.get_hours_reinforcement()
+        records._get_work_day()
+        records._get_time_off()
+        records._get_attendance()
+        records._get_minute_late_early()
+        records._get_work_day()
+        records.get_hours_reinforcement()
+        records._get_sunday_work()
+        records.get_work_hc_sp()
+        records.get_shift()
+        records.get_times_late()
+        records._get_actual_work()
+        records._get_forgot_time()
+        records._get_work_eat()
+        records._compute_color()
+        return True
+
     def recompute_for_employee(self, employee, date_from=None, date_to=None):
         """Helper: gọi từ model khác (vd word.slip.write/create/unlink) để
            recompute các employee.attendance liên quan.
@@ -1293,19 +1361,7 @@ class EmployeeAttendanceV2(models.Model):
             domain.append(('date', '<=', fields.Date.to_date(date_to)))
         list_recs = self.search(domain)
         if list_recs:
-            for recs in list_recs:
-            # ghi lại để force recompute store fields
-                recs.sudo().write({'date': recs.date})  # ghi lại trường date để kích hoạt recompute store
-                # hoặc gọi recompute cụ thể
-                recs._get_shift_employee()
-                recs._get_time_off()
-                recs._get_time_in_out()
-                recs._check_no_in_out()
-                recs._get_check_in_out()
-                recs.get_hours_reinforcement()
-                recs._get_minute_late_early()
-                recs._get_work_day()
-                recs.get_department()
+            list_recs.sudo()._recompute_attendance_v2_fields()
 
         overtime_domain = []
         if date_from:
@@ -1340,7 +1396,7 @@ class EmployeeAttendanceV2(models.Model):
         ids = [r[0] for r in self.env.cr.fetchall()]
         recs = self.env['employee.attendance.v2'].browse(ids)
         if recs:
-            recs.sudo()._get_time_in_out()
+            recs.sudo()._recompute_attendance_v2_fields()
 
     def action_export_excel(self, ids):
 
@@ -1821,7 +1877,15 @@ class EmployeeAttendanceV2(models.Model):
     #
     #     return base64.b64encode(output.read())
 
-    def init(self):
+    def _setup_check_in_out_sync_sql(self):
+        """Keep supporting indexes and remove the legacy SQL sync trigger.
+
+        The old trigger updated check_in/check_out directly in PostgreSQL. That
+        bypassed Odoo ORM invalidation, so stored computed fields depending on
+        check_in/check_out were not recomputed. Attendance changes are now synced
+        through recompute_for_employee(), which uses ORM compute methods for the
+        full dependency chain.
+        """
         self.env.cr.execute("""
             CREATE INDEX IF NOT EXISTS master_data_attendance_employee_time_idx
                 ON master_data_attendance (employee_id, attendance_time);
@@ -1829,69 +1893,22 @@ class EmployeeAttendanceV2(models.Model):
             CREATE INDEX IF NOT EXISTS employee_attendance_v2_employee_date_idx
                 ON employee_attendance_v2 (employee_id, date);
 
-            CREATE OR REPLACE FUNCTION sync_employee_attendance_v2_check_in_out(
-                p_employee_id integer,
-                p_attendance_time timestamp without time zone
-            ) RETURNS void AS $$
-            BEGIN
-                IF p_employee_id IS NULL OR p_attendance_time IS NULL THEN
-                    RETURN;
-                END IF;
-
-                UPDATE employee_attendance_v2 AS v2
-                SET
-                    check_in = (
-                        SELECT MIN(mda.attendance_time)
-                        FROM master_data_attendance AS mda
-                        WHERE mda.employee_id = v2.employee_id
-                          AND mda.attendance_time >= v2.time_check_in
-                          AND mda.attendance_time <= v2.time_check_out
-                          AND v2.check_no_in IS NOT NULL
-                          AND mda.attendance_time <= v2.check_no_in
-                    ),
-                    check_out = (
-                        SELECT MAX(mda.attendance_time)
-                        FROM master_data_attendance AS mda
-                        WHERE mda.employee_id = v2.employee_id
-                          AND mda.attendance_time >= v2.time_check_in
-                          AND mda.attendance_time <= v2.time_check_out
-                          AND v2.check_no_out IS NOT NULL
-                          AND mda.attendance_time >= v2.check_no_out
-                    )
-                WHERE v2.employee_id = p_employee_id
-                  AND v2.time_check_in IS NOT NULL
-                  AND v2.time_check_out IS NOT NULL
-                  AND v2.date BETWEEN ((p_attendance_time + interval '7 hours')::date - 1)
-                                  AND ((p_attendance_time + interval '7 hours')::date + 1)
-                  AND p_attendance_time BETWEEN (v2.time_check_in - interval '1 day')
-                                           AND (v2.time_check_out + interval '1 day');
-            END;
-            $$ LANGUAGE plpgsql;
-
-            CREATE OR REPLACE FUNCTION trg_sync_employee_attendance_v2_check_in_out()
-            RETURNS trigger AS $$
-            BEGIN
-                IF TG_OP IN ('INSERT', 'UPDATE') THEN
-                    PERFORM sync_employee_attendance_v2_check_in_out(NEW.employee_id, NEW.attendance_time);
-                END IF;
-
-                IF TG_OP IN ('UPDATE', 'DELETE') THEN
-                    PERFORM sync_employee_attendance_v2_check_in_out(OLD.employee_id, OLD.attendance_time);
-                END IF;
-
-                IF TG_OP = 'DELETE' THEN
-                    RETURN OLD;
-                END IF;
-                RETURN NEW;
-            END;
-            $$ LANGUAGE plpgsql;
-
             DROP TRIGGER IF EXISTS master_data_attendance_sync_v2_check_in_out
                 ON master_data_attendance;
 
-            CREATE TRIGGER master_data_attendance_sync_v2_check_in_out
-                AFTER INSERT OR UPDATE OF employee_id, attendance_time OR DELETE
-                ON master_data_attendance
-                FOR EACH ROW
-                EXECUTE FUNCTION trg_sync_employee_attendance_v2_check_in_out();
+            DROP FUNCTION IF EXISTS trg_sync_employee_attendance_v2_check_in_out()
+                CASCADE;
+
+            DROP FUNCTION IF EXISTS sync_employee_attendance_v2_check_in_out(
+                integer,
+                timestamp without time zone
+            ) CASCADE;
         """)
+
+    def init(self):
+        self._setup_check_in_out_sync_sql()
+
+    def _register_hook(self):
+        res = super()._register_hook()
+        self._setup_check_in_out_sync_sql()
+        return res
