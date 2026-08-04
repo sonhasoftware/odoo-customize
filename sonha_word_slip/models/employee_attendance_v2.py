@@ -139,8 +139,20 @@ class EmployeeAttendanceV2(models.Model):
         actual_end = preferred['actual_end']
         split_local = preferred['split']
 
-        check_in_fallback_start = datetime.combine(actual_start.date(), time.min)
-        check_out_fallback_end = datetime.combine(actual_end.date(), time.max)
+        preferred_check_in_start, _preferred_check_in_end = preferred['check_in']
+        _preferred_check_out_start, preferred_check_out_end = preferred['check_out']
+
+        if preferred_check_in_start.date() < actual_start.date():
+            check_in_fallback_start = preferred_check_in_start
+        else:
+            check_in_fallback_start = datetime.combine(actual_start.date(), time.min)
+
+        if preferred_check_out_end.date() > actual_end.date():
+            check_out_fallback_end = preferred_check_out_end
+        else:
+            check_out_fallback_end = datetime.combine(actual_end.date(), time.max)
+        previous_check_out_bound = None
+        next_check_in_bound = None
 
         neighbor_records = self.sudo().search([
             ('employee_id', '=', record.employee_id.id),
@@ -156,17 +168,32 @@ class EmployeeAttendanceV2(models.Model):
 
             if neighbor_check_out:
                 neighbor_co_start, neighbor_co_end = neighbor_check_out
-                if neighbor_co_end.date() == actual_start.date() and neighbor_co_end <= split_local:
+                if neighbor_co_end <= preferred_check_in_start:
+                    previous_check_out_bound = max(
+                        previous_check_out_bound or neighbor_co_end,
+                        neighbor_co_end
+                    )
+                elif check_in_fallback_start <= neighbor_co_end <= split_local:
                     check_in_fallback_start = max(check_in_fallback_start, neighbor_co_end)
-                elif neighbor_co_start.date() == actual_start.date() and neighbor_co_start < split_local:
+                elif neighbor_co_start < split_local and neighbor_co_end >= check_in_fallback_start:
                     check_in_fallback_start = max(check_in_fallback_start, min(neighbor_co_end, split_local))
 
             if neighbor_check_in:
                 neighbor_ci_start, neighbor_ci_end = neighbor_check_in
-                if neighbor_ci_start.date() == actual_end.date() and neighbor_ci_start >= split_local:
+                if neighbor_ci_start >= preferred_check_out_end:
+                    next_check_in_bound = min(
+                        next_check_in_bound or neighbor_ci_start,
+                        neighbor_ci_start
+                    )
+                elif split_local <= neighbor_ci_start <= check_out_fallback_end:
                     check_out_fallback_end = min(check_out_fallback_end, neighbor_ci_start)
-                elif neighbor_ci_end.date() == actual_end.date() and neighbor_ci_end > split_local:
+                elif neighbor_ci_start <= check_out_fallback_end and neighbor_ci_end > split_local:
                     check_out_fallback_end = min(check_out_fallback_end, max(neighbor_ci_start, split_local))
+
+        if previous_check_out_bound:
+            check_in_fallback_start = min(check_in_fallback_start, previous_check_out_bound)
+        if next_check_in_bound:
+            check_out_fallback_end = max(check_out_fallback_end, next_check_in_bound)
 
         return {
             'check_in_preferred': (self._to_utc_datetime(preferred['check_in'][0]),
