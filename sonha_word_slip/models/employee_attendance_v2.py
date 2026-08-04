@@ -347,6 +347,48 @@ class EmployeeAttendanceV2(models.Model):
         ])
         return lines.filtered(lambda line: self._is_overtime_line_employee(line, employee))
 
+    def _get_overtime_owner_interval_local(self, attendance, employee):
+        shift_start, shift_end = self._get_shift_interval_local(attendance)
+        if not shift_start or not shift_end:
+            return None, None
+
+        interval_start = shift_start
+        interval_end = shift_end
+        max_gap = self.MAX_OT_SHIFT_GAP_HOURS
+        candidates = self._get_overtime_candidates(
+            employee,
+            shift_start.date() - timedelta(days=1),
+            shift_end.date() + timedelta(days=1),
+        )
+
+        changed = True
+        while changed:
+            changed = False
+            for line in candidates:
+                ot_start, ot_end = self._get_overtime_line_interval_local(line)
+                if not ot_start or not ot_end:
+                    continue
+
+                if ot_end <= interval_start:
+                    gap_hours = self._duration_hours(ot_end, interval_start)
+                    if gap_hours <= max_gap:
+                        interval_start = ot_start
+                        changed = True
+                elif ot_start >= interval_end:
+                    gap_hours = self._duration_hours(interval_end, ot_start)
+                    if gap_hours <= max_gap:
+                        interval_end = ot_end
+                        changed = True
+                elif attendance.shift.shift_ot:
+                    new_start = min(interval_start, ot_start)
+                    new_end = max(interval_end, ot_end)
+                    if new_start != interval_start or new_end != interval_end:
+                        interval_start = new_start
+                        interval_end = new_end
+                        changed = True
+
+        return interval_start, interval_end
+
     def _get_overtime_owner_record(self, line, employee):
         ot_start, ot_end = self._get_overtime_line_interval_local(line)
         if not ot_start or not ot_end:
@@ -358,16 +400,8 @@ class EmployeeAttendanceV2(models.Model):
         ])
         best_record = self.env['employee.attendance.v2']
         best_key = None
-        check_window = timedelta(hours=self.CHECK_WINDOW_HOURS)
         for attendance in records:
-            shift_start = (
-                self._to_local_datetime(attendance.time_check_in) + check_window
-                if attendance.time_check_in else False
-            )
-            shift_end = (
-                self._to_local_datetime(attendance.time_check_out) - check_window
-                if attendance.time_check_out else False
-            )
+            shift_start, shift_end = self._get_overtime_owner_interval_local(attendance, employee)
             if not shift_start or not shift_end:
                 continue
             overlap_start, overlap_end = self._intersect_interval(ot_start, ot_end, shift_start, shift_end)
