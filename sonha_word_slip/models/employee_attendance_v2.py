@@ -170,7 +170,7 @@ class EmployeeAttendanceV2(models.Model):
 
             if neighbor_check_out:
                 neighbor_co_start, neighbor_co_end = neighbor_check_out
-                if neighbor_co_end <= preferred_check_in_start:
+                if neighbor_co_end <= preferred_check_in_start and neighbor_co_end.date == preferred_check_in_start.date:
                     previous_check_out_bound = max(
                         previous_check_out_bound or neighbor_co_end,
                         neighbor_co_end
@@ -182,7 +182,7 @@ class EmployeeAttendanceV2(models.Model):
 
             if neighbor_check_in:
                 neighbor_ci_start, neighbor_ci_end = neighbor_check_in
-                if neighbor_ci_start >= preferred_check_out_end:
+                if neighbor_ci_start >= preferred_check_out_end and neighbor_ci_start.date == preferred_check_out_end.date:
                     next_check_in_bound = min(
                         next_check_in_bound or neighbor_ci_start,
                         neighbor_ci_start
