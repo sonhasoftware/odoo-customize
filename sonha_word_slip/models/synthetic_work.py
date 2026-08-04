@@ -68,6 +68,9 @@ class SyntheticWork(models.Model):
     normal_sunday_work = fields.Float(string="Làm bình thường ngày chủ nhật", compute="get_date_work")
     ot_sunday_work = fields.Float(string="Làm thêm ngày chủ nhật", compute="get_date_work")
 
+    permanent_part_time = fields.Float(string="Giờ ca partime chính thức", compute="get_part_time_work")
+    probationary_part_time = fields.Float(string="Giờ ca partime thử việc", compute="get_part_time_work")
+
     @api.depends('department_id', 'month', 'year')
     def get_standard_work(self):
         for r in self:
@@ -82,6 +85,71 @@ class SyntheticWork(models.Model):
                     r.standard_work = work.work_apply
             else:
                 r.standard_work = 0
+
+    @api.depends('employee_id', 'month', 'employee_id.reception_date')
+    def get_part_time_work(self):
+        for r in self:
+            query = """
+                SELECT
+                    COALESCE(
+                        SUM(
+                            CASE
+                                WHEN emp.reception_date IS NOT NULL
+                                     AND eat.date >= emp.reception_date
+                                THEN eat.part_time_hour
+                                ELSE 0
+                            END
+                        ), 0
+                    ) AS permanent_part_time,
+                    
+                    COALESCE(
+                        SUM(
+                            CASE
+                                WHEN emp.reception_date IS NOT NULL
+                                     AND eat.date >= emp.reception_date
+                                     AND sh.part_time = True
+                                THEN eat.over_time
+                                ELSE 0
+                            END
+                        ), 0
+                    ) AS permanent_over_time,
+                
+                    COALESCE(
+                        SUM(
+                            CASE
+                                WHEN emp.reception_date IS NULL
+                                     OR eat.date < emp.reception_date
+                                THEN eat.part_time_hour
+                                ELSE 0
+                            END
+                        ), 0
+                    ) AS probationary_part_time,
+                    
+                    COALESCE(
+                        SUM(
+                            CASE
+                                WHEN (emp.reception_date IS NULL OR eat.date < emp.reception_date)
+                                    AND sh.part_time = True
+                                THEN eat.over_time
+                                ELSE 0
+                            END
+                        ), 0
+                    ) AS probationary_over_time
+                
+                FROM employee_attendance_v2 eat
+                LEFT JOIN hr_employee emp
+                    ON eat.employee_id = emp.id
+                LEFT JOIN config_shift sh
+                    ON eat.shift = sh.id
+                WHERE eat.employee_id = %s
+                  AND eat.date >= %s
+                  AND eat.date <= %s;
+            """
+            self.env['hr.employee'].flush_model(['reception_date'])
+            self.env.cr.execute(query, (r.employee_id.id, r.start_date or None, r.end_date or None))
+            result = self.env.cr.dictfetchone()
+            r.permanent_part_time = result['permanent_part_time'] + result['permanent_over_time']
+            r.probationary_part_time = result['probationary_part_time'] + result['probationary_over_time']
 
     @api.depends('employee_id', 'month')
     def get_date_work(self):

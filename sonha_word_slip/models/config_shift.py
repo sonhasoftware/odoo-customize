@@ -55,6 +55,7 @@ class ConfigShift(models.Model):
     coefficient = fields.Float("Hệ số", default=1)
     recent_work = fields.Float("Công hưởng %", default=1)
     key = fields.Char("Ký hiệu ca")
+    part_time = fields.Boolean("Ca partime")
 
     #Kiểm tra xem ca có phải ca đêm hay không
     @api.depends('start', 'end_shift')

@@ -25,6 +25,8 @@
                             <field name="toxic_work"/>
                             <field name="sunday_work"/>
                             <field name="ot_sunday_work"/>
+                            <field name="permanent_part_time"/>
+                            <field name="probationary_part_time"/>
                         </group>
                         <group string="Công thời gian">
                             <field name="standard_work"/>

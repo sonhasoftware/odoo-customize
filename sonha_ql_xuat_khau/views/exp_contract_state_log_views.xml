@@ -11,6 +11,8 @@
                 <field name="change_by"/>
                 <field name="change_date"/>
                 <field name="note"/>
+                <field name="old_file" widget="many2many_binary"/>
+                <field name="new_file" widget="many2many_binary"/>
             </tree>
         </field>
     </record>
