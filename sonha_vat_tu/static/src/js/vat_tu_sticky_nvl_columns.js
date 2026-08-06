@@ -2,7 +2,7 @@
 
 import { ListRenderer } from "@web/views/list/list_renderer";
 import { patch } from "@web/core/utils/patch";
-import { onMounted, onPatched } from "@odoo/owl";
+import { onMounted, onPatched, onWillUnmount } from "@odoo/owl";
 
 /** Cột cuối cùng được ghim (scroll bắt đầu sau cột này). */
 const STICKY_END_FIELD = "don_vi_tinh";
@@ -41,21 +41,29 @@ function clearStickyCells(table) {
     });
 }
 
-function stickCells(cells, { header = false } = {}) {
+function getStickyLeftPositions(table, stickyCount) {
+    const row1 = table.querySelector("thead tr");
+    if (!row1) {
+        return [];
+    }
+    const ths = [...row1.children].slice(0, stickyCount);
+    return ths.map((th) => th.offsetLeft);
+}
+
+function stickCells(cells, leftPositions, { header = false } = {}) {
     if (!cells.length) {
         return;
     }
     const baseZ = header ? 20 : 10;
-    let left = 0;
     cells.forEach((cell, idx) => {
         cell.classList.add("o_vat_tu_sticky_col");
         if (idx === cells.length - 1) {
             cell.classList.add("o_vat_tu_sticky_col_last");
         }
         cell.style.position = "sticky";
-        cell.style.left = `${left}px`;
+        const leftVal = leftPositions[idx] !== undefined ? leftPositions[idx] : 0;
+        cell.style.left = `${leftVal}px`;
         cell.style.zIndex = String(baseZ + idx);
-        left += cell.offsetWidth;
     });
 }
 
@@ -76,7 +84,7 @@ function stickyCountFromRenderer(renderer) {
     return selectorOffset + endIdx + 1;
 }
 
-function applyStickyHeaderRow(table, stickyCount) {
+function applyStickyHeaderRow(table, stickyCount, leftPositions) {
     const row1 = table.querySelector("thead tr");
     if (!row1) {
         return;
@@ -90,13 +98,13 @@ function applyStickyHeaderRow(table, stickyCount) {
         stickyThs.push(th);
         leaf += parseInt(th.getAttribute("colspan") || "1", 10);
     }
-    stickCells(stickyThs, { header: true });
+    stickCells(stickyThs, leftPositions, { header: true });
 }
 
-function applyStickyBodyRows(table, stickyCount) {
+function applyStickyBodyRows(table, stickyCount, leftPositions) {
     for (const row of table.querySelectorAll("tbody tr, tfoot tr")) {
         const cells = [...row.children].slice(0, stickyCount);
-        stickCells(cells, { header: false });
+        stickCells(cells, leftPositions, { header: false });
     }
 }
 
@@ -104,8 +112,9 @@ function applyStickyByColumnCount(table, stickyCount) {
     if (!stickyCount) {
         return;
     }
-    applyStickyHeaderRow(table, stickyCount);
-    applyStickyBodyRows(table, stickyCount);
+    const leftPositions = getStickyLeftPositions(table, stickyCount);
+    applyStickyHeaderRow(table, stickyCount, leftPositions);
+    applyStickyBodyRows(table, stickyCount, leftPositions);
 }
 
 function applyStickyNvlColumns(renderer) {
@@ -134,9 +143,20 @@ patch(ListRenderer.prototype, {
         super.setup(...arguments);
         onMounted(() => {
             applyStickyNvlColumns(this);
+            if (this.tableRef?.el) {
+                this._stickyResizeObserver = new ResizeObserver(() => {
+                    applyStickyNvlColumns(this);
+                });
+                this._stickyResizeObserver.observe(this.tableRef.el);
+            }
         });
         onPatched(() => {
             applyStickyNvlColumns(this);
+        });
+        onWillUnmount(() => {
+            if (this._stickyResizeObserver) {
+                this._stickyResizeObserver.disconnect();
+            }
         });
     },
 });

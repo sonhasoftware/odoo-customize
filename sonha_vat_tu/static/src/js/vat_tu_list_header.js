@@ -220,6 +220,9 @@ class VatTuMergedHeaderRenderer extends ListRenderer {
     freezeColumnWidths() {
         const className = this.props.archInfo?.className || "";
         if (className.split(/\s+/).filter(Boolean).includes("sh_free_width_tree")) {
+            if (this.keepColumnWidths || this.editedRecord) {
+                return super.freezeColumnWidths(...arguments);
+            }
             const table = this.tableRef.el;
             if (table) {
                 table.style.tableLayout = "auto";
@@ -230,8 +233,6 @@ class VatTuMergedHeaderRenderer extends ListRenderer {
                     cell.style.maxWidth = null;
                 });
             }
-            this.columnWidths = null;
-            this.keepColumnWidths = false;
             return;
         }
         if (!this.keepColumnWidths) {

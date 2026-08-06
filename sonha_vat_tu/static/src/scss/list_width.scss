@@ -64,13 +64,14 @@
             min-width: unset !important;
         }
 
-        tbody > tr > td:not(.o_list_record_selector):not(.o_handle_cell):not(.o_list_button):not(.o_list_record_remove):not(.o_list_record_open_form_view) {
+        tbody>tr>td:not(.o_list_record_selector):not(.o_handle_cell):not(.o_list_button):not(.o_list_record_remove):not(.o_list_record_open_form_view) {
             overflow: visible !important;
             text-overflow: clip !important;
             white-space: nowrap !important;
         }
 
-        tbody > tr:not(.o_selected_row) {
+        tbody>tr:not(.o_selected_row) {
+
             .o_list_many2one,
             .o_list_char,
             .o_list_activity_cell,
@@ -89,13 +90,33 @@
             }
         }
 
+        tbody>tr.o_selected_row {
+            td {
+                min-width: 0 !important;
+
+                .o_field_widget {
+                    width: 100% !important;
+                    min-width: 0 !important;
+                    box-sizing: border-box !important;
+
+                    .o_input_dropdown,
+                    .o_input,
+                    input {
+                        width: 100% !important;
+                        min-width: 0 !important;
+                        box-sizing: border-box !important;
+                    }
+                }
+            }
+        }
+
         .search-input {
             display: block;
             width: 100%;
             min-width: 6rem;
             box-sizing: border-box;
 
-            > div {
+            >div {
                 display: flex !important;
                 width: 100%;
             }
@@ -155,7 +176,13 @@
         border-spacing: 0;
     }
 
-    thead .o_vat_tu_sticky_col,
+    thead th.o_vat_tu_sticky_col {
+        background-color: var(--table-header-bg, #f8f9fa) !important;
+        background-clip: padding-box;
+        overflow: hidden !important;
+        contain: paint;
+    }
+
     tbody tr td.o_vat_tu_sticky_col,
     tfoot tr td.o_vat_tu_sticky_col {
         background-color: var(--bs-table-bg, #fff) !important;
@@ -164,7 +191,7 @@
         contain: paint;
     }
 
-    .table-striped > tbody > tr:nth-of-type(odd) > td.o_vat_tu_sticky_col {
+    .table-striped>tbody>tr:nth-of-type(odd)>td.o_vat_tu_sticky_col {
         background-color: var(--bs-table-striped-bg, #f8f9fa) !important;
     }
 
@@ -191,12 +218,13 @@
     }
 
     // Cột scroll: clip nội dung — tránh chữ tràn đè lên cột ghim
-    tbody > tr > td:not(.o_vat_tu_sticky_col):not(.o_list_record_selector):not(.o_handle_cell):not(.o_list_button):not(.o_list_record_remove):not(.o_list_record_open_form_view),
-    thead > tr > th:not(.o_vat_tu_sticky_col):not(.o_list_record_selector):not(.o_list_controller) {
+    tbody>tr>td:not(.o_vat_tu_sticky_col):not(.o_list_record_selector):not(.o_handle_cell):not(.o_list_button):not(.o_list_record_remove):not(.o_list_record_open_form_view),
+    thead>tr>th:not(.o_vat_tu_sticky_col):not(.o_list_record_selector):not(.o_list_controller) {
         overflow: hidden !important;
     }
 
-    tbody > tr:not(.o_selected_row) > td:not(.o_vat_tu_sticky_col) {
+    tbody>tr:not(.o_selected_row)>td:not(.o_vat_tu_sticky_col) {
+
         .o_list_many2one,
         .o_list_char,
         .o_list_activity_cell,
@@ -246,7 +274,7 @@
         z-index: 4 !important;
     }
 
-    .table-striped > tbody > tr:nth-of-type(odd) > td.o_vat_tu_sticky_col_last::after {
+    .table-striped>tbody>tr:nth-of-type(odd)>td.o_vat_tu_sticky_col_last::after {
         background-color: var(--bs-table-striped-bg, #f8f9fa) !important;
     }
 
