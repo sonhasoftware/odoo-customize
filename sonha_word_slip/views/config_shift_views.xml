@@ -74,6 +74,7 @@
                         <field name="half_shift"/>
                         <field name="type_shift"/>
                         <field name="shift_ot"/>
+                        <field name="part_time"/>
                         <field name="type_ot" invisible="shift_ot != True"/>
                         <field name="coefficient" invisible="shift_ot != True" required="shift_ot == True"/>
                         <field name="company_id" widget="many2many_tags"/>

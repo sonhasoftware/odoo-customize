@@ -380,6 +380,7 @@ class AuthAPIHRM(http.Controller):
                     record.status_lv2 = 'confirm'
                 elif record.status_lv2 == 'confirm':
                     record.status_lv2 = 'done'
+                    record.status = 'done'
                     request.env['register.overtime.update'].sudo().action_noti_user(record)
                     request.env['register.overtime.update'].sudo()._recompute_overtime_for_record(record)
 
