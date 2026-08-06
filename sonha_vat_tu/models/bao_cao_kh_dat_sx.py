@@ -11,6 +11,8 @@ from openpyxl.utils import get_column_letter
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
+from .bao_cao_ghi_chu import REPORT_KH_DSX, BaoCaoGhiChu
+
 REPORT_MONTH_COUNT = 4
 QTY_FIELDS = tuple('qty_t%d' % idx for idx in range(REPORT_MONTH_COUNT))
 
@@ -32,7 +34,8 @@ class BaoCaoKhDatSxWizard(models.TransientModel):
         'wizard_id',
         'period_id',
         string='Kế hoạch',
-        help='Chọn nhiều kỳ — mỗi kỳ một đơn vị sản xuất; phải cùng tháng bắt đầu.',
+        help='Chọn nhiều kỳ cùng tháng — có thể nhiều file cùng đơn vị SX; '
+             'báo cáo gom theo đơn vị sản xuất.',
     )
     period_month = fields.Char(string='Tháng kế hoạch', readonly=True)
     ton_kho_month = fields.Char(
@@ -98,20 +101,12 @@ class BaoCaoKhDatSxWizard(models.TransientModel):
                 'Các kỳ đã chọn phải cùng tháng kế hoạch (hiện có: %(months)s).',
                 months=', '.join(sorted(months)),
             ))
-        seen_sx = set()
         for period in periods:
-            sx = period.company_sx_id
-            if not sx:
+            if not period.company_sx_id:
                 raise UserError(_(
                     'Kỳ "%(code)s" chưa có đơn vị sản xuất.',
                     code=period.code or period.display_name,
                 ))
-            if sx.id in seen_sx:
-                raise UserError(_(
-                    'Trùng đơn vị sản xuất "%(sx)s" trong các kỳ đã chọn.',
-                    sx=sx.company_code or sx.name,
-                ))
-            seen_sx.add(sx.id)
         return periods
 
     @api.model
@@ -170,9 +165,15 @@ class BaoCaoKhDatSxWizard(models.TransientModel):
         )
         return {row[0]: row[1] or 0.0 for row in cr.fetchall()}
 
-    def _aggregate_period(self, period, ton_map, month_keys):
+    def _merge_period_buckets(self, period, ton_kho_month, buckets):
         sx = period.company_sx_id
         sx_code = sx.company_code or sx.name or ''
+
+        period_ma = {
+            (kd.ma_sap or '').strip()
+            for kd in period.ke_hoach_kinh_doanh_ids if (kd.ma_sap or '').strip()
+        }
+        ton_map = self._load_sap_ton_cuoi_map(period_ma, ton_kho_month, sx_code)
 
         kd_lines = period.ke_hoach_kinh_doanh_ids
         sx_lines = period.ke_hoach_san_xuat_ids
@@ -181,13 +182,12 @@ class BaoCaoKhDatSxWizard(models.TransientModel):
             for line in sx_lines if (line.ma_sap or '').strip()
         }
 
-        buckets = {}
         for kd in kd_lines:
             ma = (kd.ma_sap or '').strip()
             if not ma:
                 continue
             nganh = kd.nganh_hang.ten if kd.nganh_hang else ''
-            key = (period.id, sx.id, kd.company_id.id, nganh)
+            key = (sx.id, kd.company_id.id, nganh)
             if key not in buckets:
                 buckets[key] = {
                     'period_id': period.id,
@@ -215,11 +215,20 @@ class BaoCaoKhDatSxWizard(models.TransientModel):
                     for idx in range(REPORT_MONTH_COUNT):
                         bucket['qty_sx'][idx] += getattr(sx_line, QTY_FIELDS[idx]) or 0.0
 
+    def _buckets_to_line_vals(self, buckets, month_keys, ghi_chu_map=None):
+        ghi_chu_map = ghi_chu_map or {}
+        GhiChu = self.env['bao.cao.ghi.chu'].sudo()
+        sx_codes = {
+            rec.id: (rec.company_code or rec.name or '').strip()
+            for rec in self.env['res.company'].sudo().browse({
+                b['company_sx_id'] for b in buckets.values()
+            })
+        }
         out = []
         for bucket in sorted(
             buckets.values(),
             key=lambda b: (
-                sx_code,
+                sx_codes.get(b['company_sx_id'], ''),
                 b['company_dat_id'],
                 b['nganh_hang'] or '',
             ),
@@ -236,6 +245,11 @@ class BaoCaoKhDatSxWizard(models.TransientModel):
                     'qty_cl': cl,
                     'ty_le': (cl / kd_qty) if kd_qty else 0.0,
                 })
+            scope = GhiChu.scope_key_khdsx(
+                bucket['company_sx_id'],
+                bucket['company_dat_id'],
+                bucket['nganh_hang'],
+            )
             out.append({
                 'period_id': bucket['period_id'],
                 'company_sx_id': bucket['company_sx_id'],
@@ -243,6 +257,7 @@ class BaoCaoKhDatSxWizard(models.TransientModel):
                 'nganh_hang': bucket['nganh_hang'],
                 'ton_dau_ky': bucket['ton_dau_ky'],
                 'metrics_json': json.dumps(metrics, ensure_ascii=False),
+                'ghi_chu': ghi_chu_map.get(scope, ''),
                 'wizard_id': self.id,
             })
         return out
@@ -260,17 +275,15 @@ class BaoCaoKhDatSxWizard(models.TransientModel):
         )
         self.line_ids.unlink()
 
-        line_vals = []
+        buckets = {}
         for period in periods:
-            sx_code = period.company_sx_id.company_code or period.company_sx_id.name or ''
-            period_ma = {
-                (kd.ma_sap or '').strip()
-                for kd in period.ke_hoach_kinh_doanh_ids if (kd.ma_sap or '').strip()
-            }
-            ton_map = self._load_sap_ton_cuoi_map(
-                period_ma, self.ton_kho_month, sx_code,
+            self._merge_period_buckets(
+                period, self.ton_kho_month, buckets,
             )
-            line_vals.extend(self._aggregate_period(period, ton_map, month_keys))
+        GhiChu = self.env['bao.cao.ghi.chu'].sudo()
+        period_key = GhiChu.period_key_from_periods(periods)
+        ghi_chu_map = GhiChu.load_map(REPORT_KH_DSX, period_key)
+        line_vals = self._buckets_to_line_vals(buckets, month_keys, ghi_chu_map)
 
         if line_vals:
             self.env['bao.cao.kh.dat.sx.line'].create(line_vals)
@@ -402,6 +415,7 @@ class BaoCaoKhDatSxWizard(models.TransientModel):
 
 class BaoCaoKhDatSxLine(models.TransientModel):
     _name = 'bao.cao.kh.dat.sx.line'
+    _inherit = ['bao.cao.ghi.chu.line.mixin']
     _description = 'Dòng Biểu 5 — Tổng hợp KH đặt sản xuất'
     _order = 'company_sx_code, company_dat_code, nganh_hang, id'
 
@@ -419,11 +433,26 @@ class BaoCaoKhDatSxLine(models.TransientModel):
     nganh_hang = fields.Char(string='Ngành hàng', index=True)
     ton_dau_ky = fields.Float(string='Tồn đầu kỳ', digits=(16, 2))
     metrics_json = fields.Text(string='Metrics JSON')
+    ghi_chu = fields.Text(string='Ghi chú')
 
     ton_kho_month = fields.Char(
         related='wizard_id.ton_kho_month', string='Tháng tồn', readonly=True)
     period_month = fields.Char(
         related='wizard_id.period_month', string='Tháng KH', readonly=True)
+
+    def _sync_ghi_chu_to_master(self):
+        GhiChu = self._ghi_chu_master()
+        for rec in self:
+            wizard = rec.wizard_id
+            if not wizard or not rec.company_sx_id:
+                continue
+            period_key = rec._ghi_chu_period_key(wizard)
+            scope = GhiChu.scope_key_khdsx(
+                rec.company_sx_id.id,
+                rec.company_dat_id.id if rec.company_dat_id else 0,
+                rec.nganh_hang,
+            )
+            GhiChu.upsert_note(REPORT_KH_DSX, period_key, scope, rec.ghi_chu)
 
     @api.depends('company_sx_id', 'company_dat_id')
     def _compute_company_codes(self):

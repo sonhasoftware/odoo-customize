@@ -409,3 +409,17 @@
 .o_vat_tu_vtcd_report .o_list_renderer {
     overflow-x: auto;
 }
+
+.o_vat_tu_khdsx_report,
+.o_vat_tu_khdsx_pivot {
+    .o_khdsx_ghi_chu {
+        min-width: 14rem;
+        max-width: 24rem;
+        white-space: normal;
+    }
+
+    .o_khdsx_ghi_chu_input {
+        min-width: 12rem;
+        resize: vertical;
+    }
+}

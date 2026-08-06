@@ -26,7 +26,8 @@ from . import du_lieu_tong_hop_vat_tu
 from . import bao_cao_nhu_cau_vat_tu
 from . import bao_cao_tinh_toan_vat_tu
 from . import bao_cao_tong_hop_vat_tu
-from . import dmtb_ghi_chu
+from . import bao_cao_ghi_chu
+from . import bao_cao_ghi_chu_mixin
 from . import bao_cao_dinh_muc_vt_tb
 from . import bao_cao_vat_tu_can_dat
 from . import bao_cao_kh_dat_sx

@@ -1667,6 +1667,13 @@ class VatTuBaoCaoKhDsxPivotRenderer extends VatTuMergedHeaderRenderer {
                 column: null,
             });
         }
+        groups.push({
+            id: "khdsx_ghi_chu",
+            label: "Ghi chú",
+            span: 1,
+            rowspan: 2,
+            column: null,
+        });
         return groups;
     }
 
@@ -1687,6 +1694,10 @@ class VatTuBaoCaoKhDsxPivotRenderer extends VatTuMergedHeaderRenderer {
 
     getMergeColumns() {
         return [];
+    }
+
+    async onGhiChuInput(record, ev) {
+        await saveReportLineGhiChu(this.env, record, ev.target.value);
     }
 }
 

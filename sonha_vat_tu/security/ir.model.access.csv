@@ -63,7 +63,7 @@ access_import_ma_hang_phan_tram_wizard_truong_bo_phan,import.ma.hang.phan.tram.w
 access_bom_dinh_muc_bo_phan,bom.dinh.muc.bo.phan,model_bom_dinh_muc,sonha_vat_tu.group_bo_phan_vat_tu,1,1,1,1
 access_bom_dinh_muc_truong_bo_phan,bom.dinh.muc.truong.bo.phan,model_bom_dinh_muc,sonha_vat_tu.group_truong_bo_phan_vat_tu,1,1,1,1
 access_cau_hinh_leadtime_bcu,cau.hinh.leadtime.bcu,model_cau_hinh_leadtime,sonha_vat_tu.group_ban_cung_ung_vat_tu,1,1,1,1
-access_dmtb_ghi_chu_user,dmtb.ghi.chu.user,model_dmtb_ghi_chu,base.group_user,1,1,1,1
+access_bao_cao_ghi_chu_user,bao.cao.ghi.chu.user,model_bao_cao_ghi_chu,base.group_user,1,1,1,1
 access_bao_cao_vt_can_dat_wizard,bao.cao.vt.can.dat.wizard,model_bao_cao_vt_can_dat_wizard,base.group_user,1,1,1,1
 access_bao_cao_vt_can_dat_line,bao.cao.vt.can.dat.line,model_bao_cao_vt_can_dat_line,base.group_user,1,1,1,1
 access_bao_cao_kh_dat_sx_wizard,bao.cao.kh.dat.sx.wizard,model_bao_cao_kh_dat_sx_wizard,base.group_user,1,1,1,1

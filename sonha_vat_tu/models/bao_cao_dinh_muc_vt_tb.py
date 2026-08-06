@@ -10,6 +10,8 @@ from openpyxl.utils import get_column_letter
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
+from .bao_cao_ghi_chu import REPORT_DMTB
+
 REPORT_MONTH_COUNT = 3
 QTY_FIELDS = tuple('qty_t%d' % idx for idx in range(REPORT_MONTH_COUNT))
 
@@ -39,7 +41,8 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
         'wizard_id',
         'period_id',
         string='Kế hoạch',
-        help='Chọn nhiều kỳ — mỗi kỳ tương ứng một đơn vị sản xuất (một dòng báo cáo).',
+        help='Chọn nhiều kỳ cùng tháng — có thể nhiều file cùng đơn vị SX '
+             '(vd. innox/nhựa tách file); báo cáo gom theo đơn vị sản xuất.',
     )
     nhom_linh_vuc = fields.Selection(
         DMTB_NHOM_SELECTION,
@@ -164,17 +167,29 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
 
         return month_keys, row_metrics, plan_lines, nvl_lines
 
-    def _load_ghi_chu_map(self, periods, nhom_linh_vuc):
-        GhiChu = self.env['dmtb.ghi.chu'].sudo()
+    def _load_ghi_chu_map(self, periods, nhom_linh_vuc, nguon_sl_sp):
+        GhiChu = self.env['bao.cao.ghi.chu'].sudo()
+        period_key = GhiChu.period_key_from_periods(periods)
+        if not period_key:
+            return {}
+        prefix = '%s|%s|' % (nhom_linh_vuc or '', nguon_sl_sp or '')
         rows = GhiChu.search([
-            ('period_id', 'in', periods.ids),
-            ('nhom_linh_vuc', '=', nhom_linh_vuc),
-            ('nguon_sl_sp', '=', self.nguon_sl_sp),
+            ('report_type', '=', REPORT_DMTB),
+            ('period_key', '=', period_key),
+            ('scope_key', '=like', prefix + '%'),
         ])
-        return {
-            (rec.period_id.id, rec.company_sx_id.id): (rec.noi_dung or '')
-            for rec in rows
-        }
+        out = {}
+        for rec in rows:
+            if not rec.scope_key.startswith(prefix):
+                continue
+            tail = rec.scope_key[len(prefix):]
+            try:
+                sx_id = int(tail)
+            except ValueError:
+                continue
+            if rec.noi_dung:
+                out[sx_id] = rec.noi_dung
+        return out
 
     def _populate_lines(self):
         self.ensure_one()
@@ -182,7 +197,7 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
         nhom = self.nhom_linh_vuc
         linh_vuc_code = self._ma_linh_vuc_code()
         nhom_label = self._nhom_label()
-        ghi_chu_map = self._load_ghi_chu_map(periods, nhom)
+        ghi_chu_map = self._load_ghi_chu_map(periods, nhom, self.nguon_sl_sp)
 
         column_keys = self._report_month_keys(periods[0])
         column_spec = [{'month_key': mk, 'label': mk} for mk in column_keys]
@@ -191,11 +206,10 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
         self.period_month = periods[0].period_month or ''
         self.sl_qty_column_label = DMTB_SL_LABEL.get(nhom, nhom_label)
 
-        seen_sx = set()
         Line = self.env['bao.cao.dinh.muc.vt.tb.line']
         self.line_ids.unlink()
 
-        lines = []
+        groups = {}
         for period in periods:
             sx = period.company_sx_id
             if not sx:
@@ -203,45 +217,49 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
                     'Kỳ "%(code)s" chưa có đơn vị sản xuất.',
                     code=period.code or period.display_name,
                 ))
-            if sx.id in seen_sx:
-                raise UserError(_(
-                    'Trùng đơn vị sản xuất "%(sx)s" trong các kỳ đã chọn.',
-                    sx=sx.company_code or sx.name,
-                ))
-            seen_sx.add(sx.id)
+            groups.setdefault(sx.id, {'sx': sx, 'periods': []})
+            groups[sx.id]['periods'].append(period)
 
-            month_keys, row_metrics, plan_lines, nvl_lines = self._aggregate_period(
-                period, linh_vuc_code,
-            )
-            if month_keys != column_keys:
+        lines = []
+        for group in groups.values():
+            sx = group['sx']
+            merged_metrics = [
+                {'sl_sp': 0.0, 'sl_nvl': 0.0} for _ in range(REPORT_MONTH_COUNT)
+            ]
+
+            for period in group['periods']:
+                month_keys, row_metrics, plan_lines, nvl_lines = self._aggregate_period(
+                    period, linh_vuc_code,
+                )
+                if month_keys != column_keys:
+                    raise UserError(_(
+                        'Kỳ "%(code)s" có dải tháng khác kỳ đầu tiên.',
+                        code=period.code or period.display_name,
+                    ))
+                if not plan_lines and not nvl_lines:
+                    continue
+                if not any(c['sl_sp'] or c['sl_nvl'] for c in row_metrics):
+                    continue
+                for idx, cell in enumerate(row_metrics):
+                    merged_metrics[idx]['sl_sp'] += cell.get('sl_sp') or 0.0
+                    merged_metrics[idx]['sl_nvl'] += cell.get('sl_nvl') or 0.0
+
+            if not any(c['sl_sp'] or c['sl_nvl'] for c in merged_metrics):
                 raise UserError(_(
-                    'Kỳ "%(code)s" có dải tháng khác kỳ đầu tiên.',
-                    code=period.code or period.display_name,
-                ))
-            if not plan_lines and not nvl_lines:
-                raise UserError(_(
-                    'Kỳ "%(code)s" (%(sx)s) không có dữ liệu cho nhóm "%(nhom)s".',
-                    code=period.code or period.display_name,
-                    sx=sx.company_code or sx.name,
-                    nhom=nhom_label,
-                ))
-            if not any(c['sl_sp'] or c['sl_nvl'] for c in row_metrics):
-                raise UserError(_(
-                    'Kỳ "%(code)s" (%(sx)s) không có SL sản phẩm hoặc SL NVL '
+                    'Đơn vị SX "%(sx)s" không có SL sản phẩm hoặc SL NVL '
                     'trong 3 tháng đầu cho nhóm "%(nhom)s".',
-                    code=period.code or period.display_name,
                     sx=sx.company_code or sx.name,
                     nhom=nhom_label,
                 ))
 
             lines.append({
                 'wizard_id': self.id,
-                'period_id': period.id,
+                'period_id': group['periods'][0].id,
                 'nhom_linh_vuc': nhom,
                 'company_sx_id': sx.id,
                 'company_code': sx.company_code or sx.name or '',
-                'metrics_json': json.dumps(row_metrics, ensure_ascii=False),
-                'ghi_chu': ghi_chu_map.get((period.id, sx.id), ''),
+                'metrics_json': json.dumps(merged_metrics, ensure_ascii=False),
+                'ghi_chu': ghi_chu_map.get(sx.id, ''),
             })
 
         if lines:
@@ -389,6 +407,7 @@ def _post_init_drop_dmtb_nhom_bao_cao(cr):
 
 class BaoCaoDinhMucVtTbLine(models.TransientModel):
     _name = 'bao.cao.dinh.muc.vt.tb.line'
+    _inherit = ['bao.cao.ghi.chu.line.mixin']
     _description = 'Dòng báo cáo định mức vật tư trung bình'
     _order = 'company_code, id'
 
@@ -415,26 +434,19 @@ class BaoCaoDinhMucVtTbLine(models.TransientModel):
             return []
         return data if isinstance(data, list) else []
 
-    def write(self, vals):
-        res = super().write(vals)
-        if 'ghi_chu' in vals and not self.env.context.get('skip_dmtb_ghi_chu_sync'):
-            self._sync_ghi_chu_to_master()
-        return res
 
     def _sync_ghi_chu_to_master(self):
-        GhiChu = self.env['dmtb.ghi.chu'].sudo()
+        GhiChu = self._ghi_chu_master()
         for rec in self:
             wizard = rec.wizard_id
             nhom = rec.nhom_linh_vuc or wizard.nhom_linh_vuc
-            if not wizard or not nhom or not rec.period_id or not rec.company_sx_id:
+            if not wizard or not nhom or not rec.company_sx_id:
                 continue
-            GhiChu._upsert_note(
-                rec.period_id,
-                nhom,
-                wizard.nguon_sl_sp,
-                rec.company_sx_id,
-                rec.ghi_chu,
+            period_key = rec._ghi_chu_period_key(wizard)
+            scope = GhiChu.scope_key_dmtb(
+                nhom, wizard.nguon_sl_sp, rec.company_sx_id.id,
             )
+            GhiChu.upsert_note(REPORT_DMTB, period_key, scope, rec.ghi_chu)
 
     def action_export_excel(self):
         wizard = self[:1].wizard_id

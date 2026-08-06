@@ -11,6 +11,7 @@ from openpyxl.utils import get_column_letter
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
+from .bao_cao_ghi_chu import REPORT_VTCD
 from .vat_tu_nvl_parse import parse_ten_nvl_specs
 
 REPORT_KIND_KIEM_TRA = 'kiem_tra'
@@ -92,7 +93,8 @@ class BaoCaoVtCanDatWizard(models.TransientModel):
         'wizard_id',
         'period_id',
         string='Kế hoạch',
-        help='Mỗi kỳ tương ứng một đơn vị sản xuất (một block công ty trên báo cáo).',
+        help='Chọn nhiều kỳ cùng tháng — có thể nhiều file cùng đơn vị SX; '
+             'báo cáo gom theo đơn vị sản xuất.',
     )
     report_kind = fields.Selection(
         [
@@ -149,20 +151,12 @@ class BaoCaoVtCanDatWizard(models.TransientModel):
                 'Các kỳ đã chọn phải cùng tháng kế hoạch (hiện có: %(months)s).',
                 months=', '.join(sorted(months)),
             ))
-        seen_sx = set()
         for period in periods:
-            sx = period.company_sx_id
-            if not sx:
+            if not period.company_sx_id:
                 raise UserError(_(
                     'Kỳ "%(code)s" chưa có đơn vị sản xuất.',
                     code=period.code or period.display_name,
                 ))
-            if sx.id in seen_sx:
-                raise UserError(_(
-                    'Trùng đơn vị sản xuất "%(sx)s" trong các kỳ đã chọn.',
-                    sx=sx.company_code or sx.name,
-                ))
-            seen_sx.add(sx.id)
         return periods
 
     @staticmethod
@@ -183,8 +177,12 @@ class BaoCaoVtCanDatWizard(models.TransientModel):
 
     def _company_specs(self, periods):
         specs = []
+        seen_sx = set()
         for period in periods:
             sx = period.company_sx_id
+            if sx.id in seen_sx:
+                continue
+            seen_sx.add(sx.id)
             code = (sx.company_code or sx.name or '').strip()
             specs.append({
                 'period_id': period.id,
@@ -208,8 +206,14 @@ class BaoCaoVtCanDatWizard(models.TransientModel):
         }
         linh_vuc_map = self.env['ma.hang'].get_ma_linh_vuc_map(ma_codes)
 
+        code_by_sx = {
+            spec['company_id']: spec['code'] for spec in company_specs
+        }
+        Period = self.env['ke.hoach.vat.tu'].sudo()
         code_by_period = {
-            spec['period_id']: spec['code'] for spec in company_specs
+            p.id: code_by_sx.get(p.company_sx_id.id)
+            for p in Period.browse(periods.ids)
+            if p.company_sx_id.id in code_by_sx
         }
 
         grouped = {}
@@ -274,6 +278,10 @@ class BaoCaoVtCanDatWizard(models.TransientModel):
         if not details:
             raise UserError(_('Không có dữ liệu B6 cho các kỳ đã chọn.'))
 
+        GhiChu = self.env['bao.cao.ghi.chu'].sudo()
+        period_key = GhiChu.period_key_from_periods(periods)
+        ghi_chu_map = GhiChu.load_map(REPORT_VTCD, period_key)
+
         Line = self.env['bao.cao.vt.can.dat.line']
         self.line_ids.unlink()
 
@@ -305,7 +313,8 @@ class BaoCaoVtCanDatWizard(models.TransientModel):
 
         for detail in details:
             seq += 1
-            specs = parse_ten_nvl_specs(detail['ten_nvl'])
+            specs = parse_ten_nvl_specs(detail['ten_nvl'], nhom=detail.get('nhom'))
+            scope = GhiChu.scope_key_vtcd(self.report_kind, detail['ma_sap'])
             lines.append({
                 'wizard_id': self.id,
                 'sequence': seq,
@@ -317,6 +326,7 @@ class BaoCaoVtCanDatWizard(models.TransientModel):
                 'do_day': specs['do_day'],
                 'kho_rong': specs['kho_rong'],
                 'metrics_json': detail['metrics_json'],
+                'ghi_chu': ghi_chu_map.get(scope, ''),
             })
 
         if lines:
@@ -607,6 +617,7 @@ class BaoCaoVtCanDatWizard(models.TransientModel):
 
 class BaoCaoVtCanDatLine(models.TransientModel):
     _name = 'bao.cao.vt.can.dat.line'
+    _inherit = ['bao.cao.ghi.chu.line.mixin']
     _description = 'Dòng báo cáo vật tư cần đặt'
     _order = 'sequence, id'
 
@@ -637,6 +648,16 @@ class BaoCaoVtCanDatLine(models.TransientModel):
 
     report_kind = fields.Selection(
         related='wizard_id.report_kind', readonly=True)
+
+    def _sync_ghi_chu_to_master(self):
+        GhiChu = self._ghi_chu_master()
+        for rec in self.filtered(lambda r: r.row_type == ROW_DETAIL and r.ma_sap):
+            wizard = rec.wizard_id
+            if not wizard:
+                continue
+            period_key = rec._ghi_chu_period_key(wizard)
+            scope = GhiChu.scope_key_vtcd(wizard.report_kind, rec.ma_sap)
+            GhiChu.upsert_note(REPORT_VTCD, period_key, scope, rec.ghi_chu)
 
     def _metrics_payload(self):
         self.ensure_one()

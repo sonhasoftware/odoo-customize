@@ -593,6 +593,7 @@
                                               rows="2"
                                               t-att-value="row.data.ghi_chu || ''"
                                               t-on-change="(ev) => this.onGhiChuInput(row, ev)"
+                                              t-on-blur="(ev) => this.onGhiChuInput(row, ev)"
                                               placeholder="Ghi chú..."/>
                                 </t>
                             </td>
@@ -654,6 +655,14 @@
                                     <span t-esc="formatMetric(metricValue(row, col.monthKey, col.groupKey), col.groupKey)"/>
                                 </td>
                             </t>
+                            <td class="align-middle o_khdsx_ghi_chu">
+                                <textarea class="o_khdsx_ghi_chu_input form-control form-control-sm"
+                                          rows="2"
+                                          t-att-value="row.data.ghi_chu || ''"
+                                          t-on-change="(ev) => this.onGhiChuInput(row, ev)"
+                                          t-on-blur="(ev) => this.onGhiChuInput(row, ev)"
+                                          placeholder="Ghi chú..."/>
+                            </td>
                         </tr>
                     </t>
                 </tbody>

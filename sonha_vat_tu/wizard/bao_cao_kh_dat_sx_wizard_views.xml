@@ -45,6 +45,7 @@
                 <field name="ton_kho_month" column_invisible="1"/>
                 <field name="period_month" column_invisible="1"/>
                 <field name="wizard_id" column_invisible="1"/>
+                <field name="ghi_chu" column_invisible="1"/>
             </tree>
         </field>
     </record>
