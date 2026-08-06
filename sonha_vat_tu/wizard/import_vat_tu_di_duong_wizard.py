@@ -295,6 +295,7 @@ class ImportVatTuDiDuongWizard(models.TransientModel):
                     'month_key': month_key,
                     'month_date': Period._month_key_to_date(month_key),
                     'so_luong': so_luong,
+                    'loai': 'don_vi',
                 })
             if not dup_in_row:
                 parsed.extend(row_parsed)
@@ -363,31 +364,37 @@ class ImportVatTuDiDuongWizard(models.TransientModel):
                 'month_key': month_key,
                 'month_date': month_date,
                 'so_luong': so_luong,
+                'loai': 'don_vi',
             })
 
         self._raise_import_errors(errors)
         return parsed
 
     def _apply_rows(self, parsed):
-        """Ghi dữ liệu: 1 query tra dòng cũ, 1 insert, 1 update."""
+        """Ghi dữ liệu đơn vị KD (loai=don_vi)."""
         VatTuDiDuong = self.env['vat.tu.di.duong'].sudo()
         if not parsed:
             return 0, 0
 
+        loai = 'don_vi'
         existing = VatTuDiDuong.search([
             ('company_id', 'in', list({v['company_id'] for v in parsed})),
             ('ma_nvl', 'in', list({v['ma_nvl'] for v in parsed})),
             ('month_key', 'in', list({v['month_key'] for v in parsed})),
+            ('loai', '=', loai),
         ])
         existing_map = {
-            (line.company_id.id, line.ma_nvl, line.month_key): line.id
+            (line.company_id.id, line.ma_nvl, line.month_key, line.loai): line.id
             for line in existing
         }
 
         to_create = []
         update_ids, update_names, update_qtys = [], [], []
         for vals in parsed:
-            line_id = existing_map.get((vals['company_id'], vals['ma_nvl'], vals['month_key']))
+            vals.setdefault('loai', loai)
+            line_id = existing_map.get(
+                (vals['company_id'], vals['ma_nvl'], vals['month_key'], loai)
+            )
             if line_id:
                 update_ids.append(line_id)
                 update_names.append(vals['ten_nvl'] or '')

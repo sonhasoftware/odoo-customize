@@ -87,6 +87,32 @@ class MaHang(models.Model):
         return {(row['ma_dv'] or '').strip() for row in rows if (row.get('ma_dv') or '').strip()}
 
     @api.model
+    def get_ma_linh_vuc_map(self, ma_codes):
+        """{ma_dv: ma_linh_vuc} từ view QL v_mdm_hang_hoa_bcu."""
+        codes = sorted({(c or '').strip() for c in ma_codes if (c or '').strip()})
+        if not codes:
+            return {}
+        cr = self.env.cr
+        cr.execute("SELECT to_regclass('public.v_mdm_hang_hoa_bcu')")
+        if not cr.fetchone()[0]:
+            return {}
+        cr.execute(
+            """
+            SELECT TRIM(ma_dv) AS ma_dv, TRIM(ma_linh_vuc) AS ma_linh_vuc
+            FROM v_mdm_hang_hoa_bcu
+            WHERE TRIM(ma_dv) = ANY(%s)
+            """,
+            (codes,),
+        )
+        result = {}
+        for ma_dv, ma_linh_vuc in cr.fetchall():
+            code = (ma_dv or '').strip()
+            if not code or code in result:
+                continue
+            result[code] = (ma_linh_vuc or '').strip()
+        return result
+
+    @api.model
     def sap_exists_in_mdm(self, ma_sap):
         code = (ma_sap or '').strip()
         if not code:

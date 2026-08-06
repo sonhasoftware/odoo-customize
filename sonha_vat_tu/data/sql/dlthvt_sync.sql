@@ -328,10 +328,10 @@ RETURNS void LANGUAGE sql AS $$
     LEFT JOIN res_company rc_kd ON rc_kd.id = th.don_vi_kd_id
     CROSS JOIN LATERAL (
         VALUES
-            (0, th.ve_du_kien_don_vi_t0, th.ve_du_kien_t0, th.vt_can_dung_t0, th.ton_cuoi_t0),
-            (1, th.ve_du_kien_don_vi_t1, th.ve_du_kien_t1, th.vt_can_dung_t1, th.ton_cuoi_t1),
-            (2, th.ve_du_kien_don_vi_t2, th.ve_du_kien_t2, th.vt_can_dung_t2, th.ton_cuoi_t2),
-            (3, th.ve_du_kien_don_vi_t3, th.ve_du_kien_t3, th.vt_can_dung_t3, th.ton_cuoi_t3)
+            (0, th.ve_du_kien_don_vi_t0, 0::numeric, th.vt_can_dung_t0, th.ton_cuoi_t0),
+            (1, th.ve_du_kien_don_vi_t1, 0::numeric, th.vt_can_dung_t1, th.ton_cuoi_t1),
+            (2, th.ve_du_kien_don_vi_t2, 0::numeric, th.vt_can_dung_t2, th.ton_cuoi_t2),
+            (3, th.ve_du_kien_don_vi_t3, 0::numeric, th.vt_can_dung_t3, th.ton_cuoi_t3)
     ) AS m(idx, ve_dv, ve_bcu, can_dung, ton_cuoi)
     CROSS JOIN LATERAL (
         SELECT dlthvt_month_date(p.period_month, m.idx) AS md

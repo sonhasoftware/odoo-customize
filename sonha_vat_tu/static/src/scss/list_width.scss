@@ -1,11 +1,19 @@
 // Auto column width for list views with class="sh_free_width_tree".
 
 .sh_free_width_tree {
-    &.o_field_x2many_list {
+    &.o_field_x2many_list:not(.o_vat_tu_sticky_nvl) {
         display: block;
         width: 100%;
         max-width: 100%;
         overflow-x: auto;
+        overflow-y: visible;
+    }
+
+    &.o_field_x2many_list.o_vat_tu_sticky_nvl {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: visible;
         overflow-y: visible;
     }
 
@@ -21,8 +29,27 @@
         width: max-content !important;
         min-width: 100% !important;
 
-        thead tr:first-child th[data-name] {
-            white-space: nowrap;
+        thead {
+            position: static !important;
+        }
+
+        thead th[data-name] {
+            overflow: visible !important;
+            text-overflow: clip !important;
+            white-space: nowrap !important;
+            min-width: max-content !important;
+            padding-top: 0.45rem;
+            padding-bottom: 0.45rem;
+            vertical-align: middle;
+            line-height: 1.35;
+
+            .d-flex,
+            span {
+                overflow: visible !important;
+                text-overflow: clip !important;
+                white-space: nowrap !important;
+                max-width: none !important;
+            }
         }
 
         thead tr:has(.search-input) th {
@@ -31,8 +58,7 @@
             max-width: none !important;
         }
 
-        th[data-name],
-        td.o_data_cell {
+        tbody td.o_data_cell {
             width: auto !important;
             max-width: none !important;
             min-width: unset !important;
@@ -105,13 +131,253 @@
     position: static !important;
 }
 
+// B3–B6 + B7: ghim cột — scroll chỉ trên .o_list_renderer
+.sh_free_width_tree.o_vat_tu_sticky_nvl,
+.sh_free_width_tree:has(.o_vat_tu_merged_list),
+.sh_free_width_tree:has(.o_vat_tu_b3_pivot),
+.sh_free_width_tree:has(.o_vat_tu_vtcd_pivot),
+.o_vat_tu_sticky_nvl,
+.o_vat_tu_merged_list,
+.o_vat_tu_b3_pivot,
+.o_vat_tu_vtcd_pivot {
+    &.o_field_x2many_list {
+        overflow-x: visible !important;
+    }
+
+    .o_list_renderer {
+        overflow-x: auto;
+        overflow-y: visible;
+        isolation: isolate;
+    }
+
+    .o_list_table {
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    thead .o_vat_tu_sticky_col,
+    tbody tr td.o_vat_tu_sticky_col,
+    tfoot tr td.o_vat_tu_sticky_col {
+        background-color: var(--bs-table-bg, #fff) !important;
+        background-clip: padding-box;
+        overflow: hidden !important;
+        contain: paint;
+    }
+
+    .table-striped > tbody > tr:nth-of-type(odd) > td.o_vat_tu_sticky_col {
+        background-color: var(--bs-table-striped-bg, #f8f9fa) !important;
+    }
+
+    // Che khe sub-pixel tại đường kẻ giữa các cột ghim (không dùng shadow)
+    .o_vat_tu_sticky_col::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 1px;
+        background-color: inherit;
+        pointer-events: none;
+    }
+
+    .o_vat_tu_sticky_col_last::after {
+        width: 2px;
+    }
+
+    .o_vat_tu_sticky_col .o_field_widget,
+    .o_vat_tu_sticky_col span {
+        overflow: hidden !important;
+        max-width: 100%;
+    }
+
+    // Cột scroll: clip nội dung — tránh chữ tràn đè lên cột ghim
+    tbody > tr > td:not(.o_vat_tu_sticky_col):not(.o_list_record_selector):not(.o_handle_cell):not(.o_list_button):not(.o_list_record_remove):not(.o_list_record_open_form_view),
+    thead > tr > th:not(.o_vat_tu_sticky_col):not(.o_list_record_selector):not(.o_list_controller) {
+        overflow: hidden !important;
+    }
+
+    tbody > tr:not(.o_selected_row) > td:not(.o_vat_tu_sticky_col) {
+        .o_list_many2one,
+        .o_list_char,
+        .o_list_activity_cell,
+        .o_list_number {
+            .o_field_widget:not(.o_row_handle):not(.o_field_handle):not(.o_field_badge) span:not(.o_m2o_avatar) {
+                overflow: hidden !important;
+                text-overflow: clip !important;
+            }
+        }
+    }
+}
+
+.o_form_view .o_field_widget:has(> .sh_free_width_tree.o_vat_tu_sticky_nvl),
+.o_form_view .o_field_widget:has(> .sh_free_width_tree.o_field_x2many_list.o_vat_tu_sticky_nvl),
+.o_form_view .o_field_widget:has(.o_vat_tu_merged_list),
+.o_form_view .o_field_widget:has(.o_vat_tu_b3_pivot),
+.o_form_view .o_field_widget:has(.o_vat_tu_vtcd_pivot) {
+    overflow-x: visible !important;
+}
 
 .o_form_view .o_notebook .tab-pane .sh_free_width_tree.o_field_x2many_list .o_vat_tu_merged_list.o_list_renderer {
     margin-top: 0 !important;
 }
 
-.o_form_view .o_field_widget:has(> .sh_free_width_tree.o_field_x2many_list) {
+// B7 (notebook): scroll trên .o_list_renderer — giống B6, không scroll wrapper ngoài
+.o_form_view .o_notebook .tab-pane .o_field_widget:has(.o_vat_tu_merged_list) {
+    overflow-x: visible !important;
+
+    .o_list_renderer {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        --ListRenderer-margin-x: 0 !important;
+        height: auto !important;
+    }
+
+    // Cách 3: ::after nền cố định, right: 0 — không lòi ra ngoài cell
+    .o_vat_tu_sticky_col_last {
+        box-shadow: none !important;
+        border-right: none !important;
+    }
+
+    .o_vat_tu_sticky_col_last::after {
+        display: block !important;
+        right: 0 !important;
+        width: 3px !important;
+        background-color: var(--bs-table-bg, #fff) !important;
+        z-index: 4 !important;
+    }
+
+    .table-striped > tbody > tr:nth-of-type(odd) > td.o_vat_tu_sticky_col_last::after {
+        background-color: var(--bs-table-striped-bg, #f8f9fa) !important;
+    }
+
+    .o_list_table thead th.o_vat_tu_sticky_col[data-name] {
+        overflow: hidden !important;
+        min-width: 0 !important;
+
+        .d-flex,
+        span,
+        .o_list_header_label_spacer {
+            overflow: hidden !important;
+            text-overflow: clip !important;
+            max-width: 100% !important;
+            white-space: nowrap !important;
+        }
+    }
+}
+
+.o_form_view .o_field_widget:has(> .sh_free_width_tree.o_field_x2many_list):not(:has(.o_vat_tu_merged_list)):not(:has(.o_vat_tu_b3_pivot)):not(:has(.o_vat_tu_vtcd_pivot)) {
     width: 100%;
     overflow-x: auto;
     overflow-y: visible;
+}
+
+// Báo cáo định mức vật tư trung bình — pivot giống Excel
+.o_vat_tu_dmtb_pivot {
+    .o_list_table {
+        table-layout: auto !important;
+        width: max-content !important;
+        min-width: 100% !important;
+        border-collapse: collapse;
+
+        thead th.o_dmtb_header {
+            border: 1px solid #dee2e6;
+            background-color: #f8f9fa;
+            white-space: nowrap;
+            padding: 0.5rem 0.75rem;
+        }
+
+        thead th.o_dmtb_header_dmbq,
+        tbody td.o_dmtb_cell_dmbq {
+            background-color: #ffff00 !important;
+        }
+
+        tbody td {
+            border: 1px solid #dee2e6;
+            padding: 0.35rem 0.5rem;
+            white-space: nowrap;
+        }
+
+        tbody tr.o_dmtb_total_row td {
+            background-color: #e9ecef;
+            font-weight: 700;
+        }
+
+        .o_dmtb_ghi_chu {
+            min-width: 16rem;
+            max-width: 28rem;
+            white-space: normal;
+            vertical-align: middle;
+        }
+
+        .o_dmtb_ghi_chu_input {
+            min-width: 14rem;
+            resize: vertical;
+        }
+    }
+}
+
+.o_vat_tu_dmtb_report .o_list_renderer {
+    overflow-x: auto;
+}
+
+// Biểu 2 — Chi tiết vật tư cần in
+.o_vat_tu_vtcd_pivot,
+.o_vat_tu_vtcd_report {
+    .o_list_table {
+        table-layout: auto !important;
+        width: max-content !important;
+        min-width: 100% !important;
+        border-collapse: separate;
+        border-spacing: 0;
+
+        thead th.o_vtcd_header {
+            border: 1px solid #dee2e6;
+            background-color: #f8f9fa;
+            white-space: nowrap;
+            padding: 0.4rem 0.6rem;
+            vertical-align: middle;
+        }
+
+        thead tr.o_vtcd_header_dates th.o_vtcd_header {
+            font-weight: normal;
+            font-size: 0.85rem;
+        }
+
+        tbody td {
+            border: 1px solid #dee2e6;
+            padding: 0.35rem 0.5rem;
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+
+        tbody tr.o_vtcd_subtotal_row td {
+            font-weight: 700;
+        }
+
+        .o_vtcd_ten_nvl {
+            min-width: 16rem;
+            max-width: 28rem;
+            white-space: normal;
+        }
+
+        .o_vtcd_ghi_chu {
+            min-width: 14rem;
+            max-width: 24rem;
+            white-space: normal;
+        }
+
+        .o_vtcd_ghi_chu_input {
+            min-width: 12rem;
+            resize: vertical;
+        }
+    }
+
+    &.o_list_renderer {
+        overflow-x: auto;
+        isolation: isolate;
+    }
+}
+
+.o_vat_tu_vtcd_report .o_list_renderer {
+    overflow-x: auto;
 }

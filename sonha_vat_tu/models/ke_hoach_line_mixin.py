@@ -37,7 +37,7 @@ class KeHoachLineMixin(models.AbstractModel):
         'ke.hoach.vat.tu', string='Kỳ', ondelete='cascade', index=True)
     sequence = fields.Integer(string='STT', default=10, index=True)
     company_id = fields.Many2one(
-        'res.company', string='Đơn vị', index=True, required=True)
+        'res.company', string='Đơn vị đặt hàng', index=True, required=True)
     nganh_hang = fields.Many2one(
         'mdm.nganh.hang', string='Ngành hàng',
         compute='_compute_ma_hang_meta',
@@ -321,7 +321,7 @@ class KeHoachLineMixin(models.AbstractModel):
                 <table class="table table-sm table-bordered o_main_table mb-0" style="font-size: 13px;">
                     <thead class="bg-light">
                         <tr>
-                            <th>Đơn vị</th>
+                            <th>Đơn vị đặt hàng</th>
                             <th>Ngành hàng</th>
                             <th>Tên hàng</th>
                             <th>Mã hàng</th>

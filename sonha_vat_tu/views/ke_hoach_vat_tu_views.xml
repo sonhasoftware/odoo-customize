@@ -41,10 +41,13 @@
                     <div class="oe_title">
                         <label for="code"/>
                         <h1><field name="code"/></h1>
+                        <field name="co_ke_hoach_vat_tu" invisible="1"/>
+                        <field name="company_sx_id" string="Đơn vị sản xuất" readonly="1"
+                               invisible="not co_ke_hoach_vat_tu"
+                               context="{'vat_tu_company_code_display': True}"/>
                     </div>
                     <group>
                         <field name="period_month" required="1"/>
-                        <field name="co_ke_hoach_vat_tu" invisible="1"/>
                     </group>
                     <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:8px;">
                         <button name="action_download_b1_template" type="object" string="Tải template kinh doanh" class="btn btn-secondary" icon="fa-download" groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu" invisible="state != 'ke_hoach'"/>
@@ -58,7 +61,7 @@
                                    groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"
                                    readonly="state != 'ke_hoach'">
                                 <tree duplicate="0" editable="bottom" class="sh_free_width_tree">
-                                    <field name="company_id" string="Đơn vị" options="{'no_create': True, 'no_open': True}" context="{'vat_tu_company_code_display': True}"/>
+                                    <field name="company_id" string="Đơn vị đặt hàng" options="{'no_create': True, 'no_open': True}" context="{'vat_tu_company_code_display': True}"/>
                                     <field name="nganh_hang" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                                     <field name="ten_hang" readonly="1"/>
                                     <field name="ma_hang"/>
@@ -72,7 +75,7 @@
                             <field name="ke_hoach_kinh_doanh_ids" readonly="1"
                                    groups="sonha_vat_tu.group_ban_cung_ung_vat_tu,!sonha_vat_tu.group_bo_phan_vat_tu,!sonha_vat_tu.group_truong_bo_phan_vat_tu">
                                 <tree duplicate="0" editable="bottom" class="sh_free_width_tree">
-                                    <field name="company_id" string="Đơn vị" readonly="1" context="{'vat_tu_company_code_display': True}"/>
+                                    <field name="company_id" string="Đơn vị đặt hàng" readonly="1" context="{'vat_tu_company_code_display': True}"/>
                                     <field name="nganh_hang"/>
                                     <field name="ten_hang" readonly="1"/>
                                     <field name="ma_hang"/>
@@ -88,7 +91,7 @@
                             <field name="ke_hoach_san_xuat_ids" readonly="1"
                                    groups="sonha_vat_tu.group_ban_cung_ung_vat_tu,!sonha_vat_tu.group_bo_phan_vat_tu,!sonha_vat_tu.group_truong_bo_phan_vat_tu">
                                 <tree duplicate="0" editable="bottom" class="sh_free_width_tree">
-                                    <field name="company_id" string="Đơn vị" readonly="1" context="{'vat_tu_company_code_display': True}"/>
+                                    <field name="company_id" string="Đơn vị đặt hàng" readonly="1" context="{'vat_tu_company_code_display': True}"/>
                                     <field name="nganh_hang"/>
                                     <field name="ten_hang" readonly="1"/>
                                     <field name="ma_hang"/>
@@ -103,7 +106,7 @@
                                    groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"
                                    readonly="state != 'ke_hoach'">
                                 <tree duplicate="0" editable="bottom" class="sh_free_width_tree">
-                                    <field name="company_id" string="Đơn vị" readonly="1" context="{'vat_tu_company_code_display': True}"/>
+                                    <field name="company_id" string="Đơn vị đặt hàng" readonly="1" context="{'vat_tu_company_code_display': True}"/>
                                     <field name="nganh_hang" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                                     <field name="ten_hang" readonly="1"/>
                                     <field name="ma_hang" readonly="1"/>
@@ -164,16 +167,20 @@
                     <group col="2">
                         <group>
                             <field name="code" string="Số chứng từ"/>
+                            <field name="company_sx_id" string="Đơn vị sản xuất" readonly="1"
+                                   invisible="not co_ke_hoach_vat_tu"
+                                   context="{'vat_tu_company_code_display': True}"/>
                         </group>
                         <group>
                             <field name="period_month" readonly="1"/>
                         </group>
                     </group>
+                    <field name="co_ke_hoach_vat_tu" invisible="1"/>
                     <field name="dinh_muc_ids"
                            groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"
                            readonly="state != 'dinh_muc'">
                         <tree duplicate="0" limit="80" editable="bottom" create="false" delete="false" class="sh_free_width_tree">
-                            <field name="company_id" string="Đơn vị" readonly="1" optional="show" context="{'vat_tu_company_code_display': True}"/>
+                            <field name="company_id" string="Đơn vị đặt hàng" readonly="1" optional="show" context="{'vat_tu_company_code_display': True}"/>
                             <field name="ma_sap" readonly="1"/>
                             <field name="ten_sap" readonly="1"/>
                             <field name="ma_tp" column_invisible="True"/>
@@ -191,7 +198,7 @@
                     <field name="dinh_muc_ids" readonly="1"
                            groups="sonha_vat_tu.group_ban_cung_ung_vat_tu,!sonha_vat_tu.group_bo_phan_vat_tu,!sonha_vat_tu.group_truong_bo_phan_vat_tu">
                         <tree duplicate="0" limit="80" create="false" delete="false" class="sh_free_width_tree">
-                            <field name="company_id" string="Đơn vị" optional="show" context="{'vat_tu_company_code_display': True}"/>
+                            <field name="company_id" string="Đơn vị đặt hàng" optional="show" context="{'vat_tu_company_code_display': True}"/>
                             <field name="ma_sap"/>
                             <field name="ten_sap"/>
                             <field name="ma_tp" column_invisible="True"/>
@@ -255,11 +262,15 @@
                     <group col="2">
                         <group>
                             <field name="code" string="Số chứng từ"/>
+                            <field name="company_sx_id" string="Đơn vị sản xuất" readonly="1"
+                                   invisible="not co_ke_hoach_vat_tu"
+                                   context="{'vat_tu_company_code_display': True}"/>
                         </group>
                         <group>
                             <field name="period_month" readonly="1"/>
                         </group>
                     </group>
+                    <field name="co_ke_hoach_vat_tu" invisible="1"/>
                     <field name="tinh_toan_vat_tu_ids" widget="vat_tu_b3_pivot_one2many">
                         <tree duplicate="0" editable="bottom" create="false" delete="false" class="sh_free_width_tree">
                             <field name="ma_vat_tu" column_invisible="True"/>
@@ -296,9 +307,10 @@
                             confirm="Reset về Tính toán vật tư?"/>
                     <button name="action_compute_b5" type="object" string="Kế hoạch đặt vật tư"
                             class="btn-primary"
-                            groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_ban_cung_ung_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"
+                            groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"
                             invisible="state != 'tong_hop'"/>
-                    <field name="state" widget="statusbar" statusbar_visible="ke_hoach,dinh_muc,tinh_toan,tong_hop,dat_hang"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="ke_hoach,dinh_muc,tinh_toan,tong_hop,dat_hang,bcu_tong_hop,phe_duyet"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
@@ -318,13 +330,17 @@
                     <group col="2">
                         <group>
                             <field name="code" string="Số chứng từ"/>
+                            <field name="company_sx_id" string="Đơn vị sản xuất" readonly="1"
+                                   invisible="not co_ke_hoach_vat_tu"
+                                   context="{'vat_tu_company_code_display': True}"/>
                         </group>
                         <group>
                             <field name="period_month" readonly="1"/>
                         </group>
                     </group>
+                    <field name="co_ke_hoach_vat_tu" invisible="1"/>
                     <field name="tong_hop_vat_tu_ids" widget="vat_tu_merged_b4_one2many">
-                        <tree duplicate="0" editable="bottom" create="false" delete="false" class="sh_free_width_tree">
+                        <tree duplicate="0" editable="bottom" create="false" delete="false" class="sh_free_width_tree o_vat_tu_sticky_nvl">
                             <field name="ma_sap" string="Mã NVL" required="1" readonly="1"/>
                             <field name="ten_nvl" string="Tên NVL" readonly="1"/>
                             <field name="chung_loai" string="Chủng loại"/>
@@ -336,11 +352,6 @@
                             <field name="ve_du_kien_don_vi_t1" readonly="1"/>
                             <field name="ve_du_kien_don_vi_t2" readonly="1"/>
                             <field name="ve_du_kien_don_vi_t3" readonly="1"/>
-
-                            <field name="ve_du_kien_t0" readonly="1"/>
-                            <field name="ve_du_kien_t1" readonly="1"/>
-                            <field name="ve_du_kien_t2" readonly="1"/>
-                            <field name="ve_du_kien_t3" readonly="1"/>
 
                             <field name="vt_can_dung_t0" readonly="1"/>
                             <field name="vt_can_dung_t1" readonly="1"/>
@@ -378,18 +389,16 @@
                     <button name="action_reset_previous_step" type="object" string="Reset"
                             class="btn-secondary" icon="fa-undo"
                             groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"
-                            invisible="state != 'dat_hang' or approval_state == 'approved'"
+                            invisible="state != 'dat_hang'"
                             confirm="Reset về Tổng hợp vật tư cần sản xuất?"/>
-                    <button name="action_approve_material_plan" type="object" string="Duyệt"
+                    <button name="action_submit_to_bcu" type="object" string="Tổng hợp KH VT BCU"
                             class="btn-primary"
-                            groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"
-                            invisible="state != 'dat_hang' or not can_approve"/>
-                    <field name="state" widget="statusbar" statusbar_visible="ke_hoach,dinh_muc,tinh_toan,tong_hop,dat_hang"/>
+                            groups="sonha_vat_tu.group_ban_cung_ung_vat_tu"
+                            invisible="state != 'dat_hang' or not kh_dat_vat_tu_ids"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="ke_hoach,dinh_muc,tinh_toan,tong_hop,dat_hang,bcu_tong_hop,phe_duyet"/>
                 </header>
                 <sheet>
-                    <field name="can_approve" invisible="1"/>
-                    <field name="approval_state" invisible="1"/>
-                    <field name="approval_company_id" invisible="1"/>
                     <div class="oe_button_box" name="button_box">
                         <button name="action_open_step_b1" type="object" class="oe_stat_button" icon="fa-arrow-left">
                             <field name="ke_hoach_san_xuat_count" string="Kế hoạch vật tư" widget="statinfo"/>
@@ -403,53 +412,255 @@
                         <button name="action_open_step_b4" type="object" class="oe_stat_button" icon="fa-cubes">
                             <field name="tong_hop_vat_tu_count" string="Tổng hợp vật tư cần sản xuất" widget="statinfo"/>
                         </button>
+                        <button name="action_open_step_b6" type="object" class="oe_stat_button" icon="fa-truck"
+                                groups="sonha_vat_tu.group_ban_cung_ung_vat_tu">
+                            <field name="kh_dat_vat_tu_bcu_count" string="Tổng hợp KH BCU" widget="statinfo"/>
+                        </button>
                     </div>
                     <group col="2">
                         <group>
                             <field name="code" string="Số chứng từ"/>
+                            <field name="company_sx_id" string="Đơn vị sản xuất" readonly="1"
+                                   invisible="not co_ke_hoach_vat_tu"
+                                   context="{'vat_tu_company_code_display': True}"/>
                         </group>
                         <group>
                             <field name="period_month" readonly="1"/>
                         </group>
                     </group>
+                    <field name="co_ke_hoach_vat_tu" invisible="1"/>
+                    <field name="kh_dat_vat_tu_ids" widget="vat_tu_merged_b5_one2many">
+                        <tree duplicate="0" editable="bottom" create="false" delete="false" class="sh_free_width_tree o_vat_tu_sticky_nvl">
+                            <field name="ma_sap" string="Mã NVL" required="1" readonly="1"/>
+                            <field name="ten_nvl" string="Tên NVL" readonly="1"/>
+                            <field name="chung_loai" string="Chủng loại" readonly="1"/>
+                            <field name="don_vi_tinh" readonly="1"/>
+                            <field name="currency_id" column_invisible="True"/>
+
+                            <field name="don_gia_ton_kho" string="Đơn giá tồn kho" widget="monetary" readonly="1"/>
+                            <field name="tong_ton_nvl_sl" string="Tồn NVL đầu kỳ" readonly="1"/>
+                            <field name="gia_tri_ton_nvl_dau_ky" string="Giá trị tồn NVL" readonly="1" widget="monetary"/>
+
+                            <field name="tong_sl_vt_can_dung_t0" readonly="1"/>
+                            <field name="tong_sl_vt_can_dung_t1" readonly="1"/>
+                            <field name="tong_sl_vt_can_dung_t2" readonly="1"/>
+                            <field name="tong_sl_vt_can_dung_t3" readonly="1"/>
+                            <field name="tong_vt_can_dung" string="Tổng cần dùng" readonly="1"/>
+
+                            <field name="tong_hang_di_duong_sl_t0" readonly="1"/>
+                            <field name="tong_hang_di_duong_dg_t0" readonly="1" widget="monetary"/>
+                            <field name="tong_hang_di_duong_gt_t0" readonly="1" widget="monetary"/>
+                            <field name="tong_hang_di_duong_sl_t1" readonly="1"/>
+                            <field name="tong_hang_di_duong_dg_t1" readonly="1" widget="monetary"/>
+                            <field name="tong_hang_di_duong_gt_t1" readonly="1" widget="monetary"/>
+                            <field name="tong_hang_di_duong_sl_t2" readonly="1"/>
+                            <field name="tong_hang_di_duong_dg_t2" readonly="1" widget="monetary"/>
+                            <field name="tong_hang_di_duong_gt_t2" readonly="1" widget="monetary"/>
+                            <field name="tong_hang_di_duong_sl_t3" readonly="1"/>
+                            <field name="tong_hang_di_duong_dg_t3" readonly="1" widget="monetary"/>
+                            <field name="tong_hang_di_duong_gt_t3" readonly="1" widget="monetary"/>
+                            <field name="tong_hang_di_duong" string="Tổng SL đi đường" readonly="1"/>
+                            <field name="tong_gia_tri_di_duong" string="Tổng GT đi đường" readonly="1" widget="monetary"/>
+
+                            <field name="sl_du_tru_toi_thieu" string="Dự trữ tối thiểu" readonly="1"/>
+                            <field name="sl_dat_mua_de_xuat" string="Đề xuất đặt mua" readonly="1"/>
+                            <field name="sl_dat_mua_chot" string="Đặt mua chốt"/>
+                            <field name="sl_can_mua_theo_moq" string="SL cần mua dựa theo MOQ NCC"/>
+                            <field name="don_gia_mua" string="Đơn giá mua" widget="monetary" readonly="1"/>
+                            <field name="gia_tri_mua_hang" string="Giá trị mua" widget="monetary" readonly="1" force_save="1"/>
+                            <field name="sl_ton_kho_cuoi_ky" string="Tồn kho cuối kỳ" readonly="1" force_save="1"/>
+                            <field name="so_ngay_vong_quay_ton" string="Ngày vòng quay tồn" readonly="1" force_save="1"/>
+                            <field name="don_gia_ton_kho_cuoi_ky" string="Đơn giá tồn cuối kỳ" widget="monetary" readonly="1" force_save="1"/>
+                            <field name="gia_tri_ton_kho_cuoi_ky" string="Giá trị tồn cuối kỳ" widget="monetary" readonly="1" force_save="1"/>
+
+                            <field name="ghi_chu" readonly="1"/>
+                        </tree>
+                    </field>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_ke_hoach_vat_tu_form_b6" model="ir.ui.view">
+        <field name="name">ke.hoach.vat.tu.form.b6</field>
+        <field name="model">ke.hoach.vat.tu</field>
+        <field name="arch" type="xml">
+            <form duplicate="0" string="Tổng hợp KH vật tư BCU">
+                <header>
+                    <button name="action_reset_previous_step" type="object" string="Reset"
+                            class="btn-secondary" icon="fa-undo"
+                            groups="sonha_vat_tu.group_ban_cung_ung_vat_tu"
+                            invisible="state != 'bcu_tong_hop'"
+                            confirm="Reset về Kế hoạch đặt vật tư?"/>
+                    <button name="action_open_import_bcu_wizard" type="object"
+                            string="Import vật tư đi đường BCU"
+                            class="btn-primary" icon="fa-upload"
+                            groups="sonha_vat_tu.group_ban_cung_ung_vat_tu"
+                            invisible="state != 'bcu_tong_hop'"/>
+                    <button name="action_compute_b7" type="object" string="Phê duyệt kế hoạch vật tư"
+                            class="btn-primary"
+                            groups="sonha_vat_tu.group_ban_cung_ung_vat_tu"
+                            invisible="state != 'bcu_tong_hop' or not kh_dat_vat_tu_bcu_ids"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="ke_hoach,dinh_muc,tinh_toan,tong_hop,dat_hang,bcu_tong_hop,phe_duyet"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_step_b5" type="object" class="oe_stat_button" icon="fa-shopping-cart">
+                            <field name="kh_dat_vat_tu_count" string="Kế hoạch đặt vật tư" widget="statinfo"/>
+                        </button>
+                        <button name="action_open_step_b7" type="object" class="oe_stat_button" icon="fa-check-square"
+                                groups="sonha_vat_tu.group_ban_cung_ung_vat_tu">
+                            <field name="phe_duyet_kh_vat_tu_count" string="Phê duyệt KH VT" widget="statinfo"/>
+                        </button>
+                    </div>
+                    <group col="2">
+                        <group>
+                            <field name="code" string="Số chứng từ"/>
+                            <field name="company_sx_id" string="Đơn vị sản xuất" readonly="1"
+                                   invisible="not co_ke_hoach_vat_tu"
+                                   context="{'vat_tu_company_code_display': True}"/>
+                        </group>
+                        <group>
+                            <field name="period_month" readonly="1"/>
+                        </group>
+                    </group>
+                    <field name="co_ke_hoach_vat_tu" invisible="1"/>
+                    <field name="kh_dat_vat_tu_bcu_ids" widget="vat_tu_merged_b6_one2many">
+                        <tree duplicate="0" editable="bottom" create="false" delete="false" class="sh_free_width_tree o_vat_tu_sticky_nvl">
+                            <field name="ma_sap" string="Mã NVL" readonly="1"/>
+                            <field name="ten_nvl" string="Tên NVL" readonly="1"/>
+                            <field name="chung_loai" string="Chủng loại" readonly="1"/>
+                            <field name="don_vi_tinh" readonly="1"/>
+                            <field name="currency_id" column_invisible="True"/>
+
+                            <field name="don_gia_ton_kho" string="Đơn giá tồn kho" widget="monetary" readonly="1"/>
+                            <field name="tong_ton_nvl_sl" string="Tồn NVL đầu kỳ" readonly="1"/>
+                            <field name="gia_tri_ton_nvl_dau_ky" string="Giá trị tồn NVL" readonly="1" widget="monetary"/>
+
+                            <field name="tong_sl_vt_can_dung_t0" readonly="1"/>
+                            <field name="tong_sl_vt_can_dung_t1" readonly="1"/>
+                            <field name="tong_sl_vt_can_dung_t2" readonly="1"/>
+                            <field name="tong_sl_vt_can_dung_t3" readonly="1"/>
+                            <field name="tong_vt_can_dung" string="Tổng cần dùng" readonly="1"/>
+
+                            <field name="tong_hang_di_duong_sl_t0" readonly="1"/>
+                            <field name="tong_hang_di_duong_dg_t0" readonly="1" widget="monetary"/>
+                            <field name="tong_hang_di_duong_gt_t0" readonly="1" widget="monetary"/>
+                            <field name="tong_hang_di_duong_sl_t1" readonly="1"/>
+                            <field name="tong_hang_di_duong_dg_t1" readonly="1" widget="monetary"/>
+                            <field name="tong_hang_di_duong_gt_t1" readonly="1" widget="monetary"/>
+                            <field name="tong_hang_di_duong_sl_t2" readonly="1"/>
+                            <field name="tong_hang_di_duong_dg_t2" readonly="1" widget="monetary"/>
+                            <field name="tong_hang_di_duong_gt_t2" readonly="1" widget="monetary"/>
+                            <field name="tong_hang_di_duong_sl_t3" readonly="1"/>
+                            <field name="tong_hang_di_duong_dg_t3" readonly="1" widget="monetary"/>
+                            <field name="tong_hang_di_duong_gt_t3" readonly="1" widget="monetary"/>
+                            <field name="tong_hang_di_duong" string="Tổng SL đi đường ĐV" readonly="1"/>
+                            <field name="tong_gia_tri_di_duong" string="Tổng GT đi đường ĐV" readonly="1" widget="monetary"/>
+
+                            <field name="ve_du_kien_bcu_t0"/>
+                            <field name="ve_du_kien_bcu_dg_t0" widget="monetary"/>
+                            <field name="ve_du_kien_bcu_gt_t0" widget="monetary"/>
+                            <field name="ve_du_kien_bcu_t1"/>
+                            <field name="ve_du_kien_bcu_dg_t1" widget="monetary"/>
+                            <field name="ve_du_kien_bcu_gt_t1" widget="monetary"/>
+                            <field name="ve_du_kien_bcu_t2"/>
+                            <field name="ve_du_kien_bcu_dg_t2" widget="monetary"/>
+                            <field name="ve_du_kien_bcu_gt_t2" widget="monetary"/>
+                            <field name="ve_du_kien_bcu_t3"/>
+                            <field name="ve_du_kien_bcu_dg_t3" widget="monetary"/>
+                            <field name="ve_du_kien_bcu_gt_t3" widget="monetary"/>
+                            <field name="tong_ve_du_kien_bcu" string="Tổng SL đi đường BCU" readonly="1"/>
+                            <field name="tong_gia_tri_bcu" string="Tổng GT đi đường BCU" readonly="1" widget="monetary"/>
+
+                            <field name="sl_du_tru_toi_thieu" string="Dự trữ tối thiểu" readonly="1"/>
+                            <field name="sl_dat_mua_de_xuat" string="Đề xuất đặt mua" readonly="1"/>
+                            <field name="sl_dat_mua_chot" string="Đặt mua chốt BCU"/>
+                            <field name="sl_can_mua_theo_moq" string="SL cần mua dựa theo MOQ NCC"/>
+                            <field name="don_gia_mua" string="Đơn giá mua" widget="monetary"/>
+                            <field name="gia_tri_mua_hang" string="Giá trị mua" widget="monetary" readonly="1" force_save="1"/>
+
+                            <field name="sl_ton_kho_cuoi_ky" string="Tồn kho cuối kỳ" readonly="1" force_save="1"/>
+                            <field name="so_ngay_vong_quay_ton" string="Ngày vòng quay tồn" readonly="1" force_save="1"/>
+                            <field name="don_gia_ton_kho_cuoi_ky" string="Đơn giá tồn cuối kỳ" widget="monetary" readonly="1" force_save="1"/>
+                            <field name="gia_tri_ton_kho_cuoi_ky" string="Giá trị tồn cuối kỳ" widget="monetary" readonly="1" force_save="1"/>
+
+                            <field name="ghi_chu"/>
+                        </tree>
+                    </field>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_ke_hoach_vat_tu_form_b7" model="ir.ui.view">
+        <field name="name">ke.hoach.vat.tu.form.b7</field>
+        <field name="model">ke.hoach.vat.tu</field>
+        <field name="arch" type="xml">
+            <form duplicate="0" string="Phê duyệt kế hoạch vật tư">
+                <header>
+                    <button name="action_reset_previous_step" type="object" string="Reset"
+                            class="btn-secondary" icon="fa-undo"
+                            groups="sonha_vat_tu.group_ban_cung_ung_vat_tu"
+                            invisible="state != 'phe_duyet' or approval_state == 'approved'"
+                            confirm="Reset về Tổng hợp KH vật tư BCU?"/>
+                    <button name="action_approve_material_plan" type="object" string="Duyệt"
+                            class="btn-primary"
+                            groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu,sonha_vat_tu.group_ban_cung_ung_vat_tu"
+                            invisible="state != 'phe_duyet' or not can_approve"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="ke_hoach,dinh_muc,tinh_toan,tong_hop,dat_hang,bcu_tong_hop,phe_duyet"/>
+                </header>
+                <sheet>
+                    <field name="can_approve" invisible="1"/>
+                    <field name="approval_state" invisible="1"/>
+                    <field name="approval_company_id" invisible="1"/>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_step_b6" type="object" class="oe_stat_button" icon="fa-truck"
+                                groups="sonha_vat_tu.group_ban_cung_ung_vat_tu">
+                            <field name="kh_dat_vat_tu_bcu_count" string="Tổng hợp KH BCU" widget="statinfo"/>
+                        </button>
+                    </div>
+                    <group col="2">
+                        <group>
+                            <field name="code" string="Số chứng từ"/>
+                            <field name="company_sx_id" string="Đơn vị sản xuất" readonly="1"
+                                   invisible="not co_ke_hoach_vat_tu"
+                                   context="{'vat_tu_company_code_display': True}"/>
+                        </group>
+                        <group>
+                            <field name="period_month" readonly="1"/>
+                        </group>
+                    </group>
+                    <field name="co_ke_hoach_vat_tu" invisible="1"/>
                     <notebook>
-                        <page string="Kế hoạch đặt vật tư">
-                            <field name="kh_dat_vat_tu_ids" widget="vat_tu_merged_b5_one2many">
-                                <tree duplicate="0" editable="bottom" create="false" delete="false" class="sh_free_width_tree">
-                                    <field name="ma_sap" string="Mã NVL" required="1" readonly="1"/>
+                        <page string="Chi tiết">
+                            <field name="phe_duyet_kh_vat_tu_ids" widget="vat_tu_b7_one2many">
+                                <tree duplicate="0" editable="bottom" create="false" delete="false"
+                                      class="sh_free_width_tree o_vat_tu_sticky_nvl">
+                                    <field name="company_id" string="Đơn vị đặt hàng" readonly="1"
+                                           context="{'vat_tu_company_code_display': True}"/>
+                                    <field name="ma_sap" string="Mã NVL" readonly="1"/>
                                     <field name="ten_nvl" string="Tên NVL" readonly="1"/>
-                                    <field name="chung_loai" string="Chủng loại" readonly="1"/>
                                     <field name="don_vi_tinh" readonly="1"/>
-                                    <field name="currency_id" column_invisible="True"/>
-
-                                    <field name="don_gia_ton_kho" string="Đơn giá tồn kho" widget="monetary" readonly="1"/>
-                                    <field name="tong_ton_nvl_sl" string="Tồn NVL đầu kỳ" readonly="1"/>
-                                    <field name="gia_tri_ton_nvl_dau_ky" string="Giá trị tồn NVL" readonly="1" widget="monetary"/>
-
-                                    <field name="tong_sl_vt_can_dung_t0" readonly="1"/>
-                                    <field name="tong_sl_vt_can_dung_t1" readonly="1"/>
-                                    <field name="tong_sl_vt_can_dung_t2" readonly="1"/>
-                                    <field name="tong_sl_vt_can_dung_t3" readonly="1"/>
-                                    <field name="tong_vt_can_dung" string="Tổng cần dùng" readonly="1"/>
-
-                                    <field name="tong_hang_di_duong_sl_t0" readonly="1"/>
-                                    <field name="tong_hang_di_duong_sl_t1" readonly="1"/>
-                                    <field name="tong_hang_di_duong_sl_t2" readonly="1"/>
-                                    <field name="tong_hang_di_duong_sl_t3" readonly="1"/>
-                                    <field name="tong_hang_di_duong" string="Tổng đi đường" readonly="1"/>
-
-                                    <field name="sl_du_tru_toi_thieu" string="Dự trữ tối thiểu" readonly="1"/>
-                                    <field name="sl_dat_mua_de_xuat" string="Đề xuất đặt mua" readonly="1"/>
-                                    <field name="sl_dat_mua_chot" string="Đặt mua chốt"/>
-                                    <field name="sl_can_mua_theo_moq" string="SL cần mua dựa theo MOQ NCC"/>
-                                    <field name="don_gia_mua" string="Đơn giá mua" widget="monetary" readonly="1"/>
-                                    <field name="gia_tri_mua_hang" string="Giá trị mua" widget="monetary" readonly="1" force_save="1"/>
-                                    <field name="sl_ton_kho_cuoi_ky" string="Tồn kho cuối kỳ" readonly="1" force_save="1"/>
-                                    <field name="so_ngay_vong_quay_ton" string="Ngày vòng quay tồn" readonly="1" force_save="1"/>
-                                    <field name="don_gia_ton_kho_cuoi_ky" string="Đơn giá tồn cuối kỳ" widget="monetary" readonly="1" force_save="1"/>
-                                    <field name="gia_tri_ton_kho_cuoi_ky" string="Giá trị tồn cuối kỳ" widget="monetary" readonly="1" force_save="1"/>
-
-                                    <field name="ghi_chu" readonly="1"/>
+                                    <field name="khoi_luong_don_vi_dat" string="Khối lượng đơn vị đặt" readonly="1"/>
+                                    <field name="khoi_luong_bcu_dat" string="Khối lượng BCU đặt" readonly="1"/>
+                                    <field name="leadtime_ngay" string="Leadtime (ngày)"/>
+                                    <field name="ngay_du_kien_ve" string="Dự kiến về kho" readonly="1"/>
+                                    <field name="thoi_diem_giao_dvtv" string="Giao về đơn vị thành viên theo leadtime" readonly="1"/>
+                                    <field name="thoi_diem_su_dung" string="Thời điểm sử dụng" readonly="1"/>
+                                    <field name="ghi_chu"/>
                                 </tree>
                             </field>
                         </page>
@@ -462,13 +673,14 @@
                             </group>
                             <field name="approval_current_sequence" invisible="1" force_save="1"/>
                             <field name="approval_step_ids" readonly="1" force_save="1">
-                                <tree duplicate="0" create="false" delete="false" edit="false">
-                                    <field name="sequence"/>
-                                    <field name="phuong_thuc"/>
-                                    <field name="vai_tro_id"/>
-                                    <field name="nguoi_duyet_id"/>
-                                    <field name="da_duyet"/>
-                                    <field name="ngay_duyet"/>
+                                <tree duplicate="0" create="false" delete="false" edit="false"
+                                      class="o_vat_tu_approval_steps">
+                                    <field name="sequence" string="Bước"/>
+                                    <field name="phuong_thuc" string="Phương thức"/>
+                                    <field name="vai_tro_id" string="Vai trò"/>
+                                    <field name="nguoi_duyet_id" string="Người duyệt"/>
+                                    <field name="da_duyet" string="Đã duyệt"/>
+                                    <field name="ngay_duyet" string="Ngày duyệt"/>
                                 </tree>
                             </field>
                         </page>
@@ -513,6 +725,22 @@
         <field name="view_mode">form</field>
         <field name="views" eval="[(ref('view_ke_hoach_vat_tu_form_b5'), 'form')]"/>
         <field name="context">{'form_view_ref': 'sonha_vat_tu.view_ke_hoach_vat_tu_form_b5'}</field>
+    </record>
+
+    <record id="action_ke_hoach_vat_tu_b6" model="ir.actions.act_window">
+        <field name="name">Tổng hợp KH vật tư BCU</field>
+        <field name="res_model">ke.hoach.vat.tu</field>
+        <field name="view_mode">form</field>
+        <field name="views" eval="[(ref('view_ke_hoach_vat_tu_form_b6'), 'form')]"/>
+        <field name="context">{'form_view_ref': 'sonha_vat_tu.view_ke_hoach_vat_tu_form_b6'}</field>
+    </record>
+
+    <record id="action_ke_hoach_vat_tu_b7" model="ir.actions.act_window">
+        <field name="name">Phê duyệt kế hoạch vật tư</field>
+        <field name="res_model">ke.hoach.vat.tu</field>
+        <field name="view_mode">form</field>
+        <field name="views" eval="[(ref('view_ke_hoach_vat_tu_form_b7'), 'form')]"/>
+        <field name="context">{'form_view_ref': 'sonha_vat_tu.view_ke_hoach_vat_tu_form_b7'}</field>
     </record>
 
     <record id="action_ke_hoach_vat_tu" model="ir.actions.act_window">

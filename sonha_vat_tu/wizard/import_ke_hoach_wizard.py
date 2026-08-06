@@ -27,7 +27,7 @@ class ImportKeHoachWizard(models.TransientModel):
     MONTH_RE = re.compile(r'(\d{1,2})\s*[/\-]\s*(\d{4})')
     _IMPORT_CTX = {'is_importing': True, 'tracking_disable': True}
     _WRITE_FIELDS = ('ma_hang', 'qty_t0', 'qty_t1', 'qty_t2', 'qty_t3', 'sequence')
-    _PLAN_HEADERS = ['Đơn vị', 'Ngành hàng', 'Tên hàng', 'Mã hàng', 'Mã']
+    _PLAN_HEADERS = ['Đơn vị đặt hàng', 'Ngành hàng', 'Tên hàng', 'Mã hàng', 'Mã']
     COL_MA_HANG, COL_MA_SAP = 3, 4
     HEADER_ROW_IDX = 5
     MONTH_START_COL = 5
