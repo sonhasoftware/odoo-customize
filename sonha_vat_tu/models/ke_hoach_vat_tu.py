@@ -21,7 +21,7 @@ _SQL_FUNCTIONS_PATH = _os.path.join(
 
 class KeHoachVatTu(models.Model):
     _name = 'ke.hoach.vat.tu'
-    _description = 'Kỳ kế hoạch vật tư cần'
+    _description = 'kế hoạch vật tư cần'
     _rec_name = 'code'
     _order = 'period_month desc, id desc'
     _inherit = ['mail.thread', 'mail.activity.mixin', 'vat.tu.excel.mixin']
@@ -874,7 +874,7 @@ class KeHoachVatTu(models.Model):
                     'approval_current_sequence': 0,
                 })
                 self.message_post(body=_('Phê duyệt kế hoạch vật tư đã được phê duyệt hoàn tất.'))
-        return self.action_open_step_b5()
+        return self.action_open_step_b7()
 
     def _apply_plan_excel_style(self, ws, header_row, max_col):
         base_font = Font(name='Times New Roman', size=10)
