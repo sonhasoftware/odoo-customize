@@ -56,7 +56,8 @@
               groups="sonha_vat_tu.group_ban_cung_ung_vat_tu"/>
 
     <menuitem id="menu_bao_cao_root" name="Báo cáo"
-              parent="menu_ke_hoach_vat_tu_root" sequence="30"/>
+              parent="menu_ke_hoach_vat_tu_root" sequence="30"
+              groups="sonha_vat_tu.group_ban_cung_ung_vat_tu"/>
     <menuitem id="menu_bao_cao_nhu_cau_vat_tu"
               name="Báo cáo nhu cầu vật tư"
               parent="menu_bao_cao_root"
@@ -120,6 +121,11 @@
               name="Cấu hình leadtime"
               parent="menu_danh_muc_root"
               action="action_cau_hinh_leadtime" sequence="25"
+              groups="sonha_vat_tu.group_ban_cung_ung_vat_tu"/>
+    <menuitem id="menu_dmtb_nhom"
+              name="Nhóm định mức vật tư TB"
+              parent="menu_danh_muc_root"
+              action="action_dmtb_nhom" sequence="26"
               groups="sonha_vat_tu.group_ban_cung_ung_vat_tu"/>
 
 </odoo>

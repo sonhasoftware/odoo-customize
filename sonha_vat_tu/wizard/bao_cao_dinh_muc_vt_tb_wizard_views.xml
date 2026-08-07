@@ -10,7 +10,7 @@
                     <field name="period_ids"
                            widget="many2many_tags"
                            options="{'no_create': True, 'no_open': True}"/>
-                    <field name="nhom_linh_vuc"/>
+                    <field name="nhom_id" options="{'no_create': True}"/>
                     <field name="nguon_sl_sp" widget="radio"/>
                 </group>
                 <footer>

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Sơn Hà Vật tư',
-    'version': '17.0.1.0.1',
+    'version': '17.0.1.0.2',
     'category': 'Kế hoạch vật tư',
     'summary': 'Lập kế hoạch đặt mua vật tư cần theo kỳ',
     'description': """
@@ -32,6 +32,7 @@
         'views/cau_hinh_leadtime_views.xml',
         'views/bom_views.xml',
         'views/ke_hoach_san_xuat_views.xml',
+        'views/dmtb_nhom_views.xml',
         'views/dinh_muc_views.xml',
         'views/tinh_toan_vat_tu_views.xml',
         'views/tong_hop_vat_tu_views.xml',

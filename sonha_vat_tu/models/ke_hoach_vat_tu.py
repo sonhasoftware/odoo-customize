@@ -36,7 +36,7 @@ class KeHoachVatTu(models.Model):
     company_sx_id = fields.Many2one(
         'res.company', string='Đơn vị sản xuất',
         readonly=True, copy=False, index=True,
-        help='BNH hoặc SSP — gắn khi user nhấn Tạo kế hoạch vật tư, dùng xuyên suốt B2–B5.',
+        help='Công ty user lúc nhấn Tạo kế hoạch vật tư; dùng xuyên suốt B2–B5.',
     )
     period_month = fields.Char(
         string='Tháng bắt đầu', required=True, tracking=True)
@@ -297,13 +297,7 @@ class KeHoachVatTu(models.Model):
             raise UserError(_('Từ tháng không được lớn hơn Đến tháng.'))
 
     def _get_current_production_company(self):
-        user_company = self.env.company
-        if user_company.company_code in ('BNH', 'SSP'):
-            return user_company
-        raise UserError(_(
-            'Công ty mặc định của user không phải công ty sản xuất BNH/SSP. '
-            'Vui lòng kiểm tra lại công ty mặc định của user trước khi thao tác kế hoạch sản xuất.'
-        ))
+        return self.env.company
 
     @api.model
     def _get_creator_company_code(self):

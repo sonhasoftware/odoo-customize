@@ -222,7 +222,7 @@ class BaoCaoVtCanDatWizard(models.TransientModel):
             if not ma:
                 continue
             bucket = grouped.setdefault(ma, {
-                'ma_sap': ma,
+                'ma_nvl': ma,
                 'ten_nvl': rec.ten_nvl or '',
                 'nhom': self._nhom_from_ma_linh_vuc(linh_vuc_map.get(ma)),
                 'total': _empty_metrics(),
@@ -243,7 +243,7 @@ class BaoCaoVtCanDatWizard(models.TransientModel):
             item = grouped[ma]
             details.append({
                 'row_type': ROW_DETAIL,
-                'ma_sap': ma,
+                'ma_nvl': ma,
                 'ten_nvl': item['ten_nvl'],
                 'nhom': item['nhom'],
                 'metrics_json': json.dumps({
@@ -314,12 +314,12 @@ class BaoCaoVtCanDatWizard(models.TransientModel):
         for detail in details:
             seq += 1
             specs = parse_ten_nvl_specs(detail['ten_nvl'], nhom=detail.get('nhom'))
-            scope = GhiChu.scope_key_vtcd(self.report_kind, detail['ma_sap'])
+            scope = GhiChu.scope_key_vtcd(self.report_kind, detail['ma_nvl'])
             lines.append({
                 'wizard_id': self.id,
                 'sequence': seq,
                 'row_type': ROW_DETAIL,
-                'ma_sap': detail['ma_sap'],
+                'ma_nvl': detail['ma_nvl'],
                 'ten_nvl': detail['ten_nvl'],
                 'chat_lieu': specs['chat_lieu'],
                 'do_bong': specs['do_bong'],
@@ -544,7 +544,7 @@ class BaoCaoVtCanDatWizard(models.TransientModel):
                 cell = ws.cell(row=row_idx, column=6, value=line.label or '')
                 cell.font = Font(bold=True)
             else:
-                ws.cell(row=row_idx, column=1, value=line.ma_sap)
+                ws.cell(row=row_idx, column=1, value=line.ma_nvl)
                 ws.cell(row=row_idx, column=2, value=line.ten_nvl)
                 ws.cell(row=row_idx, column=3, value=line.chat_lieu)
                 ws.cell(row=row_idx, column=4, value=line.do_bong)
@@ -637,7 +637,7 @@ class BaoCaoVtCanDatLine(models.TransientModel):
         required=True,
     )
     label = fields.Char(string='Nhãn tổng')
-    ma_sap = fields.Char(string='Mã NVL')
+    ma_nvl = fields.Char(string='Mã NVL')
     ten_nvl = fields.Char(string='Tên NVL')
     chat_lieu = fields.Char(string='Chất liệu')
     do_bong = fields.Char(string='Độ bóng')
@@ -651,12 +651,12 @@ class BaoCaoVtCanDatLine(models.TransientModel):
 
     def _sync_ghi_chu_to_master(self):
         GhiChu = self._ghi_chu_master()
-        for rec in self.filtered(lambda r: r.row_type == ROW_DETAIL and r.ma_sap):
+        for rec in self.filtered(lambda r: r.row_type == ROW_DETAIL and r.ma_nvl):
             wizard = rec.wizard_id
             if not wizard:
                 continue
             period_key = rec._ghi_chu_period_key(wizard)
-            scope = GhiChu.scope_key_vtcd(wizard.report_kind, rec.ma_sap)
+            scope = GhiChu.scope_key_vtcd(wizard.report_kind, rec.ma_nvl)
             GhiChu.upsert_note(REPORT_VTCD, period_key, scope, rec.ghi_chu)
 
     def _metrics_payload(self):

@@ -1308,7 +1308,7 @@ const VTCD_METRICS_TRINH_LD = [
 ];
 
 const VTCD_FIXED_COLS = [
-    { key: "ma_sap", label: "Mã NVL" },
+    { key: "ma_nvl", label: "Mã NVL" },
     { key: "ten_nvl", label: "Tên NVL" },
     { key: "chat_lieu", label: "Chất liệu" },
     { key: "do_bong", label: "Độ bóng" },

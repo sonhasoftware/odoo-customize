@@ -47,8 +47,9 @@ access_bao_cao_tinh_toan_vat_tu_wizard,bao.cao.tinh.toan.vat.tu.wizard,model_bao
 access_bao_cao_tinh_toan_vat_tu_line,bao.cao.tinh.toan.vat.tu.line,model_bao_cao_tinh_toan_vat_tu_line,base.group_user,1,1,1,1
 access_bao_cao_tong_hop_vat_tu_wizard,bao.cao.tong.hop.vat.tu.wizard,model_bao_cao_tong_hop_vat_tu_wizard,base.group_user,1,1,1,1
 access_bao_cao_tong_hop_vat_tu_line,bao.cao.tong.hop.vat.tu.line,model_bao_cao_tong_hop_vat_tu_line,base.group_user,1,1,1,1
-access_bao_cao_dinh_muc_vt_tb_wizard,bao.cao.dinh.muc.vt.tb.wizard,model_bao_cao_dinh_muc_vt_tb_wizard,base.group_user,1,1,1,1
-access_bao_cao_dinh_muc_vt_tb_line,bao.cao.dinh.muc.vt.tb.line,model_bao_cao_dinh_muc_vt_tb_line,base.group_user,1,1,1,1
+access_bao_cao_dinh_muc_vt_tb_wizard,bao.cao.dinh.muc.vt.tb.wizard,model_bao_cao_dinh_muc_vt_tb_wizard,sonha_vat_tu.group_ban_cung_ung_vat_tu,1,1,1,1
+access_bao_cao_dinh_muc_vt_tb_line,bao.cao.dinh.muc.vt.tb.line,model_bao_cao_dinh_muc_vt_tb_line,sonha_vat_tu.group_ban_cung_ung_vat_tu,1,1,1,1
+access_dmtb_nhom_bcu,dmtb.nhom.bcu,model_dmtb_nhom,sonha_vat_tu.group_ban_cung_ung_vat_tu,1,1,1,1
 access_vat_tu_di_duong_user,vat.tu.di.duong.user,model_vat_tu_di_duong,base.group_user,1,0,0,0
 access_vat_tu_di_duong_bo_phan,vat.tu.di.duong.bo.phan,model_vat_tu_di_duong,sonha_vat_tu.group_bo_phan_vat_tu,1,1,1,1
 access_vat_tu_di_duong_truong_bo_phan,vat.tu.di.duong.truong.bo.phan,model_vat_tu_di_duong,sonha_vat_tu.group_truong_bo_phan_vat_tu,1,1,1,1

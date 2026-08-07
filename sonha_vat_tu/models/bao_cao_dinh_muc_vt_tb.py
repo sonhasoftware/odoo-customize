@@ -15,21 +15,6 @@ from .bao_cao_ghi_chu import REPORT_DMTB
 REPORT_MONTH_COUNT = 3
 QTY_FIELDS = tuple('qty_t%d' % idx for idx in range(REPORT_MONTH_COUNT))
 
-DMTB_NHOM_SELECTION = [
-    ('innox', 'Innox'),
-    ('nhua', 'Nhựa'),
-]
-
-DMTB_MA_LINH_VUC = {
-    'innox': 'IOXC',
-    'nhua': 'NHUA',
-}
-
-DMTB_SL_LABEL = {
-    'innox': 'SL Innox',
-    'nhua': 'SL Nhựa',
-}
-
 
 class BaoCaoDinhMucVtTbWizard(models.TransientModel):
     _name = 'bao.cao.dinh.muc.vt.tb.wizard'
@@ -44,12 +29,11 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
         help='Chọn nhiều kỳ cùng tháng — có thể nhiều file cùng đơn vị SX '
              '(vd. innox/nhựa tách file); báo cáo gom theo đơn vị sản xuất.',
     )
-    nhom_linh_vuc = fields.Selection(
-        DMTB_NHOM_SELECTION,
+    nhom_id = fields.Many2one(
+        'dmtb.nhom',
         string='Nhóm',
         required=True,
-        default='innox',
-        help='Lọc NVL theo ma_linh_vuc trên v_mdm_hang_hoa_bcu (Innox=IOXC, Nhựa=NHUA).',
+        domain=[('active', '=', True)],
     )
     nguon_sl_sp = fields.Selection(
         [
@@ -78,6 +62,12 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
                 period_id = active_id
         if period_id and 'period_ids' in fields_list:
             res['period_ids'] = [(6, 0, [period_id])]
+        if 'nhom_id' in fields_list and not res.get('nhom_id'):
+            default_nhom = self.env['dmtb.nhom'].search(
+                [('active', '=', True)], order='name, id', limit=1,
+            )
+            if default_nhom:
+                res['nhom_id'] = default_nhom.id
         return res
 
     def _plan_model_name(self):
@@ -87,21 +77,26 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
             else 'ke.hoach.san.xuat'
         )
 
-    def _ma_linh_vuc_code(self):
-        self.ensure_one()
-        code = DMTB_MA_LINH_VUC.get(self.nhom_linh_vuc)
-        if not code:
-            raise UserError(_('Vui lòng chọn nhóm Innox hoặc Nhựa.'))
-        return code
-
     def _nhom_label(self):
         self.ensure_one()
-        return dict(DMTB_NHOM_SELECTION).get(self.nhom_linh_vuc, self.nhom_linh_vuc)
+        return self.nhom_id.name or ''
+
+    def _sl_label(self):
+        self.ensure_one()
+        name = (self.nhom_id.name or '').strip()
+        return _('SL %s') % name if name else _('SL sản phẩm')
 
     def _selected_periods(self):
         self.ensure_one()
         if not self.period_ids:
             raise UserError(_('Vui lòng chọn ít nhất một kỳ kế hoạch.'))
+        if not self.nhom_id:
+            raise UserError(_('Vui lòng chọn nhóm báo cáo.'))
+        if not self.nhom_id.nganh_hang_ids:
+            raise UserError(_(
+                'Nhóm "%(name)s" chưa cấu hình ngành hàng.',
+                name=self.nhom_id.name,
+            ))
         periods = self.period_ids.sorted(
             key=lambda p: (
                 (p.company_sx_id.company_code or p.company_sx_id.name or '').upper(),
@@ -128,31 +123,35 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
             ))
         return horizon[:REPORT_MONTH_COUNT]
 
-    def _filter_nvl_lines(self, nvl_lines, linh_vuc_code):
-        nvl_codes = {
-            (line.ma_nvl or '').strip() for line in nvl_lines if line.ma_nvl
+    @api.model
+    def _nganh_meta_map(self, ma_codes):
+        return self.env['ma.hang'].get_mdm_sap_meta_map(ma_codes)
+
+    @api.model
+    def _filter_by_nganh(self, records, code_field, nganh_ids):
+        nganh_set = set(nganh_ids)
+        codes = {
+            (getattr(rec, code_field) or '').strip()
+            for rec in records
+            if (getattr(rec, code_field) or '').strip()
         }
-        linh_vuc_map = self.env['ma.hang'].get_ma_linh_vuc_map(nvl_codes)
-        return nvl_lines.filtered(
-            lambda line: linh_vuc_map.get((line.ma_nvl or '').strip()) == linh_vuc_code
+        meta_map = self._nganh_meta_map(codes)
+        return records.filtered(
+            lambda rec: meta_map.get(
+                (getattr(rec, code_field) or '').strip(), {},
+            ).get('nganh_hang_id') in nganh_set
         )
 
-    def _aggregate_period(self, period, linh_vuc_code):
-        all_nvl_lines = self.env['dinh.muc'].search([
+    def _aggregate_period(self, period, nganh_ids):
+        plan_model = self._plan_model_name()
+        plan_lines = self.env[plan_model].search([
+            ('period_id', '=', period.id),
+            ('nganh_hang', 'in', list(nganh_ids)),
+        ])
+        b3_lines = self.env['tinh.toan.vat.tu'].search([
             ('period_id', '=', period.id),
         ])
-        nvl_lines = self._filter_nvl_lines(all_nvl_lines, linh_vuc_code)
-        sap_codes = {
-            (line.ma_sap or '').strip() for line in nvl_lines if line.ma_sap
-        }
-        plan_model = self._plan_model_name()
-        if sap_codes:
-            plan_lines = self.env[plan_model].search([
-                ('period_id', '=', period.id),
-                ('ma_sap', 'in', list(sap_codes)),
-            ])
-        else:
-            plan_lines = self.env[plan_model].browse()
+        nvl_lines = self._filter_by_nganh(b3_lines, 'ma_vat_tu', nganh_ids)
 
         month_keys = self._report_month_keys(period)
         row_metrics = []
@@ -167,12 +166,12 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
 
         return month_keys, row_metrics, plan_lines, nvl_lines
 
-    def _load_ghi_chu_map(self, periods, nhom_linh_vuc, nguon_sl_sp):
+    def _load_ghi_chu_map(self, periods, nhom_id, nguon_sl_sp):
         GhiChu = self.env['bao.cao.ghi.chu'].sudo()
         period_key = GhiChu.period_key_from_periods(periods)
         if not period_key:
             return {}
-        prefix = '%s|%s|' % (nhom_linh_vuc or '', nguon_sl_sp or '')
+        prefix = '%s|%s|' % (nhom_id or 0, nguon_sl_sp or '')
         rows = GhiChu.search([
             ('report_type', '=', REPORT_DMTB),
             ('period_key', '=', period_key),
@@ -194,17 +193,17 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
     def _populate_lines(self):
         self.ensure_one()
         periods = self._selected_periods()
-        nhom = self.nhom_linh_vuc
-        linh_vuc_code = self._ma_linh_vuc_code()
+        nhom = self.nhom_id
+        nganh_ids = nhom.nganh_hang_ids.ids
         nhom_label = self._nhom_label()
-        ghi_chu_map = self._load_ghi_chu_map(periods, nhom, self.nguon_sl_sp)
+        ghi_chu_map = self._load_ghi_chu_map(periods, nhom.id, self.nguon_sl_sp)
 
         column_keys = self._report_month_keys(periods[0])
         column_spec = [{'month_key': mk, 'label': mk} for mk in column_keys]
         self.column_spec_json = json.dumps(column_spec, ensure_ascii=False)
         self.period_codes = ', '.join(p.code or '' for p in periods if p.code)
         self.period_month = periods[0].period_month or ''
-        self.sl_qty_column_label = DMTB_SL_LABEL.get(nhom, nhom_label)
+        self.sl_qty_column_label = self._sl_label()
 
         Line = self.env['bao.cao.dinh.muc.vt.tb.line']
         self.line_ids.unlink()
@@ -229,7 +228,7 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
 
             for period in group['periods']:
                 month_keys, row_metrics, plan_lines, nvl_lines = self._aggregate_period(
-                    period, linh_vuc_code,
+                    period, nganh_ids,
                 )
                 if month_keys != column_keys:
                     raise UserError(_(
@@ -255,7 +254,7 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
             lines.append({
                 'wizard_id': self.id,
                 'period_id': group['periods'][0].id,
-                'nhom_linh_vuc': nhom,
+                'nhom_id': nhom.id,
                 'company_sx_id': sx.id,
                 'company_code': sx.company_code or sx.name or '',
                 'metrics_json': json.dumps(merged_metrics, ensure_ascii=False),
@@ -269,7 +268,7 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
         self.ensure_one()
         self._populate_lines()
         title = _('Định mức vật tư trung bình')
-        if self.nhom_linh_vuc:
+        if self.nhom_id:
             title = _('%s — %s') % (title, self._nhom_label())
         if self.period_codes:
             title = _('%s (%s)') % (title, self.period_codes)
@@ -415,8 +414,8 @@ class BaoCaoDinhMucVtTbLine(models.TransientModel):
         'bao.cao.dinh.muc.vt.tb.wizard', ondelete='cascade', index=True)
     period_id = fields.Many2one(
         'ke.hoach.vat.tu', string='Kỳ nguồn', readonly=True)
-    nhom_linh_vuc = fields.Selection(
-        DMTB_NHOM_SELECTION, string='Nhóm', readonly=True)
+    nhom_id = fields.Many2one(
+        'dmtb.nhom', string='Nhóm', readonly=True)
     company_sx_id = fields.Many2one(
         'res.company', string='Đơn vị sản xuất', readonly=True)
     company_code = fields.Char(string='Công ty', index=True)
@@ -434,17 +433,16 @@ class BaoCaoDinhMucVtTbLine(models.TransientModel):
             return []
         return data if isinstance(data, list) else []
 
-
     def _sync_ghi_chu_to_master(self):
         GhiChu = self._ghi_chu_master()
         for rec in self:
             wizard = rec.wizard_id
-            nhom = rec.nhom_linh_vuc or wizard.nhom_linh_vuc
+            nhom = rec.nhom_id or wizard.nhom_id
             if not wizard or not nhom or not rec.company_sx_id:
                 continue
             period_key = rec._ghi_chu_period_key(wizard)
             scope = GhiChu.scope_key_dmtb(
-                nhom, wizard.nguon_sl_sp, rec.company_sx_id.id,
+                nhom.id, wizard.nguon_sl_sp, rec.company_sx_id.id,
             )
             GhiChu.upsert_note(REPORT_DMTB, period_key, scope, rec.ghi_chu)
 

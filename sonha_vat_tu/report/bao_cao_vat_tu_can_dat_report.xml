@@ -76,7 +76,7 @@
                                     <tr t-foreach="lines" t-as="line">
                                         <t t-if="line.row_type == 'detail'">
                                             <td t-att-style="cell" class="text-center">
-                                                <span t-esc="line.ma_sap or ''"/>
+                                                <span t-esc="line.ma_nvl or ''"/>
                                             </td>
                                             <td t-att-style="cell">
                                                 <span t-esc="line.ten_nvl or ''"/>

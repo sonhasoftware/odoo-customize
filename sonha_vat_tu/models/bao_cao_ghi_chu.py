@@ -61,8 +61,8 @@ class BaoCaoGhiChu(models.Model):
         return '%s|%s' % (month, '|'.join(sx_codes))
 
     @staticmethod
-    def scope_key_dmtb(nhom_linh_vuc, nguon_sl_sp, company_sx_id):
-        return '%s|%s|%s' % (nhom_linh_vuc or '', nguon_sl_sp or '', company_sx_id or 0)
+    def scope_key_dmtb(nhom_id, nguon_sl_sp, company_sx_id):
+        return '%s|%s|%s' % (nhom_id or 0, nguon_sl_sp or '', company_sx_id or 0)
 
     @staticmethod
     def scope_key_vtcd(report_kind, ma_nvl):

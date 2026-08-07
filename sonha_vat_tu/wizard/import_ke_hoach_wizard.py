@@ -369,11 +369,6 @@ class ImportKeHoachWizard(models.TransientModel):
     def _import_production(self, rows, header, month_cols, data_start_idx):
         Plan = self.env['ke.hoach.san.xuat'].sudo()
         company_sx = self.env.company
-        if company_sx.company_code not in ('BNH', 'SSP'):
-            raise UserError(_(
-                'Công ty hiện tại không phải công ty sản xuất BNH/SSP. '
-                'Vui lòng chọn đúng công ty trước khi import kế hoạch sản xuất.'
-            ))
 
         vals_list = self._collect_plan_rows(
             rows, header, month_cols, data_start_idx,

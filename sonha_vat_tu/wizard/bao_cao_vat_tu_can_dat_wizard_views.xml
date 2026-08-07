@@ -51,7 +51,7 @@
                 <field name="sequence" column_invisible="1"/>
                 <field name="row_type" column_invisible="1"/>
                 <field name="label" column_invisible="1"/>
-                <field name="ma_sap" column_invisible="1"/>
+                <field name="ma_nvl" column_invisible="1"/>
                 <field name="ten_nvl" column_invisible="1"/>
                 <field name="chat_lieu" column_invisible="1"/>
                 <field name="do_bong" column_invisible="1"/>

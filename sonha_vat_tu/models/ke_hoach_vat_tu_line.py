@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import UserError
 
 
 class KeHoachVatTuLine(models.Model):
@@ -75,16 +75,6 @@ class KeHoachVatTuLine(models.Model):
             rec.qty_cl_t1 = (rec.qty_sx_t1 or 0.0) - (rec.qty_kd_t1 or 0.0)
             rec.qty_cl_t2 = (rec.qty_sx_t2 or 0.0) - (rec.qty_kd_t2 or 0.0)
             rec.qty_cl_t3 = (rec.qty_sx_t3 or 0.0) - (rec.qty_kd_t3 or 0.0)
-
-    @api.constrains('company_sx_id')
-    def _check_production_company(self):
-        invalid = self.filtered(
-            lambda rec: rec.company_sx_id.company_code not in ('BNH', 'SSP')
-        )
-        if invalid:
-            raise ValidationError(_(
-                'Nhà máy sản xuất của kế hoạch vật tư chỉ được là BNH hoặc SSP.'
-            ))
 
     @api.model_create_multi
     def create(self, vals_list):
