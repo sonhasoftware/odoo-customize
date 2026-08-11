@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import UserError
 
 
 class KeHoachVatTuLine(models.Model):
@@ -12,10 +12,10 @@ class KeHoachVatTuLine(models.Model):
     period_id = fields.Many2one(
         'ke.hoach.vat.tu', string='Kỳ', ondelete='cascade', index=True)
     company_id = fields.Many2one(
-        'res.company', string='Đơn vị', index=True, required=True)
+        'res.company', string='Đơn vị đặt hàng', index=True, required=True)
     company_sx_id = fields.Many2one(
         'res.company', string='Nhà máy SX', index=True, required=True,
-        help='Đơn vị sản xuất (BNH/SSP) — dùng tra tồn kho SAP.',
+        help='Đơn vị sản xuất (BNH/SSP).',
     )
     nganh_hang = fields.Char(string='Ngành hàng', index=True)
     ten_hang = fields.Char(
@@ -26,11 +26,6 @@ class KeHoachVatTuLine(models.Model):
     )
     ma_hang = fields.Char(string='Mã hàng', index=True)
     ma_sap = fields.Char(string='Mã', index=True)
-
-    qty_ton_kho = fields.Float(
-        string='Tồn kho', digits=(16, 3),
-        compute='_compute_qty_ton_kho',
-    )
 
     qty_kd_t0 = fields.Float(string='Kinh doanh T0', digits=(16, 2))
     qty_kd_t1 = fields.Float(string='Kinh doanh T+1', digits=(16, 2))
@@ -70,55 +65,6 @@ class KeHoachVatTuLine(models.Model):
             code = (rec.ma_sap or '').strip()
             rec.ten_hang = name_map.get(code, '') if code else ''
 
-    @api.depends('ma_sap', 'company_sx_id')
-    def _compute_qty_ton_kho(self):
-        # Gom tất cả ma_sap + company_code cần query
-        sap_codes = set()
-        for rec in self:
-            if rec.ma_sap:
-                sap_codes.add(rec.ma_sap)
-        if not sap_codes:
-            for rec in self:
-                rec.qty_ton_kho = 0.0
-            return
-
-        # Bulk query tồn kho từ md_sap_ton_kho (logic giống B4 SQL)
-        self.env.cr.execute("""
-            SELECT ma_hang, comp_grp, SUM(ton_cuoi) AS ton_cuoi
-            FROM (
-                SELECT DISTINCT ON (TRIM(ma_hang), chi_nhanh)
-                    TRIM(ma_hang) AS ma_hang,
-                    chi_nhanh,
-                    CASE
-                        WHEN chi_nhanh LIKE '21%%' THEN 'BNH'
-                        WHEN chi_nhanh LIKE '22%%' THEN 'SSP'
-                        ELSE 'ALL'
-                    END AS comp_grp,
-                    safe_sap_numeric(ton_cuoi) AS ton_cuoi
-                FROM md_sap_ton_kho
-                WHERE chi_nhanh NOT LIKE '10%%'
-                  AND TRIM(ma_hang) IN %s
-                ORDER BY TRIM(ma_hang), chi_nhanh, create_date DESC, id DESC
-            ) latest
-            GROUP BY ma_hang, comp_grp
-        """, (tuple(sap_codes),))
-        # Build lookup dict: {(ma_hang, comp_grp): ton_cuoi}
-        ton_kho_map = {}
-        for row in self.env.cr.dictfetchall():
-            ton_kho_map[(row['ma_hang'], row['comp_grp'])] = row['ton_cuoi'] or 0.0
-
-        for rec in self:
-            if not rec.ma_sap:
-                rec.qty_ton_kho = 0.0
-                continue
-            comp_grp = 'ALL'
-            cc = rec.company_sx_id.company_code or ''
-            if cc in ('BNH',) or cc.startswith('21'):
-                comp_grp = 'BNH'
-            elif cc in ('SSP',) or cc.startswith('22'):
-                comp_grp = 'SSP'
-            rec.qty_ton_kho = ton_kho_map.get((rec.ma_sap, comp_grp), 0.0)
-
     @api.depends(
         'qty_kd_t0', 'qty_kd_t1', 'qty_kd_t2', 'qty_kd_t3',
         'qty_sx_t0', 'qty_sx_t1', 'qty_sx_t2', 'qty_sx_t3',
@@ -129,16 +75,6 @@ class KeHoachVatTuLine(models.Model):
             rec.qty_cl_t1 = (rec.qty_sx_t1 or 0.0) - (rec.qty_kd_t1 or 0.0)
             rec.qty_cl_t2 = (rec.qty_sx_t2 or 0.0) - (rec.qty_kd_t2 or 0.0)
             rec.qty_cl_t3 = (rec.qty_sx_t3 or 0.0) - (rec.qty_kd_t3 or 0.0)
-
-    @api.constrains('company_sx_id')
-    def _check_production_company(self):
-        invalid = self.filtered(
-            lambda rec: rec.company_sx_id.company_code not in ('BNH', 'SSP')
-        )
-        if invalid:
-            raise ValidationError(_(
-                'Nhà máy sản xuất của kế hoạch vật tư chỉ được là BNH hoặc SSP.'
-            ))
 
     @api.model_create_multi
     def create(self, vals_list):

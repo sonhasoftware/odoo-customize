@@ -27,7 +27,7 @@ class ImportKeHoachWizard(models.TransientModel):
     MONTH_RE = re.compile(r'(\d{1,2})\s*[/\-]\s*(\d{4})')
     _IMPORT_CTX = {'is_importing': True, 'tracking_disable': True}
     _WRITE_FIELDS = ('ma_hang', 'qty_t0', 'qty_t1', 'qty_t2', 'qty_t3', 'sequence')
-    _PLAN_HEADERS = ['Đơn vị', 'Ngành hàng', 'Tên hàng', 'Mã hàng', 'Mã']
+    _PLAN_HEADERS = ['Đơn vị đặt hàng', 'Ngành hàng', 'Tên hàng', 'Mã hàng', 'Mã']
     COL_MA_HANG, COL_MA_SAP = 3, 4
     HEADER_ROW_IDX = 5
     MONTH_START_COL = 5
@@ -369,11 +369,6 @@ class ImportKeHoachWizard(models.TransientModel):
     def _import_production(self, rows, header, month_cols, data_start_idx):
         Plan = self.env['ke.hoach.san.xuat'].sudo()
         company_sx = self.env.company
-        if company_sx.company_code not in ('BNH', 'SSP'):
-            raise UserError(_(
-                'Công ty hiện tại không phải công ty sản xuất BNH/SSP. '
-                'Vui lòng chọn đúng công ty trước khi import kế hoạch sản xuất.'
-            ))
 
         vals_list = self._collect_plan_rows(
             rows, header, month_cols, data_start_idx,

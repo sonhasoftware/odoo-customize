@@ -9,7 +9,7 @@ from openpyxl.utils import get_column_letter
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Protection, Side
 from openpyxl.styles.numbers import FORMAT_TEXT
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tools.safe_eval import safe_eval
 
 
@@ -21,7 +21,7 @@ _SQL_FUNCTIONS_PATH = _os.path.join(
 
 class KeHoachVatTu(models.Model):
     _name = 'ke.hoach.vat.tu'
-    _description = 'Kỳ kế hoạch vật tư cần'
+    _description = 'kế hoạch vật tư cần'
     _rec_name = 'code'
     _order = 'period_month desc, id desc'
     _inherit = ['mail.thread', 'mail.activity.mixin', 'vat.tu.excel.mixin']
@@ -34,9 +34,9 @@ class KeHoachVatTu(models.Model):
         help='Đơn vị của user tạo kỳ; chỉ dùng phân quyền, không hiển thị trên form.',
     )
     company_sx_id = fields.Many2one(
-        'res.company', string='Nhà máy sản xuất',
+        'res.company', string='Đơn vị sản xuất',
         readonly=True, copy=False, index=True,
-        help='BNH hoặc SSP — gắn khi user nhấn Tạo kế hoạch vật tư, dùng xuyên suốt B2–B5.',
+        help='Công ty user lúc nhấn Tạo kế hoạch vật tư; dùng xuyên suốt B2–B5.',
     )
     period_month = fields.Char(
         string='Tháng bắt đầu', required=True, tracking=True)
@@ -46,6 +46,8 @@ class KeHoachVatTu(models.Model):
         ('tinh_toan', 'Tính toán vật tư'),
         ('tong_hop', 'Tổng hợp vật tư cần sản xuất'),
         ('dat_hang', 'Kế hoạch đặt vật tư'),
+        ('bcu_tong_hop', 'Tổng hợp KH vật tư BCU'),
+        ('phe_duyet', 'Phê duyệt kế hoạch vật tư'),
     ], default='ke_hoach', tracking=True, string='Trạng thái')
     note = fields.Text(string='Ghi chú')
 
@@ -122,6 +124,10 @@ class KeHoachVatTu(models.Model):
         domain=[('don_vi_kd_id', '=', False)],
     )
     kh_dat_vat_tu_ids = fields.One2many('kh.dat.vat.tu', 'period_id', string='Kế hoạch đặt vật tư')
+    kh_dat_vat_tu_bcu_ids = fields.One2many(
+        'kh.dat.vat.tu.bcu', 'period_id', string='Tổng hợp KH vật tư BCU')
+    phe_duyet_kh_vat_tu_ids = fields.One2many(
+        'phe.duyet.kh.vat.tu', 'period_id', string='Phê duyệt kế hoạch vật tư')
 
     ke_hoach_san_xuat_count = fields.Integer(compute='_compute_counts')
     ke_hoach_vat_tu_line_count = fields.Integer(compute='_compute_counts')
@@ -129,6 +135,8 @@ class KeHoachVatTu(models.Model):
     tinh_toan_vat_tu_count = fields.Integer(compute='_compute_counts')
     tong_hop_vat_tu_count = fields.Integer(compute='_compute_counts')
     kh_dat_vat_tu_count = fields.Integer(compute='_compute_counts')
+    kh_dat_vat_tu_bcu_count = fields.Integer(compute='_compute_counts')
+    phe_duyet_kh_vat_tu_count = fields.Integer(compute='_compute_counts')
 
     @api.depends(
         'company_sx_id',
@@ -153,7 +161,7 @@ class KeHoachVatTu(models.Model):
     def _compute_can_approve(self):
         current_user = self.env.user
         for rec in self:
-            if rec.state != 'dat_hang' or rec.approval_state == 'approved':
+            if rec.state != 'phe_duyet' or rec.approval_state == 'approved':
                 rec.can_approve = False
                 continue
             current_steps = rec.approval_step_ids.filtered(
@@ -289,13 +297,7 @@ class KeHoachVatTu(models.Model):
             raise UserError(_('Từ tháng không được lớn hơn Đến tháng.'))
 
     def _get_current_production_company(self):
-        user_company = self.env.company
-        if user_company.company_code in ('BNH', 'SSP'):
-            return user_company
-        raise UserError(_(
-            'Công ty mặc định của user không phải công ty sản xuất BNH/SSP. '
-            'Vui lòng kiểm tra lại công ty mặc định của user trước khi thao tác kế hoạch sản xuất.'
-        ))
+        return self.env.company
 
     @api.model
     def _get_creator_company_code(self):
@@ -423,6 +425,7 @@ class KeHoachVatTu(models.Model):
         'ke_hoach_san_xuat_ids', 'ke_hoach_vat_tu_line_ids',
         'dinh_muc_ids', 'tinh_toan_vat_tu_ids',
         'tong_hop_vat_tu_ids', 'kh_dat_vat_tu_ids',
+        'kh_dat_vat_tu_bcu_ids', 'phe_duyet_kh_vat_tu_ids',
     )
     def _compute_counts(self):
         """Đếm bằng len() trên chính One2many đã prefetch, thay vì 8 search_count
@@ -434,6 +437,8 @@ class KeHoachVatTu(models.Model):
             rec.tinh_toan_vat_tu_count = len(rec.tinh_toan_vat_tu_ids)
             rec.tong_hop_vat_tu_count = len(rec.tong_hop_vat_tu_ids)
             rec.kh_dat_vat_tu_count = len(rec.kh_dat_vat_tu_ids)
+            rec.kh_dat_vat_tu_bcu_count = len(rec.kh_dat_vat_tu_bcu_ids)
+            rec.phe_duyet_kh_vat_tu_count = len(rec.phe_duyet_kh_vat_tu_ids)
 
     def _get_horizon_months(self):
         self.ensure_one()
@@ -728,7 +733,11 @@ class KeHoachVatTu(models.Model):
             'res_model': 'import.vat.tu.di.duong.wizard',
             'view_mode': 'form',
             'target': 'new',
-            'context': {'default_period_id': self.id},
+            'context': {
+                'default_period_id': self.id,
+                'default_loai': 'don_vi',
+                'vat_tu_di_duong_loai': 'don_vi',
+            },
         }
 
     def action_compute_b4(self):
@@ -742,10 +751,14 @@ class KeHoachVatTu(models.Model):
 
     def action_open_import_bcu_wizard(self):
         self.ensure_one()
-        # if self.state != 'tong_hop':
-        #     raise UserError(_('Chỉ import hàng đi đường BCU khi đã ở bước Tổng hợp vật tư cần sản xuất.'))
-        if not self.tong_hop_vat_tu_ids.filtered(lambda r: not r.don_vi_kd_id):
-            raise UserError(_('Chưa có dữ liệu Tổng hợp vật tư cần sản xuất. Vui lòng chạy bước này trước khi import.'))
+        if self.state not in ('bcu_tong_hop', 'phe_duyet'):
+            raise UserError(_(
+                'Chỉ import hàng đi đường BCU khi đã ở bước Tổng hợp KH vật tư BCU.'
+            ))
+        if not self.kh_dat_vat_tu_bcu_ids:
+            raise UserError(_(
+                'Chưa có dữ liệu Tổng hợp KH vật tư BCU. Vui lòng chạy bước này trước khi import.'
+            ))
         view = self.env.ref('sonha_vat_tu.view_import_tong_hop_bcu_wizard_form')
         return {
             'name': _('Import hàng đi đường BCU'),
@@ -755,8 +768,56 @@ class KeHoachVatTu(models.Model):
             'views': [(view.id, 'form')],
             'view_id': view.id,
             'target': 'new',
-            'context': {'default_period_id': self.id},
+            'context': {
+                'default_period_id': self.id,
+                'period_id_readonly': True,
+                'vat_tu_di_duong_loai': 'bcu',
+            },
         }
+
+    @api.model
+    def _is_bcu_user(self):
+        return self.env.user.has_group('sonha_vat_tu.group_ban_cung_ung_vat_tu')
+
+    def _check_bcu_workflow_access(self):
+        if not self._is_bcu_user():
+            raise AccessError(_('Chỉ Ban cung ứng được thao tác từ bước Tổng hợp KH vật tư BCU trở đi.'))
+
+    def action_submit_to_bcu(self):
+        """BCU nhận kế hoạch từ B5 — sinh B6."""
+        self.ensure_one()
+        self._check_bcu_workflow_access()
+        if not self.kh_dat_vat_tu_ids:
+            raise UserError(_('Chưa có kế hoạch đặt vật tư (B5).'))
+        self.env.cr.execute(
+            'CALL public.fn_ke_hoach_dat_vat_tu_bcu(%s)',
+            (self.id,),
+        )
+        self.state = 'bcu_tong_hop'
+        self.invalidate_recordset([
+            'kh_dat_vat_tu_bcu_ids', 'kh_dat_vat_tu_bcu_count', 'state',
+        ])
+        return self.action_open_step_b6()
+
+    def action_compute_b7(self):
+        """BCU chốt B6 → sinh màn phê duyệt B7."""
+        self.ensure_one()
+        self._check_bcu_workflow_access()
+        if not self.kh_dat_vat_tu_bcu_ids:
+            raise UserError(_('Chưa có dữ liệu Tổng hợp KH vật tư BCU (B6).'))
+        self.env.cr.execute(
+            'CALL public.fn_phe_duyet_kh_vat_tu(%s)',
+            (self.id,),
+        )
+        b7_lines = self.env['phe.duyet.kh.vat.tu'].search([
+            ('period_id', '=', self.id),
+        ])
+        b7_lines._apply_leadtime_from_config()
+        self.state = 'phe_duyet'
+        self.invalidate_recordset([
+            'phe_duyet_kh_vat_tu_ids', 'phe_duyet_kh_vat_tu_count', 'state',
+        ])
+        return self.action_open_step_b7()
 
     def action_compute_b5(self):
         self.ensure_one()
@@ -769,10 +830,10 @@ class KeHoachVatTu(models.Model):
 
     def action_approve_material_plan(self):
         self.ensure_one()
-        if self.state != 'dat_hang' or not self.kh_dat_vat_tu_ids:
-            raise UserError(_('Chỉ có thể duyệt sau khi đã sinh kế hoạch đặt vật tư.'))
+        if self.state != 'phe_duyet' or not self.phe_duyet_kh_vat_tu_ids:
+            raise UserError(_('Chỉ có thể duyệt sau khi đã sinh phê duyệt kế hoạch vật tư.'))
         if self.approval_state == 'approved':
-            raise UserError(_('Kế hoạch đặt vật tư đã được phê duyệt.'))
+            raise UserError(_('Phê duyệt kế hoạch vật tư đã hoàn tất.'))
         if not self.approval_flow_id:
             raise UserError(_('Vui lòng chọn Luồng duyệt trước khi duyệt.'))
         if not self.approval_step_ids:
@@ -806,8 +867,8 @@ class KeHoachVatTu(models.Model):
                     'approval_state': 'approved',
                     'approval_current_sequence': 0,
                 })
-                self.message_post(body=_('Kế hoạch đặt vật tư đã được phê duyệt hoàn tất.'))
-        return self.action_open_step_b5()
+                self.message_post(body=_('Phê duyệt kế hoạch vật tư đã được phê duyệt hoàn tất.'))
+        return self.action_open_step_b7()
 
     def _apply_plan_excel_style(self, ws, header_row, max_col):
         base_font = Font(name='Times New Roman', size=10)
@@ -858,7 +919,7 @@ class KeHoachVatTu(models.Model):
         company = company.sudo()
         return company.company_code or company.name or ''
 
-    _PLAN_EXPORT_HEADERS = ['Đơn vị', 'Ngành hàng', 'Tên hàng', 'Mã hàng', 'Mã']
+    _PLAN_EXPORT_HEADERS = ['Đơn vị đặt hàng', 'Ngành hàng', 'Tên hàng', 'Mã hàng', 'Mã']
 
     def _plan_export_row_vals(self, line):
         return [
@@ -1306,8 +1367,7 @@ class KeHoachVatTu(models.Model):
             ('Tồn đầu', 'ton_dau', 'qty'),
         ]
         month_groups = [
-            ('Hàng đi đường đơn vị', 've_du_kien_don_vi_t'),
-            ('Hàng đi đường BCU', 've_du_kien_t'),
+            ('Hàng đi đường', 've_du_kien_don_vi_t'),
             ('Cần dùng', 'vt_can_dung_t'),
             ('Tồn cuối', 'ton_cuoi_t'),
         ]
@@ -1448,6 +1508,8 @@ class KeHoachVatTu(models.Model):
     _B3_FORM_VIEW_XMLID = 'sonha_vat_tu.view_ke_hoach_vat_tu_form_b3'
     _B4_FORM_VIEW_XMLID = 'sonha_vat_tu.view_ke_hoach_vat_tu_form_b4'
     _B5_FORM_VIEW_XMLID = 'sonha_vat_tu.view_ke_hoach_vat_tu_form_b5'
+    _B6_FORM_VIEW_XMLID = 'sonha_vat_tu.view_ke_hoach_vat_tu_form_b6'
+    _B7_FORM_VIEW_XMLID = 'sonha_vat_tu.view_ke_hoach_vat_tu_form_b7'
 
     def _toolbar_remove_action(self, toolbar, action_xmlid):
         action = self.env.ref(action_xmlid, raise_if_not_found=False)
@@ -1474,10 +1536,12 @@ class KeHoachVatTu(models.Model):
         b3_view = self.env.ref(self._B3_FORM_VIEW_XMLID, raise_if_not_found=False)
         b4_view = self.env.ref(self._B4_FORM_VIEW_XMLID, raise_if_not_found=False)
         b5_view = self.env.ref(self._B5_FORM_VIEW_XMLID, raise_if_not_found=False)
+        b6_view = self.env.ref(self._B6_FORM_VIEW_XMLID, raise_if_not_found=False)
 
         if b4_view and form_view_id != b4_view.id:
-            self._toolbar_remove_action(toolbar, self._IMPORT_BCU_ACTION_XMLID)
             self._toolbar_remove_action(toolbar, self._EXPORT_B4_ACTION_XMLID)
+        if b6_view and form_view_id != b6_view.id:
+            self._toolbar_remove_action(toolbar, self._IMPORT_BCU_ACTION_XMLID)
         if b3_view and form_view_id != b3_view.id:
             self._toolbar_remove_action(toolbar, self._EXPORT_B3_ACTION_XMLID)
         if b5_view and form_view_id != b5_view.id:
@@ -1494,6 +1558,8 @@ class KeHoachVatTu(models.Model):
             'tinh_toan': 'sonha_vat_tu.view_ke_hoach_vat_tu_form_b3',
             'tong_hop': 'sonha_vat_tu.view_ke_hoach_vat_tu_form_b4',
             'dat_hang': 'sonha_vat_tu.view_ke_hoach_vat_tu_form_b5',
+            'bcu_tong_hop': 'sonha_vat_tu.view_ke_hoach_vat_tu_form_b6',
+            'phe_duyet': 'sonha_vat_tu.view_ke_hoach_vat_tu_form_b7',
         }
         xmlid = state_view_xmlids.get(self.state)
         if xmlid:
@@ -1524,13 +1590,17 @@ class KeHoachVatTu(models.Model):
         ctx = {'tracking_disable': True}
         pid = self.id
 
-        if from_state == 'dat_hang':
-            period.kh_dat_vat_tu_ids.with_context(**ctx).unlink()
+        if from_state == 'phe_duyet':
+            period.phe_duyet_kh_vat_tu_ids.with_context(**ctx).unlink()
             period.approval_step_ids.unlink()
             period.write({
                 'approval_state': 'draft',
                 'approval_current_sequence': 1,
             })
+        elif from_state == 'bcu_tong_hop':
+            period.kh_dat_vat_tu_bcu_ids.with_context(**ctx).unlink()
+        elif from_state == 'dat_hang':
+            period.kh_dat_vat_tu_ids.with_context(**ctx).unlink()
         elif from_state == 'tong_hop':
             period.tong_hop_vat_tu_ids.with_context(**ctx).unlink()
         elif from_state == 'tinh_toan':
@@ -1543,6 +1613,8 @@ class KeHoachVatTu(models.Model):
 
         self.invalidate_recordset([
             'kh_dat_vat_tu_ids', 'kh_dat_vat_tu_count',
+            'kh_dat_vat_tu_bcu_ids', 'kh_dat_vat_tu_bcu_count',
+            'phe_duyet_kh_vat_tu_ids', 'phe_duyet_kh_vat_tu_count',
             'tong_hop_vat_tu_ids', 'tong_hop_vat_tu_count',
             'tinh_toan_vat_tu_ids', 'tinh_toan_vat_tu_count',
             'dinh_muc_ids', 'dinh_muc_count',
@@ -1581,6 +1653,8 @@ class KeHoachVatTu(models.Model):
         'tinh_toan': ('dinh_muc', 'sonha_vat_tu.action_ke_hoach_vat_tu_b2'),
         'tong_hop': ('tinh_toan', 'sonha_vat_tu.action_ke_hoach_vat_tu_b3'),
         'dat_hang': ('tong_hop', 'sonha_vat_tu.action_ke_hoach_vat_tu_b4'),
+        'bcu_tong_hop': ('dat_hang', 'sonha_vat_tu.action_ke_hoach_vat_tu_b5'),
+        'phe_duyet': ('bcu_tong_hop', 'sonha_vat_tu.action_ke_hoach_vat_tu_b6'),
     }
 
     def action_reset_previous_step(self):
@@ -1588,10 +1662,12 @@ class KeHoachVatTu(models.Model):
         mapping = self._RESET_PREVIOUS.get(self.state)
         if not mapping:
             raise UserError(_('Không thể quay lại bước trước từ trạng thái hiện tại.'))
-        if self.state == 'dat_hang' and self.approval_state == 'approved':
+        if self.state == 'phe_duyet' and self.approval_state == 'approved':
             raise UserError(_(
-                'Không thể quay lại khi kế hoạch đặt vật tư đã được phê duyệt.'
+                'Không thể quay lại khi phê duyệt kế hoạch vật tư đã hoàn tất.'
             ))
+        if self.state in ('bcu_tong_hop', 'phe_duyet'):
+            self._check_bcu_workflow_access()
         target_state, action_xmlid = mapping
         self._clear_step_data(self.state)
         return self._action_reset_step(target_state, action_xmlid, None)
@@ -1629,3 +1705,11 @@ class KeHoachVatTu(models.Model):
 
     def action_open_step_b5(self):
         return self._action_open_step('sonha_vat_tu.action_ke_hoach_vat_tu_b5')
+
+    def action_open_step_b6(self):
+        self._check_bcu_workflow_access()
+        return self._action_open_step('sonha_vat_tu.action_ke_hoach_vat_tu_b6')
+
+    def action_open_step_b7(self):
+        self._check_bcu_workflow_access()
+        return self._action_open_step('sonha_vat_tu.action_ke_hoach_vat_tu_b7')

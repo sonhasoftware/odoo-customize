@@ -3,22 +3,22 @@ from markupsafe import Markup, escape
 
 from odoo import api, fields, models
 
-_B5_TRACKED_FIELDS = {
-    'sl_dat_mua_chot': 'Đặt mua chốt',
+_B6_TRACKED_FIELDS = {
+    'sl_dat_mua_chot': 'Đặt mua chốt BCU',
     'sl_can_mua_theo_moq': 'SL cần mua dựa theo MOQ NCC',
 }
 
 
-class KhDatVatTu(models.Model):
-    _name = 'kh.dat.vat.tu'
+class KhDatVatTuBcu(models.Model):
+    _name = 'kh.dat.vat.tu.bcu'
     _inherit = ['mail.thread', 'mail.activity.mixin']
-    _description = 'Kế hoạch đặt vật tư'
+    _description = 'Tổng hợp kế hoạch vật tư BCU'
     _order = 'period_id, company_id, ma_sap, id'
 
     period_id = fields.Many2one(
         'ke.hoach.vat.tu', string='Kỳ', ondelete='cascade', index=True)
     company_id = fields.Many2one(
-        'res.company', string='Đơn vị', index=True)
+        'res.company', string='Đơn vị sản xuất', index=True)
     currency_id = fields.Many2one(
         'res.currency',
         string='Tiền tệ',
@@ -52,64 +52,90 @@ class KhDatVatTu(models.Model):
     tong_sl_vt_can_dung_t3 = fields.Float(string='Cần dùng T3', digits=(16, 3))
     tong_vt_can_dung = fields.Float(string='Tổng cần dùng', digits=(16, 3))
 
-    tong_hang_di_duong_sl_t0 = fields.Float(string='Đi đường SL T0', digits=(16, 3))
-    tong_hang_di_duong_sl_t1 = fields.Float(string='Đi đường SL T1', digits=(16, 3))
-    tong_hang_di_duong_sl_t2 = fields.Float(string='Đi đường SL T2', digits=(16, 3))
-    tong_hang_di_duong_sl_t3 = fields.Float(string='Đi đường SL T3', digits=(16, 3))
+    # Hàng đi đường đơn vị (copy từ B5)
+    tong_hang_di_duong_sl_t0 = fields.Float(string='ĐV đi đường SL T0', digits=(16, 3))
+    tong_hang_di_duong_sl_t1 = fields.Float(string='ĐV đi đường SL T1', digits=(16, 3))
+    tong_hang_di_duong_sl_t2 = fields.Float(string='ĐV đi đường SL T2', digits=(16, 3))
+    tong_hang_di_duong_sl_t3 = fields.Float(string='ĐV đi đường SL T3', digits=(16, 3))
     tong_hang_di_duong_dg_t0 = fields.Monetary(
-        string='Đi đường ĐG T0', currency_field='currency_id')
+        string='ĐV đi đường ĐG T0', currency_field='currency_id')
     tong_hang_di_duong_dg_t1 = fields.Monetary(
-        string='Đi đường ĐG T1', currency_field='currency_id')
+        string='ĐV đi đường ĐG T1', currency_field='currency_id')
     tong_hang_di_duong_dg_t2 = fields.Monetary(
-        string='Đi đường ĐG T2', currency_field='currency_id')
+        string='ĐV đi đường ĐG T2', currency_field='currency_id')
     tong_hang_di_duong_dg_t3 = fields.Monetary(
-        string='Đi đường ĐG T3', currency_field='currency_id')
+        string='ĐV đi đường ĐG T3', currency_field='currency_id')
     tong_hang_di_duong_gt_t0 = fields.Monetary(
-        string='Đi đường GT T0', currency_field='currency_id')
+        string='ĐV đi đường GT T0', currency_field='currency_id')
     tong_hang_di_duong_gt_t1 = fields.Monetary(
-        string='Đi đường GT T1', currency_field='currency_id')
+        string='ĐV đi đường GT T1', currency_field='currency_id')
     tong_hang_di_duong_gt_t2 = fields.Monetary(
-        string='Đi đường GT T2', currency_field='currency_id')
+        string='ĐV đi đường GT T2', currency_field='currency_id')
     tong_hang_di_duong_gt_t3 = fields.Monetary(
-        string='Đi đường GT T3', currency_field='currency_id')
-    tong_hang_di_duong = fields.Float(string='Tổng SL đi đường', digits=(16, 3))
+        string='ĐV đi đường GT T3', currency_field='currency_id')
+    tong_hang_di_duong = fields.Float(string='Tổng SL đi đường ĐV', digits=(16, 3))
     tong_gia_tri_di_duong = fields.Monetary(
-        string='Tổng giá trị đi đường', currency_field='currency_id')
+        string='Tổng GT đi đường ĐV', currency_field='currency_id')
+
+    # Hàng đi đường BCU (import tại B6)
+    ve_du_kien_bcu_t0 = fields.Float(string='BCU đi đường SL T0', digits=(16, 3))
+    ve_du_kien_bcu_t1 = fields.Float(string='BCU đi đường SL T1', digits=(16, 3))
+    ve_du_kien_bcu_t2 = fields.Float(string='BCU đi đường SL T2', digits=(16, 3))
+    ve_du_kien_bcu_t3 = fields.Float(string='BCU đi đường SL T3', digits=(16, 3))
+    ve_du_kien_bcu_dg_t0 = fields.Monetary(
+        string='BCU đi đường ĐG T0', currency_field='currency_id')
+    ve_du_kien_bcu_dg_t1 = fields.Monetary(
+        string='BCU đi đường ĐG T1', currency_field='currency_id')
+    ve_du_kien_bcu_dg_t2 = fields.Monetary(
+        string='BCU đi đường ĐG T2', currency_field='currency_id')
+    ve_du_kien_bcu_dg_t3 = fields.Monetary(
+        string='BCU đi đường ĐG T3', currency_field='currency_id')
+    ve_du_kien_bcu_gt_t0 = fields.Monetary(
+        string='BCU đi đường GT T0', currency_field='currency_id')
+    ve_du_kien_bcu_gt_t1 = fields.Monetary(
+        string='BCU đi đường GT T1', currency_field='currency_id')
+    ve_du_kien_bcu_gt_t2 = fields.Monetary(
+        string='BCU đi đường GT T2', currency_field='currency_id')
+    ve_du_kien_bcu_gt_t3 = fields.Monetary(
+        string='BCU đi đường GT T3', currency_field='currency_id')
+    tong_ve_du_kien_bcu = fields.Float(string='Tổng SL đi đường BCU', digits=(16, 3))
+    tong_gia_tri_bcu = fields.Monetary(
+        string='Tổng GT đi đường BCU', currency_field='currency_id')
 
     sl_du_tru_toi_thieu = fields.Float(string='Dự trữ tối thiểu', digits=(16, 3))
     sl_dat_mua_de_xuat = fields.Float(string='SL đặt mua đề xuất', digits=(16, 3))
-    sl_dat_mua_chot = fields.Float(string='SL đặt mua chốt', digits=(16, 3))
+    sl_dat_mua_chot = fields.Float(string='SL đặt mua chốt BCU', digits=(16, 3))
     sl_can_mua_theo_moq = fields.Float(string='SL cần mua dựa theo MOQ NCC', digits=(16, 3))
     don_gia_mua = fields.Monetary(
         string='Đơn giá mua', currency_field='currency_id')
     gia_tri_mua_hang = fields.Monetary(
         string='Giá trị mua hàng',
-        compute='_compute_b5_derived',
+        compute='_compute_b6_derived',
         store=True,
         currency_field='currency_id',
     )
     sl_ton_kho_cuoi_ky = fields.Float(
         string='Tồn kho cuối kỳ',
-        compute='_compute_b5_derived',
+        compute='_compute_b6_derived',
         store=True,
         digits=(16, 3),
     )
     vt_loi_ton_lau = fields.Float(string='VT lỗi, tồn lâu ngày', digits=(16, 3))
     so_ngay_vong_quay_ton = fields.Float(
         string='Ngày vòng quay tồn kho',
-        compute='_compute_b5_derived',
+        compute='_compute_b6_derived',
         store=True,
         digits=(16, 2),
     )
     don_gia_ton_kho_cuoi_ky = fields.Monetary(
         string='Đơn giá tồn cuối kỳ',
-        compute='_compute_b5_derived',
+        compute='_compute_b6_derived',
         store=True,
         currency_field='currency_id',
     )
     gia_tri_ton_kho_cuoi_ky = fields.Monetary(
         string='Giá trị tồn kho cuối kỳ',
-        compute='_compute_b5_derived',
+        compute='_compute_b6_derived',
         store=True,
         currency_field='currency_id',
     )
@@ -120,8 +146,7 @@ class KhDatVatTu(models.Model):
     def _count_months_with_can_dung(t0, t1, t2, t3):
         return sum(1 for qty in (t0, t1, t2, t3) if (qty or 0.0) > 0)
 
-    def _b5_derived_values(self):
-        """Cong thuc Excel: ton cuoi, vong quay, don gia/gia tri ton cuoi."""
+    def _b6_derived_values(self):
         self.ensure_one()
         ton_dau = self.tong_ton_nvl_sl or 0.0
         tdd = self.tong_hang_di_duong or 0.0
@@ -168,9 +193,9 @@ class KhDatVatTu(models.Model):
         'tong_sl_vt_can_dung_t2',
         'tong_sl_vt_can_dung_t3',
     )
-    def _compute_b5_derived(self):
+    def _compute_b6_derived(self):
         for rec in self:
-            derived = rec._b5_derived_values()
+            derived = rec._b6_derived_values()
             rec.sl_ton_kho_cuoi_ky = derived['sl_ton_kho_cuoi_ky']
             rec.so_ngay_vong_quay_ton = derived['so_ngay_vong_quay_ton']
             rec.don_gia_ton_kho_cuoi_ky = derived['don_gia_ton_kho_cuoi_ky']
@@ -178,13 +203,12 @@ class KhDatVatTu(models.Model):
             rec.gia_tri_mua_hang = derived['gia_tri_mua_hang']
 
     @api.model
-    def _format_b5_qty(self, qty):
+    def _format_qty(self, qty):
         return '{:,.3f}'.format(qty or 0.0).replace(',', 'X').replace('.', ',').replace('X', '.')
 
-    def _log_b5_tracked_changes(self, old):
-        """Ghi log lên chatter kỳ khi sửa đặt mua chốt / SL MOQ trên tree B5."""
+    def _log_tracked_changes(self, old):
         changes_by_period = {}
-        for fname, static_label in _B5_TRACKED_FIELDS.items():
+        for fname, static_label in _B6_TRACKED_FIELDS.items():
             if fname not in old:
                 continue
             for rec in self:
@@ -195,8 +219,8 @@ class KhDatVatTu(models.Model):
                     continue
                 label = '%s — Mã NVL %s' % (static_label, rec.ma_sap or '')
                 changes_by_period.setdefault(rec.period_id, []).append((
-                    self._format_b5_qty(ov),
-                    self._format_b5_qty(nv),
+                    self._format_qty(ov),
+                    self._format_qty(nv),
                     label,
                 ))
 
@@ -215,7 +239,7 @@ class KhDatVatTu(models.Model):
             period.message_post(body=Markup("<ul>%s</ul>") % Markup(items))
 
     def write(self, vals):
-        tracked = [fname for fname in _B5_TRACKED_FIELDS if fname in vals]
+        tracked = [fname for fname in _B6_TRACKED_FIELDS if fname in vals]
         if (
             not tracked
             or self.env.context.get('tracking_disable')
@@ -228,5 +252,5 @@ class KhDatVatTu(models.Model):
             for fname in tracked
         }
         res = super().write(vals)
-        self._log_b5_tracked_changes(old)
+        self._log_tracked_changes(old)
         return res

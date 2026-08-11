@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_cau_hinh_leadtime_tree" model="ir.ui.view">
+        <field name="name">cau.hinh.leadtime.tree</field>
+        <field name="model">cau.hinh.leadtime</field>
+        <field name="arch" type="xml">
+            <tree duplicate="0" editable="bottom" class="sh_free_width_tree">
+                <field name="ma_nvl_id" string="Mã NVL"
+                       context="{'vat_tu_display_ma_code_only': True}"
+                       options="{'no_create': True, 'no_open': True}"/>
+                <field name="ten_nvl" string="Tên NVL" readonly="1" optional="show"/>
+                <field name="leadtime_ngay" string="Leadtime (ngày)"/>
+                <field name="ma_nvl" column_invisible="True"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_cau_hinh_leadtime_search" model="ir.ui.view">
+        <field name="name">cau.hinh.leadtime.search</field>
+        <field name="model">cau.hinh.leadtime</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="ma_nvl_id" string="Mã NVL"
+                       context="{'vat_tu_display_ma_code_only': True}"/>
+                <field name="ma_nvl"/>
+                <field name="ten_nvl"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_cau_hinh_leadtime" model="ir.actions.act_window">
+        <field name="name">Cấu hình leadtime</field>
+        <field name="res_model">cau.hinh.leadtime</field>
+        <field name="view_mode">tree</field>
+    </record>
+
+</odoo>

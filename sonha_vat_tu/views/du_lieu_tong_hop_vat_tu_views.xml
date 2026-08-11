@@ -22,13 +22,11 @@
                 <field name="period_company_code"/>
                 <field name="month_key"/>
                 <field name="ma_sap"/>
-                <!-- -->
                 <field name="nganh_hang"/>
                 <field name="ten_hang"/>
                 <field name="ma_hang"/>
                 <field name="qty"/>
                 <field name="note"/>
-                <!-- -->
                 <field name="ma_tp"/>
                 <field name="ten_tp"/>
                 <field name="ten_sap"/>
@@ -38,53 +36,83 @@
                 <field name="qty_kinh_doanh"/>
                 <field name="qty_san_xuat"/>
                 <field name="qty_chenh_lech"/>
-                <!-- -->
-                <field name="ma_effect"/>
                 <field name="don_vi_tinh"/>
                 <field name="sl_dinh_muc"/>
                 <field name="sl_dinh_muc_thay_doi"/>
                 <field name="sl_dinh_muc_ap_dung" optional="hide"/>
-                <!-- -->
+                <!-- B4 -->
                 <field name="ma_dat_hang"/>
                 <field name="chung_loai"/>
                 <field name="ton_dau"/>
+                <field name="don_gia_ton_kho" widget="monetary" optional="hide"/>
                 <field name="ve_du_kien_don_vi"/>
-                <field name="ve_du_kien"/>
+                <field name="ve_du_kien_don_gia" widget="monetary" optional="hide"/>
+                <field name="ve_du_kien_gia_tri" widget="monetary" optional="hide"/>
                 <field name="vt_can_dung"/>
                 <field name="ton_cuoi"/>
                 <field name="so_luong_du_phong"/>
                 <field name="so_luong_thieu"/>
                 <field name="so_luong_can_mua"/>
                 <field name="ghi_chu"/>
-                <!-- B5 -->
-                <field name="tong_ton_nvl_sl"/>
-                <field name="don_gia_ton_kho" widget="monetary"/>
-                <field name="gia_tri_ton_nvl_dau_ky" widget="monetary"/>
-                <field name="tong_sl_vt_can_dung_t0"/>
-                <field name="tong_sl_vt_can_dung_t1"/>
-                <field name="tong_sl_vt_can_dung_t2"/>
-                <field name="tong_sl_vt_can_dung_t3"/>
-                <field name="tong_vt_can_dung"/>
-                <field name="tong_sl_vt_can_dung"/>
-                <field name="tong_hang_di_duong_sl_t0"/>
-                <field name="tong_hang_di_duong_sl_t1"/>
-                <field name="tong_hang_di_duong_sl_t2"/>
-                <field name="tong_hang_di_duong_sl_t3"/>
-                <field name="tong_hang_di_duong"/>
-                <field name="tong_hang_di_duong_sl"/>
-                <field name="sl_du_tru_toi_thieu"/>
-                <field name="sl_dat_mua_de_xuat"/>
-                <field name="sl_dat_mua_chot"/>
-                <field name="sl_can_mua_theo_moq"/>
-                <field name="don_gia_mua" widget="monetary"/>
-                <field name="gia_tri_mua_hang" widget="monetary"/>
-                <field name="sl_ton_kho_cuoi_ky"/>
-                <field name="sl_ton_kho"/>
-                <field name="vt_loi_ton_lau"/>
-                <field name="so_ngay_vong_quay_ton"/>
-                <field name="don_gia_ton_kho_cuoi_ky" widget="monetary"/>
-                <field name="gia_tri_ton_kho_cuoi_ky" widget="monetary"/>
-                <field name="gia_tri_ton_kho" widget="monetary"/>
+                <!-- B5/B6 -->
+                <field name="tong_ton_nvl_sl" optional="hide"/>
+                <field name="gia_tri_ton_nvl_dau_ky" widget="monetary" optional="hide"/>
+                <field name="tong_sl_vt_can_dung_t0" optional="hide"/>
+                <field name="tong_sl_vt_can_dung_t1" optional="hide"/>
+                <field name="tong_sl_vt_can_dung_t2" optional="hide"/>
+                <field name="tong_sl_vt_can_dung_t3" optional="hide"/>
+                <field name="tong_vt_can_dung" optional="hide"/>
+                <field name="tong_sl_vt_can_dung" optional="hide"/>
+                <field name="tong_hang_di_duong_sl_t0" optional="hide"/>
+                <field name="tong_hang_di_duong_sl_t1" optional="hide"/>
+                <field name="tong_hang_di_duong_sl_t2" optional="hide"/>
+                <field name="tong_hang_di_duong_sl_t3" optional="hide"/>
+                <field name="tong_hang_di_duong" optional="hide"/>
+                <field name="tong_hang_di_duong_sl" optional="hide"/>
+                <field name="tong_hang_di_duong_dg_t0" widget="monetary" optional="hide"/>
+                <field name="tong_hang_di_duong_dg_t1" widget="monetary" optional="hide"/>
+                <field name="tong_hang_di_duong_dg_t2" widget="monetary" optional="hide"/>
+                <field name="tong_hang_di_duong_dg_t3" widget="monetary" optional="hide"/>
+                <field name="tong_hang_di_duong_gt_t0" widget="monetary" optional="hide"/>
+                <field name="tong_hang_di_duong_gt_t1" widget="monetary" optional="hide"/>
+                <field name="tong_hang_di_duong_gt_t2" widget="monetary" optional="hide"/>
+                <field name="tong_hang_di_duong_gt_t3" widget="monetary" optional="hide"/>
+                <field name="tong_gia_tri_di_duong" widget="monetary" optional="hide"/>
+                <field name="ve_du_kien_bcu_t0" optional="hide"/>
+                <field name="ve_du_kien_bcu_t1" optional="hide"/>
+                <field name="ve_du_kien_bcu_t2" optional="hide"/>
+                <field name="ve_du_kien_bcu_t3" optional="hide"/>
+                <field name="ve_du_kien_bcu_dg_t0" widget="monetary" optional="hide"/>
+                <field name="ve_du_kien_bcu_dg_t1" widget="monetary" optional="hide"/>
+                <field name="ve_du_kien_bcu_dg_t2" widget="monetary" optional="hide"/>
+                <field name="ve_du_kien_bcu_dg_t3" widget="monetary" optional="hide"/>
+                <field name="ve_du_kien_bcu_gt_t0" widget="monetary" optional="hide"/>
+                <field name="ve_du_kien_bcu_gt_t1" widget="monetary" optional="hide"/>
+                <field name="ve_du_kien_bcu_gt_t2" widget="monetary" optional="hide"/>
+                <field name="ve_du_kien_bcu_gt_t3" widget="monetary" optional="hide"/>
+                <field name="tong_ve_du_kien_bcu" optional="hide"/>
+                <field name="tong_gia_tri_bcu" widget="monetary" optional="hide"/>
+                <field name="sl_du_tru_toi_thieu" optional="hide"/>
+                <field name="sl_dat_mua_de_xuat" optional="hide"/>
+                <field name="sl_dat_mua_chot" optional="hide"/>
+                <field name="sl_can_mua_theo_moq" optional="hide"/>
+                <field name="don_gia_mua" widget="monetary" optional="hide"/>
+                <field name="gia_tri_mua_hang" widget="monetary" optional="hide"/>
+                <field name="sl_ton_kho_cuoi_ky" optional="hide"/>
+                <field name="sl_ton_kho" optional="hide"/>
+                <field name="vt_loi_ton_lau" optional="hide"/>
+                <field name="so_ngay_vong_quay_ton" optional="hide"/>
+                <field name="don_gia_ton_kho_cuoi_ky" widget="monetary" optional="hide"/>
+                <field name="gia_tri_ton_kho_cuoi_ky" widget="monetary" optional="hide"/>
+                <field name="gia_tri_ton_kho" widget="monetary" optional="hide"/>
+                <!-- B7 -->
+                <field name="khoi_luong_don_vi_dat" optional="hide"/>
+                <field name="khoi_luong_bcu_dat" optional="hide"/>
+                <field name="leadtime_ngay" optional="hide"/>
+                <field name="ngay_co_so" optional="hide"/>
+                <field name="ngay_du_kien_ve" optional="hide"/>
+                <field name="thoi_diem_giao_dvtv" optional="hide"/>
+                <field name="thoi_diem_su_dung" optional="hide"/>
             </tree>
         </field>
     </record>
@@ -100,7 +128,7 @@
                         <h1><field name="display_name" readonly="1"/></h1>
                     </div>
                     <group>
-                        <group>
+                        <group string="Meta">
                             <field name="step_code"/>
                             <field name="source_model"/>
                             <field name="source_res_id"/>
@@ -115,6 +143,8 @@
                             <field name="period_company_code"/>
                             <field name="month_key"/>
                             <field name="ma_sap"/>
+                        </group>
+                        <group string="KD / SX / B1 / B2 / B3">
                             <field name="nganh_hang"/>
                             <field name="ten_hang"/>
                             <field name="ma_hang"/>
@@ -129,52 +159,65 @@
                             <field name="qty_kinh_doanh"/>
                             <field name="qty_san_xuat"/>
                             <field name="qty_chenh_lech"/>
-                            <field name="ma_effect"/>
                             <field name="don_vi_tinh"/>
                             <field name="sl_dinh_muc"/>
-                <field name="sl_dinh_muc_thay_doi"/>
-                <field name="sl_dinh_muc_ap_dung" optional="hide"/>
+                            <field name="sl_dinh_muc_thay_doi"/>
+                            <field name="sl_dinh_muc_ap_dung"/>
                         </group>
+                    </group>
+                    <group string="B4">
                         <group>
                             <field name="ma_dat_hang"/>
                             <field name="chung_loai"/>
                             <field name="ton_dau"/>
+                            <field name="don_gia_ton_kho" widget="monetary"/>
                             <field name="ve_du_kien_don_vi"/>
-                            <field name="ve_du_kien"/>
+                            <field name="ve_du_kien_don_gia" widget="monetary"/>
+                            <field name="ve_du_kien_gia_tri" widget="monetary"/>
+                        </group>
+                        <group>
                             <field name="vt_can_dung"/>
                             <field name="ton_cuoi"/>
                             <field name="so_luong_du_phong"/>
                             <field name="so_luong_thieu"/>
                             <field name="so_luong_can_mua"/>
                             <field name="ghi_chu"/>
+                        </group>
+                    </group>
+                    <group string="B5 / B6">
+                        <group>
                             <field name="tong_ton_nvl_sl"/>
-                            <field name="don_gia_ton_kho" widget="monetary"/>
                             <field name="gia_tri_ton_nvl_dau_ky" widget="monetary"/>
                             <field name="tong_sl_vt_can_dung_t0"/>
                             <field name="tong_sl_vt_can_dung_t1"/>
                             <field name="tong_sl_vt_can_dung_t2"/>
                             <field name="tong_sl_vt_can_dung_t3"/>
                             <field name="tong_vt_can_dung"/>
-                            <field name="tong_sl_vt_can_dung"/>
-                            <field name="tong_hang_di_duong_sl_t0"/>
-                            <field name="tong_hang_di_duong_sl_t1"/>
-                            <field name="tong_hang_di_duong_sl_t2"/>
-                            <field name="tong_hang_di_duong_sl_t3"/>
                             <field name="tong_hang_di_duong"/>
-                            <field name="tong_hang_di_duong_sl"/>
-                            <field name="sl_du_tru_toi_thieu"/>
-                            <field name="sl_dat_mua_de_xuat"/>
+                            <field name="tong_gia_tri_di_duong" widget="monetary"/>
+                        </group>
+                        <group>
                             <field name="sl_dat_mua_chot"/>
                             <field name="sl_can_mua_theo_moq"/>
                             <field name="don_gia_mua" widget="monetary"/>
                             <field name="gia_tri_mua_hang" widget="monetary"/>
                             <field name="sl_ton_kho_cuoi_ky"/>
-                            <field name="sl_ton_kho"/>
-                            <field name="vt_loi_ton_lau"/>
-                            <field name="so_ngay_vong_quay_ton"/>
-                            <field name="don_gia_ton_kho_cuoi_ky" widget="monetary"/>
                             <field name="gia_tri_ton_kho_cuoi_ky" widget="monetary"/>
-                            <field name="gia_tri_ton_kho" widget="monetary"/>
+                            <field name="tong_ve_du_kien_bcu"/>
+                            <field name="tong_gia_tri_bcu" widget="monetary"/>
+                        </group>
+                    </group>
+                    <group string="B7">
+                        <group>
+                            <field name="khoi_luong_don_vi_dat"/>
+                            <field name="khoi_luong_bcu_dat"/>
+                            <field name="leadtime_ngay"/>
+                            <field name="ngay_co_so"/>
+                            <field name="ngay_du_kien_ve"/>
+                        </group>
+                        <group>
+                            <field name="thoi_diem_giao_dvtv"/>
+                            <field name="thoi_diem_su_dung"/>
                         </group>
                     </group>
                 </sheet>
@@ -204,7 +247,6 @@
                 <field name="ma_nvl"/>
                 <field name="ten_nvl"/>
                 <field name="ten_vat_tu"/>
-                <field name="ma_effect"/>
                 <field name="ma_dat_hang"/>
                 <field name="source_model"/>
                 <filter name="filter_kd" string="Kế hoạch kinh doanh" domain="[('step_code', '=', 'kd')]"/>
@@ -214,6 +256,8 @@
                 <filter name="filter_b3" string="B3" domain="[('step_code', '=', 'b3')]"/>
                 <filter name="filter_b4" string="B4" domain="[('step_code', '=', 'b4')]"/>
                 <filter name="filter_b5" string="B5" domain="[('step_code', '=', 'b5')]"/>
+                <filter name="filter_b6" string="B6 BCU" domain="[('step_code', '=', 'b6')]"/>
+                <filter name="filter_b7" string="B7 Phê duyệt" domain="[('step_code', '=', 'b7')]"/>
                 <group expand="0" string="Nhóm">
                     <filter name="group_step" string="Bước" context="{'group_by': 'step_code'}"/>
                     <filter name="group_period" string="Kỳ" context="{'group_by': 'period_id'}"/>
@@ -237,4 +281,3 @@
     </record>
 
 </odoo>
-

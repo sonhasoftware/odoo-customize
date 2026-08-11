@@ -90,7 +90,7 @@ class BaoCaoTongHopVatTuWizard(models.TransientModel):
             for off in range(4):
                 metric_map[(row.period_id.id, key, off)] = {
                     've_du_kien_don_vi': getattr(row, 've_du_kien_don_vi_t%d' % off) or 0.0,
-                    've_du_kien_bcu': getattr(row, 've_du_kien_t%d' % off) or 0.0,
+                    've_du_kien_bcu': 0.0,
                     'vt_can_dung': getattr(row, 'vt_can_dung_t%d' % off) or 0.0,
                     'ton_cuoi': getattr(row, 'ton_cuoi_t%d' % off) or 0.0,
                     'ton_dau': row.ton_dau or 0.0,

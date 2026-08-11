@@ -113,10 +113,33 @@
         <field name="perm_unlink" eval="False"/>
     </record>
 
-    <!-- B4-B5: ban cung ứng xem + sửa -->
+    <!-- B4-B5: ban cung ứng chỉ xem -->
     <record id="rule_tong_hop_vat_tu_ban_cung_ung" model="ir.rule">
-        <field name="name">Tong hop vat tu - Ban cung ung - all</field>
+        <field name="name">Tong hop vat tu - Ban cung ung - read all</field>
         <field name="model_id" ref="model_tong_hop_vat_tu"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('sonha_vat_tu.group_ban_cung_ung_vat_tu'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_kh_dat_vat_tu_ban_cung_ung" model="ir.rule">
+        <field name="name">KH dat vat tu - Ban cung ung - read all</field>
+        <field name="model_id" ref="model_kh_dat_vat_tu"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('sonha_vat_tu.group_ban_cung_ung_vat_tu'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- B6-B7: ban cung ứng xem + sửa -->
+    <record id="rule_kh_dat_vat_tu_bcu_ban_cung_ung" model="ir.rule">
+        <field name="name">KH dat vat tu BCU - Ban cung ung - all</field>
+        <field name="model_id" ref="model_kh_dat_vat_tu_bcu"/>
         <field name="domain_force">[(1, '=', 1)]</field>
         <field name="groups" eval="[(4, ref('sonha_vat_tu.group_ban_cung_ung_vat_tu'))]"/>
         <field name="perm_read" eval="True"/>
@@ -125,9 +148,9 @@
         <field name="perm_unlink" eval="False"/>
     </record>
 
-    <record id="rule_kh_dat_vat_tu_ban_cung_ung" model="ir.rule">
-        <field name="name">KH dat vat tu - Ban cung ung - all</field>
-        <field name="model_id" ref="model_kh_dat_vat_tu"/>
+    <record id="rule_phe_duyet_kh_vat_tu_ban_cung_ung" model="ir.rule">
+        <field name="name">Phe duyet KH vat tu - Ban cung ung - all</field>
+        <field name="model_id" ref="model_phe_duyet_kh_vat_tu"/>
         <field name="domain_force">[(1, '=', 1)]</field>
         <field name="groups" eval="[(4, ref('sonha_vat_tu.group_ban_cung_ung_vat_tu'))]"/>
         <field name="perm_read" eval="True"/>
@@ -273,6 +296,26 @@
         <field name="model_id" ref="model_bao_cao_nhu_cau_vat_tu"/>
         <field name="domain_force">[(1, '=', 1)]</field>
         <field name="groups" eval="[(4, ref('sonha_vat_tu.group_truong_bo_phan_vat_tu'))]"/>
+    </record>
+
+    <!-- Vật tư đi đường: tách loại theo vai trò (1 bảng, domain loai) -->
+    <record id="rule_vat_tu_di_duong_bo_phan_don_vi" model="ir.rule">
+        <field name="name">Vat tu di duong - Bo phan - don vi only</field>
+        <field name="model_id" ref="model_vat_tu_di_duong"/>
+        <field name="domain_force">[('loai', '=', 'don_vi')]</field>
+        <field name="groups" eval="[(4, ref('sonha_vat_tu.group_bo_phan_vat_tu'))]"/>
+    </record>
+    <record id="rule_vat_tu_di_duong_truong_bo_phan_don_vi" model="ir.rule">
+        <field name="name">Vat tu di duong - Truong bo phan - don vi only</field>
+        <field name="model_id" ref="model_vat_tu_di_duong"/>
+        <field name="domain_force">[('loai', '=', 'don_vi')]</field>
+        <field name="groups" eval="[(4, ref('sonha_vat_tu.group_truong_bo_phan_vat_tu'))]"/>
+    </record>
+    <record id="rule_vat_tu_di_duong_ban_cung_ung_bcu" model="ir.rule">
+        <field name="name">Vat tu di duong - Ban cung ung - bcu only</field>
+        <field name="model_id" ref="model_vat_tu_di_duong"/>
+        <field name="domain_force">[('loai', '=', 'bcu')]</field>
+        <field name="groups" eval="[(4, ref('sonha_vat_tu.group_ban_cung_ung_vat_tu'))]"/>
     </record>
 
 </odoo>

@@ -8,7 +8,9 @@
             <form string="Import hàng đi đường BCU">
                 <sheet>
                     <group>
-                        <field name="period_id" invisible="1"/>
+                        <field name="period_id"
+                               readonly="context.get('period_id_readonly', False)"
+                               options="{'no_create': True, 'no_open': True}"/>
                         <field name="file_data" filename="file_name"/>
                         <field name="file_name" invisible="1"/>
                     </group>
