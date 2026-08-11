@@ -371,6 +371,15 @@ class ImportTongHopBcuWizard(models.TransientModel):
                 've_du_kien_bcu_gt_t0', 've_du_kien_bcu_gt_t1', 've_du_kien_bcu_gt_t2', 've_du_kien_bcu_gt_t3',
                 'tong_ve_du_kien_bcu', 'tong_gia_tri_bcu', 'write_date', 'write_uid',
             ])
+            b6_lines = self.env['kh.dat.vat.tu.bcu'].browse(ids)
+            b6_lines._compute_sl_dat_mua_de_xuat()
+            self.env['kh.dat.vat.tu.bcu']._apply_chot_from_bcu_di_duong(b6_lines)
+            b6_lines._compute_b6_derived()
+            b6_lines.flush_recordset([
+                'sl_dat_mua_de_xuat', 'sl_dat_mua_chot', 'sl_can_mua_theo_moq',
+                'sl_ton_kho_cuoi_ky', 'so_ngay_vong_quay_ton',
+                'don_gia_ton_kho_cuoi_ky', 'gia_tri_ton_kho_cuoi_ky', 'gia_tri_mua_hang',
+            ])
             self._upsert_vat_tu_di_duong_bcu(parsed)
             self._post_period_import_file_log(
                 self.period_id,

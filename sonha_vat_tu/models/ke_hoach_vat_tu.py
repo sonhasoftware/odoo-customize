@@ -793,6 +793,16 @@ class KeHoachVatTu(models.Model):
             'CALL public.fn_ke_hoach_dat_vat_tu_bcu(%s)',
             (self.id,),
         )
+        b6_lines = self.env['kh.dat.vat.tu.bcu'].search([('period_id', '=', self.id)])
+        if b6_lines:
+            b6_lines._compute_sl_dat_mua_de_xuat()
+            self.env['kh.dat.vat.tu.bcu']._apply_chot_from_bcu_di_duong(b6_lines)
+            b6_lines._compute_b6_derived()
+            b6_lines.flush_recordset([
+                'sl_dat_mua_de_xuat', 'sl_dat_mua_chot', 'sl_can_mua_theo_moq',
+                'sl_ton_kho_cuoi_ky', 'so_ngay_vong_quay_ton',
+                'don_gia_ton_kho_cuoi_ky', 'gia_tri_ton_kho_cuoi_ky', 'gia_tri_mua_hang',
+            ])
         self.state = 'bcu_tong_hop'
         self.invalidate_recordset([
             'kh_dat_vat_tu_bcu_ids', 'kh_dat_vat_tu_bcu_count', 'state',
