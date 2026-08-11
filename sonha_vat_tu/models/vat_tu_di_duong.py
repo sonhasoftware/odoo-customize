@@ -16,9 +16,9 @@ class VatTuDiDuong(models.Model):
     company_id = fields.Many2one(
         'res.company',
         string='Đơn vị',
-        default=lambda self: self.env.company,
+        default=lambda self: self._default_company_id(),
         index=True,
-        help='Đơn vị nhận vật tư đi đường.',
+        help='Đơn vị KD: công ty đặt hàng. BCU: đơn vị sản xuất (cùng Đơn vị SX trên kỳ KHVT).',
     )
     loai = fields.Selection(
         [
@@ -71,6 +71,23 @@ class VatTuDiDuong(models.Model):
             self.env.user.has_group('sonha_vat_tu.group_bo_phan_vat_tu')
             or self.env.user.has_group('sonha_vat_tu.group_truong_bo_phan_vat_tu')
         )
+
+    @api.model
+    def _default_company_id(self):
+        loai = self._loai_from_context()
+        if loai == self.LOAI_BCU:
+            period_id = self.env.context.get('default_period_id')
+            if period_id:
+                period = self.env['ke.hoach.vat.tu'].browse(period_id)
+                if period.company_sx_id:
+                    return period.company_sx_id.id
+            period = self.env['ke.hoach.vat.tu'].search([
+                ('state', 'in', ('dat_hang', 'bcu_tong_hop', 'phe_duyet')),
+                ('company_sx_id', '!=', False),
+            ], order='id desc', limit=1)
+            if period.company_sx_id:
+                return period.company_sx_id.id
+        return self.env.company.id
 
     @api.model
     def _loai_from_context(self):

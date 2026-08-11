@@ -27,7 +27,8 @@
         <field name="arch" type="xml">
             <tree string="Vật tư đi đường" editable="bottom" class="sh_free_width_tree">
                 <field name="loai" column_invisible="True"/>
-                <field name="company_id" context="{'vat_tu_company_code_display': True}"/>
+                <field name="company_id" string="Đơn vị sản xuất"
+                       context="{'vat_tu_company_code_display': True}"/>
                 <field name="ma_nvl_id" string="Mã NVL" required="1"
                        context="{'vat_tu_display_ma_code_only': True}"
                        options="{'no_create': True, 'no_open': True}"/>

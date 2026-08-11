@@ -869,19 +869,7 @@ BEGIN
         FROM vat_tu_di_duong vdd
         WHERE vdd.loai = 'bcu'
           AND TRIM(vdd.ma_nvl) = TRIM(b5.ma_sap)
-          AND vdd.company_id IN (
-              SELECT DISTINCT tt.don_vi_kd_id
-              FROM tinh_toan_vat_tu tt
-              WHERE tt.period_id = p_period_id
-                AND tt.company_id = b5.company_id
-                AND TRIM(tt.ma_vat_tu) = TRIM(b5.ma_sap)
-                AND tt.don_vi_kd_id IS NOT NULL
-              UNION
-              SELECT kh.company_sx_id
-              FROM ke_hoach_vat_tu kh
-              WHERE kh.id = p_period_id
-                AND kh.company_sx_id IS NOT NULL
-          )
+          AND vdd.company_id = b5.company_id
     ) vbcu ON TRUE
     WHERE b5.period_id = p_period_id;
 END;
