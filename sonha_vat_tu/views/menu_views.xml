@@ -10,7 +10,7 @@
     <menuitem id="menu_ke_hoach_kinh_doanh"
               name="Kế hoạch kinh doanh"
               parent="menu_ke_hoach_vat_tu"
-              action="action_ke_hoach_kinh_doanh_period" sequence="10"
+              action="action_ke_hoach_kinh_doanh" sequence="10"
               groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu,sonha_vat_tu.group_ban_cung_ung_vat_tu"/>
     <menuitem id="menu_ke_hoach_san_xuat_period"
               name="Kế hoạch sản xuất"

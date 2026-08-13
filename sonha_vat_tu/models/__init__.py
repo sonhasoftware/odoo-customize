@@ -9,6 +9,7 @@ from . import ma_hang
 from . import bom
 from . import ke_hoach_line_mixin
 from . import ke_hoach_kinh_doanh
+from . import ke_hoach_kinh_doanh_line
 from . import ke_hoach_san_xuat
 from . import ke_hoach_vat_tu_line
 from . import dinh_muc

@@ -151,11 +151,18 @@ class KeHoachLineMixin(models.AbstractModel):
                     _('Mã "%s" không có trong MDM (mdm.tong.hop.line).') % rec.ma_sap
                 )
 
+    def _period_is_locked(self, period):
+        return bool(period and (
+            period.state != 'ke_hoach' or period.co_ke_hoach_vat_tu
+        ))
+
     def _check_period_editable(self):
-        locked = self.filtered(lambda rec: rec.period_id and rec.period_id.state != 'ke_hoach')
+        locked = self.filtered(
+            lambda rec: rec.period_id and self._period_is_locked(rec.period_id)
+        )
         if locked:
             raise UserError(
-                _('%s đã khóa vì kỳ kế hoạch đã sang bước sau.')
+                _('%s đã khóa vì kỳ kế hoạch đã sang bước sau hoặc đã tạo kế hoạch vật tư.')
                 % self._LINE_LABEL.capitalize()
             )
 
@@ -165,9 +172,9 @@ class KeHoachLineMixin(models.AbstractModel):
         if not period_ids:
             return
         for period in self.env['ke.hoach.vat.tu'].browse(list(period_ids)):
-            if period.state != 'ke_hoach':
+            if self._period_is_locked(period):
                 raise UserError(
-                    _('%s đã khóa vì kỳ kế hoạch đã sang bước sau.')
+                    _('%s đã khóa vì kỳ kế hoạch đã sang bước sau hoặc đã tạo kế hoạch vật tư.')
                     % self._LINE_LABEL.capitalize()
                 )
 

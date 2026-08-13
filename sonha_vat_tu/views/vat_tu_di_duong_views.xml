@@ -15,8 +15,6 @@
                 <field name="ten_nvl" string="Tên NVL" readonly="1"/>
                 <field name="month_key" required="1"/>
                 <field name="so_luong" sum="Số lượng"/>
-                <field name="don_gia"/>
-                <field name="gia_tri" sum="Giá trị"/>
             </tree>
         </field>
     </record>

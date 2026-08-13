@@ -59,14 +59,12 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 -- Khối cột meta đầu/cuối giống nhau giữa các bước; phần giữa là cột riêng từng bước.
 -- ============================================================================
 
--- ---------------------------------------------------------------------------
--- KD: ke_hoach_kinh_doanh -> 4 dòng/tháng
--- Đơn vị đặt hàng (period_company_id) chính là đơn vị của dòng kế hoạch KD.
+-- KD: ke_hoach_kinh_doanh_line -> 4 dòng/tháng (header lưu period_sx_id)
 -- ---------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION dlthvt_map_kd(p_ids INTEGER[])
 RETURNS void LANGUAGE sql AS $$
     DELETE FROM du_lieu_tong_hop_vat_tu
-     WHERE source_model = 'ke.hoach.kinh.doanh'
+     WHERE source_model = 'ke.hoach.kinh.doanh.line'
        AND source_res_id = ANY(p_ids);
 
     INSERT INTO du_lieu_tong_hop_vat_tu (
@@ -78,13 +76,13 @@ RETURNS void LANGUAGE sql AS $$
         create_uid, create_date, write_uid, write_date
     )
     SELECT
-        'kd', 'ke.hoach.kinh.doanh', k.id,
+        'kd', 'ke.hoach.kinh.doanh.line', k.id,
         k.period_id, p.code, p.period_month, p.company_id,
         k.company_id, rc.company_code, k.company_id, rc.company_code,
         TO_CHAR(d.md, 'MM/YYYY'), d.md,
         k.ma_sap, nh.ten, k.ten_hang, k.ma_hang, m.qty, k.note,
         k.create_uid, k.create_date, k.write_uid, k.write_date
-    FROM ke_hoach_kinh_doanh k
+    FROM ke_hoach_kinh_doanh_line k
     JOIN ke_hoach_vat_tu p
       ON p.id = k.period_id
      AND p.period_month ~ '^\d{2}/\d{4}$'
@@ -303,7 +301,7 @@ RETURNS void LANGUAGE sql AS $$
         month_key, month_date,
         ma_sap, ma_nvl, ten_nvl, ten_vat_tu, don_vi_tinh,
         ma_dat_hang, chung_loai, ton_dau, don_gia_ton_kho,
-        ve_du_kien_don_vi, ve_du_kien_don_gia, ve_du_kien_gia_tri,
+        ve_du_kien_don_vi,
         vt_can_dung, ton_cuoi,
         so_luong_du_phong, so_luong_thieu, so_luong_can_mua, ghi_chu,
         create_uid, create_date, write_uid, write_date
@@ -315,7 +313,7 @@ RETURNS void LANGUAGE sql AS $$
         TO_CHAR(d.md, 'MM/YYYY'), d.md,
         th.ma_sap, th.ma_sap, th.ten_nvl, th.ten_nvl, th.don_vi_tinh,
         th.ma_dat_hang, th.chung_loai, th.ton_dau, th.don_gia_ton_kho,
-        m.ve_dv, m.ve_dg, m.ve_gt, m.can_dung, m.ton_cuoi,
+        m.ve_dv, m.can_dung, m.ton_cuoi,
         CASE WHEN m.idx = 3 THEN th.so_luong_du_phong ELSE 0 END,
         CASE WHEN m.idx = 3 THEN th.so_luong_thieu    ELSE 0 END,
         CASE WHEN m.idx = 3 THEN th.so_luong_can_mua  ELSE 0 END,
@@ -329,15 +327,11 @@ RETURNS void LANGUAGE sql AS $$
     LEFT JOIN res_company rc_kd ON rc_kd.id = th.don_vi_kd_id
     CROSS JOIN LATERAL (
         VALUES
-            (0, th.ve_du_kien_don_vi_t0, th.ve_du_kien_don_gia_t0, th.ve_du_kien_gia_tri_t0,
-             th.vt_can_dung_t0, th.ton_cuoi_t0),
-            (1, th.ve_du_kien_don_vi_t1, th.ve_du_kien_don_gia_t1, th.ve_du_kien_gia_tri_t1,
-             th.vt_can_dung_t1, th.ton_cuoi_t1),
-            (2, th.ve_du_kien_don_vi_t2, th.ve_du_kien_don_gia_t2, th.ve_du_kien_gia_tri_t2,
-             th.vt_can_dung_t2, th.ton_cuoi_t2),
-            (3, th.ve_du_kien_don_vi_t3, th.ve_du_kien_don_gia_t3, th.ve_du_kien_gia_tri_t3,
-             th.vt_can_dung_t3, th.ton_cuoi_t3)
-    ) AS m(idx, ve_dv, ve_dg, ve_gt, can_dung, ton_cuoi)
+            (0, th.ve_du_kien_don_vi_t0, th.vt_can_dung_t0, th.ton_cuoi_t0),
+            (1, th.ve_du_kien_don_vi_t1, th.vt_can_dung_t1, th.ton_cuoi_t1),
+            (2, th.ve_du_kien_don_vi_t2, th.vt_can_dung_t2, th.ton_cuoi_t2),
+            (3, th.ve_du_kien_don_vi_t3, th.vt_can_dung_t3, th.ton_cuoi_t3)
+    ) AS m(idx, ve_dv, can_dung, ton_cuoi)
     CROSS JOIN LATERAL (
         SELECT dlthvt_month_date(p.period_month, m.idx) AS md
     ) AS d
@@ -366,11 +360,6 @@ RETURNS void LANGUAGE sql AS $$
         tong_hang_di_duong_sl_t0, tong_hang_di_duong_sl_t1,
         tong_hang_di_duong_sl_t2, tong_hang_di_duong_sl_t3,
         tong_hang_di_duong, tong_hang_di_duong_sl,
-        tong_hang_di_duong_dg_t0, tong_hang_di_duong_dg_t1,
-        tong_hang_di_duong_dg_t2, tong_hang_di_duong_dg_t3,
-        tong_hang_di_duong_gt_t0, tong_hang_di_duong_gt_t1,
-        tong_hang_di_duong_gt_t2, tong_hang_di_duong_gt_t3,
-        tong_gia_tri_di_duong,
         sl_du_tru_toi_thieu, sl_can_mua_theo_moq,
         sl_dat_mua_de_xuat, sl_dat_mua_chot,
         don_gia_mua, gia_tri_mua_hang,
@@ -394,11 +383,6 @@ RETURNS void LANGUAGE sql AS $$
         k.tong_hang_di_duong_sl_t0, k.tong_hang_di_duong_sl_t1,
         k.tong_hang_di_duong_sl_t2, k.tong_hang_di_duong_sl_t3,
         k.tong_hang_di_duong, k.tong_hang_di_duong,
-        k.tong_hang_di_duong_dg_t0, k.tong_hang_di_duong_dg_t1,
-        k.tong_hang_di_duong_dg_t2, k.tong_hang_di_duong_dg_t3,
-        k.tong_hang_di_duong_gt_t0, k.tong_hang_di_duong_gt_t1,
-        k.tong_hang_di_duong_gt_t2, k.tong_hang_di_duong_gt_t3,
-        k.tong_gia_tri_di_duong,
         k.sl_du_tru_toi_thieu, k.sl_can_mua_theo_moq,
         k.sl_dat_mua_de_xuat, k.sl_dat_mua_chot,
         k.don_gia_mua, k.gia_tri_mua_hang,
@@ -440,11 +424,6 @@ RETURNS void LANGUAGE sql AS $$
         tong_hang_di_duong_sl_t0, tong_hang_di_duong_sl_t1,
         tong_hang_di_duong_sl_t2, tong_hang_di_duong_sl_t3,
         tong_hang_di_duong, tong_hang_di_duong_sl,
-        tong_hang_di_duong_dg_t0, tong_hang_di_duong_dg_t1,
-        tong_hang_di_duong_dg_t2, tong_hang_di_duong_dg_t3,
-        tong_hang_di_duong_gt_t0, tong_hang_di_duong_gt_t1,
-        tong_hang_di_duong_gt_t2, tong_hang_di_duong_gt_t3,
-        tong_gia_tri_di_duong,
         ve_du_kien_bcu_t0, ve_du_kien_bcu_t1, ve_du_kien_bcu_t2, ve_du_kien_bcu_t3,
         ve_du_kien_bcu_dg_t0, ve_du_kien_bcu_dg_t1, ve_du_kien_bcu_dg_t2, ve_du_kien_bcu_dg_t3,
         ve_du_kien_bcu_gt_t0, ve_du_kien_bcu_gt_t1, ve_du_kien_bcu_gt_t2, ve_du_kien_bcu_gt_t3,
@@ -472,11 +451,6 @@ RETURNS void LANGUAGE sql AS $$
         k.tong_hang_di_duong_sl_t0, k.tong_hang_di_duong_sl_t1,
         k.tong_hang_di_duong_sl_t2, k.tong_hang_di_duong_sl_t3,
         k.tong_hang_di_duong, k.tong_hang_di_duong,
-        k.tong_hang_di_duong_dg_t0, k.tong_hang_di_duong_dg_t1,
-        k.tong_hang_di_duong_dg_t2, k.tong_hang_di_duong_dg_t3,
-        k.tong_hang_di_duong_gt_t0, k.tong_hang_di_duong_gt_t1,
-        k.tong_hang_di_duong_gt_t2, k.tong_hang_di_duong_gt_t3,
-        k.tong_gia_tri_di_duong,
         k.ve_du_kien_bcu_t0, k.ve_du_kien_bcu_t1, k.ve_du_kien_bcu_t2, k.ve_du_kien_bcu_t3,
         k.ve_du_kien_bcu_dg_t0, k.ve_du_kien_bcu_dg_t1, k.ve_du_kien_bcu_dg_t2, k.ve_du_kien_bcu_dg_t3,
         k.ve_du_kien_bcu_gt_t0, k.ve_du_kien_bcu_gt_t1, k.ve_du_kien_bcu_gt_t2, k.ve_du_kien_bcu_gt_t3,
@@ -592,20 +566,25 @@ END;
 $$;
 
 -- --- KD ---------------------------------------------------------------------
-DROP TRIGGER IF EXISTS trg_dlthvt_kd_ins ON ke_hoach_kinh_doanh;
-CREATE TRIGGER trg_dlthvt_kd_ins AFTER INSERT ON ke_hoach_kinh_doanh
+DROP TRIGGER IF EXISTS trg_dlthvt_kd_ins ON ke_hoach_kinh_doanh_line;
+CREATE TRIGGER trg_dlthvt_kd_ins AFTER INSERT ON ke_hoach_kinh_doanh_line
 REFERENCING NEW TABLE AS newtab FOR EACH STATEMENT
 EXECUTE FUNCTION dlthvt_after_change('kd');
 
-DROP TRIGGER IF EXISTS trg_dlthvt_kd_upd ON ke_hoach_kinh_doanh;
-CREATE TRIGGER trg_dlthvt_kd_upd AFTER UPDATE ON ke_hoach_kinh_doanh
+DROP TRIGGER IF EXISTS trg_dlthvt_kd_upd ON ke_hoach_kinh_doanh_line;
+CREATE TRIGGER trg_dlthvt_kd_upd AFTER UPDATE ON ke_hoach_kinh_doanh_line
 REFERENCING NEW TABLE AS newtab FOR EACH STATEMENT
 EXECUTE FUNCTION dlthvt_after_change('kd');
 
-DROP TRIGGER IF EXISTS trg_dlthvt_kd_del ON ke_hoach_kinh_doanh;
-CREATE TRIGGER trg_dlthvt_kd_del AFTER DELETE ON ke_hoach_kinh_doanh
+DROP TRIGGER IF EXISTS trg_dlthvt_kd_del ON ke_hoach_kinh_doanh_line;
+CREATE TRIGGER trg_dlthvt_kd_del AFTER DELETE ON ke_hoach_kinh_doanh_line
 REFERENCING OLD TABLE AS oldtab FOR EACH STATEMENT
-EXECUTE FUNCTION dlthvt_after_delete('ke.hoach.kinh.doanh');
+EXECUTE FUNCTION dlthvt_after_delete('ke.hoach.kinh.doanh.line');
+
+-- Xóa trigger cũ trên header (nếu còn sau upgrade)
+DROP TRIGGER IF EXISTS trg_dlthvt_kd_ins ON ke_hoach_kinh_doanh;
+DROP TRIGGER IF EXISTS trg_dlthvt_kd_upd ON ke_hoach_kinh_doanh;
+DROP TRIGGER IF EXISTS trg_dlthvt_kd_del ON ke_hoach_kinh_doanh;
 
 -- --- SX ---------------------------------------------------------------------
 DROP TRIGGER IF EXISTS trg_dlthvt_sx_ins ON ke_hoach_san_xuat;
@@ -746,7 +725,7 @@ RETURNS void LANGUAGE plpgsql AS $$
 BEGIN
     DELETE FROM du_lieu_tong_hop_vat_tu WHERE period_id = p_period_id;
 
-    PERFORM dlthvt_map_kd(ARRAY(SELECT id FROM ke_hoach_kinh_doanh  WHERE period_id = p_period_id));
+    PERFORM dlthvt_map_kd(ARRAY(SELECT id FROM ke_hoach_kinh_doanh_line WHERE period_id = p_period_id));
     PERFORM dlthvt_map_sx(ARRAY(SELECT id FROM ke_hoach_san_xuat    WHERE period_id = p_period_id));
     PERFORM dlthvt_map_b1(ARRAY(SELECT id FROM ke_hoach_vat_tu_line WHERE period_id = p_period_id));
     PERFORM dlthvt_map_b2(ARRAY(SELECT id FROM dinh_muc             WHERE period_id = p_period_id));

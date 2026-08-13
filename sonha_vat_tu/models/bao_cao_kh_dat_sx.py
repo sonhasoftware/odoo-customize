@@ -169,13 +169,15 @@ class BaoCaoKhDatSxWizard(models.TransientModel):
         sx = period.company_sx_id
         sx_code = sx.company_code or sx.name or ''
 
+        kd_lines = self.env['ke.hoach.kinh.doanh.line'].sudo().search([
+            ('period_id', '=', period.id),
+        ])
         period_ma = {
             (kd.ma_sap or '').strip()
-            for kd in period.ke_hoach_kinh_doanh_ids if (kd.ma_sap or '').strip()
+            for kd in kd_lines if (kd.ma_sap or '').strip()
         }
         ton_map = self._load_sap_ton_cuoi_map(period_ma, ton_kho_month, sx_code)
 
-        kd_lines = period.ke_hoach_kinh_doanh_ids
         sx_lines = period.ke_hoach_san_xuat_ids
         sx_by_key = {
             (line.company_id.id, (line.ma_sap or '').strip()): line

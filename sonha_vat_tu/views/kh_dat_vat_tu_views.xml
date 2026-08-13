@@ -24,21 +24,12 @@
                 <field name="tong_sl_vt_can_dung_t3"/>
                 <field name="tong_vt_can_dung" string="Tổng cần dùng"/>
 
-                <!-- Đi đường T0..T3: SL + ĐG + GT -->
+                <!-- Đi đường T0..T3: chỉ số lượng (đơn vị SX không nhập đơn giá) -->
                 <field name="tong_hang_di_duong_sl_t0"/>
-                <field name="tong_hang_di_duong_dg_t0" widget="monetary"/>
-                <field name="tong_hang_di_duong_gt_t0" widget="monetary"/>
                 <field name="tong_hang_di_duong_sl_t1"/>
-                <field name="tong_hang_di_duong_dg_t1" widget="monetary"/>
-                <field name="tong_hang_di_duong_gt_t1" widget="monetary"/>
                 <field name="tong_hang_di_duong_sl_t2"/>
-                <field name="tong_hang_di_duong_dg_t2" widget="monetary"/>
-                <field name="tong_hang_di_duong_gt_t2" widget="monetary"/>
                 <field name="tong_hang_di_duong_sl_t3"/>
-                <field name="tong_hang_di_duong_dg_t3" widget="monetary"/>
-                <field name="tong_hang_di_duong_gt_t3" widget="monetary"/>
                 <field name="tong_hang_di_duong" string="Tổng SL đi đường"/>
-                <field name="tong_gia_tri_di_duong" string="Tổng GT đi đường" widget="monetary"/>
 
                 <!-- Kế hoạch đặt mua & Chỉ số cuối kỳ -->
                 <field name="sl_du_tru_toi_thieu" string="Dự trữ tối thiểu"/>

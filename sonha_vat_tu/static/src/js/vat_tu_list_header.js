@@ -35,14 +35,19 @@ function getMonthText(periodMonth, offset) {
     return `${String(month).padStart(2, "0")}/${year}`;
 }
 
+const PERIOD_MONTH_PARENT_MODELS = new Set([
+    "ke.hoach.vat.tu",
+    "ke.hoach.kinh.doanh",
+]);
+
 function getPeriodMonth(list) {
     const parent = list && list._parent;
-    if (parent && parent.resModel === "ke.hoach.vat.tu" && parent.data) {
+    if (parent && PERIOD_MONTH_PARENT_MODELS.has(parent.resModel) && parent.data) {
         return parent.data.period_month || "";
     }
     try {
         const root = list && list.model && list.model.root;
-        if (root && root.resModel === "ke.hoach.vat.tu" && root.data) {
+        if (root && PERIOD_MONTH_PARENT_MODELS.has(root.resModel) && root.data) {
             return root.data.period_month || "";
         }
     } catch (e) {
@@ -126,6 +131,25 @@ const MONTH_FIELD_LABELS = (() => {
 })();
 
 patch(ListRenderer.prototype, {
+    setup() {
+        super.setup(...arguments);
+        useEffect(
+            () => {
+                const columns = this.props?.archInfo?.columns;
+                if (!columns?.some((col) => col.type === "field" && MONTH_FIELD_LABELS[col.name])) {
+                    return;
+                }
+                const periodMonth = getPeriodMonth(this.props.list);
+                if (!periodMonth) {
+                    return;
+                }
+                this.allColumns = this.processAllColumn(columns, this.props.list);
+                this.state.columns = this.getActiveColumns(this.props.list);
+            },
+            () => [getPeriodMonth(this.props.list), this.props.list?.records?.length],
+        );
+    },
+
     processAllColumn(allColumns, list) {
         const result = super.processAllColumn(allColumns, list);
         const periodMonth = getPeriodMonth(list);
@@ -395,30 +419,22 @@ class VatTuMergedB5HeaderRenderer extends VatTuMergedHeaderRenderer {
                 };
             }
         }
-        const ddKinds = [
-            ["sl", "tong_hang_di_duong_sl_t"],
-            ["dg", "tong_hang_di_duong_dg_t"],
-            ["gt", "tong_hang_di_duong_gt_t"],
-        ];
-        for (const [kind, prefix] of ddKinds) {
-            if (fieldName.startsWith(prefix)) {
-                const suffix = fieldName.slice(prefix.length);
-                if (["0", "1", "2", "3"].includes(suffix)) {
-                    return {
-                        block: "di_duong",
-                        kind,
-                        topLabel: "Đi đường đơn vị",
-                        offset: parseInt(suffix, 10),
-                        fieldName,
-                    };
-                }
+        if (fieldName.startsWith("tong_hang_di_duong_sl_t")) {
+            const suffix = fieldName.slice("tong_hang_di_duong_sl_t".length);
+            if (["0", "1", "2", "3"].includes(suffix)) {
+                return {
+                    block: "di_duong",
+                    topLabel: "Đi đường đơn vị",
+                    offset: parseInt(suffix, 10),
+                    fieldName,
+                };
             }
         }
         return null;
     }
 
     _isTripletBlock(info) {
-        return info && info.block === "di_duong";
+        return false;
     }
 
     getTopRowGroups() {
@@ -472,9 +488,9 @@ class VatTuMergedB5HeaderRenderer extends VatTuMergedHeaderRenderer {
             if (!info) {
                 continue;
             }
-            if (info.block === "can_dung") {
+            if (info.block === "can_dung" || info.block === "di_duong") {
                 groups.push({
-                    id: `merged_mid_cd_${info.offset}`,
+                    id: `merged_mid_${info.block}_${info.offset}`,
                     label: labelThang(periodMonth, info),
                     span: 1,
                     rowspan: 2,
@@ -546,7 +562,7 @@ class VatTuMergedB6HeaderRenderer extends VatTuMergedB5HeaderRenderer {
     }
 
     _isTripletBlock(info) {
-        return info && (info.block === "di_duong" || info.block === "bcu_di_duong");
+        return info && info.block === "bcu_di_duong";
     }
 }
 
