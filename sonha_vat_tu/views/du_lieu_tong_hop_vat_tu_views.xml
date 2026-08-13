@@ -46,8 +46,6 @@
                 <field name="ton_dau"/>
                 <field name="don_gia_ton_kho" widget="monetary" optional="hide"/>
                 <field name="ve_du_kien_don_vi"/>
-                <field name="ve_du_kien_don_gia" widget="monetary" optional="hide"/>
-                <field name="ve_du_kien_gia_tri" widget="monetary" optional="hide"/>
                 <field name="vt_can_dung"/>
                 <field name="ton_cuoi"/>
                 <field name="so_luong_du_phong"/>
@@ -69,15 +67,6 @@
                 <field name="tong_hang_di_duong_sl_t3" optional="hide"/>
                 <field name="tong_hang_di_duong" optional="hide"/>
                 <field name="tong_hang_di_duong_sl" optional="hide"/>
-                <field name="tong_hang_di_duong_dg_t0" widget="monetary" optional="hide"/>
-                <field name="tong_hang_di_duong_dg_t1" widget="monetary" optional="hide"/>
-                <field name="tong_hang_di_duong_dg_t2" widget="monetary" optional="hide"/>
-                <field name="tong_hang_di_duong_dg_t3" widget="monetary" optional="hide"/>
-                <field name="tong_hang_di_duong_gt_t0" widget="monetary" optional="hide"/>
-                <field name="tong_hang_di_duong_gt_t1" widget="monetary" optional="hide"/>
-                <field name="tong_hang_di_duong_gt_t2" widget="monetary" optional="hide"/>
-                <field name="tong_hang_di_duong_gt_t3" widget="monetary" optional="hide"/>
-                <field name="tong_gia_tri_di_duong" widget="monetary" optional="hide"/>
                 <field name="ve_du_kien_bcu_t0" optional="hide"/>
                 <field name="ve_du_kien_bcu_t1" optional="hide"/>
                 <field name="ve_du_kien_bcu_t2" optional="hide"/>
@@ -172,8 +161,6 @@
                             <field name="ton_dau"/>
                             <field name="don_gia_ton_kho" widget="monetary"/>
                             <field name="ve_du_kien_don_vi"/>
-                            <field name="ve_du_kien_don_gia" widget="monetary"/>
-                            <field name="ve_du_kien_gia_tri" widget="monetary"/>
                         </group>
                         <group>
                             <field name="vt_can_dung"/>
@@ -194,7 +181,6 @@
                             <field name="tong_sl_vt_can_dung_t3"/>
                             <field name="tong_vt_can_dung"/>
                             <field name="tong_hang_di_duong"/>
-                            <field name="tong_gia_tri_di_duong" widget="monetary"/>
                         </group>
                         <group>
                             <field name="sl_dat_mua_chot"/>

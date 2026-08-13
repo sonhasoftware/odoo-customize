@@ -73,7 +73,7 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
     def _plan_model_name(self):
         self.ensure_one()
         return (
-            'ke.hoach.kinh.doanh' if self.nguon_sl_sp == 'khkd'
+            'ke.hoach.kinh.doanh.line' if self.nguon_sl_sp == 'khkd'
             else 'ke.hoach.san.xuat'
         )
 

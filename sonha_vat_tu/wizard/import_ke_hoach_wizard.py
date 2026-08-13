@@ -13,9 +13,8 @@ class ImportKeHoachWizard(models.TransientModel):
     _description = 'Import ke hoach tu Excel'
     _inherit = ['vat.tu.excel.mixin']
 
-    period_id = fields.Many2one(
-        'ke.hoach.vat.tu', string='Ky',
-        default=lambda self: self.env.context.get('active_id'))
+    period_id = fields.Many2one('ke.hoach.vat.tu', string='Kỳ SX')
+    kinh_doanh_id = fields.Many2one('ke.hoach.kinh.doanh', string='KHKD')
     import_type = fields.Selection([
         ('business', 'Kế hoạch kinh doanh'),
         ('production', 'Kế hoạch sản xuất'),
@@ -31,6 +30,35 @@ class ImportKeHoachWizard(models.TransientModel):
     COL_MA_HANG, COL_MA_SAP = 3, 4
     HEADER_ROW_IDX = 5
     MONTH_START_COL = 5
+
+    def _is_business(self):
+        return self.import_type == 'business'
+
+    def _plan_record(self):
+        self.ensure_one()
+        return self.kinh_doanh_id if self._is_business() else self.period_id
+
+    def _plan_code(self):
+        rec = self._plan_record()
+        return rec.code if rec else ''
+
+    def _plan_month(self):
+        rec = self._plan_record()
+        return rec.period_month if rec else ''
+
+    def _plan_company_sx_code(self):
+        rec = self._plan_record()
+        if not rec or not self._is_business():
+            return ''
+        return (rec.company_sx_id.company_code or rec.company_sx_id.name or '').strip()
+
+    def _horizon_months(self):
+        rec = self._plan_record()
+        if not rec:
+            return []
+        if self._is_business():
+            return rec._get_horizon_months()
+        return rec._get_horizon_months()
 
     def _parse_month_header(self, label):
         if not label:
@@ -60,7 +88,8 @@ class ImportKeHoachWizard(models.TransientModel):
 
     def _validate_metadata(self, rows):
         if len(rows) < 6:
-            raise UserError(_('File Excel không đúng mẫu. Vui lòng tải lại template từ kỳ kế hoạch đang mở.'))
+            raise UserError(_(
+                'File Excel không đúng mẫu. Vui lòng tải lại template từ gói/kỳ đang mở.'))
 
         meta = {}
         for row_idx in range(3):
@@ -74,14 +103,29 @@ class ImportKeHoachWizard(models.TransientModel):
 
         errors = []
         if not code:
-            errors.append(_('Mã kỳ không được để trống. Vui lòng kiểm tra ô B1.'))
-        elif code != (self.period_id.code or ''):
-            errors.append(_('Mã kỳ trong file là "%s", không đúng với kỳ đang mở "%s".') % (code, self.period_id.code or ''))
+            errors.append(_('Mã không được để trống. Vui lòng kiểm tra ô B1.'))
+        elif code != (self._plan_code() or ''):
+            errors.append(_(
+                'Mã trong file là "%s", không đúng với bản ghi đang mở "%s".'
+            ) % (code, self._plan_code() or ''))
 
         if not month:
             errors.append(_('Tháng bắt đầu không được để trống. Vui lòng kiểm tra ô B2.'))
-        elif month != (self.period_id.period_month or ''):
-            errors.append(_('Tháng bắt đầu trong file là "%s", không đúng với kỳ đang mở "%s".') % (month, self.period_id.period_month or ''))
+        elif month != (self._plan_month() or ''):
+            errors.append(_(
+                'Tháng bắt đầu trong file là "%s", không đúng với bản ghi đang mở "%s".'
+            ) % (month, self._plan_month() or ''))
+
+        if self._is_business():
+            sx_label = meta.get('đơn vị sản xuất') or meta.get('don vi san xuat')
+            if not sx_label:
+                errors.append(_(
+                    'Đơn vị sản xuất không được để trống. Vui lòng kiểm tra ô B3.'
+                ))
+            elif sx_label != (self._plan_company_sx_code() or ''):
+                errors.append(_(
+                    'Đơn vị sản xuất trong file là "%s", không đúng với bản ghi đang mở "%s".'
+                ) % (sx_label, self._plan_company_sx_code() or ''))
 
         self._raise_errors(errors)
 
@@ -93,18 +137,19 @@ class ImportKeHoachWizard(models.TransientModel):
             if actual.lower() != expected.lower():
                 raise UserError(_(
                     'File Excel không đúng mẫu: cột %s phải là "%s" (đang là "%s"). '
-                    'Vui lòng tải lại template từ kỳ kế hoạch đang mở.'
+                    'Vui lòng tải lại template.'
                 ) % (col_idx + 1, expected, actual or '—'))
         month_col_by_key = {}
-        horizon_months = self.period_id._get_horizon_months()
+        horizon_months = self._horizon_months()
         month_offset_map = {month: idx for idx, month in enumerate(horizon_months)}
-        month_start_col = self.MONTH_START_COL
         for idx, label in enumerate(header):
             month_key = self._parse_month_header(label)
-            if month_key and idx >= month_start_col and month_key in month_offset_map:
+            if month_key and idx >= self.MONTH_START_COL and month_key in month_offset_map:
                 month_col_by_key[month_key] = idx
         if not month_col_by_key:
-            raise UserError(_('Không tìm thấy cột tháng hợp lệ trong bảng dữ liệu. Vui lòng kiểm tra dòng tiêu đề số 6.'))
+            raise UserError(_(
+                'Không tìm thấy cột tháng hợp lệ trong bảng dữ liệu. '
+                'Vui lòng kiểm tra dòng tiêu đề số 6.'))
         month_cols = [
             (month_col_by_key.get(month_key), month_key, month_offset_map[month_key])
             for month_key in horizon_months
@@ -189,7 +234,6 @@ class ImportKeHoachWizard(models.TransientModel):
             vals['sequence'] = idx * 10
 
     def _validate_plan_row(self, row_idx, row, errors, company_lookup, mdm_codes):
-        """Kiểm tra phần cố định của một dòng (Đơn vị + Mã) — dùng cho cả KD và SX."""
         company_rec = self._resolve_company_cached(row[0], row_idx, errors, company_lookup)
         if not company_rec:
             return None
@@ -215,7 +259,6 @@ class ImportKeHoachWizard(models.TransientModel):
         }
 
     def _collect_plan_rows(self, rows, header, month_cols, data_start_idx, extra_vals=None):
-        """Đọc toàn bộ vùng dữ liệu thành vals_list đã đánh STT, chung KD/SX."""
         errors = []
         vals_list = []
         seen = set()
@@ -244,7 +287,6 @@ class ImportKeHoachWizard(models.TransientModel):
             vals_list.append({
                 **base_vals,
                 **(extra_vals or {}),
-                'period_id': self.period_id.id,
                 'qty_t0': qty_by_offset[0],
                 'qty_t1': qty_by_offset[1],
                 'qty_t2': qty_by_offset[2],
@@ -255,10 +297,10 @@ class ImportKeHoachWizard(models.TransientModel):
         self._assign_import_sequences(vals_list)
         return vals_list
 
-    def _split_create_update(self, Plan, vals_list):
+    def _split_create_update(self, Plan, vals_list, domain):
         existing_map = {
             (line.company_id.id, line.ma_sap): line
-            for line in Plan.search([('period_id', '=', self.period_id.id)])
+            for line in Plan.search(domain)
         }
         to_create, to_update = [], []
         for vals in vals_list:
@@ -279,72 +321,95 @@ class ImportKeHoachWizard(models.TransientModel):
         self._raise_import_errors(
             errors, header=_('File Excel có lỗi, chưa ghi dữ liệu:'))
 
-    def action_import(self):
-        self.ensure_one()
-        if not self.period_id:
-            raise UserError(_('Thiếu kỳ kế hoạch.'))
-        if self.period_id.state != 'ke_hoach':
-            raise UserError(_('Kỳ kế hoạch đã sang bước sau, không thể import lại kế hoạch.'))
-        is_business = self.import_type == 'business'
-        label = 'kế hoạch kinh doanh' if is_business else 'kế hoạch sản xuất'
-        if not (
+    def _check_access(self):
+        allowed = (
             self.env.user.has_group('sonha_vat_tu.group_bo_phan_vat_tu')
             or self.env.user.has_group('sonha_vat_tu.group_truong_bo_phan_vat_tu')
-        ):
+        )
+        if not allowed:
+            label = 'kế hoạch kinh doanh' if self._is_business() else 'kế hoạch sản xuất'
             raise UserError(_('Bạn không có quyền import %s.') % label)
+
+    def action_import(self):
+        self.ensure_one()
+        self._check_access()
+        is_business = self._is_business()
+        label = 'kế hoạch kinh doanh' if is_business else 'kế hoạch sản xuất'
+
+        if is_business:
+            if not self.kinh_doanh_id:
+                raise UserError(_('Thiếu kế hoạch kinh doanh.'))
+            if self.kinh_doanh_id.locked:
+                raise UserError(_('Kế hoạch kinh doanh đã lấy vào sản xuất, không thể import lại.'))
+        else:
+            if not self.period_id:
+                raise UserError(_('Thiếu kỳ kế hoạch sản xuất.'))
+            if self.period_id.state != 'ke_hoach':
+                raise UserError(_(
+                    'Kỳ kế hoạch đã sang bước sau, không thể import lại kế hoạch sản xuất.'))
+            if self.period_id.co_ke_hoach_vat_tu:
+                raise UserError(_(
+                    'Đã tạo kế hoạch vật tư, không thể import lại kế hoạch sản xuất.'))
 
         rows = self._read_workbook()
         self._validate_metadata(rows)
         header, month_cols, data_start_idx = self._prepare_rows(rows)
 
-        importer = self._import_business if is_business else self._import_production
-        count = importer(rows, header, month_cols, data_start_idx)
+        count = (
+            self._import_business(rows, header, month_cols, data_start_idx)
+            if is_business else
+            self._import_production(rows, header, month_cols, data_start_idx)
+        )
 
         attachment = self.env['ir.attachment'].sudo().create({
             'name': self.file_name or 'ke_hoach_import.xlsx',
             'type': 'binary',
             'datas': self.file_data,
-            'res_model': 'ke.hoach.vat.tu',
-            'res_id': self.period_id.id,
+            'res_model': self.kinh_doanh_id._name if is_business else 'ke.hoach.vat.tu',
+            'res_id': self.kinh_doanh_id.id if is_business else self.period_id.id,
             'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         })
+        target = self.kinh_doanh_id if is_business else self.period_id
         scope = 'kd' if is_business else 'sx'
-        self.period_id.with_context(vat_tu_chatter_scope=scope).message_post(body=Markup(
+        target.with_context(vat_tu_chatter_scope=scope).message_post(body=Markup(
             '<p><b>Đã import %s dòng %s từ file %s.</b></p>' %
             (count, label, self.file_name or '-')
         ), attachment_ids=[attachment.id])
-        view_xmlid = (
-            'sonha_vat_tu.view_ke_hoach_vat_tu_form_kd' if is_business
-            else 'sonha_vat_tu.view_ke_hoach_vat_tu_form_sx'
-        )
+
+        if is_business:
+            return {
+                'type': 'ir.actions.act_window',
+                'res_model': 'ke.hoach.kinh.doanh',
+                'res_id': self.kinh_doanh_id.id,
+                'view_mode': 'form',
+                'target': 'current',
+            }
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'ke.hoach.vat.tu',
             'res_id': self.period_id.id,
             'view_mode': 'form',
-            'views': [(self.env.ref(view_xmlid).sudo().id, 'form')],
+            'views': [(self.env.ref('sonha_vat_tu.view_ke_hoach_vat_tu_form_sx').sudo().id, 'form')],
             'context': {'vat_tu_chatter_scope': scope},
             'target': 'current',
         }
 
     def _import_business(self, rows, header, month_cols, data_start_idx):
-        Plan = self.env['ke.hoach.kinh.doanh'].sudo()
-        vals_list = self._collect_plan_rows(rows, header, month_cols, data_start_idx)
-
-        _existing_map, to_create, to_update = self._split_create_update(Plan, vals_list)
+        Plan = self.env['ke.hoach.kinh.doanh.line'].sudo()
+        vals_list = self._collect_plan_rows(
+            rows, header, month_cols, data_start_idx,
+            extra_vals={'kinh_doanh_id': self.kinh_doanh_id.id},
+        )
+        domain = [('kinh_doanh_id', '=', self.kinh_doanh_id.id)]
+        _existing_map, to_create, to_update = self._split_create_update(Plan, vals_list, domain)
         self._write_plan_rows(Plan, to_create, to_update)
-        if vals_list:
-            self.period_id._sync_production_from_business()
         return len(to_create) + len(to_update)
 
     def _check_business_rows_covered(self, vals_list):
-        """SX phải phủ hết dòng KD — nếu không sản xuất thì để Số lượng = 0."""
         business_keys = {
             (line.company_id.id, line.ma_sap)
-            for line in self.env['ke.hoach.kinh.doanh'].sudo().search([
-                ('period_id', '=', self.period_id.id),
-                ('ma_sap', '!=', False),
-            ])
+            for line in self.period_id.ke_hoach_san_xuat_ids
+            if line.ma_sap
         }
         missing = sorted(business_keys - {(v['company_id'], v['ma_sap']) for v in vals_list})
         if not missing:
@@ -372,11 +437,15 @@ class ImportKeHoachWizard(models.TransientModel):
 
         vals_list = self._collect_plan_rows(
             rows, header, month_cols, data_start_idx,
-            extra_vals={'company_sx_id': company_sx.id},
+            extra_vals={
+                'period_id': self.period_id.id,
+                'company_sx_id': company_sx.id,
+            },
         )
         self._check_business_rows_covered(vals_list)
 
-        existing_map, to_create, to_update = self._split_create_update(Plan, vals_list)
+        domain = [('period_id', '=', self.period_id.id)]
+        existing_map, to_create, to_update = self._split_create_update(Plan, vals_list, domain)
         imported_keys = {(v['company_id'], v['ma_sap']) for v in vals_list}
         to_delete = Plan.browse([
             line.id for key, line in existing_map.items() if key not in imported_keys

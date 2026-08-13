@@ -103,7 +103,12 @@ class KhDatVatTuBcu(models.Model):
         string='Tổng GT đi đường BCU', currency_field='currency_id')
 
     sl_du_tru_toi_thieu = fields.Float(string='Dự trữ tối thiểu', digits=(16, 3))
-    sl_dat_mua_de_xuat = fields.Float(string='SL đặt mua đề xuất', digits=(16, 3))
+    sl_dat_mua_de_xuat = fields.Float(
+        string='SL đặt mua đề xuất',
+        compute='_compute_sl_dat_mua_de_xuat',
+        store=True,
+        digits=(16, 3),
+    )
     sl_dat_mua_chot = fields.Float(string='SL đặt mua chốt BCU', digits=(16, 3))
     sl_can_mua_theo_moq = fields.Float(string='SL cần mua dựa theo MOQ NCC', digits=(16, 3))
     don_gia_mua = fields.Monetary(
@@ -146,10 +151,49 @@ class KhDatVatTuBcu(models.Model):
     def _count_months_with_can_dung(t0, t1, t2, t3):
         return sum(1 for qty in (t0, t1, t2, t3) if (qty or 0.0) > 0)
 
+    def _tdd_bcu(self):
+        """Tổng SL đi đường BCU — bước 6 tính theo số này, không dùng đi đường đơn vị."""
+        self.ensure_one()
+        monthly = (
+            (self.ve_du_kien_bcu_t0 or 0.0)
+            + (self.ve_du_kien_bcu_t1 or 0.0)
+            + (self.ve_du_kien_bcu_t2 or 0.0)
+            + (self.ve_du_kien_bcu_t3 or 0.0)
+        )
+        if monthly:
+            return monthly
+        return self.tong_ve_du_kien_bcu or 0.0
+
+    @staticmethod
+    def _sl_chot_from_de_xuat(sl_de_xuat):
+        return 0.0 if (sl_de_xuat or 0.0) > 0 else -(sl_de_xuat or 0.0)
+
+    def _sl_dat_mua_de_xuat_value(self):
+        self.ensure_one()
+        ton_dau = self.tong_ton_nvl_sl or 0.0
+        tcd = self.tong_vt_can_dung or 0.0
+        tdd = self._tdd_bcu()
+        sl_du_tru = self.sl_du_tru_toi_thieu or 0.0
+        return ton_dau - tcd + tdd - sl_du_tru
+
+    @api.depends(
+        'tong_ton_nvl_sl',
+        'tong_vt_can_dung',
+        'sl_du_tru_toi_thieu',
+        'tong_ve_du_kien_bcu',
+        've_du_kien_bcu_t0',
+        've_du_kien_bcu_t1',
+        've_du_kien_bcu_t2',
+        've_du_kien_bcu_t3',
+    )
+    def _compute_sl_dat_mua_de_xuat(self):
+        for rec in self:
+            rec.sl_dat_mua_de_xuat = rec._sl_dat_mua_de_xuat_value()
+
     def _b6_derived_values(self):
         self.ensure_one()
         ton_dau = self.tong_ton_nvl_sl or 0.0
-        tdd = self.tong_hang_di_duong or 0.0
+        tdd = self._tdd_bcu()
         moq = self.sl_can_mua_theo_moq or 0.0
         tcd = self.tong_vt_can_dung or 0.0
         gia_tri_ton_dau = ton_dau * (self.don_gia_ton_kho or 0.0)
@@ -184,7 +228,11 @@ class KhDatVatTuBcu(models.Model):
     @api.depends(
         'tong_ton_nvl_sl',
         'tong_vt_can_dung',
-        'tong_hang_di_duong',
+        'tong_ve_du_kien_bcu',
+        've_du_kien_bcu_t0',
+        've_du_kien_bcu_t1',
+        've_du_kien_bcu_t2',
+        've_du_kien_bcu_t3',
         'sl_can_mua_theo_moq',
         'don_gia_mua',
         'don_gia_ton_kho',
@@ -201,6 +249,16 @@ class KhDatVatTuBcu(models.Model):
             rec.don_gia_ton_kho_cuoi_ky = derived['don_gia_ton_kho_cuoi_ky']
             rec.gia_tri_ton_kho_cuoi_ky = derived['gia_tri_ton_kho_cuoi_ky']
             rec.gia_tri_mua_hang = derived['gia_tri_mua_hang']
+
+    @api.model
+    def _apply_chot_from_bcu_di_duong(self, records):
+        """Sau khi cập nhật đi đường BCU: tính lại chốt/moq theo công thức B5."""
+        for rec in records:
+            chot = rec._sl_chot_from_de_xuat(rec._sl_dat_mua_de_xuat_value())
+            rec.with_context(tracking_disable=True).write({
+                'sl_dat_mua_chot': chot,
+                'sl_can_mua_theo_moq': chot,
+            })
 
     @api.model
     def _format_qty(self, qty):

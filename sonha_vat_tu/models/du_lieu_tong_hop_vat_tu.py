@@ -35,7 +35,7 @@ class DuLieuTongHopVatTu(models.Model):
         'ke.hoach.vat.tu', string='Kỳ', ondelete='cascade', index=True, readonly=True)
     owner_company_id = fields.Many2one(
         'res.company', string='Đơn vị lập kế hoạch', index=True, readonly=True,
-        help='Đơn vị của user tạo kỳ kế hoạch vật tư (vd. SSP → KHVT_SSP_001). Dùng phân quyền.',
+        help='Đơn vị của user tạo kỳ kế hoạch vật tư (vd. SSP → KHVT_SSP_01). Dùng phân quyền.',
     )
     company_id = fields.Many2one(
         'res.company', string='Đơn vị', index=True, readonly=True,
@@ -103,16 +103,6 @@ class DuLieuTongHopVatTu(models.Model):
     ton_dau = fields.Float(string='Tồn đầu', digits=(16, 3), readonly=True)
     ve_du_kien_don_vi = fields.Float(
         string='Vật tư đi đường đơn vị', digits=(16, 3), readonly=True)
-    ve_du_kien_don_gia = fields.Monetary(
-        string='Đi đường đơn giá (B4)',
-        currency_field='currency_id',
-        readonly=True,
-    )
-    ve_du_kien_gia_tri = fields.Monetary(
-        string='Đi đường giá trị (B4)',
-        currency_field='currency_id',
-        readonly=True,
-    )
     vt_can_dung = fields.Float(string='VT cần dùng', digits=(16, 3), readonly=True)
     ton_cuoi = fields.Float(string='Tồn cuối', digits=(16, 3), readonly=True)
     so_luong_du_phong = fields.Float(string='SL dự phòng', digits=(16, 3), readonly=True)
@@ -156,28 +146,7 @@ class DuLieuTongHopVatTu(models.Model):
         readonly=True,
         help='Alias báo cáo; đồng bộ cùng giá trị tong_hang_di_duong.',
     )
-    tong_hang_di_duong_dg_t0 = fields.Monetary(
-        string='Đi đường ĐG T0', currency_field='currency_id', readonly=True)
-    tong_hang_di_duong_dg_t1 = fields.Monetary(
-        string='Đi đường ĐG T1', currency_field='currency_id', readonly=True)
-    tong_hang_di_duong_dg_t2 = fields.Monetary(
-        string='Đi đường ĐG T2', currency_field='currency_id', readonly=True)
-    tong_hang_di_duong_dg_t3 = fields.Monetary(
-        string='Đi đường ĐG T3', currency_field='currency_id', readonly=True)
-    tong_hang_di_duong_gt_t0 = fields.Monetary(
-        string='Đi đường GT T0', currency_field='currency_id', readonly=True)
-    tong_hang_di_duong_gt_t1 = fields.Monetary(
-        string='Đi đường GT T1', currency_field='currency_id', readonly=True)
-    tong_hang_di_duong_gt_t2 = fields.Monetary(
-        string='Đi đường GT T2', currency_field='currency_id', readonly=True)
-    tong_hang_di_duong_gt_t3 = fields.Monetary(
-        string='Đi đường GT T3', currency_field='currency_id', readonly=True)
-    tong_gia_tri_di_duong = fields.Monetary(
-        string='Tổng giá trị đi đường',
-        currency_field='currency_id',
-        readonly=True,
-    )
-    # --- B6: hàng đi đường BCU ---
+    # --- B6: hàng đi đường BCU (SL + ĐG + GT) ---
     ve_du_kien_bcu_t0 = fields.Float(string='BCU đi đường T0', digits=(16, 3), readonly=True)
     ve_du_kien_bcu_t1 = fields.Float(string='BCU đi đường T1', digits=(16, 3), readonly=True)
     ve_du_kien_bcu_t2 = fields.Float(string='BCU đi đường T2', digits=(16, 3), readonly=True)

@@ -848,7 +848,16 @@ BEGIN
         CASE WHEN COALESCE(vbcu.qty_t3, 0) > 0 THEN COALESCE(vbcu.gt_t3, 0) / vbcu.qty_t3 ELSE 0 END,
         COALESCE(vbcu.gt_t0, 0), COALESCE(vbcu.gt_t1, 0), COALESCE(vbcu.gt_t2, 0), COALESCE(vbcu.gt_t3, 0),
         COALESCE(vbcu.qty_total, 0), COALESCE(vbcu.gt_total, 0),
-        b5.sl_du_tru_toi_thieu, b5.sl_dat_mua_de_xuat, b5.sl_dat_mua_chot, b5.sl_can_mua_theo_moq,
+        b5.sl_du_tru_toi_thieu,
+        (b5.tong_ton_nvl_sl - b5.tong_vt_can_dung + COALESCE(vbcu.qty_total, 0) - b5.sl_du_tru_toi_thieu),
+        CASE WHEN (b5.tong_ton_nvl_sl - b5.tong_vt_can_dung + COALESCE(vbcu.qty_total, 0) - b5.sl_du_tru_toi_thieu) > 0
+             THEN 0.0
+             ELSE -(b5.tong_ton_nvl_sl - b5.tong_vt_can_dung + COALESCE(vbcu.qty_total, 0) - b5.sl_du_tru_toi_thieu)
+        END,
+        CASE WHEN (b5.tong_ton_nvl_sl - b5.tong_vt_can_dung + COALESCE(vbcu.qty_total, 0) - b5.sl_du_tru_toi_thieu) > 0
+             THEN 0.0
+             ELSE -(b5.tong_ton_nvl_sl - b5.tong_vt_can_dung + COALESCE(vbcu.qty_total, 0) - b5.sl_du_tru_toi_thieu)
+        END,
         b5.don_gia_mua,
         1, 1, NOW(), NOW()
     FROM kh_dat_vat_tu b5
