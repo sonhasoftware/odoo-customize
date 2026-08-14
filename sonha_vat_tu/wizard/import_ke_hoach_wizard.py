@@ -248,7 +248,7 @@ class ImportKeHoachWizard(models.TransientModel):
             return None
         if ma_sap not in mdm_codes:
             errors.append(_(
-                'Dòng %d: Mã "%s" không có trong MDM (mdm.tong.hop.line).'
+                'Dòng %d: Mã "%s" không tồn tại.'
             ) % (row_idx, ma_sap))
             return None
 

@@ -170,7 +170,7 @@ class BaoCaoKhDatSxWizard(models.TransientModel):
         sx_code = sx.company_code or sx.name or ''
 
         kd_lines = self.env['ke.hoach.kinh.doanh.line'].sudo().search([
-            ('period_id', '=', period.id),
+            ('kinh_doanh_id.period_sx_id', '=', period.id),
         ])
         period_ma = {
             (kd.ma_sap or '').strip()

@@ -239,7 +239,7 @@
                     </group>
                     <field name="co_ke_hoach_vat_tu" invisible="1"/>
                     <field name="tinh_toan_vat_tu_ids" widget="vat_tu_b3_pivot_one2many">
-                        <tree duplicate="0" editable="bottom" create="false" delete="false" class="sh_free_width_tree">
+                        <tree duplicate="0" editable="bottom" create="false" delete="false" limit="500" class="sh_free_width_tree">
                             <field name="ma_vat_tu" column_invisible="True"/>
                             <field name="ten_vat_tu" column_invisible="True"/>
                             <field name="don_vi_tinh" readonly="1"/>

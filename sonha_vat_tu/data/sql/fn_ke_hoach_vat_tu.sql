@@ -276,7 +276,9 @@ BEGIN
             qty_kh_t0, qty_kh_t1, qty_kh_t2, qty_kh_t3,
             qty_nvl_t0, qty_nvl_t1, qty_nvl_t2, qty_nvl_t3,
             1, 1, v_now, v_now
-        FROM tmp_b3_nvl_detail;
+        FROM tmp_b3_nvl_detail
+        WHERE COALESCE(qty_nvl_t0, 0) + COALESCE(qty_nvl_t1, 0)
+            + COALESCE(qty_nvl_t2, 0) + COALESCE(qty_nvl_t3, 0) <> 0;
 
         -- Aggregate trước, lookup ĐVT từ temp MDM (không LATERAL từng dòng)
         INSERT INTO tinh_toan_vat_tu (
@@ -309,6 +311,8 @@ BEGIN
                 SUM(t.qty_nvl_t3) AS qty_t3
             FROM tmp_b3_nvl_detail t
             GROUP BY t.period_id, t.don_vi_kd_id, t.don_vi_kd_code, t.ma_nvl
+            HAVING SUM(COALESCE(t.qty_nvl_t0, 0)) + SUM(COALESCE(t.qty_nvl_t1, 0))
+                 + SUM(COALESCE(t.qty_nvl_t2, 0)) + SUM(COALESCE(t.qty_nvl_t3, 0)) <> 0
         ) agg
         LEFT JOIN _tmp_mdm_dvt mdm ON mdm.ma_nvl = agg.ma_nvl;
 END;

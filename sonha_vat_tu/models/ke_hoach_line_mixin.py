@@ -148,7 +148,7 @@ class KeHoachLineMixin(models.AbstractModel):
         ):
             if not self.env['ma.hang'].sap_exists_in_mdm(rec.ma_sap.strip()):
                 raise ValidationError(
-                    _('Mã "%s" không có trong MDM (mdm.tong.hop.line).') % rec.ma_sap
+                    _('Mã "%s" không tồn tại.') % rec.ma_sap
                 )
 
     def _period_is_locked(self, period):

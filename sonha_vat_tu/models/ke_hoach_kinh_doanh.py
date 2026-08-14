@@ -83,6 +83,44 @@ class KeHoachKinhDoanh(models.Model):
                 next_no = 1
         return '%s%02d' % (prefix, next_no)
 
+    @api.model
+    def _code_sequence_suffix(self, code):
+        if not code:
+            return None
+        try:
+            return int(str(code).rsplit('_', 1)[-1])
+        except (TypeError, ValueError):
+            return None
+
+    def _generate_code(self, period_month=None, company=None, prefer_suffix=None):
+        self.ensure_one()
+        period_month = (period_month or self.period_month or '').strip()
+        company = company or self.company_id
+        if not period_month or not company:
+            return False
+        company_code = self._company_code(company)
+        prefix = self._code_prefix(period_month, company_code)
+        if prefer_suffix is not None:
+            candidate = '%s_%02d' % (prefix, prefer_suffix)
+            domain = [('code', '=', candidate)]
+            if self.id:
+                domain.append(('id', '!=', self.id))
+            if not self.search(domain, limit=1):
+                return candidate
+        return self._next_code(period_month, company_code)
+
+    @api.onchange('period_month', 'company_id')
+    def _onchange_period_month_code(self):
+        if self.locked:
+            return
+        if not self.period_month or not self.company_id:
+            return
+        pattern = re.compile(r'^(0[1-9]|1[0-2])/\d{4}$')
+        if not pattern.match(self.period_month.strip()):
+            return
+        prefer = self._code_sequence_suffix(self.code)
+        self.code = self._generate_code(prefer_suffix=prefer)
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
@@ -100,15 +138,21 @@ class KeHoachKinhDoanh(models.Model):
         if vals.keys() - {'locked', 'period_sx_id', 'code'}:
             self._check_editable()
         vals.pop('company_sx_id', None)
+        refresh_code = (
+            not self.env.context.get('skip_kd_code_update')
+            and ('period_month' in vals or 'company_id' in vals)
+        )
         res = super().write(vals)
         if not self.env.context.get('skip_kd_code_update'):
-            for rec in self.filtered(lambda r: not r.code and r.period_month and r.company_id):
-                rec.with_context(skip_kd_code_update=True).write({
-                    'code': self._next_code(
-                        rec.period_month,
-                        self._company_code(rec.company_id),
-                    ),
-                })
+            for rec in self.filtered(lambda r: not r.locked and r.period_month and r.company_id):
+                if not rec.code or refresh_code:
+                    new_code = rec._generate_code(
+                        prefer_suffix=rec._code_sequence_suffix(rec.code),
+                    )
+                    if new_code and new_code != rec.code:
+                        rec.with_context(skip_kd_code_update=True).write({
+                            'code': new_code,
+                        })
         return res
 
     def _get_horizon_months(self):
