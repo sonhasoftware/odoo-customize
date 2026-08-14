@@ -10,47 +10,89 @@
     <menuitem id="menu_ke_hoach_kinh_doanh"
               name="Kế hoạch kinh doanh"
               parent="menu_ke_hoach_vat_tu"
-              action="action_ke_hoach_kinh_doanh_period" sequence="10"/>
+              action="action_ke_hoach_kinh_doanh" sequence="10"
+              groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu,sonha_vat_tu.group_ban_cung_ung_vat_tu"/>
     <menuitem id="menu_ke_hoach_san_xuat_period"
               name="Kế hoạch sản xuất"
               parent="menu_ke_hoach_vat_tu"
-              action="action_ke_hoach_san_xuat_period" sequence="20"/>
+              action="action_ke_hoach_san_xuat_period" sequence="20"
+              groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu,sonha_vat_tu.group_ban_cung_ung_vat_tu"/>
     <menuitem id="menu_ke_hoach_vat_tu_period"
               name="Kế hoạch vật tư"
               parent="menu_ke_hoach_vat_tu"
-              action="action_ke_hoach_vat_tu_period" sequence="30"/>
+              action="action_ke_hoach_vat_tu_period" sequence="30"
+              groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu,sonha_vat_tu.group_ban_cung_ung_vat_tu"/>
     <menuitem id="menu_ke_hoach_vat_tu_b2"
               name="Định mức kỳ"
               parent="menu_ke_hoach_vat_tu"
-              action="action_dinh_muc" sequence="40"/>
+              action="action_dinh_muc" sequence="40"
+              groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu,sonha_vat_tu.group_ban_cung_ung_vat_tu"/>
     <menuitem id="menu_ke_hoach_vat_tu_b3"
               name="Tính toán vật tư"
               parent="menu_ke_hoach_vat_tu"
-              action="action_tinh_toan_vat_tu" sequence="50"/>
+              action="action_tinh_toan_vat_tu" sequence="50"
+              groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu,sonha_vat_tu.group_ban_cung_ung_vat_tu"/>
     <menuitem id="menu_ke_hoach_vat_tu_b4"
               name="Tổng hợp vật tư cần sản xuất"
               parent="menu_ke_hoach_vat_tu"
-              action="action_tong_hop_vat_tu" sequence="60"/>
+              action="action_tong_hop_vat_tu" sequence="60"
+              groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu,sonha_vat_tu.group_ban_cung_ung_vat_tu"/>
     <menuitem id="menu_ke_hoach_vat_tu_b5"
               name="Kế hoạch đặt vật tư"
               parent="menu_ke_hoach_vat_tu"
-              action="action_kh_dat_vat_tu" sequence="70"/>
+              action="action_kh_dat_vat_tu" sequence="70"
+              groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu,sonha_vat_tu.group_ban_cung_ung_vat_tu"/>
 
     <menuitem id="menu_vat_tu_di_duong"
               name="Vật tư đi đường"
               parent="menu_ke_hoach_vat_tu_root"
-              action="action_vat_tu_di_duong" sequence="20"/>
+              action="action_vat_tu_di_duong" sequence="20"
+              groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"/>
+
+    <menuitem id="menu_vat_tu_di_duong_bcu"
+              name="Vật tư đi đường"
+              parent="menu_ke_hoach_vat_tu_root"
+              action="action_vat_tu_di_duong_bcu" sequence="20"
+              groups="sonha_vat_tu.group_ban_cung_ung_vat_tu"/>
 
     <menuitem id="menu_bao_cao_root" name="Báo cáo"
-              parent="menu_ke_hoach_vat_tu_root" sequence="30"/>
+              parent="menu_ke_hoach_vat_tu_root" sequence="30"
+              groups="sonha_vat_tu.group_ban_cung_ung_vat_tu"/>
     <menuitem id="menu_bao_cao_nhu_cau_vat_tu"
               name="Báo cáo nhu cầu vật tư"
               parent="menu_bao_cao_root"
-              action="action_bao_cao_nhu_cau_vat_tu_wizard" sequence="10"/>
+              action="action_bao_cao_nhu_cau_vat_tu_wizard" sequence="10"
+              active="False"/>
+    <menuitem id="menu_bao_cao_tinh_toan_vat_tu"
+              name="Báo cáo tính toán vật tư cần"
+              parent="menu_bao_cao_root"
+              action="action_bao_cao_tinh_toan_vat_tu_wizard" sequence="20"
+              active="False"/>
+    <menuitem id="menu_bao_cao_tong_hop_vat_tu"
+              name="Báo cáo tổng hợp vật tư cần sản xuất"
+              parent="menu_bao_cao_root"
+              action="action_bao_cao_tong_hop_vat_tu_wizard" sequence="30"
+              active="False"/>
+    <menuitem id="menu_bao_cao_dinh_muc_vt_tb"
+              name="Định mức vật tư trung bình"
+              parent="menu_bao_cao_root"
+              action="action_bao_cao_dinh_muc_vt_tb_wizard" sequence="15"/>
+    <menuitem id="menu_bao_cao_vt_can_dat_kiem_tra"
+              name="Biểu in kiểm tra vật tư cần đặt"
+              parent="menu_bao_cao_root"
+              action="action_bao_cao_vt_can_dat_kiem_tra_wizard" sequence="16"/>
+    <menuitem id="menu_bao_cao_vt_can_dat_trinh_ld"
+              name="Biểu in trình lãnh đạo"
+              parent="menu_bao_cao_root"
+              action="action_bao_cao_vt_can_dat_trinh_ld_wizard" sequence="17"/>
+    <menuitem id="menu_bao_cao_kh_dat_sx"
+              name="Tổng hợp kế hoạch sản xuất"
+              parent="menu_bao_cao_root"
+              action="action_bao_cao_kh_dat_sx_wizard" sequence="18"/>
     <menuitem id="menu_du_lieu_tong_hop_vat_tu"
               name="Dữ liệu tổng hợp vật tư"
               parent="menu_bao_cao_root"
-              action="action_du_lieu_tong_hop_vat_tu" sequence="30"
+              action="action_du_lieu_tong_hop_vat_tu" sequence="40"
               groups="base.group_system"/>
 
     <menuitem id="menu_danh_muc_root" name="Danh mục"
@@ -58,10 +100,32 @@
     <menuitem id="menu_ma_hang"
               name="Mã hàng"
               parent="menu_danh_muc_root"
-              action="action_ma_hang" sequence="10"/>
+              action="action_ma_hang" sequence="10"
+              groups="base.group_system"/>
+    <menuitem id="menu_ma_hang_phan_tram"
+              name="Phần trăm dư mua theo mã NVL"
+              parent="menu_danh_muc_root"
+              action="action_ma_hang_phan_tram" sequence="15"
+              groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"/>
     <menuitem id="menu_dinh_muc"
               name="BOM"
               parent="menu_danh_muc_root"
-              action="action_bom" sequence="20"/>
+              action="action_bom" sequence="20"
+              active="False"/>
+    <menuitem id="menu_bom_dinh_muc"
+              name="BOM"
+              parent="menu_danh_muc_root"
+              action="action_bom_dinh_muc" sequence="20"
+              groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"/>
+    <menuitem id="menu_cau_hinh_leadtime"
+              name="Cấu hình leadtime"
+              parent="menu_danh_muc_root"
+              action="action_cau_hinh_leadtime" sequence="25"
+              groups="sonha_vat_tu.group_ban_cung_ung_vat_tu"/>
+    <menuitem id="menu_dmtb_nhom"
+              name="Nhóm định mức vật tư TB"
+              parent="menu_danh_muc_root"
+              action="action_dmtb_nhom" sequence="26"
+              groups="sonha_vat_tu.group_ban_cung_ung_vat_tu"/>
 
 </odoo>

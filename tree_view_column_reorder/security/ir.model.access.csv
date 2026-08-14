@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_tree_view_column_layout_user,tree.view.column.layout.user,model_tree_view_column_layout,base.group_user,1,0,0,0
+access_tree_view_column_layout_admin,tree.view.column.layout.admin,model_tree_view_column_layout,base.group_erp_manager,1,1,1,1

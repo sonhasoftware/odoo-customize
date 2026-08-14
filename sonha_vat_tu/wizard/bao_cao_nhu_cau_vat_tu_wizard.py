@@ -43,7 +43,8 @@ class BaoCaoNhuCauVatTuWizard(models.TransientModel):
     company_id = fields.Many2one(
         'res.company',
         string='Đơn vị đặt hàng',
-        help='Đơn vị kinh doanh có kế hoạch KD (SHI, TM1…). Để trống = xem tất cả.',
+        required=True,
+        help='Đơn vị kinh doanh có kế hoạch KD (SHI, TM1…).',
     )
 
     def _month_start(self, month, year):
@@ -64,9 +65,8 @@ class BaoCaoNhuCauVatTuWizard(models.TransientModel):
         domain = [
             ('period_start_date', '<=', fields.Date.to_string(date_to)),
             ('period_end_date', '>=', fields.Date.to_string(date_from)),
+            ('company_id', '=', self.company_id.id),
         ]
-        if self.company_id:
-            domain.append(('company_id', '=', self.company_id.id))
 
         action = self.env.ref('sonha_vat_tu.action_bao_cao_nhu_cau_vat_tu').sudo().read()[0]
         action['domain'] = domain

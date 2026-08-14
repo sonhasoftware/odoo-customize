@@ -57,7 +57,15 @@ class PopupConfigMailTemplate(models.TransientModel):
                 'subject': self.subject,
                 'body_html': self.body_mail,
             })
-            template.send_mail(self.contract_id.id, force_send=True)
+            mail = template.send_mail(self.contract_id.id, force_send=True)
+            mail_id = self.env['mail.mail'].browse(mail)
+            if mail_id and mail_id.state == 'exception':
+                now = datetime.now()
+                self.env['exp.mail.log'].sudo().create({
+                    'contract_id': self.contract_id.id,
+                    'note': mail_id.failure_reason,
+                    'send_date': now,
+                })
 
     @api.depends('person_receive')
     def compute_mail_to_cc(self):

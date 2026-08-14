@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="tree_view_column_reorder.ColumnLabelDialog">
+        <Dialog size="'sm'" title="props.title">
+            <form t-on-submit.prevent="save">
+                <label class="form-label" for="o_column_label_input">Tên cột</label>
+                <input
+                    t-ref="labelInput"
+                    id="o_column_label_input"
+                    type="text"
+                    class="form-control"
+                    maxlength="128"
+                    t-model="state.label"
+                    t-att-disabled="state.saving"
+                />
+                <div class="form-text" t-if="props.defaultLabel">
+                    Mặc định: <t t-esc="props.defaultLabel"/>
+                </div>
+            </form>
+            <t t-set-slot="footer">
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                    t-att-disabled="!normalizedLabel or state.saving"
+                    t-on-click="save"
+                >Lưu</button>
+                <button
+                    t-if="props.canReset"
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    t-att-disabled="state.saving"
+                    t-on-click="reset"
+                >Khôi phục mặc định</button>
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    t-att-disabled="state.saving"
+                    t-on-click="props.close"
+                >Hủy</button>
+            </t>
+        </Dialog>
+    </t>
+
+    <t t-name="tree_view_column_reorder.ListRenderer" t-inherit="web.ListRenderer" t-inherit-mode="extension">
+        <xpath expr="//th[@t-if=&quot;column.type === 'field'&quot;]" position="attributes">
+            <attribute name="t-att-data-layout-key">column.layoutKey</attribute>
+        </xpath>
+        <xpath expr="//span[@t-esc='column.label']" position="after">
+            <button
+                t-if="this._canCustomizeColumns() and column.widget !== 'handle'"
+                type="button"
+                class="o_column_label_edit btn btn-link p-0 ms-1"
+                title="Đổi tên cột"
+                aria-label="Đổi tên cột"
+                draggable="false"
+                t-on-click.stop.prevent="(ev) => this.openColumnLabelEditor(ev, column)"
+            >
+                <i class="fa fa-pencil"/>
+            </button>
+        </xpath>
+    </t>
+</templates>

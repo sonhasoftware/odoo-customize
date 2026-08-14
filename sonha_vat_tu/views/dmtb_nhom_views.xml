@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_dmtb_nhom_tree" model="ir.ui.view">
+        <field name="name">dmtb.nhom.tree</field>
+        <field name="model">dmtb.nhom</field>
+        <field name="arch" type="xml">
+            <tree string="Nhóm ĐMTB">
+                <field name="name"/>
+                <field name="nganh_hang_ids" widget="many2many_tags"/>
+                <field name="active" column_invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_dmtb_nhom_form" model="ir.ui.view">
+        <field name="name">dmtb.nhom.form</field>
+        <field name="model">dmtb.nhom</field>
+        <field name="arch" type="xml">
+            <form string="Nhóm ĐMTB">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="active"/>
+                    </group>
+                    <group>
+                        <field name="nganh_hang_ids" widget="many2many_tags"
+                               options="{'no_create': True}"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dmtb_nhom" model="ir.actions.act_window">
+        <field name="name">Nhóm định mức vật tư TB</field>
+        <field name="res_model">dmtb.nhom</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+</odoo>

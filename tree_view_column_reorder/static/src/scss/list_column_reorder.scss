@@ -1,4 +1,8 @@
 .o_list_table {
+    &.o_column_customization_disabled .o_resize {
+        display: none;
+    }
+
     thead th.o_col_reorder_draggable {
         cursor: move;
         user-select: none;
@@ -11,5 +15,27 @@
     thead th.o_col_reorder_over {
         outline: 2px dashed var(--primary);
         outline-offset: -2px;
+    }
+
+    thead .o_column_label_edit {
+        flex: 0 0 20px;
+        width: 20px;
+        height: 20px;
+        color: var(--body-color);
+        cursor: pointer;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 120ms ease-in-out;
+    }
+
+    thead th:hover .o_column_label_edit,
+    thead .o_column_label_edit:focus-visible {
+        opacity: 0.65;
+        pointer-events: auto;
+    }
+
+    thead .o_column_label_edit:hover,
+    thead .o_column_label_edit:focus-visible {
+        opacity: 1;
     }
 }

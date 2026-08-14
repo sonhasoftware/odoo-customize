@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_import_ma_hang_phan_tram_wizard_form" model="ir.ui.view">
+        <field name="name">import.ma.hang.phan.tram.wizard.form</field>
+        <field name="model">import.ma.hang.phan.tram.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Import phần trăm mã hàng">
+                <group>
+                    <field name="file_data" filename="file_name"/>
+                    <field name="file_name" invisible="1"/>
+                </group>
+                <footer>
+                    <button name="action_import" type="object" string="Import" class="btn-primary"/>
+                    <button name="action_download_template" type="object" string="Tải template"/>
+                    <button string="Hủy" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

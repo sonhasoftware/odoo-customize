@@ -5,7 +5,7 @@
         <field name="name">kh.dat.vat.tu.tree</field>
         <field name="model">kh.dat.vat.tu</field>
         <field name="arch" type="xml">
-            <tree string="Kế hoạch đặt vật tư" editable="bottom" class="sh_free_width_tree" js_class="vat_tu_merged_b5_list_view">
+            <tree duplicate="0" string="Kế hoạch đặt vật tư" editable="bottom" class="sh_free_width_tree" js_class="vat_tu_merged_b5_list_view">
                 <field name="ma_sap" string="Mã NVL" required="1"/>
                 <field name="ten_nvl" string="Tên NVL"/>
                 <field name="chung_loai" string="Chủng loại"/>
@@ -13,9 +13,9 @@
                 <field name="currency_id" column_invisible="True"/>
 
                 <!-- Tồn đầu -->
+                <field name="don_gia_ton_kho" string="Đơn giá tồn kho" widget="monetary" readonly="1"/>
                 <field name="tong_ton_nvl_sl" string="Tồn NVL đầu kỳ"/>
                 <field name="gia_tri_ton_nvl_dau_ky" string="Giá trị tồn NVL" widget="monetary"/>
-                <field name="don_gia_ton_kho" column_invisible="True"/>
 
                 <!-- Cần dùng T0..T3 + Tổng -->
                 <field name="tong_sl_vt_can_dung_t0"/>
@@ -24,18 +24,18 @@
                 <field name="tong_sl_vt_can_dung_t3"/>
                 <field name="tong_vt_can_dung" string="Tổng cần dùng"/>
 
-                <!-- Đi đường T0..T3 + Tổng -->
+                <!-- Đi đường T0..T3: chỉ số lượng (đơn vị SX không nhập đơn giá) -->
                 <field name="tong_hang_di_duong_sl_t0"/>
                 <field name="tong_hang_di_duong_sl_t1"/>
                 <field name="tong_hang_di_duong_sl_t2"/>
                 <field name="tong_hang_di_duong_sl_t3"/>
-                <field name="tong_hang_di_duong" string="Tổng đi đường"/>
+                <field name="tong_hang_di_duong" string="Tổng SL đi đường"/>
 
                 <!-- Kế hoạch đặt mua & Chỉ số cuối kỳ -->
                 <field name="sl_du_tru_toi_thieu" string="Dự trữ tối thiểu"/>
                 <field name="sl_dat_mua_de_xuat" string="Đề xuất đặt mua"/>
                 <field name="sl_dat_mua_chot" string="Đặt mua chốt"/>
-                <field name="sl_can_mua_theo_moq" string="SL mua theo MOQ"/>
+                <field name="sl_can_mua_theo_moq" string="SL cần mua dựa theo MOQ NCC"/>
                 <field name="don_gia_mua" string="Đơn giá mua" widget="monetary"/>
                 <field name="gia_tri_mua_hang" string="Giá trị mua" widget="monetary"/>
                 <field name="sl_ton_kho_cuoi_ky" string="Tồn kho cuối kỳ"/>
@@ -53,7 +53,7 @@
         <field name="name">kh.dat.vat.tu.form</field>
         <field name="model">kh.dat.vat.tu</field>
         <field name="arch" type="xml">
-            <form string="Kế hoạch đặt vật tư">
+            <form duplicate="0" string="Kế hoạch đặt vật tư">
                 <sheet>
                     <group>
                         <group>
@@ -72,9 +72,9 @@
                     <notebook>
                         <page string="Tồn kho đầu kỳ">
                             <group>
+                                <field name="don_gia_ton_kho" widget="monetary" readonly="1"/>
                                 <field name="tong_ton_nvl_sl"/>
                                 <field name="gia_tri_ton_nvl_dau_ky" string="Giá trị tồn NVL" widget="monetary"/>
-                                <field name="don_gia_ton_kho" invisible="1"/>
                             </group>
                         </page>
                         <page string="Cần dùng &amp; Đi đường">
@@ -100,7 +100,7 @@
                                 <group>
                                     <field name="sl_du_tru_toi_thieu" readonly="1"/>
                                     <field name="sl_dat_mua_de_xuat" readonly="1"/>
-                                    <field name="sl_dat_mua_chot" readonly="1"/>
+                                    <field name="sl_dat_mua_chot"/>
                                     <field name="sl_can_mua_theo_moq"/>
                                     <field name="don_gia_mua" widget="monetary"/>
                                     <field name="gia_tri_mua_hang" widget="monetary" readonly="1"/>

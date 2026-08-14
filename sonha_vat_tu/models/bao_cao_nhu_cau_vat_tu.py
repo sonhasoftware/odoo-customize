@@ -22,11 +22,9 @@ class BaoCaoNhuCauVatTu(models.Model):
         'res.company', string='Đơn vị sản xuất', readonly=True,
     )
     company_code = fields.Char(string='Mã đơn vị đặt hàng', readonly=True)
-    ma_nvl = fields.Char(string='Mã vật tư', readonly=True)
-    ma_sap = fields.Char(string='Mã SAP', readonly=True)
-    ma_effect = fields.Char(string='Mã effect', readonly=True)
-    ma_cuon = fields.Char(string='Mã cuộn', readonly=True)
-    ten_nvl = fields.Char(string='Tên vật tư', readonly=True)
+    ma_nvl = fields.Char(string='Mã NVL', readonly=True)
+    ma_sap = fields.Char(string='Mã NVL', readonly=True)
+    ten_nvl = fields.Char(string='Tên NVL', readonly=True)
     chung_loai = fields.Char(string='Chủng loại', readonly=True)
     don_vi_tinh = fields.Many2one('mdm.dvt', string='Đơn vị tính', readonly=True)
     so_luong_t0 = fields.Float(string='T0', digits=(16, 3), readonly=True)
@@ -104,8 +102,6 @@ class BaoCaoNhuCauVatTu(models.Model):
                     rc.company_code,
                     g.ma_nvl_key AS ma_nvl,
                     g.ma_nvl_key AS ma_sap,
-                    kd.ma_hang AS ma_effect,
-                    kd.ma_hang AS ma_cuon,
                     g.ten_nvl,
                     g.chung_loai,
                     g.don_vi_tinh,
@@ -117,17 +113,5 @@ class BaoCaoNhuCauVatTu(models.Model):
                         + COALESCE(g.so_luong_t2, 0) + COALESCE(g.so_luong_t3, 0) AS tong_so_luong
                 FROM grouped g
                 LEFT JOIN res_company rc ON rc.id = g.company_id
-                LEFT JOIN LATERAL (
-                    SELECT kd_inner.ma_hang
-                    FROM dinh_muc dm
-                    JOIN ke_hoach_kinh_doanh kd_inner
-                      ON kd_inner.period_id = dm.period_id
-                     AND kd_inner.ma_sap = dm.ma_sap
-                     AND kd_inner.company_id = g.company_id
-                    WHERE dm.period_id = g.period_id
-                      AND dm.ma_nvl = g.ma_nvl_key
-                    ORDER BY kd_inner.id
-                    LIMIT 1
-                ) kd ON TRUE
             )
         """)

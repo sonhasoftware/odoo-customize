@@ -9,9 +9,8 @@
                   class="sh_free_width_tree" js_class="vat_tu_nhu_cau_list_view">
                 <field name="period_month" column_invisible="1"/>
                 <field name="company_id" string="Đơn vị đặt hàng" context="{'vat_tu_company_code_display': True}"/>
-                <field name="ma_sap" string="Mã SAP"/>
-                <field name="ma_effect" string="Mã effect"/>
-                <field name="ma_cuon" string="Mã cuộn"/>
+                <field name="ma_sap" string="Mã NVL"/>
+                <field name="ten_nvl" string="Tên NVL"/>
                 <field name="so_luong_t0" sum="Tổng"/>
                 <field name="so_luong_t1" sum="Tổng"/>
                 <field name="so_luong_t2" sum="Tổng"/>
@@ -29,16 +28,13 @@
                 <field name="company_id" string="Đơn vị đặt hàng" context="{'vat_tu_company_code_display': True}"/>
                 <field name="code" string="Số chứng từ"/>
                 <field name="period_month" string="Tháng bắt đầu"/>
-                <field name="ma_nvl" string="Mã NVL"/>
-                <field name="ma_sap" string="Mã SAP"/>
-                <field name="ma_effect" string="Mã effect"/>
-                <field name="ma_cuon" string="Mã cuộn"/>
+                <field name="ma_sap" string="Mã NVL"/>
                 <field name="ten_nvl" string="Tên NVL"/>
                 <field name="chung_loai"/>
                 <group expand="0" string="Nhóm theo">
                     <filter name="group_company" string="Đơn vị đặt hàng" context="{'group_by': 'company_id'}"/>
                     <filter name="group_code" string="Số chứng từ" context="{'group_by': 'code'}"/>
-                    <filter name="group_ma_nvl" string="Mã NVL" context="{'group_by': 'ma_nvl'}"/>
+                    <filter name="group_ma_nvl" string="Mã NVL" context="{'group_by': 'ma_sap'}"/>
                     <filter name="group_ten_nvl" string="Tên NVL" context="{'group_by': 'ten_nvl'}"/>
                     <filter name="group_chung_loai" string="Chủng loại" context="{'group_by': 'chung_loai'}"/>
                 </group>

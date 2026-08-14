@@ -87,10 +87,132 @@ class EmployeeAttendanceV2(models.Model):
     wedding_leave = fields.Float(string="Nghỉ cưới", store=True)
     regime_leave = fields.Float(string="Nghỉ chế độ", store=True)
 
+    part_time_hour = fields.Float(string="Giờ làm partime", store=True)
+
 
     LOCAL_TZ_OFFSET = timedelta(hours=7)
-    CHECK_WINDOW_HOURS = 7
+    CHECK_WINDOW_HOURS = 1
     MAX_OT_SHIFT_GAP_HOURS = 1
+
+    def _get_actual_attendance_interval_local(self, record):
+        """Return the actual CI/CO anchors after considering contiguous overtime."""
+        shift_start, shift_end = self._get_shift_interval_local(record)
+        if not shift_start or not shift_end:
+            return None, None
+
+        actual_start = shift_start
+        actual_end = shift_end
+        for line in self._get_owned_overtime_lines(record):
+            ot_start, ot_end = self._get_overtime_line_interval_local(line)
+            if not ot_start or not ot_end:
+                continue
+            if ot_end <= shift_start:
+                actual_start = min(actual_start, ot_start)
+            elif ot_start >= shift_end:
+                actual_end = max(actual_end, ot_end)
+            elif record.shift.shift_ot:
+                actual_start = min(actual_start, ot_start)
+                actual_end = max(actual_end, ot_end)
+
+        return actual_start, actual_end
+
+    def _get_preferred_attendance_windows_local(self, record):
+        actual_start, actual_end = self._get_actual_attendance_interval_local(record)
+        if not actual_start or not actual_end:
+            return {}
+
+        split_local = actual_start + (actual_end - actual_start) / 2
+        one_hour = timedelta(hours=self.CHECK_WINDOW_HOURS)
+        return {
+            'check_in': (actual_start - one_hour, min(actual_start + one_hour, split_local)),
+            'check_out': (max(actual_end - one_hour, split_local), actual_end + one_hour),
+            'split': split_local,
+            'actual_start': actual_start,
+            'actual_end': actual_end,
+        }
+
+    def _get_attendance_priority_windows_utc(self, record):
+        """Return preferred and fallback CI/CO windows for raw attendance matching."""
+        preferred = self._get_preferred_attendance_windows_local(record)
+        if not preferred:
+            return {}
+
+        actual_start = preferred['actual_start']
+        actual_end = preferred['actual_end']
+        split_local = preferred['split']
+
+        preferred_check_in_start, _preferred_check_in_end = preferred['check_in']
+        _preferred_check_out_start, preferred_check_out_end = preferred['check_out']
+
+        if preferred_check_in_start.date() < actual_start.date():
+            check_in_fallback_start = preferred_check_in_start
+        else:
+            check_in_fallback_start = datetime.combine(actual_start.date(), time.min)
+
+        if preferred_check_out_end.date() > actual_end.date():
+            check_out_fallback_end = preferred_check_out_end
+        else:
+            check_out_fallback_end = datetime.combine(actual_end.date(), time.max)
+        previous_check_out_bound = None
+        next_check_in_bound = None
+
+        neighbor_records = self.sudo().search([
+            ('employee_id', '=', record.employee_id.id),
+            ('date', '>=', record.date - timedelta(days=1)),
+            ('date', '<=', record.date + timedelta(days=1)),
+        ])
+        for neighbor in neighbor_records:
+            if neighbor.id == record.id:
+                continue
+            neighbor_preferred = self._get_preferred_attendance_windows_local(neighbor)
+            neighbor_check_in = neighbor_preferred.get('check_in')
+            neighbor_check_out = neighbor_preferred.get('check_out')
+
+            if neighbor_check_out:
+                neighbor_co_start, neighbor_co_end = neighbor_check_out
+                if neighbor_co_end <= preferred_check_in_start and neighbor_co_end.date == preferred_check_in_start.date:
+                    previous_check_out_bound = max(
+                        previous_check_out_bound or neighbor_co_end,
+                        neighbor_co_end
+                    )
+                elif check_in_fallback_start <= neighbor_co_end <= split_local:
+                    check_in_fallback_start = max(check_in_fallback_start, neighbor_co_end)
+                elif neighbor_co_start < split_local and neighbor_co_end >= check_in_fallback_start:
+                    check_in_fallback_start = max(check_in_fallback_start, min(neighbor_co_end, split_local))
+
+            if neighbor_check_in:
+                neighbor_ci_start, neighbor_ci_end = neighbor_check_in
+                if neighbor_ci_start >= preferred_check_out_end and neighbor_ci_start.date == preferred_check_out_end.date:
+                    next_check_in_bound = min(
+                        next_check_in_bound or neighbor_ci_start,
+                        neighbor_ci_start
+                    )
+                elif split_local <= neighbor_ci_start <= check_out_fallback_end:
+                    check_out_fallback_end = min(check_out_fallback_end, neighbor_ci_start)
+                elif neighbor_ci_start <= check_out_fallback_end and neighbor_ci_end > split_local:
+                    check_out_fallback_end = min(check_out_fallback_end, max(neighbor_ci_start, split_local))
+
+        if previous_check_out_bound:
+            check_in_fallback_start = min(check_in_fallback_start, previous_check_out_bound)
+        if next_check_in_bound:
+            check_out_fallback_end = max(check_out_fallback_end, next_check_in_bound)
+
+        return {
+            'check_in_preferred': (self._to_utc_datetime(preferred['check_in'][0]),
+                                   self._to_utc_datetime(preferred['check_in'][1])),
+            'check_in_fallback': (self._to_utc_datetime(check_in_fallback_start),
+                                  self._to_utc_datetime(split_local)),
+            'check_out_preferred': (self._to_utc_datetime(preferred['check_out'][0]),
+                                    self._to_utc_datetime(preferred['check_out'][1])),
+            'check_out_fallback': (self._to_utc_datetime(split_local),
+                                   self._to_utc_datetime(check_out_fallback_end)),
+        }
+
+    def _filter_attendance_values_in_window(self, attendance_values, window):
+        start, end = window
+        if not start or not end or end < start:
+            return []
+        return [value for value in attendance_values if start <= value <= end]
 
     def _to_local_datetime(self, dt):
         return dt + self.LOCAL_TZ_OFFSET if dt else None
@@ -225,6 +347,48 @@ class EmployeeAttendanceV2(models.Model):
         ])
         return lines.filtered(lambda line: self._is_overtime_line_employee(line, employee))
 
+    def _get_overtime_owner_interval_local(self, attendance, employee):
+        shift_start, shift_end = self._get_shift_interval_local(attendance)
+        if not shift_start or not shift_end:
+            return None, None
+
+        interval_start = shift_start
+        interval_end = shift_end
+        max_gap = self.MAX_OT_SHIFT_GAP_HOURS
+        candidates = self._get_overtime_candidates(
+            employee,
+            shift_start.date() - timedelta(days=1),
+            shift_end.date() + timedelta(days=1),
+        )
+
+        changed = True
+        while changed:
+            changed = False
+            for line in candidates:
+                ot_start, ot_end = self._get_overtime_line_interval_local(line)
+                if not ot_start or not ot_end:
+                    continue
+
+                if ot_end <= interval_start:
+                    gap_hours = self._duration_hours(ot_end, interval_start)
+                    if gap_hours <= max_gap:
+                        interval_start = ot_start
+                        changed = True
+                elif ot_start >= interval_end:
+                    gap_hours = self._duration_hours(interval_end, ot_start)
+                    if gap_hours <= max_gap:
+                        interval_end = ot_end
+                        changed = True
+                elif attendance.shift.shift_ot:
+                    new_start = min(interval_start, ot_start)
+                    new_end = max(interval_end, ot_end)
+                    if new_start != interval_start or new_end != interval_end:
+                        interval_start = new_start
+                        interval_end = new_end
+                        changed = True
+
+        return interval_start, interval_end
+
     def _get_overtime_owner_record(self, line, employee):
         ot_start, ot_end = self._get_overtime_line_interval_local(line)
         if not ot_start or not ot_end:
@@ -237,7 +401,7 @@ class EmployeeAttendanceV2(models.Model):
         best_record = self.env['employee.attendance.v2']
         best_key = None
         for attendance in records:
-            shift_start, shift_end = self._get_shift_interval_local(attendance)
+            shift_start, shift_end = self._get_overtime_owner_interval_local(attendance, employee)
             if not shift_start or not shift_end:
                 continue
             overlap_start, overlap_end = self._intersect_interval(ot_start, ot_end, shift_start, shift_end)
@@ -363,7 +527,7 @@ class EmployeeAttendanceV2(models.Model):
             if r.shift and r.shift.is_office_hour and (weekday == 6 or (weekday == 5 and week_number % 2 == 1)):
                 r.work_calendar = False
 
-    @api.depends('shift')
+    @api.depends('shift', 'work_day')
     def get_work_hc_sp(self):
         for r in self:
             r.work_sp = 0
@@ -373,7 +537,7 @@ class EmployeeAttendanceV2(models.Model):
             else:
                 r.work_hc = r.work_day
 
-    @api.depends('shift')
+    @api.depends('shift', 'work_day')
     def get_shift(self):
         for r in self:
             # Reset giá trị mặc định
@@ -847,25 +1011,41 @@ class EmployeeAttendanceV2(models.Model):
             if not r.time_check_in or not r.time_check_out or not r.employee_id:
                 continue
 
+            windows = self._get_attendance_priority_windows_utc(r)
+            search_start = min(
+                window[0]
+                for window in windows.values()
+                if window and window[0]
+            ) if windows else r.time_check_in
+            search_end = max(
+                window[1]
+                for window in windows.values()
+                if window and window[1]
+            ) if windows else r.time_check_out
+
             attendance_times = self.env['master.data.attendance'].sudo().search_read(
-                [('attendance_time', '>=', r.time_check_in),
-                 ('attendance_time', '<=', r.time_check_out),
+                [('attendance_time', '>=', search_start),
+                 ('attendance_time', '<=', search_end),
                  ('employee_id', '=', r.employee_id.id)],
                 ['attendance_time'],
                 order='attendance_time ASC'
             )
             attendance_values = [a['attendance_time'] for a in attendance_times if a['attendance_time']]
-            attendance_ci = [
-                value for value in attendance_values
-                if r.check_no_in and value <= r.check_no_in
-            ]
-            attendance_co = [
-                value for value in attendance_values
-                if r.check_no_out and value > r.check_no_out
-            ]
+            preferred_ci = self._filter_attendance_values_in_window(
+                attendance_values, windows.get('check_in_preferred', (None, None))
+            )
+            fallback_ci = self._filter_attendance_values_in_window(
+                attendance_values, windows.get('check_in_fallback', (None, None))
+            )
+            preferred_co = self._filter_attendance_values_in_window(
+                attendance_values, windows.get('check_out_preferred', (None, None))
+            )
+            fallback_co = self._filter_attendance_values_in_window(
+                attendance_values, windows.get('check_out_fallback', (None, None))
+            )
 
-            check_in = attendance_ci[0] if attendance_ci else None
-            check_out = attendance_co[-1] if attendance_co else None
+            check_in = preferred_ci[0] if preferred_ci else (fallback_ci[0] if fallback_ci else None)
+            check_out = preferred_co[-1] if preferred_co else (fallback_co[-1] if fallback_co else None)
 
             in_outs = self._get_time_word_slips_in_window(r.employee_id, r.time_check_in, r.time_check_out)
             for in_out in in_outs:
@@ -882,7 +1062,7 @@ class EmployeeAttendanceV2(models.Model):
             r.check_out = check_out
 
     # Lấy thông tin xem nhân viên có check-in hay check-out hay không
-    @api.depends('shift', 'check_out', 'check_in')
+    @api.depends('shift', 'check_out', 'check_in', 'leave', 'compensatory', 'vacation')
     def _get_attendance(self):
         for r in self:
             if (not r.check_in and not r.check_out) or (r.check_in and r.check_out):
@@ -899,7 +1079,7 @@ class EmployeeAttendanceV2(models.Model):
                 r.note = None
 
     # Lấy thông tin số phút nhân viên đi muộn hoặc về sớm
-    @api.depends('check_out', 'check_in', 'employee_id')
+    @api.depends('check_out', 'check_in', 'employee_id', 'shift', 'date', 'leave', 'compensatory', 'vacation')
     def _get_minute_late_early(self):
         for r in self:
             r.minutes_late, r.minutes_early = 0, 0
@@ -933,9 +1113,10 @@ class EmployeeAttendanceV2(models.Model):
                 r.minutes_late = 0
 
     # Lấy thông tin ngày công của nhân viên
-    @api.depends('check_in', 'check_out', 'shift')
+    @api.depends('check_in', 'check_out', 'shift', 'date', 'employee_id', 'leave', 'compensatory')
     def _get_work_day(self):
         for r in self:
+            part_time_hour = 0
             weekday = r.date.weekday()
             week_number = r.date.isocalendar()[1]
             free_time = self.env['free.timekeeping'].sudo().search([('employee_id', '=', r.employee_id.id),
@@ -958,6 +1139,21 @@ class EmployeeAttendanceV2(models.Model):
                 r.work_day = 0
             elif r.shift.shift_ot:
                 r.work_day = 0
+            elif r.shift.part_time:
+                r.work_day = 0
+                shift_start, shift_end = self._get_shift_interval_local(r)
+                if r.check_in and r.check_out:
+                    check_in = self._to_local_datetime(r.check_in)
+                    check_out = self._to_local_datetime(r.check_out)
+                    if check_in <= shift_start and check_out >= shift_end:
+                        part_time_hour = round(((shift_end - shift_start).total_seconds() / 3600), 2)
+                    elif check_in <= shift_start and check_out < shift_end:
+                        part_time_hour = round(((check_out - shift_start).total_seconds() / 3600), 2)
+                    elif check_in > shift_start and check_out >= shift_end:
+                        part_time_hour = round(((shift_end - check_in).total_seconds() / 3600), 2)
+                    else:
+                        part_time_hour = round(((check_out - check_in).total_seconds() / 3600), 2)
+                r.part_time_hour = part_time_hour
             else:
                 if free_time:
                     if r.compensatory > 0:
@@ -1012,7 +1208,7 @@ class EmployeeAttendanceV2(models.Model):
                 r.weekday = None
 
     # tính màu cho danh sách
-    @api.depends('date', 'check_in', 'check_out', 'minutes_late', 'minutes_early')
+    @api.depends('date', 'check_in', 'check_out', 'minutes_late', 'minutes_early', 'public_leave', 'work_day', 'over_time', 'shift', 'employee_id')
     def _compute_color(self):
         today = date.today()
         for r in self:
@@ -1074,6 +1270,12 @@ class EmployeeAttendanceV2(models.Model):
                 pass
             if (r.employee_id.company_id.calender_work != 'odd' and (weekday == 6 or weekday == 5)):
                 r.color = None
+
+            if r.shift.part_time:
+                if r.part_time_hour > 0 and r.minutes_late == 0 and r.minutes_early == 0:
+                    r.color = 'green'
+                else:
+                    r.color = 'red'
 
     @api.depends('minutes_late', 'minutes_early')
     def get_times_late(self):
@@ -1168,6 +1370,74 @@ class EmployeeAttendanceV2(models.Model):
                 application_id=0,
             )
 
+    def _should_auto_recompute_before_read(self, field_names=None):
+        if self.env.context.get('skip_attendance_v2_auto_recompute'):
+            return False
+        if not field_names:
+            return True
+        raw_dependent_fields = {
+            'check_in', 'check_out', 'duration', 'note', 'work_day',
+            'minutes_late', 'minutes_early', 'over_time', 'over_time_nb',
+            'sunday_work', 'normal_sunday_work', 'ot_sunday_work',
+            'work_hc', 'work_sp', 'times_late', 'actual_work',
+            'forgot_time', 'work_eat', 'color',
+        }
+        return bool(raw_dependent_fields.intersection(field_names))
+
+    def _auto_recompute_before_read(self, field_names=None):
+        if self and self._should_auto_recompute_before_read(field_names):
+            records = self.sudo().with_context(skip_attendance_v2_auto_recompute=True)
+            records._recompute_attendance_v2_fields()
+        return True
+
+    def read(self, fields=None, load='_classic_read'):
+        self._auto_recompute_before_read(set(fields or []))
+        return super().read(fields=fields, load=load)
+
+    def search_read(self, domain=None, fields=None, offset=0, limit=None, order=None):
+        records = self.search(domain or [], offset=offset, limit=limit, order=order)
+        records._auto_recompute_before_read(set(fields or []))
+        return records.with_context(skip_attendance_v2_auto_recompute=True).read(fields)
+
+    def _recompute_attendance_v2_fields(self):
+        """Recompute stored fields in dependency order without bypassing ORM dependencies.
+
+        Raw SQL updates of check_in/check_out do not invalidate Odoo's stored computed
+        fields, so every field depending on them (and fields depending on those fields)
+        can become stale. This helper keeps all recalculation inside ORM compute
+        methods and explicitly walks the domino chain in a stable order for batch jobs
+        and attendance punch changes.
+        """
+        records = self.sudo()
+        if not records:
+            return True
+
+        records.get_department()
+        records._compute_weekday()
+        records._get_month_year()
+        records._get_shift_employee()
+        records._get_duration()
+        records.get_work_calendar()
+        records._get_time_in_out()
+        records._check_no_in_out()
+        records._get_check_in_out()
+        records.get_hours_reinforcement()
+        records._get_work_day()
+        records._get_time_off()
+        records._get_attendance()
+        records._get_minute_late_early()
+        records._get_work_day()
+        records.get_hours_reinforcement()
+        records._get_sunday_work()
+        records.get_work_hc_sp()
+        records.get_shift()
+        records.get_times_late()
+        records._get_actual_work()
+        records._get_forgot_time()
+        records._get_work_eat()
+        records._compute_color()
+        return True
+
     def recompute_for_employee(self, employee, date_from=None, date_to=None):
         """Helper: gọi từ model khác (vd word.slip.write/create/unlink) để
            recompute các employee.attendance liên quan.
@@ -1184,19 +1454,7 @@ class EmployeeAttendanceV2(models.Model):
             domain.append(('date', '<=', fields.Date.to_date(date_to)))
         list_recs = self.search(domain)
         if list_recs:
-            for recs in list_recs:
-            # ghi lại để force recompute store fields
-                recs.sudo().write({'date': recs.date})  # ghi lại trường date để kích hoạt recompute store
-                # hoặc gọi recompute cụ thể
-                recs._get_shift_employee()
-                recs._get_time_off()
-                recs._get_time_in_out()
-                recs._check_no_in_out()
-                recs._get_check_in_out()
-                recs.get_hours_reinforcement()
-                recs._get_minute_late_early()
-                recs._get_work_day()
-                recs.get_department()
+            list_recs.sudo()._recompute_attendance_v2_fields()
 
         overtime_domain = []
         if date_from:
@@ -1212,6 +1470,26 @@ class EmployeeAttendanceV2(models.Model):
             for overtime in overtime_records:
                 overtime._sync_actual_compensatory_for_record(overtime)
         return True
+
+    def recompute_for_overtime(self, employee_ids, date_from=None, date_to=None):
+        query = """
+            SELECT id
+            FROM employee_attendance_v2
+            WHERE employee_id = ANY(%s)
+              AND date >= %s
+              AND date <= %s
+        """
+
+        self.env.cr.execute(query, (
+            employee_ids,
+            date_from,
+            date_to
+        ))
+
+        ids = [r[0] for r in self.env.cr.fetchall()]
+        recs = self.env['employee.attendance.v2'].browse(ids)
+        if recs:
+            recs.sudo()._recompute_attendance_v2_fields()
 
     def action_export_excel(self, ids):
 
@@ -1691,3 +1969,39 @@ class EmployeeAttendanceV2(models.Model):
     #     output.seek(0)
     #
     #     return base64.b64encode(output.read())
+
+    def _setup_check_in_out_sync_sql(self):
+        """Keep supporting indexes and remove the legacy SQL sync trigger.
+
+        The old trigger updated check_in/check_out directly in PostgreSQL. That
+        bypassed Odoo ORM invalidation, so stored computed fields depending on
+        check_in/check_out were not recomputed. Attendance changes are now synced
+        through recompute_for_employee(), which uses ORM compute methods for the
+        full dependency chain.
+        """
+        self.env.cr.execute("""
+            CREATE INDEX IF NOT EXISTS master_data_attendance_employee_time_idx
+                ON master_data_attendance (employee_id, attendance_time);
+
+            CREATE INDEX IF NOT EXISTS employee_attendance_v2_employee_date_idx
+                ON employee_attendance_v2 (employee_id, date);
+
+            DROP TRIGGER IF EXISTS master_data_attendance_sync_v2_check_in_out
+                ON master_data_attendance;
+
+            DROP FUNCTION IF EXISTS trg_sync_employee_attendance_v2_check_in_out()
+                CASCADE;
+
+            DROP FUNCTION IF EXISTS sync_employee_attendance_v2_check_in_out(
+                integer,
+                timestamp without time zone
+            ) CASCADE;
+        """)
+
+    def init(self):
+        self._setup_check_in_out_sync_sql()
+
+    def _register_hook(self):
+        res = super()._register_hook()
+        self._setup_check_in_out_sync_sql()
+        return res
