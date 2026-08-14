@@ -21,7 +21,8 @@ class KeHoachKinhDoanhLine(models.Model):
     )
     period_id = fields.Many2one(
         'ke.hoach.vat.tu', string='Kỳ SX',
-        related='kinh_doanh_id.period_sx_id', store=True, readonly=True,
+        related='kinh_doanh_id.period_sx_id', readonly=True,
+        help='Chỉ hiển thị — không lưu FK tới kỳ SX; xóa kỳ SX/vật tư không được xóa dòng KD.',
     )
 
     _sql_constraints = [
@@ -75,7 +76,7 @@ class KeHoachKinhDoanhLine(models.Model):
         ):
             if not self.env['ma.hang'].sap_exists_in_mdm(rec.ma_sap.strip()):
                 raise ValidationError(
-                    _('Mã "%s" không có trong MDM (mdm.tong.hop.line).') % rec.ma_sap
+                    _('Mã "%s" không tồn tại.') % rec.ma_sap
                 )
 
     def _post_scoped_message(self, header, body):

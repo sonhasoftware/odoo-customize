@@ -144,8 +144,13 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
 
     def _aggregate_period(self, period, nganh_ids):
         plan_model = self._plan_model_name()
+        period_field = (
+            'kinh_doanh_id.period_sx_id'
+            if plan_model == 'ke.hoach.kinh.doanh.line'
+            else 'period_id'
+        )
         plan_lines = self.env[plan_model].search([
-            ('period_id', '=', period.id),
+            (period_field, '=', period.id),
             ('nganh_hang', 'in', list(nganh_ids)),
         ])
         b3_lines = self.env['tinh.toan.vat.tu'].search([

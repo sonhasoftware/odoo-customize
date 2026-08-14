@@ -77,14 +77,15 @@ RETURNS void LANGUAGE sql AS $$
     )
     SELECT
         'kd', 'ke.hoach.kinh.doanh.line', k.id,
-        k.period_id, p.code, p.period_month, p.company_id,
+        p.id, p.code, p.period_month, p.company_id,
         k.company_id, rc.company_code, k.company_id, rc.company_code,
         TO_CHAR(d.md, 'MM/YYYY'), d.md,
         k.ma_sap, nh.ten, k.ten_hang, k.ma_hang, m.qty, k.note,
         k.create_uid, k.create_date, k.write_uid, k.write_date
     FROM ke_hoach_kinh_doanh_line k
+    JOIN ke_hoach_kinh_doanh h ON h.id = k.kinh_doanh_id
     JOIN ke_hoach_vat_tu p
-      ON p.id = k.period_id
+      ON p.id = h.period_sx_id
      AND p.period_month ~ '^\d{2}/\d{4}$'
     LEFT JOIN res_company rc      ON rc.id = k.company_id
     LEFT JOIN mdm_nganh_hang nh   ON nh.id = k.nganh_hang
@@ -725,7 +726,12 @@ RETURNS void LANGUAGE plpgsql AS $$
 BEGIN
     DELETE FROM du_lieu_tong_hop_vat_tu WHERE period_id = p_period_id;
 
-    PERFORM dlthvt_map_kd(ARRAY(SELECT id FROM ke_hoach_kinh_doanh_line WHERE period_id = p_period_id));
+    PERFORM dlthvt_map_kd(ARRAY(
+        SELECT k.id
+          FROM ke_hoach_kinh_doanh_line k
+          JOIN ke_hoach_kinh_doanh h ON h.id = k.kinh_doanh_id
+         WHERE h.period_sx_id = p_period_id
+    ));
     PERFORM dlthvt_map_sx(ARRAY(SELECT id FROM ke_hoach_san_xuat    WHERE period_id = p_period_id));
     PERFORM dlthvt_map_b1(ARRAY(SELECT id FROM ke_hoach_vat_tu_line WHERE period_id = p_period_id));
     PERFORM dlthvt_map_b2(ARRAY(SELECT id FROM dinh_muc             WHERE period_id = p_period_id));

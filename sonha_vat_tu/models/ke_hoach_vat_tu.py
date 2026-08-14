@@ -413,6 +413,11 @@ class KeHoachVatTu(models.Model):
             raise UserError(_(
                 'Không thể xóa kỳ kế hoạch đã sang bước sau hoặc đã phê duyệt kế hoạch đặt vật tư.'
             ))
+        kd_headers = self.env['ke.hoach.kinh.doanh'].sudo().search([
+            ('period_sx_id', 'in', self.ids),
+        ])
+        if kd_headers:
+            kd_headers.write({'locked': False, 'period_sx_id': False})
         return super().unlink()
 
     @api.constrains('period_month')
@@ -571,12 +576,23 @@ class KeHoachVatTu(models.Model):
     def _kinh_doanh_headers_for_pull(self):
         """KHKD của user hiện tại: cùng tháng + ĐV SX, chưa gắn kỳ khác."""
         self.ensure_one()
-        return self.env['ke.hoach.kinh.doanh'].search([
+        base_domain = [
             ('create_uid', '=', self.env.user.id),
             ('period_month', '=', self.period_month),
             ('company_sx_id', '=', self.company_sx_id.id),
-            '|', ('locked', '=', False), ('period_sx_id', '=', self.id),
-        ], order='company_id, id')
+        ]
+        # KHKD đã gom vào kỳ SX bị xóa: period_sx_id=null nhưng locked vẫn True → mở khóa lại.
+        orphans = self.env['ke.hoach.kinh.doanh'].sudo().search(
+            base_domain + [('locked', '=', True), ('period_sx_id', '=', False)]
+        )
+        if orphans:
+            orphans.write({'locked': False})
+        return self.env['ke.hoach.kinh.doanh'].search(
+            base_domain + [
+                '|', ('locked', '=', False), ('period_sx_id', '=', self.id),
+            ],
+            order='company_id, id',
+        )
 
     def _pull_kinh_doanh_into_san_xuat(self):
         self.ensure_one()
@@ -665,7 +681,7 @@ class KeHoachVatTu(models.Model):
         self.ensure_one()
         agg = {}
         kd_lines = self.env['ke.hoach.kinh.doanh.line'].sudo().search([
-            ('period_id', '=', self.id),
+            ('kinh_doanh_id.period_sx_id', '=', self.id),
             ('ma_sap', '!=', False),
         ])
         for line in kd_lines:
