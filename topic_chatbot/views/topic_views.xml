@@ -6,6 +6,9 @@
         <field name="model">topic_chatbot.topic</field>
         <field name="arch" type="xml">
             <form string="Topic">
+                <header>
+                    <button name="action_process_all_documents" string="Xử lý tài liệu" type="object" class="btn-primary" icon="fa-cogs"/>
+                </header>
                 <sheet>
                     <div class="oe_title">
                         <label for="name" class="oe_edit_only"/>
@@ -17,8 +20,13 @@
                         <group>
                             <field name="is_admin" invisible="1"/>
                             <field name="is_public" readonly="not is_admin"/>
+                            <field name="is_db_query"/>
+                            <field name="is_mssql_query"/>
                             <field name="create_uid" readonly="1" string="Owner"/>
                         </group>
+                    </group>
+                    <group invisible="not is_mssql_query">
+                        <field name="mssql_allowed_tables" placeholder="Ví dụ: dbo.FactSales (Doanh số bán hàng), dbo.DimCustomer (Thông tin khách hàng)..."/>
                     </group>
                     <notebook>
                         <page string="Description" name="description">
@@ -29,8 +37,10 @@
                                 <tree string="Documents" editable="bottom">
                                     <field name="name"/>
                                     <field name="filename" column_invisible="True"/>
-                                    <field name="datas" filename="filename" string="Upload File" options="{'accepted_file_extensions': '.docx,.txt'}"/>
+                                    <field name="datas" filename="filename" string="Upload File" options="{'accepted_file_extensions': '.pdf,.docx,.xlsx,.xls,.csv,.txt'}"/>
                                     <field name="state" readonly="1" decoration-info="state == 'draft'" decoration-warning="state == 'processing'" decoration-success="state == 'done'" decoration-danger="state == 'error'"/>
+                                    <field name="layout_type" readonly="1" optional="hide"/>
+                                    <button name="action_process_document" string=" Xử lý" type="object" icon="fa-play" class="btn-secondary"/>
                                     <field name="create_date" string="Uploaded On" readonly="1"/>
                                 </tree>
                             </field>
@@ -51,6 +61,8 @@
                 <field name="name"/>
                 <field name="description"/>
                 <field name="is_public"/>
+                <field name="is_db_query"/>
+                <field name="is_mssql_query"/>
                 <field name="create_uid" string="Owner"/>
                 <field name="create_date" string="Created On"/>
             </tree>
@@ -65,8 +77,11 @@
             <search string="Search Topics">
                 <field name="name"/>
                 <field name="description"/>
+                <field name="mssql_allowed_tables"/>
                 <filter string="Public" name="public" domain="[('is_public', '=', True)]"/>
                 <filter string="Private" name="private" domain="[('is_public', '=', False)]"/>
+                <filter string="Hỏi dữ liệu DB (Odoo)" name="db_query" domain="[('is_db_query', '=', True)]"/>
+                <filter string="Hỏi dữ liệu SQL Server" name="mssql_query" domain="[('is_mssql_query', '=', True)]"/>
                 <filter string="My Topics" name="my_topics" domain="[('create_uid', '=', uid)]"/>
             </search>
         </field>

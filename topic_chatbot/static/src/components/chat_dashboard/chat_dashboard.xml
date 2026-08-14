@@ -15,8 +15,10 @@
                                  t-att-class="{'active': state.selectedTopicId === topic.id}"
                                  t-on-click="() => this.selectTopic(topic.id)">
                                 <span class="topic_name" t-out="topic.name"/>
+                                <span t-if="topic.is_db_query" class="badge bg-success ms-1" style="font-size: 9px;" title="Hỏi sâu dữ liệu DB Odoo">Hỏi DB</span>
+                                <span t-if="topic.is_mssql_query" class="badge bg-mssql-blue ms-1" style="font-size: 9px;" title="Hỏi dữ liệu CSDL SQL Server">Hỏi SQL Server</span>
                                 <span t-if="topic.is_public" class="badge bg-primary ms-1" style="font-size: 9px;">Public</span>
-                                <span t-else="" class="badge bg-secondary ms-1" style="font-size: 9px;">Private</span>
+                                <span t-else="" class="badge badge-private ms-1" style="font-size: 9px;">Private</span>
                             </div>
                         </t>
                         <div t-if="state.topics.length === 0" class="text-muted text-center py-2" style="font-size: 12px;">
@@ -69,6 +71,14 @@
                 <div class="chat_header" t-if="state.selectedTopicId">
                     <div class="d-flex align-items-center">
                         <span class="fs-5 fw-bold" t-out="state.topics.find(t => t.id === state.selectedTopicId)?.name"/>
+                        <span t-if="state.topics.find(t => t.id === state.selectedTopicId)?.is_db_query" 
+                              class="badge bg-success ms-2" style="font-size: 11px;">
+                            <i class="fa fa-database me-1"></i>Hỏi dữ liệu DB
+                        </span>
+                        <span t-if="state.topics.find(t => t.id === state.selectedTopicId)?.is_mssql_query" 
+                              class="badge bg-mssql-blue ms-2" style="font-size: 11px;">
+                            <i class="fa fa-database me-1"></i>Hỏi dữ liệu SQL Server
+                        </span>
                         <span class="ms-3 text-muted" style="font-size: 13px;" 
                               t-out="state.topics.find(t => t.id === state.selectedTopicId)?.description"/>
                     </div>
@@ -86,7 +96,7 @@
                                 <h2 class="mb-3">Chào mừng bạn đến với Topic Chatbot</h2>
                                 <p class="text-muted mb-4">
                                     Để bắt đầu sử dụng, vui lòng chọn một chủ đề tài liệu từ danh sách ở thanh bên trái.
-                                    AI sẽ chỉ trả lời các câu hỏi dựa trên nội dung các tài liệu đã được import trong chủ đề đó.
+                                    AI sẽ trả lời các câu hỏi dựa trên nội dung các tài liệu thuộc chủ đề đó (hoặc truy vấn dữ liệu DB Odoo với chủ đề Hỏi DB).
                                 </p>
                             </div>
                         </div>
@@ -164,7 +174,12 @@
                         </button>
                     </div>
                     <div class="text-center text-muted mt-2" style="font-size: 11px;">
-                        Hệ thống trả lời tự động dựa trên tài liệu tham khảo của chủ đề đang chọn.
+                        <t t-if="state.topics.find(t => t.id === state.selectedTopicId)?.is_db_query">
+                            Hệ thống trả lời tự động kết hợp tài liệu tham khảo và truy vấn dữ liệu trực tiếp trên DB Odoo.
+                        </t>
+                        <t t-else="">
+                            Hệ thống trả lời tự động dựa trên tài liệu tham khảo của chủ đề đang chọn.
+                        </t>
                     </div>
                 </div>
             </div>

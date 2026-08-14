@@ -61,7 +61,7 @@ class TestTopicChatbotControllers(TransactionCase):
         
         # Set up config parameters
         cls.env['ir.config_parameter'].sudo().set_param('topic_chatbot.gemini_api_key', 'test_api_key_123')
-        cls.env['ir.config_parameter'].sudo().set_param('topic_chatbot.gemini_model', 'gemini-1.5-flash')
+        cls.env['ir.config_parameter'].sudo().set_param('topic_chatbot.gemini_model', 'gemini-3.6-flash')
         cls.env.flush_all()
 
     @contextmanager
@@ -490,3 +490,26 @@ class TestTopicChatbotControllers(TransactionCase):
             
             self.assertIn('conversation_name', result)
             self.assertNotEqual(result['conversation_name'], 'New Chat')
+
+    def test_31_execute_mssql_query_security_checks(self):
+        """Test SQL Server query execution security checks (blocking INSERT, DELETE, DROP, multiple statements)."""
+        self.env['ir.config_parameter'].sudo().set_param('topic_chatbot.mssql_enabled', 'True')
+        self.env['ir.config_parameter'].sudo().set_param('topic_chatbot.mssql_host', 'localhost')
+        self.env['ir.config_parameter'].sudo().set_param('topic_chatbot.mssql_db', 'TestDB')
+        self.env['ir.config_parameter'].sudo().set_param('topic_chatbot.mssql_user', 'sa')
+
+        # Test non-SELECT statement
+        res1 = self.controller._execute_mssql_query("UPDATE users SET admin=1", env=self.env)
+        self.assertIn('error', res1)
+        self.assertIn('bảo mật', res1['error'])
+
+        # Test DELETE statement
+        res2 = self.controller._execute_mssql_query("DELETE FROM dbo.Orders", env=self.env)
+        self.assertIn('error', res2)
+        self.assertIn('bảo mật', res2['error'])
+
+        # Test multiple statements with semicolon
+        res3 = self.controller._execute_mssql_query("SELECT * FROM dbo.Users; DROP TABLE dbo.Users;", env=self.env)
+        self.assertIn('error', res3)
+        self.assertIn('nhiều câu lệnh', res3['error'])
+

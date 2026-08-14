@@ -9,40 +9,43 @@
             <xpath expr="//form" position="inside">
                 <app data-string="Topic Chatbot" string="Topic Chatbot" name="topic_chatbot">
                     <block title="Gemini API Configuration" id="topic_chatbot_gemini_config">
-                        <div class="row mt16 o_settings_container">
-                            <div class="col-12 col-lg-6 o_setting_box" id="gemini_api_key_setting">
-                                <div class="o_setting_right_pane">
-                                    <label for="topic_chatbot_gemini_api_key" string="Gemini API Key"/>
-                                    <div class="text-muted">
-                                        Enter your Google Gemini API Key.
-                                    </div>
-                                    <div class="content-group mt8">
-                                        <field name="topic_chatbot_gemini_api_key" password="True"/>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-12 col-lg-6 o_setting_box" id="gemini_model_setting">
-                                <div class="o_setting_right_pane">
-                                    <label for="topic_chatbot_gemini_model" string="Gemini Model"/>
-                                    <div class="text-muted">
-                                        Specify the model (e.g. gemini-1.5-flash, gemini-2.5-flash).
-                                    </div>
-                                    <div class="content-group mt8">
-                                        <field name="topic_chatbot_gemini_model"/>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-12 col-lg-6 o_setting_box" id="stop_words_setting">
-                                <div class="o_setting_right_pane">
-                                    <label for="topic_chatbot_stop_words" string="Custom Stop Words"/>
-                                    <div class="text-muted">
-                                        Comma-separated stop words to ignore during RAG search.
-                                    </div>
-                                    <div class="content-group mt8">
-                                        <field name="topic_chatbot_stop_words"/>
-                                    </div>
-                                </div>
-                            </div>
+                        <setting string="Gemini API Key" help="Enter your Google Gemini API Key.">
+                            <field name="topic_chatbot_gemini_api_key" password="True"/>
+                        </setting>
+                        <setting string="Gemini Model" help="Specify the model (e.g. gemini-3.6-flash, gemini-3.5-flash-lite).">
+                            <field name="topic_chatbot_gemini_model"/>
+                        </setting>
+                        <setting string="Custom Stop Words" help="Comma-separated stop words to ignore during RAG search.">
+                            <field name="topic_chatbot_stop_words"/>
+                        </setting>
+                        <setting string="Embedding Model (Semantic RAG)" help="Gemini Embedding Model for Vector Search (default: gemini-embedding-2).">
+                            <field name="topic_chatbot_embedding_model"/>
+                        </setting>
+                    </block>
+                    <block title="Microsoft SQL Server Connection" id="topic_chatbot_mssql_config">
+                        <setting string="Kích hoạt SQL Server" help="Bật tính năng kết nối và truy vấn CSDL Microsoft SQL Server.">
+                            <field name="topic_chatbot_mssql_enabled"/>
+                        </setting>
+                        <setting string="SQL Server Host" help="IP hoặc Tên Server SQL Server (ví dụ: localhost, 192.168.1.100, SERVER\INSTANCE)." invisible="not topic_chatbot_mssql_enabled">
+                            <field name="topic_chatbot_mssql_host"/>
+                        </setting>
+                        <setting string="SQL Server Port" help="Cổng kết nối SQL Server (mặc định: 1433)." invisible="not topic_chatbot_mssql_enabled">
+                            <field name="topic_chatbot_mssql_port"/>
+                        </setting>
+                        <setting string="Database Name" help="Tên CSDL SQL Server cần truy vấn." invisible="not topic_chatbot_mssql_enabled">
+                            <field name="topic_chatbot_mssql_db"/>
+                        </setting>
+                        <setting string="SQL Server User" help="Tài khoản đăng nhập SQL Server." invisible="not topic_chatbot_mssql_enabled">
+                            <field name="topic_chatbot_mssql_user"/>
+                        </setting>
+                        <setting string="SQL Server Password" help="Mật khẩu đăng nhập SQL Server." invisible="not topic_chatbot_mssql_enabled">
+                            <field name="topic_chatbot_mssql_password" password="True"/>
+                        </setting>
+                        <setting string="ODBC Driver" help="Tên Driver ODBC trên hệ thống (ví dụ: ODBC Driver 17 for SQL Server)." invisible="not topic_chatbot_mssql_enabled">
+                            <field name="topic_chatbot_mssql_driver"/>
+                        </setting>
+                        <div class="mt16" invisible="not topic_chatbot_mssql_enabled">
+                            <button name="action_test_mssql_connection" string="Test Connection" type="object" class="btn-primary" icon="fa-plug"/>
                         </div>
                     </block>
                 </app>

@@ -4,6 +4,7 @@ from odoo.addons.topic_chatbot.controllers.main import TopicChatbotController
 import json
 import base64
 import re
+from unittest.mock import MagicMock
 
 
 @tagged('post_install', '-at_install')
@@ -49,7 +50,7 @@ class TestTopicChatbotStreaming(TransactionCase):
         cls.env['ir.config_parameter'].sudo().set_param(
             'topic_chatbot.gemini_api_key', 'test_streaming_key')
         cls.env['ir.config_parameter'].sudo().set_param(
-            'topic_chatbot.gemini_model', 'gemini-1.5-flash')
+            'topic_chatbot.gemini_model', 'gemini-3.6-flash')
 
     # =========================================================
     # 1. Endpoint & method existence
@@ -223,3 +224,42 @@ class TestTopicChatbotStreaming(TransactionCase):
         """Test _build_system_instruction method exists."""
         self.assertTrue(
             hasattr(self.controller, '_build_system_instruction'))
+
+    def test_11_gemini_error_messages_are_status_specific(self):
+        """Test Gemini errors are not all reported as rate-limit failures."""
+        rate_limit_msg = self.controller._gemini_user_error_message(
+            status_code=429,
+            error_status='RESOURCE_EXHAUSTED',
+        )
+        forbidden_msg = self.controller._gemini_user_error_message(
+            status_code=403,
+            error_status='PERMISSION_DENIED',
+        )
+        not_found_msg = self.controller._gemini_user_error_message(
+            status_code=404,
+            error_status='NOT_FOUND',
+        )
+
+        self.assertIn('429', rate_limit_msg)
+        self.assertIn('API key', forbidden_msg)
+        self.assertIn('Model Gemini', not_found_msg)
+        self.assertNotEqual(rate_limit_msg, forbidden_msg)
+
+    def test_12_gemini_error_extraction_redacts_api_key(self):
+        """Test Gemini error extraction redacts sensitive API keys."""
+        mock_response = MagicMock()
+        mock_response.status_code = 403
+        mock_response.json.return_value = {
+            'error': {
+                'status': 'PERMISSION_DENIED',
+                'message': 'API key secret-key-123 is invalid',
+            }
+        }
+
+        details = self.controller._extract_gemini_error(
+            mock_response, 'secret-key-123')
+
+        self.assertEqual(details['status_code'], 403)
+        self.assertEqual(details['status'], 'PERMISSION_DENIED')
+        self.assertNotIn('secret-key-123', details['message'])
+        self.assertIn('REDACTED', details['message'])

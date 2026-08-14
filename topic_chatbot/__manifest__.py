@@ -3,12 +3,12 @@
     'name': 'Topic Chatbot (RAG)',
     'version': '17.0.2.0.0',
     'category': 'Productivity/Chatbot',
-    'summary': 'Full-screen ChatGPT-like chatbot using Gemini API and RAG with PDF/DOCX documents',
+    'summary': 'Full-screen ChatGPT-like chatbot using Gemini API and RAG with PDF/DOCX/Excel/TXT documents',
     'description': """
 This module implements an independent full-screen chatbot UI resembling ChatGPT.
 Users must select a Topic (holding imported documents) before chatting.
 It supports:
-- PDF and DOCX document uploading and text parsing.
+- PDF, DOCX, Excel (XLSX/XLS/CSV) and TXT document uploading and text parsing.
 - Automated text chunking.
 - Custom full-text keyword-matching retrieval (RAG).
 - Gemini API integration.

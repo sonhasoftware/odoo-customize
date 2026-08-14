@@ -47,6 +47,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 4px;
             transition: background-color 0.2s;
             font-size: 14px;
             background-color: #2a2b32;
@@ -66,6 +67,26 @@
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
+                flex: 1 1 auto;
+                min-width: 0;
+            }
+
+            .badge {
+                white-space: nowrap !important;
+                flex-shrink: 0 !important;
+                display: inline-flex !important;
+                align-items: center;
+                justify-content: center;
+                padding: 3px 6px !important;
+                line-height: 1.1 !important;
+                border-radius: 4px !important;
+                box-sizing: border-box;
+            }
+
+            .badge-private {
+                background-color: #f59e0b !important;
+                color: #111827 !important;
+                font-weight: 600;
             }
         }
 
@@ -649,3 +670,19 @@
         transform: scale(1);
     }
 }
+
+.bg-mssql-blue {
+    background-color: #0078d4 !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 3px 6px !important;
+    line-height: 1.1 !important;
+    border-radius: 4px !important;
+    box-sizing: border-box !important;
+}
+

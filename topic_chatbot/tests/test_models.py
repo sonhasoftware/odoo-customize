@@ -536,13 +536,20 @@ class TestTopicChatbotModels(TransactionCase):
         
         # Test setting model
         settings.write({
+            'topic_chatbot_gemini_model': 'gemini-3.6-flash'
+        })
+        settings.execute()
+
+        # Verify it's stored as config parameter
+        model = self.env['ir.config_parameter'].sudo().get_param('topic_chatbot.gemini_model')
+        self.assertEqual(model, 'gemini-3.6-flash')
+
+        settings.write({
             'topic_chatbot_gemini_model': 'gemini-1.5-pro'
         })
         settings.execute()
-        
-        # Verify it's stored as config parameter
         model = self.env['ir.config_parameter'].sudo().get_param('topic_chatbot.gemini_model')
-        self.assertEqual(model, 'gemini-1.5-pro')
+        self.assertEqual(model, 'gemini-3.1-pro-preview')
         
     def test_32_config_settings_default_model(self):
         """Test default Gemini model value."""
@@ -554,11 +561,16 @@ class TestTopicChatbotModels(TransactionCase):
     def test_33_config_settings_model_options(self):
         """Test all available Gemini model options."""
         expected_options = [
-            'gemini-1.5-flash',
-            'gemini-1.5-pro', 
-            'gemini-2.0-flash',
+            'gemini-3.6-flash',
+            'gemini-3.5-flash',
+            'gemini-3.5-flash-lite',
+            'gemini-3.1-flash-lite',
+            'gemini-3.1-pro-preview',
             'gemini-2.5-flash',
             'gemini-2.5-pro',
+            'gemini-2.0-flash',
+            'gemini-1.5-flash',
+            'gemini-1.5-pro',
         ]
         
         field = self.env['res.config.settings']._fields['topic_chatbot_gemini_model']

@@ -86,13 +86,38 @@ class TestSession2Models(TransactionCase):
         # Update with new content
         file_content_2 = base64.b64encode(b"Updated content.")
         doc.write({'datas': file_content_2})
-        
+
         self.assertEqual(doc.state, 'draft', "Document state should reset to 'draft' after updating datas.")
+
+    def test_04_cron_recovers_stale_processing_documents(self):
+        """Test that cron reprocesses documents stuck in processing state."""
+        file_content = base64.b64encode(b"Stale processing document content.")
+        doc = self.env['topic_chatbot.document'].with_user(self.AdminUser).create({
+            'name': 'Stale Processing Doc',
+            'topic_id': self.Topic.id,
+            'datas': file_content,
+            'filename': 'stale_processing.txt'
+        })
+        doc.write({'state': 'processing'})
+        self.env.cr.execute(
+            """
+            UPDATE topic_chatbot_document
+               SET write_date = (now() at time zone 'UTC') - interval '2 hours'
+             WHERE id = %s
+            """,
+            (doc.id,),
+        )
+
+        self.env['topic_chatbot.document']._cron_process_documents()
+        doc.invalidate_recordset()
+
+        self.assertEqual(doc.state, 'done')
+        self.assertIn("Stale processing document", doc.text_content)
 
     # =========================================================
     # TC04-05: Token-limit management for chat history
     # =========================================================
-    def test_04_token_limit_truncates_old_messages(self):
+    def test_05_token_limit_truncates_old_messages(self):
         """Test that chat history respects MAX_CHARS limit and drops oldest messages first."""
         from odoo.addons.topic_chatbot.controllers.main import TopicChatbotController
         import re
@@ -138,7 +163,7 @@ class TestSession2Models(TransactionCase):
         self.assertLessEqual(total_chars, MAX_CHARS,
                              "Total chars must not exceed MAX_CHARS")
 
-    def test_05_token_limit_always_includes_latest_message(self):
+    def test_06_token_limit_always_includes_latest_message(self):
         """Test that even a single very large message is always included (never empty context)."""
         import re
 
@@ -183,7 +208,7 @@ class TestSession2Models(TransactionCase):
     # =========================================================
     # TC06-08: Rate limiting / abuse prevention
     # =========================================================
-    def test_06_rate_limit_blocks_after_max_messages(self):
+    def test_07_rate_limit_blocks_after_max_messages(self):
         """Test that _check_rate_limit returns True after RATE_LIMIT_MAX_MESSAGES user messages."""
         from odoo.addons.topic_chatbot.controllers.main import TopicChatbotController
 
@@ -210,7 +235,7 @@ class TestSession2Models(TransactionCase):
         is_limited = controller._check_rate_limit(self.env, self.AdminUser.id)
         self.assertTrue(is_limited, "Rate limit should trigger after sending max messages within the window")
 
-    def test_07_rate_limit_allows_under_threshold(self):
+    def test_08_rate_limit_allows_under_threshold(self):
         """Test that _check_rate_limit returns False when under the limit."""
         from odoo.addons.topic_chatbot.controllers.main import TopicChatbotController
 
@@ -235,7 +260,7 @@ class TestSession2Models(TransactionCase):
         is_limited = controller._check_rate_limit(self.env, self.AdminUser.id)
         self.assertFalse(is_limited, "Rate limit should NOT trigger when under the threshold")
 
-    def test_08_rate_limit_is_per_user(self):
+    def test_09_rate_limit_is_per_user(self):
         """Test that one user's messages don't affect another user's rate limit."""
         from odoo.addons.topic_chatbot.controllers.main import TopicChatbotController
 

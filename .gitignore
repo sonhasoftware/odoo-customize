@@ -1,0 +1,22 @@
+# Ignore compiled Python files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore local AI modules
+ai/
+ai_account/
+ai_app/
+ai_auto_install/
+ai_crm/
+ai_crm_livechat/
+ai_documents/
+ai_documents_account/
+ai_documents_source/
+ai_fields/
+ai_knowledge/
+ai_livechat/
+ai_server_actions/
+ai_website/
+ai_website_livechat/
