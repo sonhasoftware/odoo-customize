@@ -7,7 +7,7 @@ class KeHoachVatTuLine(models.Model):
     _name = 'ke.hoach.vat.tu.line'
     _description = 'Kế hoạch vật tư chốt'
     _inherit = ['mail.thread', 'mail.activity.mixin']
-    _order = 'period_id, company_id, ma_sap, id'
+    _order = 'period_id, sequence, company_id, ma_sap, id'
 
     period_id = fields.Many2one(
         'ke.hoach.vat.tu', string='Kỳ', ondelete='cascade', index=True)
@@ -47,12 +47,7 @@ class KeHoachVatTuLine(models.Model):
     qty_t2 = fields.Float(string='Tính toán T+2', digits=(16, 2))
     qty_t3 = fields.Float(string='Tính toán T+3', digits=(16, 2))
     note = fields.Char(string='Ghi chú')
-
-    _sql_constraints = [
-        ('uniq_material_plan_row',
-         'unique(period_id, company_id, ma_sap)',
-         'Trùng dòng kế hoạch vật tư (Kỳ, Đơn vị, Mã)!'),
-    ]
+    sequence = fields.Integer(string='STT', default=10, index=True)
 
     @api.depends('ma_sap')
     def _compute_ten_hang(self):

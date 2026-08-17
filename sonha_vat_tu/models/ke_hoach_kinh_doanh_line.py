@@ -25,12 +25,6 @@ class KeHoachKinhDoanhLine(models.Model):
         help='Chỉ hiển thị — không lưu FK tới kỳ SX; xóa kỳ SX/vật tư không được xóa dòng KD.',
     )
 
-    _sql_constraints = [
-        ('uniq_kd_line',
-         'unique(kinh_doanh_id, company_id, ma_sap)',
-         'Trùng dòng: KHKD, Đơn vị và Mã phải duy nhất!'),
-    ]
-
     @api.model
     def _assign_create_sequences(self, vals_list):
         next_by_header = {}

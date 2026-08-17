@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
+from collections import Counter
 from datetime import date
 
 from markupsafe import Markup
@@ -25,7 +26,7 @@ class ImportKeHoachWizard(models.TransientModel):
 
     MONTH_RE = re.compile(r'(\d{1,2})\s*[/\-]\s*(\d{4})')
     _IMPORT_CTX = {'is_importing': True, 'tracking_disable': True}
-    _WRITE_FIELDS = ('ma_hang', 'qty_t0', 'qty_t1', 'qty_t2', 'qty_t3', 'sequence')
+    _WRITE_FIELDS = ('company_id', 'ma_hang', 'qty_t0', 'qty_t1', 'qty_t2', 'qty_t3', 'sequence')
     _PLAN_HEADERS = ['Đơn vị đặt hàng', 'Ngành hàng', 'Tên hàng', 'Mã hàng', 'Mã']
     COL_MA_HANG, COL_MA_SAP = 3, 4
     HEADER_ROW_IDX = 5
@@ -223,9 +224,13 @@ class ImportKeHoachWizard(models.TransientModel):
     def _row_changed(existing, vals, fields):
         if existing.sequence != vals.get('sequence', existing.sequence):
             return True
+        if 'company_id' in fields:
+            existing_company = existing.company_id.id if existing.company_id else False
+            if existing_company != vals.get('company_id'):
+                return True
         return any((existing[f] or 0.0) != (vals.get(f) or 0.0) for f in fields if f.startswith('qty_')) or any(
             (getattr(existing, f, '') or '') != (vals.get(f) or '')
-            for f in fields if not f.startswith('qty_') and f != 'sequence'
+            for f in fields if not f.startswith('qty_') and f not in ('sequence', 'company_id')
         )
 
     @staticmethod
@@ -261,7 +266,6 @@ class ImportKeHoachWizard(models.TransientModel):
     def _collect_plan_rows(self, rows, header, month_cols, data_start_idx, extra_vals=None):
         errors = []
         vals_list = []
-        seen = set()
         company_lookup = self._build_company_lookup()
         mdm_codes = self.env['ma.hang'].get_mdm_sap_codes_set(
             self._collect_import_sap_codes(rows, header, data_start_idx),
@@ -276,14 +280,6 @@ class ImportKeHoachWizard(models.TransientModel):
                 continue
 
             qty_by_offset = self._parse_qty_row(row, row_idx, month_cols, errors)
-            row_key = (base_vals['company_id'], base_vals['ma_sap'])
-            if row_key in seen:
-                errors.append(_(
-                    'Dòng %d: trùng Đơn vị + Mã=%s trong file.'
-                ) % (row_idx, base_vals['ma_sap']))
-                continue
-            seen.add(row_key)
-
             vals_list.append({
                 **base_vals,
                 **(extra_vals or {}),
@@ -298,18 +294,19 @@ class ImportKeHoachWizard(models.TransientModel):
         return vals_list
 
     def _split_create_update(self, Plan, vals_list, domain):
-        existing_map = {
-            (line.company_id.id, line.ma_sap): line
-            for line in Plan.search(domain)
-        }
+        """Khớp dòng file với DB theo thứ tự STT — cho phép trùng (Đơn vị, Mã)."""
+        existing = Plan.search(domain, order='sequence, id')
         to_create, to_update = [], []
-        for vals in vals_list:
-            existing = existing_map.get((vals['company_id'], vals['ma_sap']))
-            if not existing:
+        for idx, vals in enumerate(vals_list):
+            if idx < len(existing):
+                line = existing[idx]
+                write_vals = {f: vals[f] for f in self._WRITE_FIELDS if f in vals}
+                if self._row_changed(line, vals, self._WRITE_FIELDS):
+                    to_update.append((line.id, write_vals))
+            else:
                 to_create.append(vals)
-            elif self._row_changed(existing, vals, self._WRITE_FIELDS):
-                to_update.append((existing.id, {f: vals[f] for f in self._WRITE_FIELDS}))
-        return existing_map, to_create, to_update
+        to_delete = existing[len(vals_list):]
+        return existing, to_create, to_update, to_delete
 
     def _write_plan_rows(self, Plan, to_create, to_update):
         if to_update:
@@ -401,34 +398,50 @@ class ImportKeHoachWizard(models.TransientModel):
             extra_vals={'kinh_doanh_id': self.kinh_doanh_id.id},
         )
         domain = [('kinh_doanh_id', '=', self.kinh_doanh_id.id)]
-        _existing_map, to_create, to_update = self._split_create_update(Plan, vals_list, domain)
+        _existing, to_create, to_update, to_delete = self._split_create_update(
+            Plan, vals_list, domain,
+        )
+        if to_delete:
+            to_delete.with_context(**self._IMPORT_CTX).unlink()
         self._write_plan_rows(Plan, to_create, to_update)
-        return len(to_create) + len(to_update)
+        return len(vals_list)
 
     def _check_business_rows_covered(self, vals_list):
-        business_keys = {
-            (line.company_id.id, line.ma_sap)
-            for line in self.period_id.ke_hoach_san_xuat_ids
-            if line.ma_sap
-        }
-        missing = sorted(business_keys - {(v['company_id'], v['ma_sap']) for v in vals_list})
+        kd_lines = self.env['ke.hoach.kinh.doanh.line'].sudo().search([
+            ('kinh_doanh_id.period_sx_id', '=', self.period_id.id),
+            ('ma_sap', '!=', False),
+        ])
+        if not kd_lines:
+            return
+
+        kd_counts = Counter(
+            (line.company_id.id, line.ma_sap) for line in kd_lines
+        )
+        file_counts = Counter(
+            (v['company_id'], v['ma_sap']) for v in vals_list
+        )
+        missing = sorted(
+            (company_id, ma_sap, need - file_counts.get((company_id, ma_sap), 0))
+            for (company_id, ma_sap), need in kd_counts.items()
+            if file_counts.get((company_id, ma_sap), 0) < need
+        )
         if not missing:
             return
 
         company_label = {
             c.id: c.company_code or c.name
-            for c in self.env['res.company'].sudo().browse({cid for cid, _ma in missing})
+            for c in self.env['res.company'].sudo().browse({cid for cid, _ma, _n in missing})
         }
         errors = [
             _(
-                'Thiếu dòng kế hoạch kinh doanh Đơn vị=%s, Mã=%s. '
+                'Thiếu %d dòng kế hoạch kinh doanh Đơn vị=%s, Mã=%s. '
                 'Nếu không sản xuất, giữ dòng và nhập Số lượng = 0.'
-            ) % (company_label.get(company_id, company_id), ma_sap)
-            for company_id, ma_sap in missing[:20]
+            ) % (shortage, company_label.get(company_id, company_id), ma_sap)
+            for company_id, ma_sap, shortage in missing[:20]
         ]
         if len(missing) > 20:
             errors.append(
-                _('... còn %d dòng kế hoạch kinh doanh bị thiếu.') % (len(missing) - 20))
+                _('... còn %d nhóm (Đơn vị + Mã) bị thiếu dòng.') % (len(missing) - 20))
         self._raise_errors(errors)
 
     def _import_production(self, rows, header, month_cols, data_start_idx):
@@ -445,11 +458,9 @@ class ImportKeHoachWizard(models.TransientModel):
         self._check_business_rows_covered(vals_list)
 
         domain = [('period_id', '=', self.period_id.id)]
-        existing_map, to_create, to_update = self._split_create_update(Plan, vals_list, domain)
-        imported_keys = {(v['company_id'], v['ma_sap']) for v in vals_list}
-        to_delete = Plan.browse([
-            line.id for key, line in existing_map.items() if key not in imported_keys
-        ])
+        _existing, to_create, to_update, to_delete = self._split_create_update(
+            Plan, vals_list, domain,
+        )
         if to_delete:
             to_delete.with_context(**self._IMPORT_CTX).unlink()
 

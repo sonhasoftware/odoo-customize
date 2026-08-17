@@ -18,12 +18,6 @@ class KeHoachSanXuat(models.Model):
         help='Đơn vị sản xuất (BNH/SSP) — gắn khi import hoặc tạo từ KD.',
     )
 
-    _sql_constraints = [
-        ('uniq_row',
-         'unique(period_id, company_id, ma_sap)',
-         'Trùng dòng: (Kỳ, Đơn vị, Mã) phải duy nhất!'),
-    ]
-
     @api.model
     def _prepare_create_vals(self, vals_list):
         company = self.env.company

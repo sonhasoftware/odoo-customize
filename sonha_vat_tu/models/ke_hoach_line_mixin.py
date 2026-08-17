@@ -27,6 +27,7 @@ class KeHoachLineMixin(models.AbstractModel):
     }
     # Cột được phép ghi bằng SQL hàng loạt khi import, kèm kiểu Postgres.
     _BULK_IMPORT_COLUMNS = {
+        'company_id': 'int',
         'ma_hang': 'varchar',
         'note': 'varchar',
         'sequence': 'int',

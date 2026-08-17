@@ -213,7 +213,7 @@ BEGIN
 
     CREATE INDEX ON _tmp_mdm_dvt (ma_nvl);
 
-    -- 1 lần đọc dinh_muc (B2) × KHVT → temp; insert chi tiết + B3 đều đọc từ temp
+    -- Một dòng dinh_muc = một dòng; qty NVL lấy từ B2 (đã nhân KH × BOM).
     DROP TABLE IF EXISTS tmp_b3_nvl_detail;
     CREATE TEMP TABLE tmp_b3_nvl_detail ON COMMIT DROP AS
     SELECT
@@ -222,31 +222,64 @@ BEGIN
         dm.company_id AS don_vi_kd_id,
         COALESCE(NULLIF(TRIM(dv.company_code), ''), dv.name) AS don_vi_kd_code,
         TRIM(dm.ma_sap) AS ma,
-        NULLIF(TRIM(khvt.ma_hang), '') AS ma_hang,
-        NULLIF(TRIM(khvt.ten_hang), '') AS ten_kh,
+        NULLIF(TRIM(b1.ma_hang), '') AS ma_hang,
+        NULLIF(TRIM(COALESCE(b1.ten_hang, dm.ten_sap)), '') AS ten_kh,
         NULLIF(TRIM(dm.ma_tp), '') AS ma_tp_cha,
         NULLIF(TRIM(dm.ten_tp), '') AS ten_tp_cha,
         TRIM(dm.ma_nvl) AS ma_nvl,
         NULLIF(TRIM(dm.ten_nvl), '') AS ten_nvl,
-        CASE
-            WHEN dm.co_sl_dinh_muc_override THEN COALESCE(dm.sl_dinh_muc_thay_doi, 0)
-            ELSE COALESCE(dm.sl_dinh_muc, 0)
-        END AS sl_thuc_te,
+        eff.sl_thuc_te,
         NULL::INTEGER AS cap_bom,
-        COALESCE(khvt.qty_t0, 0) AS qty_kh_t0,
-        COALESCE(khvt.qty_t1, 0) AS qty_kh_t1,
-        COALESCE(khvt.qty_t2, 0) AS qty_kh_t2,
-        COALESCE(khvt.qty_t3, 0) AS qty_kh_t3,
+        CASE
+            WHEN eff.sl_thuc_te <> 0 THEN COALESCE(dm.qty_t0, 0) / eff.sl_thuc_te
+            ELSE COALESCE(b1.qty_t0, 0)
+        END AS qty_kh_t0,
+        CASE
+            WHEN eff.sl_thuc_te <> 0 THEN COALESCE(dm.qty_t1, 0) / eff.sl_thuc_te
+            ELSE COALESCE(b1.qty_t1, 0)
+        END AS qty_kh_t1,
+        CASE
+            WHEN eff.sl_thuc_te <> 0 THEN COALESCE(dm.qty_t2, 0) / eff.sl_thuc_te
+            ELSE COALESCE(b1.qty_t2, 0)
+        END AS qty_kh_t2,
+        CASE
+            WHEN eff.sl_thuc_te <> 0 THEN COALESCE(dm.qty_t3, 0) / eff.sl_thuc_te
+            ELSE COALESCE(b1.qty_t3, 0)
+        END AS qty_kh_t3,
         COALESCE(dm.qty_t0, 0) AS qty_nvl_t0,
         COALESCE(dm.qty_t1, 0) AS qty_nvl_t1,
         COALESCE(dm.qty_t2, 0) AS qty_nvl_t2,
         COALESCE(dm.qty_t3, 0) AS qty_nvl_t3
     FROM dinh_muc dm
     JOIN res_company dv ON dv.id = dm.company_id
-    LEFT JOIN ke_hoach_vat_tu_line khvt
-        ON  khvt.period_id = dm.period_id
-        AND khvt.company_id = dm.company_id
-        AND TRIM(khvt.ma_sap) = TRIM(dm.ma_sap)
+    CROSS JOIN LATERAL (
+        SELECT CASE
+            WHEN dm.co_sl_dinh_muc_override THEN COALESCE(dm.sl_dinh_muc_thay_doi, 0)
+            ELSE COALESCE(dm.sl_dinh_muc, 0)
+        END AS sl_thuc_te
+    ) eff
+    LEFT JOIN LATERAL (
+        SELECT
+            kh.ma_hang,
+            kh.ten_hang,
+            kh.qty_t0,
+            kh.qty_t1,
+            kh.qty_t2,
+            kh.qty_t3
+        FROM ke_hoach_vat_tu_line kh
+        WHERE kh.period_id = dm.period_id
+          AND kh.company_id = dm.company_id
+          AND TRIM(kh.ma_sap) = TRIM(dm.ma_sap)
+          AND (
+              eff.sl_thuc_te = 0
+              OR ABS(
+                  COALESCE(kh.qty_t0, 0)
+                  - COALESCE(dm.qty_t0, 0) / NULLIF(eff.sl_thuc_te, 0)
+              ) < 0.001
+          )
+        ORDER BY kh.sequence, kh.id
+        LIMIT 1
+    ) b1 ON TRUE
     WHERE dm.period_id = p_period_id
       AND dm.company_id IS NOT NULL;
 
