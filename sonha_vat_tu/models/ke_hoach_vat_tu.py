@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from collections import Counter, defaultdict
 import calendar
 from datetime import date
 import os as _os
@@ -613,38 +614,33 @@ class KeHoachVatTu(models.Model):
                 self.company_sx_id.company_code or self.company_sx_id.name,
             ))
 
-        merged = {}
-        ordered_keys = []
         pull_stats = []
+        vals_list = []
+        seq = 10
         for kd in headers:
             ky_count = 0
             for line in kd.line_ids.sudo().sorted(key=lambda l: (l.sequence, l.id)):
                 if not line.ma_sap:
                     continue
                 ky_count += 1
-                key = (line.company_id.id, line.ma_sap)
-                if key not in merged:
-                    ordered_keys.append(key)
-                    merged[key] = {
-                        'period_id': self.id,
-                        'company_id': line.company_id.id,
-                        'company_sx_id': self.company_sx_id.id,
-                        'ma_hang': line.ma_hang,
-                        'ma_sap': line.ma_sap,
-                        'note': line.note,
-                        'qty_t0': line.qty_t0 or 0.0,
-                        'qty_t1': line.qty_t1 or 0.0,
-                        'qty_t2': line.qty_t2 or 0.0,
-                        'qty_t3': line.qty_t3 or 0.0,
-                    }
-                else:
-                    vals = merged[key]
-                    for qty_field in ('qty_t0', 'qty_t1', 'qty_t2', 'qty_t3'):
-                        vals[qty_field] += getattr(line, qty_field) or 0.0
+                vals_list.append({
+                    'period_id': self.id,
+                    'company_id': line.company_id.id,
+                    'company_sx_id': self.company_sx_id.id,
+                    'ma_hang': line.ma_hang,
+                    'ma_sap': line.ma_sap,
+                    'note': line.note,
+                    'sequence': seq,
+                    'qty_t0': line.qty_t0 or 0.0,
+                    'qty_t1': line.qty_t1 or 0.0,
+                    'qty_t2': line.qty_t2 or 0.0,
+                    'qty_t3': line.qty_t3 or 0.0,
+                })
+                seq += 10
             if ky_count:
                 pull_stats.append((kd.code, ky_count))
 
-        if not ordered_keys:
+        if not vals_list:
             raise UserError(_(
                 'Không có dòng kế hoạch kinh doanh. Kiểm tra các KHKD đã import chưa.'
             ))
@@ -653,11 +649,6 @@ class KeHoachVatTu(models.Model):
         if existing_sx:
             existing_sx.with_context(**sync_ctx).unlink()
 
-        vals_list = []
-        for idx, key in enumerate(ordered_keys, start=1):
-            vals = merged[key]
-            vals['sequence'] = idx * 10
-            vals_list.append(vals)
         Production.with_context(**sync_ctx).create(vals_list)
 
         newly_used = headers.filtered(lambda h: not h.locked)
@@ -696,25 +687,42 @@ class KeHoachVatTu(models.Model):
 
     def _prepare_material_plan_values_from_production(self, production_company):
         self.ensure_one()
-        kd_map = self._kinh_doanh_qty_map()
-        sx_lines = self.ke_hoach_san_xuat_ids
+        kd_lines = self.env['ke.hoach.kinh.doanh.line'].sudo().search([
+            ('kinh_doanh_id.period_sx_id', '=', self.id),
+            ('ma_sap', '!=', False),
+        ], order='kinh_doanh_id, sequence, id')
+        sx_lines = self.ke_hoach_san_xuat_ids.sorted(key=lambda r: (r.sequence, r.id))
 
+        if len(sx_lines) != len(kd_lines):
+            raise UserError(_(
+                'Số dòng kế hoạch sản xuất (%s) không khớp số dòng kinh doanh (%s). '
+                'Mỗi dòng kinh doanh cần đúng một dòng sản xuất.'
+            ) % (len(sx_lines), len(kd_lines)))
+
+        kd_counts = Counter((l.company_id.id, l.ma_sap) for l in kd_lines)
+        sx_counts = Counter((s.company_id.id, s.ma_sap) for s in sx_lines)
         missing = []
-        for key in kd_map:
-            if key not in {(s.company_id.id, s.ma_sap) for s in sx_lines}:
+        for key, need in sorted(kd_counts.items()):
+            have = sx_counts.get(key, 0)
+            if have < need:
                 company = self.env['res.company'].browse(key[0])
-                missing.append('%s / %s' % (
+                missing.append('%s / %s (thiếu %d dòng)' % (
                     self._company_display_code(company),
                     key[1],
+                    need - have,
                 ))
         if missing:
             shown = missing[:20]
             if len(missing) > 20:
-                shown.append('... còn %s dòng khác' % (len(missing) - 20))
+                shown.append('... còn %s nhóm khác' % (len(missing) - 20))
             raise UserError(_(
                 'Kế hoạch sản xuất thiếu dòng so với kinh doanh (Đơn vị + Mã):\n%s\n'
                 'Nếu không sản xuất, giữ dòng và nhập Số lượng = 0.'
             ) % '\n'.join(shown))
+
+        kd_queues = defaultdict(list)
+        for line in kd_lines:
+            kd_queues[(line.company_id.id, line.ma_sap)].append(line)
 
         sap_codes = sorted({
             (line.ma_sap or '').strip() for line in sx_lines if (line.ma_sap or '').strip()
@@ -728,39 +736,44 @@ class KeHoachVatTu(models.Model):
                 nganh_names[nh.id] = nh.ten or ''
 
         vals_list = []
-        for line in sx_lines.sorted(lambda r: (
-            self._company_display_code(r.company_id),
-            r.nganh_hang.ten if r.nganh_hang else '',
-            r.ma_sap or '',
-            r.id,
-        )):
-            ma_sap = line.ma_sap
-            kd_qty = kd_map.get((line.company_id.id, ma_sap), {})
+        seq = 10
+        for sx_line in sx_lines:
+            key = (sx_line.company_id.id, sx_line.ma_sap)
+            queue = kd_queues.get(key, [])
+            if not queue:
+                company = self.env['res.company'].browse(key[0])
+                raise UserError(_(
+                    'Không ghép được dòng sản xuất Đơn vị=%s, Mã=%s với dòng kinh doanh.'
+                ) % (self._company_display_code(company), sx_line.ma_sap))
+            kd_line = queue.pop(0)
+            ma_sap = sx_line.ma_sap
             meta = meta_map.get((ma_sap or '').strip(), {})
-            nganh_hang = line.nganh_hang.ten if line.nganh_hang else ''
+            nganh_hang = sx_line.nganh_hang.ten if sx_line.nganh_hang else ''
             if not nganh_hang and meta.get('nganh_hang_id'):
                 nganh_hang = nganh_names.get(meta['nganh_hang_id'], '')
             vals_list.append({
                 'period_id': self.id,
-                'company_id': line.company_id.id,
+                'company_id': sx_line.company_id.id,
                 'company_sx_id': production_company.id,
                 'nganh_hang': nganh_hang,
-                'ma_hang': line.ma_hang,
+                'ma_hang': sx_line.ma_hang,
                 'ma_sap': ma_sap,
-                'qty_kd_t0': kd_qty.get('qty_t0', 0.0),
-                'qty_kd_t1': kd_qty.get('qty_t1', 0.0),
-                'qty_kd_t2': kd_qty.get('qty_t2', 0.0),
-                'qty_kd_t3': kd_qty.get('qty_t3', 0.0),
-                'qty_sx_t0': line.qty_t0,
-                'qty_sx_t1': line.qty_t1,
-                'qty_sx_t2': line.qty_t2,
-                'qty_sx_t3': line.qty_t3,
-                'qty_t0': line.qty_t0,
-                'qty_t1': line.qty_t1,
-                'qty_t2': line.qty_t2,
-                'qty_t3': line.qty_t3,
-                'note': line.note,
+                'sequence': seq,
+                'qty_kd_t0': kd_line.qty_t0 or 0.0,
+                'qty_kd_t1': kd_line.qty_t1 or 0.0,
+                'qty_kd_t2': kd_line.qty_t2 or 0.0,
+                'qty_kd_t3': kd_line.qty_t3 or 0.0,
+                'qty_sx_t0': sx_line.qty_t0,
+                'qty_sx_t1': sx_line.qty_t1,
+                'qty_sx_t2': sx_line.qty_t2,
+                'qty_sx_t3': sx_line.qty_t3,
+                'qty_t0': sx_line.qty_t0,
+                'qty_t1': sx_line.qty_t1,
+                'qty_t2': sx_line.qty_t2,
+                'qty_t3': sx_line.qty_t3,
+                'note': sx_line.note,
             })
+            seq += 10
         return vals_list
 
     def action_create_material_plan(self):

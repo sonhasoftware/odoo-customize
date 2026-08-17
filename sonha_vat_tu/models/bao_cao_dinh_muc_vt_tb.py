@@ -404,11 +404,6 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
         }
 
 
-def _post_init_drop_dmtb_nhom_bao_cao(cr):
-    cr.execute("DROP TABLE IF EXISTS dmtb_nhom_bao_cao_nganh_rel CASCADE")
-    cr.execute("DROP TABLE IF EXISTS dmtb_nhom_bao_cao CASCADE")
-
-
 class BaoCaoDinhMucVtTbLine(models.TransientModel):
     _name = 'bao.cao.dinh.muc.vt.tb.line'
     _inherit = ['bao.cao.ghi.chu.line.mixin']
