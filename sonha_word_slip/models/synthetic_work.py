@@ -275,6 +275,40 @@ class SyntheticWork(models.Model):
                     'end_date': str(end_current),
                 })
 
+    def cron_create_synthetic_new_emp(self):
+        self.with_delay().create_synthetic_new_emp()
+
+    def create_synthetic_new_emp(self):
+        current_date = date.today()
+        start_date = current_date.replace(day=1)
+        end_date = (start_date + relativedelta(months=1)) - timedelta(days=1)
+
+        employees = self.env['hr.employee'].search([('id', '!=', 1), ('onboard', '>=', start_date)])
+
+        start_current = start_date - relativedelta(months=1)
+        end_current = (start_current + relativedelta(months=1)) - timedelta(days=1)
+        for employee in employees:
+            synthetic = self.env['synthetic.work'].sudo().search([('start_date', '=', start_date),
+                                                                  ('employee_id', '=', employee.id)])
+            if not synthetic:
+                self.env['synthetic.work'].create({
+                    'employee_id': employee.id,
+                    'department_id': employee.department_id.id,
+                    'start_date': str(start_date),
+                    'end_date': str(end_date),
+                })
+
+            synthetic_current = self.env['synthetic.work'].sudo().search([('start_date', '=', start_current),
+                                                                          ('employee_id', '=', employee.id)])
+
+            if not synthetic_current:
+                self.env['synthetic.work'].create({
+                    'employee_id': employee.id,
+                    'department_id': employee.department_id.id,
+                    'start_date': str(start_current),
+                    'end_date': str(end_current),
+                })
+
     @api.depends('number_minutes_late')
     def _get_late_fine(self):
         for r in self:
