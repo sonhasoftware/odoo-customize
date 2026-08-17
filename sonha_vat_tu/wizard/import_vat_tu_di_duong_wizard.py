@@ -5,10 +5,12 @@ from datetime import date, datetime
 from openpyxl import Workbook
 from openpyxl.styles import Font
 
+from markupsafe import Markup
+
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
-TEMPLATE_WIDTHS = [14, 16, 36, 16, 16, 16, 16]
+TEMPLATE_WIDTHS = [16, 36, 14, 14, 14, 14]
 
 
 class ImportVatTuDiDuongWizard(models.TransientModel):
@@ -20,12 +22,9 @@ class ImportVatTuDiDuongWizard(models.TransientModel):
     META_ROW = 1
     HEADER_ROW = 4
     DATA_START_ROW = 5
-    LEGACY_DATA_START_ROW = 2
     META_FONT_SIZE = 13
-    COL_COMPANY, COL_MA_NVL, COL_TEN_NVL = 0, 1, 2
-    COL_T0, COL_T1, COL_T2, COL_T3 = 3, 4, 5, 6
-    LEGACY_COL_COMPANY, LEGACY_COL_MA_NVL, LEGACY_COL_TEN_NVL = 0, 1, 2
-    LEGACY_COL_MONTH, LEGACY_COL_QTY = 3, 4
+    COL_MA_NVL, COL_TEN_NVL = 0, 1
+    COL_T0, COL_T1, COL_T2, COL_T3 = 2, 3, 4, 5
 
     MONTH_RE = re.compile(r'(\d{1,2})\s*[/\-]\s*(\d{4})')
 
@@ -38,9 +37,21 @@ class ImportVatTuDiDuongWizard(models.TransientModel):
         default=lambda self: self.env.context.get('default_period_id'),
     )
 
-    # ------------------------------------------------------------------
-    # Tháng
-    # ------------------------------------------------------------------
+    def _company_sx(self):
+        self.ensure_one()
+        if self.period_id and self.period_id.company_sx_id:
+            return self.period_id.company_sx_id
+        return self.env.company
+
+    def _get_month_keys(self):
+        self.ensure_one()
+        if self.period_id:
+            months = self.period_id._get_horizon_months()
+            if len(months) != 4:
+                raise UserError(_('Kỳ kế hoạch chưa xác định được 4 tháng tính toán.'))
+            return months
+        return self._horizon_months_from_today()
+
     @api.model
     def _horizon_months_from_today(self):
         today = fields.Date.context_today(self)
@@ -55,47 +66,27 @@ class ImportVatTuDiDuongWizard(models.TransientModel):
             res.append('%02d/%d' % (tm, ty))
         return res
 
-    def _get_month_keys(self):
-        self.ensure_one()
-        if self.period_id:
-            months = self.period_id._get_horizon_months()
-            if len(months) != 4:
-                raise UserError(_('Kỳ kế hoạch chưa xác định được 4 tháng tính toán.'))
-            return months
-        return self._horizon_months_from_today()
-
     def _get_month_headers(self):
         return [_('Tháng %s') % month for month in self._get_month_keys()]
-
-    def _parse_month(self, value):
-        if isinstance(value, (date, datetime)):
-            return value.strftime('%m/%Y'), date(value.year, value.month, 1)
-        match = self.MONTH_RE.search(str(value or '').strip())
-        if not match:
-            return False, False
-        month, year = int(match.group(1)), int(match.group(2))
-        try:
-            return '%02d/%d' % (month, year), date(year, month, 1)
-        except ValueError:
-            return False, False
 
     def _month_key_from_header(self, header):
         text = str(header or '').strip()
         thang_prefix = _('Tháng') + ' '
         if text.startswith(thang_prefix):
             text = text[len(thang_prefix):].strip()
-        month_key, _month_date = self._parse_month(text)
-        return month_key
-
-    def _format_month_display(self, value):
-        if value in (None, ''):
-            return ''
-        if isinstance(value, (date, datetime)):
-            return value.strftime('%d/%m/%Y')
-        return str(value).strip()
+        if isinstance(header, (date, datetime)):
+            return header.strftime('%m/%Y')
+        match = self.MONTH_RE.search(text)
+        if not match:
+            return False
+        month, year = int(match.group(1)), int(match.group(2))
+        try:
+            return '%02d/%d' % (month, year)
+        except ValueError:
+            return False
 
     # ------------------------------------------------------------------
-    # Export template (layout giống BCU: tháng dàn ngang)
+    # Export template — 1 dòng / mã NVL (gom theo đơn vị SX)
     # ------------------------------------------------------------------
     def action_download_template(self):
         self.ensure_one()
@@ -119,35 +110,34 @@ class ImportVatTuDiDuongWizard(models.TransientModel):
             ws.cell(row=self.META_ROW, column=2).font = meta_font
             ws.row_dimensions[self.META_ROW].height = 24
 
-        headers = [_('Đơn vị'), _('Mã NVL'), _('Tên NVL')] + month_headers
+        headers = [_('Mã NVL'), _('Tên NVL')] + month_headers
         for col_idx, label in enumerate(headers, start=1):
             ws.cell(row=self.HEADER_ROW, column=col_idx, value=label)
 
         row_idx = self.DATA_START_ROW
         for row in row_vals or []:
-            ws.cell(row=row_idx, column=1, value=row.get('company_code') or '')
-            ws.cell(row=row_idx, column=2, value=row.get('ma_nvl') or '')
-            ws.cell(row=row_idx, column=3, value=row.get('ten_nvl') or '')
+            ws.cell(row=row_idx, column=1, value=row.get('ma_nvl') or '')
+            ws.cell(row=row_idx, column=2, value=row.get('ten_nvl') or '')
             qtys = row.get('qtys') or [0.0] * 4
             for offset in range(4):
-                ws.cell(row=row_idx, column=4 + offset, value=qtys[offset] if offset < len(qtys) else 0.0)
+                ws.cell(
+                    row=row_idx, column=3 + offset,
+                    value=qtys[offset] if offset < len(qtys) else 0.0,
+                )
             row_idx += 1
 
         max_col = len(headers)
         self._style_excel_header(ws, max_col, header_row=self.HEADER_ROW)
         if row_vals:
             self._style_excel_body(ws, max_col, self.DATA_START_ROW, row_idx - 1)
-        self._apply_company_code_validation(wb, ws, first_data_row=self.DATA_START_ROW)
         self._set_excel_widths(ws, TEMPLATE_WIDTHS[:max_col])
         return wb
 
     def _download_vat_tu_di_duong_template_empty(self):
-        """Menu Vật tư đi đường — template rỗng, 4 cột tháng từ tháng hiện tại."""
         wb = self._build_template_workbook()
         return self._xlsx_download_action(wb, 'Template_vat_tu_di_duong.xlsx')
 
     def _download_vat_tu_di_duong_template_from_period(self):
-        """Import từ B3 — pre-fill theo tinh_toan_vat_tu của kỳ."""
         period = self.period_id
         if not period.code:
             raise UserError(_('Kỳ kế hoạch chưa có số chứng từ.'))
@@ -170,21 +160,9 @@ class ImportVatTuDiDuongWizard(models.TransientModel):
             return value
         return False
 
-    def _detect_import_format(self, ws):
-        header_a = str(ws.cell(row=self.HEADER_ROW, column=1).value or '').strip()
-        if header_a == _('Đơn vị'):
-            return 'horizontal'
-        row1_a = str(ws.cell(row=1, column=1).value or '').strip()
-        if row1_a == _('Đơn vị'):
-            return 'legacy_vertical'
-        header_b = str(ws.cell(row=self.HEADER_ROW, column=2).value or '').strip()
-        if header_b == _('Mã NVL'):
-            return 'horizontal'
-        return 'legacy_vertical'
-
     def _parse_month_headers_from_sheet(self, ws):
         month_keys = []
-        for col in range(4, 8):
+        for col in range(3, 7):
             header = ws.cell(row=self.HEADER_ROW, column=col).value
             month_key = self._month_key_from_header(header)
             if not month_key:
@@ -195,21 +173,15 @@ class ImportVatTuDiDuongWizard(models.TransientModel):
             month_keys.append(month_key)
         return month_keys
 
-    def _get_b3_keys(self):
+    def _get_b3_ma_set(self):
         self.ensure_one()
-        keys = set()
-        for line in self.period_id.tinh_toan_vat_tu_ids:
-            if not line.don_vi_kd_id or not (line.ma_vat_tu or '').strip():
-                continue
-            company_code = (line.don_vi_kd_code or '').strip()
-            if not company_code:
-                company_code = self.period_id._company_display_code(line.don_vi_kd_id)
-            ma_nvl = (line.ma_vat_tu or '').strip()
-            if company_code and ma_nvl:
-                keys.add((company_code, ma_nvl))
-        return keys
+        return {
+            (line.ma_vat_tu or '').strip()
+            for line in self.period_id.tinh_toan_vat_tu_ids
+            if (line.ma_vat_tu or '').strip()
+        }
 
-    def _parse_rows_horizontal(self, ws, company_by_code):
+    def _parse_rows(self, ws):
         errors = []
         parsed = []
         seen_keys = set()
@@ -224,13 +196,23 @@ class ImportVatTuDiDuongWizard(models.TransientModel):
                     _('Số chứng từ "%s" không khớp kỳ "%s".') % (doc_code, expected_code)
                 )
 
+        header_a = str(ws.cell(row=self.HEADER_ROW, column=1).value or '').strip()
+        if header_a == _('Đơn vị'):
+            raise UserError(_(
+                'File Excel dùng mẫu cũ (có cột Đơn vị). '
+                'Vui lòng tải lại template mới — chỉ còn Mã NVL và 4 cột tháng.'
+            ))
+        if header_a != _('Mã NVL'):
+            raise UserError(_('File Excel không đúng định dạng template vật tư đi đường.'))
+
         month_keys = self._parse_month_headers_from_sheet(ws)
         if self.period_id:
             expected_months = self.period_id._get_horizon_months()
             if month_keys != expected_months:
                 raise UserError(_('Tháng trên file không khớp kỳ kế hoạch.'))
 
-        b3_keys = self._get_b3_keys() if self.period_id else None
+        b3_ma_set = self._get_b3_ma_set() if self.period_id else None
+        company = self._company_sx()
         Period = self.env['ke.hoach.vat.tu']
         month_cols = (self.COL_T0, self.COL_T1, self.COL_T2, self.COL_T3)
         rows = list(ws.iter_rows(min_row=self.DATA_START_ROW, values_only=True))
@@ -239,23 +221,14 @@ class ImportVatTuDiDuongWizard(models.TransientModel):
             if not any(cell not in (None, '') for cell in row):
                 continue
 
-            company_code = str(self._cell(row, self.COL_COMPANY) or '').strip()
             ma_nvl = self._normalize_ma_nvl(self._cell(row, self.COL_MA_NVL))
             ten_nvl = str(self._cell(row, self.COL_TEN_NVL) or '').strip()
 
             row_errors = []
-            if not company_code:
-                row_errors.append(_('Dòng %d: thiếu Đơn vị.') % row_number)
             if not ma_nvl:
                 row_errors.append(_('Dòng %d: thiếu Mã NVL.') % row_number)
 
-            company = company_by_code.get(company_code) if company_code else False
-            if company_code and not company:
-                row_errors.append(
-                    _('Dòng %d: Đơn vị "%s" không tồn tại.') % (row_number, company_code)
-                )
-
-            if b3_keys is not None and company_code and ma_nvl and (company_code, ma_nvl) not in b3_keys:
+            if b3_ma_set is not None and ma_nvl and ma_nvl not in b3_ma_set:
                 row_errors.append(
                     _('Dòng %d: Mã NVL "%s" không có trong tính toán vật tư của kỳ này.')
                     % (row_number, ma_nvl)
@@ -280,10 +253,10 @@ class ImportVatTuDiDuongWizard(models.TransientModel):
             row_parsed = []
             dup_in_row = False
             for month_key, so_luong in zip(month_keys, qtys):
-                dup_key = (company_code, ma_nvl, month_key)
+                dup_key = (ma_nvl, month_key)
                 if dup_key in seen_keys:
                     errors.append(
-                        _('Dòng %d: trùng Đơn vị + Mã NVL + Tháng trong file.') % row_number
+                        _('Dòng %d: trùng Mã NVL + Tháng trong file.') % row_number
                     )
                     dup_in_row = True
                     break
@@ -303,75 +276,8 @@ class ImportVatTuDiDuongWizard(models.TransientModel):
         self._raise_import_errors(errors)
         return parsed
 
-    def _parse_rows_legacy(self, rows, company_by_code):
-        """File cũ: Đơn vị | Mã NVL | Tên NVL | Tháng | Số lượng (mỗi tháng một dòng)."""
-        errors = []
-        parsed = []
-        seen_keys = set()
-
-        for row_number, row in enumerate(rows, start=self.LEGACY_DATA_START_ROW):
-            if not any(cell not in (None, '') for cell in row):
-                continue
-
-            company_code = str(self._cell(row, self.LEGACY_COL_COMPANY) or '').strip()
-            ma_nvl = self._normalize_ma_nvl(self._cell(row, self.LEGACY_COL_MA_NVL))
-            ten_nvl = str(self._cell(row, self.LEGACY_COL_TEN_NVL) or '').strip()
-            month_raw = self._cell(row, self.LEGACY_COL_MONTH)
-            month_key, month_date = self._parse_month(month_raw)
-
-            row_errors = []
-            if not company_code:
-                row_errors.append(_('Dòng %d: thiếu Đơn vị.') % row_number)
-            if not ma_nvl:
-                row_errors.append(_('Dòng %d: thiếu Mã NVL.') % row_number)
-            if not month_key:
-                month_display = self._format_month_display(month_raw)
-                row_errors.append(
-                    _('Dòng %d: Tháng "%s" không đúng định dạng MM/YYYY.') % (row_number, month_display)
-                    if month_display else _('Dòng %d: thiếu Tháng.') % row_number
-                )
-
-            try:
-                so_luong = self._parse_number(self._cell(row, self.LEGACY_COL_QTY), default=0.0)
-                if so_luong < 0:
-                    row_errors.append(_('Dòng %d: Số lượng không được âm.') % row_number)
-            except UserError as exc:
-                row_errors.append(_('Dòng %d: %s') % (row_number, exc.args[0]))
-
-            company = company_by_code.get(company_code) if company_code else False
-            if company_code and not company:
-                row_errors.append(
-                    _('Dòng %d: Đơn vị "%s" không tồn tại.') % (row_number, company_code)
-                )
-
-            if company_code and ma_nvl and month_key:
-                dup_key = (company_code, ma_nvl, month_key)
-                if dup_key in seen_keys:
-                    row_errors.append(
-                        _('Dòng %d: trùng Đơn vị + Mã NVL + Tháng trong file.') % row_number
-                    )
-                else:
-                    seen_keys.add(dup_key)
-
-            if row_errors:
-                errors.extend(row_errors)
-                continue
-
-            parsed.append({
-                'company_id': company.id,
-                'ma_nvl': ma_nvl,
-                'ten_nvl': ten_nvl or False,
-                'month_key': month_key,
-                'month_date': month_date,
-                'so_luong': so_luong,
-                'loai': 'don_vi',
-            })
-
-        self._raise_import_errors(errors)
-        return parsed
-
     def _apply_rows(self, parsed):
-        """Ghi dữ liệu đơn vị KD (loai=don_vi)."""
+        """Ghi vật tư đi đường SX (loai=don_vi, gom theo đơn vị SX)."""
         VatTuDiDuong = self.env['vat.tu.di.duong'].sudo()
         if not parsed:
             return 0, 0
@@ -419,23 +325,18 @@ class ImportVatTuDiDuongWizard(models.TransientModel):
             VatTuDiDuong.browse(update_ids).invalidate_recordset(
                 ['ten_nvl', 'so_luong', 'write_uid', 'write_date'])
         if to_create:
-            VatTuDiDuong.create(to_create)
+            VatTuDiDuong.with_context(
+                tracking_disable=True,
+                vat_tu_di_duong_loai='don_vi',
+                vat_tu_import_bulk=True,
+            ).create(to_create)
 
         return len(to_create), len(update_ids)
 
     def action_import(self):
         self.ensure_one()
         ws = self._get_import_worksheet()
-        fmt = self._detect_import_format(ws)
-        company_by_code = self._company_by_code()
-
-        if fmt == 'horizontal':
-            parsed = self._parse_rows_horizontal(ws, company_by_code)
-        else:
-            rows = list(ws.iter_rows(min_row=self.LEGACY_DATA_START_ROW, values_only=True))
-            if not rows:
-                raise UserError(_('File Excel không có dòng dữ liệu.'))
-            parsed = self._parse_rows_legacy(rows, company_by_code)
+        parsed = self._parse_rows(ws)
 
         if not parsed:
             raise UserError(_('File Excel không có dữ liệu hợp lệ.'))
@@ -443,10 +344,24 @@ class ImportVatTuDiDuongWizard(models.TransientModel):
         created, updated = self._apply_rows(parsed)
 
         if self.period_id and (created or updated):
-            self._post_period_import_file_log(
-                self.period_id,
-                '<p><b>Đã import file vật tư đi đường %s.</b></p>'
-                % (self.file_name or '-'),
+            self.period_id.with_context(
+                mail_create_nosubscribe=True,
+                tracking_disable=True,
+            ).message_post(
+                body=Markup(
+                    '<p><b>Đã import file vật tư đi đường %s.</b></p>'
+                    % (self.file_name or '-')
+                ),
+                attachment_ids=[self.env['ir.attachment'].sudo().create({
+                    'name': self.file_name or 'import.xlsx',
+                    'type': 'binary',
+                    'datas': self.file_data,
+                    'res_model': 'ke.hoach.vat.tu',
+                    'res_id': self.period_id.id,
+                    'mimetype': (
+                        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    ),
+                }).id],
             )
 
         message = (

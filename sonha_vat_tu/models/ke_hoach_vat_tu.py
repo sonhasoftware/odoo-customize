@@ -303,19 +303,24 @@ class KeHoachVatTu(models.Model):
         return self.env.company
 
     @api.model
-    def _get_creator_company_code(self):
-        company = self.env.company
+    def _get_company_code(self, company=None):
+        company = company or self.env.company
         code = (getattr(company, 'company_code', None) or '').strip()
         return code or (company.name or 'XX').strip()
 
     @api.model
-    def _period_code_prefix(self, company_code=None):
-        code = (company_code or self._get_creator_company_code()).strip()
-        return 'KHVT_%s' % code if code else 'KHVT'
+    def _get_creator_company_code(self):
+        return self._get_company_code()
 
     @api.model
-    def _next_period_code(self, company_code=None):
-        prefix = self._period_code_prefix(company_code) + '_'
+    def _period_code_prefix(self, period_month, company_code=None):
+        company_code = (company_code or self._get_creator_company_code()).strip()
+        month, year = (period_month or '').strip().split('/')
+        return 'KHVT_%s_%s%s' % (company_code, month, year)
+
+    @api.model
+    def _next_period_code(self, period_month, company_code=None):
+        prefix = self._period_code_prefix(period_month, company_code) + '_'
         latest = self.sudo().search([('code', '=like', prefix + '%')], order='code desc', limit=1)
         next_no = 1
         if latest.code:
@@ -324,6 +329,44 @@ class KeHoachVatTu(models.Model):
             except (TypeError, ValueError):
                 next_no = 1
         return '%s%02d' % (prefix, next_no)
+
+    @api.model
+    def _period_code_sequence_suffix(self, code):
+        if not code:
+            return None
+        try:
+            return int(str(code).rsplit('_', 1)[-1])
+        except (TypeError, ValueError):
+            return None
+
+    def _generate_period_code(self, period_month=None, company_sx=None, prefer_suffix=None):
+        self.ensure_one()
+        period_month = (period_month or self.period_month or '').strip()
+        company_sx = company_sx or self.company_sx_id
+        if not period_month or not company_sx:
+            return False
+        company_code = self._get_company_code(company_sx)
+        prefix = self._period_code_prefix(period_month, company_code)
+        if prefer_suffix is not None:
+            candidate = '%s_%02d' % (prefix, prefer_suffix)
+            domain = [('code', '=', candidate)]
+            if self.id:
+                domain.append(('id', '!=', self.id))
+            if not self.search(domain, limit=1):
+                return candidate
+        return self._next_period_code(period_month, company_code)
+
+    @api.onchange('period_month', 'company_sx_id')
+    def _onchange_period_month_code(self):
+        if self.co_ke_hoach_vat_tu or self.state != 'ke_hoach':
+            return
+        if not self.period_month or not self.company_sx_id:
+            return
+        pattern = re.compile(r'^(0[1-9]|1[0-2])/\d{4}$')
+        if not pattern.match(self.period_month.strip()):
+            return
+        prefer = self._period_code_sequence_suffix(self.code)
+        self.code = self._generate_period_code(prefer_suffix=prefer)
 
     @api.model
     def _get_view_cache_key(self, view_id=None, view_type='form', **options):
@@ -388,10 +431,14 @@ class KeHoachVatTu(models.Model):
         for vals in vals_list:
             if not vals.get('company_id'):
                 vals['company_id'] = self.env.company.id
-            if not vals.get('code'):
-                vals['code'] = self._next_period_code()
             if not vals.get('company_sx_id'):
                 vals['company_sx_id'] = self.env.company.id
+            if not vals.get('code') and vals.get('period_month'):
+                company_sx = self.env['res.company'].browse(vals['company_sx_id'])
+                vals['code'] = self._next_period_code(
+                    vals['period_month'],
+                    self._get_company_code(company_sx),
+                )
         return super().create(vals_list)
 
     def write(self, vals):
@@ -404,7 +451,27 @@ class KeHoachVatTu(models.Model):
                 raise UserError(_(
                     'Đã tạo kế hoạch vật tư, không thể sửa kế hoạch sản xuất.'
                 ))
-        return super().write(vals)
+        refresh_code = (
+            not self.env.context.get('skip_khvt_code_update')
+            and ('period_month' in vals or 'company_sx_id' in vals)
+        )
+        res = super().write(vals)
+        if not self.env.context.get('skip_khvt_code_update'):
+            for rec in self.filtered(
+                lambda r: r.state == 'ke_hoach'
+                and not r.co_ke_hoach_vat_tu
+                and r.period_month
+                and r.company_sx_id
+            ):
+                if not rec.code or refresh_code:
+                    new_code = rec._generate_period_code(
+                        prefer_suffix=rec._period_code_sequence_suffix(rec.code),
+                    )
+                    if new_code and new_code != rec.code:
+                        rec.with_context(skip_khvt_code_update=True).write({
+                            'code': new_code,
+                        })
+        return res
 
     def unlink(self):
         locked = self.filtered(
@@ -477,56 +544,45 @@ class KeHoachVatTu(models.Model):
             return []
 
     def _vat_tu_di_duong_template_rows(self):
-        """Sinh dòng template import vật tư đi đường từ B3: mỗi NVL × đơn vị KD, 4 cột tháng."""
+        """Sinh dòng template import vật tư đi đường từ B3: 1 dòng / mã NVL (gom theo ĐV SX)."""
         self.ensure_one()
         months = self._get_horizon_months()
         if len(months) < 4:
             months = (months + [''] * 4)[:4]
         month_keys = months[:4]
 
-        lines = self.tinh_toan_vat_tu_ids.sorted(
-            key=lambda line: (
-                (line.don_vi_kd_code or '').strip(),
-                (line.ma_vat_tu or '').strip(),
-                line.id,
-            )
-        )
-        if not lines:
+        if not self.company_sx_id:
             return []
 
-        company_ids = lines.mapped('don_vi_kd_id').ids
-        ma_nvls = sorted({
-            (line.ma_vat_tu or '').strip()
-            for line in lines if (line.ma_vat_tu or '').strip()
-        })
-
-        existing = {}
-        if company_ids and ma_nvls and month_keys:
-            for rec in self.env['vat.tu.di.duong'].sudo().search([
-                ('company_id', 'in', company_ids),
-                ('ma_nvl', 'in', ma_nvls),
-                ('month_key', 'in', month_keys),
-            ]):
-                existing[(rec.company_id.id, rec.ma_nvl, rec.month_key)] = rec.so_luong or 0.0
-
-        rows = []
-        for line in lines:
-            if not line.don_vi_kd_id or not (line.ma_vat_tu or '').strip():
-                continue
-            company_code = (line.don_vi_kd_code or '').strip()
-            if not company_code:
-                company_code = self._company_display_code(line.don_vi_kd_id)
+        by_ma = {}
+        for line in self.tinh_toan_vat_tu_ids:
             ma_nvl = (line.ma_vat_tu or '').strip()
-            rows.append({
-                'company_code': company_code,
+            if not ma_nvl:
+                continue
+            if ma_nvl not in by_ma:
+                by_ma[ma_nvl] = line.ten_vat_tu or ''
+
+        if not by_ma:
+            return []
+
+        ma_nvls = sorted(by_ma)
+        existing = {}
+        for rec in self.env['vat.tu.di.duong'].sudo().search([
+            ('company_id', '=', self.company_sx_id.id),
+            ('loai', '=', 'don_vi'),
+            ('ma_nvl', 'in', ma_nvls),
+            ('month_key', 'in', month_keys),
+        ]):
+            existing[(rec.ma_nvl, rec.month_key)] = rec.so_luong or 0.0
+
+        return [
+            {
                 'ma_nvl': ma_nvl,
-                'ten_nvl': line.ten_vat_tu or '',
-                'qtys': [
-                    existing.get((line.don_vi_kd_id.id, ma_nvl, mk), 0.0)
-                    for mk in month_keys
-                ],
-            })
-        return rows
+                'ten_nvl': by_ma[ma_nvl],
+                'qtys': [existing.get((ma_nvl, mk), 0.0) for mk in month_keys],
+            }
+            for ma_nvl in ma_nvls
+        ]
 
     # ------------------------------------------------------------------
     # Actions — gọi thẳng SQL Procedure

@@ -146,8 +146,8 @@
                                     </td>
                                 </tr>
                                 <tr>
+                                    <td t-att-style="sign_cell_center" class="fw-bold">Người lập</td>
                                     <td t-att-style="sign_cell_center" class="fw-bold">BAN CUNG ỨNG – ĐẤU THẦU</td>
-                                    <td t-att-style="sign_cell_center" class="fw-bold">BAN TÀI CHÍNH – KẾ TOÁN</td>
                                     <td t-att-style="sign_cell_center" class="fw-bold">BAN LÃNH ĐẠO PHÊ DUYỆT</td>
                                 </tr>
                                 <tr>

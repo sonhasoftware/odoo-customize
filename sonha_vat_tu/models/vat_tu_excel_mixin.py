@@ -221,7 +221,7 @@ class VatTuExcelMixin(models.AbstractModel):
             'tag': 'display_notification',
             'params': {
                 'title': title,
-                'message': message,
+                'message': message or title,
                 'type': 'success' if success else 'warning',
                 'sticky': False,
                 'next': next_action or {'type': 'ir.actions.act_window_close'},

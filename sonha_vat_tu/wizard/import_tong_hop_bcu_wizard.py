@@ -268,7 +268,11 @@ class ImportTongHopBcuWizard(models.TransientModel):
             VatTuDiDuong.browse(update_ids).invalidate_recordset(
                 ['so_luong', 'don_gia', 'gia_tri', 'write_uid', 'write_date'])
         if to_create:
-            VatTuDiDuong.create(to_create)
+            VatTuDiDuong.with_context(
+                vat_tu_di_duong_loai='bcu',
+                tracking_disable=True,
+                vat_tu_import_bulk=True,
+            ).create(to_create)
 
     def action_import(self):
         self.ensure_one()

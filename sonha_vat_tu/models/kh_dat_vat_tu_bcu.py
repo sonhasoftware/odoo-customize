@@ -253,12 +253,30 @@ class KhDatVatTuBcu(models.Model):
     @api.model
     def _apply_chot_from_bcu_di_duong(self, records):
         """Sau khi cập nhật đi đường BCU: tính lại chốt/moq theo công thức B5."""
+        if not records:
+            return
+        ids, chots = [], []
         for rec in records:
             chot = rec._sl_chot_from_de_xuat(rec._sl_dat_mua_de_xuat_value())
-            rec.with_context(tracking_disable=True).write({
-                'sl_dat_mua_chot': chot,
-                'sl_can_mua_theo_moq': chot,
-            })
+            ids.append(rec.id)
+            chots.append(chot)
+        if not ids:
+            return
+        self.env.cr.execute("""
+            UPDATE kh_dat_vat_tu_bcu AS b SET
+                sl_dat_mua_chot = v.chot,
+                sl_can_mua_theo_moq = v.chot,
+                write_uid = %s,
+                write_date = NOW() AT TIME ZONE 'UTC'
+            FROM (
+                SELECT unnest(%s::int[]) AS id,
+                       unnest(%s::numeric[]) AS chot
+            ) AS v
+            WHERE b.id = v.id
+        """, [self.env.uid, ids, chots])
+        records.invalidate_recordset([
+            'sl_dat_mua_chot', 'sl_can_mua_theo_moq', 'write_uid', 'write_date',
+        ])
 
     @api.model
     def _format_qty(self, qty):

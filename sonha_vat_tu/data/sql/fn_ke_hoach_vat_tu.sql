@@ -174,7 +174,7 @@ END;
 $BODY$;
 
 -- ============================================================
--- B3: Tính toán vật tư — CHỈ đọc dinh_muc (B2), không join bom_tinh_toan
+-- B3: Tính toán vật tư — dinh_muc (B2) + NVL nhập trực tiếp trên B1
 -- Ghi bảng chi tiết (audit) rồi SUM ra tinh_toan_vat_tu.
 -- ============================================================
 CREATE OR REPLACE PROCEDURE public.fn_tinh_toan_vat_tu(p_period_id INTEGER)
@@ -191,14 +191,47 @@ BEGIN
         RAISE EXCEPTION 'Ky % chua co nha may san xuat. Hay tao ke hoach vat tu truoc.', p_period_id;
     END IF;
 
-    -- B3 đọc từ dinh_muc (B2) — chỉ NVL đã lọc ma.hang, giữ override định mức.
+    -- B1: NVL nhập thẳng từ KD (không bung BOM ở B2).
+    DROP TABLE IF EXISTS _tmp_b1_direct_nvl;
+    CREATE TEMP TABLE _tmp_b1_direct_nvl ON COMMIT DROP AS
+    SELECT
+        b1.period_id,
+        b1.company_id,
+        TRIM(b1.ma_sap) AS ma_sap,
+        b1.ma_hang,
+        b1.ten_hang,
+        COALESCE(b1.qty_t0, 0) AS qty_t0,
+        COALESCE(b1.qty_t1, 0) AS qty_t1,
+        COALESCE(b1.qty_t2, 0) AS qty_t2,
+        COALESCE(b1.qty_t3, 0) AS qty_t3,
+        mh.ten_hang AS ten_nvl
+    FROM ke_hoach_vat_tu_line b1
+    INNER JOIN ma_hang mh ON TRIM(mh.ma_sap) = TRIM(b1.ma_sap)
+    WHERE b1.period_id = p_period_id
+      AND b1.company_id IS NOT NULL
+      AND b1.ma_sap IS NOT NULL
+      AND TRIM(b1.ma_sap) <> ''
+      AND NOT EXISTS (
+          SELECT 1
+          FROM dinh_muc dm
+          WHERE dm.period_id = b1.period_id
+            AND dm.company_id = b1.company_id
+            AND TRIM(dm.ma_sap) = TRIM(b1.ma_sap)
+      );
+
+    CREATE INDEX ON _tmp_b1_direct_nvl (ma_sap);
+
+    -- Mã NVL lookup ĐVT: từ B2 + NVL trực tiếp B1.
     DROP TABLE IF EXISTS _tmp_period_nvl;
     CREATE TEMP TABLE _tmp_period_nvl ON COMMIT DROP AS
     SELECT DISTINCT TRIM(ma_nvl) AS ma_nvl
     FROM dinh_muc
     WHERE period_id = p_period_id
       AND ma_nvl IS NOT NULL
-      AND TRIM(ma_nvl) <> '';
+      AND TRIM(ma_nvl) <> ''
+    UNION
+    SELECT DISTINCT ma_sap AS ma_nvl
+    FROM _tmp_b1_direct_nvl;
 
     CREATE INDEX ON _tmp_period_nvl (ma_nvl);
 
@@ -213,7 +246,7 @@ BEGIN
 
     CREATE INDEX ON _tmp_mdm_dvt (ma_nvl);
 
-    -- Một dòng dinh_muc = một dòng; qty NVL lấy từ B2 (đã nhân KH × BOM).
+    -- Nguồn 1: dinh_muc (BOM). Nguồn 2: NVL trực tiếp B1 (1:1, sl = 1).
     DROP TABLE IF EXISTS tmp_b3_nvl_detail;
     CREATE TEMP TABLE tmp_b3_nvl_detail ON COMMIT DROP AS
     SELECT
@@ -281,7 +314,34 @@ BEGIN
         LIMIT 1
     ) b1 ON TRUE
     WHERE dm.period_id = p_period_id
-      AND dm.company_id IS NOT NULL;
+      AND dm.company_id IS NOT NULL
+
+    UNION ALL
+
+    SELECT
+        d.period_id,
+        v_prod_company_id AS company_id,
+        d.company_id AS don_vi_kd_id,
+        COALESCE(NULLIF(TRIM(dv.company_code), ''), dv.name) AS don_vi_kd_code,
+        d.ma_sap AS ma,
+        NULLIF(TRIM(d.ma_hang), '') AS ma_hang,
+        NULLIF(TRIM(COALESCE(d.ten_hang, d.ten_nvl)), '') AS ten_kh,
+        NULL::VARCHAR AS ma_tp_cha,
+        NULL::VARCHAR AS ten_tp_cha,
+        d.ma_sap AS ma_nvl,
+        NULLIF(TRIM(d.ten_nvl), '') AS ten_nvl,
+        1.0 AS sl_thuc_te,
+        NULL::INTEGER AS cap_bom,
+        d.qty_t0 AS qty_kh_t0,
+        d.qty_t1 AS qty_kh_t1,
+        d.qty_t2 AS qty_kh_t2,
+        d.qty_t3 AS qty_kh_t3,
+        d.qty_t0 AS qty_nvl_t0,
+        d.qty_t1 AS qty_nvl_t1,
+        d.qty_t2 AS qty_nvl_t2,
+        d.qty_t3 AS qty_nvl_t3
+    FROM _tmp_b1_direct_nvl d
+    JOIN res_company dv ON dv.id = d.company_id;
 
     CREATE INDEX ON tmp_b3_nvl_detail (don_vi_kd_id, ma_nvl);
     CREATE INDEX ON tmp_b3_nvl_detail (ma_nvl);
@@ -487,13 +547,12 @@ BEGIN
         SUM(CASE WHEN vdd.month_key IN (v_month_t0, v_month_t1, v_month_t2, v_month_t3)
                  THEN COALESCE(vdd.gia_tri, vdd.so_luong * vdd.don_gia, 0) ELSE 0 END) AS gt_total
     FROM (
-        SELECT DISTINCT company_id, don_vi_kd_id, ma_vat_tu
+        SELECT DISTINCT company_id, ma_vat_tu
         FROM tinh_toan_vat_tu
         WHERE period_id = p_period_id
-          AND don_vi_kd_id IS NOT NULL
     ) b3
     LEFT JOIN vat_tu_di_duong vdd
-        ON  vdd.company_id = b3.don_vi_kd_id
+        ON  vdd.company_id = b3.company_id
         AND TRIM(vdd.ma_nvl) = TRIM(b3.ma_vat_tu)
         AND COALESCE(vdd.loai, 'don_vi') = 'don_vi'
     GROUP BY b3.company_id, b3.ma_vat_tu;
