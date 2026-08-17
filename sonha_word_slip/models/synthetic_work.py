@@ -283,7 +283,7 @@ class SyntheticWork(models.Model):
         start_date = current_date.replace(day=1)
         end_date = (start_date + relativedelta(months=1)) - timedelta(days=1)
 
-        employees = self.env['hr.employee'].search([('id', '!=', 1), ('onboard', '>=', start_date)])
+        employees = self.env['hr.employee'].search([('id', '!=', 1), ('create_date', '>=', start_date)])
 
         start_current = start_date - relativedelta(months=1)
         end_current = (start_current + relativedelta(months=1)) - timedelta(days=1)
