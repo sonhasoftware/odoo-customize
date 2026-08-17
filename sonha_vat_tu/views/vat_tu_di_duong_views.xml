@@ -7,11 +7,10 @@
         <field name="arch" type="xml">
             <tree string="Vật tư đi đường" editable="bottom" class="sh_free_width_tree">
                 <field name="loai" column_invisible="True"/>
-                <field name="company_id" context="{'vat_tu_company_code_display': True}"/>
-                <field name="ma_nvl_id" string="Mã NVL" required="1"
-                       context="{'vat_tu_display_ma_code_only': True}"
-                       options="{'no_create': True, 'no_open': True}"/>
-                <field name="ma_nvl" column_invisible="True"/>
+                <field name="company_id" string="Đơn vị sản xuất"
+                       context="{'vat_tu_company_code_display': True}"/>
+                <field name="ma_nvl" string="Mã NVL" required="1"/>
+                <field name="ma_nvl_id" column_invisible="True"/>
                 <field name="ten_nvl" string="Tên NVL" readonly="1"/>
                 <field name="month_key" required="1"/>
                 <field name="so_luong" sum="Số lượng"/>
@@ -27,10 +26,8 @@
                 <field name="loai" column_invisible="True"/>
                 <field name="company_id" string="Đơn vị sản xuất"
                        context="{'vat_tu_company_code_display': True}"/>
-                <field name="ma_nvl_id" string="Mã NVL" required="1"
-                       context="{'vat_tu_display_ma_code_only': True}"
-                       options="{'no_create': True, 'no_open': True}"/>
-                <field name="ma_nvl" column_invisible="True"/>
+                <field name="ma_nvl" string="Mã NVL" required="1"/>
+                <field name="ma_nvl_id" column_invisible="True"/>
                 <field name="ten_nvl" string="Tên NVL" readonly="1"/>
                 <field name="month_key" required="1"/>
                 <field name="so_luong" sum="Số lượng"/>
@@ -45,14 +42,13 @@
         <field name="model">vat.tu.di.duong</field>
         <field name="arch" type="xml">
             <search>
-                <field name="company_id" context="{'vat_tu_company_code_display': True}"/>
-                <field name="ma_nvl_id" string="Mã NVL"
-                       context="{'vat_tu_display_ma_code_only': True}"/>
-                <field name="ma_nvl"/>
+                <field name="company_id" string="Đơn vị sản xuất"
+                       context="{'vat_tu_company_code_display': True}"/>
+                <field name="ma_nvl" string="Mã NVL"/>
                 <field name="ten_nvl"/>
                 <field name="month_key"/>
                 <group expand="0" string="Nhóm theo">
-                    <filter name="group_company" string="Đơn vị"
+                    <filter name="group_company" string="Đơn vị sản xuất"
                             context="{'group_by': 'company_id', 'vat_tu_company_code_display': True}"/>
                     <filter name="group_month" string="Tháng"
                             context="{'group_by': 'month_key'}"/>
