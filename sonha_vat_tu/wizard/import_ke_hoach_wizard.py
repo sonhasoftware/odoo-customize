@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
-from collections import Counter
+from collections import defaultdict
 from datetime import date
 
 from markupsafe import Markup
@@ -308,6 +308,30 @@ class ImportKeHoachWizard(models.TransientModel):
         to_delete = existing[len(vals_list):]
         return existing, to_create, to_update, to_delete
 
+    def _split_production_import(self, Plan, vals_list, domain):
+        """File là nguồn đúng: cập nhật dòng còn, xóa dòng đã bỏ (khớp Đơn vị + Mã)."""
+        existing = Plan.search(domain, order='sequence, id')
+        pools = defaultdict(list)
+        for line in existing:
+            pools[(line.company_id.id, line.ma_sap)].append(line)
+
+        to_create, to_update = [], []
+        matched_ids = set()
+        for vals in vals_list:
+            key = (vals['company_id'], vals['ma_sap'])
+            pool = pools.get(key)
+            if pool:
+                line = pool.pop(0)
+                matched_ids.add(line.id)
+                write_vals = {f: vals[f] for f in self._WRITE_FIELDS if f in vals}
+                if self._row_changed(line, vals, self._WRITE_FIELDS):
+                    to_update.append((line.id, write_vals))
+            else:
+                to_create.append(vals)
+
+        to_delete = existing.filtered(lambda l: l.id not in matched_ids)
+        return existing, to_create, to_update, to_delete
+
     def _write_plan_rows(self, Plan, to_create, to_update):
         if to_update:
             Plan._sql_bulk_import_update(to_update)
@@ -406,44 +430,6 @@ class ImportKeHoachWizard(models.TransientModel):
         self._write_plan_rows(Plan, to_create, to_update)
         return len(vals_list)
 
-    def _check_business_rows_covered(self, vals_list):
-        kd_lines = self.env['ke.hoach.kinh.doanh.line'].sudo().search([
-            ('kinh_doanh_id.period_sx_id', '=', self.period_id.id),
-            ('ma_sap', '!=', False),
-        ])
-        if not kd_lines:
-            return
-
-        kd_counts = Counter(
-            (line.company_id.id, line.ma_sap) for line in kd_lines
-        )
-        file_counts = Counter(
-            (v['company_id'], v['ma_sap']) for v in vals_list
-        )
-        missing = sorted(
-            (company_id, ma_sap, need - file_counts.get((company_id, ma_sap), 0))
-            for (company_id, ma_sap), need in kd_counts.items()
-            if file_counts.get((company_id, ma_sap), 0) < need
-        )
-        if not missing:
-            return
-
-        company_label = {
-            c.id: c.company_code or c.name
-            for c in self.env['res.company'].sudo().browse({cid for cid, _ma, _n in missing})
-        }
-        errors = [
-            _(
-                'Thiếu %d dòng kế hoạch kinh doanh Đơn vị=%s, Mã=%s. '
-                'Nếu không sản xuất, giữ dòng và nhập Số lượng = 0.'
-            ) % (shortage, company_label.get(company_id, company_id), ma_sap)
-            for company_id, ma_sap, shortage in missing[:20]
-        ]
-        if len(missing) > 20:
-            errors.append(
-                _('... còn %d nhóm (Đơn vị + Mã) bị thiếu dòng.') % (len(missing) - 20))
-        self._raise_errors(errors)
-
     def _import_production(self, rows, header, month_cols, data_start_idx):
         Plan = self.env['ke.hoach.san.xuat'].sudo()
         company_sx = self.env.company
@@ -455,10 +441,8 @@ class ImportKeHoachWizard(models.TransientModel):
                 'company_sx_id': company_sx.id,
             },
         )
-        self._check_business_rows_covered(vals_list)
-
         domain = [('period_id', '=', self.period_id.id)]
-        _existing, to_create, to_update, to_delete = self._split_create_update(
+        _existing, to_create, to_update, to_delete = self._split_production_import(
             Plan, vals_list, domain,
         )
         if to_delete:

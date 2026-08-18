@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from collections import Counter, defaultdict
+from collections import defaultdict
 import calendar
 from datetime import date
 import os as _os
@@ -7,7 +7,7 @@ import re
 
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
-from openpyxl.styles import Alignment, Border, Font, PatternFill, Protection, Side
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.styles.numbers import FORMAT_TEXT
 from markupsafe import Markup, escape
 
@@ -749,33 +749,6 @@ class KeHoachVatTu(models.Model):
         ], order='kinh_doanh_id, sequence, id')
         sx_lines = self.ke_hoach_san_xuat_ids.sorted(key=lambda r: (r.sequence, r.id))
 
-        if len(sx_lines) != len(kd_lines):
-            raise UserError(_(
-                'Số dòng kế hoạch sản xuất (%s) không khớp số dòng kinh doanh (%s). '
-                'Mỗi dòng kinh doanh cần đúng một dòng sản xuất.'
-            ) % (len(sx_lines), len(kd_lines)))
-
-        kd_counts = Counter((l.company_id.id, l.ma_sap) for l in kd_lines)
-        sx_counts = Counter((s.company_id.id, s.ma_sap) for s in sx_lines)
-        missing = []
-        for key, need in sorted(kd_counts.items()):
-            have = sx_counts.get(key, 0)
-            if have < need:
-                company = self.env['res.company'].browse(key[0])
-                missing.append('%s / %s (thiếu %d dòng)' % (
-                    self._company_display_code(company),
-                    key[1],
-                    need - have,
-                ))
-        if missing:
-            shown = missing[:20]
-            if len(missing) > 20:
-                shown.append('... còn %s nhóm khác' % (len(missing) - 20))
-            raise UserError(_(
-                'Kế hoạch sản xuất thiếu dòng so với kinh doanh (Đơn vị + Mã):\n%s\n'
-                'Nếu không sản xuất, giữ dòng và nhập Số lượng = 0.'
-            ) % '\n'.join(shown))
-
         kd_queues = defaultdict(list)
         for line in kd_lines:
             kd_queues[(line.company_id.id, line.ma_sap)].append(line)
@@ -1120,9 +1093,9 @@ class KeHoachVatTu(models.Model):
         helper._excel_text_cell(ws, 2, 2, kd.period_month or '')
         ws.cell(row=3, column=1, value='Đơn vị sản xuất')
         ws.cell(row=3, column=2, value=kd.company_sx_id.company_code or kd.company_sx_id.name or '')
-        helper._write_plan_data_sheet(wb, ws, kd.line_ids, lock_meta=False)
+        helper._write_plan_data_sheet(wb, ws, kd.line_ids)
         return self._xlsx_download_action(wb, '%s.xlsx' % kd.code)
-    def _write_plan_data_sheet(self, wb, ws, lines, *, lock_meta=True):
+    def _write_plan_data_sheet(self, wb, ws, lines):
         months = self._get_horizon_months()
         headers = self._PLAN_EXPORT_HEADERS + ['Tháng %s' % month for month in months]
         header_row = 6
@@ -1137,8 +1110,6 @@ class KeHoachVatTu(models.Model):
                 ws.cell(row=header_row + row_offset, column=col_idx, value=value)
         self._apply_plan_excel_style(ws, header_row, len(headers))
         self._apply_company_code_validation(wb, ws, first_data_row=header_row + 1)
-        if lock_meta:
-            self._protect_plan_sheet(ws, header_row, [6, 7, 8, 9])
         for col_idx in range(1, len(headers) + 1):
             max_len = max(
                 len(str(ws.cell(row=row_idx, column=col_idx).value or ''))
@@ -1164,15 +1135,6 @@ class KeHoachVatTu(models.Model):
         ws.cell(row=1, column=2, value=self.code or '')
         ws.cell(row=2, column=1, value='Tháng bắt đầu')
         self._excel_text_cell(ws, 2, 2, self.period_month or '')
-
-    def _protect_plan_sheet(self, ws, header_row, unlocked_cols):
-        for row in ws.iter_rows(min_row=1, max_row=max(ws.max_row, header_row + 100), min_col=1, max_col=ws.max_column):
-            for cell in row:
-                cell.protection = Protection(locked=True)
-        for row_idx in range(header_row + 1, max(ws.max_row, header_row + 100) + 1):
-            for col_idx in unlocked_cols:
-                ws.cell(row=row_idx, column=col_idx).protection = Protection(locked=False)
-        ws.protection.sheet = True
 
     def _has_plan_edit_rights(self):
         return (
@@ -1230,7 +1192,7 @@ class KeHoachVatTu(models.Model):
         ws = wb.active
         ws.title = 'Ke hoach san xuat'
         self._write_plan_metadata(ws)
-        self._write_plan_data_sheet(wb, ws, lines, lock_meta=True)
+        self._write_plan_data_sheet(wb, ws, lines)
         return self._xlsx_download_action(
             wb,
             'KHSX_%s.xlsx' % (self.code or self.id),
