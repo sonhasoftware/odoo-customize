@@ -309,7 +309,6 @@ class ImportKeHoachWizard(models.TransientModel):
         return existing, to_create, to_update, to_delete
 
     def _split_production_import(self, Plan, vals_list, domain):
-        """File là nguồn đúng: cập nhật dòng còn, xóa dòng đã bỏ (khớp Đơn vị + Mã)."""
         existing = Plan.search(domain, order='sequence, id')
         pools = defaultdict(list)
         for line in existing:
