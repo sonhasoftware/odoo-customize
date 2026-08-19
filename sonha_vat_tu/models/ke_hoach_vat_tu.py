@@ -769,12 +769,7 @@ class KeHoachVatTu(models.Model):
         for sx_line in sx_lines:
             key = (sx_line.company_id.id, sx_line.ma_sap)
             queue = kd_queues.get(key, [])
-            if not queue:
-                company = self.env['res.company'].browse(key[0])
-                raise UserError(_(
-                    'Không ghép được dòng sản xuất Đơn vị=%s, Mã=%s với dòng kinh doanh.'
-                ) % (self._company_display_code(company), sx_line.ma_sap))
-            kd_line = queue.pop(0)
+            kd_line = queue.pop(0) if queue else None
             ma_sap = sx_line.ma_sap
             meta = meta_map.get((ma_sap or '').strip(), {})
             nganh_hang = sx_line.nganh_hang.ten if sx_line.nganh_hang else ''
@@ -788,10 +783,10 @@ class KeHoachVatTu(models.Model):
                 'ma_hang': sx_line.ma_hang,
                 'ma_sap': ma_sap,
                 'sequence': seq,
-                'qty_kd_t0': kd_line.qty_t0 or 0.0,
-                'qty_kd_t1': kd_line.qty_t1 or 0.0,
-                'qty_kd_t2': kd_line.qty_t2 or 0.0,
-                'qty_kd_t3': kd_line.qty_t3 or 0.0,
+                'qty_kd_t0': (kd_line.qty_t0 or 0.0) if kd_line else 0.0,
+                'qty_kd_t1': (kd_line.qty_t1 or 0.0) if kd_line else 0.0,
+                'qty_kd_t2': (kd_line.qty_t2 or 0.0) if kd_line else 0.0,
+                'qty_kd_t3': (kd_line.qty_t3 or 0.0) if kd_line else 0.0,
                 'qty_sx_t0': sx_line.qty_t0,
                 'qty_sx_t1': sx_line.qty_t1,
                 'qty_sx_t2': sx_line.qty_t2,
