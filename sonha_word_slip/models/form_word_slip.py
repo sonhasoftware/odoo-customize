@@ -104,13 +104,26 @@ class FormWordSlip(models.Model):
             else:
                 r.duration = 0
 
+    def _get_employee_remaining_leave_for_validation(self, employee):
+        if not employee or not employee.company_id:
+            return 0
+
+        now = datetime.now().date()
+        self.env.cr.execute(
+            "SELECT * FROM public.fn_bao_cao_nxt_phep_th(%s, %s, %s, %s, %s)",
+            (employee.company_id.id, now, now, 0, employee.id)
+        )
+        rows = self.env.cr.dictfetchall()
+        return sum((row.get("ton_cuoi") or 0) for row in rows)
+
     @api.constrains('employee_id', 'employee_ids', 'word_slip_id', 'type')
     def check_validate_leave(self):
         for r in self:
             if r.type.key == "NP":
                 list_employee = r.employee_ids or [r.employee_id]
                 for employee_id in list_employee:
-                    if r.duration > employee_id.old_leave_balance + employee_id.new_leave_balance:
+                    total_leave = self._get_employee_remaining_leave_for_validation(employee_id)
+                    if r.duration > total_leave:
                         raise ValidationError(f"Nhân viên {employee_id.name} không còn phép!")
 
     @api.depends('status', 'employee_confirm', 'employee_approval')
@@ -880,5 +893,4 @@ class FormWordSlip(models.Model):
         if today.day not in (1, 16):
             return
         self.env.cr.execute("CALL fn_them_phep();")
-
 
