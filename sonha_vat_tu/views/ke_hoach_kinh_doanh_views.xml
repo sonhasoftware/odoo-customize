@@ -30,6 +30,7 @@
                                    readonly="1"
                                    options="{'no_create': True, 'no_open': True}"
                                    context="{'vat_tu_company_code_display': True}"/>
+                            <field name="tong_so_ma" readonly="1"/>
                         </group>
                         <group>
                             <field name="period_month" readonly="locked"/>

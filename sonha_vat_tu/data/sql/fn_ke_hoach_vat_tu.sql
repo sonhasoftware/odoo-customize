@@ -397,7 +397,12 @@ BEGIN
                 t.don_vi_kd_id,
                 t.don_vi_kd_code,
                 t.ma_nvl,
-                MIN(NULLIF(TRIM(t.ten_nvl), '')) AS ten_nvl,
+                (
+                    ARRAY_AGG(
+                        NULLIF(TRIM(t.ten_nvl), '')
+                        ORDER BY LENGTH(NULLIF(TRIM(t.ten_nvl), '')) DESC NULLS LAST
+                    ) FILTER (WHERE NULLIF(TRIM(t.ten_nvl), '') IS NOT NULL)
+                )[1] AS ten_nvl,
                 SUM(t.qty_nvl_t0) AS qty_t0,
                 SUM(t.qty_nvl_t1) AS qty_t1,
                 SUM(t.qty_nvl_t2) AS qty_t2,
@@ -610,7 +615,12 @@ BEGIN
         SELECT
             b3.company_id,
             b3.ma_vat_tu                                              AS material_code,
-            b3.ten_vat_tu                                             AS material_name,
+            (
+                ARRAY_AGG(
+                    NULLIF(TRIM(b3.ten_vat_tu), '')
+                    ORDER BY LENGTH(NULLIF(TRIM(b3.ten_vat_tu), '')) DESC NULLS LAST
+                ) FILTER (WHERE NULLIF(TRIM(b3.ten_vat_tu), '') IS NOT NULL)
+            )[1]                                                      AS material_name,
             MAX(b3.don_vi_tinh)                                       AS don_vi_tinh,
             SUM(COALESCE(b3.qty_t0, 0))                               AS qty_t0,
             SUM(COALESCE(b3.qty_t1, 0))                               AS qty_t1,
@@ -708,7 +718,7 @@ BEGIN
         WHERE b3.period_id = p_period_id
         GROUP BY
             b3.company_id, c.company_code,
-            b3.ma_vat_tu, b3.ten_vat_tu,
+            b3.ma_vat_tu,
             tk.tdu, tk.sl_dau, tk.ttdu,
             vdd_dv.qty_t0_adj, vdd_dv.qty_t1, vdd_dv.qty_t2, vdd_dv.qty_t3, vdd_dv.qty_total,
             vdd_dv.gt_t0, vdd_dv.gt_t1, vdd_dv.gt_t2, vdd_dv.gt_t3
@@ -763,10 +773,13 @@ CREATE OR REPLACE PROCEDURE public.fn_ke_hoach_dat_vat_tu(
 )
 LANGUAGE 'plpgsql' AS $BODY$
 BEGIN
-        DELETE FROM kh_dat_vat_tu WHERE period_id = p_period_id;
+        DELETE FROM kh_dat_vat_tu
+        WHERE period_id = p_period_id
+          AND COALESCE(is_manual, false) = false;
 
         INSERT INTO kh_dat_vat_tu (
         period_id, company_id, ma_sap, ten_nvl, chung_loai, don_vi_tinh,
+        is_manual,
         tong_ton_nvl_sl,
         tong_sl_vt_can_dung_t0, tong_sl_vt_can_dung_t1, tong_sl_vt_can_dung_t2, tong_sl_vt_can_dung_t3,
         tong_vt_can_dung,
@@ -850,6 +863,7 @@ BEGIN
     )
     SELECT
         period_id, company_id, ma_sap, ten_nvl, chung_loai, don_vi_tinh,
+        false,
         ton_dau,
         cd_t0, cd_t1, cd_t2, cd_t3,
         tcd,
@@ -885,7 +899,14 @@ BEGIN
         don_gia_cuoi,
         don_gia_cuoi * sl_ton_kho AS gia_tri_cuoi,
         1, 1, NOW(), NOW()
-        FROM calc_final;
+        FROM calc_final cf
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM kh_dat_vat_tu k
+            WHERE k.period_id = p_period_id
+              AND k.ma_sap = cf.ma_sap
+              AND COALESCE(k.is_manual, false) = true
+        );
 END;
 $BODY$;
 

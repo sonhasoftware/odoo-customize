@@ -337,15 +337,16 @@
         <field name="groups" eval="[(4, ref('sonha_vat_tu.group_truong_bo_phan_vat_tu'))]"/>
     </record>
 
-    <!-- Vật tư đi đường: tách loại theo vai trò (1 bảng, domain loai) -->
+    <!-- Vật tư đi đường SX: bộ phận chỉ thấy bản ghi do mình tạo/import -->
     <record id="rule_vat_tu_di_duong_bo_phan_don_vi" model="ir.rule">
-        <field name="name">Vat tu di duong - Bo phan - don vi only</field>
+        <field name="name">Vat tu di duong - Bo phan - own don vi</field>
         <field name="model_id" ref="model_vat_tu_di_duong"/>
-        <field name="domain_force">[('loai', '=', 'don_vi')]</field>
+        <field name="domain_force">['&amp;', ('loai', '=', 'don_vi'), ('create_uid', '=', user.id)]</field>
         <field name="groups" eval="[(4, ref('sonha_vat_tu.group_bo_phan_vat_tu'))]"/>
     </record>
+    <!-- Trưởng bộ phận: xem/sửa full loại SX (don_vi) -->
     <record id="rule_vat_tu_di_duong_truong_bo_phan_don_vi" model="ir.rule">
-        <field name="name">Vat tu di duong - Truong bo phan - don vi only</field>
+        <field name="name">Vat tu di duong - Truong bo phan - all don vi</field>
         <field name="model_id" ref="model_vat_tu_di_duong"/>
         <field name="domain_force">[('loai', '=', 'don_vi')]</field>
         <field name="groups" eval="[(4, ref('sonha_vat_tu.group_truong_bo_phan_vat_tu'))]"/>

@@ -278,35 +278,47 @@ class ImportVatTuDiDuongWizard(models.TransientModel):
 
     def _apply_rows(self, parsed):
         """Ghi vật tư đi đường SX (loai=don_vi, gom theo đơn vị SX)."""
-        VatTuDiDuong = self.env['vat.tu.di.duong'].sudo()
         if not parsed:
             return 0, 0
 
         loai = 'don_vi'
-        existing = VatTuDiDuong.search([
+        uid = self.env.uid
+        is_truong = self.env.user.has_group('sonha_vat_tu.group_truong_bo_phan_vat_tu')
+        VatTuDiDuong = self.env['vat.tu.di.duong']
+        existing = VatTuDiDuong.sudo().search([
             ('company_id', 'in', list({v['company_id'] for v in parsed})),
             ('ma_nvl', 'in', list({v['ma_nvl'] for v in parsed})),
             ('month_key', 'in', list({v['month_key'] for v in parsed})),
             ('loai', '=', loai),
         ])
         existing_map = {
-            (line.company_id.id, line.ma_nvl, line.month_key, line.loai): line.id
+            (line.company_id.id, line.ma_nvl, line.month_key, line.loai): line
             for line in existing
         }
 
         to_create = []
         update_ids, update_names, update_qtys = [], [], []
+        blocked = []
         for vals in parsed:
             vals.setdefault('loai', loai)
-            line_id = existing_map.get(
-                (vals['company_id'], vals['ma_nvl'], vals['month_key'], loai)
-            )
-            if line_id:
-                update_ids.append(line_id)
+            key = (vals['company_id'], vals['ma_nvl'], vals['month_key'], loai)
+            line = existing_map.get(key)
+            if line:
+                if not is_truong and line.create_uid.id != uid:
+                    blocked.append(
+                        _('%s / %s') % (vals['ma_nvl'], vals['month_key'])
+                    )
+                    continue
+                update_ids.append(line.id)
                 update_names.append(vals['ten_nvl'] or '')
                 update_qtys.append(vals['so_luong'])
             else:
                 to_create.append(vals)
+
+        if blocked:
+            raise UserError(_(
+                'Không thể ghi đè vật tư đi đường do người khác import:\n%s'
+            ) % '\n'.join(blocked[:20]))
 
         if update_ids:
             self.env.cr.execute("""
@@ -321,7 +333,7 @@ class ImportVatTuDiDuongWizard(models.TransientModel):
                            unnest(%s::numeric[]) AS so_luong
                 ) AS data
                 WHERE v.id = data.id
-            """, [self.env.uid, update_ids, update_names, update_qtys])
+            """, [uid, update_ids, update_names, update_qtys])
             VatTuDiDuong.browse(update_ids).invalidate_recordset(
                 ['ten_nvl', 'so_luong', 'write_uid', 'write_date'])
         if to_create:
