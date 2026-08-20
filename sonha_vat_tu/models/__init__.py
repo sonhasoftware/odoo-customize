@@ -15,6 +15,7 @@ from . import ke_hoach_vat_tu_line
 from . import dinh_muc
 from . import bom_dinh_muc
 from . import cau_hinh_leadtime
+from . import cau_hinh_bo_qua_nvl
 from . import tinh_toan_vat_tu
 from . import tinh_toan_vat_tu_chi_tiet
 from . import tong_hop_vat_tu
