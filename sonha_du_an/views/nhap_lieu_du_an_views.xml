@@ -11,6 +11,7 @@
                             <field name="so_du_an"/>
                             <field name="group_du_an"/>
                             <field name="name"/>
+                            <field name="parent_du_an_id"/>
                             <field name="noi_dung"/>
                         </group>
                         <group>
@@ -20,10 +21,50 @@
                         </group>
                     </group>
                     <notebook>
-                        <page string="Nhập nhiệm vụ">
-                            <field name="task_ids" string="">
+                        <page string="Dự án con" name="du_an_con">
+                            <field name="du_an_con_ids" context="{'default_parent_du_an_id': id}">
                                 <tree editable="bottom">
-                                    <field name="cap"/>
+                                    <field name="so_du_an"/>
+                                    <field name="group_du_an"/>
+                                    <field name="name" string="Tên dự án con"/>
+                                    <field name="nguoi_qlda"/>
+                                    <field name="ngay_kt_da"/>
+                                    <field name="ngay_kt_chinh_sua"/>
+                                </tree>
+                                <form string="Dự án con">
+                                    <sheet>
+                                        <group>
+                                            <field name="parent_du_an_id" readonly="1"/>
+                                            <field name="name" string="Tên dự án con"/>
+                                            <field name="so_du_an"/>
+                                            <field name="group_du_an"/>
+                                            <field name="noi_dung"/>
+                                        </group>
+                                        <notebook>
+                                            <page string="Nhiệm vụ của dự án con">
+                                                <field name="task_ids" context="{'default_project_id': id}">
+                                                    <tree editable="bottom">
+                                                        <field name="name" string="Tên nhiệm vụ"/>
+                                                        <field name="noi_dung_cv"/>
+                                                        <field name="so_ngay_ht"/>
+                                                        <field name="ngay_bat_dau"/>
+                                                        <field name="ngay_ket_thuc"/>
+                                                        <field name="ngay_hoan_thanh"/>
+                                                        <field name="ns_lam"/>
+                                                        <field name="chu_so_huu"/>
+                                                    </tree>
+                                                </field>
+                                            </page>
+                                        </notebook>
+                                    </sheet>
+                                </form>
+                            </field>
+                        </page>
+                        <page string="Nhiệm vụ theo dự án con" name="nhiem_vu_theo_du_an_con">
+                            <field name="child_task_ids" readonly="1" context="{'group_by': 'project_id'}">
+                                <tree>
+                                    <field name="project_id" string="Dự án con"/>
+                                    <field name="name" string="Tên nhiệm vụ"/>
                                     <field name="noi_dung_cv"/>
                                     <field name="so_ngay_ht"/>
                                     <field name="ngay_bat_dau"/>
@@ -31,9 +72,9 @@
                                     <field name="ngay_hoan_thanh"/>
                                     <field name="ns_lam"/>
                                     <field name="chu_so_huu"/>
-                              </tree>
-                          </field>
-                      </page>
+                                </tree>
+                            </field>
+                        </page>
                     </notebook>
                 </sheet>
             </form>
@@ -46,9 +87,10 @@
         <field name="arch" type="xml">
             <tree string="Nhập liệu dự án">
                 <field name="so_du_an"/>
-                    <field name="group_du_an"/>
-                    <field name="name"/>
-                    <field name="noi_dung"/>
+                <field name="group_du_an"/>
+                <field name="name"/>
+                <field name="parent_du_an_id"/>
+                <field name="noi_dung"/>
                     <field name="nguoi_qlda"/>
                     <field name="ngay_kt_da"/>
                     <field name="ngay_kt_chinh_sua"/>
@@ -60,6 +102,7 @@
             <field name="name">Nhập liệu dự án</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">project.project</field>
+            <field name="domain">[('parent_du_an_id', '=', False)]</field>
             <field name="view_ids" eval="[(5, 0, 0),
                 (0, 0, {'view_mode': 'tree', 'view_id': ref('view_nhap_lieu_du_an_tree')}),
                 (0, 0, {'view_mode': 'form', 'view_id': ref('view_nhap_lieu_du_an_form')})]"/>
