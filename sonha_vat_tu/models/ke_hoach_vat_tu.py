@@ -464,13 +464,19 @@ class KeHoachVatTu(models.Model):
                         })
         return res
 
+    # B1–B5: được xóa; từ B6 (bcu_tong_hop) trở đi: không xóa.
+    _PERIOD_DELETABLE_STATES = frozenset({
+        'ke_hoach', 'dinh_muc', 'tinh_toan', 'tong_hop', 'dat_hang',
+    })
+
     def unlink(self):
         locked = self.filtered(
-            lambda rec: rec.state != 'ke_hoach' or rec.approval_state == 'approved'
+            lambda rec: rec.state not in self._PERIOD_DELETABLE_STATES
+            or rec.approval_state == 'approved'
         )
         if locked:
             raise UserError(_(
-                'Không thể xóa kỳ kế hoạch đã sang bước sau hoặc đã phê duyệt kế hoạch đặt vật tư.'
+                'Không thể xóa kỳ đã tới bước 6 (Tổng hợp KH BCU) trở đi hoặc đã phê duyệt.'
             ))
         kd_headers = self.env['ke.hoach.kinh.doanh'].sudo().search([
             ('period_sx_id', 'in', self.ids),

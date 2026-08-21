@@ -50,10 +50,23 @@ CREATE OR REPLACE PROCEDURE public.fn_sinh_dinh_muc(p_period_id INTEGER)
 LANGUAGE plpgsql AS $BODY$
 DECLARE
     v_company_sx_id INTEGER;
+    v_company_code  TEXT;
+    v_cn_prefix     TEXT;
 BEGIN
         SELECT company_sx_id INTO v_company_sx_id
         FROM ke_hoach_vat_tu
         WHERE id = p_period_id;
+
+        SELECT UPPER(COALESCE(NULLIF(TRIM(rc.company_code), ''), ''))
+        INTO v_company_code
+        FROM res_company rc
+        WHERE rc.id = v_company_sx_id;
+
+        v_cn_prefix := CASE v_company_code
+            WHEN 'BNH' THEN '21'
+            WHEN 'SSP' THEN '22'
+            ELSE NULL
+        END;
 
         -- Mã NVL bỏ qua theo ĐV SX — không có cấu hình thì bảng rỗng, tính như cũ.
         DROP TABLE IF EXISTS _tmp_bo_qua_nvl;
@@ -93,6 +106,19 @@ BEGIN
 
         CREATE INDEX ON _tmp_period_tp (ma_tp_goc);
 
+        -- BOM theo chi nhánh ĐV SX: BNH 21%%, SSP 22%%
+        DROP TABLE IF EXISTS _tmp_bom_cn;
+        CREATE TEMP TABLE _tmp_bom_cn ON COMMIT DROP AS
+        SELECT b.*
+        FROM bom_tinh_toan b
+        INNER JOIN _tmp_period_tp tp ON tp.ma_tp_goc = TRIM(b.ma_tp_goc)
+        WHERE v_cn_prefix IS NULL
+           OR b.chi_nhanh LIKE v_cn_prefix || '%';
+
+        CREATE INDEX ON _tmp_bom_cn (ma_tp_goc);
+        CREATE INDEX ON _tmp_bom_cn (ma_tp_goc, chi_nhanh);
+        CREATE INDEX ON _tmp_bom_cn (ma_tp_goc, ma_con, chi_nhanh);
+
         -- Lá NVL bị bỏ qua → leo cây BOM lên mã cha gần nhất KHÔNG nằm trong cấu hình bỏ qua.
         -- Nếu leo tới mã TP gốc hoặc hết cây → không thay thế (bỏ hẳn nhánh đó).
         DROP TABLE IF EXISTS _tmp_bo_qua_thay_the;
@@ -100,13 +126,13 @@ BEGIN
         WITH RECURSIVE walk AS (
             SELECT
                 leaf.ma_tp_goc,
+                leaf.chi_nhanh,
                 TRIM(leaf.ma_con) AS leaf_ma,
                 TRIM(leaf.ma_tp_cha) AS current_ma,
                 0 AS depth
-            FROM bom_tinh_toan leaf
+            FROM _tmp_bom_cn leaf
             INNER JOIN _tmp_bo_qua_nvl s ON s.ma_nvl = TRIM(leaf.ma_con)
             WHERE leaf.loai_vat_tu = 'NVL'
-              AND leaf.ma_tp_goc IN (SELECT ma_tp_goc FROM _tmp_period_tp)
               AND leaf.ma_tp_cha IS NOT NULL
               AND TRIM(leaf.ma_tp_cha) <> ''
 
@@ -114,12 +140,14 @@ BEGIN
 
             SELECT
                 w.ma_tp_goc,
+                w.chi_nhanh,
                 w.leaf_ma,
                 TRIM(p.ma_tp_cha),
                 w.depth + 1
             FROM walk w
-            INNER JOIN bom_tinh_toan p
+            INNER JOIN _tmp_bom_cn p
                 ON p.ma_tp_goc = w.ma_tp_goc
+               AND p.chi_nhanh = w.chi_nhanh
                AND TRIM(p.ma_con) = w.current_ma
             INNER JOIN _tmp_bo_qua_nvl s ON s.ma_nvl = w.current_ma
             WHERE w.depth < 15
@@ -127,8 +155,9 @@ BEGIN
               AND TRIM(p.ma_tp_cha) <> ''
               AND TRIM(p.ma_tp_cha) <> TRIM(w.ma_tp_goc)
         )
-        SELECT DISTINCT ON (w.ma_tp_goc, w.leaf_ma)
+        SELECT DISTINCT ON (w.ma_tp_goc, w.chi_nhanh, w.leaf_ma)
             w.ma_tp_goc,
+            w.chi_nhanh,
             w.leaf_ma,
             w.current_ma AS substitute_ma
         FROM walk w
@@ -136,17 +165,17 @@ BEGIN
             SELECT 1 FROM _tmp_bo_qua_nvl s WHERE s.ma_nvl = w.current_ma
         )
           AND TRIM(w.current_ma) <> TRIM(w.ma_tp_goc)
-        ORDER BY w.ma_tp_goc, w.leaf_ma, w.depth ASC;
+        ORDER BY w.ma_tp_goc, w.chi_nhanh, w.leaf_ma, w.depth ASC;
 
+        CREATE INDEX ON _tmp_bo_qua_thay_the (ma_tp_goc, chi_nhanh, leaf_ma);
         CREATE INDEX ON _tmp_bo_qua_thay_the (substitute_ma);
 
         -- NVL thuộc BOM kỳ này (+ mã thay thế sau khi leo cây bỏ qua).
         DROP TABLE IF EXISTS _tmp_period_nvl_bom;
         CREATE TEMP TABLE _tmp_period_nvl_bom ON COMMIT DROP AS
         SELECT DISTINCT TRIM(b.ma_con) AS ma_sap
-        FROM bom_tinh_toan b
+        FROM _tmp_bom_cn b
         WHERE b.loai_vat_tu = 'NVL'
-          AND b.ma_tp_goc IN (SELECT ma_tp_goc FROM _tmp_period_tp)
           AND b.ma_con IS NOT NULL
           AND TRIM(b.ma_con) <> ''
           AND NOT EXISTS (
@@ -183,11 +212,10 @@ BEGIN
             TRIM(b.ma_con) AS ma_con,
             b.ten_con,
             b.sl_thuc_te
-        FROM bom_tinh_toan b
+        FROM _tmp_bom_cn b
         INNER JOIN _tmp_ma_hang_sap mh
             ON mh.ma_sap = TRIM(b.ma_con)
         WHERE b.loai_vat_tu = 'NVL'
-          AND b.ma_tp_goc IN (SELECT ma_tp_goc FROM _tmp_period_tp)
           AND b.ma_con IS NOT NULL
           AND TRIM(b.ma_con) <> ''
           AND NOT EXISTS (
@@ -204,17 +232,18 @@ BEGIN
             TRIM(t.substitute_ma) AS ma_con,
             p.ten_con,
             p.sl_thuc_te
-        FROM bom_tinh_toan leaf
+        FROM _tmp_bom_cn leaf
         INNER JOIN _tmp_bo_qua_thay_the t
             ON t.ma_tp_goc = leaf.ma_tp_goc
+           AND t.chi_nhanh = leaf.chi_nhanh
            AND t.leaf_ma = TRIM(leaf.ma_con)
-        INNER JOIN bom_tinh_toan p
+        INNER JOIN _tmp_bom_cn p
             ON p.ma_tp_goc = t.ma_tp_goc
+           AND p.chi_nhanh = t.chi_nhanh
            AND TRIM(p.ma_con) = TRIM(t.substitute_ma)
         INNER JOIN _tmp_ma_hang_sap mh
             ON mh.ma_sap = TRIM(t.substitute_ma)
-        WHERE leaf.loai_vat_tu = 'NVL'
-          AND leaf.ma_tp_goc IN (SELECT ma_tp_goc FROM _tmp_period_tp);
+        WHERE leaf.loai_vat_tu = 'NVL';
 
         CREATE INDEX ON _tmp_bom_nvl_period (ma_tp_goc);
 
