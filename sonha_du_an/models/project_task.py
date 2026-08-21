@@ -4,6 +4,7 @@ from odoo import api, Command, fields, models, tools, SUPERUSER_ID, _, _lt
 class Task(models.Model):
     _inherit = 'project.task'
 
+    cap = fields.Many2one('project.project', string="Cấp")
     noi_dung_cv = fields.Text("Nội dung công việc")
     so_ngay_ht = fields.Float("Số ngày hoàn thành")
     ngay_bat_dau = fields.Date("Ngày bắt đầu")

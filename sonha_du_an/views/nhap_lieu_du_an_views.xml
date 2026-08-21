@@ -19,12 +19,23 @@
                             <field name="ngay_kt_chinh_sua"/>
                         </group>
                     </group>
+                    <notebook>
+                        <page string="Nhập nhiệm vụ">
+                            <field name="task_ids" string="">
+                                <tree editable="bottom">
+                                    <field name="cap"/>
+                                    <field name="noi_dung_cv"/>
+                                    <field name="so_ngay_ht"/>
+                                    <field name="ngay_bat_dau"/>
+                                    <field name="ngay_ket_thuc"/>
+                                    <field name="ngay_hoan_thanh"/>
+                                    <field name="ns_lam"/>
+                                    <field name="chu_so_huu"/>
+                              </tree>
+                          </field>
+                      </page>
+                    </notebook>
                 </sheet>
-                <div class="oe_chatter">
-                    <field name="message_follower_ids"/>
-                    <field name="activity_ids"/>
-                    <field name="message_ids"/>
-                </div>
             </form>
         </field>
     </record>
@@ -46,8 +57,11 @@
     </record>
 
     <record id="action_nhap_lieu_du_an" model="ir.actions.act_window">
-        <field name="name">Nhập liệu dự án</field>
-        <field name="res_model">project.project</field>
-        <field name="view_mode">tree,form</field>
-    </record>
+            <field name="name">Nhập liệu dự án</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">project.project</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('view_nhap_lieu_du_an_tree')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('view_nhap_lieu_du_an_form')})]"/>
+        </record>
 </odoo>
