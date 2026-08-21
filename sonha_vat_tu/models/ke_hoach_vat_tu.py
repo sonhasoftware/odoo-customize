@@ -405,24 +405,15 @@ class KeHoachVatTu(models.Model):
             is_sx = 'view_ke_hoach_vat_tu_form_sx' in form_ref
             is_vt = 'view_ke_hoach_vat_tu_form_vt' in form_ref
 
-        step_views = [
-            self.env.ref('sonha_vat_tu.view_ke_hoach_vat_tu_form_b1', raise_if_not_found=False),
-            self.env.ref('sonha_vat_tu.view_ke_hoach_vat_tu_form_vt', raise_if_not_found=False),
-            self.env.ref('sonha_vat_tu.view_ke_hoach_vat_tu_form_b2', raise_if_not_found=False),
-            self.env.ref('sonha_vat_tu.view_ke_hoach_vat_tu_form_b3', raise_if_not_found=False),
-            self.env.ref('sonha_vat_tu.view_ke_hoach_vat_tu_form_b4', raise_if_not_found=False),
-            self.env.ref('sonha_vat_tu.view_ke_hoach_vat_tu_form_b5', raise_if_not_found=False),
-        ]
-        is_step_form = view_type == 'form' and view_id in [v.id for v in step_views if v]
-
         lock_create = False
         if is_ban_cung_ung:
             lock_create = True
-        elif is_vt or is_step_form:
+        elif is_vt:
             lock_create = True
 
-        if lock_create:
-            for node in arch.xpath('//tree') + arch.xpath('//form'):
+        # Chỉ khóa nút New trên list kỳ — không đụng tree one2many trong form (B5 thêm dòng tay).
+        if lock_create and view_type == 'tree':
+            for node in arch.xpath('//tree'):
                 node.set('create', 'false')
         return arch, view
 
@@ -473,13 +464,19 @@ class KeHoachVatTu(models.Model):
                         })
         return res
 
+    # B1–B5: được xóa; từ B6 (bcu_tong_hop) trở đi: không xóa.
+    _PERIOD_DELETABLE_STATES = frozenset({
+        'ke_hoach', 'dinh_muc', 'tinh_toan', 'tong_hop', 'dat_hang',
+    })
+
     def unlink(self):
         locked = self.filtered(
-            lambda rec: rec.state != 'ke_hoach' or rec.approval_state == 'approved'
+            lambda rec: rec.state not in self._PERIOD_DELETABLE_STATES
+            or rec.approval_state == 'approved'
         )
         if locked:
             raise UserError(_(
-                'Không thể xóa kỳ kế hoạch đã sang bước sau hoặc đã phê duyệt kế hoạch đặt vật tư.'
+                'Không thể xóa kỳ đã tới bước 6 (Tổng hợp KH BCU) trở đi hoặc đã phê duyệt.'
             ))
         kd_headers = self.env['ke.hoach.kinh.doanh'].sudo().search([
             ('period_sx_id', 'in', self.ids),
@@ -1766,7 +1763,9 @@ class KeHoachVatTu(models.Model):
         elif from_state == 'bcu_tong_hop':
             period.kh_dat_vat_tu_bcu_ids.with_context(**ctx).unlink()
         elif from_state == 'dat_hang':
-            period.kh_dat_vat_tu_ids.with_context(**ctx).unlink()
+            period.kh_dat_vat_tu_ids.with_context(
+                force_b5_unlink=True, **ctx,
+            ).unlink()
         elif from_state == 'tong_hop':
             period.tong_hop_vat_tu_ids.with_context(**ctx).unlink()
         elif from_state == 'tinh_toan':

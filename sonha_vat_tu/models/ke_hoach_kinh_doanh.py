@@ -38,10 +38,16 @@ class KeHoachKinhDoanh(models.Model):
     )
     line_ids = fields.One2many(
         'ke.hoach.kinh.doanh.line', 'kinh_doanh_id', string='Chi tiết kế hoạch')
+    tong_so_ma = fields.Integer(string='Tổng số mã', compute='_compute_tong_so_ma')
     co_ke_hoach_vat_tu = fields.Boolean(
         string='Đã có kế hoạch vật tư',
         compute='_compute_co_ke_hoach_vat_tu',
     )
+
+    @api.depends('line_ids')
+    def _compute_tong_so_ma(self):
+        for rec in self:
+            rec.tong_so_ma = len(rec.line_ids)
 
     @api.depends('period_sx_id', 'period_sx_id.co_ke_hoach_vat_tu')
     def _compute_co_ke_hoach_vat_tu(self):

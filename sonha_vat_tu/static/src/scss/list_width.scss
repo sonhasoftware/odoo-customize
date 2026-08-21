@@ -152,6 +152,17 @@
     position: static !important;
 }
 
+// Sticky header (ghim tiêu đề) khi scroll dọc trong form view.
+// JS (sticky_header.js) thêm class này + transform: translateY() trên <thead>.
+thead.o_vat_tu_sticky_header_active {
+    will-change: transform;
+
+    // Nền đục cho tất cả ô header — che nội dung body bên dưới
+    > tr > th {
+        background-color: var(--ListRenderer-thead-bg-color, #f8f9fa) !important;
+    }
+}
+
 // B3–B6 + B7: ghim cột — scroll chỉ trên .o_list_renderer
 .sh_free_width_tree.o_vat_tu_sticky_nvl,
 .sh_free_width_tree:has(.o_vat_tu_merged_list),

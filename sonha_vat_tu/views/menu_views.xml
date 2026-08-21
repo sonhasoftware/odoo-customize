@@ -122,6 +122,11 @@
               parent="menu_danh_muc_root"
               action="action_cau_hinh_leadtime" sequence="25"
               groups="sonha_vat_tu.group_ban_cung_ung_vat_tu"/>
+    <menuitem id="menu_cau_hinh_bo_qua_nvl"
+              name="Cấu hình bỏ qua mã NVL"
+              parent="menu_danh_muc_root"
+              action="action_cau_hinh_bo_qua_nvl" sequence="24"
+              groups="base.group_system"/>
     <menuitem id="menu_dmtb_nhom"
               name="Nhóm định mức vật tư TB"
               parent="menu_danh_muc_root"

@@ -244,9 +244,6 @@ class VatTuMergedHeaderRenderer extends ListRenderer {
     freezeColumnWidths() {
         const className = this.props.archInfo?.className || "";
         if (className.split(/\s+/).filter(Boolean).includes("sh_free_width_tree")) {
-            if (this.keepColumnWidths || this.editedRecord) {
-                return super.freezeColumnWidths(...arguments);
-            }
             const table = this.tableRef.el;
             if (table) {
                 table.style.tableLayout = "auto";
@@ -662,6 +659,19 @@ const B3_FIXED_META = [
     { key: "don_vi_tinh", label: "ĐVT", m2o: true },
 ];
 
+/** Cùng mã NVL nhiều tên → lấy tên dài nhất (khớp B4 gộp / SQL). */
+function pickLongestText(current, candidate) {
+    const cur = (current || "").trim();
+    const next = (candidate || "").trim();
+    if (!next) {
+        return cur;
+    }
+    if (!cur || next.length > cur.length) {
+        return next;
+    }
+    return cur;
+}
+
 function resolveKdCompanyCode(data, companyId) {
     const code = (data.don_vi_kd_code || "").trim();
     if (code) {
@@ -706,6 +716,12 @@ class VatTuB3PivotRenderer extends VatTuMergedHeaderRenderer {
             const key = d.ma_vat_tu || String(rec.resId);
             if (!byMat.has(key)) {
                 byMat.set(key, { meta: d, byCompany: {} });
+            } else {
+                const row = byMat.get(key);
+                row.meta = {
+                    ...row.meta,
+                    ten_vat_tu: pickLongestText(row.meta.ten_vat_tu, d.ten_vat_tu),
+                };
             }
             const row = byMat.get(key);
             const cid = d.don_vi_kd_id && d.don_vi_kd_id[0];
@@ -961,6 +977,9 @@ class VatTuBaoCaoB3PivotRenderer extends VatTuB3PivotRenderer {
                     },
                     cells: {},
                 });
+            } else {
+                const row = byMat.get(key);
+                row.meta.ten_vat_tu = pickLongestText(row.meta.ten_vat_tu, d.ten_vat_tu);
             }
             const row = byMat.get(key);
             const cid = d.don_vi_kd_id && d.don_vi_kd_id[0];

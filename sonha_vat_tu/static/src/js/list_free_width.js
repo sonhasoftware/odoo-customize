@@ -42,9 +42,6 @@ patch(ListRenderer.prototype, {
 
     freezeColumnWidths() {
         if (hasFreeWidthTreeClass(this)) {
-            if (this.keepColumnWidths || this.editedRecord) {
-                return super.freezeColumnWidths(...arguments);
-            }
             resetTableColumnSizing(this.tableRef?.el);
             return;
         }
