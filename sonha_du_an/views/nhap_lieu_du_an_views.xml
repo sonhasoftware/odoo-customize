@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_nhap_lieu_du_an_form" model="ir.ui.view">
+        <field name="name">view.nhap.lieu.du.an.form</field>
+        <field name="model">project.project</field>
+        <field name="arch" type="xml">
+            <form string="Nhập liệu dự án">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="so_du_an"/>
+                            <field name="group_du_an"/>
+                            <field name="name"/>
+                            <field name="noi_dung"/>
+                        </group>
+                        <group>
+                            <field name="nguoi_qlda"/>
+                            <field name="ngay_kt_da"/>
+                            <field name="ngay_kt_chinh_sua"/>
+                        </group>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_nhap_lieu_du_an_tree" model="ir.ui.view">
+        <field name="name">view.nhap.lieu.du.an.tree</field>
+        <field name="model">project.project</field>
+        <field name="arch" type="xml">
+            <tree string="Nhập liệu dự án">
+                <field name="so_du_an"/>
+                    <field name="group_du_an"/>
+                    <field name="name"/>
+                    <field name="noi_dung"/>
+                    <field name="nguoi_qlda"/>
+                    <field name="ngay_kt_da"/>
+                    <field name="ngay_kt_chinh_sua"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_nhap_lieu_du_an" model="ir.actions.act_window">
+        <field name="name">Nhập liệu dự án</field>
+        <field name="res_model">project.project</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>
