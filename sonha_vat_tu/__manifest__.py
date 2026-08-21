@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Sơn Hà Vật tư',
-    'version': '17.0.1.0.2',
+    'version': '17.0.1.0.1',
     'category': 'Kế hoạch vật tư',
     'summary': 'Lập kế hoạch đặt mua vật tư cần theo kỳ',
     'description': """
@@ -55,6 +55,7 @@
             'sonha_vat_tu/static/src/js/vat_tu_chatter_scope.js',
             'sonha_vat_tu/static/src/js/vat_tu_list_header.js',
             'sonha_vat_tu/static/src/js/vat_tu_sticky_nvl_columns.js',
+            'sonha_vat_tu/static/src/js/sticky_header.js',
             'sonha_vat_tu/static/src/xml/vat_tu_list_header.xml',
         ],
     },
