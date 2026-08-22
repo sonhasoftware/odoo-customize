@@ -1245,6 +1245,7 @@ class AuthAPI(http.Controller):
             else:
                 check_in_plus_7 = record.check_in + timedelta(hours=7) if record.check_in else None
                 check_out_plus_7 = record.check_out + timedelta(hours=7) if record.check_out else None
+                work_day = record.work_day if record.vacation == 0 else record.vacation
                 data = {
                     "employee_id": {
                         "id": record.employee_id.id,
@@ -1261,7 +1262,7 @@ class AuthAPI(http.Controller):
                         "id": record.shift.id,
                         "name": record.shift.name,
                     },
-                    "work_day": record.work_day,
+                    "work_day": work_day,
                     "note": record.note if record.note else "",
                     "minutes_late": record.minutes_late,
                     "minutes_early": record.minutes_early,
