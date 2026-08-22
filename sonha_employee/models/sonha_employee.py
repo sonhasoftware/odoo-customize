@@ -350,7 +350,9 @@ class ResCompany(models.Model):
 
     def _compute_max_number(self):
         for r in self:
-            employee_codes = self.env['hr.employee'].sudo().search([('company_id.id', '=', r.id)])
+            employee_codes = self.env['hr.employee'].sudo().with_context(active_test=False).search([
+                ('company_id', '=', r.id)
+            ])
             max_number = 0
             max_str = ''
             for employee in employee_codes:
