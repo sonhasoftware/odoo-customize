@@ -52,21 +52,19 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 -- ============================================================================
--- PHẦN 3. HÀM MAPPING (KD, SX, B1–B5)
+-- PHẦN 3. HÀM MAPPING (KD, SX, B1–B7)
 -- ----------------------------------------------------------------------------
 -- Mỗi hàm: DELETE dòng phẳng của source_res_id trong p_ids, rồi INSERT lại.
 -- Chỉ map kỳ có period_month đúng định dạng MM/YYYY.
 -- Khối cột meta đầu/cuối giống nhau giữa các bước; phần giữa là cột riêng từng bước.
 -- ============================================================================
 
--- ---------------------------------------------------------------------------
--- KD: ke_hoach_kinh_doanh -> 4 dòng/tháng
--- Đơn vị đặt hàng (period_company_id) chính là đơn vị của dòng kế hoạch KD.
+-- KD: ke_hoach_kinh_doanh_line -> 4 dòng/tháng (header lưu period_sx_id)
 -- ---------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION dlthvt_map_kd(p_ids INTEGER[])
 RETURNS void LANGUAGE sql AS $$
     DELETE FROM du_lieu_tong_hop_vat_tu
-     WHERE source_model = 'ke.hoach.kinh.doanh'
+     WHERE source_model = 'ke.hoach.kinh.doanh.line'
        AND source_res_id = ANY(p_ids);
 
     INSERT INTO du_lieu_tong_hop_vat_tu (
@@ -78,15 +76,16 @@ RETURNS void LANGUAGE sql AS $$
         create_uid, create_date, write_uid, write_date
     )
     SELECT
-        'kd', 'ke.hoach.kinh.doanh', k.id,
-        k.period_id, p.code, p.period_month, p.company_id,
+        'kd', 'ke.hoach.kinh.doanh.line', k.id,
+        p.id, p.code, p.period_month, p.company_id,
         k.company_id, rc.company_code, k.company_id, rc.company_code,
         TO_CHAR(d.md, 'MM/YYYY'), d.md,
         k.ma_sap, nh.ten, k.ten_hang, k.ma_hang, m.qty, k.note,
         k.create_uid, k.create_date, k.write_uid, k.write_date
-    FROM ke_hoach_kinh_doanh k
+    FROM ke_hoach_kinh_doanh_line k
+    JOIN ke_hoach_kinh_doanh h ON h.id = k.kinh_doanh_id
     JOIN ke_hoach_vat_tu p
-      ON p.id = k.period_id
+      ON p.id = h.period_sx_id
      AND p.period_month ~ '^\d{2}/\d{4}$'
     LEFT JOIN res_company rc      ON rc.id = k.company_id
     LEFT JOIN mdm_nganh_hang nh   ON nh.id = k.nganh_hang
@@ -302,8 +301,9 @@ RETURNS void LANGUAGE sql AS $$
         company_id, company_code, period_company_id, period_company_code,
         month_key, month_date,
         ma_sap, ma_nvl, ten_nvl, ten_vat_tu, don_vi_tinh,
-        ma_dat_hang, chung_loai, ton_dau,
-        ve_du_kien_don_vi, ve_du_kien, vt_can_dung, ton_cuoi,
+        ma_dat_hang, chung_loai, ton_dau, don_gia_ton_kho,
+        ve_du_kien_don_vi,
+        vt_can_dung, ton_cuoi,
         so_luong_du_phong, so_luong_thieu, so_luong_can_mua, ghi_chu,
         create_uid, create_date, write_uid, write_date
     )
@@ -313,8 +313,8 @@ RETURNS void LANGUAGE sql AS $$
         th.company_id, rc_sx.company_code, th.don_vi_kd_id, rc_kd.company_code,
         TO_CHAR(d.md, 'MM/YYYY'), d.md,
         th.ma_sap, th.ma_sap, th.ten_nvl, th.ten_nvl, th.don_vi_tinh,
-        th.ma_dat_hang, th.chung_loai, th.ton_dau,
-        m.ve_dv, m.ve_bcu, m.can_dung, m.ton_cuoi,
+        th.ma_dat_hang, th.chung_loai, th.ton_dau, th.don_gia_ton_kho,
+        m.ve_dv, m.can_dung, m.ton_cuoi,
         CASE WHEN m.idx = 3 THEN th.so_luong_du_phong ELSE 0 END,
         CASE WHEN m.idx = 3 THEN th.so_luong_thieu    ELSE 0 END,
         CASE WHEN m.idx = 3 THEN th.so_luong_can_mua  ELSE 0 END,
@@ -328,11 +328,11 @@ RETURNS void LANGUAGE sql AS $$
     LEFT JOIN res_company rc_kd ON rc_kd.id = th.don_vi_kd_id
     CROSS JOIN LATERAL (
         VALUES
-            (0, th.ve_du_kien_don_vi_t0, th.ve_du_kien_t0, th.vt_can_dung_t0, th.ton_cuoi_t0),
-            (1, th.ve_du_kien_don_vi_t1, th.ve_du_kien_t1, th.vt_can_dung_t1, th.ton_cuoi_t1),
-            (2, th.ve_du_kien_don_vi_t2, th.ve_du_kien_t2, th.vt_can_dung_t2, th.ton_cuoi_t2),
-            (3, th.ve_du_kien_don_vi_t3, th.ve_du_kien_t3, th.vt_can_dung_t3, th.ton_cuoi_t3)
-    ) AS m(idx, ve_dv, ve_bcu, can_dung, ton_cuoi)
+            (0, th.ve_du_kien_don_vi_t0, th.vt_can_dung_t0, th.ton_cuoi_t0),
+            (1, th.ve_du_kien_don_vi_t1, th.vt_can_dung_t1, th.ton_cuoi_t1),
+            (2, th.ve_du_kien_don_vi_t2, th.vt_can_dung_t2, th.ton_cuoi_t2),
+            (3, th.ve_du_kien_don_vi_t3, th.vt_can_dung_t3, th.ton_cuoi_t3)
+    ) AS m(idx, ve_dv, can_dung, ton_cuoi)
     CROSS JOIN LATERAL (
         SELECT dlthvt_month_date(p.period_month, m.idx) AS md
     ) AS d
@@ -340,9 +340,7 @@ RETURNS void LANGUAGE sql AS $$
 $$;
 
 -- ---------------------------------------------------------------------------
--- B5: kh_dat_vat_tu -> 1 dòng/tháng T0 (bảng nguồn đã gộp cả kỳ)
--- Một số cột lặp tên alias phục vụ view báo cáo.
--- BCU: period_company_id NULL.
+-- B5: kh_dat_vat_tu -> 1 dòng T0 (bảng nguồn gộp cả kỳ).
 -- ---------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION dlthvt_map_b5(p_ids INTEGER[])
 RETURNS void LANGUAGE sql AS $$
@@ -405,6 +403,122 @@ RETURNS void LANGUAGE sql AS $$
     WHERE k.id = ANY(p_ids);
 $$;
 
+-- ---------------------------------------------------------------------------
+-- B6: kh_dat_vat_tu_bcu -> 1 dòng/tháng T0 (cấu trúc tương B5 + cột BCU đi đường)
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION dlthvt_map_b6(p_ids INTEGER[])
+RETURNS void LANGUAGE sql AS $$
+    DELETE FROM du_lieu_tong_hop_vat_tu
+     WHERE source_model = 'kh.dat.vat.tu.bcu'
+       AND source_res_id = ANY(p_ids);
+
+    INSERT INTO du_lieu_tong_hop_vat_tu (
+        step_code, source_model, source_res_id,
+        period_id, period_code, period_month, owner_company_id,
+        company_id, company_code,
+        month_key, month_date,
+        ma_sap, ma_nvl, ten_nvl, ten_vat_tu, don_vi_tinh, chung_loai,
+        tong_ton_nvl_sl, don_gia_ton_kho, gia_tri_ton_nvl_dau_ky,
+        tong_sl_vt_can_dung_t0, tong_sl_vt_can_dung_t1,
+        tong_sl_vt_can_dung_t2, tong_sl_vt_can_dung_t3,
+        tong_vt_can_dung, tong_sl_vt_can_dung,
+        tong_hang_di_duong_sl_t0, tong_hang_di_duong_sl_t1,
+        tong_hang_di_duong_sl_t2, tong_hang_di_duong_sl_t3,
+        tong_hang_di_duong, tong_hang_di_duong_sl,
+        ve_du_kien_bcu_t0, ve_du_kien_bcu_t1, ve_du_kien_bcu_t2, ve_du_kien_bcu_t3,
+        ve_du_kien_bcu_dg_t0, ve_du_kien_bcu_dg_t1, ve_du_kien_bcu_dg_t2, ve_du_kien_bcu_dg_t3,
+        ve_du_kien_bcu_gt_t0, ve_du_kien_bcu_gt_t1, ve_du_kien_bcu_gt_t2, ve_du_kien_bcu_gt_t3,
+        tong_ve_du_kien_bcu, tong_gia_tri_bcu,
+        sl_du_tru_toi_thieu, sl_can_mua_theo_moq,
+        sl_dat_mua_de_xuat, sl_dat_mua_chot,
+        don_gia_mua, gia_tri_mua_hang,
+        sl_ton_kho_cuoi_ky, sl_ton_kho,
+        vt_loi_ton_lau, so_ngay_vong_quay_ton,
+        don_gia_ton_kho_cuoi_ky, gia_tri_ton_kho_cuoi_ky, gia_tri_ton_kho,
+        ghi_chu,
+        create_uid, create_date, write_uid, write_date
+    )
+    SELECT
+        'b6', 'kh.dat.vat.tu.bcu', k.id,
+        k.period_id, p.code, p.period_month, p.company_id,
+        k.company_id, rc.company_code,
+        TO_CHAR(d.md, 'MM/YYYY'), d.md,
+        k.ma_sap, k.ma_sap, k.ten_nvl, k.ten_nvl, k.don_vi_tinh, k.chung_loai,
+        k.tong_ton_nvl_sl, k.don_gia_ton_kho,
+        COALESCE(k.tong_ton_nvl_sl, 0) * COALESCE(k.don_gia_ton_kho, 0),
+        k.tong_sl_vt_can_dung_t0, k.tong_sl_vt_can_dung_t1,
+        k.tong_sl_vt_can_dung_t2, k.tong_sl_vt_can_dung_t3,
+        k.tong_vt_can_dung, k.tong_vt_can_dung,
+        k.tong_hang_di_duong_sl_t0, k.tong_hang_di_duong_sl_t1,
+        k.tong_hang_di_duong_sl_t2, k.tong_hang_di_duong_sl_t3,
+        k.tong_hang_di_duong, k.tong_hang_di_duong,
+        k.ve_du_kien_bcu_t0, k.ve_du_kien_bcu_t1, k.ve_du_kien_bcu_t2, k.ve_du_kien_bcu_t3,
+        k.ve_du_kien_bcu_dg_t0, k.ve_du_kien_bcu_dg_t1, k.ve_du_kien_bcu_dg_t2, k.ve_du_kien_bcu_dg_t3,
+        k.ve_du_kien_bcu_gt_t0, k.ve_du_kien_bcu_gt_t1, k.ve_du_kien_bcu_gt_t2, k.ve_du_kien_bcu_gt_t3,
+        k.tong_ve_du_kien_bcu, k.tong_gia_tri_bcu,
+        k.sl_du_tru_toi_thieu, k.sl_can_mua_theo_moq,
+        k.sl_dat_mua_de_xuat, k.sl_dat_mua_chot,
+        k.don_gia_mua, k.gia_tri_mua_hang,
+        k.sl_ton_kho_cuoi_ky, k.sl_ton_kho_cuoi_ky,
+        k.vt_loi_ton_lau, k.so_ngay_vong_quay_ton,
+        k.don_gia_ton_kho_cuoi_ky, k.gia_tri_ton_kho_cuoi_ky, k.gia_tri_ton_kho_cuoi_ky,
+        k.ghi_chu,
+        k.create_uid, k.create_date, k.write_uid, k.write_date
+    FROM kh_dat_vat_tu_bcu k
+    JOIN ke_hoach_vat_tu p
+      ON p.id = k.period_id
+     AND p.period_month ~ '^\d{2}/\d{4}$'
+    LEFT JOIN res_company rc ON rc.id = k.company_id
+    CROSS JOIN LATERAL (
+        SELECT dlthvt_month_date(p.period_month, 0) AS md
+    ) AS d
+    WHERE k.id = ANY(p_ids);
+$$;
+
+-- ---------------------------------------------------------------------------
+-- B7: phe_duyet_kh_vat_tu -> 1 dòng/tháng T0
+-- company_id = đơn vị đặt hàng (BNH, SSP…).
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION dlthvt_map_b7(p_ids INTEGER[])
+RETURNS void LANGUAGE sql AS $$
+    DELETE FROM du_lieu_tong_hop_vat_tu
+     WHERE source_model = 'phe.duyet.kh.vat.tu'
+       AND source_res_id = ANY(p_ids);
+
+    INSERT INTO du_lieu_tong_hop_vat_tu (
+        step_code, source_model, source_res_id,
+        period_id, period_code, period_month, owner_company_id,
+        company_id, company_code,
+        month_key, month_date,
+        ma_sap, ma_nvl, ten_nvl, ten_vat_tu, don_vi_tinh,
+        khoi_luong_don_vi_dat, khoi_luong_bcu_dat,
+        leadtime_ngay, ngay_co_so, ngay_du_kien_ve,
+        thoi_diem_giao_dvtv, thoi_diem_su_dung,
+        ghi_chu,
+        create_uid, create_date, write_uid, write_date
+    )
+    SELECT
+        'b7', 'phe.duyet.kh.vat.tu', pd.id,
+        pd.period_id, p.code, p.period_month, p.company_id,
+        pd.company_id, rc.company_code,
+        TO_CHAR(d.md, 'MM/YYYY'), d.md,
+        pd.ma_sap, pd.ma_sap, pd.ten_nvl, pd.ten_nvl, pd.don_vi_tinh,
+        pd.khoi_luong_don_vi_dat, pd.khoi_luong_bcu_dat,
+        pd.leadtime_ngay, pd.ngay_co_so, pd.ngay_du_kien_ve,
+        pd.thoi_diem_giao_dvtv, pd.thoi_diem_su_dung,
+        LEFT(pd.ghi_chu, 255),
+        pd.create_uid, pd.create_date, pd.write_uid, pd.write_date
+    FROM phe_duyet_kh_vat_tu pd
+    JOIN ke_hoach_vat_tu p
+      ON p.id = pd.period_id
+     AND p.period_month ~ '^\d{2}/\d{4}$'
+    LEFT JOIN res_company rc ON rc.id = pd.company_id
+    CROSS JOIN LATERAL (
+        SELECT dlthvt_month_date(p.period_month, 0) AS md
+    ) AS d
+    WHERE pd.id = ANY(p_ids);
+$$;
+
 
 -- ============================================================================
 -- PHẦN 4. TRIGGER trên bảng nguồn
@@ -433,6 +547,8 @@ BEGIN
         WHEN 'b3' THEN PERFORM dlthvt_map_b3(v_ids);
         WHEN 'b4' THEN PERFORM dlthvt_map_b4(v_ids);
         WHEN 'b5' THEN PERFORM dlthvt_map_b5(v_ids);
+        WHEN 'b6' THEN PERFORM dlthvt_map_b6(v_ids);
+        WHEN 'b7' THEN PERFORM dlthvt_map_b7(v_ids);
     END CASE;
 
     RETURN NULL;
@@ -451,20 +567,25 @@ END;
 $$;
 
 -- --- KD ---------------------------------------------------------------------
-DROP TRIGGER IF EXISTS trg_dlthvt_kd_ins ON ke_hoach_kinh_doanh;
-CREATE TRIGGER trg_dlthvt_kd_ins AFTER INSERT ON ke_hoach_kinh_doanh
+DROP TRIGGER IF EXISTS trg_dlthvt_kd_ins ON ke_hoach_kinh_doanh_line;
+CREATE TRIGGER trg_dlthvt_kd_ins AFTER INSERT ON ke_hoach_kinh_doanh_line
 REFERENCING NEW TABLE AS newtab FOR EACH STATEMENT
 EXECUTE FUNCTION dlthvt_after_change('kd');
 
-DROP TRIGGER IF EXISTS trg_dlthvt_kd_upd ON ke_hoach_kinh_doanh;
-CREATE TRIGGER trg_dlthvt_kd_upd AFTER UPDATE ON ke_hoach_kinh_doanh
+DROP TRIGGER IF EXISTS trg_dlthvt_kd_upd ON ke_hoach_kinh_doanh_line;
+CREATE TRIGGER trg_dlthvt_kd_upd AFTER UPDATE ON ke_hoach_kinh_doanh_line
 REFERENCING NEW TABLE AS newtab FOR EACH STATEMENT
 EXECUTE FUNCTION dlthvt_after_change('kd');
 
-DROP TRIGGER IF EXISTS trg_dlthvt_kd_del ON ke_hoach_kinh_doanh;
-CREATE TRIGGER trg_dlthvt_kd_del AFTER DELETE ON ke_hoach_kinh_doanh
+DROP TRIGGER IF EXISTS trg_dlthvt_kd_del ON ke_hoach_kinh_doanh_line;
+CREATE TRIGGER trg_dlthvt_kd_del AFTER DELETE ON ke_hoach_kinh_doanh_line
 REFERENCING OLD TABLE AS oldtab FOR EACH STATEMENT
-EXECUTE FUNCTION dlthvt_after_delete('ke.hoach.kinh.doanh');
+EXECUTE FUNCTION dlthvt_after_delete('ke.hoach.kinh.doanh.line');
+
+-- Xóa trigger cũ trên header (nếu còn sau upgrade)
+DROP TRIGGER IF EXISTS trg_dlthvt_kd_ins ON ke_hoach_kinh_doanh;
+DROP TRIGGER IF EXISTS trg_dlthvt_kd_upd ON ke_hoach_kinh_doanh;
+DROP TRIGGER IF EXISTS trg_dlthvt_kd_del ON ke_hoach_kinh_doanh;
 
 -- --- SX ---------------------------------------------------------------------
 DROP TRIGGER IF EXISTS trg_dlthvt_sx_ins ON ke_hoach_san_xuat;
@@ -562,60 +683,71 @@ CREATE TRIGGER trg_dlthvt_b5_del AFTER DELETE ON kh_dat_vat_tu
 REFERENCING OLD TABLE AS oldtab FOR EACH STATEMENT
 EXECUTE FUNCTION dlthvt_after_delete('kh.dat.vat.tu');
 
+-- --- B6 ---------------------------------------------------------------------
+DROP TRIGGER IF EXISTS trg_dlthvt_b6_ins ON kh_dat_vat_tu_bcu;
+CREATE TRIGGER trg_dlthvt_b6_ins AFTER INSERT ON kh_dat_vat_tu_bcu
+REFERENCING NEW TABLE AS newtab FOR EACH STATEMENT
+EXECUTE FUNCTION dlthvt_after_change('b6');
+
+DROP TRIGGER IF EXISTS trg_dlthvt_b6_upd ON kh_dat_vat_tu_bcu;
+CREATE TRIGGER trg_dlthvt_b6_upd AFTER UPDATE ON kh_dat_vat_tu_bcu
+REFERENCING NEW TABLE AS newtab FOR EACH STATEMENT
+EXECUTE FUNCTION dlthvt_after_change('b6');
+
+DROP TRIGGER IF EXISTS trg_dlthvt_b6_del ON kh_dat_vat_tu_bcu;
+CREATE TRIGGER trg_dlthvt_b6_del AFTER DELETE ON kh_dat_vat_tu_bcu
+REFERENCING OLD TABLE AS oldtab FOR EACH STATEMENT
+EXECUTE FUNCTION dlthvt_after_delete('kh.dat.vat.tu.bcu');
+
+-- --- B7 ---------------------------------------------------------------------
+DROP TRIGGER IF EXISTS trg_dlthvt_b7_ins ON phe_duyet_kh_vat_tu;
+CREATE TRIGGER trg_dlthvt_b7_ins AFTER INSERT ON phe_duyet_kh_vat_tu
+REFERENCING NEW TABLE AS newtab FOR EACH STATEMENT
+EXECUTE FUNCTION dlthvt_after_change('b7');
+
+DROP TRIGGER IF EXISTS trg_dlthvt_b7_upd ON phe_duyet_kh_vat_tu;
+CREATE TRIGGER trg_dlthvt_b7_upd AFTER UPDATE ON phe_duyet_kh_vat_tu
+REFERENCING NEW TABLE AS newtab FOR EACH STATEMENT
+EXECUTE FUNCTION dlthvt_after_change('b7');
+
+DROP TRIGGER IF EXISTS trg_dlthvt_b7_del ON phe_duyet_kh_vat_tu;
+CREATE TRIGGER trg_dlthvt_b7_del AFTER DELETE ON phe_duyet_kh_vat_tu
+REFERENCING OLD TABLE AS oldtab FOR EACH STATEMENT
+EXECUTE FUNCTION dlthvt_after_delete('phe.duyet.kh.vat.tu');
+
 
 -- ============================================================================
--- PHẦN 5. DỰNG LẠI BẢNG PHẲNG (chạy tay khi cần)
--- ----------------------------------------------------------------------------
--- dlthvt_rebuild_period(id): xóa + map lại một kỳ.
--- dlthvt_rebuild_all(): dọn mồ côi + rebuild mọi kỳ.
+-- PHẦN 5. TRIGGER ke_hoach_vat_tu (đổi period_month / code / company_id)
 -- ============================================================================
 
-CREATE OR REPLACE FUNCTION dlthvt_rebuild_period(p_period_id INTEGER)
+-- Gọi nội bộ khi đổi period_month (month_key phụ thuộc T0).
+CREATE OR REPLACE FUNCTION dlthvt_sync_period(p_period_id INTEGER)
 RETURNS void LANGUAGE plpgsql AS $$
 BEGIN
     DELETE FROM du_lieu_tong_hop_vat_tu WHERE period_id = p_period_id;
 
-    PERFORM dlthvt_map_kd(ARRAY(SELECT id FROM ke_hoach_kinh_doanh  WHERE period_id = p_period_id));
+    PERFORM dlthvt_map_kd(ARRAY(
+        SELECT k.id
+          FROM ke_hoach_kinh_doanh_line k
+          JOIN ke_hoach_kinh_doanh h ON h.id = k.kinh_doanh_id
+         WHERE h.period_sx_id = p_period_id
+    ));
     PERFORM dlthvt_map_sx(ARRAY(SELECT id FROM ke_hoach_san_xuat    WHERE period_id = p_period_id));
     PERFORM dlthvt_map_b1(ARRAY(SELECT id FROM ke_hoach_vat_tu_line WHERE period_id = p_period_id));
     PERFORM dlthvt_map_b2(ARRAY(SELECT id FROM dinh_muc             WHERE period_id = p_period_id));
     PERFORM dlthvt_map_b3(ARRAY(SELECT id FROM tinh_toan_vat_tu     WHERE period_id = p_period_id));
     PERFORM dlthvt_map_b4(ARRAY(SELECT id FROM tong_hop_vat_tu      WHERE period_id = p_period_id));
     PERFORM dlthvt_map_b5(ARRAY(SELECT id FROM kh_dat_vat_tu        WHERE period_id = p_period_id));
+    PERFORM dlthvt_map_b6(ARRAY(SELECT id FROM kh_dat_vat_tu_bcu    WHERE period_id = p_period_id));
+    PERFORM dlthvt_map_b7(ARRAY(SELECT id FROM phe_duyet_kh_vat_tu  WHERE period_id = p_period_id));
 END;
 $$;
-
-CREATE OR REPLACE FUNCTION dlthvt_rebuild_all()
-RETURNS void LANGUAGE plpgsql AS $$
-DECLARE
-    r RECORD;
-BEGIN
-    -- Dòng phẳng (period_id NULL hoặc kỳ không còn tồn tại).
-    DELETE FROM du_lieu_tong_hop_vat_tu
-     WHERE period_id IS NULL
-        OR period_id NOT IN (SELECT id FROM ke_hoach_vat_tu);
-
-    -- Rebuild từng kỳ (tránh mảng id quá lớn).
-    FOR r IN SELECT id FROM ke_hoach_vat_tu ORDER BY id LOOP
-        PERFORM dlthvt_rebuild_period(r.id);
-    END LOOP;
-END;
-$$;
-
-
--- ============================================================================
--- PHẦN 6. TRIGGER ke_hoach_vat_tu (đổi period_month / code / company_id)
--- ----------------------------------------------------------------------------
--- Đổi period_month -> dlthvt_rebuild_period (month_key phụ thuộc tháng bắt đầu).
--- Chỉ đổi code hoặc company_id -> UPDATE meta trên bảng phẳng tại chỗ.
--- ============================================================================
 
 CREATE OR REPLACE FUNCTION dlthvt_after_period_update() RETURNS TRIGGER
 LANGUAGE plpgsql AS $$
 DECLARE
     r RECORD;
 BEGIN
-    -- Bỏ qua UPDATE không đụng period_month, code, company_id.
     IF NOT EXISTS (
         SELECT 1
           FROM newtab n
@@ -627,17 +759,15 @@ BEGIN
         RETURN NULL;
     END IF;
 
-    -- Đổi period_month -> rebuild kỳ.
     FOR r IN
         SELECT n.id
           FROM newtab n
           JOIN oldtab o ON o.id = n.id
          WHERE n.period_month IS DISTINCT FROM o.period_month
     LOOP
-        PERFORM dlthvt_rebuild_period(r.id);
+        PERFORM dlthvt_sync_period(r.id);
     END LOOP;
 
-    -- Chỉ đổi code / company_id -> cập nhật meta bảng phẳng.
     UPDATE du_lieu_tong_hop_vat_tu d
        SET period_code      = n.code,
            owner_company_id = n.company_id,
@@ -662,7 +792,7 @@ EXECUTE FUNCTION dlthvt_after_period_update();
 
 
 -- ============================================================================
--- PHẦN 7. ĐỒNG BỘ BOM: md_sap_bom -> bom
+-- PHẦN 6. ĐỒNG BỘ BOM: md_sap_bom -> bom
 -- ----------------------------------------------------------------------------
 -- bom_sync_from_sap: UPSERT từ SAP; DISTINCT ON (ma_tp, ma_nvl) lấy bản mới nhất.
 -- do_day / kho_1 / kho_2 chỉ set 0 khi tạo mới, không ghi đè khi UPDATE.

@@ -47,8 +47,39 @@ CREATE INDEX IF NOT EXISTS idx_md_sap_ton_kho_ma_hang_trim
 -- B2: Sinh dinh muc — nguồn lọc ma.hang (các bước sau ăn theo dinh_muc)
 -- ============================================================
 CREATE OR REPLACE PROCEDURE public.fn_sinh_dinh_muc(p_period_id INTEGER)
-LANGUAGE 'plpgsql' AS $BODY$
+LANGUAGE plpgsql AS $BODY$
+DECLARE
+    v_company_sx_id INTEGER;
+    v_company_code  TEXT;
+    v_cn_prefix     TEXT;
 BEGIN
+        SELECT company_sx_id INTO v_company_sx_id
+        FROM ke_hoach_vat_tu
+        WHERE id = p_period_id;
+
+        SELECT UPPER(COALESCE(NULLIF(TRIM(rc.company_code), ''), ''))
+        INTO v_company_code
+        FROM res_company rc
+        WHERE rc.id = v_company_sx_id;
+
+        v_cn_prefix := CASE v_company_code
+            WHEN 'BNH' THEN '21'
+            WHEN 'SSP' THEN '22'
+            ELSE NULL
+        END;
+
+        -- Mã NVL bỏ qua theo ĐV SX — không có cấu hình thì bảng rỗng, tính như cũ.
+        DROP TABLE IF EXISTS _tmp_bo_qua_nvl;
+        CREATE TEMP TABLE _tmp_bo_qua_nvl ON COMMIT DROP AS
+        SELECT DISTINCT TRIM(c.ma_nvl) AS ma_nvl
+        FROM cau_hinh_bo_qua_nvl c
+        WHERE c.company_sx_id = v_company_sx_id
+          AND COALESCE(c.active, TRUE)
+          AND c.ma_nvl IS NOT NULL
+          AND TRIM(c.ma_nvl) <> '';
+
+        CREATE INDEX ON _tmp_bo_qua_nvl (ma_nvl);
+
         -- Trigger mức câu lệnh tự đồng bộ bảng phẳng; không tắt/bật gì cả.
         DROP TABLE IF EXISTS _tmp_dm_override;
         CREATE TEMP TABLE _tmp_dm_override ON COMMIT DROP AS
@@ -75,15 +106,88 @@ BEGIN
 
         CREATE INDEX ON _tmp_period_tp (ma_tp_goc);
 
-        -- NVL thuộc BOM kỳ này (trước khi lọc ma.hang).
+        -- BOM theo chi nhánh ĐV SX: BNH 21%%, SSP 22%%
+        DROP TABLE IF EXISTS _tmp_bom_cn;
+        CREATE TEMP TABLE _tmp_bom_cn ON COMMIT DROP AS
+        SELECT b.*
+        FROM bom_tinh_toan b
+        INNER JOIN _tmp_period_tp tp ON tp.ma_tp_goc = TRIM(b.ma_tp_goc)
+        WHERE v_cn_prefix IS NULL
+           OR b.chi_nhanh LIKE v_cn_prefix || '%';
+
+        CREATE INDEX ON _tmp_bom_cn (ma_tp_goc);
+        CREATE INDEX ON _tmp_bom_cn (ma_tp_goc, chi_nhanh);
+        CREATE INDEX ON _tmp_bom_cn (ma_tp_goc, ma_con, chi_nhanh);
+
+        -- Lá NVL bị bỏ qua → leo cây BOM lên mã cha gần nhất KHÔNG nằm trong cấu hình bỏ qua.
+        -- Nếu leo tới mã TP gốc hoặc hết cây → không thay thế (bỏ hẳn nhánh đó).
+        DROP TABLE IF EXISTS _tmp_bo_qua_thay_the;
+        CREATE TEMP TABLE _tmp_bo_qua_thay_the ON COMMIT DROP AS
+        WITH RECURSIVE walk AS (
+            SELECT
+                leaf.ma_tp_goc,
+                leaf.chi_nhanh,
+                TRIM(leaf.ma_con) AS leaf_ma,
+                TRIM(leaf.ma_tp_cha) AS current_ma,
+                0 AS depth
+            FROM _tmp_bom_cn leaf
+            INNER JOIN _tmp_bo_qua_nvl s ON s.ma_nvl = TRIM(leaf.ma_con)
+            WHERE leaf.loai_vat_tu = 'NVL'
+              AND leaf.ma_tp_cha IS NOT NULL
+              AND TRIM(leaf.ma_tp_cha) <> ''
+
+            UNION ALL
+
+            SELECT
+                w.ma_tp_goc,
+                w.chi_nhanh,
+                w.leaf_ma,
+                TRIM(p.ma_tp_cha),
+                w.depth + 1
+            FROM walk w
+            INNER JOIN _tmp_bom_cn p
+                ON p.ma_tp_goc = w.ma_tp_goc
+               AND p.chi_nhanh = w.chi_nhanh
+               AND TRIM(p.ma_con) = w.current_ma
+            INNER JOIN _tmp_bo_qua_nvl s ON s.ma_nvl = w.current_ma
+            WHERE w.depth < 15
+              AND p.ma_tp_cha IS NOT NULL
+              AND TRIM(p.ma_tp_cha) <> ''
+              AND TRIM(p.ma_tp_cha) <> TRIM(w.ma_tp_goc)
+        )
+        SELECT DISTINCT ON (w.ma_tp_goc, w.chi_nhanh, w.leaf_ma)
+            w.ma_tp_goc,
+            w.chi_nhanh,
+            w.leaf_ma,
+            w.current_ma AS substitute_ma
+        FROM walk w
+        WHERE NOT EXISTS (
+            SELECT 1 FROM _tmp_bo_qua_nvl s WHERE s.ma_nvl = w.current_ma
+        )
+          AND TRIM(w.current_ma) <> TRIM(w.ma_tp_goc)
+        ORDER BY w.ma_tp_goc, w.chi_nhanh, w.leaf_ma, w.depth ASC;
+
+        CREATE INDEX ON _tmp_bo_qua_thay_the (ma_tp_goc, chi_nhanh, leaf_ma);
+        CREATE INDEX ON _tmp_bo_qua_thay_the (substitute_ma);
+
+        -- NVL thuộc BOM kỳ này (+ mã thay thế sau khi leo cây bỏ qua).
         DROP TABLE IF EXISTS _tmp_period_nvl_bom;
         CREATE TEMP TABLE _tmp_period_nvl_bom ON COMMIT DROP AS
         SELECT DISTINCT TRIM(b.ma_con) AS ma_sap
-        FROM bom_tinh_toan b
+        FROM _tmp_bom_cn b
         WHERE b.loai_vat_tu = 'NVL'
-          AND b.ma_tp_goc IN (SELECT ma_tp_goc FROM _tmp_period_tp)
           AND b.ma_con IS NOT NULL
-          AND TRIM(b.ma_con) <> '';
+          AND TRIM(b.ma_con) <> ''
+          AND NOT EXISTS (
+              SELECT 1 FROM _tmp_bo_qua_nvl s WHERE s.ma_nvl = TRIM(b.ma_con)
+          )
+
+        UNION
+
+        SELECT DISTINCT TRIM(t.substitute_ma) AS ma_sap
+        FROM _tmp_bo_qua_thay_the t
+        WHERE t.substitute_ma IS NOT NULL
+          AND TRIM(t.substitute_ma) <> '';
 
         CREATE INDEX ON _tmp_period_nvl_bom (ma_sap);
 
@@ -108,13 +212,38 @@ BEGIN
             TRIM(b.ma_con) AS ma_con,
             b.ten_con,
             b.sl_thuc_te
-        FROM bom_tinh_toan b
+        FROM _tmp_bom_cn b
         INNER JOIN _tmp_ma_hang_sap mh
             ON mh.ma_sap = TRIM(b.ma_con)
         WHERE b.loai_vat_tu = 'NVL'
-          AND b.ma_tp_goc IN (SELECT ma_tp_goc FROM _tmp_period_tp)
           AND b.ma_con IS NOT NULL
-          AND TRIM(b.ma_con) <> '';
+          AND TRIM(b.ma_con) <> ''
+          AND NOT EXISTS (
+              SELECT 1 FROM _tmp_bo_qua_nvl s WHERE s.ma_nvl = TRIM(b.ma_con)
+          )
+
+        UNION ALL
+
+        SELECT
+            leaf.ma_tp_goc,
+            leaf.ten_tp_goc,
+            p.ma_tp_cha,
+            p.ten_tp_cha,
+            TRIM(t.substitute_ma) AS ma_con,
+            p.ten_con,
+            p.sl_thuc_te
+        FROM _tmp_bom_cn leaf
+        INNER JOIN _tmp_bo_qua_thay_the t
+            ON t.ma_tp_goc = leaf.ma_tp_goc
+           AND t.chi_nhanh = leaf.chi_nhanh
+           AND t.leaf_ma = TRIM(leaf.ma_con)
+        INNER JOIN _tmp_bom_cn p
+            ON p.ma_tp_goc = t.ma_tp_goc
+           AND p.chi_nhanh = t.chi_nhanh
+           AND TRIM(p.ma_con) = TRIM(t.substitute_ma)
+        INNER JOIN _tmp_ma_hang_sap mh
+            ON mh.ma_sap = TRIM(t.substitute_ma)
+        WHERE leaf.loai_vat_tu = 'NVL';
 
         CREATE INDEX ON _tmp_bom_nvl_period (ma_tp_goc);
 
@@ -174,7 +303,7 @@ END;
 $BODY$;
 
 -- ============================================================
--- B3: Tính toán vật tư — CHỈ đọc dinh_muc (B2), không join bom_tinh_toan
+-- B3: Tính toán vật tư — dinh_muc (B2) + NVL nhập trực tiếp trên B1
 -- Ghi bảng chi tiết (audit) rồi SUM ra tinh_toan_vat_tu.
 -- ============================================================
 CREATE OR REPLACE PROCEDURE public.fn_tinh_toan_vat_tu(p_period_id INTEGER)
@@ -191,14 +320,47 @@ BEGIN
         RAISE EXCEPTION 'Ky % chua co nha may san xuat. Hay tao ke hoach vat tu truoc.', p_period_id;
     END IF;
 
-    -- B3 đọc từ dinh_muc (B2) — chỉ NVL đã lọc ma.hang, giữ override định mức.
+    -- B1: NVL nhập thẳng từ KD (không bung BOM ở B2).
+    DROP TABLE IF EXISTS _tmp_b1_direct_nvl;
+    CREATE TEMP TABLE _tmp_b1_direct_nvl ON COMMIT DROP AS
+    SELECT
+        b1.period_id,
+        b1.company_id,
+        TRIM(b1.ma_sap) AS ma_sap,
+        b1.ma_hang,
+        b1.ten_hang,
+        COALESCE(b1.qty_t0, 0) AS qty_t0,
+        COALESCE(b1.qty_t1, 0) AS qty_t1,
+        COALESCE(b1.qty_t2, 0) AS qty_t2,
+        COALESCE(b1.qty_t3, 0) AS qty_t3,
+        mh.ten_hang AS ten_nvl
+    FROM ke_hoach_vat_tu_line b1
+    INNER JOIN ma_hang mh ON TRIM(mh.ma_sap) = TRIM(b1.ma_sap)
+    WHERE b1.period_id = p_period_id
+      AND b1.company_id IS NOT NULL
+      AND b1.ma_sap IS NOT NULL
+      AND TRIM(b1.ma_sap) <> ''
+      AND NOT EXISTS (
+          SELECT 1
+          FROM dinh_muc dm
+          WHERE dm.period_id = b1.period_id
+            AND dm.company_id = b1.company_id
+            AND TRIM(dm.ma_sap) = TRIM(b1.ma_sap)
+      );
+
+    CREATE INDEX ON _tmp_b1_direct_nvl (ma_sap);
+
+    -- Mã NVL lookup ĐVT: từ B2 + NVL trực tiếp B1.
     DROP TABLE IF EXISTS _tmp_period_nvl;
     CREATE TEMP TABLE _tmp_period_nvl ON COMMIT DROP AS
     SELECT DISTINCT TRIM(ma_nvl) AS ma_nvl
     FROM dinh_muc
     WHERE period_id = p_period_id
       AND ma_nvl IS NOT NULL
-      AND TRIM(ma_nvl) <> '';
+      AND TRIM(ma_nvl) <> ''
+    UNION
+    SELECT DISTINCT ma_sap AS ma_nvl
+    FROM _tmp_b1_direct_nvl;
 
     CREATE INDEX ON _tmp_period_nvl (ma_nvl);
 
@@ -213,7 +375,7 @@ BEGIN
 
     CREATE INDEX ON _tmp_mdm_dvt (ma_nvl);
 
-    -- 1 lần đọc dinh_muc (B2) × KHVT → temp; insert chi tiết + B3 đều đọc từ temp
+    -- Nguồn 1: dinh_muc (BOM). Nguồn 2: NVL trực tiếp B1 (1:1, sl = 1).
     DROP TABLE IF EXISTS tmp_b3_nvl_detail;
     CREATE TEMP TABLE tmp_b3_nvl_detail ON COMMIT DROP AS
     SELECT
@@ -222,33 +384,93 @@ BEGIN
         dm.company_id AS don_vi_kd_id,
         COALESCE(NULLIF(TRIM(dv.company_code), ''), dv.name) AS don_vi_kd_code,
         TRIM(dm.ma_sap) AS ma,
-        NULLIF(TRIM(khvt.ma_hang), '') AS ma_hang,
-        NULLIF(TRIM(khvt.ten_hang), '') AS ten_kh,
+        NULLIF(TRIM(b1.ma_hang), '') AS ma_hang,
+        NULLIF(TRIM(COALESCE(b1.ten_hang, dm.ten_sap)), '') AS ten_kh,
         NULLIF(TRIM(dm.ma_tp), '') AS ma_tp_cha,
         NULLIF(TRIM(dm.ten_tp), '') AS ten_tp_cha,
         TRIM(dm.ma_nvl) AS ma_nvl,
         NULLIF(TRIM(dm.ten_nvl), '') AS ten_nvl,
-        CASE
-            WHEN dm.co_sl_dinh_muc_override THEN COALESCE(dm.sl_dinh_muc_thay_doi, 0)
-            ELSE COALESCE(dm.sl_dinh_muc, 0)
-        END AS sl_thuc_te,
+        eff.sl_thuc_te,
         NULL::INTEGER AS cap_bom,
-        COALESCE(khvt.qty_t0, 0) AS qty_kh_t0,
-        COALESCE(khvt.qty_t1, 0) AS qty_kh_t1,
-        COALESCE(khvt.qty_t2, 0) AS qty_kh_t2,
-        COALESCE(khvt.qty_t3, 0) AS qty_kh_t3,
+        CASE
+            WHEN eff.sl_thuc_te <> 0 THEN COALESCE(dm.qty_t0, 0) / eff.sl_thuc_te
+            ELSE COALESCE(b1.qty_t0, 0)
+        END AS qty_kh_t0,
+        CASE
+            WHEN eff.sl_thuc_te <> 0 THEN COALESCE(dm.qty_t1, 0) / eff.sl_thuc_te
+            ELSE COALESCE(b1.qty_t1, 0)
+        END AS qty_kh_t1,
+        CASE
+            WHEN eff.sl_thuc_te <> 0 THEN COALESCE(dm.qty_t2, 0) / eff.sl_thuc_te
+            ELSE COALESCE(b1.qty_t2, 0)
+        END AS qty_kh_t2,
+        CASE
+            WHEN eff.sl_thuc_te <> 0 THEN COALESCE(dm.qty_t3, 0) / eff.sl_thuc_te
+            ELSE COALESCE(b1.qty_t3, 0)
+        END AS qty_kh_t3,
         COALESCE(dm.qty_t0, 0) AS qty_nvl_t0,
         COALESCE(dm.qty_t1, 0) AS qty_nvl_t1,
         COALESCE(dm.qty_t2, 0) AS qty_nvl_t2,
         COALESCE(dm.qty_t3, 0) AS qty_nvl_t3
     FROM dinh_muc dm
     JOIN res_company dv ON dv.id = dm.company_id
-    LEFT JOIN ke_hoach_vat_tu_line khvt
-        ON  khvt.period_id = dm.period_id
-        AND khvt.company_id = dm.company_id
-        AND TRIM(khvt.ma_sap) = TRIM(dm.ma_sap)
+    CROSS JOIN LATERAL (
+        SELECT CASE
+            WHEN dm.co_sl_dinh_muc_override THEN COALESCE(dm.sl_dinh_muc_thay_doi, 0)
+            ELSE COALESCE(dm.sl_dinh_muc, 0)
+        END AS sl_thuc_te
+    ) eff
+    LEFT JOIN LATERAL (
+        SELECT
+            kh.ma_hang,
+            kh.ten_hang,
+            kh.qty_t0,
+            kh.qty_t1,
+            kh.qty_t2,
+            kh.qty_t3
+        FROM ke_hoach_vat_tu_line kh
+        WHERE kh.period_id = dm.period_id
+          AND kh.company_id = dm.company_id
+          AND TRIM(kh.ma_sap) = TRIM(dm.ma_sap)
+          AND (
+              eff.sl_thuc_te = 0
+              OR ABS(
+                  COALESCE(kh.qty_t0, 0)
+                  - COALESCE(dm.qty_t0, 0) / NULLIF(eff.sl_thuc_te, 0)
+              ) < 0.001
+          )
+        ORDER BY kh.sequence, kh.id
+        LIMIT 1
+    ) b1 ON TRUE
     WHERE dm.period_id = p_period_id
-      AND dm.company_id IS NOT NULL;
+      AND dm.company_id IS NOT NULL
+
+    UNION ALL
+
+    SELECT
+        d.period_id,
+        v_prod_company_id AS company_id,
+        d.company_id AS don_vi_kd_id,
+        COALESCE(NULLIF(TRIM(dv.company_code), ''), dv.name) AS don_vi_kd_code,
+        d.ma_sap AS ma,
+        NULLIF(TRIM(d.ma_hang), '') AS ma_hang,
+        NULLIF(TRIM(COALESCE(d.ten_hang, d.ten_nvl)), '') AS ten_kh,
+        NULL::VARCHAR AS ma_tp_cha,
+        NULL::VARCHAR AS ten_tp_cha,
+        d.ma_sap AS ma_nvl,
+        NULLIF(TRIM(d.ten_nvl), '') AS ten_nvl,
+        1.0 AS sl_thuc_te,
+        NULL::INTEGER AS cap_bom,
+        d.qty_t0 AS qty_kh_t0,
+        d.qty_t1 AS qty_kh_t1,
+        d.qty_t2 AS qty_kh_t2,
+        d.qty_t3 AS qty_kh_t3,
+        d.qty_t0 AS qty_nvl_t0,
+        d.qty_t1 AS qty_nvl_t1,
+        d.qty_t2 AS qty_nvl_t2,
+        d.qty_t3 AS qty_nvl_t3
+    FROM _tmp_b1_direct_nvl d
+    JOIN res_company dv ON dv.id = d.company_id;
 
     CREATE INDEX ON tmp_b3_nvl_detail (don_vi_kd_id, ma_nvl);
     CREATE INDEX ON tmp_b3_nvl_detail (ma_nvl);
@@ -276,7 +498,9 @@ BEGIN
             qty_kh_t0, qty_kh_t1, qty_kh_t2, qty_kh_t3,
             qty_nvl_t0, qty_nvl_t1, qty_nvl_t2, qty_nvl_t3,
             1, 1, v_now, v_now
-        FROM tmp_b3_nvl_detail;
+        FROM tmp_b3_nvl_detail
+        WHERE COALESCE(qty_nvl_t0, 0) + COALESCE(qty_nvl_t1, 0)
+            + COALESCE(qty_nvl_t2, 0) + COALESCE(qty_nvl_t3, 0) <> 0;
 
         -- Aggregate trước, lookup ĐVT từ temp MDM (không LATERAL từng dòng)
         INSERT INTO tinh_toan_vat_tu (
@@ -302,13 +526,20 @@ BEGIN
                 t.don_vi_kd_id,
                 t.don_vi_kd_code,
                 t.ma_nvl,
-                MIN(NULLIF(TRIM(t.ten_nvl), '')) AS ten_nvl,
+                (
+                    ARRAY_AGG(
+                        NULLIF(TRIM(t.ten_nvl), '')
+                        ORDER BY LENGTH(NULLIF(TRIM(t.ten_nvl), '')) DESC NULLS LAST
+                    ) FILTER (WHERE NULLIF(TRIM(t.ten_nvl), '') IS NOT NULL)
+                )[1] AS ten_nvl,
                 SUM(t.qty_nvl_t0) AS qty_t0,
                 SUM(t.qty_nvl_t1) AS qty_t1,
                 SUM(t.qty_nvl_t2) AS qty_t2,
                 SUM(t.qty_nvl_t3) AS qty_t3
             FROM tmp_b3_nvl_detail t
             GROUP BY t.period_id, t.don_vi_kd_id, t.don_vi_kd_code, t.ma_nvl
+            HAVING SUM(COALESCE(t.qty_nvl_t0, 0)) + SUM(COALESCE(t.qty_nvl_t1, 0))
+                 + SUM(COALESCE(t.qty_nvl_t2, 0)) + SUM(COALESCE(t.qty_nvl_t3, 0)) <> 0
         ) agg
         LEFT JOIN _tmp_mdm_dvt mdm ON mdm.ma_nvl = agg.ma_nvl;
 END;
@@ -336,22 +567,6 @@ BEGIN
     v_month_t1 := TO_CHAR(TO_DATE(v_period_month, 'MM/YYYY') + INTERVAL '1 month', 'MM/YYYY');
     v_month_t2 := TO_CHAR(TO_DATE(v_period_month, 'MM/YYYY') + INTERVAL '2 month', 'MM/YYYY');
     v_month_t3 := TO_CHAR(TO_DATE(v_period_month, 'MM/YYYY') + INTERVAL '3 month', 'MM/YYYY');
-
-        -- Giu BCU da import truoc khi xoa tong_hop_vat_tu
-        DROP TABLE IF EXISTS _tmp_vdd_bcu;
-        CREATE TEMP TABLE _tmp_vdd_bcu ON COMMIT DROP AS
-        SELECT
-            th.company_id,
-            th.ma_sap AS ma_nvl,
-            COALESCE(th.ve_du_kien_t0, 0) AS qty_t0,
-            COALESCE(th.ve_du_kien_t1, 0) AS qty_t1,
-            COALESCE(th.ve_du_kien_t2, 0) AS qty_t2,
-            COALESCE(th.ve_du_kien_t3, 0) AS qty_t3,
-            COALESCE(th.ve_du_kien_t0, 0) + COALESCE(th.ve_du_kien_t1, 0)
-                + COALESCE(th.ve_du_kien_t2, 0) + COALESCE(th.ve_du_kien_t3, 0) AS qty_total
-        FROM tong_hop_vat_tu th
-        WHERE th.period_id = p_period_id
-          AND th.don_vi_kd_id IS NULL;
 
         DELETE FROM tong_hop_vat_tu WHERE period_id = p_period_id;
 
@@ -458,19 +673,24 @@ BEGIN
         SUM(CASE WHEN vdd.month_key = v_month_t2 THEN COALESCE(vdd.so_luong, 0) ELSE 0 END) AS qty_t2,
         SUM(CASE WHEN vdd.month_key = v_month_t3 THEN COALESCE(vdd.so_luong, 0) ELSE 0 END) AS qty_t3,
         SUM(CASE WHEN vdd.month_key IN (v_month_t0, v_month_t1, v_month_t2, v_month_t3)
-                 THEN COALESCE(vdd.so_luong, 0) ELSE 0 END) AS qty_total
+                 THEN COALESCE(vdd.so_luong, 0) ELSE 0 END) AS qty_total,
+        SUM(CASE WHEN vdd.month_key = v_month_t0 THEN COALESCE(vdd.gia_tri, vdd.so_luong * vdd.don_gia, 0) ELSE 0 END) AS gt_t0,
+        SUM(CASE WHEN vdd.month_key = v_month_t1 THEN COALESCE(vdd.gia_tri, vdd.so_luong * vdd.don_gia, 0) ELSE 0 END) AS gt_t1,
+        SUM(CASE WHEN vdd.month_key = v_month_t2 THEN COALESCE(vdd.gia_tri, vdd.so_luong * vdd.don_gia, 0) ELSE 0 END) AS gt_t2,
+        SUM(CASE WHEN vdd.month_key = v_month_t3 THEN COALESCE(vdd.gia_tri, vdd.so_luong * vdd.don_gia, 0) ELSE 0 END) AS gt_t3,
+        SUM(CASE WHEN vdd.month_key IN (v_month_t0, v_month_t1, v_month_t2, v_month_t3)
+                 THEN COALESCE(vdd.gia_tri, vdd.so_luong * vdd.don_gia, 0) ELSE 0 END) AS gt_total
     FROM (
-        SELECT DISTINCT company_id, don_vi_kd_id, ma_vat_tu
+        SELECT DISTINCT company_id, ma_vat_tu
         FROM tinh_toan_vat_tu
         WHERE period_id = p_period_id
-          AND don_vi_kd_id IS NOT NULL
     ) b3
     LEFT JOIN vat_tu_di_duong vdd
-        ON  vdd.company_id = b3.don_vi_kd_id
+        ON  vdd.company_id = b3.company_id
         AND TRIM(vdd.ma_nvl) = TRIM(b3.ma_vat_tu)
+        AND COALESCE(vdd.loai, 'don_vi') = 'don_vi'
     GROUP BY b3.company_id, b3.ma_vat_tu;
 
-    CREATE INDEX ON _tmp_vdd_bcu (company_id, ma_nvl);
     CREATE INDEX ON _tmp_vdd_don_vi (company_id, ma_nvl);
 
     -- Dong gop B4 (don_vi_kd_id NULL): ton / di duong / can doi
@@ -478,7 +698,8 @@ BEGIN
         period_id, company_id, don_vi_kd_id, ma_dat_hang, ma_sap, ten_nvl, chung_loai, don_vi_tinh,
         ton_dau, don_gia_ton_kho,
         ve_du_kien_don_vi_t0, ve_du_kien_don_vi_t1, ve_du_kien_don_vi_t2, ve_du_kien_don_vi_t3,
-        ve_du_kien_t0, ve_du_kien_t1, ve_du_kien_t2, ve_du_kien_t3,
+        ve_du_kien_don_gia_t0, ve_du_kien_don_gia_t1, ve_du_kien_don_gia_t2, ve_du_kien_don_gia_t3,
+        ve_du_kien_gia_tri_t0, ve_du_kien_gia_tri_t1, ve_du_kien_gia_tri_t2, ve_du_kien_gia_tri_t3,
         vt_can_dung_t0, vt_can_dung_t1, vt_can_dung_t2, vt_can_dung_t3,
         ton_cuoi_t0, ton_cuoi_t1, ton_cuoi_t2, ton_cuoi_t3,
         so_luong_du_phong, so_luong_thieu, so_luong_can_mua,
@@ -499,10 +720,14 @@ BEGIN
         agg.ve_du_kien_don_vi_t1,
         agg.ve_du_kien_don_vi_t2,
         agg.ve_du_kien_don_vi_t3,
-        agg.ve_du_kien_t0,
-        agg.ve_du_kien_t1,
-        agg.ve_du_kien_t2,
-        agg.ve_du_kien_t3,
+        agg.ve_du_kien_don_gia_t0,
+        agg.ve_du_kien_don_gia_t1,
+        agg.ve_du_kien_don_gia_t2,
+        agg.ve_du_kien_don_gia_t3,
+        agg.ve_du_kien_gia_tri_t0,
+        agg.ve_du_kien_gia_tri_t1,
+        agg.ve_du_kien_gia_tri_t2,
+        agg.ve_du_kien_gia_tri_t3,
         agg.qty_t0,
         agg.qty_t1,
         agg.qty_t2,
@@ -519,7 +744,12 @@ BEGIN
         SELECT
             b3.company_id,
             b3.ma_vat_tu                                              AS material_code,
-            b3.ten_vat_tu                                             AS material_name,
+            (
+                ARRAY_AGG(
+                    NULLIF(TRIM(b3.ten_vat_tu), '')
+                    ORDER BY LENGTH(NULLIF(TRIM(b3.ten_vat_tu), '')) DESC NULLS LAST
+                ) FILTER (WHERE NULLIF(TRIM(b3.ten_vat_tu), '') IS NOT NULL)
+            )[1]                                                      AS material_name,
             MAX(b3.don_vi_tinh)                                       AS don_vi_tinh,
             SUM(COALESCE(b3.qty_t0, 0))                               AS qty_t0,
             SUM(COALESCE(b3.qty_t1, 0))                               AS qty_t1,
@@ -534,10 +764,18 @@ BEGIN
             COALESCE(vdd_dv.qty_t1, 0)                                AS ve_du_kien_don_vi_t1,
             COALESCE(vdd_dv.qty_t2, 0)                                AS ve_du_kien_don_vi_t2,
             COALESCE(vdd_dv.qty_t3, 0)                                AS ve_du_kien_don_vi_t3,
-            COALESCE(vdd.qty_t0_adj, 0)                               AS ve_du_kien_t0,
-            COALESCE(vdd.qty_t1, 0)                                   AS ve_du_kien_t1,
-            COALESCE(vdd.qty_t2, 0)                                   AS ve_du_kien_t2,
-            COALESCE(vdd.qty_t3, 0)                                   AS ve_du_kien_t3,
+            CASE WHEN COALESCE(vdd_dv.qty_t0_adj, 0) > 0
+                 THEN COALESCE(vdd_dv.gt_t0, 0) / vdd_dv.qty_t0_adj ELSE 0 END AS ve_du_kien_don_gia_t0,
+            CASE WHEN COALESCE(vdd_dv.qty_t1, 0) > 0
+                 THEN COALESCE(vdd_dv.gt_t1, 0) / vdd_dv.qty_t1 ELSE 0 END AS ve_du_kien_don_gia_t1,
+            CASE WHEN COALESCE(vdd_dv.qty_t2, 0) > 0
+                 THEN COALESCE(vdd_dv.gt_t2, 0) / vdd_dv.qty_t2 ELSE 0 END AS ve_du_kien_don_gia_t2,
+            CASE WHEN COALESCE(vdd_dv.qty_t3, 0) > 0
+                 THEN COALESCE(vdd_dv.gt_t3, 0) / vdd_dv.qty_t3 ELSE 0 END AS ve_du_kien_don_gia_t3,
+            COALESCE(vdd_dv.gt_t0, 0)                                 AS ve_du_kien_gia_tri_t0,
+            COALESCE(vdd_dv.gt_t1, 0)                                 AS ve_du_kien_gia_tri_t1,
+            COALESCE(vdd_dv.gt_t2, 0)                                 AS ve_du_kien_gia_tri_t2,
+            COALESCE(vdd_dv.gt_t3, 0)                                 AS ve_du_kien_gia_tri_t3,
             COALESCE(vdd_dv.qty_total, 0)                            AS tong_di_duong,
             COALESCE(tk.tdu, 0) + COALESCE(vdd_dv.qty_total, 0)
                 - SUM(COALESCE(b3.qty_t0, 0))                         AS ton_cuoi_t0,
@@ -598,37 +836,21 @@ BEGIN
                 COALESCE(v.qty_t1, 0) AS qty_t1,
                 COALESCE(v.qty_t2, 0) AS qty_t2,
                 COALESCE(v.qty_t3, 0) AS qty_t3,
-                COALESCE(v.qty_total, 0) AS qty_total
-            FROM _tmp_vdd_bcu v
-            WHERE v.company_id = b3.company_id AND v.ma_nvl = b3.ma_vat_tu
-        ) vdd ON TRUE
-        LEFT JOIN LATERAL (
-            SELECT
-                CASE
-                    WHEN COALESCE(v.qty_total, 0) > (
-                        COALESCE(v.qty_t0, 0) + COALESCE(v.qty_t1, 0)
-                        + COALESCE(v.qty_t2, 0) + COALESCE(v.qty_t3, 0)
-                    )
-                    THEN COALESCE(v.qty_t0, 0) + COALESCE(v.qty_total, 0) - (
-                        COALESCE(v.qty_t0, 0) + COALESCE(v.qty_t1, 0)
-                        + COALESCE(v.qty_t2, 0) + COALESCE(v.qty_t3, 0)
-                    )
-                    ELSE COALESCE(v.qty_t0, 0)
-                END AS qty_t0_adj,
-                COALESCE(v.qty_t1, 0) AS qty_t1,
-                COALESCE(v.qty_t2, 0) AS qty_t2,
-                COALESCE(v.qty_t3, 0) AS qty_t3,
-                COALESCE(v.qty_total, 0) AS qty_total
+                COALESCE(v.qty_total, 0) AS qty_total,
+                COALESCE(v.gt_t0, 0) AS gt_t0,
+                COALESCE(v.gt_t1, 0) AS gt_t1,
+                COALESCE(v.gt_t2, 0) AS gt_t2,
+                COALESCE(v.gt_t3, 0) AS gt_t3
             FROM _tmp_vdd_don_vi v
             WHERE v.company_id = b3.company_id AND v.ma_nvl = b3.ma_vat_tu
         ) vdd_dv ON TRUE
         WHERE b3.period_id = p_period_id
         GROUP BY
             b3.company_id, c.company_code,
-            b3.ma_vat_tu, b3.ten_vat_tu,
+            b3.ma_vat_tu,
             tk.tdu, tk.sl_dau, tk.ttdu,
-            vdd.qty_t0_adj, vdd.qty_t1, vdd.qty_t2, vdd.qty_t3, vdd.qty_total,
-            vdd_dv.qty_t0_adj, vdd_dv.qty_t1, vdd_dv.qty_t2, vdd_dv.qty_t3, vdd_dv.qty_total
+            vdd_dv.qty_t0_adj, vdd_dv.qty_t1, vdd_dv.qty_t2, vdd_dv.qty_t3, vdd_dv.qty_total,
+            vdd_dv.gt_t0, vdd_dv.gt_t1, vdd_dv.gt_t2, vdd_dv.gt_t3
     ) agg;
 
     -- Chi tiet B4 theo don vi dat hang (KD): chi vt_can_dung, phuc vu bao cao
@@ -636,7 +858,8 @@ BEGIN
         period_id, company_id, don_vi_kd_id, ma_dat_hang, ma_sap, ten_nvl, chung_loai, don_vi_tinh,
         ton_dau, don_gia_ton_kho,
         ve_du_kien_don_vi_t0, ve_du_kien_don_vi_t1, ve_du_kien_don_vi_t2, ve_du_kien_don_vi_t3,
-        ve_du_kien_t0, ve_du_kien_t1, ve_du_kien_t2, ve_du_kien_t3,
+        ve_du_kien_don_gia_t0, ve_du_kien_don_gia_t1, ve_du_kien_don_gia_t2, ve_du_kien_don_gia_t3,
+        ve_du_kien_gia_tri_t0, ve_du_kien_gia_tri_t1, ve_du_kien_gia_tri_t2, ve_du_kien_gia_tri_t3,
         vt_can_dung_t0, vt_can_dung_t1, vt_can_dung_t2, vt_can_dung_t3,
         ton_cuoi_t0, ton_cuoi_t1, ton_cuoi_t2, ton_cuoi_t3,
         so_luong_du_phong, so_luong_thieu, so_luong_can_mua,
@@ -651,8 +874,8 @@ BEGIN
         b3.ten_vat_tu,
         NULL,
         MAX(b3.don_vi_tinh),
-        0,
-        0,
+        0, 0,
+        0, 0, 0, 0,
         0, 0, 0, 0,
         0, 0, 0, 0,
         SUM(COALESCE(b3.qty_t0, 0)),
@@ -679,15 +902,20 @@ CREATE OR REPLACE PROCEDURE public.fn_ke_hoach_dat_vat_tu(
 )
 LANGUAGE 'plpgsql' AS $BODY$
 BEGIN
-        DELETE FROM kh_dat_vat_tu WHERE period_id = p_period_id;
+        DELETE FROM kh_dat_vat_tu
+        WHERE period_id = p_period_id
+          AND COALESCE(is_manual, false) = false;
 
         INSERT INTO kh_dat_vat_tu (
         period_id, company_id, ma_sap, ten_nvl, chung_loai, don_vi_tinh,
+        is_manual,
         tong_ton_nvl_sl,
         tong_sl_vt_can_dung_t0, tong_sl_vt_can_dung_t1, tong_sl_vt_can_dung_t2, tong_sl_vt_can_dung_t3,
         tong_vt_can_dung,
         tong_hang_di_duong_sl_t0, tong_hang_di_duong_sl_t1, tong_hang_di_duong_sl_t2, tong_hang_di_duong_sl_t3,
-        tong_hang_di_duong,
+        tong_hang_di_duong_dg_t0, tong_hang_di_duong_dg_t1, tong_hang_di_duong_dg_t2, tong_hang_di_duong_dg_t3,
+        tong_hang_di_duong_gt_t0, tong_hang_di_duong_gt_t1, tong_hang_di_duong_gt_t2, tong_hang_di_duong_gt_t3,
+        tong_hang_di_duong, tong_gia_tri_di_duong,
         sl_du_tru_toi_thieu,
         sl_dat_mua_de_xuat,
         sl_dat_mua_chot,
@@ -715,8 +943,18 @@ BEGIN
             COALESCE(b4.ve_du_kien_don_vi_t1, 0) AS dd_t1,
             COALESCE(b4.ve_du_kien_don_vi_t2, 0) AS dd_t2,
             COALESCE(b4.ve_du_kien_don_vi_t3, 0) AS dd_t3,
+            COALESCE(b4.ve_du_kien_don_gia_t0, 0) AS dd_dg_t0,
+            COALESCE(b4.ve_du_kien_don_gia_t1, 0) AS dd_dg_t1,
+            COALESCE(b4.ve_du_kien_don_gia_t2, 0) AS dd_dg_t2,
+            COALESCE(b4.ve_du_kien_don_gia_t3, 0) AS dd_dg_t3,
+            COALESCE(b4.ve_du_kien_gia_tri_t0, 0) AS dd_gt_t0,
+            COALESCE(b4.ve_du_kien_gia_tri_t1, 0) AS dd_gt_t1,
+            COALESCE(b4.ve_du_kien_gia_tri_t2, 0) AS dd_gt_t2,
+            COALESCE(b4.ve_du_kien_gia_tri_t3, 0) AS dd_gt_t3,
             (COALESCE(b4.ve_du_kien_don_vi_t0, 0) + COALESCE(b4.ve_du_kien_don_vi_t1, 0) + 
              COALESCE(b4.ve_du_kien_don_vi_t2, 0) + COALESCE(b4.ve_du_kien_don_vi_t3, 0)) AS tdd,
+            (COALESCE(b4.ve_du_kien_gia_tri_t0, 0) + COALESCE(b4.ve_du_kien_gia_tri_t1, 0) +
+             COALESCE(b4.ve_du_kien_gia_tri_t2, 0) + COALESCE(b4.ve_du_kien_gia_tri_t3, 0)) AS tdd_gt,
             COALESCE(b4.don_gia_ton_kho, 0) AS don_gia_ton_kho,
             COALESCE(b4.ton_dau, 0) * COALESCE(b4.don_gia_ton_kho, 0) AS gia_tri_ton_dau
         FROM tong_hop_vat_tu b4
@@ -754,11 +992,14 @@ BEGIN
     )
     SELECT
         period_id, company_id, ma_sap, ten_nvl, chung_loai, don_vi_tinh,
+        false,
         ton_dau,
         cd_t0, cd_t1, cd_t2, cd_t3,
         tcd,
         dd_t0, dd_t1, dd_t2, dd_t3,
-        tdd,
+        dd_dg_t0, dd_dg_t1, dd_dg_t2, dd_dg_t3,
+        dd_gt_t0, dd_gt_t1, dd_gt_t2, dd_gt_t3,
+        tdd, tdd_gt,
         sl_du_tru,
         sl_de_xuat,
         sl_chot,
@@ -787,6 +1028,148 @@ BEGIN
         don_gia_cuoi,
         don_gia_cuoi * sl_ton_kho AS gia_tri_cuoi,
         1, 1, NOW(), NOW()
-        FROM calc_final;
+        FROM calc_final cf
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM kh_dat_vat_tu k
+            WHERE k.period_id = p_period_id
+              AND k.ma_sap = cf.ma_sap
+              AND COALESCE(k.is_manual, false) = true
+        );
+END;
+$BODY$;
+
+-- ============================================================
+-- B6: Tổng hợp kế hoạch vật tư BCU — copy B5 + đi đường BCU
+-- ============================================================
+CREATE OR REPLACE PROCEDURE public.fn_ke_hoach_dat_vat_tu_bcu(
+    p_period_id INTEGER
+)
+LANGUAGE 'plpgsql' AS $BODY$
+DECLARE
+    v_period_month TEXT;
+    v_month_t0     TEXT;
+    v_month_t1     TEXT;
+    v_month_t2     TEXT;
+    v_month_t3     TEXT;
+BEGIN
+    SELECT period_month INTO v_period_month FROM ke_hoach_vat_tu WHERE id = p_period_id;
+    v_month_t0 := TO_CHAR(TO_DATE(v_period_month, 'MM/YYYY'), 'MM/YYYY');
+    v_month_t1 := TO_CHAR(TO_DATE(v_period_month, 'MM/YYYY') + INTERVAL '1 month', 'MM/YYYY');
+    v_month_t2 := TO_CHAR(TO_DATE(v_period_month, 'MM/YYYY') + INTERVAL '2 month', 'MM/YYYY');
+    v_month_t3 := TO_CHAR(TO_DATE(v_period_month, 'MM/YYYY') + INTERVAL '3 month', 'MM/YYYY');
+
+    DELETE FROM kh_dat_vat_tu_bcu WHERE period_id = p_period_id;
+
+    INSERT INTO kh_dat_vat_tu_bcu (
+        period_id, company_id, ma_sap, ten_nvl, chung_loai, don_vi_tinh,
+        tong_ton_nvl_sl, don_gia_ton_kho,
+        tong_sl_vt_can_dung_t0, tong_sl_vt_can_dung_t1, tong_sl_vt_can_dung_t2, tong_sl_vt_can_dung_t3,
+        tong_vt_can_dung,
+        tong_hang_di_duong_sl_t0, tong_hang_di_duong_sl_t1, tong_hang_di_duong_sl_t2, tong_hang_di_duong_sl_t3,
+        tong_hang_di_duong_dg_t0, tong_hang_di_duong_dg_t1, tong_hang_di_duong_dg_t2, tong_hang_di_duong_dg_t3,
+        tong_hang_di_duong_gt_t0, tong_hang_di_duong_gt_t1, tong_hang_di_duong_gt_t2, tong_hang_di_duong_gt_t3,
+        tong_hang_di_duong, tong_gia_tri_di_duong,
+        ve_du_kien_bcu_t0, ve_du_kien_bcu_t1, ve_du_kien_bcu_t2, ve_du_kien_bcu_t3,
+        ve_du_kien_bcu_dg_t0, ve_du_kien_bcu_dg_t1, ve_du_kien_bcu_dg_t2, ve_du_kien_bcu_dg_t3,
+        ve_du_kien_bcu_gt_t0, ve_du_kien_bcu_gt_t1, ve_du_kien_bcu_gt_t2, ve_du_kien_bcu_gt_t3,
+        tong_ve_du_kien_bcu, tong_gia_tri_bcu,
+        sl_du_tru_toi_thieu, sl_dat_mua_de_xuat, sl_dat_mua_chot, sl_can_mua_theo_moq,
+        don_gia_mua,
+        create_uid, write_uid, create_date, write_date
+    )
+    SELECT
+        b5.period_id, b5.company_id, b5.ma_sap, b5.ten_nvl, b5.chung_loai, b5.don_vi_tinh,
+        b5.tong_ton_nvl_sl, b5.don_gia_ton_kho,
+        b5.tong_sl_vt_can_dung_t0, b5.tong_sl_vt_can_dung_t1, b5.tong_sl_vt_can_dung_t2, b5.tong_sl_vt_can_dung_t3,
+        b5.tong_vt_can_dung,
+        b5.tong_hang_di_duong_sl_t0, b5.tong_hang_di_duong_sl_t1, b5.tong_hang_di_duong_sl_t2, b5.tong_hang_di_duong_sl_t3,
+        b5.tong_hang_di_duong_dg_t0, b5.tong_hang_di_duong_dg_t1, b5.tong_hang_di_duong_dg_t2, b5.tong_hang_di_duong_dg_t3,
+        b5.tong_hang_di_duong_gt_t0, b5.tong_hang_di_duong_gt_t1, b5.tong_hang_di_duong_gt_t2, b5.tong_hang_di_duong_gt_t3,
+        b5.tong_hang_di_duong, b5.tong_gia_tri_di_duong,
+        COALESCE(vbcu.qty_t0, 0), COALESCE(vbcu.qty_t1, 0), COALESCE(vbcu.qty_t2, 0), COALESCE(vbcu.qty_t3, 0),
+        CASE WHEN COALESCE(vbcu.qty_t0, 0) > 0 THEN COALESCE(vbcu.gt_t0, 0) / vbcu.qty_t0 ELSE 0 END,
+        CASE WHEN COALESCE(vbcu.qty_t1, 0) > 0 THEN COALESCE(vbcu.gt_t1, 0) / vbcu.qty_t1 ELSE 0 END,
+        CASE WHEN COALESCE(vbcu.qty_t2, 0) > 0 THEN COALESCE(vbcu.gt_t2, 0) / vbcu.qty_t2 ELSE 0 END,
+        CASE WHEN COALESCE(vbcu.qty_t3, 0) > 0 THEN COALESCE(vbcu.gt_t3, 0) / vbcu.qty_t3 ELSE 0 END,
+        COALESCE(vbcu.gt_t0, 0), COALESCE(vbcu.gt_t1, 0), COALESCE(vbcu.gt_t2, 0), COALESCE(vbcu.gt_t3, 0),
+        COALESCE(vbcu.qty_total, 0), COALESCE(vbcu.gt_total, 0),
+        b5.sl_du_tru_toi_thieu,
+        (b5.tong_ton_nvl_sl - b5.tong_vt_can_dung + COALESCE(vbcu.qty_total, 0) - b5.sl_du_tru_toi_thieu),
+        CASE WHEN (b5.tong_ton_nvl_sl - b5.tong_vt_can_dung + COALESCE(vbcu.qty_total, 0) - b5.sl_du_tru_toi_thieu) > 0
+             THEN 0.0
+             ELSE -(b5.tong_ton_nvl_sl - b5.tong_vt_can_dung + COALESCE(vbcu.qty_total, 0) - b5.sl_du_tru_toi_thieu)
+        END,
+        CASE WHEN (b5.tong_ton_nvl_sl - b5.tong_vt_can_dung + COALESCE(vbcu.qty_total, 0) - b5.sl_du_tru_toi_thieu) > 0
+             THEN 0.0
+             ELSE -(b5.tong_ton_nvl_sl - b5.tong_vt_can_dung + COALESCE(vbcu.qty_total, 0) - b5.sl_du_tru_toi_thieu)
+        END,
+        b5.don_gia_mua,
+        1, 1, NOW(), NOW()
+    FROM kh_dat_vat_tu b5
+    LEFT JOIN LATERAL (
+        SELECT
+            SUM(CASE WHEN vdd.month_key = v_month_t0 THEN COALESCE(vdd.so_luong, 0) ELSE 0 END) AS qty_t0,
+            SUM(CASE WHEN vdd.month_key = v_month_t1 THEN COALESCE(vdd.so_luong, 0) ELSE 0 END) AS qty_t1,
+            SUM(CASE WHEN vdd.month_key = v_month_t2 THEN COALESCE(vdd.so_luong, 0) ELSE 0 END) AS qty_t2,
+            SUM(CASE WHEN vdd.month_key = v_month_t3 THEN COALESCE(vdd.so_luong, 0) ELSE 0 END) AS qty_t3,
+            SUM(CASE WHEN vdd.month_key IN (v_month_t0, v_month_t1, v_month_t2, v_month_t3)
+                     THEN COALESCE(vdd.so_luong, 0) ELSE 0 END) AS qty_total,
+            SUM(CASE WHEN vdd.month_key = v_month_t0 THEN COALESCE(vdd.gia_tri, vdd.so_luong * vdd.don_gia, 0) ELSE 0 END) AS gt_t0,
+            SUM(CASE WHEN vdd.month_key = v_month_t1 THEN COALESCE(vdd.gia_tri, vdd.so_luong * vdd.don_gia, 0) ELSE 0 END) AS gt_t1,
+            SUM(CASE WHEN vdd.month_key = v_month_t2 THEN COALESCE(vdd.gia_tri, vdd.so_luong * vdd.don_gia, 0) ELSE 0 END) AS gt_t2,
+            SUM(CASE WHEN vdd.month_key = v_month_t3 THEN COALESCE(vdd.gia_tri, vdd.so_luong * vdd.don_gia, 0) ELSE 0 END) AS gt_t3,
+            SUM(CASE WHEN vdd.month_key IN (v_month_t0, v_month_t1, v_month_t2, v_month_t3)
+                     THEN COALESCE(vdd.gia_tri, vdd.so_luong * vdd.don_gia, 0) ELSE 0 END) AS gt_total
+        FROM vat_tu_di_duong vdd
+        WHERE vdd.loai = 'bcu'
+          AND TRIM(vdd.ma_nvl) = TRIM(b5.ma_sap)
+          AND vdd.company_id = b5.company_id
+    ) vbcu ON TRUE
+    WHERE b5.period_id = p_period_id;
+END;
+$BODY$;
+
+-- ============================================================
+-- B7: Phê duyệt kế hoạch vật tư
+-- ============================================================
+CREATE OR REPLACE PROCEDURE public.fn_phe_duyet_kh_vat_tu(
+    p_period_id INTEGER
+)
+LANGUAGE 'plpgsql' AS $BODY$
+DECLARE
+    v_ngay_co_so DATE;
+BEGIN
+    DELETE FROM phe_duyet_kh_vat_tu WHERE period_id = p_period_id;
+
+    SELECT TO_DATE(period_month, 'MM/YYYY') INTO v_ngay_co_so
+    FROM ke_hoach_vat_tu WHERE id = p_period_id;
+
+    INSERT INTO phe_duyet_kh_vat_tu (
+        period_id, company_id, ma_sap, ten_nvl, don_vi_tinh,
+        khoi_luong_don_vi_dat, khoi_luong_bcu_dat,
+        ngay_co_so,
+        create_uid, write_uid, create_date, write_date
+    )
+    SELECT
+        p_period_id,
+        COALESCE(kh.company_id, bcu.company_id),
+        COALESCE(kh.ma_sap, bcu.ma_sap),
+        COALESCE(kh.ten_nvl, bcu.ten_nvl),
+        COALESCE(kh.don_vi_tinh, bcu.don_vi_tinh),
+        COALESCE(kh.sl_dat_mua_chot, 0),
+        COALESCE(bcu.sl_dat_mua_chot, 0),
+        v_ngay_co_so,
+        1, 1, NOW(), NOW()
+    FROM kh_dat_vat_tu kh
+    FULL OUTER JOIN kh_dat_vat_tu_bcu bcu
+        ON  kh.period_id = bcu.period_id
+        AND kh.company_id = bcu.company_id
+        AND TRIM(kh.ma_sap) = TRIM(bcu.ma_sap)
+    WHERE COALESCE(kh.period_id, bcu.period_id) = p_period_id
+      AND (
+          COALESCE(kh.sl_dat_mua_chot, 0) > 0
+          OR COALESCE(bcu.sl_dat_mua_chot, 0) > 0
+      );
 END;
 $BODY$;

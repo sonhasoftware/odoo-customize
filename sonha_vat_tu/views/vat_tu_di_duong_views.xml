@@ -1,21 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <record id="view_vat_tu_di_duong_tree" model="ir.ui.view">
-        <field name="name">vat.tu.di.duong.tree</field>
+    <record id="view_vat_tu_di_duong_tree_don_vi" model="ir.ui.view">
+        <field name="name">vat.tu.di.duong.tree.don.vi</field>
         <field name="model">vat.tu.di.duong</field>
         <field name="arch" type="xml">
             <tree string="Vật tư đi đường" editable="bottom" class="sh_free_width_tree">
-<!--                <header>-->
-<!--                    <button name="action_open_import_wizard" type="object"-->
-<!--                            string="Import" class="btn-primary"-->
-<!--                            display="always"/>-->
-<!--                </header>-->
-                <field name="company_id" context="{'vat_tu_company_code_display': True}"/>
-                <field name="ma_nvl" required="1"/>
-                <field name="ten_nvl"/>
+                <field name="loai" column_invisible="True"/>
+                <field name="company_id" string="Đơn vị sản xuất"
+                       context="{'vat_tu_company_code_display': True}"/>
+                <field name="ma_nvl" string="Mã NVL" required="1"/>
+                <field name="ma_nvl_id" column_invisible="True"/>
+                <field name="ten_nvl" string="Tên NVL" readonly="1"/>
                 <field name="month_key" required="1"/>
-                <field name="so_luong" sum="SL"/>
+                <field name="so_luong" sum="Số lượng"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_vat_tu_di_duong_tree_bcu" model="ir.ui.view">
+        <field name="name">vat.tu.di.duong.tree.bcu</field>
+        <field name="model">vat.tu.di.duong</field>
+        <field name="arch" type="xml">
+            <tree string="Vật tư đi đường" editable="bottom" class="sh_free_width_tree">
+                <field name="loai" column_invisible="True"/>
+                <field name="company_id" string="Đơn vị sản xuất"
+                       context="{'vat_tu_company_code_display': True}"/>
+                <field name="ma_nvl" string="Mã NVL" required="1"/>
+                <field name="ma_nvl_id" column_invisible="True"/>
+                <field name="ten_nvl" string="Tên NVL" readonly="1"/>
+                <field name="month_key" required="1"/>
+                <field name="so_luong" sum="Số lượng"/>
+                <field name="don_gia"/>
+                <field name="gia_tri" sum="Giá trị"/>
             </tree>
         </field>
     </record>
@@ -25,12 +42,13 @@
         <field name="model">vat.tu.di.duong</field>
         <field name="arch" type="xml">
             <search>
-                <field name="company_id" context="{'vat_tu_company_code_display': True}"/>
-                <field name="ma_nvl"/>
+                <field name="company_id" string="Đơn vị sản xuất"
+                       context="{'vat_tu_company_code_display': True}"/>
+                <field name="ma_nvl" string="Mã NVL"/>
                 <field name="ten_nvl"/>
                 <field name="month_key"/>
                 <group expand="0" string="Nhóm theo">
-                    <filter name="group_company" string="Đơn vị"
+                    <filter name="group_company" string="Đơn vị sản xuất"
                             context="{'group_by': 'company_id', 'vat_tu_company_code_display': True}"/>
                     <filter name="group_month" string="Tháng"
                             context="{'group_by': 'month_key'}"/>
@@ -45,8 +63,55 @@
         <field name="name">Vật tư đi đường</field>
         <field name="res_model">vat.tu.di.duong</field>
         <field name="view_mode">tree</field>
+        <field name="domain">[('loai', '=', 'don_vi')]</field>
+        <field name="context">{
+            'vat_tu_company_code_display': True,
+            'default_loai': 'don_vi',
+            'vat_tu_di_duong_loai': 'don_vi'
+        }</field>
         <field name="search_view_id" ref="view_vat_tu_di_duong_search"/>
-        <field name="context">{'vat_tu_company_code_display': True}</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('view_vat_tu_di_duong_tree_don_vi')})]"/>
+    </record>
+
+    <record id="action_vat_tu_di_duong_bcu" model="ir.actions.act_window">
+        <field name="name">Vật tư đi đường</field>
+        <field name="res_model">vat.tu.di.duong</field>
+        <field name="view_mode">tree</field>
+        <field name="domain">[('loai', '=', 'bcu')]</field>
+        <field name="context">{
+            'vat_tu_company_code_display': True,
+            'default_loai': 'bcu',
+            'vat_tu_di_duong_loai': 'bcu'
+        }</field>
+        <field name="search_view_id" ref="view_vat_tu_di_duong_search"/>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('view_vat_tu_di_duong_tree_bcu')})]"/>
+    </record>
+
+    <record id="action_import_vat_tu_di_duong_don_vi_server" model="ir.actions.server">
+        <field name="name">Import vật tư đi đường</field>
+        <field name="model_id" ref="model_vat_tu_di_duong"/>
+        <field name="binding_model_id" ref="model_vat_tu_di_duong"/>
+        <field name="binding_view_types">list</field>
+        <field name="groups_id" eval="[(4, ref('sonha_vat_tu.group_bo_phan_vat_tu')),
+                                       (4, ref('sonha_vat_tu.group_truong_bo_phan_vat_tu'))]"/>
+        <field name="state">code</field>
+        <field name="code">
+action = model.with_context(default_loai='don_vi', vat_tu_di_duong_loai='don_vi').action_open_import_wizard()
+        </field>
+    </record>
+
+    <record id="action_import_vat_tu_di_duong_bcu_server" model="ir.actions.server">
+        <field name="name">Import vật tư đi đường BCU</field>
+        <field name="model_id" ref="model_vat_tu_di_duong"/>
+        <field name="binding_model_id" ref="model_vat_tu_di_duong"/>
+        <field name="binding_view_types">list</field>
+        <field name="groups_id" eval="[(4, ref('sonha_vat_tu.group_ban_cung_ung_vat_tu'))]"/>
+        <field name="state">code</field>
+        <field name="code">
+action = env['import.tong.hop.bcu.wizard'].action_open_from_menu()
+        </field>
     </record>
 
 </odoo>

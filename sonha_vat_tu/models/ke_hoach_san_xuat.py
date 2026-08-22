@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import UserError
 
 PRODUCTION_COMPANY_CODES = ('BNH', 'SSP')
 
@@ -17,21 +17,6 @@ class KeHoachSanXuat(models.Model):
         'res.company', string='Nhà máy SX', index=True,
         help='Đơn vị sản xuất (BNH/SSP) — gắn khi import hoặc tạo từ KD.',
     )
-
-    _sql_constraints = [
-        ('uniq_row',
-         'unique(period_id, company_id, ma_sap)',
-         'Trùng dòng: (Kỳ, Đơn vị, Mã) phải duy nhất!'),
-    ]
-
-    @api.constrains('company_sx_id')
-    def _check_production_company(self):
-        invalid = self.filtered(
-            lambda rec: rec.company_sx_id
-            and rec.company_sx_id.company_code not in PRODUCTION_COMPANY_CODES
-        )
-        if invalid:
-            raise ValidationError(_('Nhà máy sản xuất chỉ được phép là BNH hoặc SSP.'))
 
     @api.model
     def _prepare_create_vals(self, vals_list):

@@ -2,7 +2,7 @@
 
 import { ListRenderer } from "@web/views/list/list_renderer";
 import { patch } from "@web/core/utils/patch";
-import { onMounted, onPatched } from "@odoo/owl";
+import { onMounted } from "@odoo/owl";
 
 function hasFreeWidthTreeClass(renderer) {
     const className = renderer.props.archInfo?.className || "";
@@ -38,12 +38,11 @@ patch(ListRenderer.prototype, {
     setup() {
         super.setup();
         onMounted(() => applyFreeWidthTreeSizing(this));
-        onPatched(() => applyFreeWidthTreeSizing(this));
     },
 
     freezeColumnWidths() {
         if (hasFreeWidthTreeClass(this)) {
-            applyFreeWidthTreeSizing(this);
+            resetTableColumnSizing(this.tableRef?.el);
             return;
         }
         return super.freezeColumnWidths(...arguments);

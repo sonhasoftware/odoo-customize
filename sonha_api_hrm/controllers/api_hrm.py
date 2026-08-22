@@ -1226,6 +1226,62 @@ class AuthAPI(http.Controller):
                 "error": str(e)
             }), content_type="application/json", status=500)
 
+    def _datetime_to_local_time(self, value):
+        local_value = value + timedelta(hours=7) if value else None
+        return local_value.strftime("%H:%M:%S") if local_value else None
+
+    def _many2one_payload(self, record):
+        return {
+            "id": record.id if record else False,
+            "name": record.name if record else "",
+        }
+
+    def _attendance_detail_payload(self, record):
+        return {
+            "id": record.id,
+            "employee_id": self._many2one_payload(record.employee_id),
+            "department_id": self._many2one_payload(record.department_id),
+            "date": str(record.date) if record.date else None,
+            "weekday": record.weekday or "",
+            "check_in": self._datetime_to_local_time(record.check_in),
+            "check_out": self._datetime_to_local_time(record.check_out),
+            "time_check_in": self._datetime_to_local_time(record.time_check_in),
+            "time_check_out": self._datetime_to_local_time(record.time_check_out),
+            "shift": self._many2one_payload(record.shift),
+            "shift_key": record.key or "",
+            "duration": record.duration,
+            "work_day": record.work_day,
+            "actual_work": record.actual_work,
+            "work_hc": record.work_hc,
+            "work_sp": record.work_sp,
+            "note": record.note or "",
+            "minutes_late": record.minutes_late,
+            "minutes_early": record.minutes_early,
+            "times_late": record.times_late,
+            "over_time": record.over_time,
+            "over_time_nb": record.over_time_nb,
+            "sunday_work": record.sunday_work,
+            "normal_sunday_work": record.normal_sunday_work,
+            "ot_sunday_work": record.ot_sunday_work,
+            "leave": record.leave,
+            "compensatory": record.compensatory,
+            "public_leave": record.public_leave,
+            "vacation": record.vacation,
+            "unpaid_leave": record.unpaid_leave,
+            "paid_leave_slip": record.paid_leave_slip,
+            "filial_leave": record.filial_leave,
+            "wedding_leave": record.wedding_leave,
+            "regime_leave": record.regime_leave,
+            "c2k3": record.c2k3,
+            "c3k4": record.c3k4,
+            "shift_toxic": record.shift_toxic,
+            "forgot_time": record.forgot_time,
+            "work_eat": record.work_eat,
+            "part_time_hour": record.part_time_hour,
+            "work_calendar": record.work_calendar,
+            "color": record.color or "",
+        }
+
     @http.route('/api/work/detail/<int:employee_id>/<date>', type='http', auth='none', methods=['GET'], csrf=False)
     def api_work_detail(self, employee_id, date):
         try:
@@ -1234,53 +1290,20 @@ class AuthAPI(http.Controller):
             if not date:
                 raise ValueError("Không tìm thấy dữ liệu ngày")
             date_obj = datetime.strptime(date, "%d-%m-%Y").date()
-            # date_obj = datetime.strptime(date, "%d-%m-%Y")
-            # new_date_str = date_obj.strftime("%d/%m/%Y")
             record = request.env['employee.attendance.v2'].sudo().search([
                 ('employee_id', '=', employee_id),
                 ('date', '=', date_obj),
-            ])
+            ], limit=1)
             if not record:
                 raise ValueError("Không tìm thấy bản ghi")
-            else:
-                check_in_plus_7 = record.check_in + timedelta(hours=7) if record.check_in else None
-                check_out_plus_7 = record.check_out + timedelta(hours=7) if record.check_out else None
-                work_day = record.work_day if record.vacation == 0 else record.vacation
-                data = {
-                    "employee_id": {
-                        "id": record.employee_id.id,
-                        "name": record.employee_id.name,
-                    },
-                    "department_id": {
-                        "id": record.department_id.id,
-                        "name": record.department_id.name,
-                    },
-                    "date": str(record.date),
-                    "check_in": check_in_plus_7.strftime("%H:%M:%S") if check_in_plus_7 else None,
-                    "check_out": check_out_plus_7.strftime("%H:%M:%S") if check_out_plus_7 else None,
-                    "shift": {
-                        "id": record.shift.id,
-                        "name": record.shift.name,
-                    },
-                    "work_day": work_day,
-                    "note": record.note if record.note else "",
-                    "minutes_late": record.minutes_late,
-                    "minutes_early": record.minutes_early,
-                    "over_time": record.over_time,
-                    "leave": record.leave,
-                    "compensatory": record.compensatory,
-                    "public_leave": record.public_leave,
-                    "c2k3": record.c2k3,
-                    "c3k4": record.c3k4,
-                    "shift_toxic": record.shift_toxic,
-                    "color": record.color if record.color else "",
-                }
 
-                # Trả về kết quả
-                return Response(
-                    json.dumps({"success": True, "data": data}),
-                    status=200, content_type="application/json"
-                )
+            record._auto_recompute_before_read()
+            data = self._attendance_detail_payload(record.with_context(skip_attendance_v2_auto_recompute=True))
+
+            return Response(
+                json.dumps({"success": True, "data": data}),
+                status=200, content_type="application/json"
+            )
 
         except Exception as e:
             # Log lỗi cho admin (nếu cần)
@@ -1434,45 +1457,19 @@ class AuthAPI(http.Controller):
                 ('employee_id', '=', employee_id),
                 ('month', '=', month),
                 ('year', '=', year),
-            ])
+            ], order='date asc')
             if not records:
                 raise ValueError("Không tìm thấy bản ghi")
+
+            records._auto_recompute_before_read()
+            records = records.with_context(skip_attendance_v2_auto_recompute=True)
+
             data = []
-            list_detail = []
-            for record in records:
-                check_in_plus_7 = record.check_in + timedelta(hours=7) if record.check_in else None
-                check_out_plus_7 = record.check_out + timedelta(hours=7) if record.check_out else None
-                list_detail.append({
-                    "date": str(record.date),
-                    "check_in": check_in_plus_7.strftime("%H:%M:%S") if check_in_plus_7 else None,
-                    "check_out": check_out_plus_7.strftime("%H:%M:%S") if check_out_plus_7 else None,
-                    "shift": {
-                        "id": record.shift.id,
-                        "name": record.shift.name,
-                    },
-                    "work_day": record.work_day,
-                    "note": record.note if record.note else "",
-                    "minutes_late": record.minutes_late,
-                    "minutes_early": record.minutes_early,
-                    "over_time": record.over_time,
-                    "leave": record.leave,
-                    "compensatory": record.compensatory,
-                    "public_leave": record.public_leave,
-                    "c2k3": record.c2k3,
-                    "c3k4": record.c3k4,
-                    "shift_toxic": record.shift_toxic,
-                    "color": record.color if record.color else "",
-                    "work_calendar": record.work_calendar,
-                })
+            list_detail = [self._attendance_detail_payload(record) for record in records]
+            first_record = records[0]
             data.append({
-                "employee_id": {
-                    "id": records[1].employee_id.id,
-                    "name": records[1].employee_id.name,
-                },
-                "department_id": {
-                    "id": records[1].department_id.id,
-                    "name": records[1].department_id.name,
-                },
+                "employee_id": self._many2one_payload(first_record.employee_id),
+                "department_id": self._many2one_payload(first_record.department_id),
                 "list_data": list_detail
             })
 

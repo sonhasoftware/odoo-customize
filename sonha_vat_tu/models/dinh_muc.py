@@ -22,7 +22,7 @@ class DinhMuc(models.Model):
     period_id = fields.Many2one(
         'ke.hoach.vat.tu', string='Kỳ', ondelete='cascade', index=True)
     company_id = fields.Many2one(
-        'res.company', string='Đơn vị', index=True)
+        'res.company', string='Đơn vị đặt hàng', index=True)
     ma_sap = fields.Char(string='Mã', index=True)
     ten_sap = fields.Char(string='Tên SAP')
     ma_tp = fields.Char(string='Mã TP', index=True)
@@ -139,7 +139,7 @@ class DinhMuc(models.Model):
                 <table class="table table-sm table-bordered o_main_table mb-0" style="font-size: 13px;">
                     <thead class="bg-light">
                         <tr>
-                            <th>Đơn vị</th>
+                            <th>Đơn vị đặt hàng</th>
                             <th>Mã</th>
                             <th>Tên SAP</th>
                             <th>Mã NVL</th>

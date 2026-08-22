@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+
+access_sonha_project_project,sonha.project.project,model_project_project,,1,1,1,1
+access_sonha_project_task,sonha.project.task,model_project_task,,1,1,1,1

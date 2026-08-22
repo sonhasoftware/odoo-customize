@@ -5,8 +5,11 @@
         <field name="name">kh.dat.vat.tu.tree</field>
         <field name="model">kh.dat.vat.tu</field>
         <field name="arch" type="xml">
-            <tree duplicate="0" string="Kế hoạch đặt vật tư" editable="bottom" class="sh_free_width_tree" js_class="vat_tu_merged_b5_list_view">
-                <field name="ma_sap" string="Mã NVL" required="1"/>
+            <tree duplicate="0" string="Kế hoạch đặt vật tư" editable="bottom"
+                  create="1" delete="1"
+                  class="sh_free_width_tree" js_class="vat_tu_merged_b5_list_view">
+                <field name="is_manual" column_invisible="1"/>
+                <field name="ma_sap" string="Mã NVL" required="1" readonly="not is_manual"/>
                 <field name="ten_nvl" string="Tên NVL"/>
                 <field name="chung_loai" string="Chủng loại"/>
                 <field name="don_vi_tinh"/>
@@ -18,21 +21,21 @@
                 <field name="gia_tri_ton_nvl_dau_ky" string="Giá trị tồn NVL" widget="monetary"/>
 
                 <!-- Cần dùng T0..T3 + Tổng -->
-                <field name="tong_sl_vt_can_dung_t0"/>
-                <field name="tong_sl_vt_can_dung_t1"/>
-                <field name="tong_sl_vt_can_dung_t2"/>
-                <field name="tong_sl_vt_can_dung_t3"/>
-                <field name="tong_vt_can_dung" string="Tổng cần dùng"/>
+                <field name="tong_sl_vt_can_dung_t0" readonly="not is_manual"/>
+                <field name="tong_sl_vt_can_dung_t1" readonly="not is_manual"/>
+                <field name="tong_sl_vt_can_dung_t2" readonly="not is_manual"/>
+                <field name="tong_sl_vt_can_dung_t3" readonly="not is_manual"/>
+                <field name="tong_vt_can_dung" string="Tổng cần dùng" readonly="1"/>
 
-                <!-- Đi đường T0..T3 + Tổng -->
-                <field name="tong_hang_di_duong_sl_t0"/>
-                <field name="tong_hang_di_duong_sl_t1"/>
-                <field name="tong_hang_di_duong_sl_t2"/>
-                <field name="tong_hang_di_duong_sl_t3"/>
-                <field name="tong_hang_di_duong" string="Tổng đi đường"/>
+                <!-- Đi đường T0..T3: chỉ số lượng (đơn vị SX không nhập đơn giá) -->
+                <field name="tong_hang_di_duong_sl_t0" readonly="not is_manual"/>
+                <field name="tong_hang_di_duong_sl_t1" readonly="not is_manual"/>
+                <field name="tong_hang_di_duong_sl_t2" readonly="not is_manual"/>
+                <field name="tong_hang_di_duong_sl_t3" readonly="not is_manual"/>
+                <field name="tong_hang_di_duong" string="Tổng SL đi đường" readonly="1"/>
 
                 <!-- Kế hoạch đặt mua & Chỉ số cuối kỳ -->
-                <field name="sl_du_tru_toi_thieu" string="Dự trữ tối thiểu"/>
+                <field name="sl_du_tru_toi_thieu" string="Dự trữ tối thiểu" readonly="1"/>
                 <field name="sl_dat_mua_de_xuat" string="Đề xuất đặt mua"/>
                 <field name="sl_dat_mua_chot" string="Đặt mua chốt"/>
                 <field name="sl_can_mua_theo_moq" string="SL cần mua dựa theo MOQ NCC"/>
@@ -99,7 +102,7 @@
                             <group>
                                 <group>
                                     <field name="sl_du_tru_toi_thieu" readonly="1"/>
-                                    <field name="sl_dat_mua_de_xuat" readonly="1"/>
+                                    <field name="sl_dat_mua_de_xuat"/>
                                     <field name="sl_dat_mua_chot"/>
                                     <field name="sl_can_mua_theo_moq"/>
                                     <field name="don_gia_mua" widget="monetary"/>

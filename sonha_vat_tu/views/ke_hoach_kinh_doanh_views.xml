@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_ke_hoach_kinh_doanh_tree" model="ir.ui.view">
+        <field name="name">ke.hoach.kinh.doanh.tree</field>
+        <field name="model">ke.hoach.kinh.doanh</field>
+        <field name="arch" type="xml">
+            <tree duplicate="0" string="Kế hoạch kinh doanh">
+                <field name="code"/>
+                <field name="company_id" string="Đơn vị đặt hàng"
+                       context="{'vat_tu_company_code_display': True}"/>
+                <field name="company_sx_id" string="Đơn vị sản xuất"
+                       context="{'vat_tu_company_code_display': True}"/>
+                <field name="period_month" string="Tháng bắt đầu"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_ke_hoach_kinh_doanh_form" model="ir.ui.view">
+        <field name="name">ke.hoach.kinh.doanh.form</field>
+        <field name="model">ke.hoach.kinh.doanh</field>
+        <field name="arch" type="xml">
+            <form duplicate="0" string="Kế hoạch kinh doanh">
+                <sheet>
+                    <field name="locked" invisible="1"/>
+                    <field name="co_ke_hoach_vat_tu" invisible="1"/>
+                    <group col="2">
+                        <group>
+                            <field name="code" readonly="1"/>
+                            <field name="company_sx_id" string="Đơn vị sản xuất"
+                                   readonly="1"
+                                   options="{'no_create': True, 'no_open': True}"
+                                   context="{'vat_tu_company_code_display': True}"/>
+                            <field name="tong_so_ma" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="period_month" readonly="locked"/>
+                            <field name="company_id" string="Đơn vị đặt hàng"
+                                   required="1" readonly="locked"
+                                   options="{'no_create': True, 'no_open': True}"
+                                   context="{'vat_tu_company_code_display': True}"/>
+                        </group>
+                    </group>
+                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:8px;">
+                        <button name="action_download_template" type="object"
+                                string="Tải template kinh doanh"
+                                class="btn btn-secondary" icon="fa-download"
+                                invisible="locked"
+                                groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"/>
+                        <button name="action_open_import_wizard" type="object"
+                                string="Import kế hoạch kinh doanh"
+                                class="btn btn-primary" icon="fa-upload"
+                                invisible="locked"
+                                groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu"/>
+                    </div>
+                    <field name="line_ids" context="{'default_kinh_doanh_id': id}"
+                           readonly="locked"
+                           groups="sonha_vat_tu.group_bo_phan_vat_tu,sonha_vat_tu.group_truong_bo_phan_vat_tu">
+                        <tree duplicate="0" editable="bottom" no_open="1" class="sh_free_width_tree">
+                            <field name="company_id" string="Đơn vị đặt hàng"
+                                   options="{'no_create': True, 'no_open': True}"
+                                   context="{'vat_tu_company_code_display': True}"/>
+                            <field name="nganh_hang" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="ten_hang" readonly="1"/>
+                            <field name="ma_hang"/>
+                            <field name="ma_sap" required="1"/>
+                            <field name="qty_t0" sum="T0"/>
+                            <field name="qty_t1" sum="T1"/>
+                            <field name="qty_t2" sum="T2"/>
+                            <field name="qty_t3" sum="T3"/>
+                        </tree>
+                    </field>
+                    <field name="line_ids" readonly="1"
+                           groups="sonha_vat_tu.group_ban_cung_ung_vat_tu,!sonha_vat_tu.group_bo_phan_vat_tu,!sonha_vat_tu.group_truong_bo_phan_vat_tu">
+                        <tree duplicate="0" no_open="1" class="sh_free_width_tree">
+                            <field name="company_id" string="Đơn vị đặt hàng"
+                                   options="{'no_create': True, 'no_open': True}"
+                                   context="{'vat_tu_company_code_display': True}"/>
+                            <field name="nganh_hang"/>
+                            <field name="ten_hang"/>
+                            <field name="ma_hang"/>
+                            <field name="ma_sap"/>
+                            <field name="qty_t0" sum="T0"/>
+                            <field name="qty_t1" sum="T1"/>
+                            <field name="qty_t2" sum="T2"/>
+                            <field name="qty_t3" sum="T3"/>
+                        </tree>
+                    </field>
+                </sheet>
+                <div class="oe_chatter" data-vat-tu-scope="kd">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_ke_hoach_kinh_doanh" model="ir.actions.act_window">
+        <field name="name">Kế hoạch kinh doanh</field>
+        <field name="res_model">ke.hoach.kinh.doanh</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'vat_tu_chatter_scope': 'kd', 'vat_tu_company_code_display': True}</field>
+    </record>
+</odoo>

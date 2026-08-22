@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <menuitem
+        name="Nhập liệu dự án"
+        id="menu_nhap_lieu_du_an"
+        parent="project.menu_main_pm"
+        action="action_nhap_lieu_du_an"
+        sequence="10"/>
+</odoo>

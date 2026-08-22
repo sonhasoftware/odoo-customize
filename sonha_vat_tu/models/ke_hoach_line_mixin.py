@@ -27,6 +27,7 @@ class KeHoachLineMixin(models.AbstractModel):
     }
     # Cột được phép ghi bằng SQL hàng loạt khi import, kèm kiểu Postgres.
     _BULK_IMPORT_COLUMNS = {
+        'company_id': 'int',
         'ma_hang': 'varchar',
         'note': 'varchar',
         'sequence': 'int',
@@ -37,7 +38,7 @@ class KeHoachLineMixin(models.AbstractModel):
         'ke.hoach.vat.tu', string='Kỳ', ondelete='cascade', index=True)
     sequence = fields.Integer(string='STT', default=10, index=True)
     company_id = fields.Many2one(
-        'res.company', string='Đơn vị', index=True, required=True)
+        'res.company', string='Đơn vị đặt hàng', index=True, required=True)
     nganh_hang = fields.Many2one(
         'mdm.nganh.hang', string='Ngành hàng',
         compute='_compute_ma_hang_meta',
@@ -148,14 +149,21 @@ class KeHoachLineMixin(models.AbstractModel):
         ):
             if not self.env['ma.hang'].sap_exists_in_mdm(rec.ma_sap.strip()):
                 raise ValidationError(
-                    _('Mã "%s" không có trong MDM (mdm.tong.hop.line).') % rec.ma_sap
+                    _('Mã "%s" không tồn tại.') % rec.ma_sap
                 )
 
+    def _period_is_locked(self, period):
+        return bool(period and (
+            period.state != 'ke_hoach' or period.co_ke_hoach_vat_tu
+        ))
+
     def _check_period_editable(self):
-        locked = self.filtered(lambda rec: rec.period_id and rec.period_id.state != 'ke_hoach')
+        locked = self.filtered(
+            lambda rec: rec.period_id and self._period_is_locked(rec.period_id)
+        )
         if locked:
             raise UserError(
-                _('%s đã khóa vì kỳ kế hoạch đã sang bước sau.')
+                _('%s đã khóa vì kỳ kế hoạch đã sang bước sau hoặc đã tạo kế hoạch vật tư.')
                 % self._LINE_LABEL.capitalize()
             )
 
@@ -165,9 +173,9 @@ class KeHoachLineMixin(models.AbstractModel):
         if not period_ids:
             return
         for period in self.env['ke.hoach.vat.tu'].browse(list(period_ids)):
-            if period.state != 'ke_hoach':
+            if self._period_is_locked(period):
                 raise UserError(
-                    _('%s đã khóa vì kỳ kế hoạch đã sang bước sau.')
+                    _('%s đã khóa vì kỳ kế hoạch đã sang bước sau hoặc đã tạo kế hoạch vật tư.')
                     % self._LINE_LABEL.capitalize()
                 )
 
@@ -321,7 +329,7 @@ class KeHoachLineMixin(models.AbstractModel):
                 <table class="table table-sm table-bordered o_main_table mb-0" style="font-size: 13px;">
                     <thead class="bg-light">
                         <tr>
-                            <th>Đơn vị</th>
+                            <th>Đơn vị đặt hàng</th>
                             <th>Ngành hàng</th>
                             <th>Tên hàng</th>
                             <th>Mã hàng</th>

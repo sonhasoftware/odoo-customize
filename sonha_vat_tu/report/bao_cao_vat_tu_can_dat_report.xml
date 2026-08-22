@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="paperformat_bao_cao_vtcd_trinh_ld" model="report.paperformat">
+            <field name="name">Chi tiết vật tư cần mua (A4 ngang)</field>
+            <field name="default" eval="False"/>
+            <field name="format">A4</field>
+            <field name="page_height">0</field>
+            <field name="page_width">0</field>
+            <field name="orientation">Landscape</field>
+            <field name="margin_top">10</field>
+            <field name="margin_bottom">10</field>
+            <field name="margin_left">7</field>
+            <field name="margin_right">7</field>
+            <field name="header_line" eval="False"/>
+            <field name="header_spacing">0</field>
+            <field name="dpi">90</field>
+        </record>
+
+        <template id="report_bao_cao_vtcd_trinh_ld">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.html_container">
+                    <div class="article" t-att-data-oe-model="o and o._name" style="width: 100%"
+                         t-att-data-oe-id="o and o.id" t-att-data-oe-lang="o and o.env.context.get('lang')">
+                        <div style="font-family: Verdana, Arial, sans-serif; width: 100%; color: #000;">
+                            <t t-if="not o" t-set="o" t-value="doc"/>
+                            <t t-set="metrics" t-value="doc._get_report_metric_defs()"/>
+                            <t t-set="company_specs" t-value="doc._get_report_company_specs()"/>
+                            <t t-set="lines" t-value="doc.line_ids.sorted(lambda l: (l.sequence, l.id))"/>
+                            <t t-set="cell" t-value="'padding: 5px; border: 1px solid black;'"/>
+                            <t t-set="cell_r" t-value="'padding: 5px; border: 1px solid black; text-align: right; white-space: nowrap;'"/>
+
+                            <div class="text-center fw-bold" style="padding-bottom: 14px;">
+                                <span>Chi tiết vật tư cần mua tháng </span>
+                                <span t-esc="doc.period_month or ''"/>
+                            </div>
+
+                            <table style="width: 100%; box-sizing: border-box; border-collapse: collapse; border: 1px solid black; font-size: 9pt; font-family: Verdana, Arial, sans-serif; color: #000;">
+                                <thead style="display: table-header-group;">
+                                    <tr>
+                                        <th t-att-style="cell" rowspan="3" class="text-center fw-bold">Mã NVL</th>
+                                        <th t-att-style="cell" rowspan="3" class="text-center fw-bold">Tên NVL</th>
+                                        <th t-att-style="cell" rowspan="3" class="text-center fw-bold">Chất liệu</th>
+                                        <th t-att-style="cell" rowspan="3" class="text-center fw-bold">Độ bóng</th>
+                                        <th t-att-style="cell" rowspan="3" class="text-center fw-bold">Độ dày</th>
+                                        <th t-att-style="cell" rowspan="3" class="text-center fw-bold">Khổ rộng</th>
+                                        <th t-att-colspan="len(metrics)" t-att-style="cell" class="text-center fw-bold">Tổng</th>
+                                        <t t-foreach="company_specs" t-as="comp">
+                                            <th t-att-colspan="len(metrics)" t-att-style="cell" class="text-center fw-bold">
+                                                <span t-esc="comp.get('label') or comp.get('code')"/>
+                                            </th>
+                                        </t>
+                                        <th t-att-style="cell" rowspan="3" class="text-center fw-bold">Ghi chú</th>
+                                    </tr>
+                                    <tr>
+                                        <t t-foreach="range(len(company_specs) + 1)" t-as="block_idx">
+                                            <t t-foreach="metrics" t-as="m">
+                                                <th t-att-style="cell" class="text-center fw-bold">
+                                                    <span t-esc="m[1]"/>
+                                                </th>
+                                            </t>
+                                        </t>
+                                    </tr>
+                                    <tr>
+                                        <t t-foreach="range(len(company_specs) + 1)" t-as="block_idx">
+                                            <t t-foreach="metrics" t-as="m">
+                                                <th t-att-style="cell" class="text-center">
+                                                    <span t-esc="doc.get_vtcd_metric_date_label(m[0])"/>
+                                                </th>
+                                            </t>
+                                        </t>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="lines" t-as="line">
+                                        <t t-if="line.row_type == 'detail'">
+                                            <td t-att-style="cell" class="text-center">
+                                                <span t-esc="line.ma_nvl or ''"/>
+                                            </td>
+                                            <td t-att-style="cell">
+                                                <span t-esc="line.ten_nvl or ''"/>
+                                            </td>
+                                            <td t-att-style="cell" class="text-center">
+                                                <span t-esc="line.chat_lieu or ''"/>
+                                            </td>
+                                            <td t-att-style="cell" class="text-center">
+                                                <span t-esc="line.do_bong or ''"/>
+                                            </td>
+                                            <td t-att-style="cell" class="text-center">
+                                                <span t-esc="line.do_day or ''"/>
+                                            </td>
+                                            <td t-att-style="cell" class="text-center">
+                                                <span t-esc="line.kho_rong or ''"/>
+                                            </td>
+                                        </t>
+                                        <t t-else="">
+                                            <td t-att-style="cell"/>
+                                            <td t-att-style="cell"/>
+                                            <td t-att-style="cell"/>
+                                            <td t-att-style="cell"/>
+                                            <td t-att-style="cell"/>
+                                            <td t-att-style="cell" class="text-center fw-bold">
+                                                <span t-esc="line.label or ''"/>
+                                            </td>
+                                        </t>
+                                        <t t-set="payload" t-value="line._metrics_payload()"/>
+                                        <t t-foreach="metrics" t-as="m">
+                                            <td t-att-style="cell_r">
+                                                <span t-esc="doc.format_vtcd_qty(payload['total'].get(m[0]))"/>
+                                            </td>
+                                        </t>
+                                        <t t-foreach="company_specs" t-as="comp">
+                                            <t t-set="comp_vals" t-value="payload['companies'].get(comp.get('code')) or {}"/>
+                                            <t t-foreach="metrics" t-as="m">
+                                                <td t-att-style="cell_r">
+                                                    <span t-esc="doc.format_vtcd_qty(comp_vals.get(m[0]))"/>
+                                                </td>
+                                            </t>
+                                        </t>
+                                        <td t-att-style="cell">
+                                            <span t-esc="line.ghi_chu or ''"/>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <t t-set="sign_cell" t-value="'padding: 5px; border: 1px solid #ffffff !important; border-color: #ffffff !important;'"/>
+                            <t t-set="sign_cell_33" t-value="'width: 33%; padding: 5px; border: 1px solid #ffffff !important; border-color: #ffffff !important;'"/>
+                            <t t-set="sign_cell_34" t-value="'width: 34%; padding: 5px; border: 1px solid #ffffff !important; border-color: #ffffff !important; text-align: center;'"/>
+                            <t t-set="sign_cell_center" t-value="'padding: 5px; border: 1px solid #ffffff !important; border-color: #ffffff !important; text-align: center; padding-top: 10px;'"/>
+                            <t t-set="sign_cell_space" t-value="'height: 72px; padding: 5px; border: 1px solid #ffffff !important; border-color: #ffffff !important;'"/>
+
+                            <table style="width: 100%; margin-top: 36px; border-collapse: collapse; border: 1px solid #ffffff !important;">
+                                <tr>
+                                    <td t-att-style="sign_cell_33"/>
+                                    <td t-att-style="sign_cell_33"/>
+                                    <td t-att-style="sign_cell_34">
+                                        <t t-set="current_time" t-value="context_timestamp(datetime.datetime.now())"/>
+                                        <span>Ngày </span>
+                                        <span t-esc="current_time.day"/>
+                                        <span> tháng </span>
+                                        <span t-esc="current_time.month"/>
+                                        <span> năm </span>
+                                        <span t-esc="current_time.year"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td t-att-style="sign_cell_center" class="fw-bold">Người lập</td>
+                                    <td t-att-style="sign_cell_center" class="fw-bold">BAN CUNG ỨNG – ĐẤU THẦU</td>
+                                    <td t-att-style="sign_cell_center" class="fw-bold">BAN LÃNH ĐẠO PHÊ DUYỆT</td>
+                                </tr>
+                                <tr>
+                                    <td t-att-style="sign_cell_space"/>
+                                    <td t-att-style="sign_cell"/>
+                                    <td t-att-style="sign_cell"/>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </template>
+
+        <record id="action_report_bao_cao_vtcd_trinh_ld" model="ir.actions.report">
+            <field name="name">Chi tiết vật tư cần mua</field>
+            <field name="model">bao.cao.vt.can.dat.wizard</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">sonha_vat_tu.report_bao_cao_vtcd_trinh_ld</field>
+            <field name="report_file">sonha_vat_tu.report_bao_cao_vtcd_trinh_ld</field>
+            <field name="paperformat_id" ref="paperformat_bao_cao_vtcd_trinh_ld"/>
+            <field name="print_report_name">'Chi_tiet_vat_tu_can_mua_%s' % ((object.period_month or '').replace('/', '_'))</field>
+        </record>
+
+    </data>
+</odoo>
