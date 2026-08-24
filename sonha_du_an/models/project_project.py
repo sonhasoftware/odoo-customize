@@ -23,18 +23,6 @@ class Project(models.Model):
         string="Dự án con",
     )
 
-    @api.onchange('du_an_cha_id')
-    def _onchange_du_an_cha_id(self):
-        if self.du_an_cha_id and self.du_an_cha_id == self:
-            self.du_an_cha_id = False
-            return {
-                'warning': {
-                    'title': _("Dữ liệu không hợp lệ"),
-                    'message': _("Dự án cha không được trùng với chính dự án hiện tại."),
-                }
-            }
-        return {}
-
     @api.constrains('du_an_cha_id')
     def _check_du_an_cha_id(self):
         for project in self:
