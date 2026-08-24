@@ -24,6 +24,7 @@
                             <field name="task_ids" string="">
                                 <tree editable="bottom">
                                     <field name="cap"/>
+                                    <field name="name" required="0"/>
                                     <field name="noi_dung_cv"/>
                                     <field name="so_ngay_ht"/>
                                     <field name="ngay_bat_dau"/>
