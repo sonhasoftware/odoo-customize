@@ -11,3 +11,15 @@ class Project(models.Model):
     ngay_kt_da = fields.Date("Ngày kết thúc DA")
     ngay_kt_chinh_sua = fields.Date("Ngày kết thúc chỉnh sửa")
 
+
+    def action_luu_tam(self):
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Đã lưu tạm'),
+                'message': _('Dữ liệu dự án đã được lưu tạm, bạn có thể chọn ở trường Cấp.'),
+                'type': 'success',
+                'sticky': False,
+            }
+        }
