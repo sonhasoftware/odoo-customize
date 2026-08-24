@@ -5,6 +5,9 @@
         <field name="model">project.project</field>
         <field name="arch" type="xml">
             <form string="Nhập liệu dự án">
+                <header>
+                    <button name="action_luu_tam" string="Lưu tạm" type="object" class="btn-secondary"/>
+                </header>
                 <sheet>
                     <group>
                         <group>
