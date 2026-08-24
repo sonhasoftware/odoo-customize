@@ -342,15 +342,22 @@ class BaoCaoVtCanDatWizard(models.TransientModel):
             'bao_cao_vtcd_ton_kho_month': self.ton_kho_month or '',
         }
 
+    @api.model
+    def _format_vtcd_title_period(self, period_month):
+        """08/2026 -> 8/2026 cho tiêu đề báo cáo."""
+        period = (period_month or '').strip()
+        if not period or '/' not in period:
+            return period
+        month_str, year_str = period.split('/', 1)
+        try:
+            return '%s/%s' % (int(month_str), year_str.strip())
+        except ValueError:
+            return period
+
     def action_open_report(self):
         self.ensure_one()
         self._populate_lines()
-        if self.report_kind == REPORT_KIND_TRINH_LD:
-            title = _('Chi tiết vật tư cần mua tháng %s') % self.period_month if self.period_month else _('Chi tiết vật tư cần mua')
-        else:
-            title = _('Chi tiết vật tư cần in')
-            if self.period_month:
-                title = _('%s (%s)') % (title, self.period_month)
+        title = self.get_vtcd_report_title()
         return {
             'type': 'ir.actions.act_window',
             'name': title,
@@ -376,14 +383,10 @@ class BaoCaoVtCanDatWizard(models.TransientModel):
 
     def get_vtcd_report_title(self):
         self.ensure_one()
-        period = (self.period_month or '').strip()
-        if self.report_kind == REPORT_KIND_TRINH_LD:
-            if period:
-                return 'Chi tiết vật tư cần mua tháng %s' % period
-            return 'Chi tiết vật tư cần mua'
+        period = self._format_vtcd_title_period(self.period_month)
         if period:
-            return 'Chi tiết vật tư cần in (%s)' % period
-        return 'Chi tiết vật tư cần in'
+            return 'DUYỆT LƯỢNG MUA VẬT TƯ GIA DỤNG KỲ MUA THÁNG %s' % period
+        return 'DUYỆT LƯỢNG MUA VẬT TƯ GIA DỤNG'
 
     def get_vtcd_metric_date_label(self, metric_key):
         self.ensure_one()
@@ -422,6 +425,53 @@ class BaoCaoVtCanDatWizard(models.TransientModel):
             return int(round(num))
         return round(num, 2)
 
+    def _write_vtcd_excel_footer(self, ws, start_row, max_col):
+        """Chân trang Excel giống PDF: Người lập | BCU | Ban lãnh đạo."""
+        if max_col < 1:
+            return
+        now = fields.Datetime.context_timestamp(self, datetime.utcnow())
+        date_line = 'Ngày %s tháng %s năm %s' % (now.day, now.month, now.year)
+        center = Alignment(horizontal='center', vertical='center', wrap_text=True)
+        bold = Font(bold=True)
+
+        col1_end = max(max_col // 3, 1)
+        col2_end = max((max_col * 2) // 3, col1_end + 1)
+        if col2_end >= max_col:
+            col2_end = max_col - 1 if max_col > 1 else max_col
+
+        row = start_row + 2
+        ws.merge_cells(
+            start_row=row, start_column=col2_end + 1,
+            end_row=row, end_column=max_col,
+        )
+        date_cell = ws.cell(row=row, column=col2_end + 1, value=date_line)
+        date_cell.alignment = center
+
+        row += 1
+        ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=col1_end)
+        c1 = ws.cell(row=row, column=1, value='Người lập')
+        c1.font = bold
+        c1.alignment = center
+
+        ws.merge_cells(
+            start_row=row, start_column=col1_end + 1,
+            end_row=row, end_column=col2_end,
+        )
+        c2 = ws.cell(row=row, column=col1_end + 1, value='BAN CUNG ỨNG – ĐẤU THẦU')
+        c2.font = bold
+        c2.alignment = center
+
+        ws.merge_cells(
+            start_row=row, start_column=col2_end + 1,
+            end_row=row, end_column=max_col,
+        )
+        c3 = ws.cell(row=row, column=col2_end + 1, value='BAN LÃNH ĐẠO PHÊ DUYỆT')
+        c3.font = bold
+        c3.alignment = center
+
+        row += 1
+        ws.row_dimensions[row].height = 54
+
     def _prepare_vtcd_export(self):
         """Chuẩn bị dữ liệu dùng chung cho Excel và PDF."""
         self.ensure_one()
@@ -447,16 +497,11 @@ class BaoCaoVtCanDatWizard(models.TransientModel):
         }
         date_map = {key: date_labels.get(key, '') for key, _label in metrics}
 
+        report_title = self.get_vtcd_report_title()
         if self.report_kind == REPORT_KIND_TRINH_LD:
-            period = (self.period_month or '').strip()
-            report_title = (
-                'Chi tiết vật tư cần mua tháng %s' % period
-                if period else 'Chi tiết vật tư cần mua'
-            )
             file_stem = 'ChiTietVatTuCanMua'
             sheet_title = 'Chi tiet VT can mua'
         else:
-            report_title = 'Chi tiết vật tư cần in'
             file_stem = 'ChiTietVatTuCanIn'
             sheet_title = 'Chi tiet VT can in'
 
@@ -485,10 +530,6 @@ class BaoCaoVtCanDatWizard(models.TransientModel):
         wb = Workbook()
         ws = wb.active
         ws.title = sheet_title
-
-        ws.merge_cells('A1:G1')
-        ws['A1'] = report_title
-        ws['A1'].font = Font(bold=True, size=14)
 
         header_row1 = 3
         header_row2 = 4
@@ -538,6 +579,13 @@ class BaoCaoVtCanDatWizard(models.TransientModel):
         ghi_chu_col = col
         max_col = col
 
+        ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=max_col)
+        title_cell = ws.cell(row=1, column=1, value=report_title)
+        title_cell.font = Font(bold=True, size=14)
+        title_cell.alignment = Alignment(
+            horizontal='center', vertical='center', wrap_text=True,
+        )
+
         row_idx = data_row
         for line in lines:
             if line.row_type != ROW_DETAIL:
@@ -570,6 +618,8 @@ class BaoCaoVtCanDatWizard(models.TransientModel):
                     col_idx += 1
             ws.cell(row=row_idx, column=ghi_chu_col, value=line.ghi_chu or '')
             row_idx += 1
+
+        self._write_vtcd_excel_footer(ws, row_idx, max_col)
 
         fixed_col_widths = {
             1: 12,   # Mã NVL
