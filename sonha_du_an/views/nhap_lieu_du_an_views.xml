@@ -12,7 +12,7 @@
                             <field name="group_du_an"/>
                             <field name="name"/>
                             <field name="noi_dung"/>
-                            <field name="du_an_cha"/>
+                            <field name="du_an_cha" readonly="du_an_cha_id"/>
                         </group>
                         <group>
                             <field name="nguoi_qlda" widget="many2many_tags"/>
@@ -22,8 +22,9 @@
                     </group>
                     <notebook>
                         <page string="Dự án con">
-                            <field name="du_an_con_ids" string="" context="{'default_du_an_cha_id': id}">
+                            <field name="du_an_con_ids" string="" context="{'default_du_an_cha_id': id, 'default_du_an_cha': False}">
                                 <tree editable="bottom">
+                                    <field name="du_an_cha" column_invisible="1"/>
                                     <field name="name" string="Nội dung dự án"/>
                                     <field name="nguoi_qlda" widget="many2many_tags"/>
                                     <field name="ngay_kt_da"/>
@@ -32,9 +33,9 @@
                             </field>
                         </page>
                         <page string="Nhập nhiệm vụ">
-                            <field name="task_ids" string="">
+                            <field name="nhiem_vu_du_an_ids" string="" context="{'default_du_an_cha_task_id': id}">
                                 <tree editable="bottom">
-                                    <field name="cap"/>
+                                    <field name="cap" domain="[('du_an_cha_id', '=', parent.id), ('du_an_cha', '=', False)]" context="{'default_du_an_cha_id': parent.id, 'default_du_an_cha': False}"/>
                                     <field name="name" required="0" string="Nội dung công việc"/>
                                     <field name="so_ngay_ht"/>
                                     <field name="ngay_bat_dau"/>
@@ -73,6 +74,7 @@
             <field name="name">Nhập liệu dự án</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">project.project</field>
+            <field name="context">{'default_du_an_cha': True}</field>
             <field name="view_ids" eval="[(5, 0, 0),
                 (0, 0, {'view_mode': 'tree', 'view_id': ref('view_nhap_lieu_du_an_tree')}),
                 (0, 0, {'view_mode': 'form', 'view_id': ref('view_nhap_lieu_du_an_form')})]"/>
