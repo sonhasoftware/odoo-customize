@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Extend the native task Kanban; do not create a separate task screen. -->
+    <record id="view_task_kanban_fixed_stages" model="ir.ui.view">
+        <field name="name">project.task.kanban.fixed.stages</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban" position="attributes">
+                <attribute name="default_group_by">stage_id</attribute>
+                <attribute name="records_draggable">false</attribute>
+                <attribute name="group_create">false</attribute>
+                <attribute name="group_edit">false</attribute>
+                <attribute name="group_delete">false</attribute>
+            </xpath>
+            <xpath expr="//field[@name='stage_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//t[@t-name='kanban-box']" position="inside">
+                <div class="mt-2 d-flex flex-wrap gap-1" onclick="event.stopPropagation()">
+                    <button name="action_set_khoi_tao" type="object" class="btn btn-sm btn-secondary">Khởi tạo</button>
+                    <button name="action_set_dang_chay" type="object" class="btn btn-sm btn-primary">Đang chạy</button>
+                    <button name="action_set_ket_thuc" type="object" class="btn btn-sm btn-success">Kết thúc</button>
+                    <button name="action_set_tam_dung" type="object" class="btn btn-sm btn-warning">Tạm dừng</button>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Use the standard task form and replace the editable stage selector with buttons. -->
+    <record id="view_task_form_fixed_stages" model="ir.ui.view">
+        <field name="name">project.task.form.fixed.stages</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_form2"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_set_khoi_tao" type="object" string="Khởi tạo" class="btn-secondary"/>
+                <button name="action_set_dang_chay" type="object" string="Đang chạy" class="btn-primary"/>
+                <button name="action_set_ket_thuc" type="object" string="Kết thúc" class="btn-success"/>
+                <button name="action_set_tam_dung" type="object" string="Tạm dừng" class="btn-warning"/>
+            </xpath>
+            <xpath expr="//field[@name='stage_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
