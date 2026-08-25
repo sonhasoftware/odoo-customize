@@ -76,29 +76,12 @@
         <field name="arch" type="xml">
             <kanban default_group_by="group_du_an" class="o_kanban_mobile">
                 <field name="name"/>
-                <field name="so_du_an"/>
                 <field name="group_du_an"/>
-                <field name="noi_dung"/>
-                <field name="nguoi_qlda"/>
-                <field name="ngay_kt_da"/>
                 <templates>
                     <t t-name="kanban-box">
-                        <a type="object" name="action_view_tasks" class="o_kanban_record d-block">
+                        <a type="object" name="action_view_tasks" class="o_kanban_record d-block" title="Xem nhiệm vụ theo giai đoạn">
                             <div class="o_kanban_record_title">
                                 <strong><field name="name"/></strong>
-                            </div>
-                            <div t-if="record.so_du_an.raw_value" class="text-muted">
-                                <field name="so_du_an"/>
-                            </div>
-                            <div t-if="record.noi_dung.raw_value" class="mt-2">
-                                <field name="noi_dung"/>
-                            </div>
-                            <div class="mt-2" t-if="record.nguoi_qlda.raw_value">
-                                <field name="nguoi_qlda" widget="many2many_avatar_user"/>
-                            </div>
-                            <div class="mt-2" t-if="record.ngay_kt_da.raw_value">
-                                <span class="text-muted">Hạn kết thúc: </span>
-                                <field name="ngay_kt_da"/>
                             </div>
                         </a>
                     </t>
