@@ -12,4 +12,12 @@
 <!--        parent="project.menu_main_pm"-->
 <!--        action="action_theo_doi_nhiem_vu_du_an_con"-->
 <!--        sequence="11"/>-->
+
+
+    <menuitem
+        name="Group dự án"
+        id="menu_group_du_an"
+        parent="project.menu_main_pm"
+        action="group_du_an_action"
+        sequence="20"/>
 </odoo>

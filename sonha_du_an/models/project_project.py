@@ -6,11 +6,13 @@ class Project(models.Model):
     _inherit = 'project.project'
 
     so_du_an = fields.Char("Số dự án")
-    group_du_an = fields.Char("Group dự án")
+    group_du_an = fields.Many2one('group.du.an', string="Group dự án")
     noi_dung = fields.Text("Nội dung")
-    nguoi_qlda = fields.Many2one('res.users', string="Người QLDA")
+    nguoi_qlda = fields.Many2many('res.users', 'ir_qlda_group_rel',
+                                  'qlda_group_rel', 'qlda_rel', string='Người QLDA')
     ngay_kt_da = fields.Date("Ngày kết thúc DA")
     ngay_kt_chinh_sua = fields.Date("Ngày kết thúc chỉnh sửa")
+    du_an_cha = fields.Boolean("Dự án cha", default=True)
     du_an_cha_id = fields.Many2one(
         'project.project',
         string="Dự án cha",
@@ -22,6 +24,36 @@ class Project(models.Model):
         'du_an_cha_id',
         string="Dự án con",
     )
+    nhiem_vu_du_an_ids = fields.One2many(
+        'project.task',
+        'du_an_cha_task_id',
+        string="Nhiệm vụ",
+    )
+
+    @api.onchange('du_an_cha_id')
+    def _onchange_du_an_cha_id(self):
+        for project in self:
+            if project.du_an_cha_id:
+                project.du_an_cha = False
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get('du_an_cha_id'):
+                vals['du_an_cha'] = False
+        return super().create(vals_list)
+
+    def write(self, vals):
+        today = fields.Date.context_today(self)
+        for record in self:
+            if record.ngay_kt_chinh_sua and record.ngay_kt_chinh_sua < today:
+                raise ValidationError(
+                    'Bản ghi đã quá ngày %s nên không được phép chỉnh sửa.'
+                    % record.date.strftime('%d/%m/%Y')
+                )
+        if vals.get('du_an_cha_id'):
+            vals = dict(vals, du_an_cha=False)
+        return super().write(vals)
 
     @api.constrains('du_an_cha_id')
     def _check_du_an_cha_id(self):
@@ -33,6 +65,38 @@ class Project(models.Model):
                         _("Dự án cha không được tạo thành vòng lặp với dự án con.")
                     )
                 parent = parent.du_an_cha_id
+
+    def _validate_child_project_end_dates(self):
+        for project in self:
+            if (
+                project.du_an_cha_id
+                and project.ngay_kt_da
+                and project.du_an_cha_id.ngay_kt_da
+                and project.ngay_kt_da > project.du_an_cha_id.ngay_kt_da
+            ):
+                raise ValidationError(
+                    _(
+                        "Ngày kết thúc dự án con không được lớn hơn ngày kết thúc dự án cha."
+                    )
+                )
+
+    def _validate_child_task_end_dates(self):
+        tasks = self.env['project.task']
+        for project in self:
+            tasks |= project.nhiem_vu_du_an_ids
+            tasks |= self.env['project.task'].search([
+                '|',
+                ('cap', '=', project.id),
+                ('du_an_cha_task_id', '=', project.id),
+            ])
+        if tasks:
+            tasks._validate_project_end_dates()
+
+    @api.constrains('du_an_cha_id', 'ngay_kt_da')
+    def _check_ngay_kt_da_with_parent(self):
+        self._validate_child_project_end_dates()
+        self.mapped('du_an_con_ids')._validate_child_project_end_dates()
+        self._validate_child_task_end_dates()
 
     def action_luu_tam(self):
         return {
@@ -49,11 +113,11 @@ class Project(models.Model):
     def action_view_tasks(self):
         action = super().action_view_tasks()
         if len(self) == 1:
-            action['domain'] = [('project_id', '=', self.id)]
+            action['domain'] = [('du_an_cha_task_id', '=', self.id)]
             context = dict(action.get('context') or {})
             context.update({
                 'default_project_id': self.id,
-                'default_cap': self.id,
+                'default_du_an_cha_task_id': self.id,
             })
             action['context'] = context
         return action

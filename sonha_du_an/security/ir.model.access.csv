@@ -1,7 +1,12 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_sonha_project_project_user,sonha.project.project.user,project.model_project_project,sonha_du_an.group_user_du_an,1,1,1,0
 access_sonha_project_task_user,sonha.project.task.user,project.model_project_task,sonha_du_an.group_user_du_an,1,1,1,0
-access_sonha_project_project_manager,sonha.project.project.manager,project.model_project_project,sonha_du_an.group_manager_du_an,1,0,0,0
-access_sonha_project_task_manager,sonha.project.task.manager,project.model_project_task,sonha_du_an.group_manager_du_an,1,0,0,0
+access_sonha_project_project_manager,sonha.project.project.manager,project.model_project_project,sonha_du_an.group_manager_du_an,1,1,1,0
+access_sonha_project_task_manager,sonha.project.task.manager,project.model_project_task,sonha_du_an.group_manager_du_an,1,1,1,0
 access_sonha_project_project_admin,sonha.project.project.admin,project.model_project_project,sonha_du_an.group_admin_du_an,1,1,1,1
 access_sonha_project_task_admin,sonha.project.task.admin,project.model_project_task,sonha_du_an.group_admin_du_an,1,1,1,1
+
+
+
+access_group_du_an,group.du.an,model_group_du_an,,1,1,1,0
+
