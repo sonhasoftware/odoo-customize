@@ -143,24 +143,22 @@ class Project(models.Model):
             }
         }
 
-    # def action_view_tasks(self):
-    #     """Open this project's tasks as a board grouped by their stages.
-    #
-    #     Tasks created from this module belong to a child project in Odoo's
-    #     standard ``project_id`` field.  ``du_an_cha_task_id`` is therefore the
-    #     reliable link back to the project card selected on the main board.
-    #     """
-    #     action = super().action_view_tasks()
-    #     if len(self) == 1:
-    #         action['domain'] = [('du_an_cha_task_id', '=', self.id)]
-    #         context = dict(action.get('context') or {})
-    #         context.update({
-    #             'default_project_id': self.id,
-    #             'default_du_an_cha_task_id': self.id,
-    #             # A task board is most useful when its workflow columns are
-    #             # visible immediately, rather than inheriting a previous
-    #             # user-selected grouping from another task screen.
-    #             'group_by': 'stage_id',
-    #         })
-    #         action['context'] = context
-    #     return action
+    def action_view_tasks(self):
+        """Open base Project tasks with the fixed workflow Kanban.
+
+        The native Project action can select another Kanban view depending on
+        its action configuration.  Explicitly selecting our inherited view
+        makes the four fixed columns apply when users enter tasks from the
+        standard Project application as well as from custom project screens.
+        """
+        action = super().action_view_tasks()
+        fixed_kanban_view = self.env.ref(
+            'sonha_du_an.view_task_kanban_fixed_stages'
+        )
+        action['views'] = [(fixed_kanban_view.id, 'kanban')] + [
+            view for view in action.get('views', []) if view[1] != 'kanban'
+        ]
+        context = dict(action.get('context') or {})
+        context['group_by'] = 'stage_id'
+        action['context'] = context
+        return action

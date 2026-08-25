@@ -31,18 +31,34 @@ class Task(models.Model):
                                   'chu_so_huu_group_rel', 'chu_so_huu_rel', string='Chủ sở hữu')
 
     @api.model
-    def _read_group_stage_ids(self, stages, domain, order):
-        """Restrict the standard task Kanban to the four approved stages."""
-        return self.env['project.task.type'].browse([
+    def _fixed_stage_ids(self):
+        """Return the only stages that may be assigned to a task."""
+        return [
             self.env.ref('sonha_du_an.task_stage_khoi_tao').id,
             self.env.ref('sonha_du_an.task_stage_dang_chay').id,
             self.env.ref('sonha_du_an.task_stage_ket_thuc').id,
             self.env.ref('sonha_du_an.task_stage_tam_dung').id,
-        ])
+        ]
+
+    @api.model
+    def _read_group_stage_ids(self, stages, domain, order):
+        """Restrict the standard task Kanban to the four approved stages."""
+        return self.env['project.task.type'].browse(self._fixed_stage_ids())
 
     @api.model
     def _get_default_stage_id(self):
-        return self.env.ref('sonha_du_an.task_stage_khoi_tao').id
+        return self._fixed_stage_ids()[0]
+
+    @api.constrains('stage_id')
+    def _check_fixed_stage(self):
+        """Keep imports and RPC calls from assigning ad-hoc stages to tasks."""
+        fixed_stage_ids = self._fixed_stage_ids()
+        for task in self:
+            if task.stage_id and task.stage_id.id not in fixed_stage_ids:
+                raise ValidationError(_(
+                    "Nhiệm vụ chỉ có thể dùng một trong bốn trạng thái: "
+                    "Khởi tạo, Đang chạy, Kết thúc hoặc Tạm dừng."
+                ))
 
     def _set_stage(self, stage_xmlid):
         self.ensure_one()
@@ -95,6 +111,10 @@ class Task(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
+            # Do not let a project-specific default stage reintroduce custom
+            # workflow columns when tasks are created from the standard Project app.
+            if not vals.get('stage_id'):
+                vals['stage_id'] = self._get_default_stage_id()
             if vals.get('cap'):
                 vals['project_id'] = vals['cap']
                 if not vals.get('du_an_cha_task_id'):
