@@ -60,7 +60,7 @@ class Task(models.Model):
     def _onchange_cap(self):
         if self.cap:
             self.project_id = self.cap
-            self.du_an_cha_task_id = self.cap.du_an_cha_id
+            self.du_an_cha_task_id = self.cap
 
     @api.model_create_multi
     def create(self, vals_list):
