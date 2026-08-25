@@ -1183,7 +1183,7 @@ registerBaoCaoListView("vat_tu_bao_cao_b3_list_view", VatTuBaoCaoB3PivotRenderer
 registerBaoCaoListView("vat_tu_bao_cao_b4_list_view", VatTuBaoCaoB4PivotRenderer);
 
 // ---------------------------------------------------------------------------
-// 6) Báo cáo định mức vật tư trung bình — pivot ĐV SX × (Tháng → SL SP / NVL / ĐMBQ)
+// 6) Báo cáo định mức vật tư trung bình — pivot ĐV SX × Ngành × (Tháng → SL SP / NVL / ĐMBQ)
 // ---------------------------------------------------------------------------
 
 function getDmtbColumns(list) {
@@ -1234,22 +1234,62 @@ class VatTuBaoCaoDmtbPivotRenderer extends VatTuMergedHeaderRenderer {
     }
 
     getPivotRows() {
-        return [...this.props.list.records].sort((a, b) =>
-            String(a.data.company_code || "").localeCompare(String(b.data.company_code || ""))
-        );
+        return [...this.props.list.records].sort((a, b) => {
+            const companyCmp = String(a.data.company_code || "").localeCompare(
+                String(b.data.company_code || "")
+            );
+            if (companyCmp !== 0) {
+                return companyCmp;
+            }
+            return (a.data.sequence || 0) - (b.data.sequence || 0);
+        });
+    }
+
+    getCompanyGroups() {
+        const groups = [];
+        let current = null;
+        for (const row of this.getPivotRows()) {
+            const companyCode = row.data.company_code || "";
+            if (!current || current.companyCode !== companyCode) {
+                current = { companyCode, rows: [] };
+                groups.push(current);
+            }
+            current.rows.push(row);
+        }
+        return groups;
+    }
+
+    isTotalRow(record) {
+        return Boolean(record?.data?.is_total_row);
+    }
+
+    isBtpRow(record) {
+        return Boolean(record?.data?.is_btp_row);
     }
 
     metricValue(record, colIndex, metric) {
         const cell = parseDmtbMetrics(record)[colIndex] || {};
         if (metric.key === "dmbq") {
+            if (this.isBtpRow(record)) {
+                return 0;
+            }
             const sp = cell.sl_sp || 0;
             const nvl = cell.sl_nvl || 0;
             return sp ? nvl / sp : 0;
         }
+        if (metric.key === "sp" && this.isBtpRow(record)) {
+            return 0;
+        }
         return cell[metric.metricKey] || 0;
     }
 
-    formatMetric(value, metric) {
+    formatMetric(value, metric, record) {
+        if (metric.key === "dmbq" && this.isBtpRow(record)) {
+            return "-";
+        }
+        if (metric.key === "sp" && this.isBtpRow(record)) {
+            return "-";
+        }
         if (metric.key === "dmbq") {
             if (!value) {
                 return "-";
@@ -1262,11 +1302,22 @@ class VatTuBaoCaoDmtbPivotRenderer extends VatTuMergedHeaderRenderer {
         return formatFloat(value, { digits: [16, 3] });
     }
 
+    rowClass(record) {
+        return this.isTotalRow(record) ? "fw-bold o_dmtb_total_row" : "";
+    }
+
     getColumnGroups() {
         const groups = [
             {
                 id: "dmtb_company",
                 label: "Công ty",
+                span: 1,
+                rowspan: 2,
+                column: null,
+            },
+            {
+                id: "dmtb_nganh",
+                label: "Ngành hàng",
                 span: 1,
                 rowspan: 2,
                 column: null,

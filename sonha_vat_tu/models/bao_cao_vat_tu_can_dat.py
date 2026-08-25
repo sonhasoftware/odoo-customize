@@ -26,6 +26,10 @@ MA_LINH_VUC_NHOM = {
     'NHUA': NHOM_NHUA,
 }
 
+# TMC (Thanh mặt chậu): lĩnh vực Gia dụng + ngành Chậu Inox Chung trên MDM.
+TMC_LINH_VUC_MA = '0GD'
+TMC_NGANH_HANG_MA = '10171'
+
 ROW_SUBTOTAL_INNOX = 'subtotal_innox'
 ROW_SUBTOTAL_NHUA = 'subtotal_nhua'
 ROW_SUBTOTAL_TMC = 'subtotal_tmc'
@@ -192,9 +196,19 @@ class BaoCaoVtCanDatWizard(models.TransientModel):
             })
         return specs
 
-    def _nhom_from_ma_linh_vuc(self, ma_linh_vuc):
+    @staticmethod
+    def _nhom_for_nvl(ma_linh_vuc, mdm_segment):
+        """Inox / Nhựa theo ma_linh_vuc BCU; TMC theo MDM tong_hop."""
         code = (ma_linh_vuc or '').strip().upper()
-        return MA_LINH_VUC_NHOM.get(code, NHOM_TMC)
+        nhom = MA_LINH_VUC_NHOM.get(code)
+        if nhom:
+            return nhom
+        seg = mdm_segment or {}
+        lv = (seg.get('linh_vuc_ma') or '').strip().upper()
+        nh = (seg.get('nganh_hang_ma') or '').strip().upper()
+        if lv == TMC_LINH_VUC_MA and nh == TMC_NGANH_HANG_MA:
+            return NHOM_TMC
+        return False
 
     def _build_detail_rows(self, periods, company_specs):
         Bcu = self.env['kh.dat.vat.tu.bcu'].sudo()
@@ -204,7 +218,9 @@ class BaoCaoVtCanDatWizard(models.TransientModel):
         ma_codes = {
             (rec.ma_sap or '').strip() for rec in bcu_lines if (rec.ma_sap or '').strip()
         }
-        linh_vuc_map = self.env['ma.hang'].get_ma_linh_vuc_map(ma_codes)
+        MaHang = self.env['ma.hang']
+        linh_vuc_map = MaHang.get_ma_linh_vuc_map(ma_codes)
+        mdm_segment_map = MaHang.get_mdm_segment_map(ma_codes)
 
         code_by_sx = {
             spec['company_id']: spec['code'] for spec in company_specs
@@ -224,7 +240,9 @@ class BaoCaoVtCanDatWizard(models.TransientModel):
             bucket = grouped.setdefault(ma, {
                 'ma_nvl': ma,
                 'ten_nvl': rec.ten_nvl or '',
-                'nhom': self._nhom_from_ma_linh_vuc(linh_vuc_map.get(ma)),
+                'nhom': self._nhom_for_nvl(
+                    linh_vuc_map.get(ma), mdm_segment_map.get(ma),
+                ),
                 'total': _empty_metrics(),
                 'companies': {spec['code']: _empty_metrics() for spec in company_specs},
             })

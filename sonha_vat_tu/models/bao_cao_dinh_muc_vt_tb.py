@@ -4,7 +4,7 @@ import io
 import json
 
 from openpyxl import Workbook
-from openpyxl.styles import PatternFill
+from openpyxl.styles import Alignment, PatternFill
 from openpyxl.utils import get_column_letter
 
 from odoo import _, api, fields, models
@@ -14,6 +14,13 @@ from .bao_cao_ghi_chu import REPORT_DMTB
 
 REPORT_MONTH_COUNT = 3
 QTY_FIELDS = tuple('qty_t%d' % idx for idx in range(REPORT_MONTH_COUNT))
+NVL_QTY_FIELDS = tuple('qty_nvl_t%d' % idx for idx in range(REPORT_MONTH_COUNT))
+
+MDM_TYPE_NVL = 'Nguyên vật liệu'
+MDM_TYPE_BTP = 'Bán thành phẩm'
+DMTB_ROW_BTP = 'btp'
+DMTB_ROW_TOTAL = 'total'
+DMTB_BTP_LABEL = 'Bán thành phẩm'
 
 
 class BaoCaoDinhMucVtTbWizard(models.TransientModel):
@@ -123,53 +130,111 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
             ))
         return horizon[:REPORT_MONTH_COUNT]
 
-    @api.model
-    def _nganh_meta_map(self, ma_codes):
-        return self.env['ma.hang'].get_mdm_sap_meta_map(ma_codes)
+    @staticmethod
+    def _empty_month_metrics():
+        return [{'sl_sp': 0.0, 'sl_nvl': 0.0} for _ in range(REPORT_MONTH_COUNT)]
+
+    @staticmethod
+    def _classify_ma_kind(mdm_hh_type):
+        """Phân loại mã trên kế hoạch: bồn (TP) / BTP / NVL mua thẳng."""
+        label = (mdm_hh_type or '').strip()
+        if label == MDM_TYPE_BTP:
+            return 'btp'
+        if label == MDM_TYPE_NVL:
+            return 'nvl'
+        return 'bo'
 
     @api.model
-    def _filter_by_nganh(self, records, code_field, nganh_ids):
-        nganh_set = set(nganh_ids)
-        codes = {
-            (getattr(rec, code_field) or '').strip()
-            for rec in records
-            if (getattr(rec, code_field) or '').strip()
-        }
-        meta_map = self._nganh_meta_map(codes)
-        return records.filtered(
-            lambda rec: meta_map.get(
-                (getattr(rec, code_field) or '').strip(), {},
-            ).get('nganh_hang_id') in nganh_set
-        )
+    def _ma_meta_maps(self, ma_codes):
+        meta_map = self.env['ma.hang'].get_mdm_sap_meta_map(ma_codes)
+        kind_map = {}
+        nganh_map = {}
+        for ma, meta in meta_map.items():
+            kind_map[ma] = self._classify_ma_kind(meta.get('mdm_hh_type'))
+            nganh_map[ma] = meta.get('nganh_hang_id') or False
+        return kind_map, nganh_map, meta_map
+
+    @staticmethod
+    def _line_nganh_id(line, nganh_map):
+        nh = getattr(line, 'nganh_hang', False)
+        if nh:
+            return nh.id
+        ma = (getattr(line, 'ma_sap', None) or '').strip()
+        return nganh_map.get(ma) or False
 
     def _aggregate_period(self, period, nganh_ids):
+        """Tách SL SP / SL NVL theo ngành nhóm + dòng Bán thành phẩm."""
         plan_model = self._plan_model_name()
         period_field = (
             'kinh_doanh_id.period_sx_id'
             if plan_model == 'ke.hoach.kinh.doanh.line'
             else 'period_id'
         )
+        nganh_set = set(nganh_ids)
         plan_lines = self.env[plan_model].search([
             (period_field, '=', period.id),
             ('nganh_hang', 'in', list(nganh_ids)),
         ])
-        b3_lines = self.env['tinh.toan.vat.tu'].search([
+        chi_tiet = self.env['tinh.toan.vat.tu.chi.tiet'].search([
             ('period_id', '=', period.id),
         ])
-        nvl_lines = self._filter_by_nganh(b3_lines, 'ma_vat_tu', nganh_ids)
+
+        ma_codes = set()
+        for line in plan_lines:
+            ma = (line.ma_sap or '').strip()
+            if ma:
+                ma_codes.add(ma)
+        for row in chi_tiet:
+            ma = (row.ma or '').strip()
+            if ma:
+                ma_codes.add(ma)
+
+        kind_map, nganh_map, _meta = self._ma_meta_maps(ma_codes)
+
+        for line in plan_lines:
+            ma = (line.ma_sap or '').strip()
+            if not ma:
+                continue
+            nh_id = self._line_nganh_id(line, nganh_map)
+            if nh_id:
+                nganh_map[ma] = nh_id
+
+        metrics = {
+            str(nh_id): self._empty_month_metrics() for nh_id in nganh_ids
+        }
+        metrics[DMTB_ROW_BTP] = self._empty_month_metrics()
+
+        for line in plan_lines:
+            ma = (line.ma_sap or '').strip()
+            if not ma:
+                continue
+            kind = kind_map.get(ma, 'bo')
+            if kind != 'bo':
+                continue
+            nh_id = self._line_nganh_id(line, nganh_map)
+            if nh_id not in nganh_set:
+                continue
+            bucket = str(nh_id)
+            for idx, qty_field in enumerate(QTY_FIELDS):
+                metrics[bucket][idx]['sl_sp'] += getattr(line, qty_field) or 0.0
+
+        for row in chi_tiet:
+            ma = (row.ma or '').strip()
+            if not ma:
+                continue
+            kind = kind_map.get(ma, 'bo')
+            if kind in ('btp', 'nvl'):
+                bucket = DMTB_ROW_BTP
+            else:
+                nh_id = nganh_map.get(ma) or False
+                if nh_id not in nganh_set:
+                    continue
+                bucket = str(nh_id)
+            for idx, qty_field in enumerate(NVL_QTY_FIELDS):
+                metrics[bucket][idx]['sl_nvl'] += getattr(row, qty_field) or 0.0
 
         month_keys = self._report_month_keys(period)
-        row_metrics = []
-        for idx in range(REPORT_MONTH_COUNT):
-            sp = sum(
-                getattr(line, QTY_FIELDS[idx]) or 0.0 for line in plan_lines
-            )
-            nvl = sum(
-                getattr(line, QTY_FIELDS[idx]) or 0.0 for line in nvl_lines
-            )
-            row_metrics.append({'sl_sp': sp, 'sl_nvl': nvl})
-
-        return month_keys, row_metrics, plan_lines, nvl_lines
+        return month_keys, metrics
 
     def _load_ghi_chu_map(self, periods, nhom_id, nguon_sl_sp):
         GhiChu = self.env['bao.cao.ghi.chu'].sudo()
@@ -187,13 +252,52 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
             if not rec.scope_key.startswith(prefix):
                 continue
             tail = rec.scope_key[len(prefix):]
+            parts = tail.split('|', 1)
+            if len(parts) != 2:
+                continue
             try:
-                sx_id = int(tail)
+                sx_id = int(parts[0])
             except ValueError:
                 continue
+            row_key = parts[1]
             if rec.noi_dung:
-                out[sx_id] = rec.noi_dung
+                out[(sx_id, row_key)] = rec.noi_dung
         return out
+
+    def _row_specs(self, nhom):
+        specs = []
+        for seq, nh in enumerate(nhom.nganh_hang_ids, start=1):
+            specs.append({
+                'row_key': str(nh.id),
+                'nganh_hang_id': nh.id,
+                'nganh_hang_label': nh.ten or nh.name or '',
+                'is_btp_row': False,
+                'sequence': seq,
+            })
+        specs.append({
+            'row_key': DMTB_ROW_BTP,
+            'nganh_hang_id': False,
+            'nganh_hang_label': DMTB_BTP_LABEL,
+            'is_btp_row': True,
+            'sequence': len(specs) + 1,
+        })
+        return specs
+
+    @staticmethod
+    def _metrics_has_data(cells):
+        return any((c.get('sl_sp') or 0.0) or (c.get('sl_nvl') or 0.0) for c in cells)
+
+    @staticmethod
+    def _sum_company_total_metrics(merged, row_specs):
+        """Tổng công ty: SL SP = cộng các dòng ngành; SL NVL = cộng cả Bán TP."""
+        total = BaoCaoDinhMucVtTbWizard._empty_month_metrics()
+        for spec in row_specs:
+            cells = merged.get(spec['row_key']) or BaoCaoDinhMucVtTbWizard._empty_month_metrics()
+            for idx, cell in enumerate(cells):
+                if not spec['is_btp_row']:
+                    total[idx]['sl_sp'] += cell.get('sl_sp') or 0.0
+                total[idx]['sl_nvl'] += cell.get('sl_nvl') or 0.0
+        return total
 
     def _populate_lines(self):
         self.ensure_one()
@@ -201,6 +305,7 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
         nhom = self.nhom_id
         nganh_ids = nhom.nganh_hang_ids.ids
         nhom_label = self._nhom_label()
+        row_specs = self._row_specs(nhom)
         ghi_chu_map = self._load_ghi_chu_map(periods, nhom.id, self.nguon_sl_sp)
 
         column_keys = self._report_month_keys(periods[0])
@@ -225,30 +330,40 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
             groups[sx.id]['periods'].append(period)
 
         lines = []
-        for group in groups.values():
+        sorted_groups = sorted(
+            groups.values(),
+            key=lambda g: (
+                (g['sx'].company_code or g['sx'].name or '').upper(),
+            ),
+        )
+        for group in sorted_groups:
             sx = group['sx']
-            merged_metrics = [
-                {'sl_sp': 0.0, 'sl_nvl': 0.0} for _ in range(REPORT_MONTH_COUNT)
-            ]
+            merged = {
+                spec['row_key']: self._empty_month_metrics()
+                for spec in row_specs
+            }
 
+            has_any = False
             for period in group['periods']:
-                month_keys, row_metrics, plan_lines, nvl_lines = self._aggregate_period(
-                    period, nganh_ids,
-                )
+                month_keys, period_metrics = self._aggregate_period(period, nganh_ids)
                 if month_keys != column_keys:
                     raise UserError(_(
                         'Kỳ "%(code)s" có dải tháng khác kỳ đầu tiên.',
                         code=period.code or period.display_name,
                     ))
-                if not plan_lines and not nvl_lines:
+                if not self._metrics_has_data(
+                    [cell for bucket in period_metrics.values() for cell in bucket]
+                ):
                     continue
-                if not any(c['sl_sp'] or c['sl_nvl'] for c in row_metrics):
-                    continue
-                for idx, cell in enumerate(row_metrics):
-                    merged_metrics[idx]['sl_sp'] += cell.get('sl_sp') or 0.0
-                    merged_metrics[idx]['sl_nvl'] += cell.get('sl_nvl') or 0.0
+                has_any = True
+                for row_key, cells in period_metrics.items():
+                    if row_key not in merged:
+                        continue
+                    for idx, cell in enumerate(cells):
+                        merged[row_key][idx]['sl_sp'] += cell.get('sl_sp') or 0.0
+                        merged[row_key][idx]['sl_nvl'] += cell.get('sl_nvl') or 0.0
 
-            if not any(c['sl_sp'] or c['sl_nvl'] for c in merged_metrics):
+            if not has_any:
                 raise UserError(_(
                     'Đơn vị SX "%(sx)s" không có SL sản phẩm hoặc SL NVL '
                     'trong 3 tháng đầu cho nhóm "%(nhom)s".',
@@ -256,15 +371,41 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
                     nhom=nhom_label,
                 ))
 
+            total_cells = self._sum_company_total_metrics(merged, row_specs)
             lines.append({
                 'wizard_id': self.id,
                 'period_id': group['periods'][0].id,
                 'nhom_id': nhom.id,
                 'company_sx_id': sx.id,
                 'company_code': sx.company_code or sx.name or '',
-                'metrics_json': json.dumps(merged_metrics, ensure_ascii=False),
-                'ghi_chu': ghi_chu_map.get(sx.id, ''),
+                'nganh_hang_id': False,
+                'nganh_hang_label': '',
+                'is_btp_row': False,
+                'is_total_row': True,
+                'row_key': DMTB_ROW_TOTAL,
+                'sequence': 0,
+                'metrics_json': json.dumps(total_cells, ensure_ascii=False),
+                'ghi_chu': ghi_chu_map.get((sx.id, DMTB_ROW_TOTAL), ''),
             })
+
+            for spec in row_specs:
+                row_key = spec['row_key']
+                cells = merged.get(row_key) or self._empty_month_metrics()
+                lines.append({
+                    'wizard_id': self.id,
+                    'period_id': group['periods'][0].id,
+                    'nhom_id': nhom.id,
+                    'company_sx_id': sx.id,
+                    'company_code': sx.company_code or sx.name or '',
+                    'nganh_hang_id': spec['nganh_hang_id'],
+                    'nganh_hang_label': spec['nganh_hang_label'],
+                    'is_btp_row': spec['is_btp_row'],
+                    'is_total_row': False,
+                    'row_key': row_key,
+                    'sequence': spec['sequence'],
+                    'metrics_json': json.dumps(cells, ensure_ascii=False),
+                    'ghi_chu': ghi_chu_map.get((sx.id, row_key), ''),
+                })
 
         if lines:
             Line.create(lines)
@@ -329,12 +470,13 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
         yellow = PatternFill(start_color='FFFF00', end_color='FFFF00', fill_type='solid')
 
         col = 1
-        ws.merge_cells(
-            start_row=header_row1, start_column=col,
-            end_row=header_row2, end_column=col,
-        )
-        ws.cell(row=header_row1, column=col, value='Công ty')
-        col += 1
+        for fixed in ('Công ty', 'Ngành hàng'):
+            ws.merge_cells(
+                start_row=header_row1, start_column=col,
+                end_row=header_row2, end_column=col,
+            )
+            ws.cell(row=header_row1, column=col, value=fixed)
+            col += 1
 
         for col_def in column_spec:
             month_key = col_def.get('label') or col_def.get('month_key') or ''
@@ -359,24 +501,54 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
         max_col = col
 
         row_idx = data_row
-        for line in lines.sorted(
-            key=lambda l: (l.company_code or '').upper()
-        ):
+        sorted_lines = lines.sorted(
+            key=lambda l: (
+                (l.company_code or '').upper(),
+                l.sequence or 0,
+                l.id,
+            )
+        )
+        company_start_row = None
+        company_code_prev = None
+        for line in sorted_lines:
+            if line.company_code != company_code_prev:
+                if company_start_row and row_idx > company_start_row:
+                    ws.merge_cells(
+                        start_row=company_start_row, start_column=1,
+                        end_row=row_idx - 1, end_column=1,
+                    )
+                    ws.cell(row=company_start_row, column=1).alignment = Alignment(
+                        horizontal='center', vertical='center',
+                    )
+                company_start_row = row_idx
+                company_code_prev = line.company_code
             ws.cell(row=row_idx, column=1, value=line.company_code)
-            col_idx = 2
+            ws.cell(row=row_idx, column=2, value=line.nganh_hang_label or '')
+            col_idx = 3
             for cell in line._metrics_list():
                 sp = cell.get('sl_sp') or 0.0
                 nvl = cell.get('sl_nvl') or 0.0
-                dmbq = (nvl / sp) if sp else 0.0
-                ws.cell(row=row_idx, column=col_idx, value=sp or None)
+                show_dmbq = sp and not line.is_btp_row
+                dmbq = (nvl / sp) if show_dmbq else 0.0
+                sp_val = sp if (sp and not line.is_btp_row) else None
+                ws.cell(row=row_idx, column=col_idx, value=sp_val)
                 col_idx += 1
                 ws.cell(row=row_idx, column=col_idx, value=nvl or None)
                 col_idx += 1
                 cell_xl = ws.cell(row=row_idx, column=col_idx, value=dmbq or None)
                 cell_xl.fill = yellow
                 col_idx += 1
-            ws.cell(row=row_idx, column=ghi_chu_col, value=line.ghi_chu or '')
+            if not line.is_total_row:
+                ws.cell(row=row_idx, column=ghi_chu_col, value=line.ghi_chu or '')
             row_idx += 1
+        if company_start_row and row_idx > company_start_row:
+            ws.merge_cells(
+                start_row=company_start_row, start_column=1,
+                end_row=row_idx - 1, end_column=1,
+            )
+            ws.cell(row=company_start_row, column=1).alignment = Alignment(
+                horizontal='center', vertical='center',
+            )
 
         self.env['ke.hoach.vat.tu']._apply_b5_export_style(
             ws, header_row1, header_row2, max_col,
@@ -384,6 +556,7 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
             meta_rows=5,
         )
         ws.column_dimensions['A'].width = 14
+        ws.column_dimensions['B'].width = 22
         ws.column_dimensions[get_column_letter(ghi_chu_col)].width = 40
 
         output = io.BytesIO()
@@ -408,7 +581,7 @@ class BaoCaoDinhMucVtTbLine(models.TransientModel):
     _name = 'bao.cao.dinh.muc.vt.tb.line'
     _inherit = ['bao.cao.ghi.chu.line.mixin']
     _description = 'Dòng báo cáo định mức vật tư trung bình'
-    _order = 'company_code, id'
+    _order = 'company_code, sequence, id'
 
     wizard_id = fields.Many2one(
         'bao.cao.dinh.muc.vt.tb.wizard', ondelete='cascade', index=True)
@@ -419,6 +592,13 @@ class BaoCaoDinhMucVtTbLine(models.TransientModel):
     company_sx_id = fields.Many2one(
         'res.company', string='Đơn vị sản xuất', readonly=True)
     company_code = fields.Char(string='Công ty', index=True)
+    nganh_hang_id = fields.Many2one(
+        'mdm.nganh.hang', string='Ngành hàng', readonly=True)
+    nganh_hang_label = fields.Char(string='Ngành hàng', index=True)
+    is_btp_row = fields.Boolean(string='Dòng Bán TP', default=False, index=True)
+    is_total_row = fields.Boolean(string='Dòng tổng', default=False, index=True)
+    row_key = fields.Char(string='Khóa dòng', index=True)
+    sequence = fields.Integer(string='Thứ tự', default=10, index=True)
     metrics_json = fields.Text(string='Số liệu theo cột', readonly=True)
     ghi_chu = fields.Text(string='Ghi chú')
 
@@ -438,20 +618,26 @@ class BaoCaoDinhMucVtTbLine(models.TransientModel):
         for rec in self:
             wizard = rec.wizard_id
             nhom = rec.nhom_id or wizard.nhom_id
-            if not wizard or not nhom or not rec.company_sx_id:
+            if not wizard or not nhom or not rec.company_sx_id or rec.is_total_row:
                 continue
             period_key = rec._ghi_chu_period_key(wizard)
             scope = GhiChu.scope_key_dmtb(
-                nhom.id, wizard.nguon_sl_sp, rec.company_sx_id.id,
+                nhom.id,
+                wizard.nguon_sl_sp,
+                rec.company_sx_id.id,
+                rec.row_key or (DMTB_ROW_BTP if rec.is_btp_row else rec.nganh_hang_id),
             )
             GhiChu.upsert_note(REPORT_DMTB, period_key, scope, rec.ghi_chu)
 
     def action_export_excel(self):
-        wizard = self[:1].wizard_id
-        if not wizard:
+        if self:
+            wizards = self.mapped('wizard_id')
+        else:
             wizard_id = self.env.context.get('bao_cao_dmtb_wizard_id')
-            if not wizard_id:
-                raise UserError(_('Vui lòng xuất Excel từ một báo cáo đã mở.'))
-            wizard = self.env['bao.cao.dinh.muc.vt.tb.wizard'].browse(wizard_id)
-        wizard.ensure_one()
-        return wizard.action_export_excel()
+            wizards = (
+                self.env['bao.cao.dinh.muc.vt.tb.wizard'].browse(wizard_id)
+                if wizard_id else self.env['bao.cao.dinh.muc.vt.tb.wizard']
+            )
+        if len(wizards) != 1:
+            raise UserError(_('Vui lòng xuất Excel từ một báo cáo đã mở.'))
+        return wizards.action_export_excel()
