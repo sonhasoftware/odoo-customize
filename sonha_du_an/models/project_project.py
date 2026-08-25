@@ -120,6 +120,12 @@ class Project(models.Model):
         }
 
     def action_view_tasks(self):
+        """Open this project's tasks as a board grouped by their stages.
+
+        Tasks created from this module belong to a child project in Odoo's
+        standard ``project_id`` field.  ``du_an_cha_task_id`` is therefore the
+        reliable link back to the project card selected on the main board.
+        """
         action = super().action_view_tasks()
         if len(self) == 1:
             action['domain'] = [('du_an_cha_task_id', '=', self.id)]
@@ -127,6 +133,10 @@ class Project(models.Model):
             context.update({
                 'default_project_id': self.id,
                 'default_du_an_cha_task_id': self.id,
+                # A task board is most useful when its workflow columns are
+                # visible immediately, rather than inheriting a previous
+                # user-selected grouping from another task screen.
+                'group_by': 'stage_id',
             })
             action['context'] = context
         return action
