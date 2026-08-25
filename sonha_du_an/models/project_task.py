@@ -6,6 +6,12 @@ from odoo import api, fields, models
 class Task(models.Model):
     _inherit = 'project.task'
 
+    du_an_cha_task_id = fields.Many2one(
+        'project.project',
+        string="Dự án cha",
+        index=True,
+        ondelete='cascade',
+    )
     cap = fields.Many2one(
         'project.project',
         string="Dự án con",
@@ -27,17 +33,22 @@ class Task(models.Model):
     def _onchange_cap(self):
         if self.cap:
             self.project_id = self.cap
+            self.du_an_cha_task_id = self.cap.du_an_cha_id
 
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
             if vals.get('cap'):
                 vals['project_id'] = vals['cap']
+                if not vals.get('du_an_cha_task_id'):
+                    vals['du_an_cha_task_id'] = self.env['project.project'].browse(vals['cap']).du_an_cha_id.id
         return super().create(vals_list)
 
     def write(self, vals):
         if vals.get('cap'):
             vals = dict(vals, project_id=vals['cap'])
+            if not vals.get('du_an_cha_task_id'):
+                vals['du_an_cha_task_id'] = self.env['project.project'].browse(vals['cap']).du_an_cha_id.id
         return super().write(vals)
 
     @api.depends('so_ngay_ht', 'ngay_bat_dau', 'so_ngay_pending')
