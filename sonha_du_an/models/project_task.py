@@ -1,6 +1,7 @@
 from datetime import timedelta
 
-from odoo import api, fields, models
+from odoo import api, fields, models, _
+from odoo.exceptions import ValidationError
 
 
 class Task(models.Model):
@@ -28,6 +29,32 @@ class Task(models.Model):
 
     chu_so_huu = fields.Many2many('res.users', 'ir_chu_so_huu_group_rel',
                                   'chu_so_huu_group_rel', 'chu_so_huu_rel', string='Chủ sở hữu')
+
+    def _get_project_end_date_limit(self):
+        self.ensure_one()
+        if self.cap and self.cap.ngay_kt_da:
+            return self.cap.ngay_kt_da, self.cap
+        if self.du_an_cha_task_id and self.du_an_cha_task_id.ngay_kt_da:
+            return self.du_an_cha_task_id.ngay_kt_da, self.du_an_cha_task_id
+        return False, self.env['project.project']
+
+    def _validate_project_end_dates(self):
+        for task in self:
+            limit_date, project = task._get_project_end_date_limit()
+            if task.ngay_ket_thuc and limit_date and task.ngay_ket_thuc > limit_date:
+                if task.cap and project == task.cap:
+                    message = _(
+                        "Ngày kết thúc nhiệm vụ không được lớn hơn ngày kết thúc dự án con."
+                    )
+                else:
+                    message = _(
+                        "Ngày kết thúc nhiệm vụ không được lớn hơn ngày kết thúc dự án cha."
+                    )
+                raise ValidationError(message)
+
+    @api.constrains('cap', 'du_an_cha_task_id', 'so_ngay_ht', 'ngay_bat_dau', 'so_ngay_pending')
+    def _check_ngay_ket_thuc_with_project(self):
+        self._validate_project_end_dates()
 
     @api.onchange('cap')
     def _onchange_cap(self):

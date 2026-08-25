@@ -59,6 +59,38 @@ class Project(models.Model):
                     )
                 parent = parent.du_an_cha_id
 
+    def _validate_child_project_end_dates(self):
+        for project in self:
+            if (
+                project.du_an_cha_id
+                and project.ngay_kt_da
+                and project.du_an_cha_id.ngay_kt_da
+                and project.ngay_kt_da > project.du_an_cha_id.ngay_kt_da
+            ):
+                raise ValidationError(
+                    _(
+                        "Ngày kết thúc dự án con không được lớn hơn ngày kết thúc dự án cha."
+                    )
+                )
+
+    def _validate_child_task_end_dates(self):
+        tasks = self.env['project.task']
+        for project in self:
+            tasks |= project.nhiem_vu_du_an_ids
+            tasks |= self.env['project.task'].search([
+                '|',
+                ('cap', '=', project.id),
+                ('du_an_cha_task_id', '=', project.id),
+            ])
+        if tasks:
+            tasks._validate_project_end_dates()
+
+    @api.constrains('du_an_cha_id', 'ngay_kt_da')
+    def _check_ngay_kt_da_with_parent(self):
+        self._validate_child_project_end_dates()
+        self.mapped('du_an_con_ids')._validate_child_project_end_dates()
+        self._validate_child_task_end_dates()
+
     def action_luu_tam(self):
         return {
             'type': 'ir.actions.client',
