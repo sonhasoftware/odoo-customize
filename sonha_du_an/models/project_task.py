@@ -30,6 +30,36 @@ class Task(models.Model):
     chu_so_huu = fields.Many2many('res.users', 'ir_chu_so_huu_group_rel',
                                   'chu_so_huu_group_rel', 'chu_so_huu_rel', string='Chủ sở hữu')
 
+    @api.model
+    def _read_group_stage_ids(self, stages, domain, order):
+        """Restrict the standard task Kanban to the four approved stages."""
+        return self.env['project.task.type'].browse([
+            self.env.ref('sonha_du_an.task_stage_khoi_tao').id,
+            self.env.ref('sonha_du_an.task_stage_dang_chay').id,
+            self.env.ref('sonha_du_an.task_stage_ket_thuc').id,
+            self.env.ref('sonha_du_an.task_stage_tam_dung').id,
+        ])
+
+    @api.model
+    def _get_default_stage_id(self):
+        return self.env.ref('sonha_du_an.task_stage_khoi_tao').id
+
+    def _set_stage(self, stage_xmlid):
+        self.ensure_one()
+        self.stage_id = self.env.ref(stage_xmlid)
+
+    def action_set_khoi_tao(self):
+        self._set_stage('sonha_du_an.task_stage_khoi_tao')
+
+    def action_set_dang_chay(self):
+        self._set_stage('sonha_du_an.task_stage_dang_chay')
+
+    def action_set_ket_thuc(self):
+        self._set_stage('sonha_du_an.task_stage_ket_thuc')
+
+    def action_set_tam_dung(self):
+        self._set_stage('sonha_du_an.task_stage_tam_dung')
+
     def _get_project_end_date_limit(self):
         self.ensure_one()
         if self.cap and self.cap.ngay_kt_da:
