@@ -12,6 +12,7 @@
                             <field name="group_du_an"/>
                             <field name="name"/>
                             <field name="noi_dung"/>
+                            <field name="du_an_cha_id" invisible="1"/>
                             <field name="du_an_cha" readonly="du_an_cha_id"/>
                         </group>
                         <group>

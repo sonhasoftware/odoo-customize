@@ -6,7 +6,7 @@ class Project(models.Model):
     _inherit = 'project.project'
 
     so_du_an = fields.Char("Số dự án")
-    group_du_an = fields.Char("Group dự án")
+    group_du_an = fields.Many2one('group.du.an', string="Group dự án")
     noi_dung = fields.Text("Nội dung")
     nguoi_qlda = fields.Many2many('res.users', 'ir_qlda_group_rel',
                                   'qlda_group_rel', 'qlda_rel', string='Người QLDA')
