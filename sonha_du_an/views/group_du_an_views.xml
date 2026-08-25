@@ -4,7 +4,7 @@
         <field name="name">view.group.du.an.tree</field>
         <field name="model">group.du.an</field>
         <field name="arch" type="xml">
-            <tree string="Group dự án">
+            <tree string="Group dự án" editable="bottom">
                 <field name="ma"/>
                 <field name="ten"/>
             </tree>

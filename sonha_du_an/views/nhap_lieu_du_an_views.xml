@@ -29,7 +29,6 @@
                                     <field name="name" string="Nội dung dự án"/>
                                     <field name="nguoi_qlda" widget="many2many_tags"/>
                                     <field name="ngay_kt_da"/>
-                                    <field name="ngay_kt_chinh_sua"/>
                                 </tree>
                             </field>
                         </page>
@@ -79,6 +78,7 @@
             <field name="view_ids" eval="[(5, 0, 0),
                 (0, 0, {'view_mode': 'tree', 'view_id': ref('view_nhap_lieu_du_an_tree')}),
                 (0, 0, {'view_mode': 'form', 'view_id': ref('view_nhap_lieu_du_an_form')})]"/>
+            <field name="domain">[('du_an_cha', '=', True)]</field>
         </record>
 
     <record id="action_theo_doi_nhiem_vu_du_an_con" model="ir.actions.act_window">

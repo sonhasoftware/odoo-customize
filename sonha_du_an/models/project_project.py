@@ -44,6 +44,13 @@ class Project(models.Model):
         return super().create(vals_list)
 
     def write(self, vals):
+        today = fields.Date.context_today(self)
+        for record in self:
+            if record.ngay_kt_chinh_sua and record.ngay_kt_chinh_sua < today:
+                raise ValidationError(
+                    'Bản ghi đã quá ngày %s nên không được phép chỉnh sửa.'
+                    % record.date.strftime('%d/%m/%Y')
+                )
         if vals.get('du_an_cha_id'):
             vals = dict(vals, du_an_cha=False)
         return super().write(vals)

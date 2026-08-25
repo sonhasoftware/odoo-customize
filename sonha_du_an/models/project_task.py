@@ -17,7 +17,7 @@ class Task(models.Model):
         'project.project',
         string="Dự án con",
     )
-    noi_dung_cv = fields.Text("Nội dung công việc", required=True)
+    noi_dung_cv = fields.Text("Nội dung công việc")
     so_ngay_ht = fields.Float("Số ngày hoàn thành", required=True)
     ngay_bat_dau = fields.Date("Ngày bắt đầu", required=True)
     ngay_ket_thuc = fields.Date("Ngày kết thúc", compute="get_ngay_ket_thuc")
