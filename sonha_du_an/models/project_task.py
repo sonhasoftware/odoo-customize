@@ -15,9 +15,13 @@ class Task(models.Model):
     ngay_bat_dau = fields.Date("Ngày bắt đầu", required=True)
     ngay_ket_thuc = fields.Date("Ngày kết thúc", compute="get_ngay_ket_thuc")
     ngay_hoan_thanh = fields.Date("Ngày hoàn thành")
-    ns_lam = fields.Many2one('res.users', string="NS làm", required=True)
-    chu_so_huu = fields.Many2one('res.users', string="Chủ sở hữu", required=True)
     so_ngay_pending = fields.Float("Số ngày Pending")
+
+    ns_lam = fields.Many2many('res.users', 'ir_ns_lam_group_rel',
+                                  'ns_lam_group_rel', 'ns_lam_rel', string='NS làm')
+
+    chu_so_huu = fields.Many2many('res.users', 'ir_chu_so_huu_group_rel',
+                                  'chu_so_huu_group_rel', 'chu_so_huu_rel', string='Chủ sở hữu')
 
     @api.onchange('cap')
     def _onchange_cap(self):

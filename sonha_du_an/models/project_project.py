@@ -8,9 +8,11 @@ class Project(models.Model):
     so_du_an = fields.Char("Số dự án")
     group_du_an = fields.Char("Group dự án")
     noi_dung = fields.Text("Nội dung")
-    nguoi_qlda = fields.Many2one('res.users', string="Người QLDA")
+    nguoi_qlda = fields.Many2many('res.users', 'ir_qlda_group_rel',
+                                  'qlda_group_rel', 'qlda_rel', string='Người QLDA')
     ngay_kt_da = fields.Date("Ngày kết thúc DA")
     ngay_kt_chinh_sua = fields.Date("Ngày kết thúc chỉnh sửa")
+    du_an_cha = fields.Boolean("Dự án cha")
     du_an_cha_id = fields.Many2one(
         'project.project',
         string="Dự án cha",
