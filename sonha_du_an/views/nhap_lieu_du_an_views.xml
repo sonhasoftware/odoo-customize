@@ -23,12 +23,12 @@
                     </group>
                     <notebook>
                         <page string="Dự án con">
-                            <field name="du_an_con_ids" string="" context="{'default_du_an_cha_id': id, 'default_du_an_cha': False}">
+                            <field name="du_an_con_ids" string="" context="{'default_du_an_cha_id': id, 'default_du_an_cha': False, 'default_ngay_kt_da': ngay_kt_da}">
                                 <tree editable="bottom">
                                     <field name="du_an_cha" column_invisible="1"/>
                                     <field name="name" string="Nội dung dự án"/>
                                     <field name="nguoi_qlda" widget="many2many_tags"/>
-                                    <field name="ngay_kt_da"/>
+                                    <field name="ngay_kt_da" readonly="1"/>
                                 </tree>
                             </field>
                         </page>

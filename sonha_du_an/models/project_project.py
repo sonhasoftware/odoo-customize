@@ -44,25 +44,53 @@ class Project(models.Model):
         for project in self:
             if project.du_an_cha_id:
                 project.du_an_cha = False
+                project.ngay_kt_da = project.du_an_cha_id.ngay_kt_da
 
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
             if vals.get('du_an_cha_id'):
                 vals['du_an_cha'] = False
+                parent = self.env['project.project'].browse(vals['du_an_cha_id'])
+                vals['ngay_kt_da'] = parent.ngay_kt_da
         return super().create(vals_list)
 
     def write(self, vals):
-        today = fields.Date.context_today(self)
-        for record in self:
-            if record.ngay_kt_chinh_sua and record.ngay_kt_chinh_sua < today:
-                raise ValidationError(
-                    'Bản ghi đã quá ngày %s nên không được phép chỉnh sửa.'
-                    % record.date.strftime('%d/%m/%Y')
-                )
-        if vals.get('du_an_cha_id'):
-            vals = dict(vals, du_an_cha=False)
+        if not self.env.context.get('sync_parent_end_date'):
+            today = fields.Date.context_today(self)
+            for record in self:
+                if record.ngay_kt_chinh_sua and record.ngay_kt_chinh_sua < today:
+                    raise ValidationError(
+                        'Bản ghi đã quá ngày %s nên không được phép chỉnh sửa.'
+                        % record.date.strftime('%d/%m/%Y')
+                    )
+
+        # A child project's end date is inherited from its parent.  Write each
+        # record separately because a multi-record write can contain children
+        # belonging to different parents.
+        if 'du_an_cha_id' in vals or 'ngay_kt_da' in vals:
+            for record in self:
+                record_vals = dict(vals)
+                parent_id = record_vals.get('du_an_cha_id', record.du_an_cha_id.id)
+                if parent_id:
+                    parent = self.env['project.project'].browse(parent_id)
+                    record_vals.update(
+                        du_an_cha=False,
+                        ngay_kt_da=parent.ngay_kt_da,
+                    )
+                super(Project, record).write(record_vals)
+                if 'ngay_kt_da' in record_vals:
+                    record._sync_child_project_end_dates()
+            return True
+
         return super().write(vals)
+
+    def _sync_child_project_end_dates(self):
+        """Propagate this project's end date to every direct child project."""
+        for project in self:
+            project.du_an_con_ids.with_context(sync_parent_end_date=True).write({
+                'ngay_kt_da': project.ngay_kt_da,
+            })
 
     @api.constrains('du_an_cha_id')
     def _check_du_an_cha_id(self):
@@ -79,13 +107,11 @@ class Project(models.Model):
         for project in self:
             if (
                 project.du_an_cha_id
-                and project.ngay_kt_da
-                and project.du_an_cha_id.ngay_kt_da
-                and project.ngay_kt_da > project.du_an_cha_id.ngay_kt_da
+                and project.ngay_kt_da != project.du_an_cha_id.ngay_kt_da
             ):
                 raise ValidationError(
                     _(
-                        "Ngày kết thúc dự án con không được lớn hơn ngày kết thúc dự án cha."
+                        "Ngày kết thúc dự án con phải bằng ngày kết thúc dự án cha."
                     )
                 )
 
@@ -104,7 +130,6 @@ class Project(models.Model):
     @api.constrains('du_an_cha_id', 'ngay_kt_da')
     def _check_ngay_kt_da_with_parent(self):
         self._validate_child_project_end_dates()
-        self.mapped('du_an_con_ids')._validate_child_project_end_dates()
         self._validate_child_task_end_dates()
 
     def action_luu_tam(self):
