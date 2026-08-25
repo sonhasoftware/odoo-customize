@@ -32,8 +32,7 @@
                             <t t-set="cell_r" t-value="'padding: 5px; border: 1px solid black; text-align: right; white-space: nowrap;'"/>
 
                             <div class="text-center fw-bold" style="padding-bottom: 14px;">
-                                <span>Chi tiết vật tư cần mua tháng </span>
-                                <span t-esc="doc.period_month or ''"/>
+                                <span t-esc="doc.get_vtcd_report_title()"/>
                             </div>
 
                             <table style="width: 100%; box-sizing: border-box; border-collapse: collapse; border: 1px solid black; font-size: 9pt; font-family: Verdana, Arial, sans-serif; color: #000;">

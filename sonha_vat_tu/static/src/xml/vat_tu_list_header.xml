@@ -475,7 +475,7 @@
         </div>
     </t>
 
-    <!-- Báo cáo định mức vật tư trung bình: Công ty × Tháng (SL SP / SL NVL / ĐMBQ) -->
+    <!-- Báo cáo định mức vật tư trung bình: Công ty × Ngành × Tháng (SL SP / SL NVL / ĐMBQ) -->
     <t t-name="sonha_vat_tu.VatTuBaoCaoDmtbPivotRenderer">
         <div
             class="o_list_renderer o_renderer o_vat_tu_merged_list o_vat_tu_dmtb_pivot"
@@ -508,25 +508,35 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <t t-foreach="getPivotRows()" t-as="row" t-key="row.id">
-                        <tr>
-                            <td class="align-middle text-center">
-                                <span t-esc="row.data.company_code"/>
-                            </td>
-                            <t t-foreach="getMetricSubColumns()" t-as="col" t-key="col.id">
-                                <td t-attf-class="align-middle text-end o_list_number {{ col.metric.highlight ? 'o_dmtb_cell_dmbq' : '' }}">
-                                    <span t-esc="formatMetric(metricValue(row, col.colIndex, col.metric), col.metric)"/>
+                    <t t-foreach="getCompanyGroups()" t-as="companyGroup" t-key="companyGroup.companyCode">
+                        <t t-foreach="companyGroup.rows" t-as="row" t-key="row.id" t-foreach-index="row_index">
+                            <tr t-att-class="rowClass(row)">
+                                <t t-if="row_index === 0">
+                                    <td t-att-rowspan="companyGroup.rows.length"
+                                        class="align-middle text-center o_dmtb_company_cell">
+                                        <span t-esc="companyGroup.companyCode"/>
+                                    </td>
+                                </t>
+                                <td class="align-middle text-center">
+                                    <span t-esc="row.data.nganh_hang_label"/>
                                 </td>
-                            </t>
-                            <td class="align-middle o_dmtb_ghi_chu">
-                                <textarea class="o_dmtb_ghi_chu_input form-control form-control-sm"
-                                          rows="2"
-                                          t-att-value="row.data.ghi_chu || ''"
-                                          t-on-change="(ev) => this.onGhiChuInput(row, ev)"
-                                          t-on-blur="(ev) => this.onGhiChuInput(row, ev)"
-                                          placeholder="Ghi chú..."/>
-                            </td>
-                        </tr>
+                                <t t-foreach="getMetricSubColumns()" t-as="col" t-key="col.id">
+                                    <td t-attf-class="align-middle text-end o_list_number {{ col.metric.highlight ? 'o_dmtb_cell_dmbq' : '' }}">
+                                        <span t-esc="formatMetric(metricValue(row, col.colIndex, col.metric), col.metric, row)"/>
+                                    </td>
+                                </t>
+                                <td class="align-middle o_dmtb_ghi_chu">
+                                    <t t-if="!row.data.is_total_row">
+                                        <textarea class="o_dmtb_ghi_chu_input form-control form-control-sm"
+                                                  rows="2"
+                                                  t-att-value="row.data.ghi_chu || ''"
+                                                  t-on-change="(ev) => this.onGhiChuInput(row, ev)"
+                                                  t-on-blur="(ev) => this.onGhiChuInput(row, ev)"
+                                                  placeholder="Ghi chú..."/>
+                                    </t>
+                                </td>
+                            </tr>
+                        </t>
                     </t>
                 </tbody>
             </table>

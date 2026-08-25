@@ -58,7 +58,7 @@ class MaHang(models.Model):
 
     @api.model
     def get_mdm_sap_meta_map(self, sap_codes):
-        """{ma_sap: {ten_hang, nganh_hang_id, ma_mdm}} từ mdm.tong.hop.line (đủ mọi mã)."""
+        """{ma_sap: {ten_hang, nganh_hang_id, ma_mdm, mdm_hh_type}} từ mdm.tong.hop.line."""
         codes = sorted({(c or '').strip() for c in sap_codes if (c or '').strip()})
         if not codes:
             return {}
@@ -72,6 +72,7 @@ class MaHang(models.Model):
                 'ten_hang': rec.ten or (th.ten if th else '') or '',
                 'nganh_hang_id': th.nganh_hang.id if th and th.nganh_hang else False,
                 'ma_mdm': rec.ma_mdm or '',
+                'mdm_hh_type': (th.mdm_hh_type or '').strip() if th else '',
             }
         return meta_map
 
@@ -85,6 +86,26 @@ class MaHang(models.Model):
             [('ma_dv', 'in', codes)], ['ma_dv'],
         )
         return {(row['ma_dv'] or '').strip() for row in rows if (row.get('ma_dv') or '').strip()}
+
+    @api.model
+    def get_mdm_segment_map(self, ma_codes):
+        """{ma_dv: {linh_vuc_ma, nganh_hang_ma}} từ mdm.tong.hop.line → mdm.tong.hop."""
+        codes = sorted({(c or '').strip() for c in ma_codes if (c or '').strip()})
+        if not codes:
+            return {}
+        result = {}
+        for rec in self.env['mdm.tong.hop.line'].sudo().search([('ma_dv', 'in', codes)]):
+            sap = (rec.ma_dv or '').strip()
+            if not sap or sap in result:
+                continue
+            th = rec.tong_hop_id
+            result[sap] = {
+                'linh_vuc_ma': (th.linh_vuc.ma or '').strip() if th and th.linh_vuc else '',
+                'nganh_hang_ma': (
+                    (th.nganh_hang.ma or '').strip() if th and th.nganh_hang else ''
+                ),
+            }
+        return result
 
     @api.model
     def get_ma_linh_vuc_map(self, ma_codes):

@@ -12,6 +12,13 @@ _B5_TRACKED_FIELDS = {
     'sl_can_mua_theo_moq': 'SL cần mua dựa theo MOQ NCC',
 }
 
+_B5_CAN_DUNG_TRACKED = {
+    'tong_sl_vt_can_dung_t0': 'Cần dùng T0',
+    'tong_sl_vt_can_dung_t1': 'Cần dùng T1',
+    'tong_sl_vt_can_dung_t2': 'Cần dùng T2',
+    'tong_sl_vt_can_dung_t3': 'Cần dùng T3',
+}
+
 _MANUAL_RECOMPUTE_FIELDS = {
     'ma_sap',
     'tong_sl_vt_can_dung_t0', 'tong_sl_vt_can_dung_t1',
@@ -430,7 +437,7 @@ class KhDatVatTu(models.Model):
         'tong_hang_di_duong_sl_t2', 'tong_hang_di_duong_sl_t3',
     )
     def _onchange_manual_qty_inputs(self):
-        for rec in self.filtered('is_manual'):
+        for rec in self:
             vals = rec._apply_manual_totals({
                 'tong_sl_vt_can_dung_t0': rec.tong_sl_vt_can_dung_t0,
                 'tong_sl_vt_can_dung_t1': rec.tong_sl_vt_can_dung_t1,
@@ -442,8 +449,10 @@ class KhDatVatTu(models.Model):
                 'tong_hang_di_duong_sl_t3': rec.tong_hang_di_duong_sl_t3,
             })
             for key in ('tong_vt_can_dung', 'tong_hang_di_duong',
-                        'sl_du_tru_toi_thieu', 'sl_dat_mua_de_xuat'):
-                rec[key] = vals[key]
+                        'sl_du_tru_toi_thieu', 'sl_dat_mua_de_xuat',
+                        'sl_dat_mua_chot', 'sl_can_mua_theo_moq'):
+                if key in vals:
+                    rec[key] = vals[key]
 
     @api.model
     def default_get(self, fields_list):
@@ -483,22 +492,22 @@ class KhDatVatTu(models.Model):
 
     def write(self, vals):
         vals = dict(vals)
-        manual = self.filtered('is_manual')
+        recompute_fields = _MANUAL_RECOMPUTE_FIELDS & set(vals)
         if (
-            manual
-            and (_MANUAL_RECOMPUTE_FIELDS & set(vals))
+            recompute_fields
             and not self.env.context.get('skip_b5_manual_recompute')
         ):
-            for rec in manual:
+            for rec in self:
                 row = {fname: rec[fname] for fname in rec._fields if fname != 'id'}
                 row.update(vals)
-                if 'ma_sap' in vals:
+                if 'ma_sap' in vals and rec.is_manual:
                     row = rec._manual_fill_from_ma_sap(row)
                 else:
                     row = rec._apply_manual_totals(row)
                 patch_keys = {
                     'tong_vt_can_dung', 'tong_hang_di_duong',
                     'sl_du_tru_toi_thieu', 'sl_dat_mua_de_xuat',
+                    'sl_dat_mua_chot', 'sl_can_mua_theo_moq',
                     'tong_ton_nvl_sl', 'don_gia_ton_kho',
                     'ten_nvl', 'don_vi_tinh',
                     'tong_sl_vt_can_dung_t0', 'tong_sl_vt_can_dung_t1',
@@ -509,7 +518,9 @@ class KhDatVatTu(models.Model):
                 patch = {
                     key: row[key]
                     for key in patch_keys
-                    if key in row and key not in _B5_TRACKED_FIELDS
+                    if key in row
+                    and key not in _B5_TRACKED_FIELDS
+                    and key not in _B5_CAN_DUNG_TRACKED
                 }
                 if patch:
                     super(KhDatVatTu, rec.with_context(
@@ -517,7 +528,8 @@ class KhDatVatTu(models.Model):
                         tracking_disable=True,
                     )).write(patch)
 
-        tracked = [fname for fname in _B5_TRACKED_FIELDS if fname in vals]
+        all_tracked = {**_B5_TRACKED_FIELDS, **_B5_CAN_DUNG_TRACKED}
+        tracked = [fname for fname in all_tracked if fname in vals]
         if (
             not tracked
             or self.env.context.get('tracking_disable')
@@ -671,19 +683,40 @@ class KhDatVatTu(models.Model):
                 ),
             )
 
+    def _can_dung_tracked_label(self, fname):
+        """Nhãn log cần dùng theo tháng kỳ (T0..T3)."""
+        idx_map = {
+            'tong_sl_vt_can_dung_t0': 0,
+            'tong_sl_vt_can_dung_t1': 1,
+            'tong_sl_vt_can_dung_t2': 2,
+            'tong_sl_vt_can_dung_t3': 3,
+        }
+        idx = idx_map.get(fname)
+        if idx is None:
+            return _B5_CAN_DUNG_TRACKED.get(fname, fname)
+        period = self.period_id
+        months = list(period._get_horizon_months()[:4]) if period else []
+        month = months[idx] if idx < len(months) else ''
+        return _('Cần dùng %s') % (month or 'T%d' % idx)
+
     def _log_b5_tracked_changes(self, old):
-        """Ghi log lên chatter kỳ khi sửa đề xuất / chốt / MOQ trên tree B5."""
+        """Ghi log lên chatter kỳ khi sửa cần dùng / đề xuất / chốt / MOQ trên B5."""
+        all_tracked = {**_B5_TRACKED_FIELDS, **_B5_CAN_DUNG_TRACKED}
         changes_by_period = {}
-        for fname, static_label in _B5_TRACKED_FIELDS.items():
-            if fname not in old:
-                continue
+        for fname in old:
+            static_label = all_tracked.get(fname)
             for rec in self:
                 ov, nv = old[fname][rec.id], rec[fname]
                 if abs((ov or 0.0) - (nv or 0.0)) <= 1e-9:
                     continue
                 if not rec.period_id:
                     continue
-                label = '%s — Mã NVL %s' % (static_label, rec.ma_sap or '')
+                if fname in _B5_CAN_DUNG_TRACKED:
+                    label = '%s — Mã NVL %s' % (
+                        rec._can_dung_tracked_label(fname), rec.ma_sap or '',
+                    )
+                else:
+                    label = '%s — Mã NVL %s' % (static_label, rec.ma_sap or '')
                 changes_by_period.setdefault(rec.period_id, []).append((
                     self._format_b5_qty(ov),
                     self._format_b5_qty(nv),
