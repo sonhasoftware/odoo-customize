@@ -6,7 +6,11 @@ class Project(models.Model):
     _inherit = 'project.project'
 
     so_du_an = fields.Char("Số dự án")
-    group_du_an = fields.Many2one('group.du.an', string="Group dự án")
+    group_du_an = fields.Many2one(
+        'group.du.an',
+        string="Group dự án",
+        group_expand='_read_group_group_du_an',
+    )
     noi_dung = fields.Text("Nội dung")
     nguoi_qlda = fields.Many2many('res.users', 'ir_qlda_group_rel',
                                   'qlda_group_rel', 'qlda_rel', string='Người QLDA')
@@ -29,6 +33,11 @@ class Project(models.Model):
         'du_an_cha_task_id',
         string="Nhiệm vụ",
     )
+
+    @api.model
+    def _read_group_group_du_an(self, groups, domain, order):
+        """Keep every configured project group visible on the Kanban board."""
+        return self.env['group.du.an'].search([], order=order)
 
     @api.onchange('du_an_cha_id')
     def _onchange_du_an_cha_id(self):
