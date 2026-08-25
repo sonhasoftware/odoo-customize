@@ -1,4 +1,4 @@
-from odoo import api, fields, models
+from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
 
 
@@ -11,43 +11,49 @@ class Project(models.Model):
     nguoi_qlda = fields.Many2one('res.users', string="Người QLDA")
     ngay_kt_da = fields.Date("Ngày kết thúc DA")
     ngay_kt_chinh_sua = fields.Date("Ngày kết thúc chỉnh sửa")
-    parent_du_an_id = fields.Many2one(
+    du_an_cha_id = fields.Many2one(
         'project.project',
         string="Dự án cha",
         index=True,
         ondelete='restrict',
-        domain="[('id', '!=', id)]",
     )
     du_an_con_ids = fields.One2many(
         'project.project',
-        'parent_du_an_id',
+        'du_an_cha_id',
         string="Dự án con",
     )
-    child_task_ids = fields.Many2many(
-        'project.task',
-        compute='_compute_child_task_ids',
-        string="Nhiệm vụ theo dự án con",
-    )
-    is_parent_du_an = fields.Boolean(
-        string="Là dự án cha",
-        compute='_compute_is_parent_du_an',
-    )
 
-    @api.depends('du_an_con_ids')
-    def _compute_is_parent_du_an(self):
+    @api.constrains('du_an_cha_id')
+    def _check_du_an_cha_id(self):
         for project in self:
-            project.is_parent_du_an = bool(project.du_an_con_ids)
-
-    @api.depends('du_an_con_ids.task_ids')
-    def _compute_child_task_ids(self):
-        for project in self:
-            project.child_task_ids = project.du_an_con_ids.mapped('task_ids')
-
-    @api.constrains('parent_du_an_id')
-    def _check_parent_du_an_id(self):
-        for project in self:
-            parent = project.parent_du_an_id
+            parent = project.du_an_cha_id
             while parent:
                 if parent == project:
-                    raise ValidationError("Dự án cha/con không được tạo vòng lặp.")
-                parent = parent.parent_du_an_id
+                    raise ValidationError(
+                        _("Dự án cha không được tạo thành vòng lặp với dự án con.")
+                    )
+                parent = parent.du_an_cha_id
+
+    def action_luu_tam(self):
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Đã lưu tạm'),
+                'message': _('Dữ liệu dự án đã được lưu tạm, bạn có thể chọn ở trường Dự án con.'),
+                'type': 'success',
+                'sticky': False,
+            }
+        }
+
+    def action_view_tasks(self):
+        action = super().action_view_tasks()
+        if len(self) == 1:
+            action['domain'] = [('project_id', '=', self.id)]
+            context = dict(action.get('context') or {})
+            context.update({
+                'default_project_id': self.id,
+                'default_cap': self.id,
+            })
+            action['context'] = context
+        return action
