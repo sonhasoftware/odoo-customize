@@ -480,9 +480,8 @@ class MDMTongHop(models.Model):
         if not self.env.context.get('skip_mdm_similarity'):
             for r in self:
                 self.create_write_action_data(r)
-        if not self.env.context.get('skip_mdm_api_sync'):
-            for r in self:
-                self.call_api_update(r)
+        for r in self:
+            self.call_api_update(r)
         return res
 
     def action_view_popup(self):
