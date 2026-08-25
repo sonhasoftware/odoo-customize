@@ -40,6 +40,11 @@
                   class="sh_free_width_tree o_vat_tu_dmtb_report"
                   js_class="vat_tu_bao_cao_dmtb_list_view">
                 <field name="company_code" column_invisible="1"/>
+                <field name="nganh_hang_label" column_invisible="1"/>
+                <field name="is_btp_row" column_invisible="1"/>
+                <field name="is_total_row" column_invisible="1"/>
+                <field name="sequence" column_invisible="1"/>
+                <field name="row_key" column_invisible="1"/>
                 <field name="metrics_json" column_invisible="1"/>
                 <field name="ghi_chu" column_invisible="1"/>
                 <field name="wizard_id" column_invisible="1"/>
@@ -54,7 +59,7 @@
         <field name="binding_view_types">list</field>
         <field name="state">code</field>
         <field name="code">
-            action = records.action_export_excel()
+               action = (records or env['bao.cao.dinh.muc.vt.tb.line']).action_export_excel()
         </field>
     </record>
 

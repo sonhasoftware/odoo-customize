@@ -21,10 +21,10 @@
                 <field name="gia_tri_ton_nvl_dau_ky" string="Giá trị tồn NVL" widget="monetary"/>
 
                 <!-- Cần dùng T0..T3 + Tổng -->
-                <field name="tong_sl_vt_can_dung_t0" readonly="not is_manual"/>
-                <field name="tong_sl_vt_can_dung_t1" readonly="not is_manual"/>
-                <field name="tong_sl_vt_can_dung_t2" readonly="not is_manual"/>
-                <field name="tong_sl_vt_can_dung_t3" readonly="not is_manual"/>
+                <field name="tong_sl_vt_can_dung_t0"/>
+                <field name="tong_sl_vt_can_dung_t1"/>
+                <field name="tong_sl_vt_can_dung_t2"/>
+                <field name="tong_sl_vt_can_dung_t3"/>
                 <field name="tong_vt_can_dung" string="Tổng cần dùng" readonly="1"/>
 
                 <!-- Đi đường T0..T3: chỉ số lượng (đơn vị SX không nhập đơn giá) -->
