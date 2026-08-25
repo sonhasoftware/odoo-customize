@@ -37,7 +37,7 @@
                         <page string="Nhập nhiệm vụ">
                             <field name="task_ids" string="">
                                 <tree editable="bottom">
-                                    <field name="cap" domain="[('du_an_cha_id', '=', parent.id)]"/>
+                                    <field name="cap"/>
                                     <field name="name" required="0"/>
                                     <field name="noi_dung_cv"/>
                                     <field name="so_ngay_ht"/>

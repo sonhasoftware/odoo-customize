@@ -9,7 +9,6 @@ class Task(models.Model):
     cap = fields.Many2one(
         'project.project',
         string="Dự án con",
-        domain="[('du_an_cha_id', '!=', False)]",
     )
     noi_dung_cv = fields.Text("Nội dung công việc", required=True)
     so_ngay_ht = fields.Float("Số ngày hoàn thành", required=True)
