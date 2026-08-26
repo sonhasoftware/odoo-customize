@@ -5,55 +5,101 @@ from odoo.exceptions import ValidationError
 class Project(models.Model):
     _inherit = 'project.project'
 
-    so_du_an = fields.Char("Số dự án")
-    group_du_an = fields.Many2one('group.du.an', string="Group dự án")
-    noi_dung = fields.Text("Nội dung")
+    so_du_an = fields.Char("Số dự án", store=True)
+    group_du_an = fields.Many2one(
+        'group.du.an',
+        string="Group dự án", store=True
+    )
+    noi_dung = fields.Text("Nội dung", store=True)
     nguoi_qlda = fields.Many2many('res.users', 'ir_qlda_group_rel',
-                                  'qlda_group_rel', 'qlda_rel', string='Người QLDA')
-    ngay_kt_da = fields.Date("Ngày kết thúc DA")
-    ngay_kt_chinh_sua = fields.Date("Ngày kết thúc chỉnh sửa")
-    du_an_cha = fields.Boolean("Dự án cha", default=True)
+                                  'qlda_group_rel', 'qlda_rel', string='Người QLDA', store=True)
+    ngay_kt_da = fields.Date("Ngày kết thúc DA", store=True)
+    ngay_kt_chinh_sua = fields.Date("Ngày kết thúc chỉnh sửa", store=True)
+    du_an_cha = fields.Boolean("Dự án cha", default=True, store=True)
     du_an_cha_id = fields.Many2one(
         'project.project',
         string="Dự án cha",
         index=True,
-        ondelete='restrict',
+        ondelete='restrict', store=True
     )
     du_an_con_ids = fields.One2many(
         'project.project',
         'du_an_cha_id',
-        string="Dự án con",
+        string="Dự án con", store=True
     )
     nhiem_vu_du_an_ids = fields.One2many(
         'project.task',
         'du_an_cha_task_id',
-        string="Nhiệm vụ",
+        string="Nhiệm vụ", store=True
     )
+
+    ten = fields.Char("Tên dự án", store=True, compute="get_name_duan")
+
+    ngay_bat_dau = fields.Date("Ngày bắt đầu", store=True)
+
+    @api.depends('name')
+    def get_name_duan(self):
+        for r in self:
+            if r.name:
+                r.ten = r.name
+
+    # @api.model
+    # def _read_group_group_du_an(self, groups, domain, order):
+    #     """Keep every configured project group visible on the Kanban board."""
+    #     return self.env['group.du.an'].search([], order=order)
 
     @api.onchange('du_an_cha_id')
     def _onchange_du_an_cha_id(self):
         for project in self:
             if project.du_an_cha_id:
                 project.du_an_cha = False
+                project.ngay_kt_da = project.du_an_cha_id.ngay_kt_da
 
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
             if vals.get('du_an_cha_id'):
                 vals['du_an_cha'] = False
+                parent = self.env['project.project'].browse(vals['du_an_cha_id'])
+                vals['ngay_kt_da'] = parent.ngay_kt_da
         return super().create(vals_list)
 
     def write(self, vals):
-        today = fields.Date.context_today(self)
-        for record in self:
-            if record.ngay_kt_chinh_sua and record.ngay_kt_chinh_sua < today:
-                raise ValidationError(
-                    'Bản ghi đã quá ngày %s nên không được phép chỉnh sửa.'
-                    % record.date.strftime('%d/%m/%Y')
-                )
-        if vals.get('du_an_cha_id'):
-            vals = dict(vals, du_an_cha=False)
+        if not self.env.context.get('sync_parent_end_date'):
+            today = fields.Date.context_today(self)
+            for record in self:
+                if record.ngay_kt_chinh_sua and record.ngay_kt_chinh_sua < today:
+                    raise ValidationError(
+                        'Bản ghi đã quá ngày %s nên không được phép chỉnh sửa.'
+                        % record.date.strftime('%d/%m/%Y')
+                    )
+
+        # A child project's end date is inherited from its parent.  Write each
+        # record separately because a multi-record write can contain children
+        # belonging to different parents.
+        if 'du_an_cha_id' in vals or 'ngay_kt_da' in vals:
+            for record in self:
+                record_vals = dict(vals)
+                parent_id = record_vals.get('du_an_cha_id', record.du_an_cha_id.id)
+                if parent_id:
+                    parent = self.env['project.project'].browse(parent_id)
+                    record_vals.update(
+                        du_an_cha=False,
+                        ngay_kt_da=parent.ngay_kt_da,
+                    )
+                super(Project, record).write(record_vals)
+                if 'ngay_kt_da' in record_vals:
+                    record._sync_child_project_end_dates()
+            return True
+
         return super().write(vals)
+
+    def _sync_child_project_end_dates(self):
+        """Propagate this project's end date to every direct child project."""
+        for project in self:
+            project.du_an_con_ids.with_context(sync_parent_end_date=True).write({
+                'ngay_kt_da': project.ngay_kt_da,
+            })
 
     @api.constrains('du_an_cha_id')
     def _check_du_an_cha_id(self):
@@ -70,13 +116,11 @@ class Project(models.Model):
         for project in self:
             if (
                 project.du_an_cha_id
-                and project.ngay_kt_da
-                and project.du_an_cha_id.ngay_kt_da
-                and project.ngay_kt_da > project.du_an_cha_id.ngay_kt_da
+                and project.ngay_kt_da != project.du_an_cha_id.ngay_kt_da
             ):
                 raise ValidationError(
                     _(
-                        "Ngày kết thúc dự án con không được lớn hơn ngày kết thúc dự án cha."
+                        "Ngày kết thúc dự án con phải bằng ngày kết thúc dự án cha."
                     )
                 )
 
@@ -95,29 +139,24 @@ class Project(models.Model):
     @api.constrains('du_an_cha_id', 'ngay_kt_da')
     def _check_ngay_kt_da_with_parent(self):
         self._validate_child_project_end_dates()
-        self.mapped('du_an_con_ids')._validate_child_project_end_dates()
         self._validate_child_task_end_dates()
 
-    def action_luu_tam(self):
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'title': _('Đã lưu tạm'),
-                'message': _('Dữ liệu dự án đã được lưu tạm, bạn có thể chọn ở trường Dự án con.'),
-                'type': 'success',
-                'sticky': False,
-            }
-        }
-
     def action_view_tasks(self):
+        """Open base Project tasks with the fixed workflow Kanban.
+
+        The native Project action can select another Kanban view depending on
+        its action configuration.  Explicitly selecting our inherited view
+        makes the four fixed columns apply when users enter tasks from the
+        standard Project application as well as from custom project screens.
+        """
         action = super().action_view_tasks()
-        if len(self) == 1:
-            action['domain'] = [('du_an_cha_task_id', '=', self.id)]
-            context = dict(action.get('context') or {})
-            context.update({
-                'default_project_id': self.id,
-                'default_du_an_cha_task_id': self.id,
-            })
-            action['context'] = context
+        fixed_kanban_view = self.env.ref(
+            'sonha_du_an.view_task_kanban_fixed_stages'
+        )
+        action['views'] = [(fixed_kanban_view.id, 'kanban')] + [
+            view for view in action.get('views', []) if view[1] != 'kanban'
+        ]
+        context = dict(action.get('context') or {})
+        context['group_by'] = 'stage_id'
+        action['context'] = context
         return action

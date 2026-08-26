@@ -17,18 +17,19 @@
                         </group>
                         <group>
                             <field name="nguoi_qlda" widget="many2many_tags"/>
+                            <field name="ngay_bat_dau"/>
                             <field name="ngay_kt_da"/>
                             <field name="ngay_kt_chinh_sua"/>
                         </group>
                     </group>
                     <notebook>
                         <page string="Dự án con">
-                            <field name="du_an_con_ids" string="" context="{'default_du_an_cha_id': id, 'default_du_an_cha': False}">
+                            <field name="du_an_con_ids" string="" context="{'default_du_an_cha_id': id, 'default_du_an_cha': False, 'default_ngay_kt_da': ngay_kt_da}">
                                 <tree editable="bottom">
                                     <field name="du_an_cha" column_invisible="1"/>
                                     <field name="name" string="Nội dung dự án"/>
                                     <field name="nguoi_qlda" widget="many2many_tags"/>
-                                    <field name="ngay_kt_da"/>
+                                    <field name="ngay_kt_da" readonly="1"/>
                                 </tree>
                             </field>
                         </page>
@@ -78,15 +79,6 @@
             <field name="view_ids" eval="[(5, 0, 0),
                 (0, 0, {'view_mode': 'tree', 'view_id': ref('view_nhap_lieu_du_an_tree')}),
                 (0, 0, {'view_mode': 'form', 'view_id': ref('view_nhap_lieu_du_an_form')})]"/>
-            <field name="domain">[('du_an_cha', '=', True)]</field>
         </record>
 
-    <record id="action_theo_doi_nhiem_vu_du_an_con" model="ir.actions.act_window">
-        <field name="name">Theo dõi nhiệm vụ dự án con</field>
-        <field name="type">ir.actions.act_window</field>
-        <field name="res_model">project.project</field>
-        <field name="domain">[('du_an_cha_id', '!=', False)]</field>
-        <field name="view_mode">kanban,tree,form</field>
-        <field name="context">{'search_default_favorite_projects': 0}</field>
-    </record>
 </odoo>

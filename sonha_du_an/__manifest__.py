@@ -11,6 +11,7 @@
         'security/security.xml',
         'security/ir.model.access.csv',
         'views/nhap_lieu_du_an_views.xml',
+        'views/project_task_status_views.xml',
         'views/group_du_an_views.xml',
         'views/menu.xml'
     ],

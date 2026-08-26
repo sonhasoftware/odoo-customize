@@ -17,18 +17,33 @@ class Task(models.Model):
         'project.project',
         string="Dự án con",
     )
-    noi_dung_cv = fields.Text("Nội dung công việc")
-    so_ngay_ht = fields.Float("Số ngày hoàn thành", required=True)
-    ngay_bat_dau = fields.Date("Ngày bắt đầu", required=True)
-    ngay_ket_thuc = fields.Date("Ngày kết thúc", compute="get_ngay_ket_thuc")
-    ngay_hoan_thanh = fields.Date("Ngày hoàn thành")
-    so_ngay_pending = fields.Float("Số ngày Pending")
+    noi_dung_cv = fields.Text("Nội dung công việc", store=True)
+    so_ngay_ht = fields.Float("Số ngày hoàn thành", required=True, store=True)
+    ngay_bat_dau = fields.Date("Ngày bắt đầu", required=True, store=True)
+    ngay_ket_thuc = fields.Date("Ngày kết thúc", compute="get_ngay_ket_thuc", store=True)
+    ngay_hoan_thanh = fields.Date("Ngày hoàn thành", store=True)
+    so_ngay_pending = fields.Float("Số ngày Pending", store=True)
 
     ns_lam = fields.Many2many('res.users', 'ir_ns_lam_group_rel',
-                                  'ns_lam_group_rel', 'ns_lam_rel', string='NS làm')
+                                  'ns_lam_group_rel', 'ns_lam_rel', string='NS làm', store=True)
 
     chu_so_huu = fields.Many2many('res.users', 'ir_chu_so_huu_group_rel',
-                                  'chu_so_huu_group_rel', 'chu_so_huu_rel', string='Chủ sở hữu')
+                                  'chu_so_huu_group_rel', 'chu_so_huu_rel', string='Chủ sở hữu', store=True)
+
+    trang_thai = fields.Selection([('kt', 'Khởi tạo'), ('run', 'Đang chạy'),
+                                   ('ht', 'Hoàn thành'), ('pd', 'Pending')],
+                                  string='Trạng thái',
+                                  default='kt',
+                                  group_expand='_group_expand_trang_thai', store=True)
+
+    @api.model
+    def _group_expand_trang_thai(self, states, domain, order):
+        return [
+            'kt',
+            'run',
+            'ht',
+            'pd',
+        ]
 
     def _get_project_end_date_limit(self):
         self.ensure_one()
@@ -60,11 +75,15 @@ class Task(models.Model):
     def _onchange_cap(self):
         if self.cap:
             self.project_id = self.cap
-            self.du_an_cha_task_id = self.cap.du_an_cha_id
+            self.du_an_cha_task_id = self.cap
 
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
+            # Do not let a project-specific default stage reintroduce custom
+            # workflow columns when tasks are created from the standard Project app.
+            if not vals.get('stage_id'):
+                vals['stage_id'] = self._get_default_stage_id()
             if vals.get('cap'):
                 vals['project_id'] = vals['cap']
                 if not vals.get('du_an_cha_task_id'):
@@ -87,3 +106,19 @@ class Task(models.Model):
                 r.ngay_ket_thuc = r.ngay_bat_dau + timedelta(days=r.so_ngay_ht)
             else:
                 r.ngay_ket_thuc = False
+
+    def action_run(self):
+        for r in self:
+            r.trang_thai = 'run'
+
+    def action_done(self):
+        for r in self:
+            r.trang_thai = 'done'
+
+    def action_reset(self):
+        for r in self:
+            r.trang_thai = 'kt'
+
+    def action_tam_dung(self):
+        for r in self:
+            r.trang_thai = 'pd'

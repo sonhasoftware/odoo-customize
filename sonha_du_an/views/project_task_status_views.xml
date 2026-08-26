@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Extend the native task Kanban; do not create a separate task screen. -->
+    <record id="view_task_kanban_fixed_stages" model="ir.ui.view">
+        <field name="name">project.task.kanban.fixed.stages</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban" position="attributes">
+                <attribute name="default_group_by">trang_thai</attribute>
+                <attribute name="records_draggable">false</attribute>
+                <attribute name="group_create">false</attribute>
+                <attribute name="group_edit">false</attribute>
+                <attribute name="group_delete">false</attribute>
+            </xpath>
+
+            <xpath expr="//kanban" position="inside">
+                <field name="trang_thai"/>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- Use the standard task form and replace the editable stage selector with buttons. -->
+    <record id="view_task_form_fixed_stages" model="ir.ui.view">
+        <field name="name">project.task.form.fixed.stages</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_form2"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_run" invisible="trang_thai != 'kt'" type="object" string="Chạy" class="btn-primary"/>
+                <button name="action_done" invisible="trang_thai != 'run'" type="object" string="Hoàn Thành" class="btn-success"/>
+                <button name="action_reset" invisible="trang_thai != 'run'" type="object" string="Trở lại khởi tạo" class="btn-success"/>
+                <button name="action_tam_dung" invisible="trang_thai != 'run'" type="object" string="Tạm dừng" class="btn-warning"/>
+                <field name="trang_thai" widget="statusbar"/>
+            </xpath>
+            <xpath expr="//field[@name='stage_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
