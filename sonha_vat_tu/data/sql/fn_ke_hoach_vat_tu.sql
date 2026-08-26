@@ -1074,7 +1074,8 @@ BEGIN
         ve_du_kien_bcu_dg_t0, ve_du_kien_bcu_dg_t1, ve_du_kien_bcu_dg_t2, ve_du_kien_bcu_dg_t3,
         ve_du_kien_bcu_gt_t0, ve_du_kien_bcu_gt_t1, ve_du_kien_bcu_gt_t2, ve_du_kien_bcu_gt_t3,
         tong_ve_du_kien_bcu, tong_gia_tri_bcu,
-        sl_du_tru_toi_thieu, sl_dat_mua_de_xuat, sl_dat_mua_chot, sl_can_mua_theo_moq,
+        sl_du_tru_toi_thieu, sl_du_tru_toi_thieu_bcu,
+        sl_dat_mua_de_xuat, sl_dat_mua_chot, sl_can_mua_theo_moq,
         don_gia_mua,
         create_uid, write_uid, create_date, write_date
     )
@@ -1095,18 +1096,41 @@ BEGIN
         COALESCE(vbcu.gt_t0, 0), COALESCE(vbcu.gt_t1, 0), COALESCE(vbcu.gt_t2, 0), COALESCE(vbcu.gt_t3, 0),
         COALESCE(vbcu.qty_total, 0), COALESCE(vbcu.gt_total, 0),
         b5.sl_du_tru_toi_thieu,
-        (b5.tong_ton_nvl_sl - b5.tong_vt_can_dung + COALESCE(vbcu.qty_total, 0) - b5.sl_du_tru_toi_thieu),
-        CASE WHEN (b5.tong_ton_nvl_sl - b5.tong_vt_can_dung + COALESCE(vbcu.qty_total, 0) - b5.sl_du_tru_toi_thieu) > 0
+        b5.sl_du_tru_bcu,
+        (b5.tong_ton_nvl_sl - b5.tong_vt_can_dung + COALESCE(vbcu.qty_total, 0) - b5.sl_du_tru_bcu),
+        CASE WHEN (b5.tong_ton_nvl_sl - b5.tong_vt_can_dung + COALESCE(vbcu.qty_total, 0) - b5.sl_du_tru_bcu) > 0
              THEN 0.0
-             ELSE -(b5.tong_ton_nvl_sl - b5.tong_vt_can_dung + COALESCE(vbcu.qty_total, 0) - b5.sl_du_tru_toi_thieu)
+             ELSE -(b5.tong_ton_nvl_sl - b5.tong_vt_can_dung + COALESCE(vbcu.qty_total, 0) - b5.sl_du_tru_bcu)
         END,
-        CASE WHEN (b5.tong_ton_nvl_sl - b5.tong_vt_can_dung + COALESCE(vbcu.qty_total, 0) - b5.sl_du_tru_toi_thieu) > 0
-             THEN 0.0
-             ELSE -(b5.tong_ton_nvl_sl - b5.tong_vt_can_dung + COALESCE(vbcu.qty_total, 0) - b5.sl_du_tru_toi_thieu)
-        END,
+        b5.sl_can_mua_theo_moq,
         b5.don_gia_mua,
         1, 1, NOW(), NOW()
-    FROM kh_dat_vat_tu b5
+    FROM (
+        SELECT b5_inner.*,
+            (
+                CASE WHEN COALESCE(b5_inner.tong_sl_vt_can_dung_t0, 0) > 0 THEN 1 ELSE 0 END
+              + CASE WHEN COALESCE(b5_inner.tong_sl_vt_can_dung_t1, 0) > 0 THEN 1 ELSE 0 END
+              + CASE WHEN COALESCE(b5_inner.tong_sl_vt_can_dung_t2, 0) > 0 THEN 1 ELSE 0 END
+              + CASE WHEN COALESCE(b5_inner.tong_sl_vt_can_dung_t3, 0) > 0 THEN 1 ELSE 0 END
+            ) AS n_months_bcu,
+            CASE
+                WHEN (
+                    CASE WHEN COALESCE(b5_inner.tong_sl_vt_can_dung_t0, 0) > 0 THEN 1 ELSE 0 END
+                  + CASE WHEN COALESCE(b5_inner.tong_sl_vt_can_dung_t1, 0) > 0 THEN 1 ELSE 0 END
+                  + CASE WHEN COALESCE(b5_inner.tong_sl_vt_can_dung_t2, 0) > 0 THEN 1 ELSE 0 END
+                  + CASE WHEN COALESCE(b5_inner.tong_sl_vt_can_dung_t3, 0) > 0 THEN 1 ELSE 0 END
+                ) > 0
+                THEN COALESCE(b5_inner.tong_vt_can_dung, 0) / (
+                    CASE WHEN COALESCE(b5_inner.tong_sl_vt_can_dung_t0, 0) > 0 THEN 1 ELSE 0 END
+                  + CASE WHEN COALESCE(b5_inner.tong_sl_vt_can_dung_t1, 0) > 0 THEN 1 ELSE 0 END
+                  + CASE WHEN COALESCE(b5_inner.tong_sl_vt_can_dung_t2, 0) > 0 THEN 1 ELSE 0 END
+                  + CASE WHEN COALESCE(b5_inner.tong_sl_vt_can_dung_t3, 0) > 0 THEN 1 ELSE 0 END
+                )::numeric
+                ELSE 0.0
+            END AS sl_du_tru_bcu
+        FROM kh_dat_vat_tu b5_inner
+        WHERE b5_inner.period_id = p_period_id
+    ) b5
     LEFT JOIN LATERAL (
         SELECT
             SUM(CASE WHEN vdd.month_key = v_month_t0 THEN COALESCE(vdd.so_luong, 0) ELSE 0 END) AS qty_t0,

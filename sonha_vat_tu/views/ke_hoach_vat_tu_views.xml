@@ -433,7 +433,7 @@
                             <field name="tong_hang_di_duong_sl_t3" readonly="not is_manual"/>
                             <field name="tong_hang_di_duong" string="Tổng SL đi đường" readonly="1"/>
 
-                            <field name="sl_du_tru_toi_thieu" string="Dự trữ tối thiểu" readonly="1"/>
+                            <field name="sl_du_tru_toi_thieu" string="Dự trữ tối thiểu đơn vị" readonly="1"/>
                             <field name="sl_dat_mua_de_xuat" string="Đề xuất đặt mua"/>
                             <field name="sl_dat_mua_chot" string="Đặt mua chốt"/>
                             <field name="sl_can_mua_theo_moq" string="SL cần mua dựa theo MOQ NCC"/>
@@ -541,7 +541,8 @@
                             <field name="tong_ve_du_kien_bcu" string="Tổng SL đi đường BCU" readonly="1"/>
                             <field name="tong_gia_tri_bcu" string="Tổng GT đi đường BCU" readonly="1" widget="monetary"/>
 
-                            <field name="sl_du_tru_toi_thieu" string="Dự trữ tối thiểu" readonly="1"/>
+                            <field name="sl_du_tru_toi_thieu" string="Dự trữ tối thiểu đơn vị" readonly="1"/>
+                            <field name="sl_du_tru_toi_thieu_bcu" string="Dự trữ tối thiểu BCU" readonly="1"/>
                             <field name="sl_dat_mua_de_xuat" string="Đề xuất đặt mua" readonly="1"/>
                             <field name="sl_dat_mua_chot" string="Đặt mua chốt BCU"/>
                             <field name="sl_can_mua_theo_moq" string="SL cần mua dựa theo MOQ NCC"/>

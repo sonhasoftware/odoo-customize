@@ -102,7 +102,13 @@ class KhDatVatTuBcu(models.Model):
     tong_gia_tri_bcu = fields.Monetary(
         string='Tổng GT đi đường BCU', currency_field='currency_id')
 
-    sl_du_tru_toi_thieu = fields.Float(string='Dự trữ tối thiểu', digits=(16, 3))
+    sl_du_tru_toi_thieu = fields.Float(string='Dự trữ tối thiểu đơn vị', digits=(16, 3))
+    sl_du_tru_toi_thieu_bcu = fields.Float(
+        string='Dự trữ tối thiểu BCU',
+        compute='_compute_sl_du_tru_toi_thieu_bcu',
+        store=True,
+        digits=(16, 3),
+    )
     sl_dat_mua_de_xuat = fields.Float(
         string='SL đặt mua đề xuất',
         compute='_compute_sl_dat_mua_de_xuat',
@@ -151,6 +157,29 @@ class KhDatVatTuBcu(models.Model):
     def _count_months_with_can_dung(t0, t1, t2, t3):
         return sum(1 for qty in (t0, t1, t2, t3) if (qty or 0.0) > 0)
 
+    def _sl_du_tru_bcu_value(self):
+        """Tổng cần dùng / số tháng có dữ liệu cần dùng."""
+        self.ensure_one()
+        n_months = self._count_months_with_can_dung(
+            self.tong_sl_vt_can_dung_t0,
+            self.tong_sl_vt_can_dung_t1,
+            self.tong_sl_vt_can_dung_t2,
+            self.tong_sl_vt_can_dung_t3,
+        )
+        tcd = self.tong_vt_can_dung or 0.0
+        return tcd / n_months if n_months > 0 else 0.0
+
+    @api.depends(
+        'tong_vt_can_dung',
+        'tong_sl_vt_can_dung_t0',
+        'tong_sl_vt_can_dung_t1',
+        'tong_sl_vt_can_dung_t2',
+        'tong_sl_vt_can_dung_t3',
+    )
+    def _compute_sl_du_tru_toi_thieu_bcu(self):
+        for rec in self:
+            rec.sl_du_tru_toi_thieu_bcu = rec._sl_du_tru_bcu_value()
+
     def _tdd_bcu(self):
         """Tổng SL đi đường BCU — bước 6 tính theo số này, không dùng đi đường đơn vị."""
         self.ensure_one()
@@ -173,13 +202,13 @@ class KhDatVatTuBcu(models.Model):
         ton_dau = self.tong_ton_nvl_sl or 0.0
         tcd = self.tong_vt_can_dung or 0.0
         tdd = self._tdd_bcu()
-        sl_du_tru = self.sl_du_tru_toi_thieu or 0.0
+        sl_du_tru = self.sl_du_tru_toi_thieu_bcu or 0.0
         return ton_dau - tcd + tdd - sl_du_tru
 
     @api.depends(
         'tong_ton_nvl_sl',
         'tong_vt_can_dung',
-        'sl_du_tru_toi_thieu',
+        'sl_du_tru_toi_thieu_bcu',
         'tong_ve_du_kien_bcu',
         've_du_kien_bcu_t0',
         've_du_kien_bcu_t1',
@@ -252,7 +281,7 @@ class KhDatVatTuBcu(models.Model):
 
     @api.model
     def _apply_chot_from_bcu_di_duong(self, records):
-        """Sau khi cập nhật đi đường BCU: tính lại chốt/moq theo công thức B5."""
+        """Sau khi cập nhật đi đường BCU: tính lại đặt mua chốt BCU (giữ nguyên MOQ từ B5)."""
         if not records:
             return
         ids, chots = [], []
@@ -265,7 +294,6 @@ class KhDatVatTuBcu(models.Model):
         self.env.cr.execute("""
             UPDATE kh_dat_vat_tu_bcu AS b SET
                 sl_dat_mua_chot = v.chot,
-                sl_can_mua_theo_moq = v.chot,
                 write_uid = %s,
                 write_date = NOW() AT TIME ZONE 'UTC'
             FROM (
@@ -275,7 +303,7 @@ class KhDatVatTuBcu(models.Model):
             WHERE b.id = v.id
         """, [self.env.uid, ids, chots])
         records.invalidate_recordset([
-            'sl_dat_mua_chot', 'sl_can_mua_theo_moq', 'write_uid', 'write_date',
+            'sl_dat_mua_chot', 'write_uid', 'write_date',
         ])
 
     @api.model

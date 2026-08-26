@@ -19,22 +19,29 @@ _B5_CAN_DUNG_TRACKED = {
     'tong_sl_vt_can_dung_t3': 'Cần dùng T3',
 }
 
-_MANUAL_RECOMPUTE_FIELDS = {
-    'ma_sap',
+_B5_QTY_FIELDS = (
     'tong_sl_vt_can_dung_t0', 'tong_sl_vt_can_dung_t1',
     'tong_sl_vt_can_dung_t2', 'tong_sl_vt_can_dung_t3',
+)
+_B5_DD_FIELDS = (
     'tong_hang_di_duong_sl_t0', 'tong_hang_di_duong_sl_t1',
     'tong_hang_di_duong_sl_t2', 'tong_hang_di_duong_sl_t3',
-}
+)
 
-_B5_MANUAL_CAN_FIELDS = (
-    'tong_sl_vt_can_dung_t0', 'tong_sl_vt_can_dung_t1',
-    'tong_sl_vt_can_dung_t2', 'tong_sl_vt_can_dung_t3',
+_MANUAL_RECOMPUTE_FIELDS = {'ma_sap', *_B5_QTY_FIELDS, *_B5_DD_FIELDS}
+
+# Cột sinh lại khi đổi cần dùng / đi đường trên B5.
+_B5_PLAN_OUTPUT_FIELDS = (
+    'tong_vt_can_dung',
+    'tong_hang_di_duong',
+    'sl_du_tru_toi_thieu',
+    'sl_dat_mua_de_xuat',
+    'sl_dat_mua_chot',
+    'sl_can_mua_theo_moq',
 )
-_B5_MANUAL_DD_FIELDS = (
-    'tong_hang_di_duong_sl_t0', 'tong_hang_di_duong_sl_t1',
-    'tong_hang_di_duong_sl_t2', 'tong_hang_di_duong_sl_t3',
-)
+
+_B5_MANUAL_CAN_FIELDS = _B5_QTY_FIELDS
+_B5_MANUAL_DD_FIELDS = _B5_DD_FIELDS
 
 
 class KhDatVatTu(models.Model):
@@ -110,7 +117,7 @@ class KhDatVatTu(models.Model):
     tong_gia_tri_di_duong = fields.Monetary(
         string='Tổng giá trị đi đường', currency_field='currency_id')
 
-    sl_du_tru_toi_thieu = fields.Float(string='Dự trữ tối thiểu', digits=(16, 3))
+    sl_du_tru_toi_thieu = fields.Float(string='Dự trữ tối thiểu đơn vị', digits=(16, 3))
     sl_dat_mua_de_xuat = fields.Float(string='SL đặt mua đề xuất', digits=(16, 3))
     sl_dat_mua_chot = fields.Float(string='SL đặt mua chốt', digits=(16, 3))
     sl_can_mua_theo_moq = fields.Float(string='SL cần mua dựa theo MOQ NCC', digits=(16, 3))
@@ -300,43 +307,86 @@ class KhDatVatTu(models.Model):
             'gia_tri_mua_hang': gia_tri_mua,
         }
 
-    def _b5_plan_values(self):
-        """Dự trữ / đề xuất / chốt / MOQ ban đầu — khớp procedure B5."""
-        self.ensure_one()
-        ngay_dt = self.period_id.ngay_du_tru_b5 if self.period_id else 20.0
-        if not ngay_dt:
-            ngay_dt = 20.0
-        cd_t0 = self.tong_sl_vt_can_dung_t0 or 0.0
+    @staticmethod
+    def _calc_b5_plan(ton_dau, t0, t1, t2, t3, dd_t0, dd_t1, dd_t2, dd_t3, ngay_dt=20.0):
+        """Công thức B5 thuần — khớp fn_ke_hoach_dat_vat_tu (procedure SQL)."""
+        tcd = (t0 or 0.0) + (t1 or 0.0) + (t2 or 0.0) + (t3 or 0.0)
+        tdd = (dd_t0 or 0.0) + (dd_t1 or 0.0) + (dd_t2 or 0.0) + (dd_t3 or 0.0)
+        cd_t0 = t0 or 0.0
+        ngay_dt = ngay_dt or 20.0
         sl_du_tru = (cd_t0 / 28.0) * ngay_dt if cd_t0 > 0 else 0.0
-        ton_dau = self.tong_ton_nvl_sl or 0.0
-        tcd = self.tong_vt_can_dung or 0.0
-        tdd = self.tong_hang_di_duong or 0.0
+        ton_dau = ton_dau or 0.0
         sl_de_xuat = ton_dau - tcd + tdd - sl_du_tru
         sl_chot = 0.0 if sl_de_xuat > 0 else -sl_de_xuat
         return {
+            'tong_vt_can_dung': tcd,
+            'tong_hang_di_duong': tdd,
             'sl_du_tru_toi_thieu': sl_du_tru,
             'sl_dat_mua_de_xuat': sl_de_xuat,
             'sl_dat_mua_chot': sl_chot,
             'sl_can_mua_theo_moq': sl_chot,
         }
 
-    def _apply_manual_totals(self, vals):
-        """Cập nhật tổng cần dùng / đi đường và các cột kế hoạch đặt mua."""
-        qty_fields = (
-            'tong_sl_vt_can_dung_t0', 'tong_sl_vt_can_dung_t1',
-            'tong_sl_vt_can_dung_t2', 'tong_sl_vt_can_dung_t3',
-        )
-        dd_fields = (
-            'tong_hang_di_duong_sl_t0', 'tong_hang_di_duong_sl_t1',
-            'tong_hang_di_duong_sl_t2', 'tong_hang_di_duong_sl_t3',
-        )
-        vals['tong_vt_can_dung'] = sum(vals.get(f) or 0.0 for f in qty_fields)
-        vals['tong_hang_di_duong'] = sum(vals.get(f) or 0.0 for f in dd_fields)
+    def _m2o_id(self, fname, vals=None):
+        """Trích id Many2one từ vals hoặc dòng hiện tại (tránh browse(recordset))."""
+        vals = vals or {}
+        if fname in vals:
+            val = vals[fname]
+            if not val:
+                return False
+            return val if isinstance(val, int) else val.id
+        if len(self) == 1:
+            val = self[fname]
+            return val.id if val else False
+        return False
 
-        pseudo = self.new(vals)
-        plan = pseudo._b5_plan_values()
-        vals.update(plan)
+    def _b5_ngay_du_tru(self, vals=None):
+        """Số ngày dự trữ B5 của kỳ (mặc định 20)."""
+        pid = self._m2o_id('period_id', vals)
+        if not pid:
+            return 20.0
+        ngay = self.env['ke.hoach.vat.tu'].browse(pid).ngay_du_tru_b5
+        return ngay or 20.0
+
+    def _b5_field_from_vals(self, fname, vals):
+        """Lấy giá trị field từ vals đang ghi, fallback sang dòng hiện tại."""
+        if fname == 'period_id':
+            return self._m2o_id(fname, vals) or False
+        if fname in vals:
+            return vals[fname]
+        if len(self) == 1:
+            return self[fname]
+        return 0.0
+
+    def _calc_b5_plan_from_vals(self, vals):
+        """Tính lại các cột kế hoạch đặt mua từ dict đầu vào (+ dòng hiện tại nếu có)."""
+        vals = dict(vals)
+        return self._calc_b5_plan(
+            self._b5_field_from_vals('tong_ton_nvl_sl', vals),
+            *[self._b5_field_from_vals(f, vals) for f in _B5_QTY_FIELDS],
+            *[self._b5_field_from_vals(f, vals) for f in _B5_DD_FIELDS],
+            self._b5_ngay_du_tru(vals),
+        )
+
+    def _b5_plan_values(self):
+        """Dự trữ / đề xuất / chốt / MOQ — wrapper đọc từ record."""
+        self.ensure_one()
+        return self._calc_b5_plan_from_vals({})
+
+    def _apply_manual_totals(self, vals):
+        """Gộp tổng cần dùng / đi đường và cột kế hoạch đặt mua vào vals."""
+        vals = dict(vals)
+        vals.update(self._calc_b5_plan_from_vals(vals))
         return vals
+
+    def _b5_row_after_recompute(self, vals):
+        """Gộp dòng hiện tại với vals đang ghi, rồi tính lại công thức B5."""
+        self.ensure_one()
+        row = {fname: self[fname] for fname in self._fields if fname != 'id'}
+        row.update(vals)
+        if vals.get('ma_sap') and self.is_manual:
+            return self._manual_fill_from_ma_sap(row)
+        return self._apply_manual_totals(row)
 
     def _manual_fill_from_ma_sap(self, vals):
         """Nạp MDM + SAP + đi đường cho dòng thêm tay."""
@@ -344,13 +394,16 @@ class KhDatVatTu(models.Model):
         if not ma_sap:
             return vals
 
-        period = self.env['ke.hoach.vat.tu'].browse(vals.get('period_id'))
+        period_id = self._m2o_id('period_id', vals)
+        period = self.env['ke.hoach.vat.tu'].browse(period_id)
         if not period:
             return vals
 
         company = period.company_sx_id
         if vals.get('company_id'):
-            company = self.env['res.company'].browse(vals['company_id'])
+            company = self.env['res.company'].browse(
+                self._m2o_id('company_id', vals),
+            )
         elif company:
             vals['company_id'] = company.id
 
@@ -371,17 +424,10 @@ class KhDatVatTu(models.Model):
 
         month_keys = period._get_horizon_months()
         dd_map = self._load_di_duong_qty_map(company.id, ma_sap, month_keys)
-        dd_keys = (
-            'tong_hang_di_duong_sl_t0', 'tong_hang_di_duong_sl_t1',
-            'tong_hang_di_duong_sl_t2', 'tong_hang_di_duong_sl_t3',
-        )
         for idx, month in enumerate(month_keys[:4]):
-            vals.setdefault(dd_keys[idx], dd_map.get(month, 0.0))
+            vals.setdefault(_B5_DD_FIELDS[idx], dd_map.get(month, 0.0))
 
-        for qty_key in (
-            'tong_sl_vt_can_dung_t0', 'tong_sl_vt_can_dung_t1',
-            'tong_sl_vt_can_dung_t2', 'tong_sl_vt_can_dung_t3',
-        ):
+        for qty_key in _B5_QTY_FIELDS:
             vals.setdefault(qty_key, 0.0)
 
         vals.setdefault('don_gia_mua', 0.0)
@@ -438,21 +484,9 @@ class KhDatVatTu(models.Model):
     )
     def _onchange_manual_qty_inputs(self):
         for rec in self:
-            vals = rec._apply_manual_totals({
-                'tong_sl_vt_can_dung_t0': rec.tong_sl_vt_can_dung_t0,
-                'tong_sl_vt_can_dung_t1': rec.tong_sl_vt_can_dung_t1,
-                'tong_sl_vt_can_dung_t2': rec.tong_sl_vt_can_dung_t2,
-                'tong_sl_vt_can_dung_t3': rec.tong_sl_vt_can_dung_t3,
-                'tong_hang_di_duong_sl_t0': rec.tong_hang_di_duong_sl_t0,
-                'tong_hang_di_duong_sl_t1': rec.tong_hang_di_duong_sl_t1,
-                'tong_hang_di_duong_sl_t2': rec.tong_hang_di_duong_sl_t2,
-                'tong_hang_di_duong_sl_t3': rec.tong_hang_di_duong_sl_t3,
-            })
-            for key in ('tong_vt_can_dung', 'tong_hang_di_duong',
-                        'sl_du_tru_toi_thieu', 'sl_dat_mua_de_xuat',
-                        'sl_dat_mua_chot', 'sl_can_mua_theo_moq'):
-                if key in vals:
-                    rec[key] = vals[key]
+            plan = rec._calc_b5_plan_from_vals({})
+            for key in _B5_PLAN_OUTPUT_FIELDS:
+                rec[key] = plan[key]
 
     @api.model
     def default_get(self, fields_list):
@@ -497,36 +531,20 @@ class KhDatVatTu(models.Model):
             recompute_fields
             and not self.env.context.get('skip_b5_manual_recompute')
         ):
-            for rec in self:
-                row = {fname: rec[fname] for fname in rec._fields if fname != 'id'}
-                row.update(vals)
-                if 'ma_sap' in vals and rec.is_manual:
-                    row = rec._manual_fill_from_ma_sap(row)
-                else:
-                    row = rec._apply_manual_totals(row)
-                patch_keys = {
-                    'tong_vt_can_dung', 'tong_hang_di_duong',
-                    'sl_du_tru_toi_thieu', 'sl_dat_mua_de_xuat',
-                    'sl_dat_mua_chot', 'sl_can_mua_theo_moq',
-                    'tong_ton_nvl_sl', 'don_gia_ton_kho',
-                    'ten_nvl', 'don_vi_tinh',
-                    'tong_sl_vt_can_dung_t0', 'tong_sl_vt_can_dung_t1',
-                    'tong_sl_vt_can_dung_t2', 'tong_sl_vt_can_dung_t3',
-                    'tong_hang_di_duong_sl_t0', 'tong_hang_di_duong_sl_t1',
-                    'tong_hang_di_duong_sl_t2', 'tong_hang_di_duong_sl_t3',
-                }
-                patch = {
-                    key: row[key]
-                    for key in patch_keys
-                    if key in row
-                    and key not in _B5_TRACKED_FIELDS
-                    and key not in _B5_CAN_DUNG_TRACKED
-                }
-                if patch:
+            if len(self) == 1:
+                row = self._b5_row_after_recompute(vals)
+                for key in _B5_PLAN_OUTPUT_FIELDS:
+                    vals[key] = row[key]
+            else:
+                for rec in self:
+                    rec_vals = dict(vals)
+                    row = rec._b5_row_after_recompute(rec_vals)
+                    for key in _B5_PLAN_OUTPUT_FIELDS:
+                        rec_vals[key] = row[key]
                     super(KhDatVatTu, rec.with_context(
                         skip_b5_manual_recompute=True,
-                        tracking_disable=True,
-                    )).write(patch)
+                    )).write(rec_vals)
+                return True
 
         all_tracked = {**_B5_TRACKED_FIELDS, **_B5_CAN_DUNG_TRACKED}
         tracked = [fname for fname in all_tracked if fname in vals]
