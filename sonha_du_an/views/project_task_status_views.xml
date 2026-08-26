@@ -7,23 +7,17 @@
         <field name="inherit_id" ref="project.view_task_kanban"/>
         <field name="arch" type="xml">
             <xpath expr="//kanban" position="attributes">
-                <attribute name="default_group_by">stage_id</attribute>
+                <attribute name="default_group_by">trang_thai</attribute>
                 <attribute name="records_draggable">false</attribute>
                 <attribute name="group_create">false</attribute>
                 <attribute name="group_edit">false</attribute>
                 <attribute name="group_delete">false</attribute>
             </xpath>
-            <xpath expr="//field[@name='stage_id']" position="attributes">
-                <attribute name="invisible">1</attribute>
+
+            <xpath expr="//kanban" position="inside">
+                <field name="trang_thai"/>
             </xpath>
-            <xpath expr="//t[@t-name='kanban-box']" position="inside">
-                <div class="mt-2 d-flex flex-wrap gap-1" onclick="event.stopPropagation()">
-                    <button name="action_set_khoi_tao" type="object" class="btn btn-sm btn-secondary">Khởi tạo</button>
-                    <button name="action_set_dang_chay" type="object" class="btn btn-sm btn-primary">Đang chạy</button>
-                    <button name="action_set_ket_thuc" type="object" class="btn btn-sm btn-success">Kết thúc</button>
-                    <button name="action_set_tam_dung" type="object" class="btn btn-sm btn-warning">Tạm dừng</button>
-                </div>
-            </xpath>
+
         </field>
     </record>
 
@@ -34,10 +28,11 @@
         <field name="inherit_id" ref="project.view_task_form2"/>
         <field name="arch" type="xml">
             <xpath expr="//header" position="inside">
-                <button name="action_set_khoi_tao" type="object" string="Khởi tạo" class="btn-secondary"/>
-                <button name="action_set_dang_chay" type="object" string="Đang chạy" class="btn-primary"/>
-                <button name="action_set_ket_thuc" type="object" string="Kết thúc" class="btn-success"/>
-                <button name="action_set_tam_dung" type="object" string="Tạm dừng" class="btn-warning"/>
+                <button name="action_run" invisible="trang_thai != 'kt'" type="object" string="Chạy" class="btn-primary"/>
+                <button name="action_done" invisible="trang_thai != 'run'" type="object" string="Hoàn Thành" class="btn-success"/>
+                <button name="action_reset" invisible="trang_thai != 'run'" type="object" string="Trở lại khởi tạo" class="btn-success"/>
+                <button name="action_tam_dung" invisible="trang_thai != 'run'" type="object" string="Tạm dừng" class="btn-warning"/>
+                <field name="trang_thai" widget="statusbar"/>
             </xpath>
             <xpath expr="//field[@name='stage_id']" position="attributes">
                 <attribute name="invisible">1</attribute>

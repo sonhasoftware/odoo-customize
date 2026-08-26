@@ -17,64 +17,33 @@ class Task(models.Model):
         'project.project',
         string="Dự án con",
     )
-    noi_dung_cv = fields.Text("Nội dung công việc")
-    so_ngay_ht = fields.Float("Số ngày hoàn thành", required=True)
-    ngay_bat_dau = fields.Date("Ngày bắt đầu", required=True)
-    ngay_ket_thuc = fields.Date("Ngày kết thúc", compute="get_ngay_ket_thuc")
-    ngay_hoan_thanh = fields.Date("Ngày hoàn thành")
-    so_ngay_pending = fields.Float("Số ngày Pending")
+    noi_dung_cv = fields.Text("Nội dung công việc", store=True)
+    so_ngay_ht = fields.Float("Số ngày hoàn thành", required=True, store=True)
+    ngay_bat_dau = fields.Date("Ngày bắt đầu", required=True, store=True)
+    ngay_ket_thuc = fields.Date("Ngày kết thúc", compute="get_ngay_ket_thuc", store=True)
+    ngay_hoan_thanh = fields.Date("Ngày hoàn thành", store=True)
+    so_ngay_pending = fields.Float("Số ngày Pending", store=True)
 
     ns_lam = fields.Many2many('res.users', 'ir_ns_lam_group_rel',
-                                  'ns_lam_group_rel', 'ns_lam_rel', string='NS làm')
+                                  'ns_lam_group_rel', 'ns_lam_rel', string='NS làm', store=True)
 
     chu_so_huu = fields.Many2many('res.users', 'ir_chu_so_huu_group_rel',
-                                  'chu_so_huu_group_rel', 'chu_so_huu_rel', string='Chủ sở hữu')
+                                  'chu_so_huu_group_rel', 'chu_so_huu_rel', string='Chủ sở hữu', store=True)
+
+    trang_thai = fields.Selection([('kt', 'Khởi tạo'), ('run', 'Đang chạy'),
+                                   ('ht', 'Hoàn thành'), ('pd', 'Pending')],
+                                  string='Trạng thái',
+                                  default='kt',
+                                  group_expand='_group_expand_trang_thai', store=True)
 
     @api.model
-    def _fixed_stage_ids(self):
-        """Return the only stages that may be assigned to a task."""
+    def _group_expand_trang_thai(self, states, domain, order):
         return [
-            self.env.ref('sonha_du_an.task_stage_khoi_tao').id,
-            self.env.ref('sonha_du_an.task_stage_dang_chay').id,
-            self.env.ref('sonha_du_an.task_stage_ket_thuc').id,
-            self.env.ref('sonha_du_an.task_stage_tam_dung').id,
+            'kt',
+            'run',
+            'ht',
+            'pd',
         ]
-
-    @api.model
-    def _read_group_stage_ids(self, stages, domain, order):
-        """Restrict the standard task Kanban to the four approved stages."""
-        return self.env['project.task.type'].browse(self._fixed_stage_ids())
-
-    @api.model
-    def _get_default_stage_id(self):
-        return self._fixed_stage_ids()[0]
-
-    @api.constrains('stage_id')
-    def _check_fixed_stage(self):
-        """Keep imports and RPC calls from assigning ad-hoc stages to tasks."""
-        fixed_stage_ids = self._fixed_stage_ids()
-        for task in self:
-            if task.stage_id and task.stage_id.id not in fixed_stage_ids:
-                raise ValidationError(_(
-                    "Nhiệm vụ chỉ có thể dùng một trong bốn trạng thái: "
-                    "Khởi tạo, Đang chạy, Kết thúc hoặc Tạm dừng."
-                ))
-
-    def _set_stage(self, stage_xmlid):
-        self.ensure_one()
-        self.stage_id = self.env.ref(stage_xmlid)
-
-    def action_set_khoi_tao(self):
-        self._set_stage('sonha_du_an.task_stage_khoi_tao')
-
-    def action_set_dang_chay(self):
-        self._set_stage('sonha_du_an.task_stage_dang_chay')
-
-    def action_set_ket_thuc(self):
-        self._set_stage('sonha_du_an.task_stage_ket_thuc')
-
-    def action_set_tam_dung(self):
-        self._set_stage('sonha_du_an.task_stage_tam_dung')
 
     def _get_project_end_date_limit(self):
         self.ensure_one()
@@ -137,3 +106,19 @@ class Task(models.Model):
                 r.ngay_ket_thuc = r.ngay_bat_dau + timedelta(days=r.so_ngay_ht)
             else:
                 r.ngay_ket_thuc = False
+
+    def action_run(self):
+        for r in self:
+            r.trang_thai = 'run'
+
+    def action_done(self):
+        for r in self:
+            r.trang_thai = 'done'
+
+    def action_reset(self):
+        for r in self:
+            r.trang_thai = 'kt'
+
+    def action_tam_dung(self):
+        for r in self:
+            r.trang_thai = 'pd'
