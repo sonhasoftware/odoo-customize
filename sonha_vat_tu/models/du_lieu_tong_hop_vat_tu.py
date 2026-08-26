@@ -181,7 +181,10 @@ class DuLieuTongHopVatTu(models.Model):
     thoi_diem_giao_dvtv = fields.Char(
         string='Giao về đơn vị thành viên theo leadtime', readonly=True)
     thoi_diem_su_dung = fields.Char(string='Thời điểm sử dụng', readonly=True)
-    sl_du_tru_toi_thieu = fields.Float(string='SL dự trữ tối thiểu', digits=(16, 3), readonly=True)
+    sl_du_tru_toi_thieu = fields.Float(
+        string='SL dự trữ tối thiểu đơn vị', digits=(16, 3), readonly=True)
+    sl_du_tru_toi_thieu_bcu = fields.Float(
+        string='SL dự trữ tối thiểu BCU', digits=(16, 3), readonly=True)
     sl_dat_mua_de_xuat = fields.Float(string='SL đặt mua đề xuất', digits=(16, 3), readonly=True)
     sl_dat_mua_chot = fields.Float(string='SL đặt mua chốt', digits=(16, 3), readonly=True)
     sl_can_mua_theo_moq = fields.Float(string='SL cần mua dựa theo MOQ NCC', digits=(16, 3), readonly=True)

@@ -913,10 +913,12 @@ class KeHoachVatTu(models.Model):
         )
         b6_lines = self.env['kh.dat.vat.tu.bcu'].search([('period_id', '=', self.id)])
         if b6_lines:
+            b6_lines._compute_sl_du_tru_toi_thieu_bcu()
             b6_lines._compute_sl_dat_mua_de_xuat()
             self.env['kh.dat.vat.tu.bcu']._apply_chot_from_bcu_di_duong(b6_lines)
             b6_lines._compute_b6_derived()
             b6_lines.flush_recordset([
+                'sl_du_tru_toi_thieu_bcu',
                 'sl_dat_mua_de_xuat', 'sl_dat_mua_chot', 'sl_can_mua_theo_moq',
                 'sl_ton_kho_cuoi_ky', 'so_ngay_vong_quay_ton',
                 'don_gia_ton_kho_cuoi_ky', 'gia_tri_ton_kho_cuoi_ky', 'gia_tri_mua_hang',
@@ -1190,6 +1192,31 @@ class KeHoachVatTu(models.Model):
             'KHSX_%s.xlsx' % (self.code or self.id),
         )
 
+    def action_open_import_kh_dat_vat_tu_wizard(self):
+        self.ensure_one()
+        if self.state != 'dat_hang':
+            raise UserError(_(
+                'Chỉ import kế hoạch đặt vật tư khi đã ở bước Kế hoạch đặt vật tư.'
+            ))
+        if not self.kh_dat_vat_tu_ids:
+            raise UserError(_(
+                'Chưa có dữ liệu kế hoạch đặt vật tư. Vui lòng chạy bước này trước khi import.'
+            ))
+        view = self.env.ref('sonha_vat_tu.view_import_kh_dat_vat_tu_wizard_form')
+        return {
+            'name': _('Import kế hoạch đặt vật tư'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'import.kh.dat.vat.tu.wizard',
+            'view_mode': 'form',
+            'views': [(view.id, 'form')],
+            'view_id': view.id,
+            'target': 'new',
+            'context': {
+                'default_period_id': self.id,
+                'period_id_readonly': True,
+            },
+        }
+
     def action_export_kh_dat_vat_tu(self):
         """Xuất Excel bước 5."""
         self.ensure_one()
@@ -1213,6 +1240,11 @@ class KeHoachVatTu(models.Model):
         ws.cell(row=1, column=2, value=self.code or '')
         ws.cell(row=2, column=1, value='Tháng bắt đầu')
         ws.cell(row=2, column=2, value=self.period_month or '')
+        ws.cell(row=3, column=1, value='Đơn vị sản xuất')
+        ws.cell(
+            row=3, column=2,
+            value=self._get_company_code(self.company_sx_id) if self.company_sx_id else '',
+        )
 
         header_row1 = 4
         header_row2 = 5
@@ -1232,7 +1264,7 @@ class KeHoachVatTu(models.Model):
             ('Đi đường', 'tong_hang_di_duong_sl_t', 'Tổng đi đường', 'tong_hang_di_duong'),
         ]
         fixed_end = [
-            ('Dự trữ tối thiểu', 'sl_du_tru_toi_thieu', 'qty'),
+            ('Dự trữ tối thiểu đơn vị', 'sl_du_tru_toi_thieu', 'qty'),
             ('Đề xuất đặt mua', 'sl_dat_mua_de_xuat', 'qty'),
             ('Đặt mua chốt', 'sl_dat_mua_chot', 'qty'),
             ('SL cần mua dựa theo MOQ NCC', 'sl_can_mua_theo_moq', 'qty'),

@@ -35,7 +35,7 @@
                 <field name="tong_hang_di_duong" string="Tổng SL đi đường" readonly="1"/>
 
                 <!-- Kế hoạch đặt mua & Chỉ số cuối kỳ -->
-                <field name="sl_du_tru_toi_thieu" string="Dự trữ tối thiểu" readonly="1"/>
+                <field name="sl_du_tru_toi_thieu" string="Dự trữ tối thiểu đơn vị" readonly="1"/>
                 <field name="sl_dat_mua_de_xuat" string="Đề xuất đặt mua"/>
                 <field name="sl_dat_mua_chot" string="Đặt mua chốt"/>
                 <field name="sl_can_mua_theo_moq" string="SL cần mua dựa theo MOQ NCC"/>
