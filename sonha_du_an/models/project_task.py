@@ -37,6 +37,22 @@ class Task(models.Model):
                                   default='kt',
                                   group_expand='_group_expand_trang_thai', store=True)
 
+    ngay_bd_da_cha = fields.Date("Ngày bắt đầu dự án cha", store=True, compute="get_ngay_bat_dau")
+    ngay_kt_da_cha = fields.Date("Ngày kêt thúc dự án cha", store=True, compute="get_ngay_bat_dau")
+
+    @api.depends('du_an_cha_task_id')
+    def get_ngay_bat_dau(self):
+        for r in self:
+            if r.du_an_cha_task_id and r.du_an_cha_task_id.ngay_bat_dau:
+                r.ngay_bd_da_cha = r.du_an_cha_task_id.ngay_bat_dau
+            else:
+                r.ngay_bd_da_cha = False
+
+            if r.du_an_cha_task_id and r.du_an_cha_task_id.ngay_kt_da:
+                r.ngay_kt_da_cha = r.du_an_cha_task_id.ngay_kt_da
+            else:
+                r.ngay_kt_da_cha = False
+
     @api.model
     def _group_expand_trang_thai(self, states, domain, order):
         return [

@@ -35,7 +35,7 @@ class Project(models.Model):
 
     ten = fields.Char("Tên dự án", store=True, compute="get_name_duan")
 
-    ngay_bat_dau = fields.Date("Ngày bắt đầu", store=True)
+    ngay_bat_dau = fields.Date("Ngày bắt đầu", store=True, required=True)
 
     @api.depends('name')
     def get_name_duan(self):
