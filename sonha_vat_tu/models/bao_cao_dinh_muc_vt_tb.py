@@ -4,7 +4,7 @@ import io
 import json
 
 from openpyxl import Workbook
-from openpyxl.styles import Alignment, PatternFill
+from openpyxl.styles import Alignment, Font
 from openpyxl.utils import get_column_letter
 
 from odoo import _, api, fields, models
@@ -21,6 +21,16 @@ MDM_TYPE_BTP = 'Bán thành phẩm'
 DMTB_ROW_BTP = 'btp'
 DMTB_ROW_TOTAL = 'total'
 DMTB_BTP_LABEL = 'Bán thành phẩm'
+NGUON_KHKD = 'khkd'
+NGUON_KHSX = 'khsx'
+NGUON_DEFS = (
+    (NGUON_KHKD, '3 THÁNG TRONG BÁO CÁO NÀY SO VỚI KHKD'),
+    (NGUON_KHSX, '3 THÁNG TRONG BÁO CÁO NÀY SO VỚI KHSX'),
+)
+NGUON_SEQUENCE_BASE = {
+    NGUON_KHKD: 0,
+    NGUON_KHSX: 100,
+}
 
 
 class BaoCaoDinhMucVtTbWizard(models.TransientModel):
@@ -41,15 +51,6 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
         string='Nhóm',
         required=True,
         domain=[('active', '=', True)],
-    )
-    nguon_sl_sp = fields.Selection(
-        [
-            ('khkd', 'Kế hoạch kinh doanh'),
-            ('khsx', 'Kế hoạch sản xuất'),
-        ],
-        string='Nguồn',
-        required=True,
-        default='khkd',
     )
     sl_qty_column_label = fields.Char(string='Nhãn cột SL', readonly=True)
     period_codes = fields.Char(string='Mã các kỳ', readonly=True)
@@ -77,10 +78,10 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
                 res['nhom_id'] = default_nhom.id
         return res
 
-    def _plan_model_name(self):
-        self.ensure_one()
+    @staticmethod
+    def _plan_model_name(nguon_sl_sp):
         return (
-            'ke.hoach.kinh.doanh.line' if self.nguon_sl_sp == 'khkd'
+            'ke.hoach.kinh.doanh.line' if nguon_sl_sp == NGUON_KHKD
             else 'ke.hoach.san.xuat'
         )
 
@@ -162,9 +163,9 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
         ma = (getattr(line, 'ma_sap', None) or '').strip()
         return nganh_map.get(ma) or False
 
-    def _aggregate_period(self, period, nganh_ids):
+    def _aggregate_period(self, period, nganh_ids, nguon_sl_sp):
         """Tách SL SP / SL NVL theo ngành nhóm + dòng Bán thành phẩm."""
-        plan_model = self._plan_model_name()
+        plan_model = self._plan_model_name(nguon_sl_sp)
         period_field = (
             'kinh_doanh_id.period_sx_id'
             if plan_model == 'ke.hoach.kinh.doanh.line'
@@ -306,7 +307,10 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
         nganh_ids = nhom.nganh_hang_ids.ids
         nhom_label = self._nhom_label()
         row_specs = self._row_specs(nhom)
-        ghi_chu_map = self._load_ghi_chu_map(periods, nhom.id, self.nguon_sl_sp)
+        ghi_chu_maps = {
+            nguon: self._load_ghi_chu_map(periods, nhom.id, nguon)
+            for nguon, _label in NGUON_DEFS
+        }
 
         column_keys = self._report_month_keys(periods[0])
         column_spec = [{'month_key': mk, 'label': mk} for mk in column_keys]
@@ -338,32 +342,104 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
         )
         for group in sorted_groups:
             sx = group['sx']
-            merged = {
-                spec['row_key']: self._empty_month_metrics()
-                for spec in row_specs
-            }
+            company_lines = []
+            any_nguon_data = False
 
-            has_any = False
-            for period in group['periods']:
-                month_keys, period_metrics = self._aggregate_period(period, nganh_ids)
-                if month_keys != column_keys:
-                    raise UserError(_(
-                        'Kỳ "%(code)s" có dải tháng khác kỳ đầu tiên.',
-                        code=period.code or period.display_name,
-                    ))
-                if not self._metrics_has_data(
-                    [cell for bucket in period_metrics.values() for cell in bucket]
-                ):
-                    continue
-                has_any = True
-                for row_key, cells in period_metrics.items():
-                    if row_key not in merged:
+            for nguon, section_label in NGUON_DEFS:
+                seq_base = NGUON_SEQUENCE_BASE[nguon]
+                ghi_chu_map = ghi_chu_maps[nguon]
+                merged = {
+                    spec['row_key']: self._empty_month_metrics()
+                    for spec in row_specs
+                }
+
+                has_any = False
+                for period in group['periods']:
+                    month_keys, period_metrics = self._aggregate_period(
+                        period, nganh_ids, nguon,
+                    )
+                    if month_keys != column_keys:
+                        raise UserError(_(
+                            'Kỳ "%(code)s" có dải tháng khác kỳ đầu tiên.',
+                            code=period.code or period.display_name,
+                        ))
+                    if not self._metrics_has_data(
+                        [cell for bucket in period_metrics.values() for cell in bucket]
+                    ):
                         continue
-                    for idx, cell in enumerate(cells):
-                        merged[row_key][idx]['sl_sp'] += cell.get('sl_sp') or 0.0
-                        merged[row_key][idx]['sl_nvl'] += cell.get('sl_nvl') or 0.0
+                    has_any = True
+                    for row_key, cells in period_metrics.items():
+                        if row_key not in merged:
+                            continue
+                        for idx, cell in enumerate(cells):
+                            merged[row_key][idx]['sl_sp'] += cell.get('sl_sp') or 0.0
+                            merged[row_key][idx]['sl_nvl'] += cell.get('sl_nvl') or 0.0
 
-            if not has_any:
+                if has_any:
+                    any_nguon_data = True
+
+                company_lines.append({
+                    'wizard_id': self.id,
+                    'period_id': group['periods'][0].id,
+                    'nhom_id': nhom.id,
+                    'company_sx_id': sx.id,
+                    'company_code': sx.company_code or sx.name or '',
+                    'nguon_sl_sp': nguon,
+                    'is_section_row': True,
+                    'section_label': section_label,
+                    'nganh_hang_id': False,
+                    'nganh_hang_label': '',
+                    'is_btp_row': False,
+                    'is_total_row': False,
+                    'row_key': 'section_%s' % nguon,
+                    'sequence': seq_base,
+                    'metrics_json': json.dumps([], ensure_ascii=False),
+                    'ghi_chu': '',
+                })
+
+                total_cells = self._sum_company_total_metrics(merged, row_specs)
+                company_lines.append({
+                    'wizard_id': self.id,
+                    'period_id': group['periods'][0].id,
+                    'nhom_id': nhom.id,
+                    'company_sx_id': sx.id,
+                    'company_code': sx.company_code or sx.name or '',
+                    'nguon_sl_sp': nguon,
+                    'is_section_row': False,
+                    'section_label': '',
+                    'nganh_hang_id': False,
+                    'nganh_hang_label': '',
+                    'is_btp_row': False,
+                    'is_total_row': True,
+                    'row_key': DMTB_ROW_TOTAL,
+                    'sequence': seq_base + 1,
+                    'metrics_json': json.dumps(total_cells, ensure_ascii=False),
+                    'ghi_chu': ghi_chu_map.get((sx.id, DMTB_ROW_TOTAL), ''),
+                })
+
+                for spec in row_specs:
+                    row_key = spec['row_key']
+                    cells = merged.get(row_key) or self._empty_month_metrics()
+                    company_lines.append({
+                        'wizard_id': self.id,
+                        'period_id': group['periods'][0].id,
+                        'nhom_id': nhom.id,
+                        'company_sx_id': sx.id,
+                        'company_code': sx.company_code or sx.name or '',
+                        'nguon_sl_sp': nguon,
+                        'is_section_row': False,
+                        'section_label': '',
+                        'nganh_hang_id': spec['nganh_hang_id'],
+                        'nganh_hang_label': spec['nganh_hang_label'],
+                        'is_btp_row': spec['is_btp_row'],
+                        'is_total_row': False,
+                        'row_key': row_key,
+                        'sequence': seq_base + 1 + spec['sequence'],
+                        'metrics_json': json.dumps(cells, ensure_ascii=False),
+                        'ghi_chu': ghi_chu_map.get((sx.id, row_key), ''),
+                    })
+
+            if not any_nguon_data:
                 raise UserError(_(
                     'Đơn vị SX "%(sx)s" không có SL sản phẩm hoặc SL NVL '
                     'trong 3 tháng đầu cho nhóm "%(nhom)s".',
@@ -371,41 +447,7 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
                     nhom=nhom_label,
                 ))
 
-            total_cells = self._sum_company_total_metrics(merged, row_specs)
-            lines.append({
-                'wizard_id': self.id,
-                'period_id': group['periods'][0].id,
-                'nhom_id': nhom.id,
-                'company_sx_id': sx.id,
-                'company_code': sx.company_code or sx.name or '',
-                'nganh_hang_id': False,
-                'nganh_hang_label': '',
-                'is_btp_row': False,
-                'is_total_row': True,
-                'row_key': DMTB_ROW_TOTAL,
-                'sequence': 0,
-                'metrics_json': json.dumps(total_cells, ensure_ascii=False),
-                'ghi_chu': ghi_chu_map.get((sx.id, DMTB_ROW_TOTAL), ''),
-            })
-
-            for spec in row_specs:
-                row_key = spec['row_key']
-                cells = merged.get(row_key) or self._empty_month_metrics()
-                lines.append({
-                    'wizard_id': self.id,
-                    'period_id': group['periods'][0].id,
-                    'nhom_id': nhom.id,
-                    'company_sx_id': sx.id,
-                    'company_code': sx.company_code or sx.name or '',
-                    'nganh_hang_id': spec['nganh_hang_id'],
-                    'nganh_hang_label': spec['nganh_hang_label'],
-                    'is_btp_row': spec['is_btp_row'],
-                    'is_total_row': False,
-                    'row_key': row_key,
-                    'sequence': spec['sequence'],
-                    'metrics_json': json.dumps(cells, ensure_ascii=False),
-                    'ghi_chu': ghi_chu_map.get((sx.id, row_key), ''),
-                })
+            lines.extend(company_lines)
 
         if lines:
             Line.create(lines)
@@ -451,9 +493,6 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
         ws = wb.active
         ws.title = 'Dinh muc VT TB'
 
-        nguon_label = dict(self._fields['nguon_sl_sp'].selection).get(
-            self.nguon_sl_sp, self.nguon_sl_sp
-        )
         ws.cell(row=1, column=1, value='Báo cáo định mức vật tư trung bình')
         ws.cell(row=2, column=1, value='Kỳ')
         ws.cell(row=2, column=2, value=self.period_codes)
@@ -461,13 +500,10 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
         ws.cell(row=3, column=2, value=self.period_month or '')
         ws.cell(row=4, column=1, value='Nhóm')
         ws.cell(row=4, column=2, value=self._nhom_label())
-        ws.cell(row=5, column=1, value='Nguồn')
-        ws.cell(row=5, column=2, value=nguon_label)
 
-        header_row1 = 7
-        header_row2 = 8
-        data_row = 9
-        yellow = PatternFill(start_color='FFFF00', end_color='FFFF00', fill_type='solid')
+        header_row1 = 6
+        header_row2 = 7
+        data_row = 8
 
         col = 1
         for fixed in ('Công ty', 'Ngành hàng'):
@@ -487,9 +523,7 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
             )
             ws.cell(row=header_row1, column=group_start, value=month_key)
             for sub in (sl_label, 'SL NVL (kg)', 'Vật tư bình quân'):
-                cell = ws.cell(row=header_row2, column=col, value=sub)
-                if sub == 'Vật tư bình quân':
-                    cell.fill = yellow
+                ws.cell(row=header_row2, column=col, value=sub)
                 col += 1
 
         ws.cell(row=header_row1, column=col, value='Ghi chú')
@@ -522,6 +556,23 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
                     )
                 company_start_row = row_idx
                 company_code_prev = line.company_code
+
+            if line.is_section_row:
+                ws.cell(row=row_idx, column=1, value=line.company_code)
+                ws.merge_cells(
+                    start_row=row_idx, start_column=2,
+                    end_row=row_idx, end_column=max_col,
+                )
+                section_cell = ws.cell(
+                    row=row_idx, column=2, value=line.section_label or '',
+                )
+                section_cell.alignment = Alignment(
+                    horizontal='center', vertical='center',
+                )
+                section_cell.font = Font(bold=True)
+                row_idx += 1
+                continue
+
             ws.cell(row=row_idx, column=1, value=line.company_code)
             ws.cell(row=row_idx, column=2, value=line.nganh_hang_label or '')
             col_idx = 3
@@ -535,8 +586,7 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
                 col_idx += 1
                 ws.cell(row=row_idx, column=col_idx, value=nvl or None)
                 col_idx += 1
-                cell_xl = ws.cell(row=row_idx, column=col_idx, value=dmbq or None)
-                cell_xl.fill = yellow
+                ws.cell(row=row_idx, column=col_idx, value=dmbq or None)
                 col_idx += 1
             if not line.is_total_row:
                 ws.cell(row=row_idx, column=ghi_chu_col, value=line.ghi_chu or '')
@@ -553,7 +603,7 @@ class BaoCaoDinhMucVtTbWizard(models.TransientModel):
         self.env['ke.hoach.vat.tu']._apply_b5_export_style(
             ws, header_row1, header_row2, max_col,
             [(None, 'text')] * max_col,
-            meta_rows=5,
+            meta_rows=4,
         )
         ws.column_dimensions['A'].width = 14
         ws.column_dimensions['B'].width = 22
@@ -597,13 +647,20 @@ class BaoCaoDinhMucVtTbLine(models.TransientModel):
     nganh_hang_label = fields.Char(string='Ngành hàng', index=True)
     is_btp_row = fields.Boolean(string='Dòng Bán TP', default=False, index=True)
     is_total_row = fields.Boolean(string='Dòng tổng', default=False, index=True)
+    is_section_row = fields.Boolean(string='Dòng tiêu đề nguồn', default=False, index=True)
+    section_label = fields.Char(string='Tiêu đề nguồn')
+    nguon_sl_sp = fields.Selection(
+        [
+            (NGUON_KHKD, 'Kế hoạch kinh doanh'),
+            (NGUON_KHSX, 'Kế hoạch sản xuất'),
+        ],
+        string='Nguồn',
+        readonly=True,
+    )
     row_key = fields.Char(string='Khóa dòng', index=True)
     sequence = fields.Integer(string='Thứ tự', default=10, index=True)
     metrics_json = fields.Text(string='Số liệu theo cột', readonly=True)
     ghi_chu = fields.Text(string='Ghi chú')
-
-    nguon_sl_sp = fields.Selection(
-        related='wizard_id.nguon_sl_sp', string='Nguồn', readonly=True)
 
     def _metrics_list(self):
         self.ensure_one()
@@ -618,12 +675,15 @@ class BaoCaoDinhMucVtTbLine(models.TransientModel):
         for rec in self:
             wizard = rec.wizard_id
             nhom = rec.nhom_id or wizard.nhom_id
-            if not wizard or not nhom or not rec.company_sx_id or rec.is_total_row:
+            if (
+                not wizard or not nhom or not rec.company_sx_id
+                or rec.is_total_row or rec.is_section_row
+            ):
                 continue
             period_key = rec._ghi_chu_period_key(wizard)
             scope = GhiChu.scope_key_dmtb(
                 nhom.id,
-                wizard.nguon_sl_sp,
+                rec.nguon_sl_sp,
                 rec.company_sx_id.id,
                 rec.row_key or (DMTB_ROW_BTP if rec.is_btp_row else rec.nganh_hang_id),
             )

@@ -1218,7 +1218,7 @@ function getDmtbMetrics(list) {
     return [
         { key: "sp", label: slLabel, metricKey: "sl_sp" },
         { key: "nvl", label: "SL NVL (kg)", metricKey: "sl_nvl" },
-        { key: "dmbq", label: "Vật tư bình quân", highlight: true },
+        { key: "dmbq", label: "Vật tư bình quân" },
     ];
 }
 
@@ -1263,6 +1263,10 @@ class VatTuBaoCaoDmtbPivotRenderer extends VatTuMergedHeaderRenderer {
         return Boolean(record?.data?.is_total_row);
     }
 
+    isSectionRow(record) {
+        return Boolean(record?.data?.is_section_row);
+    }
+
     isBtpRow(record) {
         return Boolean(record?.data?.is_btp_row);
     }
@@ -1303,7 +1307,14 @@ class VatTuBaoCaoDmtbPivotRenderer extends VatTuMergedHeaderRenderer {
     }
 
     rowClass(record) {
+        if (this.isSectionRow(record)) {
+            return "fw-bold o_dmtb_section_row";
+        }
         return this.isTotalRow(record) ? "fw-bold o_dmtb_total_row" : "";
+    }
+
+    sectionColspan() {
+        return 1 + this.getMetricSubColumns().length + 1;
     }
 
     getColumnGroups() {
@@ -1352,12 +1363,13 @@ class VatTuBaoCaoDmtbPivotRenderer extends VatTuMergedHeaderRenderer {
         for (let i = 0; i < columns.length; i++) {
             const colDef = columns[i];
             const monthLabel = colDef.label || colDef.month_key || `T${i}`;
-            for (const metric of metrics) {
+            for (const [metricIndex, metric] of metrics.entries()) {
                 out.push({
                     id: `${monthLabel}_${metric.key}_${i}`,
                     label: metric.label,
                     colIndex: i,
                     metric,
+                    isMonthStart: metricIndex === 0,
                 });
             }
         }

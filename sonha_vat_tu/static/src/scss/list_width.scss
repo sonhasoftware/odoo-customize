@@ -325,9 +325,15 @@ thead.o_vat_tu_sticky_header_active {
             padding: 0.5rem 0.75rem;
         }
 
-        thead th.o_dmtb_header_dmbq,
-        tbody td.o_dmtb_cell_dmbq {
-            background-color: #ffff00 !important;
+        thead th.o_dmtb_metric_header {
+            min-width: 6.5rem;
+            border-left: 1px solid #dee2e6;
+            border-right: 1px solid #dee2e6;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        thead th.o_dmtb_metric_header.o_dmtb_metric_month_start {
+            border-left: 1px solid #adb5bd;
         }
 
         tbody td {
@@ -338,6 +344,10 @@ thead.o_vat_tu_sticky_header_active {
 
         tbody tr.o_dmtb_total_row td {
             background-color: #e9ecef;
+            font-weight: 700;
+        }
+
+        tbody tr.o_dmtb_section_row td {
             font-weight: 700;
         }
 

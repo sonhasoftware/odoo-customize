@@ -1136,6 +1136,12 @@ class KeHoachVatTu(models.Model):
             or self.env.user.has_group('sonha_vat_tu.group_truong_bo_phan_vat_tu')
         )
 
+    def _has_kh_dat_vat_tu_export_rights(self):
+        return (
+            self._has_plan_edit_rights()
+            or self.env.user.has_group('sonha_vat_tu.group_ban_cung_ung_vat_tu')
+        )
+
     def action_download_b1_template(self):
         raise UserError(_(
             'Import kế hoạch kinh doanh thực hiện trên menu Kế hoạch kinh doanh.'
@@ -1220,8 +1226,10 @@ class KeHoachVatTu(models.Model):
     def action_export_kh_dat_vat_tu(self):
         """Xuất Excel bước 5."""
         self.ensure_one()
-        if self.state != 'dat_hang':
-            raise UserError(_('Chỉ export được ở bước Kế hoạch đặt vật tư.'))
+        if not self._has_kh_dat_vat_tu_export_rights():
+            raise UserError(_('Bạn không có quyền xuất kế hoạch đặt vật tư.'))
+        if self.state in ('ke_hoach', 'dinh_muc', 'tinh_toan', 'tong_hop'):
+            raise UserError(_('Chỉ export được từ bước Kế hoạch đặt vật tư trở đi.'))
         lines = self.kh_dat_vat_tu_ids.sorted(
             key=lambda r: ((r.ma_sap or '').strip(), r.id),
         )

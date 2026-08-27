@@ -11,7 +11,6 @@
                            widget="many2many_tags"
                            options="{'no_create': True, 'no_open': True}"/>
                     <field name="nhom_id" options="{'no_create': True}"/>
-                    <field name="nguon_sl_sp" widget="radio"/>
                 </group>
                 <footer>
                     <button name="action_open_report" type="object"
@@ -43,6 +42,9 @@
                 <field name="nganh_hang_label" column_invisible="1"/>
                 <field name="is_btp_row" column_invisible="1"/>
                 <field name="is_total_row" column_invisible="1"/>
+                <field name="is_section_row" column_invisible="1"/>
+                <field name="section_label" column_invisible="1"/>
+                <field name="nguon_sl_sp" column_invisible="1"/>
                 <field name="sequence" column_invisible="1"/>
                 <field name="row_key" column_invisible="1"/>
                 <field name="metrics_json" column_invisible="1"/>
