@@ -500,7 +500,7 @@
                     </tr>
                     <tr class="text-center fw-bold">
                         <t t-foreach="getMetricSubColumns()" t-as="col" t-key="col.id">
-                            <th t-attf-class="align-middle text-center o_list_number_th {{ col.metric.highlight ? 'o_dmtb_header_dmbq' : '' }}"
+                            <th t-attf-class="align-middle text-center o_list_number_th o_dmtb_header o_dmtb_metric_header {{ col.isMonthStart ? 'o_dmtb_metric_month_start' : '' }}"
                                 tabindex="-1">
                                 <span t-esc="col.label"/>
                             </th>
@@ -510,7 +510,19 @@
                 <tbody>
                     <t t-foreach="getCompanyGroups()" t-as="companyGroup" t-key="companyGroup.companyCode">
                         <t t-foreach="companyGroup.rows" t-as="row" t-key="row.id" t-foreach-index="row_index">
-                            <tr t-att-class="rowClass(row)">
+                            <tr t-if="row.data.is_section_row" t-att-class="rowClass(row)">
+                                <t t-if="row_index === 0">
+                                    <td t-att-rowspan="companyGroup.rows.length"
+                                        class="align-middle text-center o_dmtb_company_cell">
+                                        <span t-esc="companyGroup.companyCode"/>
+                                    </td>
+                                </t>
+                                <td t-att-colspan="sectionColspan()"
+                                    class="align-middle text-center">
+                                    <span t-esc="row.data.section_label"/>
+                                </td>
+                            </tr>
+                            <tr t-else="" t-att-class="rowClass(row)">
                                 <t t-if="row_index === 0">
                                     <td t-att-rowspan="companyGroup.rows.length"
                                         class="align-middle text-center o_dmtb_company_cell">
@@ -521,7 +533,7 @@
                                     <span t-esc="row.data.nganh_hang_label"/>
                                 </td>
                                 <t t-foreach="getMetricSubColumns()" t-as="col" t-key="col.id">
-                                    <td t-attf-class="align-middle text-end o_list_number {{ col.metric.highlight ? 'o_dmtb_cell_dmbq' : '' }}">
+                                    <td class="align-middle text-end o_list_number">
                                         <span t-esc="formatMetric(metricValue(row, col.colIndex, col.metric), col.metric, row)"/>
                                     </td>
                                 </t>

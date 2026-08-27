@@ -729,6 +729,7 @@
         <field name="model_id" ref="model_ke_hoach_vat_tu"/>
         <field name="binding_model_id" ref="model_ke_hoach_vat_tu"/>
         <field name="binding_view_types">form</field>
+        <field name="groups_id" eval="[(4, ref('sonha_vat_tu.group_bo_phan_vat_tu')), (4, ref('sonha_vat_tu.group_truong_bo_phan_vat_tu')), (4, ref('sonha_vat_tu.group_ban_cung_ung_vat_tu'))]"/>
         <field name="state">code</field>
         <field name="code">
             if records:
