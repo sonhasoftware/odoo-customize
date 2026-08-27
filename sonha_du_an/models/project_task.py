@@ -1,11 +1,11 @@
-from datetime import timedelta
-
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
+from datetime import timedelta, date
 
 
 class Task(models.Model):
     _inherit = 'project.task'
+    _order = 'create_date asc, id asc'
 
     du_an_cha_task_id = fields.Many2one(
         'project.project',
@@ -21,7 +21,7 @@ class Task(models.Model):
     so_ngay_ht = fields.Float("Số ngày hoàn thành", required=True, store=True)
     ngay_bat_dau = fields.Date("Ngày bắt đầu", required=True, store=True)
     ngay_ket_thuc = fields.Date("Ngày kết thúc", compute="get_ngay_ket_thuc", store=True)
-    ngay_hoan_thanh = fields.Date("Ngày hoàn thành", store=True)
+    ngay_hoan_thanh = fields.Date("Ngày hoàn thành", store=True, readonly=True)
     so_ngay_pending = fields.Float("Số ngày Pending", store=True)
 
     ns_lam = fields.Many2many('res.users', 'ir_ns_lam_group_rel',
@@ -36,6 +36,22 @@ class Task(models.Model):
                                   default='kt',
                                   group_expand='_group_expand_trang_thai', store=True)
 
+    ngay_bd_da_cha = fields.Date("Ngày bắt đầu dự án cha", store=True, compute="get_ngay_bat_dau")
+    ngay_kt_da_cha = fields.Date("Ngày kêt thúc dự án cha", store=True, compute="get_ngay_bat_dau")
+
+    @api.depends('du_an_cha_task_id')
+    def get_ngay_bat_dau(self):
+        for r in self:
+            if r.du_an_cha_task_id and r.du_an_cha_task_id.ngay_bat_dau:
+                r.ngay_bd_da_cha = r.du_an_cha_task_id.ngay_bat_dau
+            else:
+                r.ngay_bd_da_cha = False
+
+            if r.du_an_cha_task_id and r.du_an_cha_task_id.ngay_kt_da:
+                r.ngay_kt_da_cha = r.du_an_cha_task_id.ngay_kt_da
+            else:
+                r.ngay_kt_da_cha = False
+
     @api.model
     def _group_expand_trang_thai(self, states, domain, order):
         return [
@@ -44,6 +60,71 @@ class Task(models.Model):
             'ht',
             'pd',
         ]
+
+    @api.model
+    def default_get(self, fields_list):
+        res = super().default_get(fields_list)
+
+        # Lấy task mới nhất
+        last_task = self.search(
+            [],
+            order='id desc',
+            limit=1
+        )
+
+        if not last_task:
+            return res
+
+        # =========================
+        # COPY DỮ LIỆU
+        # =========================
+
+        # Nội dung công việc
+        res['name'] = last_task.name
+
+        # Dự án con
+        if 'cap' in self._fields:
+            res['cap'] = last_task.cap.id
+
+        # Dự án cha
+        if 'du_an_cha_task_id' in self._fields:
+            res['du_an_cha_task_id'] = last_task.du_an_cha_task_id.id
+
+        # Số ngày
+        if 'so_ngay' in self._fields:
+            res['so_ngay'] = last_task.so_ngay
+
+        # Ngày bắt đầu
+        if 'ngay_bat_dau' in self._fields:
+            res['ngay_bat_dau'] = last_task.ngay_bat_dau
+
+        # Ngày kết thúc
+        if 'ngay_ket_thuc' in self._fields:
+            res['ngay_ket_thuc'] = last_task.ngay_ket_thuc
+
+        # Ngày hoàn thành
+        if 'ngay_hoan_thanh' in self._fields:
+            res['ngay_hoan_thanh'] = last_task.ngay_hoan_thanh
+
+        # NS làm - Many2many
+        if 'ns_lam' in self._fields:
+            res['ns_lam'] = [
+                (6, 0, last_task.ns_lam.ids)
+            ]
+
+        # Người QLDA - Many2many
+        if 'nguoi_qlda' in self._fields:
+            res['nguoi_qlda'] = [
+                (6, 0, last_task.nguoi_qlda.ids)
+            ]
+
+        # Chủ sở hữu
+        if 'chu_so_huu' in self._fields:
+            res['chu_so_huu'] = [
+                (6, 0, last_task.chu_so_huu.ids)
+            ]
+
+        return res
 
     def _get_project_end_date_limit(self):
         self.ensure_one()
@@ -80,10 +161,10 @@ class Task(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            # Do not let a project-specific default stage reintroduce custom
-            # workflow columns when tasks are created from the standard Project app.
-            if not vals.get('stage_id'):
-                vals['stage_id'] = self._get_default_stage_id()
+            if not vals.get('name'):
+                raise ValidationError(
+                    _("Bạn không được để trống trường Nội dung công việc của nhiệm vụ!")
+                )
             if vals.get('cap'):
                 vals['project_id'] = vals['cap']
                 if not vals.get('du_an_cha_task_id'):
@@ -112,8 +193,10 @@ class Task(models.Model):
             r.trang_thai = 'run'
 
     def action_done(self):
+        today = date.today()
         for r in self:
-            r.trang_thai = 'done'
+            r.trang_thai = 'ht'
+            r.ngay_hoan_thanh = today
 
     def action_reset(self):
         for r in self:

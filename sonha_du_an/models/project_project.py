@@ -13,7 +13,7 @@ class Project(models.Model):
     noi_dung = fields.Text("Nội dung", store=True)
     nguoi_qlda = fields.Many2many('res.users', 'ir_qlda_group_rel',
                                   'qlda_group_rel', 'qlda_rel', string='Người QLDA', store=True)
-    ngay_kt_da = fields.Date("Ngày kết thúc DA", store=True)
+    ngay_kt_da = fields.Date("Ngày kết thúc DA", store=True, readonly=False)
     ngay_kt_chinh_sua = fields.Date("Ngày kết thúc chỉnh sửa", store=True)
     du_an_cha = fields.Boolean("Dự án cha", default=True, store=True)
     du_an_cha_id = fields.Many2one(
@@ -35,7 +35,7 @@ class Project(models.Model):
 
     ten = fields.Char("Tên dự án", store=True, compute="get_name_duan")
 
-    ngay_bat_dau = fields.Date("Ngày bắt đầu", store=True)
+    ngay_bat_dau = fields.Date("Ngày bắt đầu", store=True, required=True)
 
     @api.depends('name')
     def get_name_duan(self):
@@ -53,7 +53,7 @@ class Project(models.Model):
         for project in self:
             if project.du_an_cha_id:
                 project.du_an_cha = False
-                project.ngay_kt_da = project.du_an_cha_id.ngay_kt_da
+                project.ngay_kt_chinh_sua = project.du_an_cha_id.ngay_kt_chinh_sua
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -61,7 +61,7 @@ class Project(models.Model):
             if vals.get('du_an_cha_id'):
                 vals['du_an_cha'] = False
                 parent = self.env['project.project'].browse(vals['du_an_cha_id'])
-                vals['ngay_kt_da'] = parent.ngay_kt_da
+                vals['ngay_kt_chinh_sua'] = parent.ngay_kt_chinh_sua
         return super().create(vals_list)
 
     def write(self, vals):
@@ -77,7 +77,7 @@ class Project(models.Model):
         # A child project's end date is inherited from its parent.  Write each
         # record separately because a multi-record write can contain children
         # belonging to different parents.
-        if 'du_an_cha_id' in vals or 'ngay_kt_da' in vals:
+        if 'du_an_cha_id' in vals or 'ngay_kt_chinh_sua' in vals:
             for record in self:
                 record_vals = dict(vals)
                 parent_id = record_vals.get('du_an_cha_id', record.du_an_cha_id.id)
@@ -85,10 +85,10 @@ class Project(models.Model):
                     parent = self.env['project.project'].browse(parent_id)
                     record_vals.update(
                         du_an_cha=False,
-                        ngay_kt_da=parent.ngay_kt_da,
+                        ngay_kt_chinh_sua=parent.ngay_kt_chinh_sua,
                     )
                 super(Project, record).write(record_vals)
-                if 'ngay_kt_da' in record_vals:
+                if 'ngay_kt_chinh_sua' in record_vals:
                     record._sync_child_project_end_dates()
             return True
 
@@ -98,7 +98,7 @@ class Project(models.Model):
         """Propagate this project's end date to every direct child project."""
         for project in self:
             project.du_an_con_ids.with_context(sync_parent_end_date=True).write({
-                'ngay_kt_da': project.ngay_kt_da,
+                'ngay_kt_chinh_sua': project.ngay_kt_chinh_sua,
             })
 
     @api.constrains('du_an_cha_id')
