@@ -1,7 +1,6 @@
-from datetime import timedelta
-
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
+from datetime import timedelta, date
 
 
 class Task(models.Model):
@@ -194,8 +193,10 @@ class Task(models.Model):
             r.trang_thai = 'run'
 
     def action_done(self):
+        today = date.today()
         for r in self:
             r.trang_thai = 'done'
+            r.ngay_ket_thuc = today
 
     def action_reset(self):
         for r in self:
