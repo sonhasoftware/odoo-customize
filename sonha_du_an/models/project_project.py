@@ -37,6 +37,10 @@ class Project(models.Model):
 
     ngay_bat_dau = fields.Date("Ngày bắt đầu", store=True, required=True)
 
+    trang_thai = fields.Selection([('run', 'Đang chạy'), ('kt', 'Kết thúc')],
+                                  string='Trạng thái',
+                                  default='run',  store=True)
+
     @api.depends('name')
     def get_name_duan(self):
         for r in self:
@@ -160,3 +164,7 @@ class Project(models.Model):
         context['group_by'] = 'trang_thai'
         action['context'] = context
         return action
+
+    def action_ket_thuc(self):
+        for r in self:
+            r.trang_thai = 'kt'
