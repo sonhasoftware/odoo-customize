@@ -21,7 +21,7 @@ class Task(models.Model):
     so_ngay_ht = fields.Float("Số ngày hoàn thành", required=True, store=True)
     ngay_bat_dau = fields.Date("Ngày bắt đầu", required=True, store=True)
     ngay_ket_thuc = fields.Date("Ngày kết thúc", compute="get_ngay_ket_thuc", store=True)
-    ngay_hoan_thanh = fields.Date("Ngày hoàn thành", store=True)
+    ngay_hoan_thanh = fields.Date("Ngày hoàn thành", store=True, readonly=True)
     so_ngay_pending = fields.Float("Số ngày Pending", store=True)
 
     ns_lam = fields.Many2many('res.users', 'ir_ns_lam_group_rel',
@@ -195,8 +195,8 @@ class Task(models.Model):
     def action_done(self):
         today = date.today()
         for r in self:
-            r.trang_thai = 'done'
-            r.ngay_ket_thuc = today
+            r.trang_thai = 'ht'
+            r.ngay_hoan_thanh = today
 
     def action_reset(self):
         for r in self:
