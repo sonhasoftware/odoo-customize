@@ -36,7 +36,13 @@
                         <page string="Nhập nhiệm vụ">
                             <field name="nhiem_vu_du_an_ids" string="" context="{'default_du_an_cha_task_id': id}">
                                 <tree editable="bottom">
-                                    <field name="cap" domain="[('du_an_cha_id', '=', parent.id), ('du_an_cha', '=', False)]" context="{'default_du_an_cha_id': parent.id, 'default_du_an_cha': False}"/>
+                                    <field name="cap" domain="[
+                                        ('du_an_cha_id', '=', parent.id),
+                                        ('du_an_cha', '=', False),
+                                        '|',
+                                        ('du_an_cha_id.nguoi_qlda', 'in', [uid]),
+                                        ('nguoi_qlda', 'in', [uid])
+                                    ]" context="{'default_du_an_cha_id': parent.id, 'default_du_an_cha': False}"/>
                                     <field name="name" required="0" string="Nội dung công việc"/>
                                     <field name="so_ngay_ht"/>
                                     <field name="ngay_bat_dau"/>
@@ -80,5 +86,4 @@
                 (0, 0, {'view_mode': 'tree', 'view_id': ref('view_nhap_lieu_du_an_tree')}),
                 (0, 0, {'view_mode': 'form', 'view_id': ref('view_nhap_lieu_du_an_form')})]"/>
         </record>
-
 </odoo>
