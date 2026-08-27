@@ -51,6 +51,7 @@
                                     <field name="ns_lam" widget="many2many_tags"/>
                                     <field name="chu_so_huu" widget="many2many_tags"/>
                                     <field name="so_ngay_pending"/>
+                                    <field name="ly_do_pending"/>
                               </tree>
                           </field>
                       </page>
