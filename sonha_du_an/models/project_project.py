@@ -157,6 +157,6 @@ class Project(models.Model):
             view for view in action.get('views', []) if view[1] != 'kanban'
         ]
         context = dict(action.get('context') or {})
-        context['group_by'] = 'stage_id'
+        context['group_by'] = 'trang_thai'
         action['context'] = context
         return action
