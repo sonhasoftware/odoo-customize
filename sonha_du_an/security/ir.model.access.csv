@@ -10,3 +10,5 @@ access_sonha_project_task_admin,sonha.project.task.admin,project.model_project_t
 
 access_group_du_an,group.du.an,model_group_du_an,,1,1,1,0
 
+access_project_task_pending_wizard,project.task.pending.wizard,model_project_task_pending_wizard,,1,1,1,1
+

@@ -1,5 +1,6 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
+from datetime import timedelta, date
 
 
 class Project(models.Model):
@@ -36,6 +37,12 @@ class Project(models.Model):
     ten = fields.Char("Tên dự án", store=True, compute="get_name_duan")
 
     ngay_bat_dau = fields.Date("Ngày bắt đầu", store=True, required=True)
+
+    trang_thai = fields.Selection([('run', 'Đang chạy'), ('kt', 'Kết thúc')],
+                                  string='Trạng thái',
+                                  default='run',  store=True)
+
+    ngay_kt_da_tt = fields.Date("Ngày kết thúc dự án thực rế", store=True)
 
     @api.depends('name')
     def get_name_duan(self):
@@ -157,6 +164,11 @@ class Project(models.Model):
             view for view in action.get('views', []) if view[1] != 'kanban'
         ]
         context = dict(action.get('context') or {})
-        context['group_by'] = 'stage_id'
+        context['group_by'] = 'trang_thai'
         action['context'] = context
         return action
+
+    def action_ket_thuc(self):
+        for r in self:
+            r.trang_thai = 'kt'
+            r.ngay_kt_da_tt = date.today()

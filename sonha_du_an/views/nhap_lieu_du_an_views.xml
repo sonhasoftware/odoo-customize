@@ -5,6 +5,10 @@
         <field name="model">project.project</field>
         <field name="arch" type="xml">
             <form string="Nhập liệu dự án">
+                <header>
+                    <button name="action_ket_thuc" invisible="trang_thai != 'run'" type="object" string="Kết thúc" class="btn-warning"/>
+                    <field name="trang_thai" widget="statusbar"/>
+                </header>
                 <sheet>
                     <group>
                         <group>
@@ -51,6 +55,7 @@
                                     <field name="ns_lam" widget="many2many_tags"/>
                                     <field name="chu_so_huu" widget="many2many_tags"/>
                                     <field name="so_ngay_pending"/>
+                                    <field name="ly_do_pending"/>
                               </tree>
                           </field>
                       </page>

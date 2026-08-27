@@ -23,6 +23,7 @@ class Task(models.Model):
     ngay_ket_thuc = fields.Date("Ngày kết thúc", compute="get_ngay_ket_thuc", store=True)
     ngay_hoan_thanh = fields.Date("Ngày hoàn thành", store=True, readonly=True)
     so_ngay_pending = fields.Float("Số ngày Pending", store=True)
+    ly_do_pending = fields.Text("Lý do Pending", store=True)
 
     ns_lam = fields.Many2many('res.users', 'ir_ns_lam_group_rel',
                                   'ns_lam_group_rel', 'ns_lam_rel', string='NS làm', store=True)
@@ -38,6 +39,58 @@ class Task(models.Model):
 
     ngay_bd_da_cha = fields.Date("Ngày bắt đầu dự án cha", store=True, compute="get_ngay_bat_dau")
     ngay_kt_da_cha = fields.Date("Ngày kêt thúc dự án cha", store=True, compute="get_ngay_bat_dau")
+    check_ngay_chay = fields.Date("Check ngày chạy")
+    check_ngay_ht = fields.Date("Check ngày HT")
+    can_back_state = fields.Boolean(
+        string='Có thể trở lại trạng thái',
+        compute='_compute_can_back_state',
+    )
+
+    @api.depends('trang_thai','check_ngay_chay','check_ngay_ht')
+    def _compute_can_back_state(self):
+
+        today = fields.Date.today()
+
+        # Admin luôn có quyền
+        is_admin = self.env.user.has_group('base.group_system')
+
+        for record in self:
+
+            # Admin luôn thấy nút
+            if is_admin:
+                record.can_back_state = True
+                continue
+
+            # Mặc định không cho
+            record.can_back_state = False
+
+            # =========================
+            # ĐANG CHẠY -> KHỞI TẠO
+            # =========================
+            if record.trang_thai == 'run':
+
+                # Nếu chưa có ngày thì cho phép
+                if not record.check_ngay_chay:
+                    record.can_back_state = True
+
+                # Chỉ cho phép khi ngày >= hôm nay
+                elif record.check_ngay_chay >= today:
+                    record.can_back_state = True
+
+            # =========================
+            # HOÀN THÀNH -> ĐANG CHẠY
+            # =========================
+            elif record.trang_thai == 'ht':
+
+                # Nếu chưa có ngày thì cho phép
+                if not record.check_ngay_ht:
+                    record.can_back_state = True
+
+                # Chỉ cho phép khi ngày >= hôm nay
+                elif record.check_ngay_ht >= today:
+                    record.can_back_state = True
+            elif record.trang_thai == 'pd':
+                record.can_back_state = True
 
     @api.depends('du_an_cha_task_id')
     def get_ngay_bat_dau(self):
@@ -189,19 +242,40 @@ class Task(models.Model):
                 r.ngay_ket_thuc = False
 
     def action_run(self):
+        today = date.today()
         for r in self:
             r.trang_thai = 'run'
+            r.check_ngay_chay = today + timedelta(days=3)
 
     def action_done(self):
         today = date.today()
         for r in self:
             r.trang_thai = 'ht'
             r.ngay_hoan_thanh = today
+            r.check_ngay_ht = today + timedelta(days=3)
 
     def action_reset(self):
         for r in self:
-            r.trang_thai = 'kt'
+            if r.trang_thai == 'ht':
+                r.trang_thai = 'run'
+            elif r.trang_thai == 'run':
+                r.trang_thai = 'kt'
+            elif r.trang_thai == 'pd':
+                r.trang_thai = 'run'
+            r.ngay_hoan_thanh = False
 
     def action_tam_dung(self):
-        for r in self:
-            r.trang_thai = 'pd'
+        self.ensure_one()
+
+        return {
+            'name': 'Pending nhiệm vụ',
+            'type': 'ir.actions.act_window',
+            'res_model': 'project.task.pending.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_task_id': self.id,
+                'default_ly_do_pending': self.ly_do_pending,
+                'default_so_ngay_pending': self.so_ngay_pending,
+            },
+        }
