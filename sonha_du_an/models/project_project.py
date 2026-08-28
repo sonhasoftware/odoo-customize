@@ -72,11 +72,27 @@ class Project(models.Model):
                 vals['ngay_kt_chinh_sua'] = parent.ngay_kt_chinh_sua
         return super().create(vals_list)
 
+    def _can_edit_after_end_date(self):
+        self.ensure_one()
+        user = self.env.user
+        if (
+            user.has_group('base.group_system')
+            or user.has_group('sonha_du_an.group_admin_du_an')
+        ):
+            return True
+
+        parent_project = self.du_an_cha_id or self
+        return user in parent_project.nguoi_qlda
+
     def write(self, vals):
         if not self.env.context.get('sync_parent_end_date'):
             today = fields.Date.context_today(self)
             for record in self:
-                if record.ngay_kt_chinh_sua and record.ngay_kt_chinh_sua < today:
+                if (
+                    record.ngay_kt_chinh_sua
+                    and record.ngay_kt_chinh_sua < today
+                    and not record._can_edit_after_end_date()
+                ):
                     raise ValidationError(
                         'Bản ghi đã quá ngày %s nên không được phép chỉnh sửa.'
                         % record.ngay_kt_chinh_sua.strftime('%d/%m/%Y')

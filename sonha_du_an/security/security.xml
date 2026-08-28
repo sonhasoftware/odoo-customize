@@ -36,7 +36,7 @@
     <record id="rule_sonha_project_user_write" model="ir.rule">
         <field name="name">Dự án: nhân viên sửa dự án của mình</field>
         <field name="model_id" ref="project.model_project_project"/>
-        <field name="domain_force">[('nguoi_qlda', 'in', [user.id])]</field>
+        <field name="domain_force">['|', ('nguoi_qlda', 'in', [user.id]), ('du_an_cha_id.nguoi_qlda', 'in', [user.id])]</field>
         <field name="groups" eval="[(4, ref('sonha_du_an.group_user_du_an'))]"/>
         <field name="perm_read" eval="False"/>
         <field name="perm_write" eval="True"/>
