@@ -33,6 +33,7 @@
                                     <field name="du_an_cha" column_invisible="1"/>
                                     <field name="name" string="Nội dung dự án"/>
                                     <field name="nguoi_qlda" widget="many2many_tags"/>
+                                    <field name="ty_le_phan_tram" required="1"/>
                                     <field name="ngay_kt_da" readonly="1"/>
                                 </tree>
                             </field>
@@ -48,6 +49,7 @@
                                         ('nguoi_qlda', 'in', [uid])
                                     ]" context="{'default_du_an_cha_id': parent.id, 'default_du_an_cha': False}"/>
                                     <field name="name" required="0" string="Nội dung công việc"/>
+                                    <field name="ty_le_phan_tram" required="1"/>
                                     <field name="so_ngay_ht"/>
                                     <field name="ngay_bat_dau"/>
                                     <field name="ngay_ket_thuc"/>
