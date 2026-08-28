@@ -79,7 +79,7 @@ class Project(models.Model):
                 if record.ngay_kt_chinh_sua and record.ngay_kt_chinh_sua < today:
                     raise ValidationError(
                         'Bản ghi đã quá ngày %s nên không được phép chỉnh sửa.'
-                        % record.date.strftime('%d/%m/%Y')
+                        % record.ngay_kt_chinh_sua.strftime('%d/%m/%Y')
                     )
 
         # A child project's end date is inherited from its parent.  Write each
