@@ -18,6 +18,7 @@ class Task(models.Model):
         string="Dự án con",
     )
     noi_dung_cv = fields.Text("Nội dung công việc", store=True)
+    ty_le_phan_tram = fields.Float("%", required=True, store=True)
     so_ngay_ht = fields.Float("Số ngày hoàn thành", required=True, store=True)
     ngay_bat_dau = fields.Date("Ngày bắt đầu", required=True, store=True)
     ngay_ket_thuc = fields.Date("Ngày kết thúc", compute="get_ngay_ket_thuc", store=True)
@@ -201,6 +202,28 @@ class Task(models.Model):
                     )
                 raise ValidationError(message)
 
+    def _validate_ty_le_phan_tram(self):
+        for task in self:
+            if task.ty_le_phan_tram <= 0:
+                raise ValidationError(
+                    _("Bạn bắt buộc phải nhập % lớn hơn 0 cho nhiệm vụ.")
+                )
+            if task.ty_le_phan_tram > 100:
+                raise ValidationError(
+                    _("% của nhiệm vụ không được lớn hơn 100%.")
+                )
+            if task.cap:
+                tasks = self.search([('cap', '=', task.cap.id)])
+                total_percent = sum(tasks.mapped('ty_le_phan_tram'))
+                if total_percent > task.cap.ty_le_phan_tram:
+                    raise ValidationError(
+                        _("Tổng % nhiệm vụ không được vượt quá % của dự án con đã liên kết.")
+                    )
+
+    @api.constrains('ty_le_phan_tram', 'cap')
+    def _check_ty_le_phan_tram(self):
+        self._validate_ty_le_phan_tram()
+
     @api.constrains('cap', 'du_an_cha_task_id', 'so_ngay_ht', 'ngay_bat_dau', 'so_ngay_pending')
     def _check_ngay_ket_thuc_with_project(self):
         self._validate_project_end_dates()
@@ -209,7 +232,7 @@ class Task(models.Model):
     def _onchange_cap(self):
         if self.cap:
             self.project_id = self.cap
-            self.du_an_cha_task_id = self.cap
+            self.du_an_cha_task_id = self.cap.du_an_cha_id
 
     @api.model_create_multi
     def create(self, vals_list):
