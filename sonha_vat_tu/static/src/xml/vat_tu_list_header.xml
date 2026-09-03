@@ -542,7 +542,6 @@
                                         <textarea class="o_dmtb_ghi_chu_input form-control form-control-sm"
                                                   rows="2"
                                                   t-att-value="row.data.ghi_chu || ''"
-                                                  t-on-change="(ev) => this.onGhiChuInput(row, ev)"
                                                   t-on-blur="(ev) => this.onGhiChuInput(row, ev)"
                                                   placeholder="Ghi chú..."/>
                                     </t>
@@ -614,7 +613,6 @@
                                     <textarea class="o_vtcd_ghi_chu_input form-control form-control-sm"
                                               rows="2"
                                               t-att-value="row.data.ghi_chu || ''"
-                                              t-on-change="(ev) => this.onGhiChuInput(row, ev)"
                                               t-on-blur="(ev) => this.onGhiChuInput(row, ev)"
                                               placeholder="Ghi chú..."/>
                                 </t>
@@ -681,7 +679,6 @@
                                 <textarea class="o_khdsx_ghi_chu_input form-control form-control-sm"
                                           rows="2"
                                           t-att-value="row.data.ghi_chu || ''"
-                                          t-on-change="(ev) => this.onGhiChuInput(row, ev)"
                                           t-on-blur="(ev) => this.onGhiChuInput(row, ev)"
                                           placeholder="Ghi chú..."/>
                             </td>

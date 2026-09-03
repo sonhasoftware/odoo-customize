@@ -623,13 +623,28 @@ function registerBaoCaoListView(key, Renderer, Controller = VatTuBaoCaoListContr
     });
 }
 
+const ghiChuSaveQueues = new Map();
+
+function enqueueGhiChuSave(key, task) {
+    const tail = (ghiChuSaveQueues.get(key) || Promise.resolve()).then(task, task);
+    ghiChuSaveQueues.set(key, tail);
+    return tail.finally(() => {
+        if (ghiChuSaveQueues.get(key) === tail) {
+            ghiChuSaveQueues.delete(key);
+        }
+    });
+}
+
 async function saveReportLineGhiChu(env, record, value) {
     const text = value ?? "";
-    if ((record.data.ghi_chu || "") === text) {
-        return;
-    }
-    await env.services.orm.write(record.resModel, [record.resId], { ghi_chu: text });
-    record.data.ghi_chu = text;
+    const queueKey = `${record.resModel}:${record.resId}`;
+    return enqueueGhiChuSave(queueKey, async () => {
+        if ((record.data.ghi_chu || "") === text) {
+            return;
+        }
+        await env.services.orm.write(record.resModel, [record.resId], { ghi_chu: text });
+        record.data.ghi_chu = text;
+    });
 }
 
 function registerMergedOne2Many(key, Renderer) {
