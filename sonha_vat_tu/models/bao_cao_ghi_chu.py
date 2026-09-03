@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models
+from psycopg2 import IntegrityError
+
 
 REPORT_DMTB = 'dmtb'
 REPORT_VTCD = 'vtcd'
@@ -114,12 +116,20 @@ class BaoCaoGhiChu(models.Model):
             return existing
         if not text:
             return self.browse()
-        return self.sudo().create({
-            'report_type': report_type,
-            'period_key': period_key,
-            'scope_key': scope_key,
-            'noi_dung': text,
-        })
+        try:
+            with self.env.cr.savepoint():
+                return self.sudo().create({
+                    'report_type': report_type,
+                    'period_key': period_key,
+                    'scope_key': scope_key,
+                    'noi_dung': text,
+                })
+        except IntegrityError:
+            existing = self.sudo().search(domain, limit=1)
+            if existing:
+                existing.write({'noi_dung': text})
+                return existing
+            raise
 
     def init(self):
         super().init()
