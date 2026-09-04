@@ -5,7 +5,7 @@
         <field name="name">sonha.du.an.bao.cao.tree</field>
         <field name="model">sonha.du.an.bao.cao</field>
         <field name="arch" type="xml">
-            <tree string="Báo cáo dự án" create="0" edit="0" delete="0" default_order="stt" decoration-bf="in_dam == 1">
+            <tree string="Báo cáo dự án" create="0" edit="0" delete="0" default_order="stt" decoration-success="in_dam == 1" decoration-info="in_dam == 2">
                 <header>
                     <button name="action_open_generate_wizard"
                         type="object"
