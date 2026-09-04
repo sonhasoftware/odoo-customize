@@ -54,14 +54,15 @@ class BaoCaoDuAn(models.Model):
         if start_date > end_date:
             raise ValidationError(_("Từ ngày không được lớn hơn đến ngày."))
 
+        # Always call the three-argument function.  PostgreSQL receives NULL
+        # when no parent project is selected, rather than invoking a separate
+        # two-argument function overload.
         query_params = (
             start_date.strftime('%d/%m/%Y'),
             end_date.strftime('%d/%m/%Y'),
+            du_an_cha_id or None,
         )
-        query = 'SELECT * FROM public.fn_bao_cao_du_an(%s, %s)'
-        if du_an_cha_id:
-            query = 'SELECT * FROM public.fn_bao_cao_du_an(%s, %s, %s)'
-            query_params += (du_an_cha_id,)
+        query = 'SELECT * FROM public.fn_bao_cao_du_an(%s, %s, %s)'
         self.env.cr.execute(query, query_params)
         rows = self.env.cr.dictfetchall()
         generated_at = fields.Datetime.now()
