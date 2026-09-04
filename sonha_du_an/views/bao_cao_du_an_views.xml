@@ -5,7 +5,7 @@
         <field name="model">sonha.du.an.bao.cao</field>
         <field name="arch" type="xml">
             <tree string="Báo cáo dự án" create="0" edit="0" delete="0"
-                  field_parent="parent_id" default_order="parent_path,in_dam,stt,id"
+                  default_order="parent_path,in_dam,stt,id"
                   decoration-bf="in_dam == 1">
                 <header>
                     <button name="action_open_generate_wizard" type="object" string="Tạo báo cáo" class="btn-primary"/>
