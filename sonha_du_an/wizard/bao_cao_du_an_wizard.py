@@ -1,12 +1,13 @@
 from odoo import _, fields, models
+from datetime import date
 
 
 class BaoCaoDuAnWizard(models.TransientModel):
     _name = 'sonha.du.an.bao.cao.wizard'
     _description = 'Tạo báo cáo dự án'
 
-    tu_ngay = fields.Date(string='Từ ngày', required=True)
-    den_ngay = fields.Date(string='Đến ngày', required=True)
+    tu_ngay = fields.Date(string='Từ ngày', required=True, default=lambda self: date.today().replace(month=1, day=1))
+    den_ngay = fields.Date(string='Đến ngày', required=True, default=fields.Date.today)
     du_an_cha_id = fields.Many2one(
         'project.project', string='Dự án cha')
 
