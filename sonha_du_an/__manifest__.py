@@ -14,6 +14,8 @@
         'views/project_task_status_views.xml',
         'views/group_du_an_views.xml',
         'wizard/project_task_pending_wizard_views.xml',
+        'wizard/bao_cao_du_an_wizard_views.xml',
+        'views/bao_cao_du_an_views.xml',
         'views/menu.xml'
     ],
     'installable': True,
