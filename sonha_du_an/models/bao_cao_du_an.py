@@ -41,15 +41,22 @@ class BaoCaoDuAn(models.Model):
 
     @api.model
     def generate_from_function(self, tu_ngay, den_ngay, du_an_cha_id=False):
-        """Run the PostgreSQL report function and save all returned rows."""
+        """Run the PostgreSQL report function and save all returned rows.
+
+        ``fn_bao_cao_du_an`` receives dates as ``dd/mm/yyyy`` text, rather
+        than Odoo's default ISO date representation.
+        """
         if not tu_ngay or not den_ngay:
             raise ValidationError(_("Bạn phải nhập từ ngày và đến ngày."))
-        if tu_ngay > den_ngay:
+
+        start_date = fields.Date.to_date(tu_ngay)
+        end_date = fields.Date.to_date(den_ngay)
+        if start_date > end_date:
             raise ValidationError(_("Từ ngày không được lớn hơn đến ngày."))
 
         query_params = (
-            fields.Date.to_string(tu_ngay),
-            fields.Date.to_string(den_ngay),
+            start_date.strftime('%d/%m/%Y'),
+            end_date.strftime('%d/%m/%Y'),
         )
         query = 'SELECT * FROM public.fn_bao_cao_du_an(%s, %s)'
         if du_an_cha_id:
