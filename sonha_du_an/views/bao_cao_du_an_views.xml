@@ -4,16 +4,19 @@
         <field name="name">sonha.du.an.bao.cao.tree</field>
         <field name="model">sonha.du.an.bao.cao</field>
         <field name="arch" type="xml">
-            <tree string="Báo cáo dự án" create="0" edit="0" delete="0">
+            <tree string="Báo cáo dự án" create="0" edit="0" delete="0" decoration-bf="in_dam == 1">
                 <header>
                     <button name="action_open_generate_wizard" type="object" string="Tạo báo cáo" class="btn-primary"/>
                 </header>
-                <field name="name"/>
-                <field name="tu_ngay"/>
-                <field name="den_ngay"/>
-                <field name="du_an_cha_id"/>
                 <field name="stt"/>
-                <field name="ngay_tao_bao_cao"/>
+                <field name="noi_dung_cv_con"/>
+                <field name="ngay_bat_dau"/>
+                <field name="ngay_ket_thuc"/>
+                <field name="ten_trang_thai"/>
+                <field name="tinh_trang_han"/>
+                <field name="pt_cv"/>
+                <field name="ns_lam"/>
+                <field name="in_dam" column_invisible="1"/>
             </tree>
         </field>
     </record>
@@ -31,6 +34,16 @@
                         <field name="du_an_cha_id"/>
                         <field name="stt"/>
                         <field name="ngay_tao_bao_cao"/>
+                    </group>
+                    <group string="Chi tiết công việc">
+                        <field name="noi_dung_cv_con"/>
+                        <field name="ngay_bat_dau"/>
+                        <field name="ngay_ket_thuc"/>
+                        <field name="ten_trang_thai"/>
+                        <field name="tinh_trang_han"/>
+                        <field name="pt_cv"/>
+                        <field name="ns_lam"/>
+                        <field name="in_dam" invisible="1"/>
                     </group>
                     <group string="Dữ liệu trả về từ hàm">
                         <field name="du_lieu" nolabel="1"/>
