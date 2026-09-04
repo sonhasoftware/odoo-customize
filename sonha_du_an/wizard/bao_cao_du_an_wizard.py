@@ -8,9 +8,7 @@ class BaoCaoDuAnWizard(models.TransientModel):
     tu_ngay = fields.Date(string='Từ ngày', required=True)
     den_ngay = fields.Date(string='Đến ngày', required=True)
     du_an_cha_id = fields.Many2one(
-        'project.project', string='Dự án cha', required=True,
-        domain=[('du_an_cha', '=', True)],
-    )
+        'project.project', string='Dự án cha')
 
     def action_generate_report(self):
         self.ensure_one()
