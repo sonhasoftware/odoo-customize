@@ -34,15 +34,15 @@
     </record>
 
     <record id="view_bao_cao_du_an_search" model="ir.ui.view">
-        <field name="name">sonha.du.an.bao.cao.search</field>
-        <field name="model">sonha.du.an.bao.cao</field>
-        <field name="arch" type="xml">
-            <search>
-                <filter string="Dự án con" name="group_by_child_project" context="{'group_by': 'child_group_id'}"/>
-                <filter string="Theo dự án" name="group_by_project" context="{ 'group_by': [ 'parent_group_id', 'child_group_id']}"/>
-            </search>
-        </field>
-    </record>
+    <field name="name">sonha.du.an.bao.cao.search</field>
+    <field name="model">sonha.du.an.bao.cao</field>
+    <field name="arch" type="xml">
+        <search>
+            <filter string="Dự án cha" name="group_by_parent_project" context="{'group_by': 'parent_group_id'}"/>
+            <filter string="Dự án con" name="group_by_child_project" context="{'group_by': 'child_group_id'}"/>
+        </search>
+    </field>
+</record>
 
     <record id="view_bao_cao_du_an_form" model="ir.ui.view">
         <field name="name">sonha.du.an.bao.cao.form</field>
