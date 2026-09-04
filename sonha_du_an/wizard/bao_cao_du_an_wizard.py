@@ -12,9 +12,10 @@ class BaoCaoDuAnWizard(models.TransientModel):
 
     def action_generate_report(self):
         self.ensure_one()
-        reports = self.env['sonha.du.an.bao.cao'].generate_from_function(
-            self.tu_ngay, self.den_ngay, self.du_an_cha_id.id,
-        )
+        report_args = [self.tu_ngay, self.den_ngay]
+        if self.du_an_cha_id:
+            report_args.append(self.du_an_cha_id.id)
+        reports = self.env['sonha.du.an.bao.cao'].generate_from_function(*report_args)
         return {
             'type': 'ir.actions.act_window',
             'name': _('Báo cáo dự án'),

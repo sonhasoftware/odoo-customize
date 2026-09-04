@@ -8,8 +8,8 @@ class BaoCaoDuAn(models.Model):
     """Persist results returned by ``public.fn_bao_cao_du_an``.
 
     The database function owns the report columns and can therefore evolve
-    independently.  Keeping each returned row as JSON prevents an Odoo module
-    upgrade from being required every time the function gains a new column.
+    independently.  The raw result is retained as JSON in addition to the
+    report fields shown in the Odoo interface.
     """
 
     _name = 'sonha.du.an.bao.cao'
@@ -21,10 +21,18 @@ class BaoCaoDuAn(models.Model):
     tu_ngay = fields.Date(string='Từ ngày', required=True, readonly=True)
     den_ngay = fields.Date(string='Đến ngày', required=True, readonly=True)
     du_an_cha_id = fields.Many2one(
-        'project.project', string='Dự án cha', required=True, readonly=True,
+        'project.project', string='Dự án cha', readonly=True,
         ondelete='restrict', index=True,
     )
     stt = fields.Integer(string='STT', readonly=True)
+    noi_dung_cv_con = fields.Char(string='Nội dung công việc con', readonly=True)
+    ngay_bat_dau = fields.Date(string='Ngày bắt đầu', readonly=True)
+    ngay_ket_thuc = fields.Date(string='Ngày kết thúc', readonly=True)
+    ten_trang_thai = fields.Text(string='Tên trạng thái', readonly=True)
+    tinh_trang_han = fields.Text(string='Tình trạng hạn', readonly=True)
+    pt_cv = fields.Float(string='% công việc', readonly=True)
+    ns_lam = fields.Text(string='Nhân sự làm', readonly=True)
+    in_dam = fields.Integer(string='In đậm', readonly=True)
     du_lieu = fields.Text(string='Dữ liệu báo cáo', required=True, readonly=True)
     ngay_tao_bao_cao = fields.Datetime(
         string='Ngày tạo báo cáo', required=True, readonly=True,
@@ -32,29 +40,46 @@ class BaoCaoDuAn(models.Model):
     )
 
     @api.model
-    def generate_from_function(self, tu_ngay, den_ngay, du_an_cha_id):
+    def generate_from_function(self, tu_ngay, den_ngay, du_an_cha_id=False):
         """Run the PostgreSQL report function and save all returned rows."""
-        if not tu_ngay or not den_ngay or not du_an_cha_id:
-            raise ValidationError(_("Bạn phải nhập từ ngày, đến ngày và dự án cha."))
+        if not tu_ngay or not den_ngay:
+            raise ValidationError(_("Bạn phải nhập từ ngày và đến ngày."))
         if tu_ngay > den_ngay:
             raise ValidationError(_("Từ ngày không được lớn hơn đến ngày."))
 
-        self.env.cr.execute(
-            'SELECT * FROM public.fn_bao_cao_du_an(%s, %s, %s)',
-            (fields.Date.to_string(tu_ngay), fields.Date.to_string(den_ngay), du_an_cha_id),
+        query_params = (
+            fields.Date.to_string(tu_ngay),
+            fields.Date.to_string(den_ngay),
         )
+        query = 'SELECT * FROM public.fn_bao_cao_du_an(%s, %s)'
+        if du_an_cha_id:
+            query = 'SELECT * FROM public.fn_bao_cao_du_an(%s, %s, %s)'
+            query_params += (du_an_cha_id,)
+        self.env.cr.execute(query, query_params)
         rows = self.env.cr.dictfetchall()
         generated_at = fields.Datetime.now()
+        project_name = (
+            self.env['project.project'].browse(du_an_cha_id).display_name
+            if du_an_cha_id else _("Tất cả dự án")
+        )
         values = [
             {
                 'name': _('%(project)s - dòng %(line)s') % {
-                    'project': self.env['project.project'].browse(du_an_cha_id).display_name,
+                    'project': project_name,
                     'line': index,
                 },
                 'tu_ngay': tu_ngay,
                 'den_ngay': den_ngay,
                 'du_an_cha_id': du_an_cha_id,
                 'stt': index,
+                'noi_dung_cv_con': row.get('noi_dung_cv_con'),
+                'ngay_bat_dau': row.get('ngay_bat_dau'),
+                'ngay_ket_thuc': row.get('ngay_ket_thuc'),
+                'ten_trang_thai': row.get('ten_trang_thai'),
+                'tinh_trang_han': row.get('tinh_trang_han'),
+                'pt_cv': row.get('pt_cv'),
+                'ns_lam': row.get('ns_lam'),
+                'in_dam': row.get('in_dam'),
                 'du_lieu': json.dumps(row, ensure_ascii=False, default=str, sort_keys=True),
                 'ngay_tao_bao_cao': generated_at,
             }
