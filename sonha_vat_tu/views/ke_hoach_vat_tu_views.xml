@@ -406,7 +406,7 @@
                     <field name="co_ke_hoach_vat_tu" invisible="1"/>
                     <field name="kh_dat_vat_tu_ids" widget="vat_tu_merged_b5_one2many"
                            context="{'default_period_id': id, 'default_company_id': company_sx_id, 'default_is_manual': True}">
-                        <tree duplicate="0" editable="bottom" create="1" delete="1" class="sh_free_width_tree o_vat_tu_sticky_nvl">
+                        <tree duplicate="0" editable="bottom" class="sh_free_width_tree o_vat_tu_sticky_nvl">
                             <field name="is_manual" column_invisible="1"/>
                             <field name="period_id" column_invisible="1"/>
                             <field name="company_id" column_invisible="1"/>
