@@ -12,3 +12,6 @@ access_group_du_an,group.du.an,model_group_du_an,,1,1,1,0
 
 access_project_task_pending_wizard,project.task.pending.wizard,model_project_task_pending_wizard,,1,1,1,1
 
+
+access_bao_cao_du_an_admin,sonha.du.an.bao.cao.admin,model_sonha_du_an_bao_cao,,1,1,1,1
+access_bao_cao_du_an_wizard,sonha.du.an.bao.cao.wizard,model_sonha_du_an_bao_cao_wizard,,1,1,1,1
