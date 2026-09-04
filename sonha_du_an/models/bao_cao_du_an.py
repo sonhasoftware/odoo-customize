@@ -15,7 +15,9 @@ class BaoCaoDuAn(models.Model):
     _name = 'sonha.du.an.bao.cao'
     _description = 'Báo cáo dự án'
     _table = 'bao_cao'
-    _order = 'ngay_tao_bao_cao desc, id desc'
+    _parent_name = 'parent_id'
+    _parent_store = True
+    _order = 'ngay_tao_bao_cao desc, parent_path, in_dam, stt, id'
 
     name = fields.Char(string='Tên', required=True, readonly=True)
     tu_ngay = fields.Date(string='Từ ngày', required=True, readonly=True)
@@ -24,6 +26,11 @@ class BaoCaoDuAn(models.Model):
         'project.project', string='Dự án cha', readonly=True,
         ondelete='restrict', index=True,
     )
+    parent_id = fields.Many2one(
+        'sonha.du.an.bao.cao', string='Dòng cha', readonly=True,
+        ondelete='cascade', index=True,
+    )
+    parent_path = fields.Char(index=True)
     stt = fields.Integer(string='STT', readonly=True)
     noi_dung_cv_con = fields.Char(string='Nội dung công việc con', readonly=True)
     ngay_bat_dau = fields.Date(string='Ngày bắt đầu', readonly=True)
@@ -93,7 +100,35 @@ class BaoCaoDuAn(models.Model):
             }
             for index, row in enumerate(rows, start=1)
         ]
-        return self.create(values)
+
+        # The PostgreSQL function returns a pre-ordered flat report.  Its
+        # ``in_dam`` marker specifies each line's depth: 1 is a parent
+        # project, 2 is its child project, and 99 is a task.  Persist that
+        # relationship so the list view can use Odoo's native expand/collapse
+        # controls instead of only relying on visual formatting.
+        created_records = self.browse()
+        parent_project = self.browse()
+        child_project = self.browse()
+        for value in values:
+            level = value['in_dam']
+            if level == 1:
+                parent_project = self.create(value)
+                child_project = self.browse()
+                record = parent_project
+            elif level == 2:
+                value['parent_id'] = parent_project.id or False
+                child_project = self.create(value)
+                record = child_project
+            elif level == 99:
+                value['parent_id'] = (child_project or parent_project).id or False
+                record = self.create(value)
+            else:
+                # Keep unexpected function output visible as a root line;
+                # attaching it to an arbitrary preceding line would hide data
+                # behind an unrelated project when the hierarchy is closed.
+                record = self.create(value)
+            created_records |= record
+        return created_records
 
     def action_open_generate_wizard(self):
         return {
