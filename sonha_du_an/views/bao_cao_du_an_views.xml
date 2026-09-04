@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_bao_cao_du_an_tree" model="ir.ui.view">
+        <field name="name">sonha.du.an.bao.cao.tree</field>
+        <field name="model">sonha.du.an.bao.cao</field>
+        <field name="arch" type="xml">
+            <tree string="Báo cáo dự án" create="0" edit="0" delete="0">
+                <header>
+                    <button name="action_open_generate_wizard" type="object" string="Tạo báo cáo" class="btn-primary"/>
+                </header>
+                <field name="name"/>
+                <field name="tu_ngay"/>
+                <field name="den_ngay"/>
+                <field name="du_an_cha_id"/>
+                <field name="stt"/>
+                <field name="ngay_tao_bao_cao"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_bao_cao_du_an_form" model="ir.ui.view">
+        <field name="name">sonha.du.an.bao.cao.form</field>
+        <field name="model">sonha.du.an.bao.cao</field>
+        <field name="arch" type="xml">
+            <form string="Báo cáo dự án" create="0" edit="0" delete="0">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="tu_ngay"/>
+                        <field name="den_ngay"/>
+                        <field name="du_an_cha_id"/>
+                        <field name="stt"/>
+                        <field name="ngay_tao_bao_cao"/>
+                    </group>
+                    <group string="Dữ liệu trả về từ hàm">
+                        <field name="du_lieu" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_bao_cao_du_an" model="ir.actions.act_window">
+        <field name="name">Báo cáo dự án</field>
+        <field name="res_model">sonha.du.an.bao.cao</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

@@ -11,4 +11,7 @@ access_sonha_project_task_admin,sonha.project.task.admin,project.model_project_t
 access_group_du_an,group.du.an,model_group_du_an,,1,1,1,0
 
 access_project_task_pending_wizard,project.task.pending.wizard,model_project_task_pending_wizard,,1,1,1,1
-
+access_bao_cao_du_an_user,sonha.du.an.bao.cao.user,model_sonha_du_an_bao_cao,sonha_du_an.group_user_du_an,1,0,0,0
+access_bao_cao_du_an_manager,sonha.du.an.bao.cao.manager,model_sonha_du_an_bao_cao,sonha_du_an.group_manager_du_an,1,1,1,1
+access_bao_cao_du_an_admin,sonha.du.an.bao.cao.admin,model_sonha_du_an_bao_cao,sonha_du_an.group_admin_du_an,1,1,1,1
+access_bao_cao_du_an_wizard,sonha.du.an.bao.cao.wizard,model_sonha_du_an_bao_cao_wizard,sonha_du_an.group_manager_du_an,1,1,1,1
