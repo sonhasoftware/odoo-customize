@@ -16,7 +16,8 @@
         'wizard/project_task_pending_wizard_views.xml',
         'wizard/bao_cao_du_an_wizard_views.xml',
         'views/bao_cao_du_an_views.xml',
-        'views/menu.xml'
+        'views/menu.xml',
+        'views/project_base_menu.xml',
     ],
     'installable': True,
     'application': True,
