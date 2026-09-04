@@ -33,38 +33,13 @@
         </field>
     </record>
 
-
-    <!-- ============================================== -->
-    <!-- SEARCH VIEW -->
-    <!-- ============================================== -->
-
     <record id="view_bao_cao_du_an_search" model="ir.ui.view">
         <field name="name">sonha.du.an.bao.cao.search</field>
         <field name="model">sonha.du.an.bao.cao</field>
         <field name="arch" type="xml">
             <search>
-                <!-- GROUP THEO DỰ ÁN CHA -->
-                <filter
-                    string="Dự án cha"
-                    name="group_by_parent_project"
-                    context="{'group_by': 'parent_group_id'}"
-                />
-                <!-- GROUP THEO DỰ ÁN CON -->
-                <filter
-                    string="Dự án con"
-                    name="group_by_child_project"
-                    context="{'group_by': 'child_group_id'}"
-                />
-                <!-- GROUP 2 CẤP -->
-                <filter
-                    string="Theo dự án"
-                    name="group_by_project"
-                    context="{
-                        'group_by': [
-                            'parent_group_id',
-                            'child_group_id'
-                        ]
-                    }"/>
+                <filter string="Dự án con" name="group_by_child_project" context="{'group_by': 'child_group_id'}"/>
+                <filter string="Theo dự án" name="group_by_project" context="{ 'group_by': [ 'parent_group_id', 'child_group_id']}"/>
             </search>
         </field>
     </record>
@@ -108,23 +83,11 @@
         </field>
     </record>
 
-
-    <!-- ============================================== -->
-    <!-- ACTION MỞ DANH SÁCH BÁO CÁO -->
-    <!-- ============================================== -->
-
     <record id="action_bao_cao_du_an_list" model="ir.actions.act_window">
         <field name="name"> Báo cáo dự án</field>
         <field name="res_model">sonha.du.an.bao.cao</field>
         <field name="view_mode">tree,form</field>
-        <field name="context">
-            {
-                'group_by': [
-                    'parent_group_id',
-                    'child_group_id'
-                ]
-            }
-        </field>
+        <field name="context">{'group_by': ['parent_group_id','child_group_id']}</field>
     </record>
 
     <record id="action_bao_cao_du_an" model="ir.actions.act_window">
