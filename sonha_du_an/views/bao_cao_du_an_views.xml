@@ -54,8 +54,10 @@
     </record>
 
     <record id="action_bao_cao_du_an" model="ir.actions.act_window">
-        <field name="name">Báo cáo dự án</field>
-        <field name="res_model">sonha.du.an.bao.cao</field>
-        <field name="view_mode">tree,form</field>
+        <field name="name">Tạo báo cáo dự án</field>
+        <field name="res_model">sonha.du.an.bao.cao.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_bao_cao_du_an_wizard_form"/>
+        <field name="target">new</field>
     </record>
 </odoo>
