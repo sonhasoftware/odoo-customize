@@ -56,6 +56,20 @@
         </field>
     </record>
 
+    <record id="view_bao_cao_du_an_search" model="ir.ui.view">
+        <field name="name">sonha.du.an.bao.cao.search</field>
+        <field name="model">sonha.du.an.bao.cao</field>
+        <field name="arch" type="xml">
+            <search string="Tìm báo cáo dự án">
+                <field name="noi_dung_cv_con"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="group_by_parent" string="Dự án/Nhiệm vụ cha"
+                            context="{'group_by': 'parent_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
     <record id="action_bao_cao_du_an" model="ir.actions.act_window">
         <field name="name">Tạo báo cáo dự án</field>
         <field name="res_model">sonha.du.an.bao.cao.wizard</field>

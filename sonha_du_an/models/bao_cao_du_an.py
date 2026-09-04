@@ -79,7 +79,13 @@ class BaoCaoDuAn(models.Model):
         )
         values = [
             {
-                'name': _('%(project)s - dòng %(line)s') % {
+                # ``name`` is used as the label when the report is grouped
+                # by ``parent_id``.  Use the report content rather than an
+                # internal row number so the group header identifies the
+                # parent/child project or task it contains.
+                'name': row.get('noi_dung_cv_con') or _(
+                    '%(project)s - dòng %(line)s'
+                ) % {
                     'project': project_name,
                     'line': index,
                 },
@@ -110,7 +116,13 @@ class BaoCaoDuAn(models.Model):
         parent_project = self.browse()
         child_project = self.browse()
         for value in values:
-            level = value['in_dam']
+            # PostgreSQL normally returns this marker as an integer, but
+            # accepting a numeric string too prevents every line becoming a
+            # root line when the function is changed to return text.
+            try:
+                level = int(value['in_dam'])
+            except (TypeError, ValueError):
+                level = None
             if level == 1:
                 parent_project = self.create(value)
                 child_project = self.browse()
