@@ -26,6 +26,5 @@
         id="menu_bao_cao_du_an"
         parent="project.menu_main_pm"
         action="action_bao_cao_du_an"
-        groups="sonha_du_an.group_manager_du_an"
         sequence="30"/>
 </odoo>
