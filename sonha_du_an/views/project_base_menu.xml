@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Keep the custom project menus while removing the unused standard entries. -->
+    <record id="project.menu_project_management" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+
+    <record id="project.menu_project_report" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+
+    <record id="project.menu_project_config" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+</odoo>
