@@ -187,7 +187,13 @@ class BaoCaoDuAn(models.Model):
 
         values = [
             {
-                'name': _('%(project)s - dòng %(line)s') % {
+                # ``name`` is used as the label when the report is grouped
+                # by ``parent_id``.  Use the report content rather than an
+                # internal row number so the group header identifies the
+                # parent/child project or task it contains.
+                'name': row.get('noi_dung_cv_con') or _(
+                    '%(project)s - dòng %(line)s'
+                ) % {
                     'project': project_name,
                     'line': index,
                 },

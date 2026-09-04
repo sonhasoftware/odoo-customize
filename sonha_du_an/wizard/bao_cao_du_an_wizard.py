@@ -28,4 +28,8 @@ class BaoCaoDuAnWizard(models.TransientModel):
             'name': _('Báo cáo dự án'),
             'res_model': 'sonha.du.an.bao.cao',
             'view_mode': 'tree,form',
+            # Grouping by the persisted parent line makes the report show
+            # the 1 → 2 → 99 relationship as expandable groups by default.
+            # Users can still remove or reapply this grouping from Search.
+            'context': {'search_default_group_by_parent': 1},
         }
