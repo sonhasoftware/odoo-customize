@@ -34,7 +34,7 @@ class Project(models.Model):
         'du_an_cha_task_id',
         string="Nhiệm vụ", store=True
     )
-
+    hoan_thanh = fields.Boolean("Hoàn thành dự án", store=True)
     ten = fields.Char("Tên dự án", store=True, compute="get_name_duan")
 
     ngay_bat_dau = fields.Date("Ngày bắt đầu", store=True, required=True)
