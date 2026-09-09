@@ -123,7 +123,7 @@ class FormWordSlip(models.Model):
                 list_employee = r.employee_ids or [r.employee_id]
                 for employee_id in list_employee:
                     total_leave = self._get_employee_remaining_leave_for_validation(employee_id)
-                    if r.duration > total_leave:
+                    if r.duration > total_leave or not employee_id.reception_date:
                         raise ValidationError(f"Nhân viên {employee_id.name} không còn phép!")
 
     @api.depends('status', 'employee_confirm', 'employee_approval')
