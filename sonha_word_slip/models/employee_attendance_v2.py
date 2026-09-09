@@ -697,6 +697,42 @@ class EmployeeAttendanceV2(models.Model):
             description=_('Tạo dữ liệu bảng công chi tiết V2 %s') % period_key,
         ).create_data_attendance()
 
+    def update_recent_attendance_data_v2(self, recompute_batch_size=50):
+        """Queue persisted recomputation for yesterday, today and tomorrow."""
+        local_today = fields.Date.context_today(self.with_context(tz='Asia/Ho_Chi_Minh'))
+        date_from = local_today - timedelta(days=1)
+        date_to = local_today + timedelta(days=1)
+        employee_ids = self.env['hr.employee'].sudo().search(
+            [('id', '!=', 1)], order='id'
+        ).ids
+
+        for batch_number, batch_employee_ids in enumerate(
+                self._split_employee_batches(employee_ids, recompute_batch_size), start=1):
+            first_emp = batch_employee_ids[0]
+            last_emp = batch_employee_ids[-1]
+            self.with_delay(
+                identity_key=(
+                    'employee_attendance_v2_recent_recompute_%s_%s_%s_%s' %
+                    (date_from, date_to, first_emp, last_emp)
+                ),
+                description=_(
+                    'Recompute bảng công V2 3 ngày %s - %s (batch %s)'
+                ) % (date_from, date_to, batch_number),
+            ).recompute_recent_attendance_batch(batch_employee_ids, date_from, date_to)
+
+    def recompute_recent_attendance_batch(self, employee_ids, date_from, date_to):
+        """Recompute one employee batch without relying on list-view pagination."""
+        if not employee_ids:
+            return
+
+        records = self.sudo().search([
+            ('employee_id', 'in', employee_ids),
+            ('date', '>=', fields.Date.to_date(date_from)),
+            ('date', '<=', fields.Date.to_date(date_to)),
+        ])
+        if records:
+            records._recompute_attendance_v2_fields()
+
     def update_new_emp_attendance_data_v2(self):
         self.with_delay().create_data_attendance_new_emp()
 
@@ -1389,15 +1425,6 @@ class EmployeeAttendanceV2(models.Model):
             records = self.sudo().with_context(skip_attendance_v2_auto_recompute=True)
             records._recompute_attendance_v2_fields()
         return True
-
-    def read(self, fields=None, load='_classic_read'):
-        self._auto_recompute_before_read(set(fields or []))
-        return super().read(fields=fields, load=load)
-
-    def search_read(self, domain=None, fields=None, offset=0, limit=None, order=None):
-        records = self.search(domain or [], offset=offset, limit=limit, order=order)
-        records._auto_recompute_before_read(set(fields or []))
-        return records.with_context(skip_attendance_v2_auto_recompute=True).read(fields)
 
     def _recompute_attendance_v2_fields(self):
         """Recompute stored fields in dependency order without bypassing ORM dependencies.

@@ -23,6 +23,19 @@
             <field name="doall">True</field>
         </record>
 
+        <record id="ir_cron_recompute_recent_attendance_v2" model="ir.cron">
+            <field name="name">Tính lại bảng công chi tiết 3 ngày gần nhất</field>
+            <field name="model_id" ref="model_employee_attendance_v2"/>
+            <field name="state">code</field>
+            <field name="code">model.update_recent_attendance_data_v2()</field>
+            <field name="interval_number">8</field>
+            <field name="interval_type">hours</field>
+            <!-- ir.cron stores nextcall in UTC: 20:30 UTC = 03:30 Asia/Ho_Chi_Minh. -->
+            <field name="nextcall" eval="(DateTime.now().replace(hour=20, minute=30, second=0, microsecond=0) + timedelta(days=1 if (DateTime.now().hour, DateTime.now().minute) >= (20, 30) else 0)).strftime('%Y-%m-%d %H:%M:%S')"/>
+            <field name="numbercall">-1</field>
+            <field name="doall">False</field>
+        </record>
+
         <record id="ir_cron_calculate_synthetic" model="ir.cron">
             <field name="name">Bảng công tổng hợp</field>
             <field name="model_id" ref="model_synthetic_work"/>
