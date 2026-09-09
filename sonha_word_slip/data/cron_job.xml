@@ -31,7 +31,7 @@
             <field name="interval_number">8</field>
             <field name="interval_type">hours</field>
             <!-- ir.cron stores nextcall in UTC: 20:30 UTC = 03:30 Asia/Ho_Chi_Minh. -->
-            <field name="nextcall" eval="(DateTime.now().replace(hour=20, minute=30, second=0, microsecond=0) + timedelta(days=1 if (DateTime.now().hour, DateTime.now().minute) >= (20, 30) else 0)).strftime('%Y-%m-%d %H:%M:%S')"/>
+            <field name="nextcall" eval="(DateTime.now().replace(hour=19, minute=30, second=0, microsecond=0) + timedelta(days=1 if (DateTime.now().hour, DateTime.now().minute) >= (19, 30) else 0)).strftime('%Y-%m-%d %H:%M:%S')"/>
             <field name="numbercall">-1</field>
             <field name="doall">False</field>
         </record>
