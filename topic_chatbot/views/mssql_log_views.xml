@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_mssql_log_tree" model="ir.ui.view">
+        <field name="name">topic_chatbot.mssql_log.tree</field>
+        <field name="model">topic_chatbot.mssql_log</field>
+        <field name="arch" type="xml">
+            <tree string="SQL Server Logs" create="false" edit="false">
+                <field name="create_date" string="Date"/>
+                <field name="user_id"/>
+                <field name="topic_id"/>
+                <field name="is_success" widget="boolean_toggle"/>
+                <field name="execution_time_ms"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_mssql_log_form" model="ir.ui.view">
+        <field name="name">topic_chatbot.mssql_log.form</field>
+        <field name="model">topic_chatbot.mssql_log</field>
+        <field name="arch" type="xml">
+            <form string="SQL Server Log" create="false" edit="false">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="create_date" string="Date"/>
+                            <field name="user_id"/>
+                            <field name="topic_id"/>
+                            <field name="conversation_id"/>
+                        </group>
+                        <group>
+                            <field name="is_success"/>
+                            <field name="execution_time_ms"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Query">
+                            <field name="query_text" widget="text"/>
+                        </page>
+                        <page string="Error" invisible="is_success">
+                            <field name="error_msg" widget="text" class="text-danger"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_mssql_log" model="ir.actions.act_window">
+        <field name="name">SQL Server Logs</field>
+        <field name="res_model">topic_chatbot.mssql_log</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

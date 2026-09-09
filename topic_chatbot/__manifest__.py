@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Topic Chatbot (RAG)',
-    'version': '17.0.2.0.0',
+    'version': '17.0.2.3.0',
     'category': 'Productivity/Chatbot',
     'summary': 'Full-screen ChatGPT-like chatbot using Gemini API and RAG with PDF/DOCX/Excel/TXT documents',
     'description': """
@@ -24,6 +24,8 @@ It supports:
         'data/cron.xml',
         'views/res_config_settings_views.xml',
         'views/topic_views.xml',
+        'views/mssql_connection_views.xml',
+        'views/mssql_log_views.xml',
         'views/menus.xml',
     ],
     'assets': {
@@ -32,6 +34,9 @@ It supports:
             'topic_chatbot/static/src/components/chat_dashboard/chat_dashboard.xml',
             'topic_chatbot/static/src/components/chat_dashboard/chat_dashboard.scss',
         ],
+    },
+    'external_dependencies': {
+        'python': ['cryptography'],
     },
     'installable': True,
     'application': True,

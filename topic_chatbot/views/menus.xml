@@ -25,6 +25,12 @@
               action="action_topic_chatbot_topic"
               sequence="20"/>
 
+    <menuitem id="menu_topic_chatbot_documents"
+              name="Documents"
+              parent="menu_topic_chatbot_root"
+              action="action_topic_chatbot_document"
+              sequence="25"/>
+
     <menuitem id="menu_topic_chatbot_config_root"
               name="Configuration"
               parent="menu_topic_chatbot_root"
@@ -36,4 +42,16 @@
               parent="menu_topic_chatbot_config_root"
               action="action_topic_chatbot_config"
               sequence="10"/>
+
+    <menuitem id="menu_topic_chatbot_mssql_connection"
+              name="SQL Connections"
+              parent="menu_topic_chatbot_config_root"
+              action="action_mssql_connection"
+              sequence="20"/>
+
+    <menuitem id="menu_topic_chatbot_mssql_log"
+              name="SQL Logs"
+              parent="menu_topic_chatbot_config_root"
+              action="action_mssql_log"
+              sequence="30"/>
 </odoo>

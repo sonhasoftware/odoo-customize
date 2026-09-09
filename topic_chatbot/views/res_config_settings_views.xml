@@ -8,19 +8,45 @@
         <field name="arch" type="xml">
             <xpath expr="//form" position="inside">
                 <app data-string="Topic Chatbot" string="Topic Chatbot" name="topic_chatbot">
-                    <block title="Gemini API Configuration" id="topic_chatbot_gemini_config">
-                        <setting string="Gemini API Key" help="Enter your Google Gemini API Key.">
+                    <block title="Mô hình Chat (LLM Provider)" id="topic_chatbot_llm_config">
+                        <setting string="Chế độ Chat LLM Provider" help="Chọn 'Google Gemini (Cloud)' hoặc 'Ollama Server nội bộ (100% Offline / On-Premise)'.">
+                            <field name="topic_chatbot_llm_provider" widget="radio"/>
+                        </setting>
+                        <setting string="Ollama Chat Model" help="Tên model chat trên server Ollama. Khuyến nghị: qwen2.5:14b hoặc qwen2.5:7b." invisible="topic_chatbot_llm_provider != 'ollama'">
+                            <field name="topic_chatbot_ollama_chat_model"/>
+                        </setting>
+                        <setting string="Gemini API Key" help="Nhập Google Gemini API Key." invisible="topic_chatbot_llm_provider == 'ollama'">
                             <field name="topic_chatbot_gemini_api_key" password="True"/>
                         </setting>
-                        <setting string="Gemini Model" help="Specify the model (e.g. gemini-3.6-flash, gemini-3.5-flash-lite).">
+                        <setting string="Gemini Model" help="Chọn model Gemini (ví dụ: gemini-3.6-flash, gemini-3.5-flash)." invisible="topic_chatbot_llm_provider == 'ollama'">
                             <field name="topic_chatbot_gemini_model"/>
                         </setting>
                         <setting string="Custom Stop Words" help="Comma-separated stop words to ignore during RAG search.">
                             <field name="topic_chatbot_stop_words"/>
                         </setting>
-                        <setting string="Embedding Model (Semantic RAG)" help="Gemini Embedding Model for Vector Search (default: gemini-embedding-2).">
+                    </block>
+                    <block title="Cấu hình Vector Embedding &amp; Tìm kiếm Ngữ nghĩa" id="topic_chatbot_embedding_config">
+                        <setting string="Chế độ Embedding Provider" help="Chọn 'Google Gemini' (ưu tiên Cloud, tự động fallback sang Ollama khi hết quota) hoặc 'Ollama Local' (chạy 100% offline nội bộ, không liên quan tới Gemini).">
+                            <field name="topic_chatbot_embedding_provider" widget="radio"/>
+                        </setting>
+                        <setting string="Gemini Embedding Model" help="Gemini Embedding Model cho Vector Search (mặc định: gemini-embedding-2)." invisible="topic_chatbot_embedding_provider == 'ollama'">
                             <field name="topic_chatbot_embedding_model"/>
                         </setting>
+                        <setting string="Embedding Batch Size" help="Số lượng đoạn text gửi trong 1 request API batch (mặc định: 50, tối đa: 100)." invisible="topic_chatbot_embedding_provider == 'ollama'">
+                            <field name="topic_chatbot_embedding_batch_size"/>
+                        </setting>
+                        <setting string="Delay giữa các batch (giây)" help="Thời gian nghỉ giữa các lần gọi API batch để tránh rate limit (mặc định: 1.5s)." invisible="topic_chatbot_embedding_provider == 'ollama'">
+                            <field name="topic_chatbot_embedding_batch_delay_seconds"/>
+                        </setting>
+                        <setting string="Ollama Server URL" help="Địa chỉ dịch vụ Ollama nội bộ (mặc định: http://localhost:11434).">
+                            <field name="topic_chatbot_ollama_url"/>
+                        </setting>
+                        <setting string="Ollama Embedding Model" help="Tên model embedding trên Ollama. Khuyến nghị: bge-m3 (chuẩn 1024 chiều tối ưu tiếng Việt tương thích pgvector).">
+                            <field name="topic_chatbot_ollama_model"/>
+                        </setting>
+                        <div class="mt16">
+                            <button name="action_test_ollama_connection" string="Kiểm tra kết nối Ollama" type="object" class="btn-secondary" icon="fa-bolt"/>
+                        </div>
                     </block>
                     <block title="Microsoft SQL Server Connection" id="topic_chatbot_mssql_config">
                         <setting string="Kích hoạt SQL Server" help="Bật tính năng kết nối và truy vấn CSDL Microsoft SQL Server.">
@@ -38,7 +64,9 @@
                         <setting string="SQL Server User" help="Tài khoản đăng nhập SQL Server." invisible="not topic_chatbot_mssql_enabled">
                             <field name="topic_chatbot_mssql_user"/>
                         </setting>
-                        <setting string="SQL Server Password" help="Mật khẩu đăng nhập SQL Server." invisible="not topic_chatbot_mssql_enabled">
+                        <setting string="SQL Server Password"
+                                 help="Mật khẩu được mã hóa AES-256 (Fernet/PBKDF2) trước khi lưu vào database. Không bao giờ lưu dạng plaintext."
+                                 invisible="not topic_chatbot_mssql_enabled">
                             <field name="topic_chatbot_mssql_password" password="True"/>
                         </setting>
                         <setting string="ODBC Driver" help="Tên Driver ODBC trên hệ thống (ví dụ: ODBC Driver 17 for SQL Server)." invisible="not topic_chatbot_mssql_enabled">

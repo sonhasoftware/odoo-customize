@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 import base64
 import io
+import json
 import logging
+import re
+import requests
 import time
 import zipfile
 import xml.etree.ElementTree as ET
@@ -27,6 +30,14 @@ class TopicChatbotDocument(models.Model):
     # Constants
     STALE_PROCESSING_MINUTES = 60
     DOCUMENT_PROCESS_LOCK_KEY = 830917
+
+    # Excel chunking constants (adjustable for benchmarking)
+    EXCEL_PARENT_CHUNK_SIZE = 3500   # Max chars per parent chunk
+    EXCEL_CHILD_CHUNK_SIZE = 800     # Max chars per child chunk (upper bound, never cuts mid-record)
+    EXCEL_CHILD_BUDGET_MIN = 800     # Soft minimum budget for child chunk
+    EXCEL_CHILD_BUDGET_MAX = 1200    # Soft maximum budget for child chunk (single-row overflow allowed)
+    EXCEL_HEADER_COMPACT_THRESHOLD = 15  # Tables with more columns use compact header
+    EXCEL_MAX_CARDINALITY_DISPLAY = 25  # Max unique values displayed per column in Sheet Summary
     
     # Basic fields with enhanced validation
     name = fields.Char(
@@ -74,10 +85,29 @@ class TopicChatbotDocument(models.Model):
         ('draft', 'Draft'),
         ('processing', 'Processing'),
         ('done', 'Done'),
+        ('partial', 'Partial Embeddings'),
         ('error', 'Error')
     ], string='Status', default='draft', required=True, readonly=True, index=True)
     
     # Metadata fields
+    doc_type = fields.Selection([
+        ('regulation', 'Quy định / Quy chế'),
+        ('process', 'Quy trình'),
+        ('report', 'Báo cáo'),
+        ('form', 'Biểu mẫu'),
+        ('manual', 'Hướng dẫn'),
+        ('other', 'Khác'),
+    ], string='Loại văn bản', default='other', index=True, help="Phân loại tài liệu phục vụ lọc tìm kiếm")
+    department = fields.Char(
+        string='Phòng ban áp dụng',
+        index=True,
+        help="Phòng ban hoặc bộ phận áp dụng tài liệu này (e.g., Kế toán, Nhân sự, IT)"
+    )
+    apply_year = fields.Integer(
+        string='Năm áp dụng',
+        index=True,
+        help="Năm ban hành hoặc áp dụng của văn bản (e.g., 2024, 2025)"
+    )
     layout_type = fields.Char(
         string='Layout Type', 
         readonly=True,
@@ -107,6 +137,19 @@ class TopicChatbotDocument(models.Model):
         help="Number of text chunks created from this document"
     )
 
+    @api.model
+    def _auto_init(self):
+        res = super(TopicChatbotDocument, self)._auto_init()
+        try:
+            self.env.cr.execute("""
+                CREATE INDEX IF NOT EXISTS idx_document_text_content_gin
+                ON topic_chatbot_document
+                USING gin(to_tsvector('simple', COALESCE(text_content, '')));
+            """)
+        except Exception as e:
+            _logger.warning("Could not create GIN index on topic_chatbot_document: %s", str(e))
+        return res
+
     @api.depends('chunk_ids')
     def _compute_chunks_count(self):
         """Compute number of chunks created from this document."""
@@ -120,6 +163,13 @@ class TopicChatbotDocument(models.Model):
         readonly=True,
         help="Text chunks extracted from this document"
     )
+
+    @api.onchange('datas', 'filename')
+    def _onchange_datas_filename(self):
+        """Auto-populate name from filename if name is not set."""
+        if self.filename and not self.name:
+            clean_name = self.filename.rsplit('.', 1)[0] if '.' in self.filename else self.filename
+            self.name = clean_name
 
     @api.constrains('filename', 'datas')
     def _check_file_extension(self):
@@ -155,6 +205,9 @@ class TopicChatbotDocument(models.Model):
         import base64
         
         for vals in vals_list:
+            if not vals.get('name') and vals.get('filename'):
+                clean_name = vals['filename'].rsplit('.', 1)[0] if '.' in vals['filename'] else vals['filename']
+                vals['name'] = clean_name
             if 'datas' in vals or 'filename' in vals:
                 vals['state'] = 'draft'
                 
@@ -202,6 +255,11 @@ class TopicChatbotDocument(models.Model):
             return True
 
         draft_docs.filtered(lambda d: d.state == 'error').write({'state': 'draft'})
+        draft_docs.write({
+            'state': 'processing',
+            'error_message': False,
+        })
+        self.env.cr.commit()
 
         db_name = self.env.cr.dbname
         uid = self.env.uid
@@ -287,7 +345,7 @@ class TopicChatbotDocument(models.Model):
             
             # Advisory lock to prevent concurrent processing
             doc.env.cr.execute(
-                "SELECT pg_try_advisory_xact_lock(%s, %s)",
+                "SELECT pg_try_advisory_lock(%s, %s)",
                 (self.DOCUMENT_PROCESS_LOCK_KEY, doc.id),
             )
             lock_acquired = doc.env.cr.fetchone()[0]
@@ -306,10 +364,16 @@ class TopicChatbotDocument(models.Model):
                     'content_length': 0,
                     'word_count': 0
                 })
+                doc.env.cr.execute(
+                    "SELECT pg_advisory_unlock(%s, %s)",
+                    (self.DOCUMENT_PROCESS_LOCK_KEY, doc.id),
+                )
+                doc.env.cr.fetchone()
                 continue
 
             try:
                 doc.write({'state': 'processing'})
+                doc.env.cr.commit()
                 
                 # Decode base64 file content
                 file_content = base64.b64decode(doc.datas)
@@ -317,12 +381,14 @@ class TopicChatbotDocument(models.Model):
                 extracted_text = ""
 
                 # Extract text based on file type
+                excel_structure = None
                 if filename.endswith('.pdf'):
                     extracted_text = doc._extract_pdf_text(file_content)
                 elif filename.endswith('.docx'):
                     extracted_text = doc._extract_docx_text(file_content)
                 elif filename.endswith(('.xlsx', '.xls')):
-                    extracted_text = doc._extract_excel_text(file_content)
+                    excel_structure = doc._extract_excel_structure(file_content)
+                    extracted_text = doc._render_excel_structure_to_text(excel_structure)
                 elif filename.endswith(('.txt', '.csv')):
                     extracted_text = doc._extract_txt_or_csv_text(file_content)
                 else:
@@ -350,70 +416,126 @@ class TopicChatbotDocument(models.Model):
 
                 # Create new chunks with Vector Embeddings
                 chunks_created = 0
+                chunks_with_embeddings = 0
+                emb_warning = False
+
                 if extracted_text and len(extracted_text.strip()) > 10:
-                    params = doc.env['ir.config_parameter'].sudo()
-                    api_key = params.get_param('topic_chatbot.gemini_api_key')
-                    embedding_model = params.get_param('topic_chatbot.embedding_model', default='gemini-embedding-2')
-                    
-                    # Model validation
-                    if embedding_model in ('text-embedding-004', 'embedding-001') or not embedding_model:
-                        embedding_model = 'gemini-embedding-2'
+                    from ..services import embedding_service
+                    cfg = embedding_service.get_embedding_config(doc.env)
+                    active_provider = cfg.get('provider') or 'gemini'
+                    api_key = cfg.get('gemini_key') or ''
+                    embedding_model = cfg.get('gemini_model') or 'gemini-embedding-2'
+                    is_provider_ready = (active_provider == 'ollama' and bool(cfg.get('ollama_url'))) or (active_provider == 'gemini' and bool(api_key))
 
-                    chunks = doc._chunk_text(extracted_text)
-                    chunk_vals = []
-                    
-                    for index, chunk in enumerate(chunks, start=1):
-                        emb_json = None
-                        if api_key and len(chunk.strip()) > 10:
-                            try:
-                                emb_json = doc.env['topic_chatbot.chunk']._generate_embedding(
-                                    chunk, api_key, embedding_model
-                                )
-                            except Exception as e:
-                                _logger.warning(
-                                    "Failed to generate embedding for chunk %d of document %s: %s",
-                                    index, doc.name, str(e)
-                                )
+                    if excel_structure:
+                        groups = doc._chunk_excel_structure(excel_structure)
+                    else:
+                        groups = doc._chunk_text(extracted_text)
 
-                        chunk_vals.append({
+                    # Create Parent chunks and prepare Child records
+                    parent_vals = []
+                    for p_seq, group in enumerate(groups, start=1):
+                        parent_vals.append({
                             'topic_id': doc.topic_id.id,
                             'document_id': doc.id,
-                            'sequence': index,
-                            'content': chunk,
-                            'embedding': emb_json,
+                            'sequence': p_seq,
+                            'content': group['parent'],
+                            'chunk_type': 'parent',
+                            'embedding': False,
                         })
 
-                    if chunk_vals:
-                        created_chunks = doc.env['topic_chatbot.chunk'].create(chunk_vals)
-                        chunks_created = len(created_chunks)
-                        
-                        # Update pgvector column using raw SQL
-                        for chunk_rec in created_chunks:
-                            if chunk_rec.embedding:
-                                try:
-                                    doc.env.cr.execute(
-                                        "UPDATE topic_chatbot_chunk SET embedding_vector = %s WHERE id = %s",
-                                        (chunk_rec.embedding, chunk_rec.id)
-                                    )
-                                except Exception as e:
-                                    _logger.warning("Failed to save pgvector for chunk %s: %s", chunk_rec.id, str(e))
+                    parent_recs = doc.env['topic_chatbot.chunk'].create(parent_vals)
+                    
+                    # Prepare child chunks referencing their parent
+                    child_vals = []
+                    child_seq = 1
+                    for parent_rec, group in zip(parent_recs, groups):
+                        for child_text in group['children']:
+                            child_vals.append({
+                                'topic_id': doc.topic_id.id,
+                                'document_id': doc.id,
+                                'parent_id': parent_rec.id,
+                                'sequence': child_seq,
+                                'content': child_text,
+                                'chunk_type': 'child',
+                            })
+                            child_seq += 1
+
+                    created_children = doc.env['topic_chatbot.chunk'].create(child_vals)
+                    chunks_created = len(created_children)
+
+                    # Batch generate embeddings ONLY for child chunks
+                    valid_children = [c for c in created_children if is_provider_ready and len(c.content.strip()) > 10]
+                    valid_texts = [c.content for c in valid_children]
+
+                    embeddings_list = []
+                    if valid_texts:
+                        try:
+                            embeddings_list = doc.env['topic_chatbot.chunk']._generate_embeddings_batch(
+                                valid_texts, api_key, embedding_model, chunk_records=valid_children, provider=active_provider
+                            )
+                        except Exception as emb_err:
+                            _logger.warning("Error during batch embedding generation for document %s: %s", doc.name, str(emb_err))
+                            embeddings_list = [None] * len(valid_texts)
+
+                    chunks_with_embeddings = sum(1 for e in embeddings_list if e)
+
+                    if len(valid_texts) > 0 and chunks_with_embeddings == 0:
+                        emb_warning = "Tài liệu đã trích xuất thành công nhưng không tạo được Vector Embeddings (do chạm hạn mức API 429 hoặc lỗi kết nối). Bạn có thể bấm 'Bù Embedding' hoặc 'Xử lý lại' sau vài phút."
+                        _logger.warning("Document '%s' (id=%s): All %d child chunk embeddings failed.", doc.name, doc.id, len(valid_texts))
+                    elif chunks_with_embeddings < len(valid_texts):
+                        emb_warning = f"Đã tạo Vector Embeddings cho {chunks_with_embeddings}/{len(valid_texts)} đoạn (một số đoạn bị lỗi rate limit). Bạn có thể bấm 'Bù Embedding' để bổ sung."
+                        _logger.warning("Document '%s' (id=%s): %d/%d child chunk embeddings succeeded.", doc.name, doc.id, chunks_with_embeddings, len(valid_texts))
                 
                 # Calculate processing time
                 processing_time = time.time() - start_time
                 
+                # Determine final state based on embedding completeness
+                if chunks_created > 0 and chunks_with_embeddings < chunks_created:
+                    final_state = 'partial'
+                else:
+                    final_state = 'done'
+
                 # Final state update
                 doc.write({
-                    'state': 'done',
+                    'state': final_state,
                     'processing_time': processing_time,
-                    'error_message': False  # Clear any previous errors
+                    'error_message': emb_warning if emb_warning else False
                 })
                 
                 _logger.info(
-                    "Successfully processed document '%s' (id=%s) in %.2fs: "
-                    "%d chars, %d words, %d chunks",
-                    doc.name, doc.id, processing_time,
-                    content_length, word_count, chunks_created
+                    "Document '%s' (id=%s) processing finished in %.2fs [State: %s]: "
+                    "Text: %d chars, %d words | Chunks: %d created, %d/%d embedded (%.1f%%)",
+                    doc.name, doc.id, processing_time, final_state,
+                    content_length, word_count, chunks_created, chunks_with_embeddings, chunks_created,
+                    (chunks_with_embeddings / chunks_created * 100.0) if chunks_created else 100.0
                 )
+
+                if excel_structure:
+                    sheet_count = len(excel_structure)
+                    raw_rows = sum(len(s.get('rows', [])) for s in excel_structure)
+                    avg_child_len = (sum(len(c.content or '') for c in created_children) / len(created_children)) if 'created_children' in locals() and created_children else 0
+                    eff_b_size, _ = doc.env['topic_chatbot.chunk']._get_embedding_batch_settings()
+                    batch_count = (len(valid_texts) + eff_b_size - 1) // eff_b_size if 'valid_texts' in locals() and valid_texts else 0
+                    _logger.info(
+                        "[EXCEL_PIPELINE]\n"
+                        "  - document_id: %s\n"
+                        "  - document_name: '%s'\n"
+                        "  - sheet_count: %d\n"
+                        "  - raw_rows: %d\n"
+                        "  - parent_count: %d\n"
+                        "  - child_count: %d\n"
+                        "  - embedded_child_count: %d\n"
+                        "  - batch_count: %d\n"
+                        "  - avg_child_size_chars: %.1f\n"
+                        "  - text_content_length: %d\n"
+                        "  - duration_seconds: %.2f\n"
+                        "  - final_state: '%s'",
+                        doc.id, doc.name, sheet_count, raw_rows,
+                        len(parent_recs) if 'parent_recs' in locals() and parent_recs else 0,
+                        chunks_created, chunks_with_embeddings, batch_count,
+                        avg_child_len, content_length, processing_time, final_state
+                    )
                 
             except Exception as e:
                 processing_time = time.time() - start_time
@@ -432,6 +554,17 @@ class TopicChatbotDocument(models.Model):
                     'content_length': 0,
                     'word_count': 0
                 })
+            finally:
+                try:
+                    doc.env.cr.execute(
+                        "SELECT pg_advisory_unlock(%s, %s)",
+                        (self.DOCUMENT_PROCESS_LOCK_KEY, doc.id),
+                    )
+                except Exception as unlock_err:
+                    _logger.warning(
+                        "Failed to release processing lock for document %s (id=%s): %s",
+                        doc.name, doc.id, str(unlock_err),
+                    )
 
     def _clean_extracted_text(self, text):
         """Clean and normalize extracted text from PDF engines.
@@ -1343,147 +1476,811 @@ class TopicChatbotDocument(models.Model):
             _logger.error("Gemini OCR error for %s: %s", self.filename, str(e))
             return ""
 
-    def _extract_docx_text(self, file_content):
+    @staticmethod
+    def _format_excel_cell_value(val):
+        """Format an Excel cell value cleanly into a string."""
+        if val is None:
+            return ""
+        if isinstance(val, bool):
+            return "True" if val else "False"
+        if isinstance(val, (int, float)):
+            if isinstance(val, int) or val == int(val):
+                return str(int(val))
+            return f"{val:.4f}".rstrip('0').rstrip('.')
+        if hasattr(val, 'strftime'):  # datetime or date
+            if hasattr(val, 'hour') and (val.hour != 0 or val.minute != 0 or val.second != 0):
+                return val.strftime('%Y-%m-%d %H:%M:%S')
+            return val.strftime('%Y-%m-%d')
+        return str(val).strip()
+
+    @staticmethod
+    def _excel_column_name(col_idx):
+        """Convert a 1-based column index to an Excel column label."""
+        name = ""
+        while col_idx:
+            col_idx, rem = divmod(col_idx - 1, 26)
+            name = chr(65 + rem) + name
+        return name or "A"
+
+    @staticmethod
+    def _looks_like_raci_value(value):
+        """Detect compact responsibility-matrix values (A/R/I/C/P/D/V/X/M or role action words)."""
+        clean = (value or "").strip().upper()
+        if not clean:
+            return False
+        if bool(re.match(r'^[ARICPDVXM*+](?:[/,+; ]+[ARICPDVXM*+])*$', clean)):
+            return True
+        raci_keywords = {
+            'DUYỆT', 'PHÊ DUYỆT', 'THỰC HIỆN', 'KIỂM TRA', 'KÝ', 'ĐỀ XUẤT', 'THAM MƯU',
+            'BÁO CÁO', 'THEO DÕI', 'XÁC NHẬN', 'THAM GIA', 'CHỦ TRÌ', 'PHỐI HỢP',
+            'A', 'R', 'I', 'C', 'P', 'X', 'V'
+        }
+        return clean in raci_keywords or any(kw in clean for kw in ('PHÊ DUYỆT', 'THỰC HIỆN', 'KIỂM TRA', 'ĐỀ XUẤT'))
+
+    def _build_excel_semantic_record(self, sheet_name, header, row):
+        """Render one Excel data row as labelled facts for RAG retrieval.
+        
+        Fields are classified into business/permission/note categories.
+        Only unclassified fields appear in 'Thông tin khác' to avoid duplication.
+        """
+        values = row.get('values', [])
+        row_index = row.get('row_index')
+        pairs = []
+        pair_classified = []  # Parallel list: True if field is in a category section
+        permission_pairs = []
+        business_pairs = []
+        note_pairs = []
+
+        for idx, raw_value in enumerate(values):
+            value = str(raw_value or "").replace('\n', ' ').strip()
+            if not value:
+                continue
+            col_name = header[idx] if idx < len(header) and header[idx] else f"Cột {self._excel_column_name(idx + 1)}"
+            col_ref = self._excel_column_name(idx + 1)
+            labelled = (col_name, value, col_ref)
+            pairs.append(labelled)
+
+            col_lower = col_name.lower()
+            is_classified = False
+
+            if self._looks_like_raci_value(value) and re.search(r'[A-Za-zÀ-ỹĐđ]', col_name):
+                permission_pairs.append(labelled)
+                is_classified = True
+            elif any(k in col_lower for k in ('ghi chú', 'quy định', 'lưu ý', 'căn cứ', 'hướng dẫn', 'hệ thống', 'odoo', 'thực hiện')):
+                note_pairs.append(labelled)
+                is_classified = True
+            elif any(k in col_lower for k in ('nghiệp vụ', 'nội dung', 'quy trình', 'công việc', 'hạng mục', 'tên', 'mô tả', 'hoạt động')):
+                business_pairs.append(labelled)
+                is_classified = True
+            elif len(value) > 8 and re.search(r'[A-Za-zÀ-ỹĐđ]', value) and not self._looks_like_raci_value(value):
+                if not business_pairs:
+                    business_pairs.append(labelled)
+                else:
+                    note_pairs.append(labelled)
+                is_classified = True
+
+            pair_classified.append(is_classified)
+
+        if not pairs:
+            return ""
+
+        lines = [
+            f"--- Sheet: {sheet_name} | Dòng: {row_index} ---",
+        ]
+
+        if business_pairs:
+            for main_name, main_value, _ in business_pairs:
+                lines.append(f"Nghiệp vụ / Nội dung ({main_name}): {main_value}")
+
+        if permission_pairs:
+            lines.append("Phân quyền / Trách nhiệm:")
+            for col_name, value, col_ref in permission_pairs:
+                lines.append(f"- {col_name} ({col_ref}): {value}")
+
+        if note_pairs:
+            lines.append("Quy định / Ghi chú thực hiện:")
+            for col_name, value, col_ref in note_pairs:
+                lines.append(f"- {col_name} ({col_ref}): {value}")
+
+        # Only output fields NOT already classified above (avoid duplication)
+        unclassified = [p for p, classified in zip(pairs, pair_classified) if not classified]
+        if unclassified:
+            lines.append("Thông tin khác:")
+            for col_name, value, col_ref in unclassified:
+                lines.append(f"- {col_name} ({col_ref}): {value}")
+
+        return "\n".join(lines)
+
+    def _detect_excel_header(self, raw_rows):
+        """Detect header row and table structure from a list of rows in a sheet.
+        
+        Args:
+            raw_rows: list of tuples (row_index, [cell_val1, cell_val2, ...])
+            
+        Returns:
+            dict containing:
+                - is_table: bool (True if table structure with header is detected)
+                - header: list of str
+                - prelude_lines: list of str (lines before header, like title or metadata)
+                - rows: list of dict {'row_index': int, 'values': list of str}
+                - raw_lines: list of str (fallback representation)
+        """
+        if not raw_rows:
+            return {
+                'is_table': False,
+                'header': [],
+                'prelude_lines': [],
+                'rows': [],
+                'raw_lines': []
+            }
+
+        # Filter out completely empty rows and convert cells to formatted strings.
+        # Keep internal empty cells so column positions remain aligned with headers.
+        cleaned_rows = []
+        for r_idx, row in raw_rows:
+            formatted = [self._format_excel_cell_value(c) for c in row]
+            # Strip trailing empty cells
+            while formatted and not formatted[-1]:
+                formatted.pop()
+            if any(formatted):
+                cleaned_rows.append((r_idx, formatted))
+
+        if not cleaned_rows:
+            return {
+                'is_table': False,
+                'header': [],
+                'prelude_lines': [],
+                'rows': [],
+                'raw_lines': []
+            }
+
+        raw_lines = [" | ".join(row) for _, row in cleaned_rows]
+
+        # Scan for header candidate in the first 15 non-empty rows
+        header_cand_idx = -1
+        max_scan = min(len(cleaned_rows), 15)
+
+        for i in range(max_scan):
+            r_idx, row = cleaned_rows[i]
+            non_empty = [c for c in row if c]
+            if len(non_empty) < 2:
+                # Likely a title, single banner, or single note
+                continue
+
+            # Check if cells are text-heavy (not pure numeric/date values)
+            text_cells = 0
+            for c in non_empty:
+                # Text cell has alphabet characters or Vietnamese characters
+                if re.search(r'[a-zA-ZàáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđĐ]', c):
+                    text_cells += 1
+
+            text_ratio = text_cells / len(non_empty)
+            # If >= 60% of non-empty cells contain text characters, candidate found!
+            if text_ratio >= 0.6:
+                header_cand_idx = i
+                break
+
+        if header_cand_idx == -1:
+            # No clear header found (free text or pure numbers)
+            return {
+                'is_table': False,
+                'header': [],
+                'prelude_lines': [],
+                'rows': [{'row_index': r_idx, 'values': row} for r_idx, row in cleaned_rows],
+                'raw_lines': raw_lines
+            }
+
+        # Header found. Some business Excel sheets use multi-row/merged headers
+        # (group names above concrete role names). Combine the nearby header rows
+        # cell-by-cell so a value like "A" is later labelled with the full role.
+        header_row_idx, header_raw = cleaned_rows[header_cand_idx]
+        header_start_idx = header_cand_idx
+        for j in range(header_cand_idx - 1, -1, -1):
+            _, prev_row = cleaned_rows[j]
+            non_empty_prev = [c for c in prev_row if c]
+            if len(non_empty_prev) <= 1:
+                break
+            header_start_idx = j
+
+        # Check forward rows that may also be sub-headers (e.g. row 2 is Group, row 3 is Sub-roles)
+        header_end_idx = header_cand_idx
+        for j in range(header_cand_idx + 1, min(len(cleaned_rows), header_cand_idx + 3)):
+            _, next_row = cleaned_rows[j]
+            non_empty_next = [c for c in next_row if c]
+            if not non_empty_next:
+                break
+
+            # Guard: A row starting with a numeric sequence (e.g. STT 1, 2) or containing emails/dates is DATA, not a sub-header
+            first_val = next_row[0].strip() if next_row else ""
+            if first_val.isdigit() and len(first_val) <= 6:
+                break
+            if any('@' in c or re.search(r'\d{1,2}[/-]\d{1,2}[/-]\d{2,4}', c) for c in non_empty_next):
+                break
+
+            avg_cell_len = sum(len(c) for c in non_empty_next) / len(non_empty_next)
+            text_cells = sum(1 for c in non_empty_next if re.search(r'[A-Za-zÀ-ỹĐđ]', c))
+            if text_cells / len(non_empty_next) >= 0.7 and avg_cell_len <= 35:
+                raci_count = sum(1 for c in non_empty_next if self._looks_like_raci_value(c))
+                if raci_count / len(non_empty_next) < 0.5:
+                    header_end_idx = j
+                else:
+                    break
+            else:
+                break
+
+        header_rows = [row for _, row in cleaned_rows[header_start_idx:header_end_idx + 1]]
+        max_header_len = max(len(r) for r in header_rows + [header_raw])
+
+        # Normalize header column names
+        header = []
+        for col_i in range(max_header_len):
+            parts = []
+            for hdr_row in header_rows:
+                part = hdr_row[col_i].strip() if col_i < len(hdr_row) and hdr_row[col_i] else ""
+                if part and part not in parts:
+                    parts.append(part)
+            name = " / ".join(parts) if parts else f"Cột {self._excel_column_name(col_i + 1)}"
+            header.append(name)
+
+        prelude_lines = [
+            " | ".join(row)
+            for _, row in cleaned_rows[:header_start_idx]
+        ]
+
+        data_rows = []
+        for r_idx, row in cleaned_rows[header_end_idx + 1:]:
+            # Pad or truncate row to match header length
+            row_vals = list(row)
+            if len(row_vals) < len(header):
+                row_vals.extend([""] * (len(header) - len(row_vals)))
+            elif len(row_vals) > len(header):
+                row_vals = row_vals[:len(header)]
+            data_rows.append({
+                'row_index': r_idx,
+                'values': row_vals
+            })
+
+        return {
+            'is_table': True,
+            'header': header,
+            'prelude_lines': prelude_lines,
+            'rows': data_rows,
+            'raw_lines': raw_lines
+        }
+
+    def _extract_excel_structure(self, file_content):
+        """Extract structured data from Excel files (.xlsx, .xls).
+        
+        Returns:
+            list of dicts, each representing a sheet:
+            [
+                {
+                    'sheet_name': str,
+                    'is_empty': bool,
+                    'is_table': bool,
+                    'header': list of str,
+                    'prelude_lines': list of str,
+                    'rows': list of dict {'row_index': int, 'values': list of str},
+                    'raw_lines': list of str
+                }, ...
+            ]
+        """
+        filename = (self.filename or '').lower()
+        sheets_data = []
+
+        # Try openpyxl first (.xlsx)
+        if filename.endswith('.xlsx'):
+            try:
+                import openpyxl
+                wb = openpyxl.load_workbook(
+                    filename=io.BytesIO(file_content),
+                    data_only=True,
+                    read_only=False
+                )
+                for sheet_name in wb.sheetnames:
+                    sheet = wb[sheet_name]
+                    max_row = sheet.max_row or 0
+                    max_col = sheet.max_column or 0
+
+                    if max_row <= 1 and max_col <= 1:
+                        # Empty check
+                        val = sheet.cell(row=1, column=1).value if max_row == 1 and max_col == 1 else None
+                        if val is None or not str(val).strip():
+                            sheets_data.append({
+                                'sheet_name': sheet_name,
+                                'is_empty': True,
+                                'is_table': False,
+                                'header': [],
+                                'prelude_lines': [],
+                                'rows': [],
+                                'raw_lines': []
+                            })
+                            continue
+
+                    merged_master = {}
+                    try:
+                        for merged_range in sheet.merged_cells.ranges:
+                            min_col, min_row, max_col_m, max_row_m = merged_range.bounds
+                            master_value = sheet.cell(row=min_row, column=min_col).value
+                            for rr in range(min_row, min(max_row_m + 1, max_row + 1)):
+                                for cc in range(min_col, min(max_col_m + 1, max_col + 1)):
+                                    if rr == min_row and cc == min_col:
+                                        continue
+                                    merged_master[(rr, cc)] = master_value
+                    except Exception as e_merge:
+                        _logger.debug("Failed reading merged cells in sheet %s: %s", sheet_name, str(e_merge))
+
+                    raw_rows = []
+                    for row_idx, row_cells in enumerate(sheet.iter_rows(min_row=1, max_row=max_row, min_col=1, max_col=max_col), start=1):
+                        row_values = []
+                        for col_idx, cell in enumerate(row_cells, start=1):
+                            val = cell.value
+                            if val in (None, "") and merged_master and (row_idx, col_idx) in merged_master:
+                                val = merged_master[(row_idx, col_idx)]
+                            row_values.append(val)
+                        raw_rows.append((row_idx, row_values))
+
+                    merged_master.clear()
+                    sheet_struct = self._detect_excel_header(raw_rows)
+                    sheet_struct['sheet_name'] = sheet_name
+                    sheet_struct['is_empty'] = False
+                    sheets_data.append(sheet_struct)
+
+                wb.close()
+                return sheets_data
+            except ImportError:
+                _logger.warning("openpyxl not installed. Trying xlrd...")
+            except Exception as e:
+                _logger.warning("openpyxl extraction failed for %s: %s. Trying xlrd...", self.filename, str(e))
+
+        # Fallback to xlrd for .xls and .xlsx fallback
         try:
-            docx = zipfile.ZipFile(io.BytesIO(file_content))
-            xml_content = docx.read('word/document.xml')
-            root = ET.fromstring(xml_content)
-            
-            # DOCX tags are namespace-prefixed
-            namespace = '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'
-            paragraphs = []
-            
-            for paragraph in root.iter(namespace + 'p'):
-                texts = [node.text for node in paragraph.iter(namespace + 't') if node.text]
-                if texts:
-                    paragraphs.append("".join(texts))
-            
-            return "\n".join(paragraphs)
+            import xlrd
+            from xlrd import xldate
+            workbook = xlrd.open_workbook(file_contents=file_content)
+            for sheet_idx in range(workbook.nsheets):
+                sheet = workbook.sheet_by_index(sheet_idx)
+                if sheet.nrows == 0:
+                    sheets_data.append({
+                        'sheet_name': sheet.name,
+                        'is_empty': True,
+                        'is_table': False,
+                        'header': [],
+                        'prelude_lines': [],
+                        'rows': [],
+                        'raw_lines': []
+                    })
+                    continue
+
+                raw_rows = []
+                for row_idx in range(sheet.nrows):
+                    row_vals = sheet.row_values(row_idx)
+                    row_types = sheet.row_types(row_idx)
+                    formatted_row = []
+                    for val, cell_type in zip(row_vals, row_types):
+                        if val is None or val == "":
+                            formatted_row.append("")
+                        elif cell_type == xlrd.XL_CELL_DATE:
+                            try:
+                                date_val = xldate.xldate_as_datetime(val, workbook.datemode)
+                                formatted_row.append(date_val)
+                            except Exception:
+                                formatted_row.append(val)
+                        else:
+                            formatted_row.append(val)
+                    raw_rows.append((row_idx + 1, formatted_row))
+
+                sheet_struct = self._detect_excel_header(raw_rows)
+                sheet_struct['sheet_name'] = sheet.name
+                sheet_struct['is_empty'] = False
+                sheets_data.append(sheet_struct)
+
+            return sheets_data
+        except ImportError:
+            raise UserError(
+                f"Không thể xử lý tệp Excel '{self.filename}'. "
+                "Vui lòng cài đặt thư viện cần thiết:\npip install openpyxl xlrd"
+            )
         except Exception as e:
-            raise UserError(f"DOCX extraction error: {str(e)}")
+            raise UserError(f"Lỗi trích xuất tệp Excel '{self.filename}': {str(e)}")
+
+    def _render_excel_structure_to_text(self, structure):
+        """Render structured Excel sheets to a clean Markdown text document.
+        
+        Args:
+            structure: list of sheet dicts returned by _extract_excel_structure
+            
+        Returns:
+            str: Markdown formatted document text
+        """
+        if not structure:
+            return ""
+
+        text_sections = []
+        for sheet in structure:
+            sheet_name = sheet.get('sheet_name', 'Sheet')
+            text_sections.append(f"--- Sheet: {sheet_name} ---")
+
+            if sheet.get('is_empty'):
+                text_sections.append("(Sheet trống)")
+                continue
+
+            if sheet.get('is_table'):
+                # Output prelude lines if any
+                for line in sheet.get('prelude_lines', []):
+                    if line:
+                        text_sections.append(line)
+
+                # Output Markdown Table
+                header = sheet.get('header', [])
+                if header:
+                    text_sections.append("| " + " | ".join(header) + " |")
+                    text_sections.append("| " + " | ".join(["---"] * len(header)) + " |")
+
+                for row in sheet.get('rows', []):
+                    vals = [str(v).replace('\n', ' ').strip() for v in row.get('values', [])]
+                    text_sections.append("| " + " | ".join(vals) + " |")
+
+                # NOTE: Semantic records are NOT rendered here to avoid duplication in text_content.
+                # They are generated separately in _chunk_excel_structure() for embedding child chunks.
+            else:
+                # Free-text or non-table sheet
+                raw_lines = sheet.get('raw_lines', [])
+                if raw_lines:
+                    text_sections.extend(raw_lines)
+                else:
+                    text_sections.append("(Sheet không có nội dung)")
+
+        return "\n".join(text_sections)
+
+    def _detect_grouping_column(self, header, rows):
+        """Detect primary categorical/grouping column from table headers and rows sample.
+        Returns: col_index (0-based) or None if no clear grouping column is found (fallback).
+        """
+        if not header or not rows:
+            return None
+
+        total_rows = len(rows)
+        grouping_keywords = (
+            'phòng', 'ban', 'bộ phận', 'nhóm', 'loại', 'danh mục', 'trạng thái',
+            'dự án', 'chủ đề', 'chi nhánh', 'khối', 'đơn vị', 'status',
+            'department', 'category', 'type', 'group', 'branch', 'section'
+        )
+
+        candidates = []
+        for idx, col_name in enumerate(header):
+            c_clean = (col_name or '').lower()
+            vals = [
+                str(r.get('values', [])[idx]).strip()
+                for r in rows
+                if idx < len(r.get('values', [])) and str(r.get('values', [])[idx]).strip()
+            ]
+            unique_vals = set(vals)
+            n_unique = len(unique_vals)
+
+            # A grouping column typically has 2 <= unique_values <= 30
+            # Allow higher unique ratio (up to 0.7) for small test/sheet samples (<= 20 rows)
+            max_ratio = 0.7 if total_rows <= 20 else 0.45
+            if 2 <= n_unique <= 30 and (n_unique / max(total_rows, 1)) <= max_ratio:
+                score = 0
+                if any(kw in c_clean for kw in grouping_keywords):
+                    score += 10
+                # Prefer columns appearing earlier (columns 0-4)
+                score += max(0, 5 - idx)
+                candidates.append((score, idx, col_name, n_unique))
+
+        if candidates:
+            candidates.sort(key=lambda x: x[0], reverse=True)
+            best_score, best_idx, best_name, best_unique = candidates[0]
+            if best_score >= 5:
+                _logger.info(
+                    "[EXCEL_GROUPING] Selected grouping column '%s' (col_idx=%d, %d unique values)",
+                    best_name, best_idx, best_unique
+                )
+                return best_idx
+
+        return None
+
+    def _build_excel_sheet_summary(self, sheet_name, header, prelude, rows):
+        """Generate a high-level Sheet Schema and Summary chunk.
+        Enforces cardinality limit (<= EXCEL_MAX_CARDINALITY_DISPLAY = 25) to prevent chunk bloating.
+        """
+        if not header and not rows:
+            return None
+
+        total_rows = len(rows)
+        total_cols = len(header)
+
+        parts = [
+            f"[SHEET_SUMMARY_SCHEMA] --- Sheet: {sheet_name} ---",
+            f"Tổng quan bảng dữ liệu: {total_rows} dòng x {total_cols} cột.",
+        ]
+        if prelude:
+            parts.append("Tiêu đề / Thông tin đầu bảng:")
+            for p in prelude:
+                parts.append(f"  {p}")
+
+        parts.append("\nCấu trúc các cột & Dải giá trị tiêu biểu:")
+        max_cardinality = getattr(self, 'EXCEL_MAX_CARDINALITY_DISPLAY', 25)
+
+        for idx, col_name in enumerate(header):
+            col_ref = self._excel_column_name(idx + 1)
+            raw_vals = [
+                str(r.get('values', [])[idx]).strip()
+                for r in rows
+                if idx < len(r.get('values', [])) and str(r.get('values', [])[idx]).strip()
+            ]
+            unique_vals = sorted(list(set(raw_vals)))
+            n_unique = len(unique_vals)
+
+            if not unique_vals:
+                parts.append(f"- {col_ref} ({col_name}): (Cột trống hoặc không có dữ liệu)")
+            elif n_unique <= max_cardinality:
+                vals_str = ", ".join(unique_vals[:max_cardinality])
+                parts.append(f"- {col_ref} ({col_name}) [{n_unique} giá trị]: {vals_str}")
+            else:
+                sample_str = ", ".join(unique_vals[:3])
+                parts.append(f"- {col_ref} ({col_name}) [Độ phân tán cao: {n_unique} giá trị khác nhau; Mẫu: {sample_str}...]")
+
+        return "\n".join(parts)
+
+    def _chunk_excel_structure(self, structure, chunk_size=None, child_size=None):
+        """Chunk structured Excel data into self-contained Parent-Child RAG groups.
+        
+        Features:
+        - Sheet Summary & Schema Chunk: Top-level overview for macro intent & metadata routing.
+        - Schema-Aware Grouping with Fallback: Groups by categorical column if detected; fallbacks to pure budget.
+        - Content Budget with Soft Limits: Target 800-1200 chars for child chunks, with single-row overflow allowance.
+        - Preserves semantic rows without mid-record cutting.
+        """
+        if not structure:
+            return []
+
+        chunk_size = chunk_size or self.EXCEL_PARENT_CHUNK_SIZE
+        child_budget_min = getattr(self, 'EXCEL_CHILD_BUDGET_MIN', 800)
+        child_budget_max = getattr(self, 'EXCEL_CHILD_BUDGET_MAX', 1200)
+
+        groups = []
+
+        for sheet in structure:
+            if sheet.get('is_empty'):
+                continue
+
+            sheet_name = sheet.get('sheet_name', 'Sheet')
+
+            if sheet.get('is_table'):
+                header = sheet.get('header', [])
+                prelude = sheet.get('prelude_lines', [])
+                rows = sheet.get('rows', [])
+
+                if not header or not rows:
+                    content = self._render_excel_structure_to_text([sheet])
+                    if content and len(content.strip()) > 10:
+                        cleaned = content.strip()
+                        children = self._split_into_child_chunks(cleaned, child_size=child_budget_min)
+                        groups.append({'parent': cleaned, 'children': children})
+                    continue
+
+                # 1. Inject Sheet Summary / Schema Chunk as first chunk for this sheet
+                sheet_summary = self._build_excel_sheet_summary(sheet_name, header, prelude, rows)
+                if sheet_summary:
+                    groups.append({
+                        'parent': sheet_summary,
+                        'children': [sheet_summary]
+                    })
+
+                # 2. Detect Schema Grouping Column (with fallback to None)
+                group_col_idx = self._detect_grouping_column(header, rows)
+                is_wide_table = len(header) > self.EXCEL_HEADER_COMPACT_THRESHOLD
+
+                # Header block for Parent chunks
+                full_header_parts = [f"--- Sheet: {sheet_name} ---"]
+                if prelude:
+                    full_header_parts.extend(prelude)
+                full_header_parts.append("Các cột trong bảng:")
+                for idx, col_name in enumerate(header, start=1):
+                    full_header_parts.append(f"- {self._excel_column_name(idx)}: {col_name}")
+                full_header_block = "\n".join(full_header_parts)
+
+                # Header block for Child chunks (Compact mode for wide tables)
+                if is_wide_table:
+                    compact_header_parts = [f"--- Sheet: {sheet_name} ---"]
+                    if prelude:
+                        compact_header_parts.extend(prelude)
+                    compact_header_parts.append(
+                        f"Bảng có {len(header)} cột. Mỗi bản ghi dưới đây liệt kê tên cột và giá trị tương ứng."
+                    )
+                    header_block = "\n".join(compact_header_parts)
+                else:
+                    header_block = full_header_block
+
+                # 3. Content Budget + Schema-Aware Packing
+                # Parent tracking
+                parent_records = []
+                parent_len = len(full_header_block)
+
+                def _flush_excel_parent(records_with_meta):
+                    if not records_with_meta:
+                        return
+                    parent_text = full_header_block + "\n\n" + "\n\n".join([r['text'] for r in records_with_meta])
+
+                    # Build children within this parent using Content Budget (Soft Target 800 - 1200)
+                    children = []
+                    child_buf = []
+                    child_len = len(header_block)
+                    current_group_tag = None
+                    min_row_num = None
+                    max_row_num = None
+
+                    def _flush_child_buf():
+                        nonlocal child_buf, child_len, current_group_tag, min_row_num, max_row_num
+                        if not child_buf:
+                            return
+                        ctx_line = f"[Sheet: {sheet_name} | Dòng: {min_row_num} -> {max_row_num}"
+                        if current_group_tag:
+                            ctx_line += f" | Nhóm: {current_group_tag}"
+                        ctx_line += "]"
+
+                        child_text = f"{header_block}\n{ctx_line}\n\n" + "\n\n".join(child_buf)
+                        children.append(child_text)
+                        child_buf = []
+                        child_len = len(header_block)
+                        current_group_tag = None
+                        min_row_num = None
+                        max_row_num = None
+
+                    for item in records_with_meta:
+                        rec_text = item['text']
+                        rec_group = item['group']
+                        rec_row_idx = item['row_index']
+                        rec_len = len(rec_text) + 2
+
+                        # Check group boundary break: If grouping column exists and group value changed
+                        group_changed = (
+                            group_col_idx is not None
+                            and current_group_tag is not None
+                            and rec_group != current_group_tag
+                        )
+                        # Soft budget check: Buffer reached soft target (>= 800) and adding next record exceeds 1200
+                        budget_reached = (child_len >= child_budget_min and (child_len + rec_len > child_budget_max))
+
+                        if child_buf and (group_changed or budget_reached):
+                            _flush_child_buf()
+
+                        # Single-row overflow allowance: if single record itself exceeds budget_max, flush it as a standalone chunk
+                        if not child_buf and rec_len > child_budget_max:
+                            ctx_line = f"[Sheet: {sheet_name} | Dòng: {rec_row_idx}"
+                            if rec_group:
+                                ctx_line += f" | Nhóm: {rec_group}"
+                            ctx_line += "]"
+                            standalone_child = f"{header_block}\n{ctx_line}\n\n{rec_text}"
+                            children.append(standalone_child)
+                            continue
+
+                        child_buf.append(rec_text)
+                        child_len += rec_len
+                        if current_group_tag is None:
+                            current_group_tag = rec_group
+                        if min_row_num is None:
+                            min_row_num = rec_row_idx
+                        max_row_num = rec_row_idx
+
+                    if child_buf:
+                        _flush_child_buf()
+
+                    groups.append({
+                        'parent': parent_text,
+                        'children': children or [parent_text]
+                    })
+
+                for row in rows:
+                    record_str = self._build_excel_semantic_record(sheet_name, header, row)
+                    if not record_str:
+                        continue
+                    r_idx = row.get('row_index', 0)
+                    r_group = None
+                    if group_col_idx is not None and group_col_idx < len(row.get('values', [])):
+                        r_group = str(row['values'][group_col_idx] or '').strip()
+
+                    record_len = len(record_str) + 2
+                    rec_meta = {'text': record_str, 'group': r_group, 'row_index': r_idx}
+
+                    if parent_records and (parent_len + record_len > chunk_size):
+                        _flush_excel_parent(parent_records)
+                        parent_records = [rec_meta]
+                        parent_len = len(full_header_block) + record_len
+                    else:
+                        parent_records.append(rec_meta)
+                        parent_len += record_len
+
+                if parent_records:
+                    _flush_excel_parent(parent_records)
+
+            else:
+                # Non-table / Free-text sheet
+                sheet_text = self._render_excel_structure_to_text([sheet])
+                if sheet_text:
+                    sub_groups = self._chunk_text(sheet_text, chunk_size=chunk_size, child_size=child_size)
+                    groups.extend(sub_groups)
+
+        return groups
 
     def _extract_excel_text(self, file_content):
         """Extract text content from Excel files (.xlsx, .xls)
         
         Features:
         - Support both modern (.xlsx) and legacy (.xls) formats
-        - Extract all sheets with proper labeling
-        - Handle dates, numbers, and formulas properly
-        - Memory-efficient processing for large files
+        - Uses structured extraction and Markdown table rendering
+        - Preserves backwards compatibility for all callers
         """
-        filename = (self.filename or '').lower()
-        text_lines = []
+        structure = self._extract_excel_structure(file_content)
+        return self._render_excel_structure_to_text(structure)
 
-        # Try modern Excel format first (.xlsx)
-        if filename.endswith('.xlsx'):
-            try:
-                import openpyxl
-                from openpyxl.utils.datetime import from_excel
-                
-                wb = openpyxl.load_workbook(
-                    filename=io.BytesIO(file_content), 
-                    data_only=True,  # Get calculated values instead of formulas
-                    read_only=True   # Memory efficient for large files
-                )
-                
-                for sheet_name in wb.sheetnames:
-                    sheet = wb[sheet_name]
-                    text_lines.append(f"--- Sheet: {sheet_name} ---")
-                    
-                    # Get the actual used range to avoid processing empty cells
-                    max_row = sheet.max_row
-                    max_col = sheet.max_column
-                    
-                    if max_row == 1 and max_col == 1:
-                        # Empty sheet
-                        text_lines.append("(Sheet trống)")
-                        continue
-                    
-                    for row in sheet.iter_rows(min_row=1, max_row=max_row, 
-                                             min_col=1, max_col=max_col, values_only=True):
-                        row_values = []
-                        for val in row:
-                            if val is not None:
-                                # Handle different data types
-                                if isinstance(val, (int, float)):
-                                    # Format numbers properly
-                                    if val == int(val):
-                                        row_values.append(str(int(val)))
-                                    else:
-                                        row_values.append(f"{val:.2f}".rstrip('0').rstrip('.'))
-                                else:
-                                    str_val = str(val).strip()
-                                    if str_val:
-                                        row_values.append(str_val)
-                        
-                        if row_values:
-                            text_lines.append(" | ".join(row_values))
-                
-                wb.close()
-                return "\n".join(text_lines)
-                
-            except ImportError:
-                _logger.warning("openpyxl not installed. Install with: pip install openpyxl")
-                # Fall through to xlrd
-            except Exception as e:
-                _logger.warning("openpyxl extraction failed for %s: %s. Trying xlrd...", 
-                              self.filename, str(e))
+    def _extract_docx_text(self, file_content):
+        """Extract text from Word (.docx) files including paragraphs and tables.
+        
+        Strategy:
+        1. Try python-docx (docx library)
+        2. Fallback: Parse word/document.xml directly from the ZIP archive
+        """
+        import io
+        text_parts = []
 
-        # Fallback to xlrd for both .xlsx and .xls
+        # 1. Try python-docx
         try:
-            import xlrd
-            from xlrd import xldate
-            
-            workbook = xlrd.open_workbook(file_contents=file_content)
-            text_lines = []
-            
-            for sheet_idx in range(workbook.nsheets):
-                sheet = workbook.sheet_by_index(sheet_idx)
-                text_lines.append(f"--- Sheet: {sheet.name} ---")
-                
-                if sheet.nrows == 0:
-                    text_lines.append("(Sheet trống)")
+            import docx
+            doc = docx.Document(io.BytesIO(file_content))
+            for para in doc.paragraphs:
+                style_name = (para.style.name or '').strip().lower() if para.style else ''
+                # Skip Table of Contents (TOC) entries
+                if 'toc' in style_name:
+                    continue
+                p_text = para.text.strip()
+                if not p_text:
                     continue
                 
-                for row_idx in range(sheet.nrows):
-                    row_vals = sheet.row_values(row_idx)
-                    row_types = sheet.row_types(row_idx)
-                    row_str = []
-                    
-                    for col_idx, (val, cell_type) in enumerate(zip(row_vals, row_types)):
-                        if val is not None and str(val).strip():
-                            # Handle Excel cell types
-                            if cell_type == xlrd.XL_CELL_DATE:
-                                # Convert Excel date to readable format
-                                try:
-                                    date_val = xldate.xldate_as_datetime(val, workbook.datemode)
-                                    row_str.append(date_val.strftime('%Y-%m-%d %H:%M:%S'))
-                                except:
-                                    row_str.append(str(val).strip())
-                            elif cell_type == xlrd.XL_CELL_NUMBER:
-                                # Format numbers properly
-                                if val == int(val):
-                                    row_str.append(str(int(val)))
-                                else:
-                                    row_str.append(f"{val:.2f}".rstrip('0').rstrip('.'))
-                            else:
-                                str_val = str(val).strip()
-                                if str_val:
-                                    row_str.append(str_val)
-                    
-                    if row_str:
-                        text_lines.append(" | ".join(row_str))
-            
-            return "\n".join(text_lines)
-            
+                # Check for heading style and add markdown header markers
+                if 'heading 1' in style_name or style_name == 'title':
+                    p_text = f"## {p_text}"
+                elif 'heading 2' in style_name:
+                    p_text = f"### {p_text}"
+                elif 'heading 3' in style_name:
+                    p_text = f"#### {p_text}"
+                elif style_name.startswith('heading'):
+                    p_text = f"#### {p_text}"
+                
+                text_parts.append(p_text)
+            for table in doc.tables:
+                table_rows = []
+                for row in table.rows:
+                    cells = [cell.text.strip().replace('\n', ' ') for cell in row.cells]
+                    if any(cells):
+                        table_rows.append("| " + " | ".join(cells) + " |")
+                if table_rows:
+                    text_parts.append("\n".join(table_rows))
+            if text_parts:
+                return "\n\n".join(text_parts)
         except ImportError:
-            raise UserError(
-                f"Không thể xử lý tệp Excel '{self.filename}'. "
-                "Vui lòng cài đặt thư viện cần thiết:\n"
-                "pip install openpyxl xlrd"
-            )
+            _logger.debug("python-docx not installed, using zipfile XML fallback for docx.")
         except Exception as e:
-            raise UserError(f"Lỗi trích xuất tệp Excel '{self.filename}': {str(e)}")
+            _logger.warning("python-docx failed for %s: %s. Trying zipfile XML fallback...", self.filename, str(e))
+
+        # 2. Fallback: Read word/document.xml from zipfile
+        try:
+            import zipfile
+            import xml.etree.ElementTree as ET
+            with zipfile.ZipFile(io.BytesIO(file_content)) as zf:
+                xml_content = zf.read('word/document.xml')
+                tree = ET.fromstring(xml_content)
+                ns = {'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}
+                for p in tree.iterfind('.//w:p', ns):
+                    texts = [node.text for node in p.iterfind('.//w:t', ns) if node.text]
+                    if texts:
+                        text_parts.append("".join(texts).strip())
+            return "\n\n".join([p for p in text_parts if p])
+        except Exception as e:
+            _logger.error("Failed to extract text from DOCX file %s: %s", self.filename, str(e))
+            raise UserError(f"Không thể trích xuất nội dung từ tệp Word '{self.filename}': {str(e)}")
 
     def _extract_txt_or_csv_text(self, file_content):
         for encoding in ['utf-8', 'utf-8-sig', 'cp1252', 'latin-1', 'gbk']:
@@ -1493,14 +2290,47 @@ class TopicChatbotDocument(models.Model):
                 continue
         return file_content.decode('utf-8', errors='ignore')
 
-    def _chunk_text(self, text, chunk_size=1500, overlap=200):
-        """Split extracted text into RAG-friendly chunks.
+    def _split_into_child_chunks(self, text, child_size=400, overlap=80):
+        """Split a parent text block into smaller overlapping child chunks for vector search."""
+        if not text:
+            return []
+        cleaned = text.strip()
+        if len(cleaned) <= child_size + 100:
+            return [cleaned]
 
-        Table-aware: markdown table headers are detected by **pattern** (lines
-        starting with ``|`` that contain ``---``, or that immediately follow a
-        page/sheet marker) rather than by checking for specific Vietnamese
-        keywords.  Detected headers are prepended to every chunk that contains
-        rows from that table so that each chunk is self-contained.
+        children = []
+        start = 0
+        text_len = len(cleaned)
+        while start < text_len:
+            end = min(start + child_size, text_len)
+            if end < text_len:
+                search_start = max(start + child_size // 2, end - 80)
+                window = cleaned[search_start:end]
+                newline_idx = window.rfind('\n')
+                period_idx = window.rfind('. ')
+                space_idx = window.rfind(' ')
+                if newline_idx != -1:
+                    end = search_start + newline_idx + 1
+                elif period_idx != -1:
+                    end = search_start + period_idx + 2
+                elif space_idx != -1:
+                    end = search_start + space_idx + 1
+            child = cleaned[start:end].strip()
+            if child and len(child) > 10:
+                children.append(child)
+            start = end - overlap
+            if start >= text_len or end >= text_len:
+                break
+        return children or [cleaned]
+
+    def _chunk_text(self, text, chunk_size=2000, overlap=400, child_size=400, child_overlap=80):
+        """Split extracted text into Parent-Child RAG groups.
+
+        Parent chunks preserve wide semantic boundaries, paragraphs, and markdown tables.
+        Child chunks are granular sub-sections optimized for vector similarity search.
+
+        Returns:
+            list of dicts: [{'parent': str, 'children': [str, ...]}]
         """
         if not text:
             return []
@@ -1511,7 +2341,7 @@ class TopicChatbotDocument(models.Model):
         pages = re.split(
             r'(?=(?:\n|\A)--- (?:Trang \d+|Sheet: [^\n]+) ---)', text,
         )
-        chunks = []
+        parent_chunks = []
 
         for page in pages:
             page_content = page.strip()
@@ -1520,26 +2350,26 @@ class TopicChatbotDocument(models.Model):
 
             # Keep small pages intact for full RAG context
             if len(page_content) <= 2500:
-                chunks.append(page_content)
+                parent_chunks.append(page_content)
                 continue
 
             lines = page_content.split('\n')
 
             # ── Pattern-based header detection (no hardcoded keywords) ───────
-            # Pass 1: mark which lines are headers / table lines.
             is_header = [False] * len(lines)
             is_table_line = [False] * len(lines)
 
             for idx, line in enumerate(lines):
                 stripped = line.strip()
                 if not stripped.startswith('|'):
+                    # Check markdown heading markers (## Heading, ### Heading, #### Heading)
+                    if re.match(r'^#{2,4}\s+\S+', stripped):
+                        is_header[idx] = True
                     continue
                 is_table_line[idx] = True
 
-                # Rule 1 – separator line (e.g. |---|---|---| )
                 if '---' in stripped:
                     is_header[idx] = True
-                    # Rule 2 – lines directly *before* the separator are headers
                     for back in range(idx - 1, -1, -1):
                         back_s = lines[back].strip()
                         if back_s.startswith('|') and '---' not in back_s:
@@ -1548,20 +2378,18 @@ class TopicChatbotDocument(models.Model):
                             break
                     continue
 
-                # Rule 3 – first pipe-line right after a page/sheet marker
                 if idx > 0:
                     prev = lines[idx - 1].strip()
                     if re.match(r'^--- (?:Trang \d+|Sheet: .+?) ---$', prev):
                         is_header[idx] = True
 
-            # ── Pass 2: build chunks ─────────────────────────────────────────
-            table_hdrs = []    # accumulated header lines for current table
-            table_rows = []    # accumulated data rows for current table
-            prose_buf = []     # non-table text accumulator
+            # ── Pass 2: build parent chunks ─────────────────────────────────
+            table_hdrs = []
+            table_rows = []
+            prose_buf = []
             in_table = False
 
             def _flush_table():
-                """Emit table chunks (header prepended to each)."""
                 if not table_rows:
                     return
                 hdr_text = "\n".join(table_hdrs)
@@ -1570,31 +2398,60 @@ class TopicChatbotDocument(models.Model):
                 for r in table_rows:
                     cur.append(r)
                     if len("\n".join(cur)) > chunk_size:
-                        chunks.append("\n".join(cur))
+                        parent_chunks.append("\n".join(cur))
                         cur = [hdr_text] if hdr_text else []
                 if len(cur) > (n_hdr if hdr_text else 0):
-                    chunks.append("\n".join(cur))
+                    parent_chunks.append("\n".join(cur))
 
             def _flush_prose():
-                """Emit non-table text as a single chunk."""
                 blob = "\n".join(prose_buf).strip()
-                if blob:
-                    chunks.append(blob)
+                if not blob:
+                    return
+                if len(blob) <= chunk_size:
+                    parent_chunks.append(blob)
+                    return
+                # Split large prose blob into chunks of ~chunk_size
+                start = 0
+                blob_len = len(blob)
+                while start < blob_len:
+                    end = min(start + chunk_size, blob_len)
+                    if end < blob_len:
+                        cut = blob.rfind('\n', start + chunk_size // 2, end)
+                        if cut <= start:
+                            cut = blob.rfind('. ', start + chunk_size // 2, end)
+                            if cut > start:
+                                cut += 2
+                        if cut <= start:
+                            cut = blob.rfind(' ', start + chunk_size // 2, end)
+                            if cut > start:
+                                cut += 1
+                        if cut <= start:
+                            cut = end
+                    else:
+                        cut = blob_len
+                    chunk_piece = blob[start:cut].strip()
+                    if chunk_piece:
+                        parent_chunks.append(chunk_piece)
+                    start = cut
 
             for idx, line in enumerate(lines):
                 if is_header[idx]:
-                    # Entering (or continuing) a table header section
                     if prose_buf:
                         _flush_prose()
                         prose_buf = []
-                    table_hdrs.append(line)
-                    in_table = True
-
+                    if is_table_line[idx]:
+                        table_hdrs.append(line)
+                        in_table = True
+                    else:
+                        if in_table:
+                            _flush_table()
+                            table_hdrs = []
+                            table_rows = []
+                            in_table = False
+                        prose_buf.append(line)
                 elif in_table and is_table_line[idx]:
                     table_rows.append(line)
-
                 else:
-                    # Non-table line (or table ended)
                     if in_table:
                         _flush_table()
                         table_hdrs = []
@@ -1602,26 +2459,44 @@ class TopicChatbotDocument(models.Model):
                         in_table = False
                     prose_buf.append(line)
 
-            # Flush anything remaining
             if in_table:
                 _flush_table()
             if prose_buf:
                 _flush_prose()
 
-        # Fallback to simple sliding-window chunker
-        if not chunks:
+        # Fallback to sliding-window chunker if no parent chunks generated
+        if not parent_chunks:
             start = 0
             text_len = len(text)
             while start < text_len:
                 end = min(start + chunk_size, text_len)
+                if end < text_len:
+                    search_start = max(start + chunk_size // 2, end - 200)
+                    window = text[search_start:end]
+                    newline_idx = window.rfind('\n')
+                    period_idx = window.rfind('. ')
+                    space_idx = window.rfind(' ')
+                    if newline_idx != -1:
+                        end = search_start + newline_idx + 1
+                    elif period_idx != -1:
+                        end = search_start + period_idx + 2
+                    elif space_idx != -1:
+                        end = search_start + space_idx + 1
+
                 chunk = text[start:end].strip()
                 if chunk:
-                    chunks.append(chunk)
+                    parent_chunks.append(chunk)
                 start = end - overlap
                 if start >= text_len or end >= text_len:
                     break
 
-        return [c.strip() for c in chunks if len(c.strip()) > 10]
+        groups = []
+        for p in parent_chunks:
+            p_clean = p.strip()
+            if len(p_clean) > 10:
+                children = self._split_into_child_chunks(p_clean, child_size=child_size, overlap=child_overlap)
+                groups.append({'parent': p_clean, 'children': children or [p_clean]})
+        return groups
 
     def action_reprocess_document(self):
         """Action to reprocess a single document (useful after fixing errors)."""
@@ -1639,6 +2514,59 @@ class TopicChatbotDocument(models.Model):
             })
         
         return self.action_process_document()
+
+    def action_retry_failed_embeddings(self):
+        """Retry generating embeddings ONLY for chunks that failed embedding without re-extracting text."""
+        for doc in self:
+            if doc.state == 'processing':
+                raise UserError(f"Tài liệu '{doc.name}' đang được xử lý. Vui lòng đợi!")
+
+            failed_chunks = doc.chunk_ids.filtered(
+                lambda c: c.chunk_type in ('child', 'standard') and (not c.embedding or len(c.embedding.strip()) <= 10)
+            )
+            if not failed_chunks:
+                doc.write({
+                    'state': 'done',
+                    'error_message': False
+                })
+                continue
+
+            from ..services import embedding_service
+            cfg = embedding_service.get_embedding_config(doc.env)
+            active_provider = cfg.get('provider') or 'gemini'
+            api_key = cfg.get('gemini_key') or ''
+            embedding_model = cfg.get('gemini_model') or 'gemini-embedding-2'
+
+            if active_provider == 'gemini' and not api_key:
+                raise UserError("Chưa cấu hình Gemini API Key. Vui lòng thiết lập trong Cấu hình!")
+            elif active_provider == 'ollama' and not cfg.get('ollama_url'):
+                raise UserError("Chưa cấu hình Ollama Server URL. Vui lòng thiết lập trong Cấu hình!")
+
+            texts = [c.content for c in failed_chunks]
+            try:
+                embeddings = doc.env['topic_chatbot.chunk']._generate_embeddings_batch(
+                    texts, api_key, embedding_model, chunk_records=failed_chunks, provider=active_provider
+                )
+            except Exception as e:
+                _logger.error("Error retrying embeddings for doc %s: %s", doc.id, str(e))
+                embeddings = [None] * len(texts)
+
+            success_count = sum(1 for e in embeddings if e)
+
+            remaining_failed = len(doc.chunk_ids.filtered(lambda c: not c.embedding or len(c.embedding.strip()) <= 10))
+            if remaining_failed == 0:
+                doc.write({
+                    'state': 'done',
+                    'error_message': False
+                })
+                _logger.info("Doc %s (id=%s): All embeddings recovered. State -> done", doc.name, doc.id)
+            else:
+                doc.write({
+                    'state': 'partial',
+                    'error_message': f"Đã bổ sung embedding cho {success_count} đoạn. Còn {remaining_failed} đoạn chưa hoàn thành do hạn mức API."
+                })
+                _logger.info("Doc %s (id=%s): %d recovered, %d still pending.", doc.name, doc.id, success_count, remaining_failed)
+        return True
     
     def action_view_chunks(self):
         """Action to view chunks created from this document."""

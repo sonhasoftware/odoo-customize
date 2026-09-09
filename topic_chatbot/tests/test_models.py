@@ -578,3 +578,185 @@ class TestTopicChatbotModels(TransactionCase):
         
         for option in expected_options:
             self.assertIn(option, actual_options)
+
+    # =================================================================
+    # EXCEL STRUCTURED EXTRACTION & CHUNKING TESTS
+    # =================================================================
+
+    def test_34_excel_table_header_preserved_in_all_chunks(self):
+        """Test that every chunk of an Excel table retains full header context."""
+        import io
+        try:
+            import openpyxl
+        except ImportError:
+            return  # Skip if openpyxl not installed
+
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "RAPI ver6-1"
+
+        # Banner / Title
+        ws.append(["MA TRẬN PHÂN QUYỀN TRÁCH NHIỆM RAPI"])
+        # Table Header
+        header = ["STT", "Mã", "Nghiệp vụ", "SHI", "A", "I", "R", "R", "P"]
+        ws.append(header)
+
+        # 50 rows of data
+        for i in range(1, 51):
+            if i == 25:
+                ws.append([str(i), f"2.{i}", "Đóng và mở tài khoản ngân hàng", "SHI", "A", "I", "R", "R", "P"])
+            else:
+                ws.append([str(i), f"2.{i}", f"Nghiệp vụ mẫu số {i} với mô tả chi tiết", "SHI", "A", "I", "R", "R", "P"])
+
+        buf = io.BytesIO()
+        wb.save(buf)
+        excel_bytes = buf.getvalue()
+
+        doc = self.env['topic_chatbot.document'].with_user(self.AdminUser).create({
+            'name': 'RAPI Matrix Test',
+            'topic_id': self.PublicTopic.id,
+            'datas': base64.b64encode(excel_bytes),
+            'filename': 'rapi_matrix.xlsx',
+        })
+
+        # Test extraction structure
+        structure = doc._extract_excel_structure(excel_bytes)
+        self.assertEqual(len(structure), 1)
+        self.assertTrue(structure[0]['is_table'])
+        self.assertEqual(structure[0]['header'], header)
+        self.assertIn("MA TRẬN PHÂN QUYỀN TRÁCH NHIỆM RAPI", structure[0]['prelude_lines'][0])
+        self.assertEqual(len(structure[0]['rows']), 50)
+
+        # Test chunking with smaller chunk size to force multiple chunks
+        chunks = doc._chunk_excel_structure(structure, chunk_size=600)
+        self.assertGreater(len(chunks), 1, "Should generate multiple chunks due to chunk size limit")
+
+        # Verify EVERY chunk contains the header
+        header_markdown = "| STT | Mã | Nghiệp vụ | SHI | A | I | R | R | P |"
+        for chunk_idx, chunk in enumerate(chunks):
+            self.assertIn(header_markdown, chunk, f"Chunk #{chunk_idx + 1} is missing table header!")
+            self.assertIn("--- Sheet: RAPI ver6-1 ---", chunk)
+
+        # Verify the specific row is present in one of the chunks
+        found_target_row = any("Đóng và mở tài khoản ngân hàng" in chunk for chunk in chunks)
+        self.assertTrue(found_target_row, "Target row should be included in one of the chunks")
+
+    def test_35_excel_free_text_extraction(self):
+        """Test that free-text Excel files without clear tabular headers are handled gracefully."""
+        import io
+        try:
+            import openpyxl
+        except ImportError:
+            return
+
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "GhiChu"
+
+        # Free-text single column notes
+        ws.append(["Ghi chú quan trọng về chính sách công ty"])
+        ws.append(["1. Nhân viên tuân thủ nội quy lao động."])
+        ws.append(["2. Thời gian làm việc từ 8h00 đến 17h30."])
+
+        buf = io.BytesIO()
+        wb.save(buf)
+        excel_bytes = buf.getvalue()
+
+        doc = self.env['topic_chatbot.document'].with_user(self.AdminUser).create({
+            'name': 'Free Text Excel',
+            'topic_id': self.PublicTopic.id,
+            'datas': base64.b64encode(excel_bytes),
+            'filename': 'notes.xlsx',
+        })
+
+        structure = doc._extract_excel_structure(excel_bytes)
+        self.assertEqual(len(structure), 1)
+        self.assertFalse(structure[0]['is_table'])
+
+        text = doc._render_excel_structure_to_text(structure)
+        self.assertIn("Ghi chú quan trọng về chính sách công ty", text)
+
+        chunks = doc._chunk_excel_structure(structure)
+        self.assertGreater(len(chunks), 0)
+        self.assertIn("Ghi chú quan trọng về chính sách công ty", chunks[0])
+
+    def test_36_excel_empty_sheet_handling(self):
+        """Test handling empty Excel sheets without raising exceptions."""
+        import io
+        try:
+            import openpyxl
+        except ImportError:
+            return
+
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "EmptySheet"
+
+        buf = io.BytesIO()
+        wb.save(buf)
+        excel_bytes = buf.getvalue()
+
+        doc = self.env['topic_chatbot.document'].with_user(self.AdminUser).create({
+            'name': 'Empty Excel',
+            'topic_id': self.PublicTopic.id,
+            'datas': base64.b64encode(excel_bytes),
+            'filename': 'empty.xlsx',
+        })
+
+        structure = doc._extract_excel_structure(excel_bytes)
+        self.assertEqual(len(structure), 1)
+        self.assertTrue(structure[0]['is_empty'])
+
+        text = doc._render_excel_structure_to_text(structure)
+        self.assertIn("(Sheet trống)", text)
+
+        chunks = doc._chunk_excel_structure(structure)
+        self.assertEqual(len(chunks), 0)
+
+    def test_37_excel_extract_excel_text_backward_compatibility(self):
+        """Test that _extract_excel_text maintains backward compatibility."""
+        import io
+        try:
+            import openpyxl
+        except ImportError:
+            return
+
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "DataSheet"
+        ws.append(["Mã", "Tên sản phẩm", "Giá"])
+        ws.append(["SP01", "Bồn nước Inox Sơn Hà", "3500000"])
+
+        buf = io.BytesIO()
+        wb.save(buf)
+        excel_bytes = buf.getvalue()
+
+        doc = self.env['topic_chatbot.document'].with_user(self.AdminUser).create({
+            'name': 'Compat Test',
+            'topic_id': self.PublicTopic.id,
+            'datas': base64.b64encode(excel_bytes),
+            'filename': 'compat.xlsx',
+        })
+
+        result_text = doc._extract_excel_text(excel_bytes)
+        self.assertIsInstance(result_text, str)
+        self.assertIn("| Mã | Tên sản phẩm | Giá |", result_text)
+        self.assertIn("| SP01 | Bồn nước Inox Sơn Hà | 3500000 |", result_text)
+
+    def test_38_embedding_model_normalization(self):
+        """Test normalization of embedding model names to centralized gemini-embedding-2."""
+        chunk_model = self.env['topic_chatbot.chunk']
+        self.assertEqual(chunk_model._normalize_embedding_model('models/gemini-embedding-2'), 'gemini-embedding-2')
+        self.assertEqual(chunk_model._normalize_embedding_model('gemini-embedding-2'), 'gemini-embedding-2')
+        self.assertEqual(chunk_model._normalize_embedding_model('text-embedding-004'), 'gemini-embedding-2')
+        self.assertEqual(chunk_model._normalize_embedding_model('embedding-001'), 'gemini-embedding-2')
+        self.assertEqual(chunk_model._normalize_embedding_model(''), 'gemini-embedding-2')
+        self.assertEqual(chunk_model._normalize_embedding_model(None), 'gemini-embedding-2')
+
+    def test_39_batch_embeddings_empty_or_no_key(self):
+        """Test batch embeddings handles empty inputs safely."""
+        chunk_model = self.env['topic_chatbot.chunk']
+        # Empty texts
+        self.assertEqual(chunk_model._generate_embeddings_batch([], 'fake_key'), [])
+        # No key
+        self.assertEqual(chunk_model._generate_embeddings_batch(['test 1', 'test 2'], ''), [None, None])

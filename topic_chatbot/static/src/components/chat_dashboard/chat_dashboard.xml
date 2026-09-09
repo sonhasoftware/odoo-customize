@@ -85,7 +85,7 @@
                 </div>
 
                 <!-- Chat Body Container -->
-                <div class="chat_body" t-ref="chatContainer">
+                <div class="chat_body" t-ref="chatContainer" t-on-scroll="onChatScroll">
                     <t t-if="!state.selectedTopicId">
                         <!-- Landing Screen: No Topic Selected -->
                         <div class="landing_screen">
@@ -140,14 +140,19 @@
                                     </div>
                                     <div class="message_bubble">
                                         <div class="message_sender" t-out="msg.role === 'user' ? 'Bạn' : 'AI Assistant'"/>
-                                        <div class="message_content" t-if="!msg.isStreaming" t-out="this.formatMarkdown(msg.content)"/>
+                                        <t t-if="!msg.isStreaming">
+                                            <div class="message_content" t-att-class="{'ai-response-prose': msg.role !== 'user'}" t-out="this.formatMarkdown(msg.content)"/>
+                                        </t>
                                         <t t-else="">
-                                            <div class="message_content streaming-text" t-if="msg.content" t-out="msg.content"/>
+                                            <div class="message_content streaming-text" t-att-class="{'ai-response-prose': msg.role !== 'user'}" t-if="msg.content" t-out="this.formatMarkdown(msg.content)"/>
                                             <div class="message_content pt-1" t-else="">
-                                                <div class="spinner-chat">
-                                                    <div class="bounce1"></div>
-                                                    <div class="bounce2"></div>
-                                                    <div class="bounce3"></div>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <div class="spinner-chat">
+                                                        <div class="bounce1"></div>
+                                                        <div class="bounce2"></div>
+                                                        <div class="bounce3"></div>
+                                                    </div>
+                                                    <span class="text-muted" style="font-size: 13px;" t-if="msg.statusText" t-out="msg.statusText"/>
                                                 </div>
                                             </div>
                                         </t>

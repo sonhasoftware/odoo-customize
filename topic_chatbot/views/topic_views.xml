@@ -7,7 +7,8 @@
         <field name="arch" type="xml">
             <form string="Topic">
                 <header>
-                    <button name="action_process_all_documents" string="Xử lý tài liệu" type="object" class="btn-primary" icon="fa-cogs"/>
+                    <button name="action_process_all_documents" string="Xử lý tất cả tài liệu" type="object" class="btn-secondary" icon="fa-cogs"/>
+                    <button name="action_reprocess_all_documents" string="Xử lý lại tất cả" type="object" class="btn-secondary" icon="fa-refresh" confirm="Hành động này sẽ phân tích lại toàn bộ tài liệu trong chủ đề này theo kiến trúc Parent-Child mới. Bạn có chắc chắn muốn tiếp tục?"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -21,27 +22,39 @@
                             <field name="is_admin" invisible="1"/>
                             <field name="is_public" readonly="not is_admin"/>
                             <field name="is_db_query"/>
-                            <field name="is_mssql_query"/>
+                            <field name="is_mssql_query" readonly="not is_admin"/>
                             <field name="create_uid" readonly="1" string="Owner"/>
                         </group>
                     </group>
                     <group invisible="not is_mssql_query">
-                        <field name="mssql_allowed_tables" placeholder="Ví dụ: dbo.FactSales (Doanh số bán hàng), dbo.DimCustomer (Thông tin khách hàng)..."/>
+                        <field name="mssql_connection_id"/>
+                        <label for="mssql_allowed_tables"/>
+                        <div class="o_row">
+                            <field name="mssql_allowed_tables" placeholder="Ví dụ: dbo.FactSales (Doanh số bán hàng), dbo.DimCustomer..."/>
+                            <button name="action_sync_mssql_schema" string="Đồng bộ Schema" type="object" class="btn-secondary" icon="fa-refresh" invisible="not mssql_allowed_tables"/>
+                        </div>
+                        <field name="mssql_schema_info" invisible="not mssql_schema_info"/>
                     </group>
                     <notebook>
-                        <page string="Description" name="description">
-                            <field name="description" placeholder="Summarize the scope of this topic..."/>
+                        <page string="Mô tả chủ đề" name="description">
+                            <field name="description" placeholder="Mô tả phạm vi và mục đích của chủ đề này..."/>
                         </page>
-                        <page string="Documents" name="documents">
-                            <field name="document_ids" context="{'default_topic_id': active_id}">
+                        <page string="Tài liệu đính kèm (Documents)" name="documents">
+                            <field name="document_ids" context="{'default_topic_id': id}">
                                 <tree string="Documents" editable="bottom">
-                                    <field name="name"/>
+                                    <field name="datas" filename="filename" widget="binary" string="File đính kèm (Upload)"/>
                                     <field name="filename" column_invisible="True"/>
-                                    <field name="datas" filename="filename" string="Upload File" options="{'accepted_file_extensions': '.pdf,.docx,.xlsx,.xls,.csv,.txt'}"/>
-                                    <field name="state" readonly="1" decoration-info="state == 'draft'" decoration-warning="state == 'processing'" decoration-success="state == 'done'" decoration-danger="state == 'error'"/>
-                                    <field name="layout_type" readonly="1" optional="hide"/>
-                                    <button name="action_process_document" string=" Xử lý" type="object" icon="fa-play" class="btn-secondary"/>
-                                    <field name="create_date" string="Uploaded On" readonly="1"/>
+                                    <field name="name" string="Tên tài liệu"/>
+                                    <field name="doc_type" optional="show"/>
+                                    <field name="department" optional="show"/>
+                                    <field name="apply_year" optional="show"/>
+                                    <field name="file_size" optional="show" readonly="1" string="Dung lượng (KB)"/>
+                                    <field name="chunks_count" optional="show" readonly="1" string="Số Chunks"/>
+                                    <field name="state" readonly="1" decoration-info="state == 'draft'" decoration-warning="state in ('processing', 'partial')" decoration-success="state == 'done'" decoration-danger="state == 'error'"/>
+                                    <button name="action_process_document" string="Xử lý" type="object" icon="fa-play" class="btn-primary" invisible="state in ('processing', 'done')"/>
+                                    <button name="action_reprocess_document" string="Xử lý lại" type="object" icon="fa-refresh" class="btn-secondary" invisible="state != 'done'"/>
+                                    <button name="action_retry_failed_embeddings" string="Bù Embedding" type="object" icon="fa-repeat" class="btn-warning" invisible="state != 'partial'"/>
+                                    <field name="create_date" string="Ngày tải lên" readonly="1" optional="hide"/>
                                 </tree>
                             </field>
                         </page>
@@ -93,5 +106,119 @@
         <field name="res_model">topic_chatbot.topic</field>
         <field name="view_mode">tree,form</field>
         <field name="search_view_id" ref="view_topic_chatbot_topic_search"/>
+    </record>
+
+    <!-- Document Form View -->
+    <record id="view_topic_chatbot_document_form" model="ir.ui.view">
+        <field name="name">topic_chatbot.document.form</field>
+        <field name="model">topic_chatbot.document</field>
+        <field name="arch" type="xml">
+            <form string="Document">
+                <header>
+                    <button name="action_process_document" string="Xử lý tài liệu" type="object" class="btn-primary" icon="fa-play" invisible="state in ('processing', 'done')"/>
+                    <button name="action_reprocess_document" string="Xử lý lại" type="object" class="btn-secondary" icon="fa-refresh" invisible="state != 'done'"/>
+                    <button name="action_retry_failed_embeddings" string="Bù Embedding" type="object" class="btn-warning" icon="fa-repeat" invisible="state != 'partial'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,processing,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1>
+                            <field name="name" placeholder="Tên tài liệu..."/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="filename" invisible="1"/>
+                            <field name="datas" filename="filename" widget="binary" string="Tệp đính kèm (File Content)"/>
+                            <field name="topic_id"/>
+                            <field name="doc_type"/>
+                            <field name="department"/>
+                            <field name="apply_year"/>
+                        </group>
+                        <group>
+                            <field name="file_size" readonly="1"/>
+                            <field name="layout_type" readonly="1"/>
+                            <field name="chunks_count" readonly="1" string="Số Chunks"/>
+                            <field name="processing_time" readonly="1"/>
+                            <field name="create_date" string="Ngày tải lên" readonly="1"/>
+                        </group>
+                    </group>
+                    <group invisible="not error_message">
+                        <field name="error_message" readonly="1" decoration-danger="1"/>
+                    </group>
+                    <notebook>
+                        <page string="Nội dung trích xuất" name="extracted_text">
+                            <field name="text_content" readonly="1" placeholder="Nội dung trích xuất sau khi xử lý tài liệu sẽ hiển thị tại đây..."/>
+                        </page>
+                        <page string="Danh sách Chunks" name="chunks">
+                            <field name="chunk_ids" readonly="1">
+                                <tree string="Chunks">
+                                    <field name="sequence" string="STT"/>
+                                    <field name="chunk_type" string="Loại Chunk"/>
+                                    <field name="content" string="Nội dung tóm tắt"/>
+                                    <field name="parent_id" string="Parent Chunk" optional="show"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Document Tree View -->
+    <record id="view_topic_chatbot_document_tree" model="ir.ui.view">
+        <field name="name">topic_chatbot.document.tree</field>
+        <field name="model">topic_chatbot.document</field>
+        <field name="arch" type="xml">
+            <tree string="Documents">
+                <field name="datas" filename="filename" widget="binary" string="Tệp đính kèm"/>
+                <field name="filename" column_invisible="True"/>
+                <field name="name" string="Tên tài liệu"/>
+                <field name="topic_id"/>
+                <field name="doc_type" optional="show"/>
+                <field name="department" optional="show"/>
+                <field name="apply_year" optional="show"/>
+                <field name="file_size" string="Dung lượng (KB)" optional="show"/>
+                <field name="chunks_count" string="Số Chunks" optional="show"/>
+                <field name="state" decoration-info="state == 'draft'" decoration-warning="state in ('processing', 'partial')" decoration-success="state == 'done'" decoration-danger="state == 'error'"/>
+                <button name="action_process_document" string="Xử lý" type="object" icon="fa-play" class="btn-primary" invisible="state in ('processing', 'done')"/>
+                <button name="action_reprocess_document" string="Xử lý lại" type="object" icon="fa-refresh" class="btn-secondary" invisible="state != 'done'"/>
+                <button name="action_retry_failed_embeddings" string="Bù Embedding" type="object" icon="fa-repeat" class="btn-warning" invisible="state != 'partial'"/>
+                <field name="create_date" string="Ngày tải lên" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Document Search View -->
+    <record id="view_topic_chatbot_document_search" model="ir.ui.view">
+        <field name="name">topic_chatbot.document.search</field>
+        <field name="model">topic_chatbot.document</field>
+        <field name="arch" type="xml">
+            <search string="Search Documents">
+                <field name="name"/>
+                <field name="filename"/>
+                <field name="topic_id"/>
+                <field name="department"/>
+                <filter string="Chưa xử lý (Draft)" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Đã xử lý (Done)" name="done" domain="[('state', '=', 'done')]"/>
+                <filter string="Chờ bù Embedding" name="partial" domain="[('state', '=', 'partial')]"/>
+                <filter string="Lỗi (Error)" name="error" domain="[('state', '=', 'error')]"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter string="Chủ đề (Topic)" name="group_topic" context="{'group_by': 'topic_id'}"/>
+                    <filter string="Trạng thái" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Loại văn bản" name="group_doc_type" context="{'group_by': 'doc_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Document Action -->
+    <record id="action_topic_chatbot_document" model="ir.actions.act_window">
+        <field name="name">Documents</field>
+        <field name="res_model">topic_chatbot.document</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_topic_chatbot_document_search"/>
     </record>
 </odoo>

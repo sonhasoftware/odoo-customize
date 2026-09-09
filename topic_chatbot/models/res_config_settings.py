@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models
+from . import crypto_utils
 
 class ResConfigSettings(models.TransientModel):
     _inherit = 'res.config.settings'
@@ -13,6 +14,20 @@ class ResConfigSettings(models.TransientModel):
         'gemini-2.0-flash-lite-001': 'gemini-3.5-flash-lite',
     }
 
+    topic_chatbot_llm_provider = fields.Selection([
+        ('gemini', 'Google Gemini (Cloud)'),
+        ('ollama', 'Ollama Server nội bộ (100% Offline / On-Premise)'),
+    ], string='Chat LLM Provider',
+        config_parameter='topic_chatbot.llm_provider',
+        default='gemini',
+        help="Chọn nhà cung cấp mô hình trí tuệ nhân tạo để sinh câu trả lời chat. Khi chọn Ollama Server, dữ liệu chạy 100% nội bộ."
+    )
+    topic_chatbot_ollama_chat_model = fields.Char(
+        string='Ollama Chat Model',
+        config_parameter='topic_chatbot.ollama_chat_model',
+        default='qwen2.5:14b',
+        help="Tên mô hình Chat LLM trên máy chủ Ollama (ví dụ: qwen2.5:14b hoặc qwen2.5:7b)."
+    )
     topic_chatbot_gemini_api_key = fields.Char(
         string='Gemini API Key',
         config_parameter='topic_chatbot.gemini_api_key'
@@ -42,7 +57,39 @@ class ResConfigSettings(models.TransientModel):
         string='Embedding Model',
         config_parameter='topic_chatbot.embedding_model',
         default='gemini-embedding-2',
-        help="Gemini text embedding model for Vector RAG Semantic Search."
+        help="Gemini text embedding model for Vector RAG Semantic Search (default: gemini-embedding-2)."
+    )
+    topic_chatbot_embedding_batch_size = fields.Integer(
+        string='Embedding Batch Size',
+        config_parameter='topic_chatbot.embedding_batch_size',
+        default=50,
+        help="Số lượng đoạn text gửi trong 1 request API batch (mặc định: 50, tối đa: 100)."
+    )
+    topic_chatbot_embedding_batch_delay_seconds = fields.Float(
+        string='Delay giữa các batch (giây)',
+        config_parameter='topic_chatbot.embedding_batch_delay_seconds',
+        default=1.5,
+        help="Thời gian nghỉ giữa các lần gọi API batch để bảo vệ quota (mặc định: 1.5 giây)."
+    )
+    topic_chatbot_embedding_provider = fields.Selection([
+        ('gemini', 'Google Gemini (kèm Ollama Auto-Fallback khi hết quota)'),
+        ('ollama', 'Ollama Local (100% Offline / Không phụ thuộc Gemini)'),
+    ], string='Embedding Provider',
+        config_parameter='topic_chatbot.embedding_provider',
+        default='gemini',
+        help="Chọn phương thức sinh vector embedding. Khi chọn Ollama Local, hệ thống hoàn toàn không gọi API Google Gemini."
+    )
+    topic_chatbot_ollama_url = fields.Char(
+        string='Ollama Server URL',
+        config_parameter='topic_chatbot.ollama_url',
+        default='http://localhost:11434',
+        help="Địa chỉ máy chủ Ollama (ví dụ: http://localhost:11434 hoặc IP server nội bộ)."
+    )
+    topic_chatbot_ollama_model = fields.Char(
+        string='Ollama Embedding Model',
+        config_parameter='topic_chatbot.ollama_model',
+        default='bge-m3',
+        help="Tên mô hình embedding trên Ollama. Khuyến nghị: bge-m3 (chuẩn 1024 chiều tối ưu tiếng Việt tương thích pgvector)."
     )
     topic_chatbot_mssql_enabled = fields.Boolean(
         string='Bật kết nối SQL Server',
@@ -86,7 +133,11 @@ class ResConfigSettings(models.TransientModel):
         port = self.topic_chatbot_mssql_port or params.get_param('topic_chatbot.mssql_port') or '1433'
         db = self.topic_chatbot_mssql_db or params.get_param('topic_chatbot.mssql_db') or ''
         user = self.topic_chatbot_mssql_user or params.get_param('topic_chatbot.mssql_user') or ''
-        password = self.topic_chatbot_mssql_password or params.get_param('topic_chatbot.mssql_password') or ''
+        # BUG #4 FIX: self.topic_chatbot_mssql_password đã được get_values() decrypt sẵn.
+        # Fallback dùng params.get_param + decrypt để đảm bảo luôn lấy được plaintext.
+        password = self.topic_chatbot_mssql_password or crypto_utils.decrypt_value(
+            self.env, params.get_param('topic_chatbot.mssql_password') or ''
+        )
         driver = self.topic_chatbot_mssql_driver or params.get_param('topic_chatbot.mssql_driver') or 'ODBC Driver 17 for SQL Server'
 
         if not db:
@@ -194,6 +245,50 @@ class ResConfigSettings(models.TransientModel):
                 }
             }
 
+    def action_test_ollama_connection(self):
+        """Test connection to Ollama Local Server and verify embedding model."""
+        self.ensure_one()
+        from ..services import embedding_service
+        params = self.env['ir.config_parameter'].sudo()
+        url = self.topic_chatbot_ollama_url or params.get_param('topic_chatbot.ollama_url') or 'http://localhost:11434'
+        model = self.topic_chatbot_ollama_model or params.get_param('topic_chatbot.ollama_model') or 'bge-m3'
+        
+        res = embedding_service.test_ollama_connection(url, model)
+        if res.get('success'):
+            if res.get('model_found'):
+                return {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': 'Kết nối Ollama Thành công',
+                        'message': res['message'],
+                        'type': 'success',
+                        'sticky': False,
+                    }
+                }
+            else:
+                return {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': 'Cảnh báo Model Ollama',
+                        'message': res['message'],
+                        'type': 'warning',
+                        'sticky': True,
+                    }
+                }
+        else:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Kết nối Ollama Thất bại',
+                    'message': res['message'],
+                    'type': 'danger',
+                    'sticky': True,
+                }
+            }
+
 
     @api.model
     def _normalize_gemini_model(self, model):
@@ -236,12 +331,26 @@ class ResConfigSettings(models.TransientModel):
         if raw_embedding_model in ('text-embedding-004', 'embedding-001') or not raw_embedding_model:
             params.set_param('topic_chatbot.embedding_model', 'gemini-embedding-2')
             res['topic_chatbot_embedding_model'] = 'gemini-embedding-2'
+
+        # BUG #4 FIX: Decrypt password trước khi trả về UI.
+        # Giá trị trong DB là 'tc_enc:...' — cần decrypt để field hiển thị đúng.
+        # Field dùng password="True" nên không lộ ra ngoài trình duyệt dưới dạng text thuần.
+        raw_pw = res.get('topic_chatbot_mssql_password', '')
+        res['topic_chatbot_mssql_password'] = crypto_utils.decrypt_value(self.env, raw_pw)
         return res
 
     def set_values(self):
+        # BUG #4 FIX: Encrypt password TRƯỚC khi super().set_values() lưu vào ir.config_parameter.
+        # self.topic_chatbot_mssql_password lúc này là plaintext (người dùng vừa nhập hoặc
+        # đã được get_values() decrypt và điền lại vào form).
+        if self.topic_chatbot_mssql_password and not crypto_utils.is_encrypted(self.topic_chatbot_mssql_password):
+            self.topic_chatbot_mssql_password = crypto_utils.encrypt_value(
+                self.env, self.topic_chatbot_mssql_password
+            )
         self.topic_chatbot_gemini_model = self._normalize_gemini_model(
             self.topic_chatbot_gemini_model
         )
         if self.topic_chatbot_embedding_model in ('text-embedding-004', 'embedding-001') or not self.topic_chatbot_embedding_model:
             self.topic_chatbot_embedding_model = 'gemini-embedding-2'
         return super().set_values()
+

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_mssql_connection_tree" model="ir.ui.view">
+        <field name="name">topic_chatbot.mssql_connection.tree</field>
+        <field name="model">topic_chatbot.mssql_connection</field>
+        <field name="arch" type="xml">
+            <tree string="SQL Server Connections">
+                <field name="name"/>
+                <field name="host"/>
+                <field name="database"/>
+                <field name="user"/>
+                <field name="active" widget="boolean_toggle"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_mssql_connection_form" model="ir.ui.view">
+        <field name="name">topic_chatbot.mssql_connection.form</field>
+        <field name="model">topic_chatbot.mssql_connection</field>
+        <field name="arch" type="xml">
+            <form string="SQL Server Connection">
+                <header>
+                    <button name="action_test_connection" string="Test Connection" type="object" class="oe_highlight"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1>
+                            <field name="name" placeholder="e.g., Kế Toán DB"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="host"/>
+                            <field name="port"/>
+                            <field name="database"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="user"/>
+                            <field name="password" password="True"/>
+                            <field name="driver"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_mssql_connection" model="ir.actions.act_window">
+        <field name="name">SQL Connections</field>
+        <field name="res_model">topic_chatbot.mssql_connection</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Tạo cấu hình kết nối SQL Server mới
+            </p>
+            <p>
+                Cấu hình các kết nối tới Microsoft SQL Server để dùng riêng cho các Topic khác nhau.
+            </p>
+        </field>
+    </record>
+</odoo>
