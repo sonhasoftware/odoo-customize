@@ -244,9 +244,6 @@ class VatTuMergedHeaderRenderer extends ListRenderer {
     freezeColumnWidths() {
         const className = this.props.archInfo?.className || "";
         if (className.split(/\s+/).filter(Boolean).includes("sh_free_width_tree")) {
-            if (this.keepColumnWidths || this.editedRecord) {
-                return super.freezeColumnWidths(...arguments);
-            }
             const table = this.tableRef.el;
             if (table) {
                 table.style.tableLayout = "auto";
@@ -626,13 +623,28 @@ function registerBaoCaoListView(key, Renderer, Controller = VatTuBaoCaoListContr
     });
 }
 
+const ghiChuSaveQueues = new Map();
+
+function enqueueGhiChuSave(key, task) {
+    const tail = (ghiChuSaveQueues.get(key) || Promise.resolve()).then(task, task);
+    ghiChuSaveQueues.set(key, tail);
+    return tail.finally(() => {
+        if (ghiChuSaveQueues.get(key) === tail) {
+            ghiChuSaveQueues.delete(key);
+        }
+    });
+}
+
 async function saveReportLineGhiChu(env, record, value) {
     const text = value ?? "";
-    if ((record.data.ghi_chu || "") === text) {
-        return;
-    }
-    await env.services.orm.write(record.resModel, [record.resId], { ghi_chu: text });
-    record.data.ghi_chu = text;
+    const queueKey = `${record.resModel}:${record.resId}`;
+    return enqueueGhiChuSave(queueKey, async () => {
+        if ((record.data.ghi_chu || "") === text) {
+            return;
+        }
+        await env.services.orm.write(record.resModel, [record.resId], { ghi_chu: text });
+        record.data.ghi_chu = text;
+    });
 }
 
 function registerMergedOne2Many(key, Renderer) {
@@ -661,6 +673,19 @@ const B3_FIXED_META = [
     { key: "ten_vat_tu", label: "Tên NVL" },
     { key: "don_vi_tinh", label: "ĐVT", m2o: true },
 ];
+
+/** Cùng mã NVL nhiều tên → lấy tên dài nhất (khớp B4 gộp / SQL). */
+function pickLongestText(current, candidate) {
+    const cur = (current || "").trim();
+    const next = (candidate || "").trim();
+    if (!next) {
+        return cur;
+    }
+    if (!cur || next.length > cur.length) {
+        return next;
+    }
+    return cur;
+}
 
 function resolveKdCompanyCode(data, companyId) {
     const code = (data.don_vi_kd_code || "").trim();
@@ -706,6 +731,12 @@ class VatTuB3PivotRenderer extends VatTuMergedHeaderRenderer {
             const key = d.ma_vat_tu || String(rec.resId);
             if (!byMat.has(key)) {
                 byMat.set(key, { meta: d, byCompany: {} });
+            } else {
+                const row = byMat.get(key);
+                row.meta = {
+                    ...row.meta,
+                    ten_vat_tu: pickLongestText(row.meta.ten_vat_tu, d.ten_vat_tu),
+                };
             }
             const row = byMat.get(key);
             const cid = d.don_vi_kd_id && d.don_vi_kd_id[0];
@@ -961,6 +992,9 @@ class VatTuBaoCaoB3PivotRenderer extends VatTuB3PivotRenderer {
                     },
                     cells: {},
                 });
+            } else {
+                const row = byMat.get(key);
+                row.meta.ten_vat_tu = pickLongestText(row.meta.ten_vat_tu, d.ten_vat_tu);
             }
             const row = byMat.get(key);
             const cid = d.don_vi_kd_id && d.don_vi_kd_id[0];
@@ -1164,7 +1198,7 @@ registerBaoCaoListView("vat_tu_bao_cao_b3_list_view", VatTuBaoCaoB3PivotRenderer
 registerBaoCaoListView("vat_tu_bao_cao_b4_list_view", VatTuBaoCaoB4PivotRenderer);
 
 // ---------------------------------------------------------------------------
-// 6) Báo cáo định mức vật tư trung bình — pivot ĐV SX × (Tháng → SL SP / NVL / ĐMBQ)
+// 6) Báo cáo định mức vật tư trung bình — pivot ĐV SX × Ngành × (Tháng → SL SP / NVL / ĐMBQ)
 // ---------------------------------------------------------------------------
 
 function getDmtbColumns(list) {
@@ -1199,7 +1233,7 @@ function getDmtbMetrics(list) {
     return [
         { key: "sp", label: slLabel, metricKey: "sl_sp" },
         { key: "nvl", label: "SL NVL (kg)", metricKey: "sl_nvl" },
-        { key: "dmbq", label: "Vật tư bình quân", highlight: true },
+        { key: "dmbq", label: "Vật tư bình quân" },
     ];
 }
 
@@ -1215,22 +1249,66 @@ class VatTuBaoCaoDmtbPivotRenderer extends VatTuMergedHeaderRenderer {
     }
 
     getPivotRows() {
-        return [...this.props.list.records].sort((a, b) =>
-            String(a.data.company_code || "").localeCompare(String(b.data.company_code || ""))
-        );
+        return [...this.props.list.records].sort((a, b) => {
+            const companyCmp = String(a.data.company_code || "").localeCompare(
+                String(b.data.company_code || "")
+            );
+            if (companyCmp !== 0) {
+                return companyCmp;
+            }
+            return (a.data.sequence || 0) - (b.data.sequence || 0);
+        });
+    }
+
+    getCompanyGroups() {
+        const groups = [];
+        let current = null;
+        for (const row of this.getPivotRows()) {
+            const companyCode = row.data.company_code || "";
+            if (!current || current.companyCode !== companyCode) {
+                current = { companyCode, rows: [] };
+                groups.push(current);
+            }
+            current.rows.push(row);
+        }
+        return groups;
+    }
+
+    isTotalRow(record) {
+        return Boolean(record?.data?.is_total_row);
+    }
+
+    isSectionRow(record) {
+        return Boolean(record?.data?.is_section_row);
+    }
+
+    isBtpRow(record) {
+        return Boolean(record?.data?.is_btp_row);
     }
 
     metricValue(record, colIndex, metric) {
         const cell = parseDmtbMetrics(record)[colIndex] || {};
         if (metric.key === "dmbq") {
+            if (this.isBtpRow(record)) {
+                return 0;
+            }
             const sp = cell.sl_sp || 0;
             const nvl = cell.sl_nvl || 0;
             return sp ? nvl / sp : 0;
         }
+        if (metric.key === "sp" && this.isBtpRow(record)) {
+            return 0;
+        }
         return cell[metric.metricKey] || 0;
     }
 
-    formatMetric(value, metric) {
+    formatMetric(value, metric, record) {
+        if (metric.key === "dmbq" && this.isBtpRow(record)) {
+            return "-";
+        }
+        if (metric.key === "sp" && this.isBtpRow(record)) {
+            return "-";
+        }
         if (metric.key === "dmbq") {
             if (!value) {
                 return "-";
@@ -1243,11 +1321,29 @@ class VatTuBaoCaoDmtbPivotRenderer extends VatTuMergedHeaderRenderer {
         return formatFloat(value, { digits: [16, 3] });
     }
 
+    rowClass(record) {
+        if (this.isSectionRow(record)) {
+            return "fw-bold o_dmtb_section_row";
+        }
+        return this.isTotalRow(record) ? "fw-bold o_dmtb_total_row" : "";
+    }
+
+    sectionColspan() {
+        return 1 + this.getMetricSubColumns().length + 1;
+    }
+
     getColumnGroups() {
         const groups = [
             {
                 id: "dmtb_company",
                 label: "Công ty",
+                span: 1,
+                rowspan: 2,
+                column: null,
+            },
+            {
+                id: "dmtb_nganh",
+                label: "Ngành hàng",
                 span: 1,
                 rowspan: 2,
                 column: null,
@@ -1282,12 +1378,13 @@ class VatTuBaoCaoDmtbPivotRenderer extends VatTuMergedHeaderRenderer {
         for (let i = 0; i < columns.length; i++) {
             const colDef = columns[i];
             const monthLabel = colDef.label || colDef.month_key || `T${i}`;
-            for (const metric of metrics) {
+            for (const [metricIndex, metric] of metrics.entries()) {
                 out.push({
                     id: `${monthLabel}_${metric.key}_${i}`,
                     label: metric.label,
                     colIndex: i,
                     metric,
+                    isMonthStart: metricIndex === 0,
                 });
             }
         }

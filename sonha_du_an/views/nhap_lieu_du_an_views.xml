@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_nhap_lieu_du_an_form" model="ir.ui.view">
+        <field name="name">view.nhap.lieu.du.an.form</field>
+        <field name="model">project.project</field>
+        <field name="arch" type="xml">
+            <form string="Nhập liệu dự án">
+                <header>
+                    <button name="action_ket_thuc" invisible="trang_thai != 'run'" type="object" string="Kết thúc" class="btn-warning"/>
+                    <field name="trang_thai" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="so_du_an"/>
+                            <field name="group_du_an"/>
+                            <field name="name"/>
+                            <field name="noi_dung"/>
+                            <field name="du_an_cha_id" invisible="1"/>
+                            <field name="du_an_cha" readonly="du_an_cha_id"/>
+                        </group>
+                        <group>
+                            <field name="nguoi_qlda" widget="many2many_tags"/>
+                            <field name="ngay_bat_dau"/>
+                            <field name="ngay_kt_da"/>
+                            <field name="ngay_kt_chinh_sua"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Dự án con">
+                            <field name="du_an_con_ids" string="" context="{'default_du_an_cha_id': id, 'default_du_an_cha': False, 'default_ngay_kt_da': ngay_kt_da}">
+                                <tree editable="bottom">
+                                    <field name="du_an_cha" column_invisible="1"/>
+                                    <field name="name" string="Nội dung dự án"/>
+                                    <field name="nguoi_qlda" widget="many2many_tags"/>
+                                    <field name="ty_le_phan_tram" required="1"/>
+                                    <field name="ngay_kt_da" readonly="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Nhập nhiệm vụ">
+                            <field name="nhiem_vu_du_an_ids" string="" context="{'default_du_an_cha_task_id': id}">
+                                <tree editable="bottom">
+                                    <field name="cap" domain="[
+                                        ('du_an_cha_id', '=', parent.id),
+                                        ('du_an_cha', '=', False),
+                                        '|',
+                                        ('du_an_cha_id.nguoi_qlda', 'in', [uid]),
+                                        ('nguoi_qlda', 'in', [uid])
+                                    ]" context="{'default_du_an_cha_id': parent.id, 'default_du_an_cha': False}"/>
+                                    <field name="name" required="0" string="Nội dung công việc"/>
+                                    <field name="ty_le_phan_tram" required="1"/>
+                                    <field name="so_ngay_ht"/>
+                                    <field name="ngay_bat_dau"/>
+                                    <field name="ngay_ket_thuc"/>
+                                    <field name="ngay_hoan_thanh"/>
+                                    <field name="ns_lam" widget="many2many_tags"/>
+                                    <field name="chu_so_huu" widget="many2many_tags"/>
+                                    <field name="so_ngay_pending"/>
+                                    <field name="ly_do_pending"/>
+                              </tree>
+                          </field>
+                      </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_nhap_lieu_du_an_tree" model="ir.ui.view">
+        <field name="name">view.nhap.lieu.du.an.tree</field>
+        <field name="model">project.project</field>
+        <field name="arch" type="xml">
+            <tree string="Nhập liệu dự án">
+                <field name="so_du_an"/>
+                    <field name="group_du_an"/>
+                    <field name="name"/>
+                    <field name="du_an_cha_id"/>
+                    <field name="noi_dung"/>
+                    <field name="nguoi_qlda"/>
+                    <field name="ngay_kt_da"/>
+                    <field name="ngay_kt_chinh_sua"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_nhap_lieu_du_an" model="ir.actions.act_window">
+            <field name="name">Nhập liệu dự án</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">project.project</field>
+            <field name="context">{'default_du_an_cha': True}</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('view_nhap_lieu_du_an_tree')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('view_nhap_lieu_du_an_form')})]"/>
+        </record>
+</odoo>

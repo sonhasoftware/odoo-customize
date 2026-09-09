@@ -82,6 +82,7 @@
                 <field name="tong_ve_du_kien_bcu" optional="hide"/>
                 <field name="tong_gia_tri_bcu" widget="monetary" optional="hide"/>
                 <field name="sl_du_tru_toi_thieu" optional="hide"/>
+                <field name="sl_du_tru_toi_thieu_bcu" optional="hide"/>
                 <field name="sl_dat_mua_de_xuat" optional="hide"/>
                 <field name="sl_dat_mua_chot" optional="hide"/>
                 <field name="sl_can_mua_theo_moq" optional="hide"/>

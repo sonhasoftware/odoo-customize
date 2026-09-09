@@ -1236,6 +1236,9 @@ class AuthAPI(http.Controller):
             "name": record.name if record else "",
         }
 
+    def _work_day_payload(self, record):
+        return record.work_day if record.vacation == 0 else record.vacation
+
     def _attendance_detail_payload(self, record):
         return {
             "id": record.id,
@@ -1250,7 +1253,7 @@ class AuthAPI(http.Controller):
             "shift": self._many2one_payload(record.shift),
             "shift_key": record.key or "",
             "duration": record.duration,
-            "work_day": record.work_day,
+            "work_day": self._work_day_payload(record),
             "actual_work": record.actual_work,
             "work_hc": record.work_hc,
             "work_sp": record.work_sp,

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models
+from psycopg2 import IntegrityError
+
 
 REPORT_DMTB = 'dmtb'
 REPORT_VTCD = 'vtcd'
@@ -61,8 +63,14 @@ class BaoCaoGhiChu(models.Model):
         return '%s|%s' % (month, '|'.join(sx_codes))
 
     @staticmethod
-    def scope_key_dmtb(nhom_id, nguon_sl_sp, company_sx_id):
-        return '%s|%s|%s' % (nhom_id or 0, nguon_sl_sp or '', company_sx_id or 0)
+    def scope_key_dmtb(nhom_id, nguon_sl_sp, company_sx_id, row_key=None):
+        """row_key: mdm.nganh.hang id hoặc 'btp' cho dòng Bán thành phẩm."""
+        return '%s|%s|%s|%s' % (
+            nhom_id or 0,
+            nguon_sl_sp or '',
+            company_sx_id or 0,
+            row_key if row_key is not None else 0,
+        )
 
     @staticmethod
     def scope_key_vtcd(report_kind, ma_nvl):
@@ -108,12 +116,20 @@ class BaoCaoGhiChu(models.Model):
             return existing
         if not text:
             return self.browse()
-        return self.sudo().create({
-            'report_type': report_type,
-            'period_key': period_key,
-            'scope_key': scope_key,
-            'noi_dung': text,
-        })
+        try:
+            with self.env.cr.savepoint():
+                return self.sudo().create({
+                    'report_type': report_type,
+                    'period_key': period_key,
+                    'scope_key': scope_key,
+                    'noi_dung': text,
+                })
+        except IntegrityError:
+            existing = self.sudo().search(domain, limit=1)
+            if existing:
+                existing.write({'noi_dung': text})
+                return existing
+            raise
 
     def init(self):
         super().init()

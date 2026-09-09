@@ -268,7 +268,11 @@ class ImportTongHopBcuWizard(models.TransientModel):
             VatTuDiDuong.browse(update_ids).invalidate_recordset(
                 ['so_luong', 'don_gia', 'gia_tri', 'write_uid', 'write_date'])
         if to_create:
-            VatTuDiDuong.create(to_create)
+            VatTuDiDuong.with_context(
+                vat_tu_di_duong_loai='bcu',
+                tracking_disable=True,
+                vat_tu_import_bulk=True,
+            ).create(to_create)
 
     def action_import(self):
         self.ensure_one()
@@ -372,10 +376,12 @@ class ImportTongHopBcuWizard(models.TransientModel):
                 'tong_ve_du_kien_bcu', 'tong_gia_tri_bcu', 'write_date', 'write_uid',
             ])
             b6_lines = self.env['kh.dat.vat.tu.bcu'].browse(ids)
+            b6_lines._compute_sl_du_tru_toi_thieu_bcu()
             b6_lines._compute_sl_dat_mua_de_xuat()
             self.env['kh.dat.vat.tu.bcu']._apply_chot_from_bcu_di_duong(b6_lines)
             b6_lines._compute_b6_derived()
             b6_lines.flush_recordset([
+                'sl_du_tru_toi_thieu_bcu',
                 'sl_dat_mua_de_xuat', 'sl_dat_mua_chot', 'sl_can_mua_theo_moq',
                 'sl_ton_kho_cuoi_ky', 'so_ngay_vong_quay_ton',
                 'don_gia_ton_kho_cuoi_ky', 'gia_tri_ton_kho_cuoi_ky', 'gia_tri_mua_hang',

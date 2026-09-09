@@ -39,6 +39,7 @@
                                    readonly="1"
                                    options="{'no_create': True, 'no_open': True}"
                                    context="{'vat_tu_company_code_display': True}"/>
+                            <field name="ke_hoach_san_xuat_count" string="Tổng số mã" readonly="1"/>
                         </group>
                         <group>
                             <field name="period_month" required="1"
@@ -132,6 +133,8 @@
                             <field name="company_sx_id" string="Đơn vị sản xuất" readonly="1"
                                    invisible="not co_ke_hoach_vat_tu"
                                    context="{'vat_tu_company_code_display': True}"/>
+                            <field name="ke_hoach_vat_tu_line_count" string="Tổng số mã" readonly="1"
+                                   invisible="not co_ke_hoach_vat_tu"/>
                         </group>
                         <group>
                             <field name="period_month" readonly="1"/>
