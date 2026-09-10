@@ -1390,15 +1390,6 @@ class EmployeeAttendanceV2(models.Model):
             records._recompute_attendance_v2_fields()
         return True
 
-    def read(self, fields=None, load='_classic_read'):
-        self._auto_recompute_before_read(set(fields or []))
-        return super().read(fields=fields, load=load)
-
-    def search_read(self, domain=None, fields=None, offset=0, limit=None, order=None):
-        records = self.search(domain or [], offset=offset, limit=limit, order=order)
-        records._auto_recompute_before_read(set(fields or []))
-        return records.with_context(skip_attendance_v2_auto_recompute=True).read(fields)
-
     def _recompute_attendance_v2_fields(self):
         """Recompute stored fields in dependency order without bypassing ORM dependencies.
 

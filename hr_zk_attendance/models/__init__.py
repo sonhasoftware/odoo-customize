@@ -7,3 +7,4 @@ from . import master_data_attendance
 from . import import_attendance
 from . import data_attendance
 from . import data_biometric
+from . import attendance_calculation

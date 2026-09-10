@@ -33,6 +33,57 @@ class DataAttendance(models.Model):
             "CALL PR_DL_MCC_OLD(%s, %s);",
             (start_date_text, end_date_text)
         )
+
+        self.env.cr.execute("""
+                SELECT DISTINCT
+                    a.id
+                FROM employee_attendance_v2 a
+                INNER JOIN attendance_calculation c
+                    ON c.employee_id = a.employee_id
+                    AND c.date = a.date
+                WHERE c.cal = FALSE
+                ORDER BY a.id
+            """)
+
+        attendance_ids = [
+            row[0]
+            for row in self.env.cr.fetchall()
+        ]
+
+        if not attendance_ids:
+            return True
+
+        batch_size = 120
+
+        for i in range(0, len(attendance_ids), batch_size):
+            batch_ids = attendance_ids[i:i + batch_size]
+
+            self.with_delay(
+                description=f'Recompute attendance batch {i // batch_size + 1}')._recompute_attendance_batch(batch_ids)
+
+        return True
+
+    def _recompute_attendance_batch(self, attendance_ids):
+        Attendance = self.env['employee.attendance.v2']
+
+        records = Attendance.browse(attendance_ids).exists()
+
+        for record in records:
+            record._recompute_attendance_v2_fields()
+
+        # Đánh dấu các dòng calculation đã xử lý
+        for record in records:
+            self.env.cr.execute("""
+                    UPDATE attendance_calculation
+                    SET cal = TRUE
+                    WHERE employee_id = %s
+                      AND date = %s
+                      AND cal = FALSE
+                """, (
+                record.employee_id.id,
+                record.date,
+            ))
+
         return True
 
         # today = fields.Datetime.now()
