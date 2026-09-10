@@ -15,6 +15,7 @@ class MDMTongHop(models.Model):
     ma_tg = fields.Char("Mã TG", index=True)
     mdm_hh_type_id = fields.Many2one('mdm.hh.type', string="Loại hàng hóa")
     mdm_hh_type = fields.Text(related='mdm_hh_type_id.ten', string="Loại hàng hóa")
+    ma_sap = fields.Char("Mã Sap", required=True)
     material = fields.Char("Material Des.VI")
     ten_ngan = fields.Char("Tên ngắn")
     ten = fields.Char("Tên")
