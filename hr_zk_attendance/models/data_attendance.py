@@ -35,15 +35,16 @@ class DataAttendance(models.Model):
         )
 
         self.env.cr.execute("""
-                SELECT DISTINCT
-                    a.id
-                FROM employee_attendance_v2 a
-                INNER JOIN attendance_calculation c
-                    ON c.employee_id = a.employee_id
-                    AND c.date = a.date
-                WHERE c.cal = FALSE
-                ORDER BY a.id
-            """)
+            SELECT DISTINCT
+                a.id
+            FROM employee_attendance_v2 a
+            INNER JOIN attendance_calculation c
+                ON c.employee_id = a.employee_id
+                AND a.date BETWEEN c.date - INTERVAL '1 day'
+                               AND c.date + INTERVAL '1 day'
+            WHERE c.cal = FALSE
+            ORDER BY a.id
+        """)
 
         attendance_ids = [
             row[0]
