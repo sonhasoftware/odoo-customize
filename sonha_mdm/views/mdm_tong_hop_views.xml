@@ -96,6 +96,7 @@
                 <group>
                     <group>
                         <field name="ma" required="1"/>
+                        <field name="ma_sap" required="1"/>
                         <field name="mdm_hh_type" required="1"/>
                         <field name="ten_ngan" required="1"/>
                         <field name="ten" required="1"/>

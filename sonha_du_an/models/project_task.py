@@ -269,6 +269,8 @@ class Task(models.Model):
         for r in self:
             r.trang_thai = 'run'
             r.check_ngay_chay = today + timedelta(days=3)
+            self.env.cr.execute(
+                "CALL sp_trang_thai_du_an(%s)", (r.id,))
 
     def action_done(self):
         today = date.today()
@@ -276,6 +278,8 @@ class Task(models.Model):
             r.trang_thai = 'ht'
             r.ngay_hoan_thanh = today
             r.check_ngay_ht = today + timedelta(days=3)
+            self.env.cr.execute(
+                "CALL sp_trang_thai_du_an(%s)", (r.id,))
 
     def action_reset(self):
         for r in self:
@@ -286,6 +290,8 @@ class Task(models.Model):
             elif r.trang_thai == 'pd':
                 r.trang_thai = 'run'
             r.ngay_hoan_thanh = False
+            self.env.cr.execute(
+                "CALL sp_trang_thai_du_an(%s)", (r.id,))
 
     def action_tam_dung(self):
         self.ensure_one()

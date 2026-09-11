@@ -519,7 +519,11 @@ class MDMKhachHang(models.Model):
             'view_mode': 'tree',
             'view_id': self.env.ref('sonha_mdm.view_mdm_khach_hang_line_tree').id,
             'target': 'new',
+            'domain': [
+                ('khach_hang_id', '=', self.id),
+            ],
             'context': {
                 'default_khach_hang_id': self.id,
+                'default_ma_mdm': self.ma,
             },
         }
