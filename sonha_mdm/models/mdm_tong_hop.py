@@ -496,7 +496,11 @@ class MDMTongHop(models.Model):
             'view_mode': 'tree',
             'view_id': self.env.ref('sonha_mdm.view_mdm_tong_hop_line_tree').id,
             'target': 'new',
+            'domain': [
+                ('tong_hop_id', '=', self.id),
+            ],
             'context': {
                 'default_tong_hop_id': self.id,
+                'default_ma_mdm': self.ma,
             },
         }

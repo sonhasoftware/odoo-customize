@@ -67,7 +67,7 @@ class MDMTongHopImportWizard(models.TransientModel):
                 'company_code': company_code,
                 'ma_hang_don_vi': cleaned[1],
                 'ma_mdm': cleaned[2],
-                'ma_sap': cleaned[3],
+                'ma_sap': cleaned[18],
                 'values': cleaned,
             })
 
@@ -104,7 +104,7 @@ class MDMTongHopImportWizard(models.TransientModel):
         vals = {
             'ma_tg': row_data['ma_hang_don_vi'],
             'ma': row_data['ma_mdm'],
-            'ma_sap': row_data['ma_sap'],
+            'ma_sap': row_values[18],
             'ten_ngan': row_values[4],
             'ten': row_values[5],
             'do_day': row_values[14],

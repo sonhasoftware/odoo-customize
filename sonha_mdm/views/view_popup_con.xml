@@ -6,7 +6,7 @@
         <field name="model">mdm.tong.hop.line</field>
         <field name="arch" type="xml">
             <tree string="Bảng con hàng hóa" editable="bottom">
-                <field name="ma_mdm"/>
+                <field name="ma_mdm" readonly="1"/>
                 <field name="ma_dv"/>
                 <field name="dvcs"/>
             </tree>
@@ -18,7 +18,7 @@
         <field name="model">mdm.khach.hang.line</field>
         <field name="arch" type="xml">
             <tree string="Bảng con khách hàng" editable="bottom">
-                <field name="ma_mdm"/>
+                <field name="ma_mdm" readonly="1"/>
                 <field name="ma_dv"/>
                 <field name="dvcs"/>
             </tree>
