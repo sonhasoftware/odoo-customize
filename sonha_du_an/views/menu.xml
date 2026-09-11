@@ -6,12 +6,6 @@
         parent="project.menu_main_pm"
         action="action_nhap_lieu_du_an"
         sequence="10"/>
-<!--    <menuitem-->
-<!--        name="Theo dõi nhiệm vụ dự án con"-->
-<!--        id="menu_theo_doi_nhiem_vu_du_an_con"-->
-<!--        parent="project.menu_main_pm"-->
-<!--        action="action_theo_doi_nhiem_vu_du_an_con"-->
-<!--        sequence="11"/>-->
 
 
     <menuitem
@@ -27,4 +21,25 @@
         parent="project.menu_main_pm"
         action="action_bao_cao_du_an"
         sequence="30"/>
+
+    <menuitem
+        id="menu_du_an_parent"
+        name="Dự án"
+        parent="project.menu_main_pm"
+        sequence="1"/>
+
+    <menuitem
+        id="menu_du_an_base"
+        name="Dự án đang chạy"
+        parent="menu_du_an_parent"
+        action="project.open_view_project_all"
+        sequence="1"/>
+
+    <menuitem
+        id="menu_project_project_second"
+        name="Dự án đã hoàn thành"
+        parent="menu_du_an_parent"
+        action="action_project_project_second"
+        sequence="2"/>
+
 </odoo>
