@@ -201,7 +201,7 @@ class BaoCaoDuAn(models.Model):
         if du_an_cha_id:
             project = project_model.browse(du_an_cha_id)
             if project.exists():
-                project_name = project.display_name
+                project_name = project.name
 
         values = []
         for index, row in enumerate(rows, start=1):
@@ -252,7 +252,7 @@ class BaoCaoDuAn(models.Model):
                 if parent_project_id:
                     parent_project = project_model.browse(parent_project_id)
                     if parent_project.exists():
-                        current_parent_group_name = parent_project.display_name
+                        current_parent_group_name = parent_project.name
                     else:
                         current_parent_group_name = 'Dự án %s' % parent_project_id
                 value.update({
@@ -270,7 +270,7 @@ class BaoCaoDuAn(models.Model):
                 if child_project_id:
                     child_project = project_model.browse(child_project_id)
                     if child_project.exists():
-                        current_child_group_name = child_project.display_name
+                        current_child_group_name = child_project.name
                     else:
                         current_child_group_name = 'Dự án %s' % child_project_id
                 value['parent_group_id'] = current_parent_group_id or False
@@ -286,7 +286,7 @@ class BaoCaoDuAn(models.Model):
                     current_child_group_id = child_project_id
                     child_project = project_model.browse(child_project_id)
                     if child_project.exists():
-                        current_child_group_name = child_project.display_name
+                        current_child_group_name = child_project.name
                     else:
                         current_child_group_name = 'Dự án %s' % child_project_id
                     if current_child_record and current_child_record.exists():
