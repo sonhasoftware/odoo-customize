@@ -214,6 +214,25 @@ class EmployeeAttendanceV2(models.Model):
             return []
         return [value for value in attendance_values if start <= value <= end]
 
+    def _get_check_in_out_from_priority_windows(self, attendance_values, windows):
+        attendance_values = sorted(value for value in attendance_values if value)
+        preferred_ci = self._filter_attendance_values_in_window(
+            attendance_values, windows.get('check_in_preferred', (None, None))
+        )
+        fallback_ci = self._filter_attendance_values_in_window(
+            attendance_values, windows.get('check_in_fallback', (None, None))
+        )
+        preferred_co = self._filter_attendance_values_in_window(
+            attendance_values, windows.get('check_out_preferred', (None, None))
+        )
+        fallback_co = self._filter_attendance_values_in_window(
+            attendance_values, windows.get('check_out_fallback', (None, None))
+        )
+
+        check_in = preferred_ci[0] if preferred_ci else (fallback_ci[0] if fallback_ci else None)
+        check_out = preferred_co[-1] if preferred_co else (fallback_co[-1] if fallback_co else None)
+        return check_in, check_out
+
     def _to_local_datetime(self, dt):
         return dt + self.LOCAL_TZ_OFFSET if dt else None
 
@@ -453,7 +472,12 @@ class EmployeeAttendanceV2(models.Model):
         if not work_start or not work_end:
             return 0
         if record.shift.shift_ot:
-            return self._duration_hours(work_start, work_end)
+            total = self._duration_hours(work_start, work_end)
+            rest_start, rest_end = self._get_shift_rest_interval_local(record)
+            if rest_start and rest_end:
+                rest_overlap_start, rest_overlap_end = self._intersect_interval(work_start, work_end, rest_start, rest_end)
+                total -= self._duration_hours(rest_overlap_start, rest_overlap_end)
+            return max(total, 0)
 
         total = self._duration_hours(work_start, work_end)
         for shift_work_start, shift_work_end in self._get_shift_work_intervals_local(record):
@@ -1031,32 +1055,24 @@ class EmployeeAttendanceV2(models.Model):
                 order='attendance_time ASC'
             )
             attendance_values = [a['attendance_time'] for a in attendance_times if a['attendance_time']]
-            preferred_ci = self._filter_attendance_values_in_window(
-                attendance_values, windows.get('check_in_preferred', (None, None))
-            )
-            fallback_ci = self._filter_attendance_values_in_window(
-                attendance_values, windows.get('check_in_fallback', (None, None))
-            )
-            preferred_co = self._filter_attendance_values_in_window(
-                attendance_values, windows.get('check_out_preferred', (None, None))
-            )
-            fallback_co = self._filter_attendance_values_in_window(
-                attendance_values, windows.get('check_out_fallback', (None, None))
-            )
+            check_in, check_out = self._get_check_in_out_from_priority_windows(attendance_values, windows)
 
-            check_in = preferred_ci[0] if preferred_ci else (fallback_ci[0] if fallback_ci else None)
-            check_out = preferred_co[-1] if preferred_co else (fallback_co[-1] if fallback_co else None)
-
-            in_outs = self._get_time_word_slips_in_window(r.employee_id, r.time_check_in, r.time_check_out)
+            word_slip_values = []
+            in_outs = self._get_time_word_slips_in_window(r.employee_id, search_start, search_end)
             for in_out in in_outs:
                 for ci, co in self._get_time_word_slip_pairs_utc(in_out):
-                    if (ci and r.time_check_in <= ci <= r.time_check_out and r.check_no_in and ci <= r.check_no_in
-                            and (not check_in or check_in > ci)):
-                        check_in = ci
+                    if ci:
+                        word_slip_values.append(ci)
+                    if co:
+                        word_slip_values.append(co)
 
-                    if (co and r.time_check_in <= co <= r.time_check_out and r.check_no_out and co > r.check_no_out
-                            and (not check_out or check_out < co)):
-                        check_out = co
+            word_slip_check_in, word_slip_check_out = self._get_check_in_out_from_priority_windows(
+                word_slip_values, windows
+            )
+            if word_slip_check_in:
+                check_in = word_slip_check_in
+            if word_slip_check_out:
+                check_out = word_slip_check_out
 
             r.check_in = check_in
             r.check_out = check_out
@@ -1113,7 +1129,7 @@ class EmployeeAttendanceV2(models.Model):
                 r.minutes_late = 0
 
     # Lấy thông tin ngày công của nhân viên
-    @api.depends('check_in', 'check_out', 'shift', 'date', 'employee_id', 'leave', 'compensatory')
+    @api.depends('check_in', 'check_out', 'shift', 'date', 'employee_id', 'leave', 'compensatory', 'unpaid_leave')
     def _get_work_day(self):
         for r in self:
             part_time_hour = 0
@@ -1160,6 +1176,8 @@ class EmployeeAttendanceV2(models.Model):
                         r.work_day = 1 - r.compensatory
                     elif r.leave > 0:
                         r.work_day = 1 - r.leave
+                    elif r.unpaid_leave > 0:
+                        r.work_day = 1 - r.unpaid_leave
                     else:
                         r.work_day = 1
                 else:
@@ -1174,6 +1192,8 @@ class EmployeeAttendanceV2(models.Model):
                                 r.work_day = 1 - r.compensatory
                             elif r.leave > 0:
                                 r.work_day = 1 - r.leave
+                            elif r.unpaid_leave > 0:
+                                r.work_day = 1 - r.unpaid_leave
                             else:
                                 r.work_day = 1
                         elif r.check_in and not r.check_out:
@@ -1181,6 +1201,8 @@ class EmployeeAttendanceV2(models.Model):
                                 r.work_day = 1 - r.compensatory
                             elif r.leave > 0:
                                 r.work_day = 1 - r.leave
+                            elif r.unpaid_leave > 0:
+                                r.work_day = 1 - r.unpaid_leave
                             elif leave_no_work:
                                 r.work_day = 0.5
                             else:
@@ -1190,6 +1212,8 @@ class EmployeeAttendanceV2(models.Model):
                                 r.work_day = 1 - r.compensatory
                             elif r.leave > 0:
                                 r.work_day = 1 - r.leave
+                            elif r.unpaid_leave > 0:
+                                r.work_day = 1 - r.unpaid_leave
                             elif leave_no_work:
                                 r.work_day = 0.5
                             else:
