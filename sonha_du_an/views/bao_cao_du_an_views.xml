@@ -20,8 +20,8 @@
                 <field name="tinh_trang_han"/>
                 <field name="pt_cv"/>
                 <field name="ns_lam"/>
-                <field name="parent_group_id" column_invisible="1"/>
-                <field name="child_group_id" column_invisible="1"/>
+                <field name="parent_group_name" column_invisible="1"/>
+                <field name="child_group_name" column_invisible="1"/>
                 <field name="in_dam" column_invisible="1"/>
             </tree>
 
@@ -33,8 +33,8 @@
     <field name="model">sonha.du.an.bao.cao</field>
     <field name="arch" type="xml">
         <search>
-            <filter string="Dự án cha" name="group_by_parent_project" context="{'group_by': 'parent_group_id'}"/>
-            <filter string="Dự án con" name="group_by_child_project" context="{'group_by': 'child_group_id'}"/>
+            <filter string="Dự án cha" name="group_by_parent_project" context="{'group_by': 'parent_group_name'}"/>
+            <filter string="Dự án con" name="group_by_child_project" context="{'group_by': 'child_group_name'}"/>
         </search>
     </field>
 </record>
@@ -68,6 +68,8 @@
                     <group string="Thông tin nhóm">
                         <field name="parent_group_id" invisible="1"/>
                         <field name="child_group_id" invisible="1"/>
+                        <field name="parent_group_name" invisible="1"/>
+                        <field name="child_group_name" invisible="1"/>
                     </group>
 
                     <group string="Dữ liệu trả về từ hàm">
