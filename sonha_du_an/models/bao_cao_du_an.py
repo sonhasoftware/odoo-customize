@@ -112,25 +112,29 @@ class BaoCaoDuAn(models.Model):
     # GROUP DỰ ÁN
     # =========================================================
 
-    parent_group_id = fields.Many2one(
-        'project.project',
+    parent_group_id = fields.Integer(
+        string='Nhóm dự án cha ID',
+        readonly=True,
+        index=True,
+    )
+
+    child_group_id = fields.Integer(
+        string='Nhóm dự án con ID',
+        readonly=True,
+        index=True,
+    )
+
+    parent_group_name = fields.Char(
         string='Nhóm dự án cha',
         readonly=True,
-        ondelete='restrict',
         index=True,
     )
 
-    child_group_id = fields.Many2one(
-        'project.project',
+    child_group_name = fields.Char(
         string='Nhóm dự án con',
         readonly=True,
-        ondelete='restrict',
         index=True,
     )
-
-    # =========================================================
-    # DỮ LIỆU GỐC
-    # =========================================================
 
     du_lieu = fields.Text(
         string='Dữ liệu báo cáo',
@@ -171,40 +175,41 @@ class BaoCaoDuAn(models.Model):
     @api.model
     def generate_from_function(self, tu_ngay, den_ngay, du_an_cha_id=False):
         if not tu_ngay or not den_ngay:
-            raise ValidationError(
-                _("Bạn phải nhập từ ngày và đến ngày.")
-            )
+            raise ValidationError(_("Bạn phải nhập từ ngày và đến ngày."))
         start_date = fields.Date.to_date(tu_ngay)
         end_date = fields.Date.to_date(den_ngay)
         if start_date > end_date:
-            raise ValidationError(_("Từ ngày không được lớn hơn đến ngày."))
-
+            raise ValidationError(
+                _("Từ ngày không được lớn hơn đến ngày.")
+            )
         query_params = (
             start_date.strftime('%d/%m/%Y'),
             end_date.strftime('%d/%m/%Y'),
             du_an_cha_id or None,
         )
+
         query = """
             SELECT *
             FROM public.fn_bao_cao_du_an(%s, %s, %s)
         """
-        self.env.cr.execute(query, query_params,)
+
+        self.env.cr.execute(query,query_params)
         rows = self.env.cr.dictfetchall()
         generated_at = fields.Datetime.now()
-
+        project_model = self.env['project.project']
         project_name = _("Tất cả dự án")
         if du_an_cha_id:
-            project = self.env['project.project'].browse(du_an_cha_id)
+            project = project_model.browse(du_an_cha_id)
             if project.exists():
                 project_name = project.display_name
 
         values = []
-        for index, row in enumerate(rows, start=1,):
+        for index, row in enumerate(rows, start=1):
             values.append({
                 'name': (row.get('noi_dung_cv_con') or _('%(project)s - dòng %(line)s') % {
-                        'project': project_name,
-                        'line': index,
-                    }
+                            'project': project_name,
+                            'line': index,
+                        }
                 ),
                 'tu_ngay': tu_ngay,
                 'den_ngay': den_ngay,
@@ -223,66 +228,86 @@ class BaoCaoDuAn(models.Model):
                     row,
                     ensure_ascii=False,
                     default=str,
-                    sort_keys=True,
+                    sort_keys=True
                 ),
+
                 'ngay_tao_bao_cao': generated_at,
             })
-
         created_records = self.browse()
-        # ID dự án cha hiện tại
-        current_parent_project_id = False
-        # ID dự án con hiện tại
-        current_child_project_id = False
+        current_parent_group_id = False
+        current_parent_group_name = False
+        current_child_group_id = False
+        current_child_group_name = False
         current_child_record = self.browse()
 
         for index, value in enumerate(values):
             level = value.get('in_dam')
             if level == 1:
-                current_parent_project_id = value.get('du_an_con_id') or False
-                current_child_project_id = False
+                parent_project_id = value.get('du_an_con_id') or False
+                current_parent_group_id = parent_project_id
+                current_child_group_id = False
+                current_child_group_name = False
                 current_child_record = self.browse()
+                current_parent_group_name = False
+                if parent_project_id:
+                    parent_project = project_model.browse(parent_project_id)
+                    if parent_project.exists():
+                        current_parent_group_name = parent_project.display_name
+                    else:
+                        current_parent_group_name = 'Dự án %s' % parent_project_id
                 value.update({
-                    'parent_group_id': (current_parent_project_id or False),
+                    'parent_group_id': current_parent_group_id,
+                    'parent_group_name': current_parent_group_name,
                     'child_group_id': False,
+                    'child_group_name': False,
                 })
-
                 record = self.create(value)
                 created_records |= record
-
             elif level == 2:
-
-                child_project_id = (
-                    self._find_child_project_id(values, index,)
-                )
-                current_child_project_id = (child_project_id or False)
-
-                value['parent_group_id'] = (current_parent_project_id or False)
-                value['child_group_id'] = (current_child_project_id or False)
+                child_project_id = self._find_child_project_id(values, index)
+                current_child_group_id = child_project_id or False
+                current_child_group_name = False
+                if child_project_id:
+                    child_project = project_model.browse(child_project_id)
+                    if child_project.exists():
+                        current_child_group_name = child_project.display_name
+                    else:
+                        current_child_group_name = 'Dự án %s' % child_project_id
+                value['parent_group_id'] = current_parent_group_id or False
+                value['parent_group_name'] = current_parent_group_name or False
+                value['child_group_id'] = current_child_group_id or False
+                value['child_group_name'] = current_child_group_name or False
                 record = self.create(value)
-                # Lưu record dự án con hiện tại
                 current_child_record = record
                 created_records |= record
-
             elif level == 99:
-                child_project_id = (value.get('du_an_con_id') or False)
+                child_project_id = value.get('du_an_con_id') or False
                 if child_project_id:
-                    current_child_project_id = child_project_id
-
+                    current_child_group_id = child_project_id
+                    child_project = project_model.browse(child_project_id)
+                    if child_project.exists():
+                        current_child_group_name = child_project.display_name
+                    else:
+                        current_child_group_name = 'Dự án %s' % child_project_id
                     if current_child_record and current_child_record.exists():
                         current_child_record.write({
-                            'child_group_id': child_project_id
+                            'child_group_id': current_child_group_id,
+                            'child_group_name': current_child_group_name,
                         })
-                value['parent_group_id'] = (current_parent_project_id or False)
-                value['child_group_id'] = (current_child_project_id or False)
+
+                value['parent_group_id'] = current_parent_group_id or False
+                value['parent_group_name'] = current_parent_group_name or False
+                value['child_group_id'] = current_child_group_id or False
+                value['child_group_name'] = current_child_group_name or False
                 record = self.create(value)
                 created_records |= record
-
             else:
                 value['parent_group_id'] = False
+                value['parent_group_name'] = False
                 value['child_group_id'] = False
+                value['child_group_name'] = False
                 record = self.create(value)
                 created_records |= record
-
         return created_records
 
     def action_open_generate_wizard(self):
