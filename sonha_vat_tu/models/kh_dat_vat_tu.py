@@ -193,6 +193,10 @@ class KhDatVatTu(models.Model):
             return "chi_nhanh LIKE '21%%'"
         if code == 'SSP':
             return "chi_nhanh LIKE '22%%'"
+        if code == 'NAN':
+            return "TRIM(chi_nhanh) = '3000'"
+        if code == 'TM2':
+            return "TRIM(chi_nhanh) = '4000'"
         return "chi_nhanh NOT LIKE '10%%'"
 
     @api.model

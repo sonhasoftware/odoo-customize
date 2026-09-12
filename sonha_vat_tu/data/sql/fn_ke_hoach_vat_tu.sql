@@ -51,7 +51,8 @@ LANGUAGE plpgsql AS $BODY$
 DECLARE
     v_company_sx_id INTEGER;
     v_company_code  TEXT;
-    v_cn_prefix     TEXT;
+    v_cn_like       TEXT;   -- BNH/SSP: prefix LIKE (vd. 21%)
+    v_cn_eq         TEXT;   -- NAN/TM2: khớp đúng chi_nhanh
 BEGIN
         SELECT company_sx_id INTO v_company_sx_id
         FROM ke_hoach_vat_tu
@@ -62,9 +63,14 @@ BEGIN
         FROM res_company rc
         WHERE rc.id = v_company_sx_id;
 
-        v_cn_prefix := CASE v_company_code
-            WHEN 'BNH' THEN '21'
-            WHEN 'SSP' THEN '22'
+        v_cn_like := CASE v_company_code
+            WHEN 'BNH' THEN '21%'
+            WHEN 'SSP' THEN '22%'
+            ELSE NULL
+        END;
+        v_cn_eq := CASE v_company_code
+            WHEN 'NAN' THEN '3000'
+            WHEN 'TM2' THEN '4000'
             ELSE NULL
         END;
 
@@ -106,14 +112,25 @@ BEGIN
 
         CREATE INDEX ON _tmp_period_tp (ma_tp_goc);
 
-        -- BOM theo chi nhánh ĐV SX: BNH 21%%, SSP 22%%
+        -- BOM theo chi nhánh ĐV SX: BNH 21%, SSP 22%, NAN =3000, TM2 =4000
         DROP TABLE IF EXISTS _tmp_bom_cn;
         CREATE TEMP TABLE _tmp_bom_cn ON COMMIT DROP AS
         SELECT b.*
         FROM bom_tinh_toan b
         INNER JOIN _tmp_period_tp tp ON tp.ma_tp_goc = TRIM(b.ma_tp_goc)
-        WHERE v_cn_prefix IS NULL
-           OR b.chi_nhanh LIKE v_cn_prefix || '%';
+        WHERE (
+                v_cn_eq IS NOT NULL
+                AND TRIM(b.chi_nhanh) = v_cn_eq
+            )
+           OR (
+                v_cn_eq IS NULL
+                AND v_cn_like IS NOT NULL
+                AND b.chi_nhanh LIKE v_cn_like
+            )
+           OR (
+                v_cn_eq IS NULL
+                AND v_cn_like IS NULL
+            );
 
         CREATE INDEX ON _tmp_bom_cn (ma_tp_goc);
         CREATE INDEX ON _tmp_bom_cn (ma_tp_goc, chi_nhanh);
@@ -658,6 +675,12 @@ BEGIN
     SELECT ma_hang, 'SSP', SUM(ton_cuoi), SUM(ton_dau), SUM(tien_ton_dau)
     FROM latest WHERE chi_nhanh LIKE '22%' GROUP BY ma_hang
     UNION ALL
+    SELECT ma_hang, 'NAN', SUM(ton_cuoi), SUM(ton_dau), SUM(tien_ton_dau)
+    FROM latest WHERE TRIM(chi_nhanh) = '3000' GROUP BY ma_hang
+    UNION ALL
+    SELECT ma_hang, 'TM2', SUM(ton_cuoi), SUM(ton_dau), SUM(tien_ton_dau)
+    FROM latest WHERE TRIM(chi_nhanh) = '4000' GROUP BY ma_hang
+    UNION ALL
     SELECT ma_hang, 'ALL', SUM(ton_cuoi), SUM(ton_dau), SUM(tien_ton_dau)
     FROM latest WHERE chi_nhanh NOT LIKE '10%' GROUP BY ma_hang;
 
@@ -818,6 +841,8 @@ BEGIN
             AND tk.comp_grp = CASE
                 WHEN c.company_code LIKE '21%' OR c.company_code = 'BNH' THEN 'BNH'
                 WHEN c.company_code LIKE '22%' OR c.company_code = 'SSP' THEN 'SSP'
+                WHEN c.company_code = 'NAN' THEN 'NAN'
+                WHEN c.company_code = 'TM2' THEN 'TM2'
                 ELSE 'ALL'
             END
         LEFT JOIN LATERAL (
