@@ -6,7 +6,10 @@ from markupsafe import Markup, escape
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
+from .b5_du_tru_policy import b5_du_tru_is_manual
+
 _B5_TRACKED_FIELDS = {
+    'sl_du_tru_toi_thieu': 'Dự trữ tối thiểu đơn vị',
     'sl_dat_mua_de_xuat': 'Đề xuất đặt mua',
     'sl_dat_mua_chot': 'Đặt mua chốt',
     'sl_can_mua_theo_moq': 'SL cần mua dựa theo MOQ NCC',
@@ -28,7 +31,9 @@ _B5_DD_FIELDS = (
     'tong_hang_di_duong_sl_t2', 'tong_hang_di_duong_sl_t3',
 )
 
-_MANUAL_RECOMPUTE_FIELDS = {'ma_sap', *_B5_QTY_FIELDS, *_B5_DD_FIELDS}
+_MANUAL_RECOMPUTE_FIELDS = {
+    'ma_sap', 'sl_du_tru_toi_thieu', *_B5_QTY_FIELDS, *_B5_DD_FIELDS,
+}
 
 # Cột sinh lại khi đổi cần dùng / đi đường trên B5.
 _B5_PLAN_OUTPUT_FIELDS = (
@@ -118,6 +123,10 @@ class KhDatVatTu(models.Model):
         string='Tổng giá trị đi đường', currency_field='currency_id')
 
     sl_du_tru_toi_thieu = fields.Float(string='Dự trữ tối thiểu đơn vị', digits=(16, 3))
+    is_sl_du_tru_editable = fields.Boolean(
+        string='Dự trữ tối thiểu nhập tay',
+        compute='_compute_is_sl_du_tru_editable',
+    )
     sl_dat_mua_de_xuat = fields.Float(string='SL đặt mua đề xuất', digits=(16, 3))
     sl_dat_mua_chot = fields.Float(string='SL đặt mua chốt', digits=(16, 3))
     sl_can_mua_theo_moq = fields.Float(string='SL cần mua dựa theo MOQ NCC', digits=(16, 3))
@@ -169,6 +178,30 @@ class KhDatVatTu(models.Model):
     # Công thức B5 (khớp fn_ke_hoach_dat_vat_tu)
     # ------------------------------------------------------------------
 
+    def _b5_company_code(self, vals=None):
+        """Mã công ty SX của dòng B5 (company_id hoặc kỳ.company_sx_id)."""
+        company_id = self._m2o_id('company_id', vals)
+        if company_id:
+            company = self.env['res.company'].browse(company_id)
+            return (company.company_code or company.name or '').strip().upper()
+        period_id = self._m2o_id('period_id', vals)
+        if period_id:
+            sx = self.env['ke.hoach.vat.tu'].browse(period_id).company_sx_id
+            if sx:
+                return (sx.company_code or sx.name or '').strip().upper()
+        if len(self) == 1 and self.period_id and self.period_id.company_sx_id:
+            sx = self.period_id.company_sx_id
+            return (sx.company_code or sx.name or '').strip().upper()
+        return ''
+
+    @api.depends(
+        'company_id', 'company_id.company_code',
+        'period_id', 'period_id.company_sx_id', 'period_id.company_sx_id.company_code',
+    )
+    def _compute_is_sl_du_tru_editable(self):
+        for rec in self:
+            rec.is_sl_du_tru_editable = b5_du_tru_is_manual(rec._b5_company_code())
+
     @staticmethod
     def _count_months_with_can_dung(t0, t1, t2, t3):
         return sum(1 for qty in (t0, t1, t2, t3) if (qty or 0.0) > 0)
@@ -218,18 +251,18 @@ class KhDatVatTu(models.Model):
                     mtk.chi_nhanh,
                     mtk.create_date,
                     mtk.id,
-                    safe_sap_numeric(mtk.ton_cuoi) AS ton_cuoi,
-                    safe_sap_numeric(mtk.ton_dau) AS ton_dau,
-                    safe_sap_numeric(mtk.tien_ton_dau) AS tien_ton_dau
+                    fn_so_tu_sap(mtk.ton_cuoi) AS ton_cuoi,
+                    fn_so_tu_sap(mtk.ton_dau) AS ton_dau,
+                    fn_so_tu_sap(mtk.tien_ton_dau) AS tien_ton_dau
                 FROM md_sap_ton_kho mtk
                 WHERE TRIM(mtk.ma_hang) = ANY(%(codes)s)
                   AND fn_md_sap_ton_kho_month_key(
                           mtk.from_date, mtk.to_date, mtk.tu_ngay, mtk.den_ngay, mtk.create_date
                       ) = %(month_key)s
                   AND (
-                      safe_sap_numeric(mtk.ton_cuoi) <> 0
-                      OR safe_sap_numeric(mtk.ton_dau) <> 0
-                      OR safe_sap_numeric(mtk.tien_ton_dau) <> 0
+                      fn_so_tu_sap(mtk.ton_cuoi) <> 0
+                      OR fn_so_tu_sap(mtk.ton_dau) <> 0
+                      OR fn_so_tu_sap(mtk.tien_ton_dau) <> 0
                   )
                   AND """
             + branch_filter
@@ -312,13 +345,19 @@ class KhDatVatTu(models.Model):
         }
 
     @staticmethod
-    def _calc_b5_plan(ton_dau, t0, t1, t2, t3, dd_t0, dd_t1, dd_t2, dd_t3, ngay_dt=20.0):
+    def _calc_b5_plan(
+        ton_dau, t0, t1, t2, t3, dd_t0, dd_t1, dd_t2, dd_t3,
+        ngay_dt=20.0, sl_du_tru=None, auto_du_tru=True,
+    ):
         """Công thức B5 thuần — khớp fn_ke_hoach_dat_vat_tu (procedure SQL)."""
         tcd = (t0 or 0.0) + (t1 or 0.0) + (t2 or 0.0) + (t3 or 0.0)
         tdd = (dd_t0 or 0.0) + (dd_t1 or 0.0) + (dd_t2 or 0.0) + (dd_t3 or 0.0)
         cd_t0 = t0 or 0.0
         ngay_dt = ngay_dt or 20.0
-        sl_du_tru = (cd_t0 / 28.0) * ngay_dt if cd_t0 > 0 else 0.0
+        if auto_du_tru:
+            sl_du_tru = (cd_t0 / 28.0) * ngay_dt if cd_t0 > 0 else 0.0
+        else:
+            sl_du_tru = sl_du_tru or 0.0
         ton_dau = ton_dau or 0.0
         sl_de_xuat = ton_dau - tcd + tdd - sl_du_tru
         sl_chot = 0.0 if sl_de_xuat > 0 else -sl_de_xuat
@@ -365,11 +404,15 @@ class KhDatVatTu(models.Model):
     def _calc_b5_plan_from_vals(self, vals):
         """Tính lại các cột kế hoạch đặt mua từ dict đầu vào (+ dòng hiện tại nếu có)."""
         vals = dict(vals)
+        company_code = self._b5_company_code(vals)
+        auto_du_tru = not b5_du_tru_is_manual(company_code)
         return self._calc_b5_plan(
             self._b5_field_from_vals('tong_ton_nvl_sl', vals),
             *[self._b5_field_from_vals(f, vals) for f in _B5_QTY_FIELDS],
             *[self._b5_field_from_vals(f, vals) for f in _B5_DD_FIELDS],
             self._b5_ngay_du_tru(vals),
+            sl_du_tru=self._b5_field_from_vals('sl_du_tru_toi_thieu', vals),
+            auto_du_tru=auto_du_tru,
         )
 
     def _b5_plan_values(self):
@@ -480,6 +523,12 @@ class KhDatVatTu(models.Model):
                 if fname in rec._fields:
                     rec[fname] = value
 
+    def _apply_b5_plan_onchange(self, vals=None):
+        for rec in self:
+            plan = rec._calc_b5_plan_from_vals(vals or {})
+            for key in _B5_PLAN_OUTPUT_FIELDS:
+                rec[key] = plan[key]
+
     @api.onchange(
         'tong_sl_vt_can_dung_t0', 'tong_sl_vt_can_dung_t1',
         'tong_sl_vt_can_dung_t2', 'tong_sl_vt_can_dung_t3',
@@ -487,10 +536,16 @@ class KhDatVatTu(models.Model):
         'tong_hang_di_duong_sl_t2', 'tong_hang_di_duong_sl_t3',
     )
     def _onchange_manual_qty_inputs(self):
+        self._apply_b5_plan_onchange()
+
+    @api.onchange('sl_du_tru_toi_thieu')
+    def _onchange_sl_du_tru_toi_thieu(self):
         for rec in self:
-            plan = rec._calc_b5_plan_from_vals({})
-            for key in _B5_PLAN_OUTPUT_FIELDS:
-                rec[key] = plan[key]
+            if not b5_du_tru_is_manual(rec._b5_company_code()):
+                continue
+            rec._apply_b5_plan_onchange({
+                'sl_du_tru_toi_thieu': rec.sl_du_tru_toi_thieu,
+            })
 
     @api.model
     def default_get(self, fields_list):
@@ -552,11 +607,16 @@ class KhDatVatTu(models.Model):
 
         all_tracked = {**_B5_TRACKED_FIELDS, **_B5_CAN_DUNG_TRACKED}
         tracked = [fname for fname in all_tracked if fname in vals]
+        if self.env.context.get('tracking_disable') or self.env.context.get('is_importing'):
+            return super().write(vals)
+
         if (
-            not tracked
-            or self.env.context.get('tracking_disable')
-            or self.env.context.get('is_importing')
+            'sl_du_tru_toi_thieu' in tracked
+            and not any(b5_du_tru_is_manual(r._b5_company_code()) for r in self)
         ):
+            tracked = [f for f in tracked if f != 'sl_du_tru_toi_thieu']
+
+        if not tracked:
             return super().write(vals)
 
         old = {

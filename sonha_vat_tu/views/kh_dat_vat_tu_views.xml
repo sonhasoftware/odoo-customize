@@ -35,7 +35,9 @@
                 <field name="tong_hang_di_duong" string="Tổng SL đi đường" readonly="1"/>
 
                 <!-- Kế hoạch đặt mua & Chỉ số cuối kỳ -->
-                <field name="sl_du_tru_toi_thieu" string="Dự trữ tối thiểu đơn vị" readonly="1"/>
+                <field name="is_sl_du_tru_editable" column_invisible="1"/>
+                <field name="sl_du_tru_toi_thieu" string="Dự trữ tối thiểu đơn vị"
+                       readonly="not is_sl_du_tru_editable"/>
                 <field name="sl_dat_mua_de_xuat" string="Đề xuất đặt mua"/>
                 <field name="sl_dat_mua_chot" string="Đặt mua chốt"/>
                 <field name="sl_can_mua_theo_moq" string="SL cần mua dựa theo MOQ NCC"/>
@@ -101,7 +103,9 @@
                         <page string="Kế hoạch đặt mua">
                             <group>
                                 <group>
-                                    <field name="sl_du_tru_toi_thieu" readonly="1"/>
+                                    <field name="is_sl_du_tru_editable" invisible="1"/>
+                                    <field name="sl_du_tru_toi_thieu"
+                                           readonly="not is_sl_du_tru_editable"/>
                                     <field name="sl_dat_mua_de_xuat"/>
                                     <field name="sl_dat_mua_chot"/>
                                     <field name="sl_can_mua_theo_moq"/>

@@ -132,7 +132,7 @@ class BaoCaoKhDatSxWizard(models.TransientModel):
         cr.execute("SELECT to_regclass('public.md_sap_ton_kho')")
         if not cr.fetchone()[0]:
             return {}
-        cr.execute("SELECT to_regclass('public.safe_sap_numeric')")
+        cr.execute("SELECT to_regproc('public.fn_so_tu_sap')")
         if not cr.fetchone()[0]:
             return {}
         branch_filter = self._sap_branch_sql(sx_company_code)
@@ -144,13 +144,13 @@ class BaoCaoKhDatSxWizard(models.TransientModel):
                     mtk.chi_nhanh,
                     mtk.create_date,
                     mtk.id,
-                    safe_sap_numeric(mtk.ton_cuoi) AS ton_cuoi
+                    fn_so_tu_sap(mtk.ton_cuoi) AS ton_cuoi
                 FROM md_sap_ton_kho mtk
                 WHERE TRIM(mtk.ma_hang) = ANY(%(codes)s)
                   AND fn_md_sap_ton_kho_month_key(
                           mtk.from_date, mtk.to_date, mtk.tu_ngay, mtk.den_ngay, mtk.create_date
                       ) = %(month_key)s
-                  AND safe_sap_numeric(mtk.ton_cuoi) <> 0
+                  AND fn_so_tu_sap(mtk.ton_cuoi) <> 0
                   AND """
             + branch_filter
             + """

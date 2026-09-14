@@ -247,7 +247,7 @@ class DuLieuTongHopVatTu(models.Model):
         # Một file duy nhất: trigger + mapping + sync BOM từ SAP.
         # fn_bom_chuoi_cung_ung / bom_tinh_toan do a QL quản trên DB, không
         # nằm trong module — tránh CREATE OR REPLACE ghi đè khi upgrade.
-        self._cr.execute(_read_dlthvt_sync_sql())
+        self._cr.execute(_read_dong_bo_sql())
 
 
 # ---------------------------------------------------------------------------
@@ -259,10 +259,10 @@ _SQL_DIR = _os.path.join(
     'data', 'sql',
 )
 
-_SQL_DLTHVT_SYNC_PATH = _os.path.join(_SQL_DIR, 'dlthvt_sync.sql')
+_SQL_DONG_BO_PATH = _os.path.join(_SQL_DIR, 'dong_bo_tong_hop_vat_tu.sql')
 
-def _read_dlthvt_sync_sql():
-    """Đọc file data/sql/dlthvt_sync.sql (toàn bộ tầng đồng bộ bảng phẳng)."""
-    with open(_SQL_DLTHVT_SYNC_PATH, 'r', encoding='utf-8') as f:
+def _read_dong_bo_sql():
+    """Đọc file data/sql/dong_bo_tong_hop_vat_tu.sql (tầng đồng bộ bảng phẳng)."""
+    with open(_SQL_DONG_BO_PATH, 'r', encoding='utf-8') as f:
         return f.read()
 

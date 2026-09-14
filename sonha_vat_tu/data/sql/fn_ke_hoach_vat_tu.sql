@@ -646,18 +646,18 @@ BEGIN
             mtk.chi_nhanh,
             mtk.create_date,
             mtk.id,
-            safe_sap_numeric(mtk.ton_cuoi) AS ton_cuoi,
-            safe_sap_numeric(mtk.ton_dau) AS ton_dau,
-            safe_sap_numeric(mtk.tien_ton_dau) AS tien_ton_dau
+            fn_so_tu_sap(mtk.ton_cuoi) AS ton_cuoi,
+            fn_so_tu_sap(mtk.ton_dau) AS ton_dau,
+            fn_so_tu_sap(mtk.tien_ton_dau) AS tien_ton_dau
         FROM md_sap_ton_kho mtk
         INNER JOIN _tmp_period_nvl n ON n.ma_vat_tu = TRIM(mtk.ma_hang)
         WHERE fn_md_sap_ton_kho_month_key(
                   mtk.from_date, mtk.to_date, mtk.tu_ngay, mtk.den_ngay, mtk.create_date
               ) = v_month_price
           AND (
-              safe_sap_numeric(mtk.ton_cuoi) <> 0
-              OR safe_sap_numeric(mtk.ton_dau) <> 0
-              OR safe_sap_numeric(mtk.tien_ton_dau) <> 0
+              fn_so_tu_sap(mtk.ton_cuoi) <> 0
+              OR fn_so_tu_sap(mtk.ton_dau) <> 0
+              OR fn_so_tu_sap(mtk.tien_ton_dau) <> 0
           )
     ),
     latest AS (
@@ -958,6 +958,7 @@ BEGIN
         SELECT
             b4.period_id, b4.company_id, b4.ma_sap, b4.ten_nvl, b4.chung_loai, b4.don_vi_tinh,
             b4.ton_dau,
+            UPPER(TRIM(COALESCE(rc.company_code, ''))) AS sx_company_code,
             COALESCE(b4.vt_can_dung_t0, 0) AS cd_t0,
             COALESCE(b4.vt_can_dung_t1, 0) AS cd_t1,
             COALESCE(b4.vt_can_dung_t2, 0) AS cd_t2,
@@ -983,13 +984,19 @@ BEGIN
             COALESCE(b4.don_gia_ton_kho, 0) AS don_gia_ton_kho,
             COALESCE(b4.ton_dau, 0) * COALESCE(b4.don_gia_ton_kho, 0) AS gia_tri_ton_dau
         FROM tong_hop_vat_tu b4
+        INNER JOIN res_company rc ON rc.id = b4.company_id
         WHERE b4.period_id = p_period_id
           AND b4.don_vi_kd_id IS NULL
     ),
     calc AS (
         SELECT
             b.*,
-            CASE WHEN cd_t0 > 0 THEN (cd_t0 / 28.0) * p_ngay_dt ELSE 0.0 END AS sl_du_tru
+            CASE
+                WHEN b.sx_company_code NOT IN ('NAN', 'TM2')
+                     AND cd_t0 > 0
+                THEN (cd_t0 / 28.0) * p_ngay_dt
+                ELSE 0.0
+            END AS sl_du_tru
         FROM b4_data b
     ),
     calc_moq AS (

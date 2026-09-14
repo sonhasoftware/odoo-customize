@@ -34,3 +34,4 @@ from . import dmtb_nhom
 from . import bao_cao_dinh_muc_vt_tb
 from . import bao_cao_vat_tu_can_dat
 from . import bao_cao_kh_dat_sx
+from . import api_table_sql

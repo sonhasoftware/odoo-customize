@@ -88,6 +88,43 @@ class MaHang(models.Model):
         return {(row['ma_dv'] or '').strip() for row in rows if (row.get('ma_dv') or '').strip()}
 
     @api.model
+    def resolve_ma_dv_for_import_map(self, ma_dv_list):
+        """Excel cột Mã (ma_dv) → mdm.tong.hop.ma_sap."""
+        codes = sorted({(c or '').strip() for c in ma_dv_list if (c or '').strip()})
+        if not codes:
+            return {}
+        self.env.cr.execute(
+            """
+            SELECT TRIM(l.ma_dv) AS ma_dv,
+                   NULLIF(TRIM(th.ma_sap), '') AS ma_sap
+            FROM mdm_tong_hop_line l
+            JOIN mdm_tong_hop th ON th.id = l.tong_hop_id
+            WHERE TRIM(l.ma_dv) = ANY(%s)
+            """,
+            (codes,),
+        )
+        found = set()
+        saps_by_dv = {}
+        for ma_dv, ma_sap in self.env.cr.fetchall():
+            found.add(ma_dv)
+            if ma_sap:
+                saps_by_dv.setdefault(ma_dv, set()).add(ma_sap)
+
+        result = {}
+        for ma_dv in codes:
+            if ma_dv not in found:
+                result[ma_dv] = {'state': 'missing', 'ma_sap': None}
+                continue
+            saps = saps_by_dv.get(ma_dv, set())
+            if not saps:
+                result[ma_dv] = {'state': 'no_sap', 'ma_sap': None}
+            elif len(saps) > 1:
+                result[ma_dv] = {'state': 'ambiguous', 'ma_sap': None}
+            else:
+                result[ma_dv] = {'state': 'ok', 'ma_sap': next(iter(saps))}
+        return result
+
+    @api.model
     def get_mdm_segment_map(self, ma_codes):
         """{ma_dv: {linh_vuc_ma, nganh_hang_ma}} từ mdm.tong.hop.line → mdm.tong.hop."""
         codes = sorted({(c or '').strip() for c in ma_codes if (c or '').strip()})
