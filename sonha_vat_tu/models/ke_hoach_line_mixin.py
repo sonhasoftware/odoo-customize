@@ -29,6 +29,7 @@ class KeHoachLineMixin(models.AbstractModel):
     _BULK_IMPORT_COLUMNS = {
         'company_id': 'int',
         'ma_hang': 'varchar',
+        'ma_sap': 'varchar',
         'note': 'varchar',
         'sequence': 'int',
         **{fname: 'numeric' for fname in QTY_FIELDS},

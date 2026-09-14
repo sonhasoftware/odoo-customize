@@ -2,7 +2,7 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
-PRODUCTION_COMPANY_CODES = ('BNH', 'SSP')
+PRODUCTION_COMPANY_CODES = ('BNH', 'SSP', 'NAN', 'TM2')
 
 
 class KeHoachSanXuat(models.Model):
@@ -15,7 +15,7 @@ class KeHoachSanXuat(models.Model):
 
     company_sx_id = fields.Many2one(
         'res.company', string='Nhà máy SX', index=True,
-        help='Đơn vị sản xuất (BNH/SSP) — gắn khi import hoặc tạo từ KD.',
+        help='Đơn vị sản xuất (BNH/SSP/NAN/TM2) — gắn khi import hoặc tạo từ KD.',
     )
 
     @api.model
