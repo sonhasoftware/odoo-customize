@@ -32,9 +32,6 @@
         </field>
     </record>
 
-    <?xml version="1.0" encoding="utf-8"?>
-<odoo>
-
     <record id="view_bao_cao_du_an_pivot" model="ir.ui.view">
         <field name="name">sonha.du.an.bao.cao.pivot</field>
         <field name="model">sonha.du.an.bao.cao</field>
@@ -55,8 +52,6 @@
             </pivot>
         </field>
     </record>
-
-</odoo>
 
     <record id="view_bao_cao_du_an_search" model="ir.ui.view">
     <field name="name">sonha.du.an.bao.cao.search</field>
