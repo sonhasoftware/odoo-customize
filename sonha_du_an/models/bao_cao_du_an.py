@@ -9,15 +9,6 @@ class BaoCaoDuAn(models.Model):
     _description = 'Báo cáo dự án'
     _table = 'bao_cao'
 
-    _order = """
-        ngay_tao_bao_cao desc,
-        parent_group_id,
-        child_group_id,
-        in_dam,
-        stt,
-        id
-    """
-
     name = fields.Char(
         string='Tên',
         required=True,
@@ -159,16 +150,42 @@ class BaoCaoDuAn(models.Model):
         default=fields.Datetime.now,
     )
 
-    du_an_cha = fields.Boolean("Dự án cha", compute="get_du_an_cha_con")
-    du_an_con = fields.Many2one('sonha.du.an.bao.cao', string="Dự án con")
-    nhiem_vu = fields.Many2one('sonha.du.an.bao.cao', string="Nhiệm vụ")
+    du_an_cha = fields.Many2one('sonha.du.an.bao.cao', string="Dự án cha", compute='get_du_an_cha', index=True,)
+    du_an_con = fields.Many2one('sonha.du.an.bao.cao', string="Dự án con", compute='get_du_an_con', index=True,)
+    loai = fields.Selection([
+        ('parent', 'Dự án cha'),
+        ('child', 'Dự án con'),
+        ('task', 'Nhiệm vụ'),
+    ], compute='get_loai_du_an')
 
-    def get_du_an_cha_con(self):
+    @api.depends('in_dam')
+    def get_du_an_cha(self):
         for r in self:
-            if r.stt == 1:
-                r.du_an_cha = True
+            if r.in_dam == 1:
+                r.du_an_cha = r.id
+            elif r.in_dam == 2:
+                r.du_an_cha = r.du_an_con_id
+
+    @api.depends('in_dam')
+    def get_du_an_con(self):
+        pass
+        # for r in self:
+        #     if r.in_dam == 1:
+        #         r.
+
+
+    @api.depends('in_dam')
+    def get_loai_du_an(self):
+        for r in self:
+            if r.in_dam == 1:
+                r.loai = 'parent'
+            elif r.in_dam == 2:
+                r.loai = 'child'
+            elif r.in_dam == 99:
+                r.loai = 'task'
             else:
-                r.du_an_cha = False
+                r.loai = None
+
 
     @staticmethod
     def _find_child_project_id(values, current_index):
@@ -247,8 +264,6 @@ class BaoCaoDuAn(models.Model):
                 'ns_lam': row.get('ns_lam'),
                 'in_dam': row.get('in_dam') or 0,
                 'du_an_con_id': row.get('du_an_con_id') or False,
-                'du_an_con': row.get('du_an_con_id') or False,
-                'nhiem_vu': row.get('du_an_con_id') or False,
                 'du_lieu': json.dumps(
                     row,
                     ensure_ascii=False,
