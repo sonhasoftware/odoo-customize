@@ -8,7 +8,6 @@ class BaoCaoDuAn(models.Model):
     _name = 'sonha.du.an.bao.cao'
     _description = 'Báo cáo dự án'
     _table = 'bao_cao'
-    _rec_name = 'name'
 
     name = fields.Char(
         string='Tên',
