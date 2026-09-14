@@ -9,7 +9,7 @@ class Project(models.Model):
     so_du_an = fields.Char("Số dự án", store=True)
     group_du_an = fields.Many2one(
         'group.du.an',
-        string="Group dự án", store=True
+        string="Group dự án", store=True, required=False
     )
     noi_dung = fields.Text("Nội dung", store=True)
     nguoi_qlda = fields.Many2many('res.users', 'ir_qlda_group_rel',
@@ -37,6 +37,7 @@ class Project(models.Model):
     hoan_thanh = fields.Boolean("Hoàn thành dự án", store=True)
     ten = fields.Char("Tên dự án", store=True, compute="get_name_duan")
 
+    ngay_bat_dau = fields.Date("Ngày bắt đầu", store=True, required=True)
     ngay_bat_dau = fields.Date("Ngày bắt đầu", store=True, required=True)
 
     trang_thai = fields.Selection([('run', 'Đang chạy'), ('kt', 'Kết thúc')],
@@ -125,30 +126,30 @@ class Project(models.Model):
                 'ngay_kt_chinh_sua': project.ngay_kt_chinh_sua,
             })
 
-    def _validate_ty_le_phan_tram(self):
-        for project in self:
-            if not project.du_an_cha_id:
-                continue
-            if project.ty_le_phan_tram <= 0:
-                raise ValidationError(
-                    _("Bạn bắt buộc phải nhập % lớn hơn 0 cho dự án con.")
-                )
-            if project.ty_le_phan_tram > 100:
-                raise ValidationError(
-                    _("% của dự án con không được lớn hơn 100%.")
-                )
-            siblings = self.search([
-                ('du_an_cha_id', '=', project.du_an_cha_id.id),
-            ])
-            total_percent = sum(siblings.mapped('ty_le_phan_tram'))
-            if total_percent > 100:
-                raise ValidationError(
-                    _("Tổng % của tất cả dự án con không được vượt quá 100%.")
-                )
+    # def _validate_ty_le_phan_tram(self):
+    #     for project in self:
+    #         if not project.du_an_cha_id:
+    #             continue
+    #         if project.ty_le_phan_tram <= 0:
+    #             raise ValidationError(
+    #                 _("Bạn bắt buộc phải nhập % lớn hơn 0 cho dự án con.")
+    #             )
+    #         if project.ty_le_phan_tram > 100:
+    #             raise ValidationError(
+    #                 _("% của dự án con không được lớn hơn 100%.")
+    #             )
+    #         siblings = self.search([
+    #             ('du_an_cha_id', '=', project.du_an_cha_id.id),
+    #         ])
+    #         total_percent = sum(siblings.mapped('ty_le_phan_tram'))
+    #         if total_percent > 100:
+    #             raise ValidationError(
+    #                 _("Tổng % của tất cả dự án con không được vượt quá 100%.")
+    #             )
 
-    @api.constrains('ty_le_phan_tram', 'du_an_cha_id')
-    def _check_ty_le_phan_tram(self):
-        self._validate_ty_le_phan_tram()
+    # @api.constrains('ty_le_phan_tram', 'du_an_cha_id')
+    # def _check_ty_le_phan_tram(self):
+    #     self._validate_ty_le_phan_tram()
 
     @api.constrains('du_an_cha_id')
     def _check_du_an_cha_id(self):
@@ -163,15 +164,8 @@ class Project(models.Model):
 
     def _validate_child_project_end_dates(self):
         for project in self:
-            if (
-                project.du_an_cha_id
-                and project.ngay_kt_da != project.du_an_cha_id.ngay_kt_da
-            ):
-                raise ValidationError(
-                    _(
-                        "Ngày kết thúc dự án con phải bằng ngày kết thúc dự án cha."
-                    )
-                )
+            if project.du_an_cha_id and project.ngay_kt_da > project.du_an_cha_id.ngay_kt_da:
+                raise ValidationError(_("Ngày kết thúc dự án con phải bằng ngày kết thúc dự án cha."))
 
     def _validate_child_task_end_dates(self):
         tasks = self.env['project.task']
@@ -190,11 +184,11 @@ class Project(models.Model):
         self._validate_child_project_end_dates()
         self._validate_child_task_end_dates()
 
-    @api.constrains('ty_le_phan_tram')
-    def _check_child_task_percent(self):
-        tasks = self.env['project.task'].search([('cap', 'in', self.ids)])
-        if tasks:
-            tasks._validate_ty_le_phan_tram()
+    # @api.constrains('ty_le_phan_tram')
+    # def _check_child_task_percent(self):
+    #     tasks = self.env['project.task'].search([('cap', 'in', self.ids)])
+    #     if tasks:
+    #         tasks._validate_ty_le_phan_tram()
 
     def action_view_tasks(self):
         """Open base Project tasks with the fixed workflow Kanban.

@@ -8,12 +8,12 @@
         sequence="10"/>
 
 
-    <menuitem
-        name="Group dự án"
-        id="menu_group_du_an"
-        parent="project.menu_main_pm"
-        action="group_du_an_action"
-        sequence="20"/>
+<!--    <menuitem-->
+<!--        name="Group dự án"-->
+<!--        id="menu_group_du_an"-->
+<!--        parent="project.menu_main_pm"-->
+<!--        action="group_du_an_action"-->
+<!--        sequence="20"/>-->
 
     <menuitem
         name="Báo cáo dự án"

@@ -13,7 +13,7 @@
                     <group>
                         <group>
                             <field name="so_du_an"/>
-                            <field name="group_du_an"/>
+<!--                            <field name="group_du_an"/>-->
                             <field name="name"/>
                             <field name="noi_dung"/>
                             <field name="du_an_cha_id" invisible="1"/>
@@ -33,8 +33,8 @@
                                     <field name="du_an_cha" column_invisible="1"/>
                                     <field name="name" string="Nội dung dự án"/>
                                     <field name="nguoi_qlda" widget="many2many_tags"/>
-                                    <field name="ty_le_phan_tram" required="1"/>
-                                    <field name="ngay_kt_da" readonly="1"/>
+<!--                                    <field name="ty_le_phan_tram"/>-->
+                                    <field name="ngay_kt_da" readonly="0"/>
                                 </tree>
                             </field>
                         </page>
@@ -49,7 +49,7 @@
                                         ('nguoi_qlda', 'in', [uid])
                                     ]" context="{'default_du_an_cha_id': parent.id, 'default_du_an_cha': False}"/>
                                     <field name="name" required="0" string="Nội dung công việc"/>
-                                    <field name="ty_le_phan_tram" required="1"/>
+<!--                                    <field name="ty_le_phan_tram"/>-->
                                     <field name="so_ngay_ht"/>
                                     <field name="ngay_bat_dau"/>
                                     <field name="ngay_ket_thuc"/>
@@ -73,7 +73,7 @@
         <field name="arch" type="xml">
             <tree string="Nhập liệu dự án">
                 <field name="so_du_an"/>
-                    <field name="group_du_an"/>
+<!--                    <field name="group_du_an"/>-->
                     <field name="name"/>
                     <field name="du_an_cha_id"/>
                     <field name="noi_dung"/>
