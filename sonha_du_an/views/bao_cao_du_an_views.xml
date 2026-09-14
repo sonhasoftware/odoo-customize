@@ -12,13 +12,15 @@
                         string="Tạo báo cáo"
                         class="btn-primary"/>
                 </header>
-                <field name="stt"/>
+<!--                <field name="stt"/>-->
                 <field name="noi_dung_cv_con"/>
                 <field name="ngay_bat_dau"/>
                 <field name="ngay_ket_thuc"/>
+                <field name="ngay_hoan_thanh"/>
+                <field name="so_ngay_qua_han"/>
                 <field name="ten_trang_thai"/>
                 <field name="tinh_trang_han"/>
-                <field name="pt_cv"/>
+<!--                <field name="pt_cv"/>-->
                 <field name="ns_lam"/>
                 <field name="parent_group_name" column_invisible="1"/>
                 <field name="child_group_name" column_invisible="1"/>

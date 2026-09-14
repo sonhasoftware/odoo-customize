@@ -72,6 +72,16 @@ class BaoCaoDuAn(models.Model):
         readonly=True,
     )
 
+    ngay_hoan_thanh = fields.Date(
+        string='Ngày hoàn thành',
+        readonly=True,
+    )
+
+    so_ngay_qua_han = fields.Integer(
+        string='Số ngày quá hạn',
+        readonly=True,
+    )
+
     ten_trang_thai = fields.Text(
         string='Tên trạng thái',
         readonly=True,
@@ -218,9 +228,11 @@ class BaoCaoDuAn(models.Model):
                 'noi_dung_cv_con': row.get('noi_dung_cv_con'),
                 'ngay_bat_dau': row.get('ngay_bat_dau'),
                 'ngay_ket_thuc': row.get('ngay_ket_thuc'),
+                'ngay_hoan_thanh': row.get('ngay_hoan_thanh'),
                 'ten_trang_thai': row.get('ten_trang_thai'),
                 'tinh_trang_han': row.get('tinh_trang_han'),
                 'pt_cv': row.get('pt_cv') or 0,
+                'so_ngay_qua_han': row.get('so_ngay_qua_han') or 0,
                 'ns_lam': row.get('ns_lam'),
                 'in_dam': row.get('in_dam') or 0,
                 'du_an_con_id': row.get('du_an_con_id') or False,
