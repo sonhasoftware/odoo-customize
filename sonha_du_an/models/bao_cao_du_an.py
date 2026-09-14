@@ -150,10 +150,10 @@ class BaoCaoDuAn(models.Model):
         default=fields.Datetime.now,
     )
 
-    du_an_cha = fields.Many2one('sonha.du.an.bao.cao', string="Dự án cha", compute='get_du_an_cha', index=True, store=True)
-    du_an_con = fields.Many2one('sonha.du.an.bao.cao', string="Dự án con", compute='get_du_an_con', index=True, store=True)
+    du_an_cha = fields.Many2one('sonha.du.an.bao.cao', string="Dự án cha", compute='get_du_an_cha', index=True, store=True, ondelete='set null',)
+    du_an_con = fields.Many2one('sonha.du.an.bao.cao', string="Dự án con", compute='get_du_an_con', index=True, store=True, ondelete='set null',)
 
-    @api.depends('in_dam')
+    @api.depends('in_dam', 'du_an_con_id')
     def get_du_an_cha(self):
         for r in self:
             if r.in_dam == 1:
@@ -164,7 +164,7 @@ class BaoCaoDuAn(models.Model):
                 number = self.search([('id', '=', r.du_an_con_id)])
                 r.du_an_cha = number.du_an_cha.id
 
-    @api.depends('in_dam')
+    @api.depends('in_dam', 'du_an_con_id')
     def get_du_an_con(self):
         for r in self:
             if r.in_dam == 1:
