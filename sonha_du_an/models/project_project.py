@@ -164,7 +164,7 @@ class Project(models.Model):
 
     def _validate_child_project_end_dates(self):
         for project in self:
-            if project.du_an_cha_id and project.ngay_kt_da < project.du_an_cha_id.ngay_kt_da:
+            if project.du_an_cha_id and project.ngay_kt_da > project.du_an_cha_id.ngay_kt_da:
                 raise ValidationError(_("Ngày kết thúc dự án con phải bằng ngày kết thúc dự án cha."))
 
     def _validate_child_task_end_dates(self):
