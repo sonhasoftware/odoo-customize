@@ -28,6 +28,6 @@ class BaoCaoDuAnWizard(models.TransientModel):
             'type': 'ir.actions.act_window',
             'name': _('Báo cáo dự án'),
             'res_model': 'sonha.du.an.bao.cao',
-            'view_mode': 'pivot,tree,form',
+            'view_mode': 'tree,form',
             'context': {'search_default_group_by_parent': 1},
         }
