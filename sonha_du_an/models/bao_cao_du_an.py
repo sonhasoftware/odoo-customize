@@ -152,11 +152,6 @@ class BaoCaoDuAn(models.Model):
 
     du_an_cha = fields.Many2one('sonha.du.an.bao.cao', string="Dự án cha", compute='get_du_an_cha', index=True,)
     du_an_con = fields.Many2one('sonha.du.an.bao.cao', string="Dự án con", compute='get_du_an_con', index=True,)
-    loai = fields.Selection([
-        ('parent', 'Dự án cha'),
-        ('child', 'Dự án con'),
-        ('task', 'Nhiệm vụ'),
-    ], compute='get_loai_du_an')
 
     @api.depends('in_dam')
     def get_du_an_cha(self):
@@ -165,26 +160,21 @@ class BaoCaoDuAn(models.Model):
                 r.du_an_cha = r.id
             elif r.in_dam == 2:
                 r.du_an_cha = r.du_an_con_id
+            elif r.in_dam == 99:
+                number = self.search([('id', '=', r.du_an_con_id)])
+                r.du_an_cha = number.du_an_cha.id
 
     @api.depends('in_dam')
     def get_du_an_con(self):
-        pass
-        # for r in self:
-        #     if r.in_dam == 1:
-        #         r.
-
-
-    @api.depends('in_dam')
-    def get_loai_du_an(self):
         for r in self:
             if r.in_dam == 1:
-                r.loai = 'parent'
+                r.du_an_con = None
             elif r.in_dam == 2:
-                r.loai = 'child'
+                r.du_an_con = r.id
             elif r.in_dam == 99:
-                r.loai = 'task'
-            else:
-                r.loai = None
+                r.du_an_con = r.du_an_con_id
+
+
 
 
     @staticmethod
