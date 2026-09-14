@@ -150,8 +150,8 @@ class BaoCaoDuAn(models.Model):
         default=fields.Datetime.now,
     )
 
-    du_an_cha = fields.Many2one('sonha.du.an.bao.cao', string="Dự án cha", compute='get_du_an_cha', index=True,)
-    du_an_con = fields.Many2one('sonha.du.an.bao.cao', string="Dự án con", compute='get_du_an_con', index=True,)
+    du_an_cha = fields.Many2one('sonha.du.an.bao.cao', string="Dự án cha", compute='get_du_an_cha', index=True, store=True)
+    du_an_con = fields.Many2one('sonha.du.an.bao.cao', string="Dự án con", compute='get_du_an_con', index=True, store=True)
 
     @api.depends('in_dam')
     def get_du_an_cha(self):
