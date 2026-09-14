@@ -38,6 +38,7 @@ class Project(models.Model):
     ten = fields.Char("Tên dự án", store=True, compute="get_name_duan")
 
     ngay_bat_dau = fields.Date("Ngày bắt đầu", store=True, required=True)
+    ngay_bat_dau = fields.Date("Ngày bắt đầu", store=True, required=True)
 
     trang_thai = fields.Selection([('run', 'Đang chạy'), ('kt', 'Kết thúc')],
                                   string='Trạng thái',
@@ -163,15 +164,8 @@ class Project(models.Model):
 
     def _validate_child_project_end_dates(self):
         for project in self:
-            if (
-                project.du_an_cha_id
-                and project.ngay_kt_da != project.du_an_cha_id.ngay_kt_da
-            ):
-                raise ValidationError(
-                    _(
-                        "Ngày kết thúc dự án con phải bằng ngày kết thúc dự án cha."
-                    )
-                )
+            if project.du_an_cha_id and project.ngay_kt_da < project.du_an_cha_id.ngay_kt_da:
+                raise ValidationError(_("Ngày kết thúc dự án con phải bằng ngày kết thúc dự án cha."))
 
     def _validate_child_task_end_dates(self):
         tasks = self.env['project.task']
