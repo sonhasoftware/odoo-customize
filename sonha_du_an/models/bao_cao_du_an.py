@@ -159,6 +159,17 @@ class BaoCaoDuAn(models.Model):
         default=fields.Datetime.now,
     )
 
+    du_an_cha = fields.Boolean("Dự án cha", compute="get_du_an_cha_con")
+    du_an_con = fields.Many2one('sonha.du.an.bao.cao', string="Dự án con")
+    nhiem_vu = fields.Many2one('sonha.du.an.bao.cao', string="Nhiệm vụ")
+
+    def get_du_an_cha_con(self):
+        for r in self:
+            if r.stt == 1:
+                r.du_an_cha = True
+            else:
+                r.du_an_cha = False
+
     @staticmethod
     def _find_child_project_id(values, current_index):
         total = len(values)
@@ -236,6 +247,8 @@ class BaoCaoDuAn(models.Model):
                 'ns_lam': row.get('ns_lam'),
                 'in_dam': row.get('in_dam') or 0,
                 'du_an_con_id': row.get('du_an_con_id') or False,
+                'du_an_con': row.get('du_an_con_id') or False,
+                'nhiem_vu': row.get('du_an_con_id') or False,
                 'du_lieu': json.dumps(
                     row,
                     ensure_ascii=False,
