@@ -4,11 +4,8 @@ import { ListRenderer } from "@web/views/list/list_renderer";
 import { patch } from "@web/core/utils/patch";
 import { onMounted, onPatched, onWillUnmount } from "@odoo/owl";
 
-/**
- * Ghim tiêu đề bảng (sticky header) cho one2many tree view có class
- * `sh_free_width_tree` khi nằm trong form view.
- */
-
+/* Ghim tiêu đề bảng (sticky header) cho tree view có class `sh_free_width_tree trong form view. */
+const MIN_BODY_VISIBLE = 24;
 
 function _isFormFreeWidth(renderer) {
     const table = renderer.tableRef?.el;
@@ -28,8 +25,35 @@ function _isFormFreeWidth(renderer) {
     return Boolean(table.closest(".sh_free_width_tree"));
 }
 
-function _findScrollParent(el) {
-    return el.closest(".o_content") || el.closest(".modal-body");
+function _clipsVertically(el) {
+    const overflowY = getComputedStyle(el).overflowY;
+    return overflowY !== "visible" && overflowY !== "clip";
+}
+
+function _collectClippers(table) {
+    const clippers = [];
+    for (let el = table.parentElement; el && el !== document.body; el = el.parentElement) {
+        if (_clipsVertically(el)) {
+            clippers.push(el);
+        }
+    }
+    return clippers;
+}
+
+function _visibleBand(clippers) {
+    let top = 0;
+    let bottom = window.innerHeight || document.documentElement.clientHeight;
+
+    for (const el of clippers) {
+        const rect = el.getBoundingClientRect();
+        if (rect.height === 0) {
+            continue;
+        }
+        top = Math.max(top, rect.top);
+        bottom = Math.min(bottom, rect.bottom);
+    }
+
+    return { top, bottom };
 }
 
 function _clearStyles(thead) {
@@ -42,25 +66,9 @@ function _clearStyles(thead) {
     thead.classList.remove("o_vat_tu_sticky_header_active");
 }
 
-// ---------------------------------------------------------------------------
-// Core
-// ---------------------------------------------------------------------------
-
-/**
- * Khởi tạo (hoặc cập nhật) sticky header cho một ListRenderer.
- *
- * Nếu đã setup rồi với cùng scroll container + thead → chỉ re-check vị trí.
- * Nếu DOM thay đổi (tab switch, re-render) → dọn cũ, setup mới.
- */
 function _initStickyHeader(renderer) {
     const table = renderer.tableRef?.el;
     if (!_isFormFreeWidth(renderer)) {
-        _destroyStickyHeader(renderer);
-        return;
-    }
-
-    const scrollParent = _findScrollParent(table);
-    if (!scrollParent) {
         _destroyStickyHeader(renderer);
         return;
     }
@@ -72,65 +80,87 @@ function _initStickyHeader(renderer) {
     }
 
     const st = renderer.__stickyHeaderState;
-    if (st && st.scrollParent === scrollParent && st.thead === thead) {
-        st.doUpdate();
+    if (st && st.table === table && st.thead === thead) {
+        st.requestUpdate();
         return;
     }
 
     _destroyStickyHeader(renderer);
 
     let ticking = false;
+    let clippers = _collectClippers(table);
 
-    const doUpdate = () => {
-        const containerRect = scrollParent.getBoundingClientRect();
-        const tableRect = table.getBoundingClientRect();
+    const update = () => {
+        ticking = false;
 
-        if (tableRect.height === 0) {
-            _clearStyles(thead);
-            ticking = false;
+        if (!table.isConnected) {
             return;
         }
 
-        const theadH = thead.getBoundingClientRect().height;
-        const tableBottom = tableRect.top + tableRect.height;
-
-        // Ghim khi:
-        //   1) Đỉnh bảng đã trôi lên trên đỉnh scroll container
-        //   2) Vẫn còn ít nhất 1 dòng body hiện dưới thead
-        const shouldStick =
-            tableRect.top < containerRect.top &&
-            tableBottom > containerRect.top + theadH + 10;
-
-        if (shouldStick) {
-            const offset = Math.round(containerRect.top - tableRect.top);
-            thead.style.transform = `translateY(${offset}px)`;
-            thead.style.setProperty("position", "relative", "important");
-            thead.style.zIndex = "20";
-            thead.classList.add("o_vat_tu_sticky_header_active");
-        } else {
+        const tableRect = table.getBoundingClientRect();
+        if (tableRect.height === 0) {
             _clearStyles(thead);
+            return;
         }
 
-        ticking = false;
+        const band = _visibleBand(clippers);
+        const theadH = thead.getBoundingClientRect().height;
+
+        const needStick =
+            tableRect.top < band.top &&
+            tableRect.bottom > band.top + theadH + MIN_BODY_VISIBLE &&
+            band.bottom > band.top + theadH;
+
+        if (!needStick) {
+            _clearStyles(thead);
+            return;
+        }
+
+        const maxOffset = tableRect.height - theadH - MIN_BODY_VISIBLE;
+        const offset = Math.min(Math.round(band.top - tableRect.top), Math.round(maxOffset));
+
+        if (offset <= 0) {
+            _clearStyles(thead);
+            return;
+        }
+
+        thead.style.transform = `translateY(${offset}px)`;
+        thead.style.setProperty("position", "relative", "important");
+        thead.style.zIndex = "20";
+        thead.classList.add("o_vat_tu_sticky_header_active");
     };
 
-    const onScroll = () => {
+    const requestUpdate = () => {
         if (!ticking) {
-            requestAnimationFrame(doUpdate);
             ticking = true;
+            requestAnimationFrame(update);
         }
     };
 
-    scrollParent.addEventListener("scroll", onScroll, { passive: true });
+    const relayout = () => {
+        clippers = _collectClippers(table);
+        requestUpdate();
+    };
+
+    document.addEventListener("scroll", requestUpdate, { capture: true, passive: true });
+    window.addEventListener("resize", relayout, { passive: true });
+
+    const resizeObserver = new ResizeObserver(relayout);
+    resizeObserver.observe(table);
+    const sheet = table.closest(".o_form_sheet_bg") || table.closest(".o_content");
+    if (sheet) {
+        resizeObserver.observe(sheet);
+    }
 
     renderer.__stickyHeaderState = {
-        scrollParent,
+        table,
         thead,
-        doUpdate,
-        onScroll,
+        requestUpdate,
+        relayout,
+        resizeObserver,
     };
 
-    onScroll();
+    relayout();
 }
 
 function _destroyStickyHeader(renderer) {
@@ -138,14 +168,12 @@ function _destroyStickyHeader(renderer) {
     if (!st) {
         return;
     }
-    st.scrollParent.removeEventListener("scroll", st.onScroll);
+    document.removeEventListener("scroll", st.requestUpdate, { capture: true });
+    window.removeEventListener("resize", st.relayout);
+    st.resizeObserver.disconnect();
     _clearStyles(st.thead);
     renderer.__stickyHeaderState = null;
 }
-
-// ---------------------------------------------------------------------------
-// Patch
-// ---------------------------------------------------------------------------
 
 patch(ListRenderer.prototype, {
     setup() {
