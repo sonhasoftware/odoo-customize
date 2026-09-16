@@ -18,3 +18,6 @@ access_bao_cao_du_an_wizard,sonha.du.an.bao.cao.wizard,model_sonha_du_an_bao_cao
 
 access_bao_cao_du_an_cha_admin,sonha.du.an.bao.cao.cha.admin,model_sonha_du_an_bao_cao_cha,,1,1,1,1
 access_bao_cao_cha_du_an_wizard,sonha.du.an.cha.bao.cao.wizard,model_sonha_du_an_cha_bao_cao_wizard,,1,1,1,1
+
+access_bao_cao_du_an_con_admin,sonha.du.an.bao.cao.con.admin,model_sonha_du_an_bao_cao_con,,1,1,1,1
+access_bao_cao_con_du_an_wizard,sonha.du.an.con.bao.cao.wizard,model_sonha_du_an_con_bao_cao_wizard,,1,1,1,1

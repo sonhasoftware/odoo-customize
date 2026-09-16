@@ -2,8 +2,8 @@ from odoo import _, fields, models
 from datetime import date
 
 
-class BaoCaoDuAnChaWizard(models.TransientModel):
-    _name = 'sonha.du.an.cha.bao.cao.wizard'
+class BaoCaoDuAnConWizard(models.TransientModel):
+    _name = 'sonha.du.an.con.bao.cao.wizard'
     _description = 'Tạo báo cáo dự án'
 
     tu_ngay = fields.Date(string='Từ ngày', required=True, default=lambda self: date.today().replace(month=1, day=1))
@@ -13,7 +13,7 @@ class BaoCaoDuAnChaWizard(models.TransientModel):
 
     def action_generate_report(self):
         self.ensure_one()
-        report_model = self.env['sonha.du.an.bao.cao.cha']
+        report_model = self.env['sonha.du.an.bao.cao.con']
 
         # The report table is a generated snapshot.  Remove the previous
         # snapshot before running the database function so the result shown to
@@ -27,7 +27,7 @@ class BaoCaoDuAnChaWizard(models.TransientModel):
         return {
             'type': 'ir.actions.act_window',
             'name': _('Báo cáo dự án'),
-            'res_model': 'sonha.du.an.bao.cao.cha',
+            'res_model': 'sonha.du.an.bao.cao.con',
             'view_mode': 'tree,form',
             'context': {'search_default_group_by_parent': 1},
         }
