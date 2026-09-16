@@ -244,12 +244,10 @@ class BaoCaoDuAn(models.Model):
             if project.exists():
                 project_name = project.name
 
-        # ==========================================================
-        # Chuẩn bị dữ liệu
-        # ==========================================================
         values = []
 
         for index, row in enumerate(rows, start=1):
+            print('aaaaaaaaaaaaaa', row.get('noi_dung_cv_con'))
             values.append({
                 'name': (
                         row.get('noi_dung_cv_con')
