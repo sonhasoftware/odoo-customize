@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_bao_cao_du_an_cha_tree" model="ir.ui.view">
+        <field name="name">sonha.du.an.cha.bao.cao.tree</field>
+        <field name="model">sonha.du.an.bao.cao</field>
+        <field name="arch" type="xml">
+            <tree string="Báo cáo dự án cha" create="0" edit="0" delete="0" default_order="stt" decoration-success="in_dam == 1" decoration-info="in_dam == 2">
+                <header>
+                    <button name="action_open_generate_wizard"
+                        type="object"
+                        string="Tạo báo cáo"
+                        class="btn-primary"/>
+                </header>
+<!--                <field name="stt"/>-->
+                <field name="noi_dung_cv_con" widget="preserve_whitespace"/>
+                <field name="ngay_bat_dau"/>
+                <field name="ngay_ket_thuc"/>
+                <field name="ngay_hoan_thanh"/>
+                <field name="so_ngay_qua_han"/>
+                <field name="ten_trang_thai"/>
+                <field name="tinh_trang_han"/>
+<!--                <field name="pt_cv"/>-->
+                <field name="ns_lam"/>
+                <field name="parent_group_name" column_invisible="1"/>
+                <field name="child_group_name" column_invisible="1"/>
+                <field name="du_an_cha" column_invisible="1"/>
+                <field name="du_an_con" column_invisible="1"/>
+                <field name="in_dam" column_invisible="1"/>
+            </tree>
+
+        </field>
+    </record>
+
+    <record id="view_bao_cao_du_an_cha_search" model="ir.ui.view">
+    <field name="name">sonha.du.an.cha.bao.cao.search</field>
+    <field name="model">sonha.du.an.bao.cao.cha</field>
+    <field name="arch" type="xml">
+        <search>
+            <filter string="Dự án cha" name="group_by_parent_project" context="{'group_by': 'du_an_cha'}"/>
+            <filter string="Dự án con" name="group_by_child_project" context="{'group_by': 'du_an_con'}"/>
+        </search>
+    </field>
+</record>
+
+    <record id="view_bao_cao_du_an_cha_form" model="ir.ui.view">
+        <field name="name">sonha.du.an.cha.bao.cao.form</field>
+        <field name="model">sonha.du.an.bao.cao.cha</field>
+        <field name="arch" type="xml">
+            <form string="Báo cáo dự án cha" create="0" edit="0" delete="0">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="tu_ngay"/>
+                        <field name="den_ngay"/>
+                        <field name="du_an_cha_id"/>
+                        <field name="stt"/>
+                        <field name="ngay_tao_bao_cao"/>
+                    </group>
+
+                    <group string="Chi tiết công việc">
+                        <field name="noi_dung_cv_con"/>
+                        <field name="ngay_bat_dau"/>
+                        <field name="ngay_ket_thuc"/>
+                        <field name="ten_trang_thai"/>
+                        <field name="tinh_trang_han"/>
+                        <field name="pt_cv"/>
+                        <field name="ns_lam"/>
+                        <field name="in_dam" invisible="1"/>
+                    </group>
+
+                    <group string="Thông tin nhóm">
+                        <field name="parent_group_id" invisible="1"/>
+                        <field name="child_group_id" invisible="1"/>
+                        <field name="parent_group_name" invisible="1"/>
+                        <field name="child_group_name" invisible="1"/>
+                        <field name="du_an_cha" invisible="1"/>
+                        <field name="du_an_con" invisible="1"/>
+                    </group>
+
+                    <group string="Dữ liệu trả về từ hàm">
+                        <field name="du_lieu" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_bao_cao_du_an_cha_list" model="ir.actions.act_window">
+        <field name="name"> Báo cáo dự án cha</field>
+        <field name="res_model">sonha.du.an.bao.cao.cha</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'group_by': ['du_an_cha','du_an_con']}</field>
+    </record>
+
+    <record id="action_bao_cao_du_an_cha" model="ir.actions.act_window">
+        <field name="name">Tạo báo cáo dự án</field>
+        <field name="res_model">sonha.du.an.cha.bao.cao.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_bao_cao_du_an_cha_wizard_form"/>
+        <field name="target">new</field>
+    </record>
+
+</odoo>

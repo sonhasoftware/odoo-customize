@@ -15,3 +15,6 @@ access_project_task_pending_wizard,project.task.pending.wizard,model_project_tas
 
 access_bao_cao_du_an_admin,sonha.du.an.bao.cao.admin,model_sonha_du_an_bao_cao,,1,1,1,1
 access_bao_cao_du_an_wizard,sonha.du.an.bao.cao.wizard,model_sonha_du_an_bao_cao_wizard,,1,1,1,1
+
+access_bao_cao_du_an_cha_admin,sonha.du.an.bao.cao.cha.admin,model_sonha_du_an_bao_cao_cha,,1,1,1,1
+access_bao_cao_cha_du_an_wizard,sonha.du.an.cha.bao.cao.wizard,model_sonha_du_an_cha_bao_cao_wizard,,1,1,1,1

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <record id="view_bao_cao_du_an_wizard_form" model="ir.ui.view">
-        <field name="name">sonha.du.an.bao.cao.wizard.form</field>
-        <field name="model">sonha.du.an.bao.cao.wizard</field>
+    <record id="view_bao_cao_du_an_cha_wizard_form" model="ir.ui.view">
+        <field name="name">sonha.du.an.cha.bao.cao.wizard.form</field>
+        <field name="model">sonha.du.an.cha.bao.cao.wizard</field>
         <field name="arch" type="xml">
             <form string="Tạo báo cáo dự án">
                 <group>
