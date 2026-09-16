@@ -25,14 +25,14 @@ CREATE INDEX IF NOT EXISTS idx_dlthvt_owner_company
 -- ============================================================================
 
 -- Quy tắc tháng T0..T+3: period_month 'MM/YYYY' + offset tháng.
-CREATE OR REPLACE FUNCTION dlthvt_month_date(p_period_month TEXT, p_offset INT)
+CREATE OR REPLACE FUNCTION fn_thang_cua_ky(p_period_month TEXT, p_offset INT)
 RETURNS DATE
 LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE AS $$
     SELECT (TO_DATE(p_period_month, 'MM/YYYY') + (p_offset || ' month')::INTERVAL)::DATE;
 $$;
 
 -- Parse số từ chuỗi SAP (dấu trừ đuôi, phân cách nghìn, rác -> 0).
-CREATE OR REPLACE FUNCTION safe_sap_numeric(val TEXT)
+CREATE OR REPLACE FUNCTION fn_so_tu_sap(val TEXT)
 RETURNS NUMERIC AS $$
 DECLARE
     cleaned TEXT;
@@ -61,7 +61,7 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 -- KD: ke_hoach_kinh_doanh_line -> 4 dòng/tháng (header lưu period_sx_id)
 -- ---------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION dlthvt_map_kd(p_ids INTEGER[])
+CREATE OR REPLACE FUNCTION fn_dong_bo_kinh_doanh(p_ids INTEGER[])
 RETURNS void LANGUAGE sql AS $$
     DELETE FROM du_lieu_tong_hop_vat_tu
      WHERE source_model = 'ke.hoach.kinh.doanh.line'
@@ -93,7 +93,7 @@ RETURNS void LANGUAGE sql AS $$
         VALUES (0, k.qty_t0), (1, k.qty_t1), (2, k.qty_t2), (3, k.qty_t3)
     ) AS m(idx, qty)
     CROSS JOIN LATERAL (
-        SELECT dlthvt_month_date(p.period_month, m.idx) AS md
+        SELECT fn_thang_cua_ky(p.period_month, m.idx) AS md
     ) AS d
     WHERE k.id = ANY(p_ids);
 $$;
@@ -103,7 +103,7 @@ $$;
 -- Giống KD hoàn toàn về cấu trúc; company_id ở đây là đơn vị của dòng kế
 -- hoạch sản xuất (company_sx_id là nhà máy, không dùng cho bảng phẳng).
 -- ---------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION dlthvt_map_sx(p_ids INTEGER[])
+CREATE OR REPLACE FUNCTION fn_dong_bo_san_xuat(p_ids INTEGER[])
 RETURNS void LANGUAGE sql AS $$
     DELETE FROM du_lieu_tong_hop_vat_tu
      WHERE source_model = 'ke.hoach.san.xuat'
@@ -134,7 +134,7 @@ RETURNS void LANGUAGE sql AS $$
         VALUES (0, s.qty_t0), (1, s.qty_t1), (2, s.qty_t2), (3, s.qty_t3)
     ) AS m(idx, qty)
     CROSS JOIN LATERAL (
-        SELECT dlthvt_month_date(p.period_month, m.idx) AS md
+        SELECT fn_thang_cua_ky(p.period_month, m.idx) AS md
     ) AS d
     WHERE s.id = ANY(p_ids);
 $$;
@@ -144,7 +144,7 @@ $$;
 -- Khác KD/SX ở 3 cột đối chiếu KD / SX / chênh lệch, và nganh_hang ở bảng này
 -- đã là text sẵn nên không cần join mdm_nganh_hang.
 -- ---------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION dlthvt_map_b1(p_ids INTEGER[])
+CREATE OR REPLACE FUNCTION fn_dong_bo_buoc_1(p_ids INTEGER[])
 RETURNS void LANGUAGE sql AS $$
     DELETE FROM du_lieu_tong_hop_vat_tu
      WHERE source_model = 'ke.hoach.vat.tu.line'
@@ -180,7 +180,7 @@ RETURNS void LANGUAGE sql AS $$
             (3, l.qty_t3, l.qty_kd_t3, l.qty_sx_t3, l.qty_cl_t3)
     ) AS m(idx, qty, qty_kd, qty_sx, qty_cl)
     CROSS JOIN LATERAL (
-        SELECT dlthvt_month_date(p.period_month, m.idx) AS md
+        SELECT fn_thang_cua_ky(p.period_month, m.idx) AS md
     ) AS d
     WHERE l.id = ANY(p_ids);
 $$;
@@ -190,7 +190,7 @@ $$;
 -- sl_dinh_muc_ap_dung = override nếu có, không thì sl_dinh_muc gốc.
 -- period_company_id = company_id của dòng định mức.
 -- ---------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION dlthvt_map_b2(p_ids INTEGER[])
+CREATE OR REPLACE FUNCTION fn_dong_bo_buoc_2(p_ids INTEGER[])
 RETURNS void LANGUAGE sql AS $$
     DELETE FROM du_lieu_tong_hop_vat_tu
      WHERE source_model = 'dinh.muc'
@@ -232,7 +232,7 @@ RETURNS void LANGUAGE sql AS $$
             (3, dm.qty_t3, dm.qty_kinh_doanh_t3, dm.qty_san_xuat_t3, dm.qty_chenh_lech_t3)
     ) AS m(idx, qty, qty_kd, qty_sx, qty_cl)
     CROSS JOIN LATERAL (
-        SELECT dlthvt_month_date(p.period_month, m.idx) AS md
+        SELECT fn_thang_cua_ky(p.period_month, m.idx) AS md
     ) AS d
     WHERE dm.id = ANY(p_ids);
 $$;
@@ -243,7 +243,7 @@ $$;
 -- nữa), nên cần join res_company hai lần: một cho đơn vị sản xuất, một cho
 -- đơn vị kinh doanh.
 -- ---------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION dlthvt_map_b3(p_ids INTEGER[])
+CREATE OR REPLACE FUNCTION fn_dong_bo_buoc_3(p_ids INTEGER[])
 RETURNS void LANGUAGE sql AS $$
     DELETE FROM du_lieu_tong_hop_vat_tu
      WHERE source_model = 'tinh.toan.vat.tu'
@@ -276,7 +276,7 @@ RETURNS void LANGUAGE sql AS $$
         VALUES (0, t.qty_t0), (1, t.qty_t1), (2, t.qty_t2), (3, t.qty_t3)
     ) AS m(idx, qty)
     CROSS JOIN LATERAL (
-        SELECT dlthvt_month_date(p.period_month, m.idx) AS md
+        SELECT fn_thang_cua_ky(p.period_month, m.idx) AS md
     ) AS d
     WHERE t.id = ANY(p_ids);
 $$;
@@ -289,7 +289,7 @@ $$;
 -- dự phòng/thiếu/cần mua chỉ gán vào tháng cuối (T+3) và để 0 ở 3 tháng đầu
 -- để cột tổng của báo cáo không bị cộng trùng 4 lần.
 -- ---------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION dlthvt_map_b4(p_ids INTEGER[])
+CREATE OR REPLACE FUNCTION fn_dong_bo_buoc_4(p_ids INTEGER[])
 RETURNS void LANGUAGE sql AS $$
     DELETE FROM du_lieu_tong_hop_vat_tu
      WHERE source_model = 'tong.hop.vat.tu'
@@ -334,7 +334,7 @@ RETURNS void LANGUAGE sql AS $$
             (3, th.ve_du_kien_don_vi_t3, th.vt_can_dung_t3, th.ton_cuoi_t3)
     ) AS m(idx, ve_dv, can_dung, ton_cuoi)
     CROSS JOIN LATERAL (
-        SELECT dlthvt_month_date(p.period_month, m.idx) AS md
+        SELECT fn_thang_cua_ky(p.period_month, m.idx) AS md
     ) AS d
     WHERE th.id = ANY(p_ids);
 $$;
@@ -342,7 +342,7 @@ $$;
 -- ---------------------------------------------------------------------------
 -- B5: kh_dat_vat_tu -> 1 dòng T0 (bảng nguồn gộp cả kỳ).
 -- ---------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION dlthvt_map_b5(p_ids INTEGER[])
+CREATE OR REPLACE FUNCTION fn_dong_bo_buoc_5(p_ids INTEGER[])
 RETURNS void LANGUAGE sql AS $$
     DELETE FROM du_lieu_tong_hop_vat_tu
      WHERE source_model = 'kh.dat.vat.tu'
@@ -398,7 +398,7 @@ RETURNS void LANGUAGE sql AS $$
      AND p.period_month ~ '^\d{2}/\d{4}$'
     LEFT JOIN res_company rc ON rc.id = k.company_id
     CROSS JOIN LATERAL (
-        SELECT dlthvt_month_date(p.period_month, 0) AS md
+        SELECT fn_thang_cua_ky(p.period_month, 0) AS md
     ) AS d
     WHERE k.id = ANY(p_ids);
 $$;
@@ -406,7 +406,7 @@ $$;
 -- ---------------------------------------------------------------------------
 -- B6: kh_dat_vat_tu_bcu -> 1 dòng/tháng T0 (cấu trúc tương B5 + cột BCU đi đường)
 -- ---------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION dlthvt_map_b6(p_ids INTEGER[])
+CREATE OR REPLACE FUNCTION fn_dong_bo_buoc_6(p_ids INTEGER[])
 RETURNS void LANGUAGE sql AS $$
     DELETE FROM du_lieu_tong_hop_vat_tu
      WHERE source_model = 'kh.dat.vat.tu.bcu'
@@ -470,7 +470,7 @@ RETURNS void LANGUAGE sql AS $$
      AND p.period_month ~ '^\d{2}/\d{4}$'
     LEFT JOIN res_company rc ON rc.id = k.company_id
     CROSS JOIN LATERAL (
-        SELECT dlthvt_month_date(p.period_month, 0) AS md
+        SELECT fn_thang_cua_ky(p.period_month, 0) AS md
     ) AS d
     WHERE k.id = ANY(p_ids);
 $$;
@@ -479,7 +479,7 @@ $$;
 -- B7: phe_duyet_kh_vat_tu -> 1 dòng/tháng T0
 -- company_id = đơn vị đặt hàng (BNH, SSP…).
 -- ---------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION dlthvt_map_b7(p_ids INTEGER[])
+CREATE OR REPLACE FUNCTION fn_dong_bo_buoc_7(p_ids INTEGER[])
 RETURNS void LANGUAGE sql AS $$
     DELETE FROM du_lieu_tong_hop_vat_tu
      WHERE source_model = 'phe.duyet.kh.vat.tu'
@@ -514,7 +514,7 @@ RETURNS void LANGUAGE sql AS $$
      AND p.period_month ~ '^\d{2}/\d{4}$'
     LEFT JOIN res_company rc ON rc.id = pd.company_id
     CROSS JOIN LATERAL (
-        SELECT dlthvt_month_date(p.period_month, 0) AS md
+        SELECT fn_thang_cua_ky(p.period_month, 0) AS md
     ) AS d
     WHERE pd.id = ANY(p_ids);
 $$;
@@ -523,13 +523,13 @@ $$;
 -- ============================================================================
 -- PHẦN 4. TRIGGER trên bảng nguồn
 -- ----------------------------------------------------------------------------
--- dlthvt_after_change: INSERT/UPDATE -> map lại dòng phẳng (tham số bước qua TG_ARGV).
--- dlthvt_after_delete: DELETE -> xóa dòng phẳng theo source_model + source_res_id.
+-- fn_trg_nguon_thay_doi: INSERT/UPDATE -> map lại dòng phẳng (tham số bước qua TG_ARGV).
+-- fn_trg_nguon_xoa: DELETE -> xóa dòng phẳng theo source_model + source_res_id.
 -- Mỗi bảng 3 trigger (ins/upd/del) — PostgreSQL yêu cầu tách sự kiện khi dùng transition table.
 -- ============================================================================
 
 -- INSERT/UPDATE nguồn: map lại bảng phẳng.
-CREATE OR REPLACE FUNCTION dlthvt_after_change() RETURNS TRIGGER
+CREATE OR REPLACE FUNCTION fn_trg_nguon_thay_doi() RETURNS TRIGGER
 LANGUAGE plpgsql AS $$
 DECLARE
     v_ids INTEGER[] := ARRAY(SELECT id FROM newtab);
@@ -540,15 +540,15 @@ BEGIN
     END IF;
 
     CASE TG_ARGV[0]
-        WHEN 'kd' THEN PERFORM dlthvt_map_kd(v_ids);
-        WHEN 'sx' THEN PERFORM dlthvt_map_sx(v_ids);
-        WHEN 'b1' THEN PERFORM dlthvt_map_b1(v_ids);
-        WHEN 'b2' THEN PERFORM dlthvt_map_b2(v_ids);
-        WHEN 'b3' THEN PERFORM dlthvt_map_b3(v_ids);
-        WHEN 'b4' THEN PERFORM dlthvt_map_b4(v_ids);
-        WHEN 'b5' THEN PERFORM dlthvt_map_b5(v_ids);
-        WHEN 'b6' THEN PERFORM dlthvt_map_b6(v_ids);
-        WHEN 'b7' THEN PERFORM dlthvt_map_b7(v_ids);
+        WHEN 'kd' THEN PERFORM fn_dong_bo_kinh_doanh(v_ids);
+        WHEN 'sx' THEN PERFORM fn_dong_bo_san_xuat(v_ids);
+        WHEN 'b1' THEN PERFORM fn_dong_bo_buoc_1(v_ids);
+        WHEN 'b2' THEN PERFORM fn_dong_bo_buoc_2(v_ids);
+        WHEN 'b3' THEN PERFORM fn_dong_bo_buoc_3(v_ids);
+        WHEN 'b4' THEN PERFORM fn_dong_bo_buoc_4(v_ids);
+        WHEN 'b5' THEN PERFORM fn_dong_bo_buoc_5(v_ids);
+        WHEN 'b6' THEN PERFORM fn_dong_bo_buoc_6(v_ids);
+        WHEN 'b7' THEN PERFORM fn_dong_bo_buoc_7(v_ids);
     END CASE;
 
     RETURN NULL;
@@ -556,7 +556,7 @@ END;
 $$;
 
 -- DELETE nguồn: xóa dòng phẳng tương ứng.
-CREATE OR REPLACE FUNCTION dlthvt_after_delete() RETURNS TRIGGER
+CREATE OR REPLACE FUNCTION fn_trg_nguon_xoa() RETURNS TRIGGER
 LANGUAGE plpgsql AS $$
 BEGIN
     DELETE FROM du_lieu_tong_hop_vat_tu
@@ -570,17 +570,17 @@ $$;
 DROP TRIGGER IF EXISTS trg_dlthvt_kd_ins ON ke_hoach_kinh_doanh_line;
 CREATE TRIGGER trg_dlthvt_kd_ins AFTER INSERT ON ke_hoach_kinh_doanh_line
 REFERENCING NEW TABLE AS newtab FOR EACH STATEMENT
-EXECUTE FUNCTION dlthvt_after_change('kd');
+EXECUTE FUNCTION fn_trg_nguon_thay_doi('kd');
 
 DROP TRIGGER IF EXISTS trg_dlthvt_kd_upd ON ke_hoach_kinh_doanh_line;
 CREATE TRIGGER trg_dlthvt_kd_upd AFTER UPDATE ON ke_hoach_kinh_doanh_line
 REFERENCING NEW TABLE AS newtab FOR EACH STATEMENT
-EXECUTE FUNCTION dlthvt_after_change('kd');
+EXECUTE FUNCTION fn_trg_nguon_thay_doi('kd');
 
 DROP TRIGGER IF EXISTS trg_dlthvt_kd_del ON ke_hoach_kinh_doanh_line;
 CREATE TRIGGER trg_dlthvt_kd_del AFTER DELETE ON ke_hoach_kinh_doanh_line
 REFERENCING OLD TABLE AS oldtab FOR EACH STATEMENT
-EXECUTE FUNCTION dlthvt_after_delete('ke.hoach.kinh.doanh.line');
+EXECUTE FUNCTION fn_trg_nguon_xoa('ke.hoach.kinh.doanh.line');
 
 -- Xóa trigger cũ trên header (nếu còn sau upgrade)
 DROP TRIGGER IF EXISTS trg_dlthvt_kd_ins ON ke_hoach_kinh_doanh;
@@ -591,129 +591,129 @@ DROP TRIGGER IF EXISTS trg_dlthvt_kd_del ON ke_hoach_kinh_doanh;
 DROP TRIGGER IF EXISTS trg_dlthvt_sx_ins ON ke_hoach_san_xuat;
 CREATE TRIGGER trg_dlthvt_sx_ins AFTER INSERT ON ke_hoach_san_xuat
 REFERENCING NEW TABLE AS newtab FOR EACH STATEMENT
-EXECUTE FUNCTION dlthvt_after_change('sx');
+EXECUTE FUNCTION fn_trg_nguon_thay_doi('sx');
 
 DROP TRIGGER IF EXISTS trg_dlthvt_sx_upd ON ke_hoach_san_xuat;
 CREATE TRIGGER trg_dlthvt_sx_upd AFTER UPDATE ON ke_hoach_san_xuat
 REFERENCING NEW TABLE AS newtab FOR EACH STATEMENT
-EXECUTE FUNCTION dlthvt_after_change('sx');
+EXECUTE FUNCTION fn_trg_nguon_thay_doi('sx');
 
 DROP TRIGGER IF EXISTS trg_dlthvt_sx_del ON ke_hoach_san_xuat;
 CREATE TRIGGER trg_dlthvt_sx_del AFTER DELETE ON ke_hoach_san_xuat
 REFERENCING OLD TABLE AS oldtab FOR EACH STATEMENT
-EXECUTE FUNCTION dlthvt_after_delete('ke.hoach.san.xuat');
+EXECUTE FUNCTION fn_trg_nguon_xoa('ke.hoach.san.xuat');
 
 -- --- B1 ---------------------------------------------------------------------
 DROP TRIGGER IF EXISTS trg_dlthvt_b1_ins ON ke_hoach_vat_tu_line;
 CREATE TRIGGER trg_dlthvt_b1_ins AFTER INSERT ON ke_hoach_vat_tu_line
 REFERENCING NEW TABLE AS newtab FOR EACH STATEMENT
-EXECUTE FUNCTION dlthvt_after_change('b1');
+EXECUTE FUNCTION fn_trg_nguon_thay_doi('b1');
 
 DROP TRIGGER IF EXISTS trg_dlthvt_b1_upd ON ke_hoach_vat_tu_line;
 CREATE TRIGGER trg_dlthvt_b1_upd AFTER UPDATE ON ke_hoach_vat_tu_line
 REFERENCING NEW TABLE AS newtab FOR EACH STATEMENT
-EXECUTE FUNCTION dlthvt_after_change('b1');
+EXECUTE FUNCTION fn_trg_nguon_thay_doi('b1');
 
 DROP TRIGGER IF EXISTS trg_dlthvt_b1_del ON ke_hoach_vat_tu_line;
 CREATE TRIGGER trg_dlthvt_b1_del AFTER DELETE ON ke_hoach_vat_tu_line
 REFERENCING OLD TABLE AS oldtab FOR EACH STATEMENT
-EXECUTE FUNCTION dlthvt_after_delete('ke.hoach.vat.tu.line');
+EXECUTE FUNCTION fn_trg_nguon_xoa('ke.hoach.vat.tu.line');
 
 -- --- B2 ---------------------------------------------------------------------
 DROP TRIGGER IF EXISTS trg_dlthvt_b2_ins ON dinh_muc;
 CREATE TRIGGER trg_dlthvt_b2_ins AFTER INSERT ON dinh_muc
 REFERENCING NEW TABLE AS newtab FOR EACH STATEMENT
-EXECUTE FUNCTION dlthvt_after_change('b2');
+EXECUTE FUNCTION fn_trg_nguon_thay_doi('b2');
 
 DROP TRIGGER IF EXISTS trg_dlthvt_b2_upd ON dinh_muc;
 CREATE TRIGGER trg_dlthvt_b2_upd AFTER UPDATE ON dinh_muc
 REFERENCING NEW TABLE AS newtab FOR EACH STATEMENT
-EXECUTE FUNCTION dlthvt_after_change('b2');
+EXECUTE FUNCTION fn_trg_nguon_thay_doi('b2');
 
 DROP TRIGGER IF EXISTS trg_dlthvt_b2_del ON dinh_muc;
 CREATE TRIGGER trg_dlthvt_b2_del AFTER DELETE ON dinh_muc
 REFERENCING OLD TABLE AS oldtab FOR EACH STATEMENT
-EXECUTE FUNCTION dlthvt_after_delete('dinh.muc');
+EXECUTE FUNCTION fn_trg_nguon_xoa('dinh.muc');
 
 -- --- B3 ---------------------------------------------------------------------
 DROP TRIGGER IF EXISTS trg_dlthvt_b3_ins ON tinh_toan_vat_tu;
 CREATE TRIGGER trg_dlthvt_b3_ins AFTER INSERT ON tinh_toan_vat_tu
 REFERENCING NEW TABLE AS newtab FOR EACH STATEMENT
-EXECUTE FUNCTION dlthvt_after_change('b3');
+EXECUTE FUNCTION fn_trg_nguon_thay_doi('b3');
 
 DROP TRIGGER IF EXISTS trg_dlthvt_b3_upd ON tinh_toan_vat_tu;
 CREATE TRIGGER trg_dlthvt_b3_upd AFTER UPDATE ON tinh_toan_vat_tu
 REFERENCING NEW TABLE AS newtab FOR EACH STATEMENT
-EXECUTE FUNCTION dlthvt_after_change('b3');
+EXECUTE FUNCTION fn_trg_nguon_thay_doi('b3');
 
 DROP TRIGGER IF EXISTS trg_dlthvt_b3_del ON tinh_toan_vat_tu;
 CREATE TRIGGER trg_dlthvt_b3_del AFTER DELETE ON tinh_toan_vat_tu
 REFERENCING OLD TABLE AS oldtab FOR EACH STATEMENT
-EXECUTE FUNCTION dlthvt_after_delete('tinh.toan.vat.tu');
+EXECUTE FUNCTION fn_trg_nguon_xoa('tinh.toan.vat.tu');
 
 -- --- B4 ---------------------------------------------------------------------
 DROP TRIGGER IF EXISTS trg_dlthvt_b4_ins ON tong_hop_vat_tu;
 CREATE TRIGGER trg_dlthvt_b4_ins AFTER INSERT ON tong_hop_vat_tu
 REFERENCING NEW TABLE AS newtab FOR EACH STATEMENT
-EXECUTE FUNCTION dlthvt_after_change('b4');
+EXECUTE FUNCTION fn_trg_nguon_thay_doi('b4');
 
 DROP TRIGGER IF EXISTS trg_dlthvt_b4_upd ON tong_hop_vat_tu;
 CREATE TRIGGER trg_dlthvt_b4_upd AFTER UPDATE ON tong_hop_vat_tu
 REFERENCING NEW TABLE AS newtab FOR EACH STATEMENT
-EXECUTE FUNCTION dlthvt_after_change('b4');
+EXECUTE FUNCTION fn_trg_nguon_thay_doi('b4');
 
 DROP TRIGGER IF EXISTS trg_dlthvt_b4_del ON tong_hop_vat_tu;
 CREATE TRIGGER trg_dlthvt_b4_del AFTER DELETE ON tong_hop_vat_tu
 REFERENCING OLD TABLE AS oldtab FOR EACH STATEMENT
-EXECUTE FUNCTION dlthvt_after_delete('tong.hop.vat.tu');
+EXECUTE FUNCTION fn_trg_nguon_xoa('tong.hop.vat.tu');
 
 -- --- B5 ---------------------------------------------------------------------
 DROP TRIGGER IF EXISTS trg_dlthvt_b5_ins ON kh_dat_vat_tu;
 CREATE TRIGGER trg_dlthvt_b5_ins AFTER INSERT ON kh_dat_vat_tu
 REFERENCING NEW TABLE AS newtab FOR EACH STATEMENT
-EXECUTE FUNCTION dlthvt_after_change('b5');
+EXECUTE FUNCTION fn_trg_nguon_thay_doi('b5');
 
 DROP TRIGGER IF EXISTS trg_dlthvt_b5_upd ON kh_dat_vat_tu;
 CREATE TRIGGER trg_dlthvt_b5_upd AFTER UPDATE ON kh_dat_vat_tu
 REFERENCING NEW TABLE AS newtab FOR EACH STATEMENT
-EXECUTE FUNCTION dlthvt_after_change('b5');
+EXECUTE FUNCTION fn_trg_nguon_thay_doi('b5');
 
 DROP TRIGGER IF EXISTS trg_dlthvt_b5_del ON kh_dat_vat_tu;
 CREATE TRIGGER trg_dlthvt_b5_del AFTER DELETE ON kh_dat_vat_tu
 REFERENCING OLD TABLE AS oldtab FOR EACH STATEMENT
-EXECUTE FUNCTION dlthvt_after_delete('kh.dat.vat.tu');
+EXECUTE FUNCTION fn_trg_nguon_xoa('kh.dat.vat.tu');
 
 -- --- B6 ---------------------------------------------------------------------
 DROP TRIGGER IF EXISTS trg_dlthvt_b6_ins ON kh_dat_vat_tu_bcu;
 CREATE TRIGGER trg_dlthvt_b6_ins AFTER INSERT ON kh_dat_vat_tu_bcu
 REFERENCING NEW TABLE AS newtab FOR EACH STATEMENT
-EXECUTE FUNCTION dlthvt_after_change('b6');
+EXECUTE FUNCTION fn_trg_nguon_thay_doi('b6');
 
 DROP TRIGGER IF EXISTS trg_dlthvt_b6_upd ON kh_dat_vat_tu_bcu;
 CREATE TRIGGER trg_dlthvt_b6_upd AFTER UPDATE ON kh_dat_vat_tu_bcu
 REFERENCING NEW TABLE AS newtab FOR EACH STATEMENT
-EXECUTE FUNCTION dlthvt_after_change('b6');
+EXECUTE FUNCTION fn_trg_nguon_thay_doi('b6');
 
 DROP TRIGGER IF EXISTS trg_dlthvt_b6_del ON kh_dat_vat_tu_bcu;
 CREATE TRIGGER trg_dlthvt_b6_del AFTER DELETE ON kh_dat_vat_tu_bcu
 REFERENCING OLD TABLE AS oldtab FOR EACH STATEMENT
-EXECUTE FUNCTION dlthvt_after_delete('kh.dat.vat.tu.bcu');
+EXECUTE FUNCTION fn_trg_nguon_xoa('kh.dat.vat.tu.bcu');
 
 -- --- B7 ---------------------------------------------------------------------
 DROP TRIGGER IF EXISTS trg_dlthvt_b7_ins ON phe_duyet_kh_vat_tu;
 CREATE TRIGGER trg_dlthvt_b7_ins AFTER INSERT ON phe_duyet_kh_vat_tu
 REFERENCING NEW TABLE AS newtab FOR EACH STATEMENT
-EXECUTE FUNCTION dlthvt_after_change('b7');
+EXECUTE FUNCTION fn_trg_nguon_thay_doi('b7');
 
 DROP TRIGGER IF EXISTS trg_dlthvt_b7_upd ON phe_duyet_kh_vat_tu;
 CREATE TRIGGER trg_dlthvt_b7_upd AFTER UPDATE ON phe_duyet_kh_vat_tu
 REFERENCING NEW TABLE AS newtab FOR EACH STATEMENT
-EXECUTE FUNCTION dlthvt_after_change('b7');
+EXECUTE FUNCTION fn_trg_nguon_thay_doi('b7');
 
 DROP TRIGGER IF EXISTS trg_dlthvt_b7_del ON phe_duyet_kh_vat_tu;
 CREATE TRIGGER trg_dlthvt_b7_del AFTER DELETE ON phe_duyet_kh_vat_tu
 REFERENCING OLD TABLE AS oldtab FOR EACH STATEMENT
-EXECUTE FUNCTION dlthvt_after_delete('phe.duyet.kh.vat.tu');
+EXECUTE FUNCTION fn_trg_nguon_xoa('phe.duyet.kh.vat.tu');
 
 
 -- ============================================================================
@@ -721,29 +721,29 @@ EXECUTE FUNCTION dlthvt_after_delete('phe.duyet.kh.vat.tu');
 -- ============================================================================
 
 -- Gọi nội bộ khi đổi period_month (month_key phụ thuộc T0).
-CREATE OR REPLACE FUNCTION dlthvt_sync_period(p_period_id INTEGER)
+CREATE OR REPLACE FUNCTION fn_dong_bo_ca_ky(p_period_id INTEGER)
 RETURNS void LANGUAGE plpgsql AS $$
 BEGIN
     DELETE FROM du_lieu_tong_hop_vat_tu WHERE period_id = p_period_id;
 
-    PERFORM dlthvt_map_kd(ARRAY(
+    PERFORM fn_dong_bo_kinh_doanh(ARRAY(
         SELECT k.id
           FROM ke_hoach_kinh_doanh_line k
           JOIN ke_hoach_kinh_doanh h ON h.id = k.kinh_doanh_id
          WHERE h.period_sx_id = p_period_id
     ));
-    PERFORM dlthvt_map_sx(ARRAY(SELECT id FROM ke_hoach_san_xuat    WHERE period_id = p_period_id));
-    PERFORM dlthvt_map_b1(ARRAY(SELECT id FROM ke_hoach_vat_tu_line WHERE period_id = p_period_id));
-    PERFORM dlthvt_map_b2(ARRAY(SELECT id FROM dinh_muc             WHERE period_id = p_period_id));
-    PERFORM dlthvt_map_b3(ARRAY(SELECT id FROM tinh_toan_vat_tu     WHERE period_id = p_period_id));
-    PERFORM dlthvt_map_b4(ARRAY(SELECT id FROM tong_hop_vat_tu      WHERE period_id = p_period_id));
-    PERFORM dlthvt_map_b5(ARRAY(SELECT id FROM kh_dat_vat_tu        WHERE period_id = p_period_id));
-    PERFORM dlthvt_map_b6(ARRAY(SELECT id FROM kh_dat_vat_tu_bcu    WHERE period_id = p_period_id));
-    PERFORM dlthvt_map_b7(ARRAY(SELECT id FROM phe_duyet_kh_vat_tu  WHERE period_id = p_period_id));
+    PERFORM fn_dong_bo_san_xuat(ARRAY(SELECT id FROM ke_hoach_san_xuat    WHERE period_id = p_period_id));
+    PERFORM fn_dong_bo_buoc_1(ARRAY(SELECT id FROM ke_hoach_vat_tu_line WHERE period_id = p_period_id));
+    PERFORM fn_dong_bo_buoc_2(ARRAY(SELECT id FROM dinh_muc             WHERE period_id = p_period_id));
+    PERFORM fn_dong_bo_buoc_3(ARRAY(SELECT id FROM tinh_toan_vat_tu     WHERE period_id = p_period_id));
+    PERFORM fn_dong_bo_buoc_4(ARRAY(SELECT id FROM tong_hop_vat_tu      WHERE period_id = p_period_id));
+    PERFORM fn_dong_bo_buoc_5(ARRAY(SELECT id FROM kh_dat_vat_tu        WHERE period_id = p_period_id));
+    PERFORM fn_dong_bo_buoc_6(ARRAY(SELECT id FROM kh_dat_vat_tu_bcu    WHERE period_id = p_period_id));
+    PERFORM fn_dong_bo_buoc_7(ARRAY(SELECT id FROM phe_duyet_kh_vat_tu  WHERE period_id = p_period_id));
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION dlthvt_after_period_update() RETURNS TRIGGER
+CREATE OR REPLACE FUNCTION fn_trg_ky_thay_doi() RETURNS TRIGGER
 LANGUAGE plpgsql AS $$
 DECLARE
     r RECORD;
@@ -765,7 +765,7 @@ BEGIN
           JOIN oldtab o ON o.id = n.id
          WHERE n.period_month IS DISTINCT FROM o.period_month
     LOOP
-        PERFORM dlthvt_sync_period(r.id);
+        PERFORM fn_dong_bo_ca_ky(r.id);
     END LOOP;
 
     UPDATE du_lieu_tong_hop_vat_tu d
@@ -788,18 +788,18 @@ DROP TRIGGER IF EXISTS trg_dlthvt_period_upd ON ke_hoach_vat_tu;
 CREATE TRIGGER trg_dlthvt_period_upd
 AFTER UPDATE ON ke_hoach_vat_tu
 REFERENCING OLD TABLE AS oldtab NEW TABLE AS newtab FOR EACH STATEMENT
-EXECUTE FUNCTION dlthvt_after_period_update();
+EXECUTE FUNCTION fn_trg_ky_thay_doi();
 
 
 -- ============================================================================
 -- PHẦN 6. ĐỒNG BỘ BOM: md_sap_bom -> bom
 -- ----------------------------------------------------------------------------
--- bom_sync_from_sap: UPSERT từ SAP; DISTINCT ON (ma_tp, ma_nvl) lấy bản mới nhất.
+-- fn_dong_bo_bom_tu_sap: UPSERT từ SAP; DISTINCT ON (ma_tp, ma_nvl) lấy bản mới nhất.
 -- do_day / kho_1 / kho_2 chỉ set 0 khi tạo mới, không ghi đè khi UPDATE.
 -- Trigger mức câu lệnh trên md_sap_bom + nạp lần đầu lúc cài module.
 -- ============================================================================
 
-CREATE OR REPLACE FUNCTION bom_sync_from_sap(p_ids INTEGER[] DEFAULT NULL)
+CREATE OR REPLACE FUNCTION fn_dong_bo_bom_tu_sap(p_ids INTEGER[] DEFAULT NULL)
 RETURNS void LANGUAGE sql AS $$
     INSERT INTO bom (
         ma_tp, ten_tp, ma_nvl, ten_nvl, sl_dinh_muc, sl_spdm,
@@ -811,8 +811,8 @@ RETURNS void LANGUAGE sql AS $$
         COALESCE(NULLIF(TRIM(s.ten_tp),  ''), TRIM(s.ma_tp)),
         TRIM(s.ma_nvl),
         COALESCE(NULLIF(TRIM(s.ten_nvl), ''), TRIM(s.ma_nvl)),
-        safe_sap_numeric(s.sl_dm),
-        COALESCE(NULLIF(safe_sap_numeric(s.sl_spdm), 0), 1.0),
+        fn_so_tu_sap(s.sl_dm),
+        COALESCE(NULLIF(fn_so_tu_sap(s.sl_spdm), 0), 1.0),
         0, 0, 0,
         1, NOW() AT TIME ZONE 'UTC', 1, NOW() AT TIME ZONE 'UTC'
     FROM md_sap_bom s
@@ -828,13 +828,13 @@ RETURNS void LANGUAGE sql AS $$
         write_date  = NOW() AT TIME ZONE 'UTC';
 $$;
 
-CREATE OR REPLACE FUNCTION bom_after_sap_change() RETURNS TRIGGER
+CREATE OR REPLACE FUNCTION fn_trg_bom_sap_thay_doi() RETURNS TRIGGER
 LANGUAGE plpgsql AS $$
 DECLARE
     v_ids INTEGER[] := ARRAY(SELECT id FROM newtab);
 BEGIN
     IF cardinality(v_ids) > 0 THEN
-        PERFORM bom_sync_from_sap(v_ids);
+        PERFORM fn_dong_bo_bom_tu_sap(v_ids);
     END IF;
     RETURN NULL;
 END;
@@ -852,13 +852,13 @@ BEGIN
 
         CREATE TRIGGER trg_sync_sap_bom_ins AFTER INSERT ON md_sap_bom
         REFERENCING NEW TABLE AS newtab FOR EACH STATEMENT
-        EXECUTE FUNCTION bom_after_sap_change();
+        EXECUTE FUNCTION fn_trg_bom_sap_thay_doi();
 
         CREATE TRIGGER trg_sync_sap_bom_upd AFTER UPDATE ON md_sap_bom
         REFERENCING NEW TABLE AS newtab FOR EACH STATEMENT
-        EXECUTE FUNCTION bom_after_sap_change();
+        EXECUTE FUNCTION fn_trg_bom_sap_thay_doi();
 
         -- Nạp toàn bộ md_sap_bom hiện có sang bom (lần đầu cài module).
-        PERFORM bom_sync_from_sap(NULL);
+        PERFORM fn_dong_bo_bom_tu_sap(NULL);
     END IF;
 END $$;

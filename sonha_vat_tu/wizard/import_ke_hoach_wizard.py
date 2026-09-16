@@ -26,7 +26,10 @@ class ImportKeHoachWizard(models.TransientModel):
 
     MONTH_RE = re.compile(r'(\d{1,2})\s*[/\-]\s*(\d{4})')
     _IMPORT_CTX = {'is_importing': True, 'tracking_disable': True}
-    _WRITE_FIELDS = ('company_id', 'ma_hang', 'qty_t0', 'qty_t1', 'qty_t2', 'qty_t3', 'sequence')
+    _WRITE_FIELDS = (
+        'company_id', 'ma_hang', 'ma_sap',
+        'qty_t0', 'qty_t1', 'qty_t2', 'qty_t3', 'sequence',
+    )
     _PLAN_HEADERS = ['Đơn vị đặt hàng', 'Ngành hàng', 'Tên hàng', 'Mã hàng', 'Mã']
     COL_MA_HANG, COL_MA_SAP = 3, 4
     HEADER_ROW_IDX = 5
@@ -209,15 +212,16 @@ class ImportKeHoachWizard(models.TransientModel):
             qty_by_offset[offset] = self._parse_qty_value(raw_qty, row_idx, month_key, errors)
         return qty_by_offset
 
-    def _collect_import_sap_codes(self, rows, header, data_start_idx):
+    def _collect_import_lookup_codes(self, rows, header, data_start_idx):
+        """Giá trị cột Excel Mã — khóa tra mdm.tong.hop.line.ma_dv."""
         codes = set()
         for row in rows[data_start_idx:]:
             if not row or not any(c not in (None, '') for c in row):
                 continue
             row = list(row) + [None] * (len(header) - len(row))
-            ma_sap = row[self.COL_MA_SAP]
-            if ma_sap not in (None, ''):
-                codes.add(str(ma_sap).strip())
+            excel_ma = row[self.COL_MA_SAP]
+            if excel_ma not in (None, ''):
+                codes.add(str(excel_ma).strip())
         return codes
 
     @staticmethod
@@ -238,23 +242,43 @@ class ImportKeHoachWizard(models.TransientModel):
         for idx, vals in enumerate(vals_list, start=1):
             vals['sequence'] = idx * 10
 
-    def _validate_plan_row(self, row_idx, row, errors, company_lookup, mdm_codes):
+    def _validate_plan_row(self, row_idx, row, errors, company_lookup, ma_dv_resolve_map):
         company_rec = self._resolve_company_cached(row[0], row_idx, errors, company_lookup)
         if not company_rec:
             return None
 
         ma_hang = row[self.COL_MA_HANG]
-        ma_sap = row[self.COL_MA_SAP]
+        excel_ma = row[self.COL_MA_SAP]
         ma_hang = str(ma_hang).strip() if ma_hang not in (None, '') else ''
-        ma_sap = str(ma_sap).strip() if ma_sap not in (None, '') else ''
+        excel_ma = str(excel_ma).strip() if excel_ma not in (None, '') else ''
 
-        if not ma_sap:
+        if not excel_ma:
             errors.append(_('Dòng %d: thiếu Mã.') % row_idx)
             return None
-        if ma_sap not in mdm_codes:
+
+        resolved = ma_dv_resolve_map.get(excel_ma)
+        if not resolved or resolved.get('state') == 'missing':
             errors.append(_(
                 'Dòng %d: Mã "%s" không tồn tại.'
-            ) % (row_idx, ma_sap))
+            ) % (row_idx, excel_ma))
+            return None
+        if resolved.get('state') == 'no_sap':
+            errors.append(_(
+                'Dòng %d: Mã "%s" có trong MDM nhưng chưa có Mã SAP. '
+                'Vui lòng cập nhật MDM hàng hóa.'
+            ) % (row_idx, excel_ma))
+            return None
+        if resolved.get('state') == 'ambiguous':
+            errors.append(_(
+                'Dòng %d: Mã "%s" map nhiều mã SAP trên MDM, liên hệ quản trị MDM.'
+            ) % (row_idx, excel_ma))
+            return None
+
+        ma_sap = resolved.get('ma_sap')
+        if not ma_sap:
+            errors.append(_(
+                'Dòng %d: Mã "%s" không resolve được Mã SAP.'
+            ) % (row_idx, excel_ma))
             return None
 
         return {
@@ -267,15 +291,16 @@ class ImportKeHoachWizard(models.TransientModel):
         errors = []
         vals_list = []
         company_lookup = self._build_company_lookup()
-        mdm_codes = self.env['ma.hang'].get_mdm_sap_codes_set(
-            self._collect_import_sap_codes(rows, header, data_start_idx),
-        )
+        lookup_codes = self._collect_import_lookup_codes(rows, header, data_start_idx)
+        ma_dv_resolve_map = self.env['ma.hang'].resolve_ma_dv_for_import_map(lookup_codes)
 
         for row_idx, row in enumerate(rows[data_start_idx:], start=data_start_idx + 1):
             if not row or not any(c not in (None, '') for c in row):
                 continue
             row = list(row) + [None] * (len(header) - len(row))
-            base_vals = self._validate_plan_row(row_idx, row, errors, company_lookup, mdm_codes)
+            base_vals = self._validate_plan_row(
+                row_idx, row, errors, company_lookup, ma_dv_resolve_map,
+            )
             if not base_vals:
                 continue
 

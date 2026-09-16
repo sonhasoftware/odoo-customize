@@ -605,7 +605,7 @@ class KeHoachVatTu(models.Model):
         production_companies = self.ke_hoach_san_xuat_ids.mapped('company_sx_id').filtered(lambda c: c)
         if len(production_companies) == 1:
             return production_companies
-        if self.env.company.company_code in ('BNH', 'SSP'):
+        if self.env.company.company_code in ('BNH', 'SSP', 'NAN', 'TM2'):
             return self.env.company
         return self.env['res.company'].browse()
 

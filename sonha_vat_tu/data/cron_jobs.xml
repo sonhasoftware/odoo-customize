@@ -21,7 +21,31 @@
             <field name="code">model.cron_clear_monthly()</field>
             <field name="interval_type">months</field>
             <field name="interval_number">1</field>
-            <field name="nextcall" eval="DateTime.now().replace(day=1, hour=2, minute=0, second=0).strftime('%Y-%m-%d %H:%M:%S')"/>
+            <field name="nextcall" eval="DateTime.now().replace(day=1, hour=20, minute=0, second=0).strftime('%Y-%m-%d %H:%M:%S')"/>
+            <field name="numbercall">-1</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="cron_pull_md_sap_bom_monthly" model="ir.cron">
+            <field name="name">Vật tư: Kéo BOM SAP đầu tháng</field>
+            <field name="model_id" ref="sonha_report_api.model_api_table_sql"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_pull_md_sap_bom_monthly()</field>
+            <field name="interval_type">months</field>
+            <field name="interval_number">1</field>
+            <field name="nextcall" eval="DateTime.now().replace(day=1, hour=18, minute=0, second=0).strftime('%Y-%m-%d %H:%M:%S')"/>
+            <field name="numbercall">-1</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="cron_pull_md_sap_ton_kho_monthly" model="ir.cron">
+            <field name="name">Vật tư: Kéo tồn kho SAP đầu tháng</field>
+            <field name="model_id" ref="sonha_report_api.model_api_table_sql"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_pull_md_sap_ton_kho_monthly()</field>
+            <field name="interval_type">months</field>
+            <field name="interval_number">1</field>
+            <field name="nextcall" eval="DateTime.now().replace(day=1, hour=19, minute=0, second=0).strftime('%Y-%m-%d %H:%M:%S')"/>
             <field name="numbercall">-1</field>
             <field name="active">True</field>
         </record>
