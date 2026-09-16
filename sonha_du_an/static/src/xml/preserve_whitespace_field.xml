@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<templates xml:space="preserve">
+
+    <t t-name="sonha_du_an.PreserveWhitespaceField">
+        <span style="white-space: pre;">
+            <t t-esc="value"/>
+        </span>
+    </t>
+
+</templates>

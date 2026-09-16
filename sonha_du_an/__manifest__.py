@@ -19,6 +19,12 @@
         'views/project_base_menu.xml',
         'views/menu.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'sonha_du_an/static/src/js/preserve_whitespace_field.js',
+            'sonha_du_an/static/src/xml/preserve_whitespace_field.xml',
+        ],
+    },
     'installable': True,
     'application': True,
     'license': 'LGPL-3',

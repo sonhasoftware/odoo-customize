@@ -13,7 +13,7 @@
                         class="btn-primary"/>
                 </header>
 <!--                <field name="stt"/>-->
-                <field name="noi_dung_cv_con"/>
+                <field name="noi_dung_cv_con" widget="preserve_whitespace"/>
                 <field name="ngay_bat_dau"/>
                 <field name="ngay_ket_thuc"/>
                 <field name="ngay_hoan_thanh"/>
