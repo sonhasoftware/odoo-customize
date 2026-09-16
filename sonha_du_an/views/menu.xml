@@ -17,10 +17,23 @@
 
     <menuitem
         name="Báo cáo dự án"
-        id="menu_bao_cao_du_an"
+        id="menu_bao_cao_du_an_tong"
         parent="project.menu_main_pm"
-        action="action_bao_cao_du_an"
         sequence="30"/>
+
+    <menuitem
+        name="Báo cáo dự án nhiệm vụ"
+        id="menu_bao_cao_du_an"
+        parent="menu_bao_cao_du_an_tong"
+        action="action_bao_cao_du_an"
+        sequence="3"/>
+
+    <menuitem
+        name="Báo cáo dự án cha"
+        id="menu_bao_cao_du_an_cha"
+        parent="menu_bao_cao_du_an_tong"
+        action="action_bao_cao_du_an_cha"
+        sequence="1"/>
 
     <menuitem
         id="menu_du_an_parent"
