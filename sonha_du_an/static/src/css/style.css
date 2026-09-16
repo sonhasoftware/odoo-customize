@@ -1,0 +1,10 @@
+.o_list_table tbody tr.text-success td {
+    text-transform: uppercase !important;
+    font-weight: bold !important;
+    font-style: italic !important;
+}
+
+/* Dự án con - in_dam = 2 */
+.o_list_table tbody tr.text-info td {
+    font-weight: bold !important;
+}

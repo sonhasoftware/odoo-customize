@@ -21,6 +21,7 @@
     ],
     'assets': {
         'web.assets_backend': [
+            'sonha_du_an/static/src/css/style.css',
             'sonha_du_an/static/src/js/preserve_whitespace_field.js',
             'sonha_du_an/static/src/xml/preserve_whitespace_field.xml',
         ],
