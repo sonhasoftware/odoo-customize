@@ -46,6 +46,7 @@ class Task(models.Model):
         string='Có thể trở lại trạng thái',
         compute='_compute_can_back_state',
     )
+    ns_trong_da = fields.Char("Nhân sự trong dự án", store=True)
 
     @api.depends('trang_thai','check_ngay_chay','check_ngay_ht')
     def _compute_can_back_state(self):

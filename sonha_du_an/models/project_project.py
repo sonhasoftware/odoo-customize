@@ -45,6 +45,7 @@ class Project(models.Model):
                                   default='run',  store=True)
 
     ngay_kt_da_tt = fields.Date("Ngày kết thúc dự án thực rế", store=True)
+    ns_trong_da = fields.Char("Nhân sự trong dự án", store=True)
 
     @api.depends('name')
     def get_name_duan(self):
