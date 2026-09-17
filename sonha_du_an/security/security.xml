@@ -25,7 +25,12 @@
     <record id="rule_sonha_project_user_read" model="ir.rule">
         <field name="name">Dự án: nhân viên xem dự án liên quan</field>
         <field name="model_id" ref="project.model_project_project"/>
-        <field name="domain_force">['|', '|', ('nguoi_qlda', 'in', [user.id]), ('task_ids.ns_lam', 'in', [user.id]), ('task_ids.chu_so_huu', 'in', [user.id])]</field>
+        <field name="domain_force">['|', '|', '|',
+            ('nguoi_qlda', 'in', [user.id]),
+            ('task_ids.ns_lam', 'in', [user.id]),
+            ('task_ids.chu_so_huu', 'in', [user.id]),
+            ('du_an_con_ids.nguoi_qlda', 'in', [user.id])]
+        </field>
         <field name="groups" eval="[(4, ref('sonha_du_an.group_user_du_an'))]"/>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="False"/>
