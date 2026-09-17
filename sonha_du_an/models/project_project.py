@@ -78,6 +78,7 @@ class Project(models.Model):
             self.env.cr.execute(
                 "CALL sp_update_ns_trong_da(%s)", (parent,)
             )
+            self.env.cr.dictfetchall()
         return res
 
     def write(self, vals):
@@ -89,6 +90,7 @@ class Project(models.Model):
             if parent_id:
                 self.env.cr.execute(
                     "CALL sp_update_ns_trong_da(%s)",(parent_id,))
+                self.env.cr.dictfetchall()
 
         return result
 

@@ -253,6 +253,7 @@ class Task(models.Model):
             if parent:
                 self.env.cr.execute(
                     "CALL sp_update_ns_trong_da(%s)", (parent,))
+                self.env.cr.dictfetchall()
         return res
 
     def write(self, vals):
@@ -263,6 +264,7 @@ class Task(models.Model):
             if parent:
                 self.env.cr.execute(
                     "CALL sp_update_ns_trong_da(%s)", (parent,))
+                self.env.cr.dictfetchall()
 
         return result
 
