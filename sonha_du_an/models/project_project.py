@@ -133,7 +133,6 @@ class Project(models.Model):
             if parent_id:
                 self.env.cr.execute(
                     "CALL sp_update_ns_trong_da(%s)",(parent_id,))
-                self.env.cr.dictfetchall()
 
         return res
 
