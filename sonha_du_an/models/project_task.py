@@ -273,7 +273,14 @@ class Task(models.Model):
             vals = dict(vals, project_id=vals['cap'])
             if not vals.get('du_an_cha_task_id'):
                 vals['du_an_cha_task_id'] = self.env['project.project'].browse(vals['cap']).du_an_cha_id.id
-        return super().write(vals)
+        res = super().write(vals)
+        for record in self:
+            parent = record.du_an_cha_task_id.id
+            if parent:
+                self.env.cr.execute(
+                    "CALL sp_update_ns_trong_da(%s)", (parent,))
+                self.env.cr.dictfetchall()
+        return res
 
     @api.depends('so_ngay_ht', 'ngay_bat_dau', 'so_ngay_pending')
     def get_ngay_ket_thuc(self):

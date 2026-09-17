@@ -81,19 +81,6 @@ class Project(models.Model):
             self.env.cr.dictfetchall()
         return res
 
-    def write(self, vals):
-        result = super().write(vals)
-
-        for record in self:
-            parent_id = record.du_an_cha_id.id if record.du_an_cha_id else record.id
-
-            if parent_id:
-                self.env.cr.execute(
-                    "CALL sp_update_ns_trong_da(%s)",(parent_id,))
-                self.env.cr.dictfetchall()
-
-        return result
-
     def _can_edit_after_end_date(self):
         self.ensure_one()
         user = self.env.user
@@ -138,7 +125,17 @@ class Project(models.Model):
                     record._sync_child_project_end_dates()
             return True
 
-        return super().write(vals)
+        res = super().write(vals)
+
+        for record in self:
+            parent_id = record.du_an_cha_id.id if record.du_an_cha_id else record.id
+
+            if parent_id:
+                self.env.cr.execute(
+                    "CALL sp_update_ns_trong_da(%s)",(parent_id,))
+                self.env.cr.dictfetchall()
+
+        return res
 
     def _sync_child_project_end_dates(self):
         """Propagate this project's end date to every direct child project."""
