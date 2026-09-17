@@ -84,7 +84,7 @@ class Project(models.Model):
         result = super().write(vals)
 
         for record in self:
-            parent_id = record.du_an_cha_id.id if record.du_an_cha_id else False
+            parent_id = record.du_an_cha_id.id if record.du_an_cha_id else record.id
 
             if parent_id:
                 self.env.cr.execute(
