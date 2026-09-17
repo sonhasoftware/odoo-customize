@@ -191,12 +191,15 @@ class BaoCaoDuAnCon(models.Model):
                 _("Từ ngày không được lớn hơn đến ngày.")
             )
 
-        # ==========================================================
-        # Lấy dữ liệu từ PostgreSQL function
-        # ==========================================================
+        user_id = self.env.user.id
+        if self.env.user.has_group('sonha_du_an.group_admin_du_an'):
+            id_admin = 1
+        else:
+            id_admin = 0
+
         query = """
             SELECT *
-            FROM public.fn_bao_cao_du_an_con(%s, %s, %s)
+            FROM public.fn_bao_cao_du_an_con(%s, %s, %s, %s, %s)
         """
 
         self.env.cr.execute(
@@ -205,6 +208,8 @@ class BaoCaoDuAnCon(models.Model):
                 start_date.strftime('%d/%m/%Y'),
                 end_date.strftime('%d/%m/%Y'),
                 du_an_cha_id or None,
+                str(user_id),
+                id_admin,
             )
         )
 
