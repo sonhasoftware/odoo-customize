@@ -246,7 +246,25 @@ class Task(models.Model):
                 vals['project_id'] = vals['cap']
                 if not vals.get('du_an_cha_task_id'):
                     vals['du_an_cha_task_id'] = self.env['project.project'].browse(vals['cap']).du_an_cha_id.id
-        return super().create(vals_list)
+
+        res = super().create(vals_list)
+        for r in res:
+            parent = r.du_an_cha_task_id.id
+            if parent:
+                self.env.cr.execute(
+                    "CALL sp_update_ns_trong_da(%s)", (parent,))
+        return res
+
+    def write(self, vals):
+        result = super().write(vals)
+
+        for record in self:
+            parent = record.du_an_cha_task_id.id
+            if parent:
+                self.env.cr.execute(
+                    "CALL sp_update_ns_trong_da(%s)", (parent,))
+
+        return result
 
     def write(self, vals):
         if vals.get('cap'):

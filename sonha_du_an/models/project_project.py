@@ -72,7 +72,25 @@ class Project(models.Model):
                 vals['du_an_cha'] = False
                 parent = self.env['project.project'].browse(vals['du_an_cha_id'])
                 vals['ngay_kt_chinh_sua'] = parent.ngay_kt_chinh_sua
-        return super().create(vals_list)
+        res = super().create(vals_list)
+        for r in res:
+            parent = r.du_an_cha_id.id if r.du_an_cha_id else r.id
+            self.env.cr.execute(
+                "CALL sp_update_ns_trong_da(%s)", (parent,)
+            )
+        return res
+
+    def write(self, vals):
+        result = super().write(vals)
+
+        for record in self:
+            parent_id = record.du_an_cha_id.id if record.du_an_cha_id else False
+
+            if parent_id:
+                self.env.cr.execute(
+                    "CALL sp_update_ns_trong_da(%s)",(parent_id,))
+
+        return result
 
     def _can_edit_after_end_date(self):
         self.ensure_one()
