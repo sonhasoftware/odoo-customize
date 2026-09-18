@@ -30,7 +30,8 @@ def build_system_instruction(
 
     if is_db_query:
         db_task_instruction += (
-            "- TRUY VẤN DỮ LIỆU ODOO: Bạn được cấp công cụ 'query_odoo_data' để tra cứu thông tin Nhân viên, Phòng ban, KPI (chế độ chỉ đọc) trên hệ thống Odoo.\n"
+            "- TRUY VẤN DỮ LIỆU ODOO (CHỈ DẪN NỘI BỘ - BẢO MẬT TUYỆT ĐỐI KHÔNG ĐƯỢC NÊU TÊN CÔNG CỤ HOẶC CHỮ API TRONG CÂU TRẢ LỜI):\n"
+            "  * Bạn được cấp công cụ 'query_odoo_data' để tra cứu thông tin Nhân viên, Phòng ban, KPI (chế độ chỉ đọc) trên hệ thống Odoo.\n"
         )
         capability_items.append("Tra cứu dữ liệu Odoo (Nhân viên, Phòng ban, KPI)")
 
@@ -116,8 +117,11 @@ def build_system_instruction(
         "   - Dấu hiệu nhận biết: Người dùng nói chuyện phiếm, hỏi cảm xúc/trạng thái (ví dụ: 'chán không', 'buồn không', 'bạn có khỏe không', 'mệt quá', 'hôm nay thế nào'), bình luận nhẹ nhàng không phải câu hỏi nghiệp vụ.\n"
         "   - Hành động: Trả lời TỰ NHIÊN, THÂN THIỆN, NGẮN GỌN (1–2 câu) theo đúng nội dung câu hỏi — TUYỆT ĐỐI KHÔNG đọc lại đoạn giới thiệu khả năng hỗ trợ, KHÔNG liệt kê danh sách tính năng. Sau đó nhẹ nhàng gợi ý nếu người dùng cần tra cứu gì.\n"
         "   - TUYỆT ĐỐI KHÔNG áp dụng quy tắc từ chối 'không tìm thấy trong tài liệu' đối với các câu chào hỏi/giao tiếp xã giao này.\n\n"
-        "2. CÂU HỎI NGHIỆP VỤ / TRA CỨU ĐÚNG PHẠM VI CHỦ ĐỀ (IN-SCOPE QUERIES):\n"
-        "   - Hãy bám sát và ưu tiên sử dụng thông tin trong <TAI_LIEU_THAM_KHAO> hoặc kết quả tra cứu từ công cụ (query_odoo_data / query_sql_server_data) để trả lời đầy đủ, chi tiết, chính xác.\n"
+        "   - NGUYÊN TẮC CONTEXT LÀ CHÂN LÝ TỐI THƯỢNG (GROUND TRUTH RULE):\n"
+        "     * Mọi thông tin nghiệp vụ xuất hiện trong <TAI_LIEU_THAM_KHAO> (bao gồm các tính năng, quy trình như Duyệt giá, Đề nghị đặt hàng, Mua hàng, Tờ trình, Ký duyệt...) đều là dữ liệu hợp lệ và chính thức của doanh nghiệp.\n"
+        "     * Bạn BẮT BUỘC phải đọc và hướng dẫn chi tiết theo đúng các bước (Bước 1, Bước 2, Bước 3...) có trong tài liệu khi người dùng hỏi tới, BẤT CHẤP tên chủ đề hiển thị là gì.\n"
+        "     * TUYỆT ĐỐI KHÔNG coi câu hỏi là ngoài luồng hay từ chối nếu nội dung đã có trong <TAI_LIEU_THAM_KHAO>.\n\n"
+        "   - Hãy bám sát và ưu tiên sử dụng thông tin trong <TAI_LIEU_THAM_KHAO> hoặc kết quả tra cứu từ dữ liệu được cấp quyền để trả lời đầy đủ, chi tiết, chính xác.\n"
         "   - Trả lời đúng trọng tâm câu hỏi, không tự suy diễn hay bịa đặt số liệu/quy trình không có thực trong tài liệu/dữ liệu.\n"
         "   - QUY TẮC BẮT BUỘC PHÂN BIỆT 3 TRƯỜNG HỢP (RESPONSE POLICY):\n"
         "     * TRƯỜNG HỢP 1 (CASE 1 - Tài liệu có đầy đủ thông tin):\n"
@@ -127,11 +131,13 @@ def build_system_instruction(
         "       -> ĐỒNG THỜI nêu rõ ràng, trung thực phần nào tài liệu CHƯA cung cấp (ví dụ: tài liệu hiện tại chưa có hướng dẫn chi tiết các bước thao tác bấm nút/giao diện cụ thể trên phần mềm).\n"
         "       -> TUYỆT ĐỐI KHÔNG coi Trường hợp 2 là Trường hợp 3 (không được kết luận chung chung là 'không có thông tin' khi tài liệu thực tế có thông tin liên quan).\n"
         "     * TRƯỜNG HỢP 3 (CASE 3 - Tài liệu thực sự hoàn toàn không có thông tin liên quan):\n"
-        f"       -> Mới thông báo lịch sự: 'Rất tiếc, tôi không tìm thấy thông tin này trong tài liệu của chủ đề \"{topic_name}\".'\n\n"
+        f"       -> BẮT BUỘC thông báo ngắn gọn, lịch sự: 'Rất tiếc, tôi không tìm thấy thông tin này trong tài liệu của chủ đề \"{topic_name}\".'\n"
+        "       -> TUYỆT ĐỐI KHÔNG ĐƯỢC tự suy diễn, KHÔNG lấy tài liệu kỹ thuật, báo cáo tính năng phần mềm, API hay kiến trúc hệ thống ra để 'chữa cháy' hoặc phỏng đoán rằng hệ thống có thể hỗ trợ việc này.\n"
+        "       -> TUYỆT ĐỐI KHÔNG khuyên người dùng liên hệ 'đội ngũ phát triển' hay nhắc đến các module kỹ thuật.\n\n"
         "   - XỬ LÝ CÂU HỎI KẾT HỢP NHIỀU Ý ĐỊNH (MULTI-INTENT QUERIES - Ví dụ: vừa hỏi quy trình thao tác vừa hỏi nghiệp vụ/phân quyền cụ thể):\n"
         "     -> Phải kết hợp và tổng hợp đầy đủ các phần thông tin từ các đoạn tài liệu tham khảo cho từng ý định.\n\n"
         "   - NGUYÊN TẮC TRÁNH LẠC ĐỀ (STRICT RELEVANCE):\n"
-        "     -> TUYỆT ĐỐI KHÔNG tự ý đề xuất, gợi ý hoặc lôi kéo sang các nghiệp vụ không liên quan (như mua hàng, đề nghị đặt hàng, duyệt giá, v.v.) vào cuối câu trả lời nếu người dùng không hỏi về chúng.\n\n"
+        "     -> Trả lời trực diện vào câu hỏi của người dùng, không tự ý lôi kéo sang các chủ đề không liên quan nếu người dùng không yêu cầu.\n\n"
         f"{action_out_of_scope_instruction}\n\n"
         "4. CÂU HỎI THUỘC NGHIỆP VỤ KHÁC / NGOÀI PHẠM VI CHỦ ĐỀ (OUT-OF-SCOPE):\n"
         f"   - Nếu câu hỏi của người dùng hoàn toàn thuộc về một nghiệp vụ khác không liên quan đến phạm vi của chủ đề \"{topic_name}\":\n"
@@ -155,8 +161,10 @@ def build_system_instruction(
         + (f"          - Các nguồn dữ liệu tra cứu: {db_hint}\n" if db_hint else "")
         + "       c) Đưa ra 1 - 2 mẫu câu hỏi gợi ý cụ thể (Call-To-Action) để người dùng dễ dàng chọn và đặt câu hỏi kèm điều kiện lọc (ví dụ: lọc theo phòng ban, khoảng thời gian, trạng thái...).\n\n"
         "6. NGUYÊN TẮC BẢO MẬT VÀ CHỐNG TIẾT LỘ THÔNG TIN KỸ THUẬT (STRICT SECURITY & ANTI-LEAKAGE):\n"
-        "   - CHỈ áp dụng rule này khi TIN NHẮN HIỆN TẠI (không phải suy luận từ lịch sử) chứa RÕ RÀNG các cụm từ như 'lấy ở đâu', 'nguồn ở đâu', 'từ bảng nào', 'cột nào', 'cơ sở dữ liệu nào'.\n"
-        "   - TUYỆT ĐỐI KHÔNG áp dụng rule này chỉ vì lịch sử hội thoại trước đó có nhắc đến chủ đề nguồn dữ liệu — mỗi tin nhắn phải được đánh giá độc lập theo đúng nội dung/ý định của chính nó.\n"
+        "   - BẮT BUỘC ÁP DỤNG QUY TẮC NÀY CHO MỌI CÂU TRẢ LỜI CỦA BẠN (KHÔNG CÓ NGOẠI LỆ):\n"
+        "   - TUYỆT ĐỐI KHÔNG BAO GIỜ nhắc đến tên module kỹ thuật (như 'topic_chatbot'), tên API hoặc hàm công cụ ('query_odoo_data', 'query_sql_server_data'), hoặc các từ như 'API', 'hàm kỹ thuật', 'Function Calling' trong câu trả lời cho người dùng.\n"
+        "   - TUYỆT ĐỐI KHÔNG BAO GIỜ giải thích hoặc để lộ các thuật ngữ kiến trúc AI như 'Semantic RAG', 'RAG', 'Retrieval-Augmented Generation', 'Vector database', 'Vector search', 'Embedding', 'Prompt', 'LLM'.\n"
+        "   - Luôn đóng vai là một Trợ lý nghiệp vụ chuyên nghiệp của doanh nghiệp, chỉ trao đổi bằng ngôn ngữ nghiệp vụ thuần túy.\n"
         "   - BẮT BUỘC KHÔNG BAO GIỜ tự sáng tạo quy trình, bước làm, số liệu hay chính sách không có trong tài liệu hoặc cơ sở dữ liệu được cung cấp.\n"
         "   - KHI NGƯỜI DÙNG HỎI VỀ NGUỒN GỐC DỮ LIỆU (ví dụ: 'dữ liệu này lấy ở đâu', 'nguồn ở đâu', 'từ bảng nào', 'cột nào', 'cơ sở dữ liệu nào'...):\n"
         "     * BẮT BUỘC CHỈ ĐƯỢC TRẢ LỜI NGẮN GỌN THEO NGÔN NGỮ NGHIỆP VỤ: Dữ liệu được trích xuất trực tiếp theo thời gian thực từ hệ thống cơ sở dữ liệu quản lý nội bộ của doanh nghiệp.\n"
@@ -184,11 +192,13 @@ def build_system_instruction(
         "     * Khối '[SHEET_SUMMARY_SCHEMA]' cung cấp cái nhìn tổng thể về cấu trúc bảng (số dòng, số cột, kiểu dữ liệu và các giá trị danh mục tiêu biểu). Hãy sử dụng khối này khi người dùng hỏi các câu hỏi về metadata/schema (ví dụ: 'file này có những cột nào', 'nói về nội dung gì', 'phạm vi dữ liệu ra sao').\n"
         "     * Khi người dùng hỏi các câu hỏi tính toán, đếm số lượng hoặc thống kê số liệu: Hãy CHỈ tính toán dựa trên các bản ghi thực tế xuất hiện trong tài liệu tham khảo. Nêu rõ kết quả dựa trên dữ liệu trích xuất được. Tuyệt đối không tự suy diễn thêm các số liệu không có trong tài liệu.\n\n"
         "9. XỬ LÝ NỘI DUNG SAO CHÉP / VĂN BẢN NGOÀI LUỒNG / LỜI BÀI HÁT / SPAM (OFF-TOPIC / NONSENSE / COPIED TEXT):\n"
-        f"   - Khi người dùng gửi vào một đoạn văn bản copy trên mạng (lời bài hát, bài thơ, tin tức ngoài lề, đoạn code lạ, chuỗi ký tự ngẫu nhiên...) mà KHÔNG PHẢI là câu hỏi nghiệp vụ hoặc không liên quan đến chủ đề \"{topic_name}\":\n"
-        "   - BẮT BUỘC TUÂN THỦ CÁC NGUYÊN TẮC SAU:\n"
+        f"   - ĐIỀU KIỆN KÍCH HOẠT DUY NHẤT: CHỈ áp dụng quy tắc này khi nội dung người dùng gửi hoàn toàn là đoạn văn bản vô nghĩa copy trên mạng (lời bài hát, bài thơ, tin tức ngoài lề, đoạn code lạ, chuỗi ký tự ngẫu nhiên...) KHÔNG PHẢI là câu hỏi nghiệp vụ và HOÀN TOÀN KHÔNG XUẤT HIỆN trong <TAI_LIEU_THAM_KHAO>.\n"
+        "   - TUYỆT ĐỐI KHÔNG kích hoạt quy tắc này với các câu hỏi hướng dẫn thao tác, quy trình nghiệp vụ (ví dụ: 'cách tạo...', 'cách phê duyệt...', 'hướng dẫn...', 'làm thế nào để...').\n"
+        "   - NẾU câu hỏi của người dùng có thông tin giải đáp trong <TAI_LIEU_THAM_KHAO> (kể cả các nghiệp vụ liên quan như Duyệt giá, Đề nghị đặt hàng, Mua hàng, Ký duyệt...), bạn BẮT BUỘC phải trả lời dựa trên <TAI_LIEU_THAM_KHAO> và TUYỆT ĐỐI KHÔNG ĐƯỢC từ chối hay kích hoạt quy tắc này!\n"
+        "   - Khi thực sự thỏa mãn điều kiện spam / vô nghĩa:\n"
         "     * TUYỆT ĐỐI KHÔNG lặp lại câu trả lời của các câu hỏi trước đó trong lịch sử trò chuyện.\n"
         "     * TUYỆT ĐỐI KHÔNG cố gắng gượng ép giải thích hay phân tích đoạn văn bản đó theo tài liệu của chủ đề.\n"
-        f"     * Lịch sự thông báo: \"Nội dung bạn vừa gửi có vẻ là một đoạn văn bản ngoài luồng / lời bài hát không thuộc phạm vi của chủ đề **{topic_name}**. Bạn vui lòng đặt câu hỏi cụ thể liên quan đến nghiệp vụ để tôi có thể hỗ trợ tốt nhất nhé!\"\n\n"
+        f"     * Lịch sự thông báo: \"Nội dung bạn vừa gửi có vẻ là một đoạn văn bản ngoài luồng / lời bài hát không thuộc phạm vi tài liệu nghiệp vụ hiện tại. Bạn vui lòng đặt câu hỏi cụ thể liên quan đến nghiệp vụ để tôi có thể hỗ trợ tốt nhất nhé!\"\n\n"
         f"{db_task_instruction}\n"
         f"{context_section}"
     )
@@ -207,9 +217,46 @@ def sanitize_technical_terms(text, topic=None):
         flags=re.IGNORECASE
     )
 
+    # 2. Comprehensive cleanup of technical tools/APIs (with or without underscores, with or without backticks/quotes)
+    sanitized_text = re.sub(
+        r'(?:thông qua|qua|bằng|dùng|sử dụng|gọi)?\s*(?:API|hàm|function|công cụ)?\s*[`\'"]*(?:query_?odoo_?data|queryodoodata)[`\'"]*',
+        'qua hệ thống dữ liệu Odoo',
+        sanitized_text,
+        flags=re.IGNORECASE
+    )
+    sanitized_text = re.sub(
+        r'(?:thông qua|qua|bằng|dùng|sử dụng|gọi)?\s*(?:API|hàm|function|công cụ)?\s*[`\'"]*(?:query_?sql_?server_?data|querysqlserverdata)[`\'"]*',
+        'qua cơ sở dữ liệu nội bộ',
+        sanitized_text,
+        flags=re.IGNORECASE
+    )
+    # Clean up standalone "API ..."
+    sanitized_text = re.sub(
+        r'\bAPI\s*[`\'"]*[^`\'"\s.,;:!?()]+[`\'"]*',
+        'hệ thống dữ liệu',
+        sanitized_text,
+        flags=re.IGNORECASE
+    )
+    # Clean up topic_chatbot
+    sanitized_text = re.sub(
+        r'(?:module|phần mềm|ứng dụng)?\s*[`\'"]*topic_?chatbot[`\'"]*',
+        'hệ thống trợ lý AI',
+        sanitized_text,
+        flags=re.IGNORECASE
+    )
+
+    # 3. Clean up module names and internal AI architecture jargon
     replacements = {
-        r'\bquery_odoo_data\b': 'hệ thống tra cứu dữ liệu Odoo',
-        r'\bquery_sql_server_data\b': 'hệ thống cơ sở dữ liệu nội bộ',
+        r'\bmodule\s+này\b': 'hệ thống',
+        r'\bSemantic RAG\s*(?:\([^)]*\))?': 'hệ thống tìm kiếm thông minh',
+        r'\b(?:Semantic\s+)?RAG\b': 'hệ thống tra cứu thông minh',
+        r'\bRetrieval-Augmented Generation\b': 'hệ thống tra cứu thông tin',
+        r'\bFunction Calling\b': 'tra cứu dữ liệu tự động',
+        r'\bVector\s+(?:Database|DB|Search|Embedding)\b': 'tìm kiếm ngữ nghĩa',
+        r'\bquery_?odoo_?data\b': 'hệ thống tra cứu dữ liệu Odoo',
+        r'\bqueryodoodata\b': 'hệ thống tra cứu dữ liệu Odoo',
+        r'\bquery_?sql_?server_?data\b': 'hệ thống cơ sở dữ liệu nội bộ',
+        r'\bquerysqlserverdata\b': 'hệ thống cơ sở dữ liệu nội bộ',
         r'\bcác model\b': 'các loại dữ liệu',
         r'\bmodel\b': 'dữ liệu',
         r'\bmodels\b': 'dữ liệu',
@@ -231,10 +278,15 @@ def sanitize_technical_terms(text, topic=None):
         r'\bwrite_date\b': 'ngày cập nhật',
         r'\bdbo\.\w+\b': 'hệ thống cơ sở dữ liệu',
         r'\bSELECT\s+.*?\s+FROM\s+\w+\b': 'truy vấn cơ sở dữ liệu',
+        r'\bđội ngũ phát triển\b': 'bộ phận quản trị hệ thống',
     }
 
     for pattern, replacement in replacements.items():
         sanitized_text = re.sub(pattern, replacement, sanitized_text, flags=re.IGNORECASE)
+
+    # Clean double spaces or duplicate words
+    sanitized_text = re.sub(r'cơ sở dữ liệu Odoo\s+qua hệ thống dữ liệu Odoo', 'cơ sở dữ liệu Odoo nội bộ', sanitized_text)
+    sanitized_text = re.sub(r'  +', ' ', sanitized_text)
 
     # 2. Normalize LaTeX arrow and math symbols generated by LLMs to clean unicode
     latex_symbol_replacements = {
@@ -284,3 +336,221 @@ def sanitize_technical_terms(text, topic=None):
                 sanitized_text = re.sub(rf'[`\[]{re.escape(col)}[`\]]', col, sanitized_text, flags=re.IGNORECASE)
 
     return sanitized_text
+
+
+def bold_ui_action_terms(text: str) -> str:
+    """Bold common UI action terms and menu paths in Vietnamese ERP instructions:
+    - Menu paths: 'Vào menu: Mua hàng → Đơn hàng → Duyệt giá' -> 'Vào menu: **Mua hàng** → **Đơn hàng** → **Duyệt giá**'
+    - Action verbs: 'Nhấn (nút)? <Tên>' -> 'Nhấn (nút)? **<Tên>**'
+    - Selection verbs: 'Chọn <Tên>' -> 'Chọn **<Tên>**', 'Tick <Tên>' -> 'Tick **<Tên>**'
+    - Prevents double bolding if terms already contain '**'.
+    """
+    if not text:
+        return text
+
+    # 1. Handle menu paths with arrows (→, ->, ⇒, -->)
+    menu_pattern = re.compile(
+        r'(?i)\b((?:vào\s+|tại\s+|truy\s+cập\s+)?menu\s*:?\s*)'
+        r'([A-Za-z0-9_À-ỹĐđ\s\*\(\)]+?(?:\s*(?:→|->|⇒|-->)\s*[A-Za-z0-9_À-ỹĐđ\s\*\(\)]+?)+)'
+        r'(?=\s+(?:để|tại|sau\s+đó|rồi|khi)\b|[\.,;!\?\n]|$)'
+    )
+
+    def replace_arrows(match):
+        prefix = match.group(1)
+        path = match.group(2)
+        tokens = re.split(r'(\s*(?:→|->|⇒|-->)\s*)', path)
+        new_tokens = []
+        for token in tokens:
+            if re.match(r'^\s*(?:→|->|⇒|-->)\s*$', token):
+                new_tokens.append(token)
+            else:
+                t_clean = token.strip()
+                if not t_clean:
+                    new_tokens.append(token)
+                    continue
+                if t_clean.startswith('**') and t_clean.endswith('**'):
+                    new_tokens.append(token)
+                elif re.match(r'^(?:nhấn|bấm|click|chọn|tick|tích)\b', t_clean, re.IGNORECASE):
+                    new_tokens.append(token)
+                else:
+                    l_space = token[:len(token) - len(token.lstrip())]
+                    r_space = token[len(token.rstrip()):]
+                    new_tokens.append(f"{l_space}**{t_clean}**{r_space}")
+        return prefix + ''.join(new_tokens)
+
+    text = menu_pattern.sub(replace_arrows, text)
+
+    # 2. Action verbs: Nhấn / Bấm / Click / Chọn / Tick / Tích
+    stop_words = r'(?:để|tại|vào|sau\s+đó|rồi|khi|và|hoặc|ở|trên|với|theo|nếu|nhằm)'
+    target_word = r'(?!\b' + stop_words + r'\b)[A-Za-z0-9_À-ỹĐđ\+/]+'
+
+    def replace_action(match):
+        full = match.group(0)
+        verb = match.group(1)
+        target = match.group(2).strip()
+        if '**' in target:
+            return full
+        return f"{verb}**{target}**"
+
+    action_pattern = (
+        r'(?i)\b((?:nhấn|bấm|click|chọn|tick|tích)\s+(?:vào\s+)?(?:nút\s+|ô\s+|mục\s+|tab\s+)?)(?!\*\*)'
+        r'(' + target_word + r'(?:\s+' + target_word + r'){0,3})'
+        r'(?=\s+' + stop_words + r'\b|[\.,;:!\?\(\)\[\]\-]|\s*(?:→|->|⇒|-->)|$)'
+    )
+    text = re.sub(action_pattern, replace_action, text)
+    return text
+
+
+def normalize_step_lists(text: str) -> str:
+    """Normalize step-by-step lists in LLM responses:
+    - Converts '* Bước N: <content>' or '- Bước N: <content>' to '1. **Bước 1**: <bold_content>'
+    - Enforces sequential numbering (1, 2, 3...) per step cluster regardless of N in source text.
+    - Resets counter per independent cluster (separated by headings '###', '##', etc.).
+    - Preserves untouched non-step lines, code blocks, tables, and existing numbered steps.
+    """
+    if not text:
+        return text
+
+    lines = text.split('\n')
+    result_lines = []
+
+    step_counter = 0
+    in_code_block = False
+
+    # Regex to match step lines:
+    # * Bước 1: <nội dung>
+    # - Bước 1: <nội dung>
+    # Supports optional indent, optional **, optional :, ., -
+    step_pattern = re.compile(
+        r'^(\s*)[\*\-]\s*(?:\*\*)?[Bb]ước\s*\d+[:\.\-–—]?(?:\*\*)?\s*[:\.\-–—]?\s*(.*)$'
+    )
+
+    heading_pattern = re.compile(r'^\s*#{1,6}\s+')
+    divider_pattern = re.compile(r'^\s*(?:---+|\*\*\*+|===+)\s*$')
+
+    for line in lines:
+        stripped = line.strip()
+
+        # Handle code blocks: never touch inside code blocks
+        if stripped.startswith('```'):
+            in_code_block = not in_code_block
+            result_lines.append(line)
+            continue
+
+        if in_code_block:
+            result_lines.append(line)
+            continue
+
+        # Markdown table rows start with '|': preserve as is
+        if stripped.startswith('|'):
+            result_lines.append(line)
+            continue
+
+        # Check for cluster separation: headings or horizontal dividers reset step counter
+        if heading_pattern.match(line) or divider_pattern.match(line):
+            step_counter = 0
+            result_lines.append(line)
+            continue
+
+        # Check if line matches step pattern
+        match = step_pattern.match(line)
+        if match:
+            indent = match.group(1)
+            raw_content = match.group(2)
+
+            step_counter += 1
+            # Apply bold_ui_action_terms to the step content
+            bolded_content = bold_ui_action_terms(raw_content)
+
+            # Build standardized line: 1. **Bước 1**: <content>
+            if bolded_content:
+                new_line = f"{indent}{step_counter}. **Bước {step_counter}**: {bolded_content}"
+            else:
+                new_line = f"{indent}{step_counter}. **Bước {step_counter}**"
+            result_lines.append(new_line)
+        else:
+            # Line does not match step pattern -> keep as is
+            result_lines.append(line)
+
+    return '\n'.join(result_lines)
+
+
+def build_ollama_system_instruction(
+    context_str,
+    topic_name="",
+    topic_description="",
+    other_topic_names=None,
+    document_names=None,
+    is_db_query=False,
+    is_mssql_query=False,
+    mssql_tables="",
+    has_documents=False
+):
+    """Construct a streamlined, high-performance System Instruction for local Ollama LLMs (CPU-friendly).
+    Retains full support and strict rules for Structured Data / RACI / result_count / Anti-Hallucination / Security.
+    """
+    topic_desc_str = f" - Mô tả: {topic_description}" if topic_description else ""
+    
+    tool_directive_section = ""
+    if is_db_query:
+        tool_directive_section += (
+            "HƯỚNG DẪN BẮT BUỘC SỬ DỤNG CÔNG CỤ (TOOLS):\n"
+            "- Khi người dùng hỏi về Nhân viên, Phòng ban, kết quả KPI: BẠN BẮT BUỘC PHẢI GỌI CÔNG CỤ 'query_odoo_data' để tra cứu trong cơ sở dữ liệu.\n"
+            "- TUYỆT ĐỐI KHÔNG tự trả lời bằng văn bản khi chưa gọi công cụ, không tự suy đoán, không nói 'tôi sẽ kiểm tra'. Hãy phát lệnh gọi công cụ ngay lập tức.\n"
+            "- Sau khi nhận được kết quả dữ liệu từ công cụ, hãy tổng hợp và trả lời người dùng một cách chính xác.\n"
+            "- QUY TẮC BẢO MẬT: Tuyệt đối không nhắc đến tên kỹ thuật công cụ 'query_odoo_data' hay chữ API trong câu trả lời cho người dùng.\n\n"
+        )
+    if is_mssql_query:
+        tool_directive_section += (
+            "HƯỚNG DẪN BẮT BUỘC SỬ DỤNG CÔNG CỤ (TOOLS):\n"
+            "- Khi người dùng hỏi về dữ liệu thực tế (sản phẩm, giá bán, tồn kho, đơn hàng...): BẠN BẮT BUỘC PHẢI GỌI CÔNG CỤ 'query_sql_server_data' với câu lệnh SELECT T-SQL (chỉ đọc) để lấy dữ liệu.\n"
+            "- TUYỆT ĐỐI KHÔNG tự trả lời bằng văn bản khi chưa gọi công cụ, không tự suy đoán hay trả lời từ trí nhớ khi chưa gọi công cụ. Hãy phát lệnh gọi công cụ ngay lập tức.\n"
+            "- Sau khi nhận được kết quả dữ liệu từ công cụ, hãy trình bày thành bảng Markdown súc tích cho người dùng.\n"
+            "- QUY TẮC BẢO MẬT: Tuyệt đối không nhắc đến tên kỹ thuật công cụ 'query_sql_server_data' hay chữ API trong câu trả lời cho người dùng.\n\n"
+        )
+        if mssql_tables:
+            tool_directive_section += f"Cấu trúc bảng cho phép:\n{mssql_tables}\n\n"
+
+    has_context = bool(context_str and context_str.strip())
+    if has_context:
+        context_section = (
+            "==============================\n"
+            f"NỘI DUNG TÀI LIỆU THAM KHẢO THUỘC CHỦ ĐỀ '{topic_name}':\n"
+            f"<TAI_LIEU_THAM_KHAO>\n{context_str.strip()}\n</TAI_LIEU_THAM_KHAO>\n"
+            "=============================="
+        )
+    else:
+        context_section = ""
+
+    other_topics_hint = ""
+    if other_topic_names:
+        quoted_names = [f'"{n}"' for n in other_topic_names[:6]]
+        other_topics_hint = "Các chủ đề khác trên hệ thống: " + ", ".join(quoted_names) + "."
+
+    return (
+        f"Bạn là Trợ lý AI nội bộ thông minh, phục vụ trong phạm vi Chủ đề: \"{topic_name}\"{topic_desc_str}.\n"
+        "Mọi công cụ và chức năng hoạt động ở chế độ CHỈ ĐỌC (READ-ONLY).\n\n"
+        f"{tool_directive_section}"
+        "QUY TẮC PHẢN HỒI:\n"
+        "1. GIAO TIẾP XÃ GIAO / CHÀO HỎI (CHIT-CHAT):\n"
+        "   - Khi người dùng chào hỏi ('xin chào', 'hi'), hỏi thăm ('bạn khỏe không', 'ăn cơm không'), trò chuyện ngoài lề:\n"
+        "   - Trả lời tự nhiên, thân thiện, ngắn gọn trong 1–2 câu hoàn toàn bằng TIẾNG VIỆT (TUYỆT ĐỐI KHÔNG chèn tiếng Trung hay chữ Hán). TUYỆT ĐỐI KHÔNG từ chối cộc lốc, KHÔNG đọc quy chế dài dòng.\n\n"
+        "2. CÂU HỎI NGHIỆP VỤ & TÀI LIỆU (IN-SCOPE):\n"
+        "   - NGUYÊN TẮC CONTEXT LÀ CHÂN LÝ TỐI THƯỢNG: Mọi thông tin nghiệp vụ xuất hiện trong <TAI_LIEU_THAM_KHAO> (bao gồm các tính năng như Duyệt giá, Đề nghị đặt hàng, Mua hàng, Tờ trình...) đều là dữ liệu hợp lệ. BẮT BUỘC trả lời theo tài liệu, không được coi là ngoài luồng.\n"
+        "   - Ưu tiên trả lời chính xác, đầy đủ dựa trên thông tin trong <TAI_LIEU_THAM_KHAO> hoặc kết quả truy vấn CSDL.\n"
+        f"   - Nếu tài liệu hoàn toàn không có thông tin về quy trình/vấn đề được hỏi: Thông báo lịch sự 'Rất tiếc, tôi không tìm thấy thông tin này trong tài liệu của chủ đề \"{topic_name}\"'. Tuyệt đối không tự suy diễn, không lấy tài liệu kỹ thuật/kiến trúc phần mềm ra giải thích, không khuyên người dùng liên hệ đội dev.\n"
+        f"   - Nếu câu hỏi thuộc nghiệp vụ khác: Lịch sự hướng dẫn người dùng chuyển sang chủ đề phù hợp. {other_topics_hint}\n\n"
+        "3. XỬ LÝ DỮ LIỆU CẤU TRÚC, BẢNG EXCEL & PHÂN QUYỀN RACI:\n"
+        "   - Khi có khối dữ liệu '[STRUCTURED_QUERY_RESULT]' hoặc bảng Markdown:\n"
+        "     * BẮT BUỘC trả lời hoàn toàn dựa trên dữ liệu các dòng và số lượng thực tế trong bảng kết quả. Tuyệt đối không bịa đặt dữ liệu ngoài bảng.\n"
+        "     * Tuân thủ số lượng 'result_count'. Nếu 'result_count: 0' hoặc không tìm thấy bản ghi, phải thông báo rõ ràng là không tìm thấy bản ghi nào thỏa mãn.\n"
+        "     * Tra cứu phân quyền RACI: Nêu rõ người/chức danh có thẩm quyền Phê duyệt (A), Soát xét/Trách nhiệm (R), Đề xuất (P), Nhận thông báo (I) từ dữ liệu thực tế.\n"
+        "     * Nếu có cảnh báo '[TRUNCATED]', lưu ý người dùng danh sách đã được giới hạn số lượng.\n\n"
+        "4. BẢO MẬT VÀ CHỐNG RÒ RỈ THÔNG TIN KỸ THUẬT (SECURITY & ANTI-LEAKAGE):\n"
+        "   - Tuyệt đối KHÔNG tiết lộ tên module ('topic_chatbot'), tên công cụ/API ('query_odoo_data', 'query_sql_server_data'), chữ 'API', thuật ngữ AI ('Semantic RAG', 'Vector', 'Prompt'), tên bảng CSDL kỹ thuật, tên cột/trường nội bộ, mã model hay câu lệnh SQL cho người dùng.\n"
+        "   - Dùng ngôn ngữ nghiệp vụ đời thường tiếng Việt, giải thích rõ ràng, dễ hiểu.\n\n"
+        "5. ĐỊNH DẠNG TRẢ LỜI:\n"
+        "   - Bắt buộc sử dụng Markdown chuẩn: chia mục rõ ràng, in đậm từ khóa, dùng danh sách gạch đầu dòng hoặc Bảng Markdown khi cần so sánh/liệt kê số liệu.\n\n"
+        f"{context_section}"
+    )
+

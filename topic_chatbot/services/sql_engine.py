@@ -5,7 +5,10 @@ import re
 import time
 from datetime import datetime as dt, date as dt_date
 import decimal
-from odoo.http import request
+try:
+    from odoo.http import request
+except ImportError:
+    request = None
 
 _logger = logging.getLogger(__name__)
 
@@ -119,7 +122,12 @@ def execute_odoo_query(model, domain=None, fields=None, env=None):
         clean_domain.append(term)
 
     try:
+        _logger.info(
+            "[DB_QUERY_AUDIT] execute_odoo_query: model='%s', domain=%s, fields=%s",
+            model, clean_domain, clean_fields
+        )
         records = model_obj.search_read(clean_domain, clean_fields, limit=80)
+        _logger.info("[DB_QUERY_AUDIT] execute_odoo_query: returned %d record(s)", len(records))
         is_truncated = (len(records) == 80)
 
         cleaned_records = []
@@ -343,6 +351,7 @@ def execute_mssql_query(sql_query, topic=None, env=None):
 
         start_time = time.time()
         cursor = conn.cursor()
+        _logger.info("[DB_QUERY_AUDIT] execute_mssql_query: executing SQL: %s", clean_query_no_comments)
         cursor.execute(clean_query_no_comments)
 
         if not cursor.description:
@@ -375,6 +384,10 @@ def execute_mssql_query(sql_query, topic=None, env=None):
             results.append(item)
 
         exec_time = int((time.time() - start_time) * 1000)
+        _logger.info(
+            "[DB_QUERY_AUDIT] execute_mssql_query: returned %d row(s) in %dms",
+            len(results), exec_time
+        )
         if topic:
             env['topic_chatbot.mssql_log'].sudo().create({
                 'topic_id': topic.id,

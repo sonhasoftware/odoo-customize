@@ -8,3 +8,6 @@ from . import document
 from . import chunk
 from . import conversation
 from . import message
+from . import rag_log
+from . import ocr_cache
+from . import ocr_job

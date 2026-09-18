@@ -81,8 +81,8 @@ def generate_ollama_embedding_single(url, model, text):
     try:
         res = requests.post(
             f"{target_url}/api/embed",
-            json={'model': target_model, 'input': text},
-            timeout=45
+            json={'model': target_model, 'input': text, 'keep_alive': '1h'},
+            timeout=60
         )
         if res.status_code == 200:
             data = res.json()
@@ -96,8 +96,8 @@ def generate_ollama_embedding_single(url, model, text):
     try:
         res = requests.post(
             f"{target_url}/api/embeddings",
-            json={'model': target_model, 'prompt': text},
-            timeout=45
+            json={'model': target_model, 'prompt': text, 'keep_alive': '1h'},
+            timeout=60
         )
         if res.status_code == 200:
             data = res.json()
@@ -129,9 +129,9 @@ def generate_ollama_embeddings_batch(url, model, texts, batch_size=None, on_batc
     target_url = (url or DEFAULT_OLLAMA_URL).rstrip('/')
     target_model = model or DEFAULT_OLLAMA_MODEL
 
-    # Determine initial batch size: fixed if requested, else adaptive starting at 16
+    # Determine initial batch size: fixed if requested, else adaptive starting conservatively at 8
     is_adaptive = batch_size is None or int(batch_size) <= 0
-    current_batch_size = 16 if is_adaptive else min(max(int(batch_size), 1), 64)
+    current_batch_size = 8 if is_adaptive else min(max(int(batch_size), 1), 64)
 
     results = [None] * len(texts)
     total_texts = len(texts)
@@ -161,14 +161,17 @@ def generate_ollama_embeddings_batch(url, model, texts, batch_size=None, on_batc
             batch_start_time = time.time()
             sub_success = False
 
-            # Adaptive HTTP timeout based on batch size
-            batch_timeout = max(60, min(effective_batch * 5, 240))
+            # Adaptive HTTP timeout: batch 1 needs generous headroom for cold-start model loading into RAM
+            if b_idx == 1:
+                batch_timeout = max(180, effective_batch * 15)
+            else:
+                batch_timeout = max(90, min(effective_batch * 12, 300))
 
-            # Attempt 1: Call Ollama /api/embed for this sub-batch via pooled session
+            # Attempt 1: Call Ollama /api/embed for this sub-batch via pooled session with keep_alive
             try:
                 res = session.post(
                     f"{target_url}/api/embed",
-                    json={'model': target_model, 'input': sub_texts},
+                    json={'model': target_model, 'input': sub_texts, 'keep_alive': '1h'},
                     timeout=batch_timeout
                 )
                 if res.status_code == 200:
@@ -197,31 +200,49 @@ def generate_ollama_embeddings_batch(url, model, texts, batch_size=None, on_batc
             # Dynamic adaptive scaling for next iteration
             if is_adaptive:
                 prev_size = current_batch_size
-                if sub_success and duration < 3.0 and current_batch_size < 48:
-                    current_batch_size = min(current_batch_size + 16, 48)
+                if sub_success and duration < 4.0 and current_batch_size < 32:
+                    current_batch_size = min(current_batch_size + 8, 32)
                     if current_batch_size != prev_size:
-                        _logger.info("    [OLLAMA_ADAPTIVE] Fast response (%.2fs < 3s). Scaled up batch: %d -> %d", duration, prev_size, current_batch_size)
-                elif duration > 12.0 or not sub_success:
-                    current_batch_size = max(current_batch_size // 2, 8)
+                        _logger.info("    [OLLAMA_ADAPTIVE] Fast response (%.2fs < 4s). Scaled up batch: %d -> %d", duration, prev_size, current_batch_size)
+                elif duration > 15.0 or not sub_success:
+                    current_batch_size = max(current_batch_size // 2, 4)
                     if current_batch_size != prev_size:
-                        _logger.info("    [OLLAMA_ADAPTIVE] High latency / failure (%.2fs > 12s). Scaled down batch: %d -> %d", duration, prev_size, current_batch_size)
+                        _logger.info("    [OLLAMA_ADAPTIVE] High latency / failure (%.2fs > 15s). Scaled down batch: %d -> %d", duration, prev_size, current_batch_size)
 
             # Calculate ETA
             elapsed_so_far = time.time() - overall_start_time
             avg_per_chunk = elapsed_so_far / total_processed if total_processed > 0 else 0
             remaining_chunks = total_texts - total_processed
             eta_seconds = remaining_chunks * avg_per_chunk
-            eta_str = f"{int(eta_seconds // 60)}m {int(eta_seconds % 60):02d}s" if eta_seconds >= 60 else f"{int(eta_seconds)}s"
+            if eta_seconds >= 3600:
+                eta_str = f"{int(eta_seconds // 3600)}h {int((eta_seconds % 3600) // 60):02d}m"
+            elif eta_seconds >= 60:
+                eta_str = f"{int(eta_seconds // 60)}m {int(eta_seconds % 60):02d}s"
+            else:
+                eta_str = f"{int(eta_seconds)}s"
 
             _logger.info(
                 ">>> [OLLAMA_PROGRESS] Batch %d | Chunks: %d/%d (%.1f%%) | OK: %d/%d in %.2fs (size %d) | ETA: ~%s",
                 b_idx, total_processed, total_texts, progress_pct, batch_ok_count, len(sub_texts), duration, effective_batch, eta_str
             )
 
-            # Trigger incremental callback (e.g. database save per batch)
+            # Trigger incremental callback (e.g. database save & progress broadcast per batch)
             if on_batch_success:
                 try:
-                    on_batch_success(sub_indices, [results[idx] for idx in sub_indices])
+                    progress_info = {
+                        'batch_idx': b_idx,
+                        'total_processed': total_processed,
+                        'total_texts': total_texts,
+                        'progress_pct': progress_pct,
+                        'eta_seconds': eta_seconds,
+                        'eta_str': eta_str,
+                    }
+                    import inspect
+                    sig = inspect.signature(on_batch_success)
+                    if len(sig.parameters) >= 3:
+                        on_batch_success(sub_indices, [results[idx] for idx in sub_indices], progress_info)
+                    else:
+                        on_batch_success(sub_indices, [results[idx] for idx in sub_indices])
                 except Exception as e_cb:
                     _logger.warning("    [DATABASE_ERROR] Error saving sub-batch %d to DB: %s", b_idx, str(e_cb))
 

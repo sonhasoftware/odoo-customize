@@ -12,5 +12,16 @@
             <field name="doall" eval="False"/>
             <field name="active" eval="True"/>
         </record>
+        <record id="ir_cron_process_ocr_jobs" model="ir.cron">
+            <field name="name">Topic Chatbot: Process OCR Jobs Queue</field>
+            <field name="model_id" ref="model_topic_chatbot_ocr_job"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_process_ocr_jobs()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">minutes</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="False"/>
+            <field name="active" eval="True"/>
+        </record>
     </data>
 </odoo>

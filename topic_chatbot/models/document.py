@@ -10,6 +10,7 @@ import zipfile
 import xml.etree.ElementTree as ET
 from odoo import api, fields, models
 from odoo.exceptions import UserError
+from ..services import image_filter, image_classifier, ocr_service, vision_service
 
 _logger = logging.getLogger(__name__)
 
@@ -30,6 +31,7 @@ class TopicChatbotDocument(models.Model):
     # Constants
     STALE_PROCESSING_MINUTES = 60
     DOCUMENT_PROCESS_LOCK_KEY = 830917
+    OLLAMA_COMPUTE_LOCK_KEY = 830917
 
     # Excel chunking constants (adjustable for benchmarking)
     EXCEL_PARENT_CHUNK_SIZE = 3500   # Max chars per parent chunk
@@ -123,6 +125,32 @@ class TopicChatbotDocument(models.Model):
         readonly=True,
         help="Time taken to process the document in seconds"
     )
+    estimated_seconds = fields.Integer(
+        string='Estimated Duration (s)',
+        readonly=True,
+        help="Estimated total seconds required to extract text and generate embeddings"
+    )
+    estimated_time_display = fields.Char(
+        string='Thời gian dự kiến',
+        readonly=True,
+        help="Human-readable estimated processing time (e.g. 'Khoảng 45 giây')"
+    )
+    processing_start_time = fields.Datetime(
+        string='Thời điểm bắt đầu xử lý',
+        readonly=True,
+        help="Timestamp when background processing started"
+    )
+    estimated_finish_time = fields.Datetime(
+        string='Dự kiến hoàn thành lúc',
+        readonly=True,
+        help="Estimated completion timestamp"
+    )
+    processing_progress = fields.Integer(
+        string='Tiến độ (%)',
+        default=0,
+        readonly=True,
+        help="Current estimated or actual processing progress percentage"
+    )
     error_message = fields.Text(
         string='Error Details',
         readonly=True,
@@ -149,6 +177,37 @@ class TopicChatbotDocument(models.Model):
         except Exception as e:
             _logger.warning("Could not create GIN index on topic_chatbot_document: %s", str(e))
         return res
+
+    ocr_job_ids = fields.One2many(
+        'topic_chatbot.ocr_job',
+        'document_id',
+        string='OCR Jobs',
+        readonly=True,
+        help="Danh sách tác vụ trích xuất OCR cho tài liệu này"
+    )
+    has_ocr_errors = fields.Boolean(
+        string='Có lỗi OCR',
+        compute='_compute_has_ocr_errors',
+        store=True,
+        help="Đánh dấu nếu tác vụ OCR của tài liệu hoàn thành một phần hoặc có lỗi"
+    )
+    ocr_warning = fields.Char(
+        string='Cảnh báo OCR',
+        compute='_compute_has_ocr_errors',
+        store=True,
+        help="Thông báo tóm tắt lỗi hình ảnh OCR"
+    )
+
+    @api.depends('ocr_job_ids.state', 'ocr_job_ids.error_message')
+    def _compute_has_ocr_errors(self):
+        for doc in self:
+            err_jobs = doc.ocr_job_ids.filtered(lambda j: j.state in ('done_with_errors', 'failed'))
+            if err_jobs:
+                doc.has_ocr_errors = True
+                doc.ocr_warning = err_jobs[0].error_message or "Tài liệu có hình ảnh chưa thể trích xuất hoàn chỉnh."
+            else:
+                doc.has_ocr_errors = False
+                doc.ocr_warning = False
 
     @api.depends('chunk_ids')
     def _compute_chunks_count(self):
@@ -239,6 +298,100 @@ class TopicChatbotDocument(models.Model):
                     
         return super().write(vals)
 
+    def _calculate_estimated_processing_time(self):
+        """Calculate estimated processing time in seconds and human-readable string based on file characteristics."""
+        import base64
+        import datetime
+        from ..services import embedding_service
+
+        cfg = embedding_service.get_embedding_config(self.env)
+        active_provider = cfg.get('provider') or 'gemini'
+        # Heuristic: Ollama bge-m3 takes ~1.2s - 1.5s per chunk on CPU/integrated GPU.
+        # Gemini takes ~0.2s per chunk (batch of 20 chunks in ~3s-4s).
+        sec_per_chunk = 1.5 if active_provider == 'ollama' else 0.2
+
+        for doc in self:
+            est_sec = 20  # Baseline minimum
+            filename = (doc.filename or '').lower()
+            file_bytes = 0
+            if doc.datas:
+                try:
+                    file_bytes = len(base64.b64decode(doc.datas))
+                except Exception:
+                    file_bytes = (doc.file_size or 0) * 1024
+
+            if filename.endswith('.docx'):
+                # Parsing DOCX is fast; estimate ~15s base + 5s per MB + embedding time
+                # Roughly 1 chunk per 4KB text
+                est_chunks = max(3, file_bytes // 4000)
+                est_sec = 15 + int((file_bytes / (1024 * 1024)) * 5) + int(est_chunks * sec_per_chunk)
+            elif filename.endswith(('.xlsx', '.xls')):
+                # Excel parsing can be ~10s per 1,000 rows
+                # Heuristic: roughly 50KB per 1,000 rows in xlsx
+                est_rows = max(100, int((file_bytes / 50000) * 1000))
+                parse_time = max(5, int((est_rows / 1000) * 8))
+                # Excel child chunks are ~800-1200 chars (~10-15 rows)
+                est_chunks = max(5, est_rows // 12)
+                est_sec = 10 + parse_time + int(est_chunks * sec_per_chunk)
+            elif filename.endswith('.pdf'):
+                # Check page count and scan status
+                total_pages = 1
+                is_scanned = False
+                if doc.datas and PdfReader:
+                    try:
+                        reader = PdfReader(io.BytesIO(base64.b64decode(doc.datas)))
+                        total_pages = max(1, len(reader.pages))
+                        sample_page = reader.pages[0].extract_text() or ""
+                        if len(sample_page.strip()) < 40:
+                            is_scanned = True
+                    except Exception:
+                        pass
+                
+                if is_scanned:
+                    # OCR takes ~15-20s per page
+                    est_sec = 10 + (total_pages * 18)
+                else:
+                    # Text PDF takes ~1s per 3 pages + embedding time
+                    parse_time = max(5, total_pages // 2)
+                    est_chunks = max(3, total_pages * 2)
+                    est_sec = 10 + parse_time + int(est_chunks * sec_per_chunk)
+            else:
+                # Plain text or CSV
+                est_chunks = max(3, file_bytes // 3000)
+                est_sec = 10 + max(5, file_bytes // 100000) + int(est_chunks * sec_per_chunk)
+
+            # Cap bounds (realistic upper ceiling of 4 hours instead of 10 minutes)
+            est_sec = max(15, min(est_sec, 14400))
+
+            # Format human display
+            if est_sec < 60:
+                display = f"Khoảng {est_sec} giây"
+            elif est_sec < 3600:
+                mins = est_sec // 60
+                secs = est_sec % 60
+                if secs > 0:
+                    display = f"Khoảng {mins} phút {secs} giây"
+                else:
+                    display = f"Khoảng {mins} phút"
+            else:
+                hours = est_sec // 3600
+                mins = (est_sec % 3600) // 60
+                if mins > 0:
+                    display = f"Khoảng {hours} giờ {mins} phút"
+                else:
+                    display = f"Khoảng {hours} giờ"
+
+            now = fields.Datetime.now()
+            finish_time = fields.Datetime.add(now, seconds=est_sec)
+
+            doc.write({
+                'estimated_seconds': est_sec,
+                'estimated_time_display': display,
+                'processing_start_time': now,
+                'estimated_finish_time': finish_time,
+                'processing_progress': 5,
+            })
+
     def action_process_document(self):
         """Action method to trigger background processing on selected document(s)."""
         import threading
@@ -255,6 +408,10 @@ class TopicChatbotDocument(models.Model):
             return True
 
         draft_docs.filtered(lambda d: d.state == 'error').write({'state': 'draft'})
+        
+        # Calculate estimated processing times before launching background thread
+        draft_docs._calculate_estimated_processing_time()
+
         draft_docs.write({
             'state': 'processing',
             'error_message': False,
@@ -272,12 +429,30 @@ class TopicChatbotDocument(models.Model):
         )
         thread.start()
 
+        if len(draft_docs) == 1:
+            doc = draft_docs[0]
+            est_text = doc.estimated_time_display or "vài giây"
+            notif_msg = f"Đã bắt đầu xử lý tài liệu '{doc.name}'. Dự kiến hoàn thành trong {est_text}. Hệ thống sẽ thông báo khi hoàn thành để bạn bắt đầu đặt câu hỏi."
+        else:
+            total_est = sum(d.estimated_seconds or 30 for d in draft_docs)
+            if total_est < 60:
+                time_str = f"{total_est} giây"
+            elif total_est < 3600:
+                mins = total_est // 60
+                secs = total_est % 60
+                time_str = f"{mins} phút {secs} giây" if secs > 0 else f"{mins} phút"
+            else:
+                hours = total_est // 3600
+                mins = (total_est % 3600) // 60
+                time_str = f"{hours} giờ {mins} phút" if mins > 0 else f"{hours} giờ"
+            notif_msg = f"Đã bắt đầu xử lý {len(draft_docs)} tài liệu trong nền (dự kiến tổng: {time_str}). Trạng thái sẽ cập nhật tự động khi hoàn thành."
+
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
             'params': {
                 'title': 'Xử lý tài liệu',
-                'message': f'Đã bắt đầu xử lý {len(draft_docs)} tài liệu trong nền. Trạng thái sẽ cập nhật tự động khi hoàn thành.',
+                'message': notif_msg,
                 'type': 'info',
                 'sticky': False,
             }
@@ -313,27 +488,39 @@ class TopicChatbotDocument(models.Model):
 
     @api.model
     def _cron_process_documents(self):
-        """Cron job to process draft documents and recover stale processing records."""
-        stale_cutoff = fields.Datetime.subtract(
-            fields.Datetime.now(),
-            minutes=self.STALE_PROCESSING_MINUTES,
-        )
-        documents = self.search([
-            '|',
-            ('state', '=', 'draft'),
-            '&',
-            ('state', '=', 'processing'),
-            ('write_date', '<=', stale_cutoff),
-        ], limit=5)
-        for doc in documents:
-            if doc.state == 'processing':
-                _logger.warning(
-                    "Reprocessing stale topic chatbot document %s (id=%s), last update: %s",
-                    doc.name,
-                    doc.id,
-                    doc.write_date,
-                )
-            doc._process_document()
+        """Cron job to process draft documents and recover stale processing records using SKIP LOCKED."""
+        with self.env.registry.cursor() as dedicated_cr:
+            query = """
+                SELECT id, state FROM topic_chatbot_document
+                WHERE (state = 'draft')
+                   OR (state = 'processing' AND write_date <= (now() at time zone 'UTC') - interval '%s minutes')
+                ORDER BY id ASC
+                LIMIT 5
+                FOR UPDATE SKIP LOCKED
+            """
+            dedicated_cr.execute(query, (self.STALE_PROCESSING_MINUTES,))
+            rows = dedicated_cr.fetchall()
+            if not rows:
+                return
+
+            doc_ids_to_process = [r[0] for r in rows]
+            # Mark processing immediately and commit to release row-level locks
+            dedicated_cr.execute(
+                "UPDATE topic_chatbot_document SET state = 'processing', write_date = (now() at time zone 'UTC') WHERE id IN %s",
+                (tuple(doc_ids_to_process),)
+            )
+            dedicated_cr.commit()
+
+        # Process each document
+        for doc_id in doc_ids_to_process:
+            doc = self.browse(doc_id)
+            if not doc.exists():
+                continue
+            _logger.info("Cron processing document %s (id=%s)", doc.name, doc.id)
+            try:
+                doc._process_document()
+            except Exception as e:
+                _logger.error("Error processing document %s in cron: %s", doc.id, str(e))
 
     def _process_document(self):
         """Enhanced document processing with better error handling and statistics."""
@@ -396,6 +583,60 @@ class TopicChatbotDocument(models.Model):
                         f"Tệp '{doc.filename}' không được hỗ trợ. "
                         "Hệ thống chỉ chấp nhận tệp định dạng .pdf, .docx, .xlsx, .xls, .csv hoặc .txt!"
                     )
+
+                # Handle embedded images OCR if enabled
+                params = doc.env['ir.config_parameter'].sudo()
+                enable_ocr = params.get_param('topic_chatbot.enable_image_ocr', 'False').lower() in ('true', '1')
+                ocr_mode = params.get_param('topic_chatbot.ocr_processing_mode', 'queue')
+                ocr_job = None
+
+                if enable_ocr and (filename.endswith('.pdf') or filename.endswith('.docx')):
+                    images_extracted = []
+                    if filename.endswith('.pdf'):
+                        images_extracted = doc._extract_pdf_images(file_content)
+                    elif filename.endswith('.docx'):
+                        images_extracted = doc._extract_docx_images(file_content)
+
+                    if images_extracted:
+                        _logger.info("Found %d valid embedded images in document %s (id=%s)", len(images_extracted), doc.name, doc.id)
+                        
+                        # Enforce max_images limit to avoid system overload
+                        try:
+                            max_imgs = int(params.get_param('topic_chatbot.ocr_max_images') or 15)
+                        except (ValueError, TypeError):
+                            max_imgs = 15
+                        if len(images_extracted) > max_imgs:
+                            _logger.info("Capping extracted images for doc %s from %d to %d (ocr_max_images)", doc.id, len(images_extracted), max_imgs)
+                            images_extracted = images_extracted[:max_imgs]
+
+                        # Create OCR job in pending state for async background execution
+                        ocr_job = doc.env['topic_chatbot.ocr_job'].create({
+                            'document_id': doc.id,
+                            'images_count': len(images_extracted),
+                            'state': 'pending'
+                        })
+
+                        # Create lines and check MD5 cache
+                        cache_model = doc.env['topic_chatbot.ocr_cache']
+                        for img_idx, img_bytes, img_hash in images_extracted:
+                            cached_text = cache_model.lookup_cache(img_hash)
+                            if cached_text:
+                                doc.env['topic_chatbot.ocr_job_image_line'].create({
+                                    'job_id': ocr_job.id,
+                                    'image_index': img_idx,
+                                    'image_hash': img_hash,
+                                    'state': 'done',
+                                    'extracted_text': cached_text,
+                                    'category': 'text_table',
+                                    'processing_time': 0.01,
+                                })
+                            else:
+                                doc.env['topic_chatbot.ocr_job_image_line'].create({
+                                    'job_id': ocr_job.id,
+                                    'image_index': img_idx,
+                                    'image_hash': img_hash,
+                                    'state': 'pending',
+                                })
 
                 # Calculate text statistics
                 content_length = len(extracted_text) if extracted_text else 0
@@ -472,7 +713,7 @@ class TopicChatbotDocument(models.Model):
                     if valid_texts:
                         try:
                             embeddings_list = doc.env['topic_chatbot.chunk']._generate_embeddings_batch(
-                                valid_texts, api_key, embedding_model, chunk_records=valid_children, provider=active_provider
+                                valid_texts, api_key, embedding_model, chunk_records=valid_children, provider=active_provider, document_id=doc.id
                             )
                         except Exception as emb_err:
                             _logger.warning("Error during batch embedding generation for document %s: %s", doc.name, str(emb_err))
@@ -500,8 +741,21 @@ class TopicChatbotDocument(models.Model):
                 doc.write({
                     'state': final_state,
                     'processing_time': processing_time,
+                    'processing_progress': 100,
                     'error_message': emb_warning if emb_warning else False
                 })
+
+                # Broadcast bus notification so frontend countdown widgets & forms update in realtime
+                try:
+                    doc.env['bus.bus']._sendone('broadcast', 'topic_chatbot.document/status_changed', {
+                        'document_id': doc.id,
+                        'state': final_state,
+                        'name': doc.name,
+                        'processing_time': round(processing_time, 1),
+                        'error_message': emb_warning if emb_warning else False,
+                    })
+                except Exception as bus_err:
+                    _logger.debug("Could not send bus notification: %s", str(bus_err))
                 
                 _logger.info(
                     "Document '%s' (id=%s) processing finished in %.2fs [State: %s]: "
@@ -510,6 +764,11 @@ class TopicChatbotDocument(models.Model):
                     content_length, word_count, chunks_created, chunks_with_embeddings, chunks_created,
                     (chunks_with_embeddings / chunks_created * 100.0) if chunks_created else 100.0
                 )
+
+                # Stage 2: Trigger async background OCR processing immediately if document has embedded images
+                if ocr_job:
+                    doc.env.cr.commit()
+                    doc.env['topic_chatbot.ocr_job']._trigger_async_ocr_job(ocr_job.id)
 
                 if excel_structure:
                     sheet_count = len(excel_structure)
@@ -549,11 +808,23 @@ class TopicChatbotDocument(models.Model):
                 doc.write({
                     'state': 'error',
                     'processing_time': processing_time,
+                    'processing_progress': 0,
                     'error_message': err_msg,
                     'text_content': f"LỖI XỬ LÝ: {err_msg}",
                     'content_length': 0,
                     'word_count': 0
                 })
+
+                try:
+                    doc.env['bus.bus']._sendone('broadcast', 'topic_chatbot.document/status_changed', {
+                        'document_id': doc.id,
+                        'state': 'error',
+                        'name': doc.name,
+                        'processing_time': round(processing_time, 1),
+                        'error_message': err_msg,
+                    })
+                except Exception as bus_err:
+                    _logger.debug("Could not send bus error notification: %s", str(bus_err))
             finally:
                 try:
                     doc.env.cr.execute(
@@ -2282,6 +2553,66 @@ class TopicChatbotDocument(models.Model):
             _logger.error("Failed to extract text from DOCX file %s: %s", self.filename, str(e))
             raise UserError(f"Không thể trích xuất nội dung từ tệp Word '{self.filename}': {str(e)}")
 
+    def _extract_docx_images(self, file_content):
+        """Extract valid embedded images from a Word (.docx) document as list of (image_index, raw_bytes, hash).
+        
+        Applies image_filter:
+        - Skips WMF/EMF vector formats safely without throwing exceptions.
+        - Skips small icons, avatars, and logos (<150x150 or <8KB).
+        - Corrects EXIF rotation and downscales if >1600px.
+        """
+        valid_images = []
+        try:
+            import docx
+            doc = docx.Document(io.BytesIO(file_content))
+            img_idx = 0
+            for rel in doc.part.related_parts.values():
+                if "image" in rel.content_type:
+                    if not image_filter.is_supported_image_format(content_type=rel.content_type):
+                        _logger.debug("Skipping unsupported vector/image format %s in doc %s", rel.content_type, self.id)
+                        continue
+                    raw_bytes = rel.blob
+                    should_process, reason, processed_bytes, img_hash = image_filter.filter_and_preprocess_image(raw_bytes)
+                    if should_process and processed_bytes:
+                        valid_images.append((img_idx, processed_bytes, img_hash))
+                    else:
+                        _logger.debug("DOCX image %d skipped: %s", img_idx, reason)
+                    img_idx += 1
+        except Exception as e:
+            _logger.warning("Error extracting embedded images from DOCX %s: %s", self.id, str(e))
+        return valid_images
+
+    def _extract_pdf_images(self, file_content):
+        """Extract valid embedded images from a PDF document as list of (image_index, raw_bytes, hash).
+        
+        Applies image_filter:
+        - Skips small icons/separators (<150x150 or <8KB).
+        - Corrects rotation and downscales if >1600px.
+        """
+        valid_images = []
+        try:
+            import fitz
+            doc_fitz = fitz.open(stream=file_content, filetype="pdf")
+            img_idx = 0
+            for page in doc_fitz:
+                img_list = page.get_images(full=True)
+                for img_info in img_list:
+                    xref = img_info[0]
+                    base_img = doc_fitz.extract_image(xref)
+                    if not base_img or 'image' not in base_img:
+                        continue
+                    raw_bytes = base_img['image']
+                    should_process, reason, processed_bytes, img_hash = image_filter.filter_and_preprocess_image(raw_bytes)
+                    if should_process and processed_bytes:
+                        valid_images.append((img_idx, processed_bytes, img_hash))
+                    else:
+                        _logger.debug("PDF image %d skipped: %s", img_idx, reason)
+                    img_idx += 1
+            doc_fitz.close()
+        except Exception as e:
+            _logger.warning("Error extracting embedded images from PDF %s: %s", self.id, str(e))
+        return valid_images
+
     def _extract_txt_or_csv_text(self, file_content):
         for encoding in ['utf-8', 'utf-8-sig', 'cp1252', 'latin-1', 'gbk']:
             try:
@@ -2516,57 +2847,73 @@ class TopicChatbotDocument(models.Model):
         return self.action_process_document()
 
     def action_retry_failed_embeddings(self):
-        """Retry generating embeddings ONLY for chunks that failed embedding without re-extracting text."""
+        """Retry generating embeddings ONLY for chunks that failed embedding in a background thread."""
+        import threading
         for doc in self:
             if doc.state == 'processing':
                 raise UserError(f"Tài liệu '{doc.name}' đang được xử lý. Vui lòng đợi!")
 
-            failed_chunks = doc.chunk_ids.filtered(
-                lambda c: c.chunk_type in ('child', 'standard') and (not c.embedding or len(c.embedding.strip()) <= 10)
-            )
-            if not failed_chunks:
-                doc.write({
-                    'state': 'done',
-                    'error_message': False
-                })
-                continue
+        db_name = self.env.cr.dbname
+        uid = self.env.uid
+        doc_ids = self.ids
 
-            from ..services import embedding_service
-            cfg = embedding_service.get_embedding_config(doc.env)
-            active_provider = cfg.get('provider') or 'gemini'
-            api_key = cfg.get('gemini_key') or ''
-            embedding_model = cfg.get('gemini_model') or 'gemini-embedding-2'
+        def _worker():
+            import odoo
+            with odoo.registry(db_name).cursor() as new_cr:
+                env = api.Environment(new_cr, uid, {})
+                for doc_id in doc_ids:
+                    doc = env['topic_chatbot.document'].browse(doc_id)
+                    if not doc.exists():
+                        continue
+                    failed_chunks = doc.chunk_ids.filtered(
+                        lambda c: c.chunk_type in ('child', 'standard') and (not c.embedding or len(c.embedding.strip()) <= 10)
+                    )
+                    if not failed_chunks:
+                        doc.write({'state': 'done', 'error_message': False})
+                        new_cr.commit()
+                        continue
 
-            if active_provider == 'gemini' and not api_key:
-                raise UserError("Chưa cấu hình Gemini API Key. Vui lòng thiết lập trong Cấu hình!")
-            elif active_provider == 'ollama' and not cfg.get('ollama_url'):
-                raise UserError("Chưa cấu hình Ollama Server URL. Vui lòng thiết lập trong Cấu hình!")
+                    from ..services import embedding_service
+                    cfg = embedding_service.get_embedding_config(doc.env)
+                    active_provider = cfg.get('provider') or 'gemini'
+                    api_key = cfg.get('gemini_key') or ''
+                    embedding_model = cfg.get('gemini_model') or 'gemini-embedding-2'
 
-            texts = [c.content for c in failed_chunks]
-            try:
-                embeddings = doc.env['topic_chatbot.chunk']._generate_embeddings_batch(
-                    texts, api_key, embedding_model, chunk_records=failed_chunks, provider=active_provider
-                )
-            except Exception as e:
-                _logger.error("Error retrying embeddings for doc %s: %s", doc.id, str(e))
-                embeddings = [None] * len(texts)
+                    texts = [c.content for c in failed_chunks]
+                    try:
+                        embeddings = doc.env['topic_chatbot.chunk']._generate_embeddings_batch(
+                            texts, api_key, embedding_model, chunk_records=failed_chunks, provider=active_provider, document_id=doc.id
+                        )
+                    except Exception as e:
+                        _logger.error("Error retrying embeddings for doc %s: %s", doc.id, str(e))
+                        embeddings = [None] * len(texts)
 
-            success_count = sum(1 for e in embeddings if e)
+                    success_count = sum(1 for e in embeddings if e)
+                    remaining_failed = len(doc.chunk_ids.filtered(lambda c: not c.embedding or len(c.embedding.strip()) <= 10))
+                    if remaining_failed == 0:
+                        doc.write({'state': 'done', 'error_message': False})
+                        _logger.info("Doc %s (id=%s): All embeddings recovered. State -> done", doc.name, doc.id)
+                    else:
+                        doc.write({
+                            'state': 'partial',
+                            'error_message': f"Đã bổ sung embedding cho {success_count} đoạn. Còn {remaining_failed} đoạn chưa hoàn thành do hạn mức API."
+                        })
+                        _logger.info("Doc %s (id=%s): %d recovered, %d still pending.", doc.name, doc.id, success_count, remaining_failed)
+                    new_cr.commit()
 
-            remaining_failed = len(doc.chunk_ids.filtered(lambda c: not c.embedding or len(c.embedding.strip()) <= 10))
-            if remaining_failed == 0:
-                doc.write({
-                    'state': 'done',
-                    'error_message': False
-                })
-                _logger.info("Doc %s (id=%s): All embeddings recovered. State -> done", doc.name, doc.id)
-            else:
-                doc.write({
-                    'state': 'partial',
-                    'error_message': f"Đã bổ sung embedding cho {success_count} đoạn. Còn {remaining_failed} đoạn chưa hoàn thành do hạn mức API."
-                })
-                _logger.info("Doc %s (id=%s): %d recovered, %d still pending.", doc.name, doc.id, success_count, remaining_failed)
-        return True
+        thread = threading.Thread(target=_worker, daemon=True)
+        thread.start()
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Bù Embeddings',
+                'message': f"Đã khởi chạy tiến trình bù embeddings trong nền cho {len(self)} tài liệu. Kết quả sẽ tự động cập nhật.",
+                'type': 'info',
+                'sticky': False,
+            }
+        }
     
     def action_view_chunks(self):
         """Action to view chunks created from this document."""

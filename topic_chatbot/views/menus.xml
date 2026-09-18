@@ -54,4 +54,16 @@
               parent="menu_topic_chatbot_config_root"
               action="action_mssql_log"
               sequence="30"/>
+
+    <menuitem id="menu_topic_chatbot_rag_log"
+              name="RAG Logs"
+              parent="menu_topic_chatbot_config_root"
+              action="action_rag_log"
+              sequence="35"/>
+
+    <menuitem id="menu_topic_chatbot_ocr_job"
+              name="OCR Pilot Stats"
+              parent="menu_topic_chatbot_config_root"
+              action="action_topic_chatbot_ocr_job"
+              sequence="37"/>
 </odoo>

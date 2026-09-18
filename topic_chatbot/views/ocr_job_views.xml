@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- OCR Job Tree View -->
+    <record id="view_topic_chatbot_ocr_job_tree" model="ir.ui.view">
+        <field name="name">topic_chatbot.ocr_job.tree</field>
+        <field name="model">topic_chatbot.ocr_job</field>
+        <field name="arch" type="xml">
+            <tree string="OCR Pilot Jobs" create="false" decoration-muted="state == 'failed'">
+                <field name="name"/>
+                <field name="document_id"/>
+                <field name="provider_used" optional="show"/>
+                <field name="images_count" string="Tổng ảnh"/>
+                <field name="images_processed" string="Đã xử lý"/>
+                <field name="processing_time" string="Thời gian (giây)" widget="float_time" optional="show"/>
+                <field name="peak_ram_mb" string="Đỉnh RAM (MB)" optional="show"/>
+                <field name="retry_count" string="Hoãn / Thử lại" optional="hide"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'done'"
+                       decoration-warning="state == 'done_with_errors'"
+                       decoration-danger="state == 'failed'"
+                       decoration-info="state in ('pending', 'processing')"/>
+                <field name="create_date" string="Ngày tạo" optional="show"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- OCR Job Form View -->
+    <record id="view_topic_chatbot_ocr_job_form" model="ir.ui.view">
+        <field name="name">topic_chatbot.ocr_job.form</field>
+        <field name="model">topic_chatbot.ocr_job</field>
+        <field name="arch" type="xml">
+            <form string="OCR Pilot Job" create="false">
+                <header>
+                    <button name="action_retry_now" string="Thử lại ngay" type="object" class="btn-warning" icon="fa-repeat"
+                            invisible="state not in ('pending', 'failed')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="pending,processing,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <div class="alert alert-warning" role="alert" invisible="state != 'done_with_errors'">
+                        <strong>Cảnh báo:</strong> Tác vụ đã hoàn thành nhưng có một số ảnh gặp sự cố và không thể trích xuất. Vui lòng kiểm tra tab "Chi tiết từng ảnh" bên dưới.
+                    </div>
+                    <div class="alert alert-danger" role="alert" invisible="state != 'failed'">
+                        <strong>Thất bại:</strong> <field name="error_message" readonly="1"/>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="document_id" readonly="1"/>
+                            <field name="provider_used" readonly="1"/>
+                            <field name="images_count" readonly="1"/>
+                            <field name="images_processed" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="processing_time" readonly="1"/>
+                            <field name="peak_ram_mb" readonly="1"/>
+                            <field name="retry_count" readonly="1"/>
+                            <field name="next_retry_at" readonly="1" invisible="not next_retry_at"/>
+                            <field name="create_date" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Chi tiết từng ảnh (Image Lines)" name="image_lines">
+                            <field name="image_line_ids" readonly="1">
+                                <tree string="Image Lines">
+                                    <field name="image_index" string="STT"/>
+                                    <field name="category" string="Phân loại"/>
+                                    <field name="image_hash" string="MD5 Hash" optional="show"/>
+                                    <field name="processing_time" string="Thời gian (s)"/>
+                                    <field name="state" widget="badge"
+                                           decoration-success="state == 'done'"
+                                           decoration-danger="state == 'failed'"
+                                           decoration-info="state == 'pending'"/>
+                                    <field name="error_message" optional="show" string="Ghi chú lỗi"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- OCR Job Pivot View -->
+    <record id="view_topic_chatbot_ocr_job_pivot" model="ir.ui.view">
+        <field name="name">topic_chatbot.ocr_job.pivot</field>
+        <field name="model">topic_chatbot.ocr_job</field>
+        <field name="arch" type="xml">
+            <pivot string="OCR Pilot Analytics" display_quantity="true">
+                <field name="provider_used" type="row"/>
+                <field name="state" type="col"/>
+                <field name="processing_time" type="measure"/>
+                <field name="images_count" type="measure"/>
+                <field name="peak_ram_mb" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- OCR Job Search View -->
+    <record id="view_topic_chatbot_ocr_job_search" model="ir.ui.view">
+        <field name="name">topic_chatbot.ocr_job.search</field>
+        <field name="model">topic_chatbot.ocr_job</field>
+        <field name="arch" type="xml">
+            <search string="Search OCR Jobs">
+                <field name="name"/>
+                <field name="document_id"/>
+                <field name="provider_used"/>
+                <filter string="Thành công" name="done" domain="[('state', '=', 'done')]"/>
+                <filter string="Hoàn thành có lỗi" name="done_with_errors" domain="[('state', '=', 'done_with_errors')]"/>
+                <filter string="Thất bại" name="failed" domain="[('state', '=', 'failed')]"/>
+                <filter string="Đang chờ / Đang xử lý" name="running" domain="[('state', 'in', ('pending', 'processing'))]"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter string="Trạng thái" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Nhà cung cấp" name="group_provider" context="{'group_by': 'provider_used'}"/>
+                    <filter string="Ngày tạo" name="group_date" context="{'group_by': 'create_date:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- OCR Job Window Action -->
+    <record id="action_topic_chatbot_ocr_job" model="ir.actions.act_window">
+        <field name="name">OCR Pilot Stats &amp; Jobs</field>
+        <field name="res_model">topic_chatbot.ocr_job</field>
+        <field name="view_mode">tree,form,pivot</field>
+        <field name="search_view_id" ref="view_topic_chatbot_ocr_job_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Chưa có tác vụ OCR nào được ghi nhận.
+            </p>
+            <p>
+                Khi bạn tải lên tài liệu Word (.docx) hoặc PDF có chứa hình ảnh, hệ thống sẽ tự động bóc tách và phân luồng xử lý tại đây.
+            </p>
+        </field>
+    </record>
+</odoo>

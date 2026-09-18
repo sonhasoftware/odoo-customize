@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_rag_log_tree" model="ir.ui.view">
+        <field name="name">topic_chatbot.rag_log.tree</field>
+        <field name="model">topic_chatbot.rag_log</field>
+        <field name="arch" type="xml">
+            <tree string="RAG Retrieval Logs" create="false" edit="false">
+                <field name="create_date" string="Date"/>
+                <field name="topic_name"/>
+                <field name="user_query"/>
+                <field name="route_type"/>
+                <field name="tier_activated"/>
+                <field name="retrieval_method"/>
+                <field name="retrieved_chunks_count" string="Chunks"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_rag_log_form" model="ir.ui.view">
+        <field name="name">topic_chatbot.rag_log.form</field>
+        <field name="model">topic_chatbot.rag_log</field>
+        <field name="arch" type="xml">
+            <form string="RAG Retrieval Log" create="false" edit="false">
+                <sheet>
+                    <group>
+                        <group string="Query &amp; Intent Info">
+                            <field name="create_date" string="Timestamp"/>
+                            <field name="topic_id"/>
+                            <field name="topic_name"/>
+                            <field name="conversation_id"/>
+                            <field name="route_type"/>
+                            <field name="route_reason"/>
+                        </group>
+                        <group string="RAG Retrieval Info">
+                            <field name="tier_activated"/>
+                            <field name="tier_reason"/>
+                            <field name="retrieval_method"/>
+                            <field name="retrieved_chunks_count"/>
+                        </group>
+                    </group>
+                    <group string="Queries">
+                        <field name="user_query"/>
+                        <field name="rewritten_query"/>
+                    </group>
+                    <notebook>
+                        <page string="Prompt Context (LLM Input)">
+                            <field name="prompt_context" widget="text"/>
+                        </page>
+                        <page string="Chunks Summary">
+                            <field name="retrieved_chunks_summary" widget="text"/>
+                        </page>
+                        <page string="Full JSON Payload">
+                            <field name="full_payload" widget="text"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_rag_log_search" model="ir.ui.view">
+        <field name="name">topic_chatbot.rag_log.search</field>
+        <field name="model">topic_chatbot.rag_log</field>
+        <field name="arch" type="xml">
+            <search string="Search RAG Logs">
+                <field name="user_query"/>
+                <field name="topic_name"/>
+                <field name="route_type"/>
+                <field name="tier_activated"/>
+                <field name="retrieval_method"/>
+                <group expand="0" string="Group By">
+                    <filter string="Route / Intent" name="group_route" domain="[]" context="{'group_by': 'route_type'}"/>
+                    <filter string="RAG Tier" name="group_tier" domain="[]" context="{'group_by': 'tier_activated'}"/>
+                    <filter string="Topic" name="group_topic" domain="[]" context="{'group_by': 'topic_id'}"/>
+                    <filter string="Date" name="group_date" domain="[]" context="{'group_by': 'create_date:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_rag_log" model="ir.actions.act_window">
+        <field name="name">RAG Retrieval Logs</field>
+        <field name="res_model">topic_chatbot.rag_log</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_rag_log_search"/>
+    </record>
+</odoo>

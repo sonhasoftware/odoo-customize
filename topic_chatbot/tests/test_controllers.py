@@ -327,6 +327,28 @@ class TestTopicChatbotControllers(TransactionCase):
         result = self.controller._sanitize_technical_terms(None)
         self.assertIsNone(result)
 
+    def test_18a_normalize_step_lists(self):
+        """Test _normalize_step_lists converts steps to numbered list and bolds UI terms."""
+        input_text = (
+            "### Tạo Duyệt giá\n"
+            "* Bước 1: Vào menu Mua hàng -> Đơn hàng -> Duyệt giá -> Nhấn Tạo\n"
+            "* Bước 3: Sau khi nhập xong các trường thông tin -> Nhấn Lưu để lưu lại\n"
+            "* Bước 2: Nhấn Gửi duyệt để gửi thông báo"
+        )
+        result = self.controller._normalize_step_lists(input_text)
+        self.assertIn("1. **Bước 1**: Vào menu **Mua hàng** -> **Đơn hàng** -> **Duyệt giá** -> Nhấn **Tạo**", result)
+        self.assertIn("2. **Bước 2**: Sau khi nhập xong các trường thông tin -> Nhấn **Lưu** để lưu lại", result)
+        self.assertIn("3. **Bước 3**: Nhấn **Gửi duyệt** để gửi thông báo", result)
+
+    def test_18b_bold_ui_action_terms(self):
+        """Test _bold_ui_action_terms bolds UI action buttons and menu paths."""
+        self.assertEqual(self.controller._bold_ui_action_terms("Nhấn nút Lưu"), "Nhấn nút **Lưu**")
+        self.assertEqual(
+            self.controller._bold_ui_action_terms("Vào menu: Mua hàng → Đơn hàng → Duyệt giá"),
+            "Vào menu: **Mua hàng** → **Đơn hàng** → **Duyệt giá**"
+        )
+        self.assertEqual(self.controller._bold_ui_action_terms("Nhấn nút **Lưu**"), "Nhấn nút **Lưu**")
+
     def test_19_execute_odoo_query_safe_models_only(self):
         """Test _execute_odoo_query only allows safe models."""
         with self._mock_request(self.env(user=self.DemoUser.id), self.DemoUser.id):

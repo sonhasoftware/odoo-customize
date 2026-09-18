@@ -16,7 +16,7 @@ EMBEDDING_BATCH_SIZE = 50
 PROACTIVE_BATCH_DELAY_SECONDS = 1.5
 MAX_RETRY_ATTEMPTS = 4
 BACKOFF_DELAYS = [6.0, 15.0, 35.0, 60.0]
-GEMINI_EMBEDDING_LOCK_KEY = 830918
+OLLAMA_COMPUTE_LOCK_KEY = 830917
 
 
 class TopicChatbotChunk(models.Model):
@@ -175,27 +175,28 @@ class TopicChatbotChunk(models.Model):
         return effective_batch_size, delay_seconds
 
     @api.model
-    def _acquire_gemini_embedding_lock(self, target_model):
-        """Serialize Gemini embedding batches across Odoo workers sharing this DB."""
-        _logger.info("Waiting for Gemini embedding quota lock for model '%s'.", target_model)
+    def _acquire_compute_lock(self, target_label='Compute'):
+        """Serialize compute batches (embeddings/OCR) across Odoo workers sharing this DB."""
         self.env.cr.execute(
             "SELECT pg_advisory_lock(%s)",
-            (GEMINI_EMBEDDING_LOCK_KEY,),
+            (OLLAMA_COMPUTE_LOCK_KEY,),
         )
-        _logger.info("Acquired Gemini embedding quota lock for model '%s'.", target_model)
 
     @api.model
-    def _release_gemini_embedding_lock(self, target_model):
+    def _release_compute_lock(self, target_label='Compute'):
         try:
             self.env.cr.execute(
                 "SELECT pg_advisory_unlock(%s)",
-                (GEMINI_EMBEDDING_LOCK_KEY,),
+                (OLLAMA_COMPUTE_LOCK_KEY,),
             )
-            unlocked = self.env.cr.fetchone()[0]
-            if unlocked:
-                _logger.info("Released Gemini embedding quota lock for model '%s'.", target_model)
         except Exception as e:
-            _logger.warning("Failed to release Gemini embedding quota lock for '%s': %s", target_model, str(e))
+            _logger.warning("Failed to release compute lock: %s", str(e))
+
+    def _acquire_gemini_embedding_lock(self, target_model):
+        return self._acquire_compute_lock(target_model)
+
+    def _release_gemini_embedding_lock(self, target_model):
+        return self._release_compute_lock(target_model)
 
     @api.model
     def _generate_embedding(self, text, api_key=None, model_name=None, provider=None):
@@ -268,7 +269,7 @@ class TopicChatbotChunk(models.Model):
         return None
 
     @api.model
-    def _generate_embeddings_batch(self, texts, api_key=None, model_name=None, batch_size=None, chunk_records=None, provider=None):
+    def _generate_embeddings_batch(self, texts, api_key=None, model_name=None, batch_size=None, chunk_records=None, provider=None, document_id=None):
         """Generate text vector embeddings for multiple texts.
         Supports dual modes:
         - Mode 1 ('gemini'): Gemini API primary with automatic fallback to Ollama if 429 quota exhausted.
@@ -290,7 +291,7 @@ class TopicChatbotChunk(models.Model):
                 len(texts), cfg['ollama_model'], cfg['ollama_url'], adaptive_batch or "Adaptive Benchmark (16->48)"
             )
 
-            def save_ollama_batch(batch_indices, batch_results):
+            def save_ollama_batch(batch_indices, batch_results, progress_info=None):
                 if chunk_records:
                     try:
                         with self.env.cr.savepoint():
@@ -314,12 +315,38 @@ class TopicChatbotChunk(models.Model):
                     except Exception as persist_err:
                         _logger.warning("Ollama batch save failed: %s", str(persist_err))
 
-            results = embedding_service.generate_ollama_embeddings_batch(
-                cfg['ollama_url'], cfg['ollama_model'], texts,
-                batch_size=adaptive_batch,
-                on_batch_success=save_ollama_batch
-            )
-            return results
+                if document_id and progress_info:
+                    try:
+                        progress_pct = progress_info.get('progress_pct', 0)
+                        total_p = progress_info.get('total_processed', 0)
+                        total_t = progress_info.get('total_texts', 0)
+                        eta_s = progress_info.get('eta_str', '')
+
+                        self.env['bus.bus']._sendone('broadcast', 'topic_chatbot.document/progress', {
+                            'document_id': document_id,
+                            'processed_chunks': total_p,
+                            'total_chunks': total_t,
+                            'progress_pct': round(progress_pct, 1),
+                            'eta_str': eta_s,
+                        })
+                        self.env.cr.execute(
+                            "UPDATE topic_chatbot_document SET processing_progress = %s WHERE id = %s",
+                            (int(progress_pct), document_id)
+                        )
+                        self.env.cr.commit()
+                    except Exception as bus_err:
+                        _logger.debug("Failed to broadcast Ollama embedding progress: %s", str(bus_err))
+
+            self._acquire_compute_lock('Ollama Embeddings')
+            try:
+                results = embedding_service.generate_ollama_embeddings_batch(
+                    cfg['ollama_url'], cfg['ollama_model'], texts,
+                    batch_size=adaptive_batch,
+                    on_batch_success=save_ollama_batch
+                )
+                return results
+            finally:
+                self._release_compute_lock('Ollama Embeddings')
 
         # Chế độ 1: Gemini API
         effective_api_key = api_key or cfg['gemini_key']
@@ -343,131 +370,163 @@ class TopicChatbotChunk(models.Model):
 
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{target_model}:batchEmbedContents?key={effective_api_key}"
 
-        self._acquire_gemini_embedding_lock(target_model)
-        try:
-            rate_limit_exhausted = False
+        rate_limit_exhausted = False
 
-            # Process in batches
-            for batch_idx, start_idx in enumerate(range(0, total_chunks, effective_batch_size), start=1):
-                if rate_limit_exhausted:
-                    _logger.warning(
-                        "Skipping remaining Gemini embedding batches after sustained 429 rate limit on '%s'.",
-                        target_model,
-                    )
-                    break
+        # Process in batches
+        for batch_idx, start_idx in enumerate(range(0, total_chunks, effective_batch_size), start=1):
+            if rate_limit_exhausted:
+                _logger.warning(
+                    "Skipping remaining Gemini embedding batches after sustained 429 rate limit on '%s'.",
+                    target_model,
+                )
+                break
 
-                batch_chunk_texts = texts[start_idx:start_idx + effective_batch_size]
-                batch_indices = list(range(start_idx, start_idx + len(batch_chunk_texts)))
-                batch_start_time = time.time()
+            batch_chunk_texts = texts[start_idx:start_idx + effective_batch_size]
+            batch_indices = list(range(start_idx, start_idx + len(batch_chunk_texts)))
+            batch_start_time = time.time()
 
-                payload = {
-                    "requests": [
-                        {
-                            "model": f"models/{target_model}",
-                            "content": {"parts": [{"text": t}]},
-                            "outputDimensionality": 768
-                        }
-                        for t in batch_chunk_texts
-                    ]
-                }
+            payload = {
+                "requests": [
+                    {
+                        "model": f"models/{target_model}",
+                        "content": {"parts": [{"text": t}]},
+                        "outputDimensionality": 768
+                    }
+                    for t in batch_chunk_texts
+                ]
+            }
 
-                batch_succeeded = False
-                last_status_code = None
-                last_was_rate_limit = False
+            batch_succeeded = False
+            last_status_code = None
+            last_was_rate_limit = False
 
-                for attempt in range(MAX_RETRY_ATTEMPTS):
+            for attempt in range(MAX_RETRY_ATTEMPTS):
+                try:
+                    self._acquire_compute_lock('Gemini Batch Call')
                     try:
                         res = requests.post(url, headers=headers, json=payload, timeout=60)
-                        last_status_code = res.status_code
-                        if res.status_code == 200:
-                            res_json = res.json()
-                            embeddings = res_json.get('embeddings', [])
-                            for b_i, emb in enumerate(embeddings):
-                                vals = emb.get('values', [])
-                                if vals and b_i < len(batch_indices):
-                                    results[batch_indices[b_i]] = json.dumps(vals)
-                            batch_succeeded = True
-                            break
-                        elif res.status_code == 429:
-                            last_was_rate_limit = True
-                            retry_after = res.headers.get('Retry-After')
-                            try:
-                                sleep_seconds = float(retry_after) if retry_after else BACKOFF_DELAYS[attempt]
-                            except Exception:
-                                sleep_seconds = BACKOFF_DELAYS[attempt]
-                            sleep_seconds = min(max(sleep_seconds, 5.0), 65.0)
-                            if attempt + 1 >= MAX_RETRY_ATTEMPTS:
-                                _logger.warning(
-                                    "Gemini batchEmbedContents 429 (Rate Limit) on '%s' (batch %d/%d, attempt %d/%d). Retry budget exhausted.",
-                                    target_model, batch_idx, total_batches, attempt + 1, MAX_RETRY_ATTEMPTS
-                                )
-                                break
+                    finally:
+                        self._release_compute_lock('Gemini Batch Call')
+                    last_status_code = res.status_code
+                    if res.status_code == 200:
+                        res_json = res.json()
+                        embeddings = res_json.get('embeddings', [])
+                        for b_i, emb in enumerate(embeddings):
+                            vals = emb.get('values', [])
+                            if vals and b_i < len(batch_indices):
+                                results[batch_indices[b_i]] = json.dumps(vals)
+                        batch_succeeded = True
+                        break
+                    elif res.status_code == 429:
+                        last_was_rate_limit = True
+                        retry_after = res.headers.get('Retry-After')
+                        try:
+                            sleep_seconds = float(retry_after) if retry_after else BACKOFF_DELAYS[attempt]
+                        except Exception:
+                            sleep_seconds = BACKOFF_DELAYS[attempt]
+                        sleep_seconds = min(max(sleep_seconds, 5.0), 65.0)
+                        if attempt + 1 >= MAX_RETRY_ATTEMPTS:
                             _logger.warning(
-                                "Gemini batchEmbedContents 429 (Rate Limit) on '%s' (batch %d/%d, attempt %d/%d). Sleeping %.1fs for quota reset...",
-                                target_model, batch_idx, total_batches, attempt + 1, MAX_RETRY_ATTEMPTS, sleep_seconds
+                                "Gemini batchEmbedContents 429 (Rate Limit) on '%s' (batch %d/%d, attempt %d/%d). Retry budget exhausted.",
+                                target_model, batch_idx, total_batches, attempt + 1, MAX_RETRY_ATTEMPTS
                             )
-                            time.sleep(sleep_seconds)
-                            continue
-                        elif res.status_code in (404, 400):
-                            _logger.info("batchEmbedContents HTTP %s on model '%s', falling back to sequential calls on same model.", res.status_code, target_model)
                             break
-                        else:
-                            _logger.warning("batchEmbedContents HTTP %s for '%s': %s", res.status_code, target_model, res.text[:200])
-                            break
-                    except requests.exceptions.Timeout:
-                        if attempt + 1 < MAX_RETRY_ATTEMPTS:
-                            time.sleep(2.0)
+                        _logger.warning(
+                            "Gemini batchEmbedContents 429 (Rate Limit) on '%s' (batch %d/%d, attempt %d/%d). Sleeping %.1fs for quota reset...",
+                            target_model, batch_idx, total_batches, attempt + 1, MAX_RETRY_ATTEMPTS, sleep_seconds
+                        )
+                        time.sleep(sleep_seconds)
                         continue
-                    except Exception as e:
-                        err_msg = str(e)
-                        if effective_api_key:
-                            err_msg = err_msg.replace(effective_api_key, "REDACTED")
-                        _logger.warning("batchEmbedContents error (%s, batch %d/%d): %s", target_model, batch_idx, total_batches, err_msg)
-                        if attempt + 1 < MAX_RETRY_ATTEMPTS:
-                            time.sleep(2.0)
+                    elif res.status_code in (404, 400):
+                        _logger.info("batchEmbedContents HTTP %s on model '%s', falling back to sequential calls on same model.", res.status_code, target_model)
+                        break
+                    else:
+                        _logger.warning("batchEmbedContents HTTP %s for '%s': %s", res.status_code, target_model, res.text[:200])
+                        break
+                except requests.exceptions.Timeout:
+                    if attempt + 1 < MAX_RETRY_ATTEMPTS:
+                        time.sleep(2.0)
+                    continue
+                except Exception as e:
+                    err_msg = str(e)
+                    if effective_api_key:
+                        err_msg = err_msg.replace(effective_api_key, "REDACTED")
+                    _logger.warning("batchEmbedContents error (%s, batch %d/%d): %s", target_model, batch_idx, total_batches, err_msg)
+                    if attempt + 1 < MAX_RETRY_ATTEMPTS:
+                        time.sleep(2.0)
 
-                # Fallback to sequential calls ONLY on 404/400
-                if not batch_succeeded and last_status_code in (404, 400):
-                    _logger.info(
-                        "Fallback to sequential embedding for batch %d/%d (%d chunks) on model '%s'", 
-                        batch_idx, total_batches, len(batch_chunk_texts), target_model
-                    )
-                    for b_i, text in enumerate(batch_chunk_texts):
-                        emb_json = self._generate_embedding(text, effective_api_key, target_model, provider='gemini')
-                        results[batch_indices[b_i]] = emb_json
-                        time.sleep(max(batch_delay_seconds, 1.0))
-                    batch_succeeded = any(results[i] for i in batch_indices)
-
-                if not batch_succeeded and last_was_rate_limit:
-                    rate_limit_exhausted = True
-
-                # Incremental DB persistence per batch if chunk_records provided
-                if chunk_records and batch_succeeded:
-                    try:
-                        with self.env.cr.savepoint():
-                            for b_i in range(len(batch_chunk_texts)):
-                                global_idx = batch_indices[b_i]
-                                emb_json = results[global_idx]
-                                if emb_json and global_idx < len(chunk_records):
-                                    rec = chunk_records[global_idx]
-                                    rec.write({'embedding': emb_json})
-                                    self.env.cr.execute(
-                                        "UPDATE topic_chatbot_chunk SET embedding_vector = %s WHERE id = %s",
-                                        (emb_json, rec.id)
-                                    )
-                        self.env.cr.commit()
-                    except Exception as persist_err:
-                        _logger.warning("Incremental save failed for batch %d: %s", batch_idx, str(persist_err))
-
-                batch_duration = time.time() - batch_start_time
+            # Fallback to sequential calls ONLY on 404/400
+            if not batch_succeeded and last_status_code in (404, 400):
                 _logger.info(
-                    "Processed batch %d/%d (%d chunks) in %.2fs [Status: %s]",
-                    batch_idx, total_batches, len(batch_chunk_texts), batch_duration,
-                    "OK" if batch_succeeded else "FAILED"
+                    "Fallback to sequential embedding for batch %d/%d (%d chunks) on model '%s'", 
+                    batch_idx, total_batches, len(batch_chunk_texts), target_model
                 )
+                for b_i, text in enumerate(batch_chunk_texts):
+                    emb_json = self._generate_embedding(text, effective_api_key, target_model, provider='gemini')
+                    results[batch_indices[b_i]] = emb_json
+                    time.sleep(max(batch_delay_seconds, 1.0))
+                batch_succeeded = any(results[i] for i in batch_indices)
 
-                if not rate_limit_exhausted and start_idx + effective_batch_size < total_chunks:
-                    time.sleep(batch_delay_seconds)
+            if not batch_succeeded and last_was_rate_limit:
+                rate_limit_exhausted = True
+
+            # Incremental DB persistence per batch if chunk_records provided
+            if chunk_records and batch_succeeded:
+                try:
+                    with self.env.cr.savepoint():
+                        for b_i in range(len(batch_chunk_texts)):
+                            global_idx = batch_indices[b_i]
+                            emb_json = results[global_idx]
+                            if emb_json and global_idx < len(chunk_records):
+                                rec = chunk_records[global_idx]
+                                rec.write({'embedding': emb_json})
+                                self.env.cr.execute(
+                                    "UPDATE topic_chatbot_chunk SET embedding_vector = %s WHERE id = %s",
+                                    (emb_json, rec.id)
+                                )
+                    self.env.cr.commit()
+                except Exception as persist_err:
+                    _logger.warning("Incremental save failed for batch %d: %s", batch_idx, str(persist_err))
+
+            if document_id and batch_succeeded:
+                try:
+                    processed_chunks = min(start_idx + len(batch_chunk_texts), total_chunks)
+                    progress_pct = (processed_chunks / total_chunks) * 100.0
+                    elapsed_so_far = time.time() - overall_start_time
+                    avg_per_chunk = elapsed_so_far / processed_chunks if processed_chunks > 0 else 0
+                    remaining_chunks = total_chunks - processed_chunks
+                    eta_sec = remaining_chunks * avg_per_chunk
+                    if eta_sec >= 3600:
+                        eta_str = f"{int(eta_sec // 3600)}h {int((eta_sec % 3600) // 60)}m"
+                    elif eta_sec >= 60:
+                        eta_str = f"{int(eta_sec // 60)}m {int(eta_sec % 60):02d}s"
+                    else:
+                        eta_str = f"{int(eta_sec)}s"
+
+                    self.env['bus.bus']._sendone('broadcast', 'topic_chatbot.document/progress', {
+                        'document_id': document_id,
+                        'processed_chunks': processed_chunks,
+                        'total_chunks': total_chunks,
+                        'progress_pct': round(progress_pct, 1),
+                        'eta_str': eta_str,
+                    })
+                    self.env.cr.execute(
+                        "UPDATE topic_chatbot_document SET processing_progress = %s WHERE id = %s",
+                        (int(progress_pct), document_id)
+                    )
+                    self.env.cr.commit()
+                except Exception as bus_err:
+                    _logger.debug("Failed to broadcast Gemini embedding progress: %s", str(bus_err))
+
+            batch_duration = time.time() - batch_start_time
+            _logger.info(
+                "Processed batch %d/%d (%d chunks) in %.2fs [Status: %s]",
+                batch_idx, total_batches, len(batch_chunk_texts), batch_duration,
+                "OK" if batch_succeeded else "FAILED"
+            )
+
+            if not rate_limit_exhausted and start_idx + effective_batch_size < total_chunks:
+                time.sleep(batch_delay_seconds)
 
             # Auto-Fallback to Ollama if Gemini was exhausted by rate limits
             if rate_limit_exhausted and cfg.get('ollama_url'):
@@ -475,9 +534,13 @@ class TopicChatbotChunk(models.Model):
                 if failed_indices:
                     _logger.info("Gemini quota exhausted (429). Auto-falling back to Ollama for %d remaining chunks...", len(failed_indices))
                     failed_texts = [texts[i] for i in failed_indices]
-                    ollama_embs = embedding_service.generate_ollama_embeddings_batch(
-                        cfg['ollama_url'], cfg['ollama_model'], failed_texts
-                    )
+                    self._acquire_compute_lock('Ollama Fallback Embedding')
+                    try:
+                        ollama_embs = embedding_service.generate_ollama_embeddings_batch(
+                            cfg['ollama_url'], cfg['ollama_model'], failed_texts
+                        )
+                    finally:
+                        self._release_compute_lock('Ollama Fallback Embedding')
                     if chunk_records:
                         try:
                             with self.env.cr.savepoint():
@@ -495,9 +558,6 @@ class TopicChatbotChunk(models.Model):
                             _logger.info("Auto-fallback to Ollama successfully embedded and saved %d chunks into embedding_vector_ollama.", sum(1 for e in ollama_embs if e))
                         except Exception as ex_fb:
                             _logger.warning("Auto-fallback to Ollama save failed: %s", str(ex_fb))
-
-        finally:
-            self._release_gemini_embedding_lock(target_model)
 
         total_duration = time.time() - overall_start_time
         success_count = sum(1 for r in results if r)

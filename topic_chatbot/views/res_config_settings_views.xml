@@ -48,6 +48,36 @@
                             <button name="action_test_ollama_connection" string="Kiểm tra kết nối Ollama" type="object" class="btn-secondary" icon="fa-bolt"/>
                         </div>
                     </block>
+                    <block title="Cấu hình OCR &amp; Nhận Dạng Hình Ảnh (Pilot v2)" id="topic_chatbot_ocr_config">
+                        <setting string="Bật xử lý ảnh trong tài liệu" help="Tự động bóc tách và trích xuất nội dung từ hình ảnh, sơ đồ trong tệp PDF và DOCX.">
+                            <field name="topic_chatbot_enable_image_ocr"/>
+                        </setting>
+                        <setting string="OCR Provider (Text / Bảng biểu)" help="Phương thức OCR ký tự xác định cho ảnh bảng số liệu, văn bản scan để chống hallucination." invisible="not topic_chatbot_enable_image_ocr">
+                            <field name="topic_chatbot_ocr_provider"/>
+                        </setting>
+                        <setting string="Vision Provider (Sơ đồ / Lưu đồ)" help="Mô hình VLM hiểu ngữ nghĩa cho lưu đồ quy trình, sơ đồ khối." invisible="not topic_chatbot_enable_image_ocr">
+                            <field name="topic_chatbot_vision_provider"/>
+                        </setting>
+                        <setting string="Ollama Vision Model" help="Tên model Vision trên Ollama (ví dụ: moondream, llava-phi3 hoặc minicpm-v)." invisible="not topic_chatbot_enable_image_ocr or topic_chatbot_vision_provider != 'ollama'">
+                            <field name="topic_chatbot_ollama_vision_model"/>
+                        </setting>
+                        <setting string="Chế độ xử lý OCR" help="Khuyến nghị chọn 'Hàng đợi tuần tự' để chạy 1 job tại một thời điểm, bảo vệ CPU cho Chatbot." invisible="not topic_chatbot_enable_image_ocr">
+                            <field name="topic_chatbot_ocr_processing_mode"/>
+                        </setting>
+                        <setting string="Số luồng CPU cho OCR/Vision" help="Số core CPU cấp cho Ollama Vision hoặc PaddleOCR (mặc định chừa 2 luồng cho Odoo và Windows)." invisible="not topic_chatbot_enable_image_ocr">
+                            <field name="topic_chatbot_ocr_num_threads"/>
+                        </setting>
+                        <setting string="Giới hạn số ảnh / tài liệu" help="Số ảnh tối đa được OCR trong 1 tài liệu (tránh nghẽn CPU khi file có quá nhiều ảnh)." invisible="not topic_chatbot_enable_image_ocr">
+                            <field name="topic_chatbot_ocr_max_images"/>
+                        </setting>
+                        <setting string="Kích thước ảnh tối thiểu (px)" help="Bỏ qua các ảnh nhỏ hơn kích thước này (loại trừ icon, logo nhỏ)." invisible="not topic_chatbot_enable_image_ocr">
+                            <field name="topic_chatbot_ocr_min_dimension"/>
+                        </setting>
+                        <div class="mt16" invisible="not topic_chatbot_enable_image_ocr">
+                            <button name="action_test_paddleocr_connection" string="Kiểm tra PaddleOCR Engine" type="object" class="btn-secondary me-2" icon="fa-font"/>
+                            <button name="action_test_ollama_vision_connection" string="Kiểm tra Ollama Vision Model" type="object" class="btn-secondary" icon="fa-eye"/>
+                        </div>
+                    </block>
                     <block title="Microsoft SQL Server Connection" id="topic_chatbot_mssql_config">
                         <setting string="Kích hoạt SQL Server" help="Bật tính năng kết nối và truy vấn CSDL Microsoft SQL Server.">
                             <field name="topic_chatbot_mssql_enabled"/>

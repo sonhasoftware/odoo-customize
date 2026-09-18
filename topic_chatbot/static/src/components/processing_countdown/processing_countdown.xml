@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="topic_chatbot.ProcessingCountdownField">
+        <div class="o_processing_countdown_widget p-3 rounded border mb-3"
+             t-att-class="{
+                 'border-warning bg-warning-subtle text-warning-emphasis': documentState === 'processing',
+                 'border-success bg-success-subtle text-success-emphasis': state.isCompleted or documentState === 'done',
+                 'border-danger bg-danger-subtle text-danger-emphasis': state.isError or documentState === 'error',
+                 'd-none': documentState === 'draft' and !state.isCompleted
+             }">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <div class="d-flex align-items-center">
+                    <t t-if="documentState === 'processing'">
+                        <i class="fa fa-spinner fa-spin me-2 fs-5 text-warning"/>
+                        <span class="fw-bold">Đang xử lý tài liệu</span>
+                    </t>
+                    <t t-elif="state.isCompleted or documentState === 'done'">
+                        <i class="fa fa-check-circle me-2 fs-5 text-success"/>
+                        <span class="fw-bold text-success">Hoàn thành xử lý tài liệu</span>
+                    </t>
+                    <t t-elif="state.isError or documentState === 'error'">
+                        <i class="fa fa-exclamation-triangle me-2 fs-5 text-danger"/>
+                        <span class="fw-bold text-danger">Lỗi xử lý</span>
+                    </t>
+                </div>
+                <t t-if="documentState === 'processing'">
+                    <span class="badge bg-warning text-dark px-2 py-1 fs-7">
+                        <t t-esc="state.percent"/>%
+                    </span>
+                </t>
+                <t t-elif="state.isCompleted or documentState === 'done'">
+                    <span class="badge bg-success px-2 py-1 fs-7">
+                        100%
+                    </span>
+                </t>
+            </div>
+
+            <!-- Progress Bar -->
+            <t t-if="documentState === 'processing'">
+                <div class="progress mb-2" style="height: 10px;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated bg-warning"
+                         role="progressbar"
+                         t-att-style="'width: ' + state.percent + '%;'"
+                         t-att-aria-valuenow="state.percent"
+                         aria-valuemin="0"
+                         aria-valuemax="100"/>
+                </div>
+            </t>
+
+            <!-- Status Description -->
+            <div class="small">
+                <t t-if="documentState === 'processing'">
+                    <span t-esc="state.statusText"/>
+                </t>
+                <t t-elif="state.isCompleted or documentState === 'done'">
+                    <span>Tài liệu đã được vector hóa và lập chỉ mục hoàn tất. Bạn có thể mở <b>Dashboard Chatbot</b> để bắt đầu đặt câu hỏi ngay bây giờ!</span>
+                </t>
+                <t t-elif="state.isError or documentState === 'error'">
+                    <span t-esc="state.errorMessage"/>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>

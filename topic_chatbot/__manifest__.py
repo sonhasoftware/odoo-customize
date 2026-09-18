@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Topic Chatbot (RAG)',
-    'version': '17.0.2.3.0',
+    'version': '17.0.2.4.0',
     'category': 'Productivity/Chatbot',
     'summary': 'Full-screen ChatGPT-like chatbot using Gemini API and RAG with PDF/DOCX/Excel/TXT documents',
     'description': """
@@ -26,6 +26,8 @@ It supports:
         'views/topic_views.xml',
         'views/mssql_connection_views.xml',
         'views/mssql_log_views.xml',
+        'views/rag_log_views.xml',
+        'views/ocr_job_views.xml',
         'views/menus.xml',
     ],
     'assets': {
@@ -33,6 +35,8 @@ It supports:
             'topic_chatbot/static/src/components/chat_dashboard/chat_dashboard.js',
             'topic_chatbot/static/src/components/chat_dashboard/chat_dashboard.xml',
             'topic_chatbot/static/src/components/chat_dashboard/chat_dashboard.scss',
+            'topic_chatbot/static/src/components/processing_countdown/processing_countdown.js',
+            'topic_chatbot/static/src/components/processing_countdown/processing_countdown.xml',
         ],
     },
     'external_dependencies': {

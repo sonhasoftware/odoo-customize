@@ -14,7 +14,13 @@ from ..utils.security_utils import (
     gemini_user_error_message,
 )
 from .rate_limiter import check_rate_limit, RATE_LIMIT_MAX_MESSAGES
-from .prompt_builder import build_system_instruction, sanitize_technical_terms
+from .prompt_builder import (
+    build_system_instruction,
+    build_ollama_system_instruction,
+    sanitize_technical_terms,
+    normalize_step_lists,
+    bold_ui_action_terms,
+)
 from .sql_engine import execute_odoo_query, execute_mssql_query
 from .query_rewriter import rewrite_search_query
 from .rag_engine import retrieve_context
@@ -74,19 +80,34 @@ class ChatService:
 
     def _execute_tool(self, func_name, func_args, env, topic):
         """Execute a tool/function call (query_odoo_data or query_sql_server_data)."""
+        _logger.info(
+            "[CHAT_TOOL_EXECUTION] Tool invoked: '%s' | Args: %s",
+            func_name,
+            json.dumps(func_args, ensure_ascii=False) if isinstance(func_args, dict) else str(func_args)
+        )
         if func_name == 'query_odoo_data':
-            return execute_odoo_query(
+            res = execute_odoo_query(
                 model=func_args.get('model'),
                 domain=func_args.get('domain'),
                 fields=func_args.get('fields'),
                 env=env
             )
+            _logger.info(
+                "[CHAT_TOOL_EXECUTION] Result of 'query_odoo_data': %s",
+                f"{len(res)} item(s)" if isinstance(res, list) else ("dict/error: " + str(res)[:120])
+            )
+            return res
         elif func_name == 'query_sql_server_data':
-            return execute_mssql_query(
+            res = execute_mssql_query(
                 sql_query=func_args.get('sql_query', ''),
                 topic=topic,
                 env=env
             )
+            _logger.info(
+                "[CHAT_TOOL_EXECUTION] Result of 'query_sql_server_data': %s",
+                f"{len(res)} item(s)" if isinstance(res, list) else ("dict/error: " + str(res)[:120])
+            )
+            return res
         return {'error': f"Unknown function '{func_name}'"}
 
     def prepare_chat_pipeline(self, conversation, message):
@@ -176,6 +197,29 @@ class ChatService:
             context_str if context_str else "(No context chunks retrieved)"
         )
 
+        # Log full RAG payload for observability & debugging
+        try:
+            from .rag_engine import log_rag_payload
+            log_rag_payload(
+                env=env,
+                topic_id=topic.id,
+                user_query=message,
+                route_type=route_type,
+                route_reason=route_reason,
+                chunks=chunks,
+                prompt_context=context_str,
+                conversation_id=conversation.id,
+                extra_data={
+                    'search_query': search_query,
+                    'filters': filters,
+                    'structured_query': structured_query,
+                    'is_valid': is_valid,
+                    'llm_provider': llm_provider,
+                }
+            )
+        except Exception as e_log:
+            _logger.warning("Could not log RAG payload: %s", str(e_log))
+
         has_duyet_gia = "duyệt giá" in context_str.lower()
         has_tao_duyet_gia = "tạo duyệt giá" in context_str.lower()
         selected_doc_names = list(set(c.get('document_name') for c in chunks if c.get('document_name')))
@@ -206,17 +250,30 @@ class ChatService:
             ('sql' in (topic.name or '').lower())
         )
 
-        system_instruction = build_system_instruction(
-            context_str,
-            topic_name=topic.name or '',
-            topic_description=topic.description or '',
-            other_topic_names=other_topic_names,
-            document_names=document_names,
-            is_db_query=topic.is_db_query,
-            is_mssql_query=is_mssql_active,
-            mssql_tables=(topic.mssql_allowed_tables or "") + (f"\n\nCẤU TRÚC BẢNG:\n{topic.mssql_schema_info}" if topic.mssql_schema_info else ""),
-            has_documents=has_documents
-        )
+        if llm_provider == 'ollama':
+            system_instruction = build_ollama_system_instruction(
+                context_str,
+                topic_name=topic.name or '',
+                topic_description=topic.description or '',
+                other_topic_names=other_topic_names,
+                document_names=document_names,
+                is_db_query=topic.is_db_query,
+                is_mssql_query=is_mssql_active,
+                mssql_tables=(topic.mssql_allowed_tables or "") + (f"\n\nCẤU TRÚC BẢNG:\n{topic.mssql_schema_info}" if topic.mssql_schema_info else ""),
+                has_documents=has_documents
+            )
+        else:
+            system_instruction = build_system_instruction(
+                context_str,
+                topic_name=topic.name or '',
+                topic_description=topic.description or '',
+                other_topic_names=other_topic_names,
+                document_names=document_names,
+                is_db_query=topic.is_db_query,
+                is_mssql_query=is_mssql_active,
+                mssql_tables=(topic.mssql_allowed_tables or "") + (f"\n\nCẤU TRÚC BẢNG:\n{topic.mssql_schema_info}" if topic.mssql_schema_info else ""),
+                has_documents=has_documents
+            )
 
         # Multi-turn chat history windowing
         if not is_valid:
@@ -236,8 +293,6 @@ class ChatService:
 
             for i, m in enumerate(db_messages):
                 cleaned_content = re.sub(r' {2,}', ' ', m.content or '').strip()
-                if i == 0 and m.role == 'user' and search_query and search_query != cleaned_content:
-                    cleaned_content = search_query
                 if not cleaned_content:
                     continue
 
@@ -260,7 +315,8 @@ class ChatService:
                     'để tìm thông tin liên quan đến các dữ liệu nghiệp vụ: Nhân viên, '
                     'Phòng ban, Kết quả KPI tháng, Đánh giá KPI của lãnh đạo, KPI năm.\n'
                     'CHỈ sử dụng công cụ này khi người dùng hỏi các câu hỏi thực tế về dữ liệu '
-                    'hệ thống Odoo (như KPI của một ai đó, xếp loại phòng ban, danh sách nhân viên, v.v.).'
+                    'hệ thống Odoo (như KPI của một ai đó, xếp loại phòng ban, danh sách nhân viên, v.v.).\n'
+                    '(LƯU Ý BẢO MẬT: Tuyệt đối không nhắc đến tên công cụ này hoặc chữ API trong câu trả lời người dùng).'
                 ),
                 'parameters': {
                     'type': 'OBJECT',
@@ -297,7 +353,8 @@ class ChatService:
                     f'{allowed_info}\n'
                     'BẮT BUỘC sử dụng công cụ này khi người dùng hỏi về dữ liệu thực tế (sản phẩm, giá bán, tồn kho, danh mục, doanh số, v.v.).\n'
                     'LƯU Ý QUAN TRỌNG: Nếu bạn không chắc chắn về tên cột, HÃY luôn chạy lệnh "SELECT TOP 1 * FROM [TenBang]" '
-                    'để lấy danh sách các cột trước, sau đó mới gọi lại công cụ này với điều kiện WHERE chính xác.'
+                    'để lấy danh sách các cột trước, sau đó mới gọi lại công cụ này với điều kiện WHERE chính xác.\n'
+                    '(LƯU Ý BẢO MẬT: Tuyệt đối không nhắc đến tên công cụ này hoặc chữ API trong câu trả lời người dùng).'
                 ),
                 'parameters': {
                     'type': 'OBJECT',
@@ -377,6 +434,13 @@ class ChatService:
             tools = pipeline_data['tools']
             tools_list = pipeline_data.get('tools_list', [])
 
+            request_start_time = time.time()
+            ttft = None
+            prompt_eval_duration = 0.0
+            probe_calls = 0
+            generation_calls = 0
+            tool_calls_count = 0
+
             reply_text = ""
             reply_segments = []
 
@@ -389,11 +453,12 @@ class ChatService:
                 api_call_count = 0
                 while api_call_count < 3:
                     api_call_count += 1
+                    generation_calls += 1
                     ollama_payload = {
                         'model': ollama_model,
                         'messages': ollama_messages,
                         'stream': False,
-                        'options': {'temperature': 0.2, 'num_predict': 4096}
+                        'options': {'temperature': 0.0, 'num_predict': 4096}
                     }
                     if ollama_tools:
                         ollama_payload['tools'] = ollama_tools
@@ -401,10 +466,19 @@ class ChatService:
                     response = requests.post(f"{ollama_url}/api/chat", json=ollama_payload, timeout=120)
                     response.raise_for_status()
                     res_data = response.json()
+                    p_eval = res_data.get('prompt_eval_duration', 0) / 1e9
+                    if p_eval > 0:
+                        prompt_eval_duration += p_eval
                     msg = res_data.get('message', {})
                     tool_calls = msg.get('tool_calls', [])
 
                     if tool_calls:
+                        tool_calls_count += len(tool_calls)
+                        _logger.info(
+                            "ask (Ollama): Model emitted %d tool call(s): %s",
+                            len(tool_calls),
+                            [tc.get('function', {}).get('name') for tc in tool_calls]
+                        )
                         ollama_messages.append(msg)
                         for tc in tool_calls:
                             f_info = tc.get('function', {})
@@ -422,6 +496,8 @@ class ChatService:
                             })
                         continue
                     else:
+                        if ttft is None:
+                            ttft = time.time() - request_start_time
                         reply_text = msg.get('content', '')
                         break
             else:
@@ -430,7 +506,7 @@ class ChatService:
                 payload = {
                     'contents': contents,
                     'systemInstruction': {'parts': [{'text': system_instruction}]},
-                    'generationConfig': {'maxOutputTokens': 8192, 'temperature': 0.2}
+                    'generationConfig': {'maxOutputTokens': 8192, 'temperature': 0.0}
                 }
                 if tools:
                     payload['tools'] = tools
@@ -441,7 +517,10 @@ class ChatService:
                 max_continuations = 4
 
                 while api_call_count < 3:
+                    generation_calls += 1
                     response = requests.post(url, headers=headers, json=payload, timeout=90)
+                    if ttft is None:
+                        ttft = time.time() - request_start_time
                     response.raise_for_status()
                     res_data = response.json()
 
@@ -457,6 +536,7 @@ class ChatService:
                                     model_parts.append(part)
 
                     if function_calls:
+                        tool_calls_count += len(function_calls)
                         tool_parts = []
                         for func_call in function_calls:
                             func_name = func_call.get('name')
@@ -535,8 +615,34 @@ class ChatService:
                             reply_text = "Không nhận được phản hồi hợp lệ từ Gemini API."
                         break
 
+            total_time = time.time() - request_start_time
+            ttft_str = f"{ttft:.2f}s" if ttft is not None else "N/A"
+            prompt_eval_str = f"{prompt_eval_duration:.2f}s" if prompt_eval_duration > 0 else "N/A"
+            active_model = ollama_model if llm_provider == 'ollama' else (model or 'gemini-3.6-flash')
+
+            _logger.info(
+                "\n[CHAT_PERF_TRACE]\n"
+                "provider = %s\n"
+                "model = %s\n"
+                "probe_calls = %d\n"
+                "generation_calls = %d\n"
+                "tool_calls = %d\n"
+                "ttft = %s\n"
+                "prompt_eval_duration = %s\n"
+                "total_time = %.2fs",
+                llm_provider,
+                active_model,
+                probe_calls,
+                generation_calls,
+                tool_calls_count,
+                ttft_str,
+                prompt_eval_str,
+                total_time
+            )
+
             # Sanitize & cleanup
             reply_text = sanitize_technical_terms(reply_text, topic=topic)
+            reply_text = normalize_step_lists(reply_text)
             if reply_text:
                 reply_text = re.sub(r'-{10,}', '----------', reply_text)
                 reply_text = re.sub(r' {10,}', ' ', reply_text)
@@ -696,6 +802,13 @@ class ChatService:
         topic_id = topic.id
 
         def generate():
+            request_start_time = time.time()
+            ttft = None
+            prompt_eval_duration = 0.0
+            probe_calls = 0
+            generation_calls = 0
+            tool_calls_count = 0
+
             final_reply = ""
             continuation_count = 0
             max_continuations = 4
@@ -713,22 +826,34 @@ class ChatService:
                     ollama_tools = self._convert_to_ollama_tools(tools_list)
                     ollama_messages = self._build_ollama_messages(system_instruction, contents)
 
+                    tool_executed = False
                     # Probe tools if defined
                     if ollama_tools:
+                        probe_calls += 1
                         try:
                             probe_payload = {
                                 'model': ollama_model,
                                 'messages': ollama_messages,
                                 'stream': False,
-                                'options': {'temperature': 0.2, 'num_predict': 4096},
+                                'options': {'temperature': 0.0, 'num_predict': 4096},
                                 'tools': ollama_tools
                             }
                             probe_resp = requests.post(f"{ollama_url}/api/chat", json=probe_payload, timeout=90)
                             if probe_resp.status_code == 200:
                                 probe_data = probe_resp.json()
+                                p_eval = probe_data.get('prompt_eval_duration', 0) / 1e9
+                                if p_eval > 0:
+                                    prompt_eval_duration += p_eval
                                 msg = probe_data.get('message', {})
                                 tool_calls = msg.get('tool_calls', [])
                                 if tool_calls:
+                                    tool_executed = True
+                                    tool_calls_count += len(tool_calls)
+                                    _logger.info(
+                                        "ask_stream (Ollama): Model emitted %d tool call(s): %s",
+                                        len(tool_calls),
+                                        [tc.get('function', {}).get('name') for tc in tool_calls]
+                                    )
                                     yield f"data: {json.dumps({'type': 'status', 'content': 'Đang truy vấn cơ sở dữ liệu...'}, ensure_ascii=False)}\n\n"
                                     ollama_messages.append(msg)
                                     with odoo.registry(db_name).cursor() as cr:
@@ -748,48 +873,65 @@ class ChatService:
                                                 'role': 'tool',
                                                 'content': json.dumps(t_res, ensure_ascii=False)
                                             })
+                                else:
+                                    # Probe already generated the complete textual response!
+                                    # ELIMINATE DOUBLE GENERATION: Yield text from probe directly!
+                                    probe_content = msg.get('content', '')
+                                    if probe_content:
+                                        if ttft is None:
+                                            ttft = time.time() - request_start_time
+                                        final_reply = probe_content
+                                        yield f"data: {json.dumps({'type': 'token', 'content': probe_content}, ensure_ascii=False)}\n\n"
                         except Exception as e_probe:
                             _logger.warning("Ollama tool probe failed: %s", str(e_probe))
 
-                    # Stream response tokens
-                    stream_payload = {
-                        'model': ollama_model,
-                        'messages': ollama_messages,
-                        'stream': True,
-                        'options': {'temperature': 0.2, 'num_predict': 4096}
-                    }
-                    try:
-                        stream_resp = requests.post(
-                            f"{ollama_url}/api/chat",
-                            json=stream_payload,
-                            stream=True,
-                            timeout=180
-                        )
-                        if stream_resp.status_code == 200:
-                            for line in stream_resp.iter_lines():
-                                if line:
-                                    try:
-                                        chunk = json.loads(line.decode('utf-8') if isinstance(line, bytes) else line)
-                                        token = chunk.get('message', {}).get('content', '')
-                                        if token:
-                                            final_reply += token
-                                            yield f"data: {json.dumps({'type': 'token', 'content': token}, ensure_ascii=False)}\n\n"
-                                    except Exception:
-                                        continue
-                        else:
-                            err_str = f"Lỗi máy chủ Ollama: HTTP {stream_resp.status_code}"
+                    # If no tools defined OR tool was executed (requiring final synthesis):
+                    if not ollama_tools or tool_executed:
+                        generation_calls += 1
+                        stream_payload = {
+                            'model': ollama_model,
+                            'messages': ollama_messages,
+                            'stream': True,
+                            'options': {'temperature': 0.0, 'num_predict': 4096}
+                        }
+                        try:
+                            stream_resp = requests.post(
+                                f"{ollama_url}/api/chat",
+                                json=stream_payload,
+                                stream=True,
+                                timeout=180
+                            )
+                            if stream_resp.status_code == 200:
+                                for line in stream_resp.iter_lines():
+                                    if line:
+                                        try:
+                                            chunk = json.loads(line.decode('utf-8') if isinstance(line, bytes) else line)
+                                            token = chunk.get('message', {}).get('content', '')
+                                            if token:
+                                                if ttft is None:
+                                                    ttft = time.time() - request_start_time
+                                                final_reply += token
+                                                yield f"data: {json.dumps({'type': 'token', 'content': token}, ensure_ascii=False)}\n\n"
+                                            if chunk.get('done'):
+                                                p_eval = chunk.get('prompt_eval_duration', 0) / 1e9
+                                                if p_eval > 0:
+                                                    prompt_eval_duration += p_eval
+                                        except Exception:
+                                            continue
+                            else:
+                                err_str = f"Lỗi máy chủ Ollama: HTTP {stream_resp.status_code}"
+                                yield f"data: {json.dumps({'type': 'error', 'content': err_str}, ensure_ascii=False)}\n\n"
+                                return
+                        except Exception as e_stream:
+                            err_str = f"Lỗi kết nối máy chủ Ollama: {str(e_stream)}"
                             yield f"data: {json.dumps({'type': 'error', 'content': err_str}, ensure_ascii=False)}\n\n"
                             return
-                    except Exception as e_stream:
-                        err_str = f"Lỗi kết nối máy chủ Ollama: {str(e_stream)}"
-                        yield f"data: {json.dumps({'type': 'error', 'content': err_str}, ensure_ascii=False)}\n\n"
-                        return
                 else:
                     while continuation_count <= max_continuations:
                         payload = {
                             'contents': local_contents,
                             'systemInstruction': {'parts': [{'text': system_instruction}]},
-                            'generationConfig': {'maxOutputTokens': 8192}
+                            'generationConfig': {'maxOutputTokens': 8192, 'temperature': 0.0}
                         }
                         if tools:
                             payload['tools'] = tools
@@ -806,6 +948,7 @@ class ChatService:
                             stream_url = f"https://generativelanguage.googleapis.com/v1beta/models/{target_model}:streamGenerateContent?key={api_key}&alt=sse"
                             for attempt in range(3):
                                 try:
+                                    generation_calls += 1
                                     resp = requests.post(stream_url, headers=req_headers, json=payload, stream=True, timeout=90)
                                     _logger.info("ask_stream: Gemini API response status=%d (model=%s, attempt=%d, continuation=%d)", 
                                                  resp.status_code, target_model, attempt + 1, continuation_count)
@@ -827,6 +970,8 @@ class ChatService:
                                                         model_response_parts.append(part)
                                                         if 'text' in part:
                                                             token = part['text']
+                                                            if ttft is None:
+                                                                ttft = time.time() - request_start_time
                                                             segment_text += token
                                                             final_reply += token
                                                             yield f"data: {json.dumps({'type': 'token', 'content': token}, ensure_ascii=False)}\n\n"
@@ -892,6 +1037,7 @@ class ChatService:
                             return
 
                         if function_calls:
+                            tool_calls_count += len(function_calls)
                             _logger.info("ask_stream: Processing %d function_calls", len(function_calls))
                             yield f"data: {json.dumps({'type': 'status', 'content': 'Đang truy vấn cơ sở dữ liệu...'}, ensure_ascii=False)}\n\n"
 
@@ -946,12 +1092,38 @@ class ChatService:
                     final_reply = "Đã tra cứu thành công dữ liệu từ SQL Server nhưng không nhận được phản hồi tổng hợp từ AI. Vui lòng thử lại."
                     yield f"data: {json.dumps({'type': 'token', 'content': final_reply}, ensure_ascii=False)}\n\n"
 
+                total_time = time.time() - request_start_time
+                ttft_str = f"{ttft:.2f}s" if ttft is not None else "N/A"
+                prompt_eval_str = f"{prompt_eval_duration:.2f}s" if prompt_eval_duration > 0 else "N/A"
+                active_model = ollama_model if llm_provider == 'ollama' else clean_model
+
+                _logger.info(
+                    "\n[CHAT_PERF_TRACE]\n"
+                    "provider = %s\n"
+                    "model = %s\n"
+                    "probe_calls = %d\n"
+                    "generation_calls = %d\n"
+                    "tool_calls = %d\n"
+                    "ttft = %s\n"
+                    "prompt_eval_duration = %s\n"
+                    "total_time = %.2fs",
+                    llm_provider,
+                    active_model,
+                    probe_calls,
+                    generation_calls,
+                    tool_calls_count,
+                    ttft_str,
+                    prompt_eval_str,
+                    total_time
+                )
+
                 conv_name = ''
                 try:
                     with odoo.registry(db_name).cursor() as cr:
                         env = odoo.api.Environment(cr, odoo.SUPERUSER_ID, {})
                         fresh_topic = env['topic_chatbot.topic'].browse(topic_id)
                         sanitized_reply = sanitize_technical_terms(final_reply, topic=fresh_topic)
+                        sanitized_reply = normalize_step_lists(sanitized_reply)
                         if sanitized_reply:
                             sanitized_reply = re.sub(r'-{10,}', '----------', sanitized_reply)
                             sanitized_reply = re.sub(r' {10,}', ' ', sanitized_reply)

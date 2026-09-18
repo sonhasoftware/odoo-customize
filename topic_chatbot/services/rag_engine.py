@@ -172,18 +172,28 @@ def retrieve_context(env, topic_id, message, limit=15, filters=None, original_qu
     # Invariant 2: SCHEMA_METADATA -> Early return schema metadata chunks
     if route_type == 'SCHEMA_METADATA':
         _logger.info("[SCHEMA_ROUTER] Route 'SCHEMA_METADATA' activated. Fetching schema chunks only (Invariant 2).")
-        return _retrieve_schema_metadata(env, topic, message, original_query=query_text)
+        schema_res = _retrieve_schema_metadata(env, topic, message, original_query=query_text)
+        for c in schema_res:
+            c['tier_activated'] = 'Schema Metadata Route'
+            c['tier_reason'] = 'route_type == SCHEMA_METADATA'
+            c['retrieval_method'] = 'schema_summary_chunks'
+        return schema_res
 
     # Invariant 1: STRUCTURED_DATA -> Early return structured query result
     if route_type == 'STRUCTURED_DATA':
         _logger.info("[STRUCTURED_ROUTER] Route 'STRUCTURED_DATA' activated. Executing Safe Table Query only (Invariant 1).")
-        return _retrieve_structured_data(
+        struct_res = _retrieve_structured_data(
             env, topic, message,
             filters=filters,
             original_query=query_text,
             structured_query=structured_query,
             max_limit=100
         )
+        for c in struct_res:
+            c['tier_activated'] = 'Structured Table Data Route'
+            c['tier_reason'] = 'route_type == STRUCTURED_DATA'
+            c['retrieval_method'] = 'sql_engine_table_query'
+        return struct_res
 
     # Invariant 3: SEMANTIC_RAG -> Continues down to Tier 1, Tier 2, Tier 3 hybrid search
     _logger.info("[SEMANTIC_ROUTER] Route 'SEMANTIC_RAG' activated. Entering semantic retrieval pipeline (Invariant 3).")
@@ -321,6 +331,9 @@ def retrieve_context(env, topic_id, message, limit=15, filters=None, original_qu
                 'document_name': 'Tổng hợp từ toàn bộ tài liệu trong topic',
                 'score': 1.0,
                 'topic_name': topic.name or '',
+                'tier_activated': 'Tier 1 (Whole-Topic Direct Injection)',
+                'tier_reason': f'total_topic_chars ({total_topic_chars}) <= 25000',
+                'retrieval_method': 'tiered_whole_topic',
             }]
 
         # ========== TẦNG 2: Document-Level Retrieval (Topic vừa/lớn, Docs nhỏ) ==========
@@ -392,6 +405,9 @@ def retrieve_context(env, topic_id, message, limit=15, filters=None, original_qu
                                 'document_name': d['name'] or 'Unknown Document',
                                 'score': round(d['rank'], 5),
                                 'topic_name': topic.name or '',
+                                'tier_activated': 'Tier 2 (Document-Level Retrieval)',
+                                'tier_reason': f'total_topic_chars ({total_topic_chars}) > 25000 and {len(selected_docs)} eligible docs matched FTS query',
+                                'retrieval_method': 'tiered_document_level',
                             }
                             for d in selected_docs
                         ]
@@ -1015,5 +1031,165 @@ def retrieve_context(env, topic_id, message, limit=15, filters=None, original_qu
             for c in final_chunks[:5]
         ])
     )
+    for c in final_chunks:
+        c['tier_activated'] = 'Tier 3 (Chunk-Level Hybrid Search)'
+        c['tier_reason'] = 'total_topic_chars > 25000 and Tier 2 did not match'
+        c['retrieval_method'] = retrieval_method
+
     return final_chunks
+
+
+def log_rag_payload(
+    env,
+    topic_id,
+    user_query,
+    route_type=None,
+    route_reason=None,
+    tier_activated=None,
+    tier_reason=None,
+    retrieval_method=None,
+    chunks=None,
+    prompt_context=None,
+    conversation_id=None,
+    extra_data=None,
+):
+    """Log full RAG retrieval input/output payload into PostgreSQL table 'topic_chatbot_rag_log'.
+
+    Key Audit Features:
+    1. Log exact Intent and Route (SEMANTIC_RAG, STRUCTURED_DATA, SCHEMA_METADATA) + route_reason:
+       Verifies whether a question was misrouted (e.g. procedural 'cách phê duyệt' routed to STRUCTURED_DATA).
+    2. Log exact Tier activated (Tier 1: Whole-Topic, Tier 2: Document-Level, Tier 3: Chunk-Hybrid):
+       Verifies whether the retrieval strategy matched topic scale.
+    3. Log exact Prompt Context (context_str) sent to Gemini / Ollama:
+       Allows instant diagnosis of:
+       - 'Wrong document retrieved' (RRF promoted wrong chunks)
+       - 'Right document but corrupted/fragmented text' (bad parent/child chunking)
+    4. Auto-creates PostgreSQL table 'topic_chatbot_rag_log' if not exists, guaranteeing immediate zero-downtime execution.
+    """
+    if env is None:
+        try:
+            from odoo.http import request
+            env = request.env
+        except Exception:
+            return None
+
+    try:
+        # 1. Ensure table and indexes exist in PostgreSQL (Self-Healing schema)
+        env.cr.execute("""
+            CREATE TABLE IF NOT EXISTS topic_chatbot_rag_log (
+                id SERIAL PRIMARY KEY,
+                create_date TIMESTAMP WITHOUT TIME ZONE DEFAULT (NOW() AT TIME ZONE 'UTC'),
+                topic_id INTEGER,
+                topic_name VARCHAR,
+                conversation_id INTEGER,
+                user_query TEXT,
+                rewritten_query TEXT,
+                route_type VARCHAR,
+                route_reason TEXT,
+                tier_activated VARCHAR,
+                tier_reason TEXT,
+                retrieval_method VARCHAR,
+                retrieved_chunks_count INTEGER,
+                retrieved_chunks_summary TEXT,
+                prompt_context TEXT,
+                full_payload TEXT
+            );
+            CREATE INDEX IF NOT EXISTS idx_topic_chatbot_rag_log_create_date ON topic_chatbot_rag_log(create_date DESC);
+            CREATE INDEX IF NOT EXISTS idx_topic_chatbot_rag_log_topic_id ON topic_chatbot_rag_log(topic_id);
+            CREATE INDEX IF NOT EXISTS idx_topic_chatbot_rag_log_conv_id ON topic_chatbot_rag_log(conversation_id);
+        """)
+
+        # 2. Extract metadata and infer missing tier/method from chunks if not explicitly passed
+        if chunks and not tier_activated:
+            for c in chunks:
+                if c.get('tier_activated'):
+                    tier_activated = c['tier_activated']
+                    tier_reason = c.get('tier_reason')
+                    retrieval_method = c.get('retrieval_method') or retrieval_method
+                    break
+
+        topic_name = ""
+        if topic_id:
+            try:
+                topic_rec = env['topic_chatbot.topic'].browse(int(topic_id))
+                if topic_rec.exists():
+                    topic_name = topic_rec.name or ""
+            except Exception:
+                pass
+
+        chunks_summary = []
+        if chunks:
+            for c in chunks:
+                chunks_summary.append({
+                    'id': c.get('id'),
+                    'document_id': c.get('document_id'),
+                    'document_name': c.get('document_name'),
+                    'sequence': c.get('sequence'),
+                    'score': round(float(c.get('score', 0.0)), 5) if c.get('score') is not None else None,
+                    'is_parent': c.get('is_parent', False),
+                    'child_ids': c.get('child_ids', []),
+                    'preview': (c.get('content') or '')[:200].replace('\n', ' '),
+                })
+
+        rewritten_q = ''
+        if isinstance(extra_data, dict):
+            rewritten_q = extra_data.get('search_query') or extra_data.get('rewritten_query') or ''
+
+        payload_dict = {
+            'user_query': user_query,
+            'rewritten_query': rewritten_q,
+            'route_type': route_type,
+            'route_reason': route_reason,
+            'tier_activated': tier_activated,
+            'tier_reason': tier_reason,
+            'retrieval_method': retrieval_method,
+            'retrieved_chunks_count': len(chunks) if chunks else 0,
+            'chunks_summary': chunks_summary,
+            'extra_data': extra_data or {},
+        }
+
+        # 3. Insert audit log record
+        sql_insert = """
+            INSERT INTO topic_chatbot_rag_log (
+                topic_id, topic_name, conversation_id,
+                user_query, rewritten_query, route_type, route_reason,
+                tier_activated, tier_reason, retrieval_method,
+                retrieved_chunks_count, retrieved_chunks_summary,
+                prompt_context, full_payload
+            ) VALUES (
+                %s, %s, %s,
+                %s, %s, %s, %s,
+                %s, %s, %s,
+                %s, %s,
+                %s, %s
+            ) RETURNING id;
+        """
+        env.cr.execute(sql_insert, (
+            int(topic_id) if topic_id else None,
+            topic_name,
+            int(conversation_id) if conversation_id else None,
+            user_query or "",
+            rewritten_q,
+            route_type or "",
+            route_reason or "",
+            tier_activated or "",
+            tier_reason or "",
+            retrieval_method or "",
+            len(chunks) if chunks else 0,
+            json.dumps(chunks_summary, ensure_ascii=False),
+            prompt_context or "",
+            json.dumps(payload_dict, ensure_ascii=False)
+        ))
+        log_id = env.cr.fetchone()[0]
+        env.cr.commit()
+
+        _logger.info(
+            ">>> [RAG_AUDIT_LOG] Saved RAG Payload Audit ID=%s | Route: %s | Tier: %s | Chunks: %d | Context Length: %d chars",
+            log_id, route_type, tier_activated, len(chunks) if chunks else 0, len(prompt_context or "")
+        )
+        return log_id
+    except Exception as e:
+        _logger.error("[RAG_AUDIT_LOG_ERROR] Failed to save RAG payload log: %s", str(e))
+        return None
+
 

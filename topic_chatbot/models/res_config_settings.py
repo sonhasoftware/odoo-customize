@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+import os
+import requests
 from odoo import api, fields, models
 from . import crypto_utils
 
@@ -25,8 +26,8 @@ class ResConfigSettings(models.TransientModel):
     topic_chatbot_ollama_chat_model = fields.Char(
         string='Ollama Chat Model',
         config_parameter='topic_chatbot.ollama_chat_model',
-        default='qwen2.5:14b',
-        help="Tên mô hình Chat LLM trên máy chủ Ollama (ví dụ: qwen2.5:14b hoặc qwen2.5:7b)."
+        default='qwen2.5:7b',
+        help="Tên mô hình Chat LLM trên máy chủ Ollama (ví dụ: qwen2.5:7b hoặc qwen2.5:14b)."
     )
     topic_chatbot_gemini_api_key = fields.Char(
         string='Gemini API Key',
@@ -90,6 +91,64 @@ class ResConfigSettings(models.TransientModel):
         config_parameter='topic_chatbot.ollama_model',
         default='bge-m3',
         help="Tên mô hình embedding trên Ollama. Khuyến nghị: bge-m3 (chuẩn 1024 chiều tối ưu tiếng Việt tương thích pgvector)."
+    )
+
+    # ── Cấu hình OCR & Nhận diện Hình ảnh trong tài liệu (Pilot v2) ───────────
+    topic_chatbot_enable_image_ocr = fields.Boolean(
+        string='Bật xử lý hình ảnh trong tài liệu',
+        config_parameter='topic_chatbot.enable_image_ocr',
+        default=True,
+        help="Bật/Tắt tính năng bóc tách và OCR hình ảnh (sơ đồ, bảng biểu) trong file Word và PDF."
+    )
+    topic_chatbot_ocr_provider = fields.Selection([
+        ('none', 'Tắt OCR (Chỉ đọc văn bản thuần)'),
+        ('paddleocr', 'PaddleOCR + VietOCR nội bộ (CPU)'),
+        ('gemini', 'Google Gemini Vision (Cloud)'),
+    ], string='OCR Provider (Text / Bảng biểu)',
+        config_parameter='topic_chatbot.ocr_provider',
+        default='paddleocr',
+        help="Phương thức OCR ký tự xác định cho ảnh bảng biểu, văn bản scan để tránh hallucination."
+    )
+    topic_chatbot_vision_provider = fields.Selection([
+        ('none', 'Tắt Vision (Không phân tích sơ đồ)'),
+        ('ollama', 'Ollama Vision nội bộ (Qwen2-VL / MiniCPM-V)'),
+        ('gemini', 'Google Gemini Vision (Cloud)'),
+    ], string='Vision Provider (Sơ đồ / Lưu đồ)',
+        config_parameter='topic_chatbot.vision_provider',
+        default='ollama',
+        help="Phương thức VLM suy luận ngữ nghĩa cho sơ đồ quy trình, lưu đồ khối."
+    )
+    topic_chatbot_ollama_vision_model = fields.Char(
+        string='Ollama Vision Model',
+        config_parameter='topic_chatbot.ollama_vision_model',
+        default='moondream',
+        help="Tên model Vision trên máy chủ Ollama (ví dụ: moondream, llava-phi3, minicpm-v, llava)."
+    )
+    topic_chatbot_ocr_processing_mode = fields.Selection([
+        ('sync', 'Đồng bộ khi tải/xử lý tài liệu'),
+        ('queue', 'Hàng đợi tuần tự (Khuyến nghị Pilot CPU)'),
+    ], string='Chế độ xử lý OCR',
+        config_parameter='topic_chatbot.ocr_processing_mode',
+        default='queue',
+        help="Hàng đợi tuần tự xử lý 1 job/lần giúp bảo vệ CPU cho Chatbot LLM."
+    )
+    topic_chatbot_ocr_num_threads = fields.Integer(
+        string='Số luồng CPU cho OCR/Vision',
+        config_parameter='topic_chatbot.ocr_num_threads',
+        default=lambda self: max(1, (os.cpu_count() or 4) - 2),
+        help="Số luồng CPU cấp cho Ollama Vision / PaddleOCR (mặc định chừa 2 core cho Odoo và hệ điều hành)."
+    )
+    topic_chatbot_ocr_max_images = fields.Integer(
+        string='Giới hạn số ảnh tối đa / tài liệu',
+        config_parameter='topic_chatbot.ocr_max_images',
+        default=15,
+        help="Số lượng ảnh tối đa được OCR trong một tài liệu (tránh quá tải CPU)."
+    )
+    topic_chatbot_ocr_min_dimension = fields.Integer(
+        string='Kích thước ảnh tối thiểu (px)',
+        config_parameter='topic_chatbot.ocr_min_dimension',
+        default=150,
+        help="Bỏ qua các ảnh có chiều rộng hoặc chiều cao nhỏ hơn mức này (loại trừ icon, bullet, logo nhỏ)."
     )
     topic_chatbot_mssql_enabled = fields.Boolean(
         string='Bật kết nối SQL Server',
@@ -289,8 +348,108 @@ class ResConfigSettings(models.TransientModel):
                 }
             }
 
+    def action_test_ollama_vision_connection(self):
+        """Test connection to Ollama server and verify if Vision model is available."""
+        self.ensure_one()
+        params = self.env['ir.config_parameter'].sudo()
+        ollama_url = (self.topic_chatbot_ollama_url or params.get_param('topic_chatbot.ollama_url') or 'http://localhost:11434').rstrip('/')
+        model_name = self.topic_chatbot_ollama_vision_model or params.get_param('topic_chatbot.ollama_vision_model') or 'qwen2-vl:2b'
 
-    @api.model
+        try:
+            res = requests.get(f"{ollama_url}/api/tags", timeout=5)
+            if res.status_code == 200:
+                models_data = res.json().get('models', [])
+                installed_names = [m.get('name', '') for m in models_data]
+                is_installed = any(model_name in name or name.startswith(model_name) for name in installed_names)
+                if is_installed:
+                    return {
+                        'type': 'ir.actions.client',
+                        'tag': 'display_notification',
+                        'params': {
+                            'title': 'Kết nối Ollama Vision Thành Công',
+                            'message': f"Máy chủ Ollama tại '{ollama_url}' đang hoạt động tốt. Model Vision '{model_name}' đã sẵn sàng!",
+                            'type': 'success',
+                            'sticky': False,
+                        }
+                    }
+                else:
+                    installed_str = ', '.join([n.split(':')[0] for n in installed_names[:6]])
+                    return {
+                        'type': 'ir.actions.client',
+                        'tag': 'display_notification',
+                        'params': {
+                            'title': 'Cảnh báo: Chưa cài đặt Model Vision',
+                            'message': f"Kết nối Ollama OK, nhưng model '{model_name}' chưa được tải về. Vui lòng chạy lệnh: `ollama run {model_name}` trên server. Các model hiện có: {installed_str}",
+                            'type': 'warning',
+                            'sticky': True,
+                        }
+                    }
+            else:
+                return {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': 'Lỗi phản hồi Ollama',
+                        'message': f"Ollama Server trả về HTTP {res.status_code}: {res.text[:200]}",
+                        'type': 'danger',
+                        'sticky': True,
+                    }
+                }
+        except Exception as e:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Không thể kết nối Ollama',
+                    'message': f"Không thể kết nối tới '{ollama_url}': {str(e)}",
+                    'type': 'danger',
+                    'sticky': True,
+                }
+            }
+
+    def action_test_paddleocr_connection(self):
+        """Test if PaddleOCR and VietOCR libraries are ready."""
+        self.ensure_one()
+        try:
+            from ..services import ocr_service
+            engine = ocr_service.get_paddle_ocr_engine()
+            if engine:
+                return {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': 'PaddleOCR Khả Dụng',
+                        'message': "Thư viện PaddleOCR đã được cài đặt và khởi tạo thành công trên CPU!",
+                        'type': 'success',
+                        'sticky': False,
+                    }
+                }
+            else:
+                params = self.env['ir.config_parameter'].sudo()
+                gemini_key = params.get_param('topic_chatbot.gemini_api_key')
+                fallback_info = " Gemini API Key đã cấu hình -> Hệ thống sẽ tự động fallback sang Gemini Cloud OCR." if gemini_key else " Chưa cấu hình Gemini API Key -> OCR có thể bị gián đoạn."
+                return {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': 'PaddleOCR Chưa Cài Đặt',
+                        'message': f"Môi trường Python chưa cài đặt PaddleOCR.{fallback_info} (Để dùng local: pip install paddlepaddle paddleocr).",
+                        'type': 'warning',
+                        'sticky': True,
+                    }
+                }
+        except Exception as e:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Lỗi kiểm tra PaddleOCR',
+                    'message': str(e),
+                    'type': 'danger',
+                    'sticky': True,
+                }
+            }
+
     def _normalize_gemini_model(self, model):
         clean_model = (model or '').replace('models/', '').strip()
         valid_models = {value for value, _label in self._fields['topic_chatbot_gemini_model'].selection}

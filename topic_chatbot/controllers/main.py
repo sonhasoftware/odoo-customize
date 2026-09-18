@@ -18,6 +18,8 @@ from ..services.rate_limiter import (
 from ..services.prompt_builder import (
     build_system_instruction,
     sanitize_technical_terms,
+    normalize_step_lists,
+    bold_ui_action_terms,
 )
 from ..services.sql_engine import (
     execute_odoo_query,
@@ -87,6 +89,12 @@ class TopicChatbotController(http.Controller):
 
     def _sanitize_technical_terms(self, text, topic=None):
         return sanitize_technical_terms(text, topic=topic)
+
+    def _normalize_step_lists(self, text):
+        return normalize_step_lists(text)
+
+    def _bold_ui_action_terms(self, text):
+        return bold_ui_action_terms(text)
 
     def _execute_odoo_query(self, model, domain=None, fields=None, env=None):
         return execute_odoo_query(model, domain=domain, fields=fields, env=env)

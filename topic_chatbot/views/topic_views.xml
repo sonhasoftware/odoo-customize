@@ -121,6 +121,14 @@
                     <field name="state" widget="statusbar" statusbar_visible="draft,processing,done"/>
                 </header>
                 <sheet>
+                    <field name="estimated_seconds" invisible="1"/>
+                    <field name="processing_start_time" invisible="1"/>
+                    <field name="estimated_finish_time" invisible="1"/>
+                    <field name="processing_progress" invisible="1"/>
+                    <field name="has_ocr_errors" invisible="1"/>
+                    <!-- Realtime Processing Countdown & Status Widget -->
+                    <field name="estimated_time_display" widget="processing_countdown" nolabel="1"/>
+
                     <div class="oe_title">
                         <label for="name" class="oe_edit_only"/>
                         <h1>
@@ -140,13 +148,18 @@
                             <field name="file_size" readonly="1"/>
                             <field name="layout_type" readonly="1"/>
                             <field name="chunks_count" readonly="1" string="Số Chunks"/>
-                            <field name="processing_time" readonly="1"/>
+                            <field name="estimated_time_display" string="Thời gian dự kiến" readonly="1" invisible="not estimated_time_display"/>
+                            <field name="processing_time" readonly="1" invisible="state == 'draft'"/>
                             <field name="create_date" string="Ngày tải lên" readonly="1"/>
                         </group>
                     </group>
                     <group invisible="not error_message">
                         <field name="error_message" readonly="1" decoration-danger="1"/>
                     </group>
+                    <div class="alert alert-warning mb-3" role="alert" invisible="not has_ocr_errors">
+                        <i class="fa fa-exclamation-triangle me-2"/>
+                        <strong>Cảnh báo OCR hình ảnh:</strong> <field name="ocr_warning" readonly="1" class="d-inline"/>
+                    </div>
                     <notebook>
                         <page string="Nội dung trích xuất" name="extracted_text">
                             <field name="text_content" readonly="1" placeholder="Nội dung trích xuất sau khi xử lý tài liệu sẽ hiển thị tại đây..."/>
@@ -158,6 +171,22 @@
                                     <field name="chunk_type" string="Loại Chunk"/>
                                     <field name="content" string="Nội dung tóm tắt"/>
                                     <field name="parent_id" string="Parent Chunk" optional="show"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Tác vụ OCR Hình ảnh" name="ocr_jobs" invisible="not ocr_job_ids">
+                            <field name="ocr_job_ids" readonly="1">
+                                <tree string="OCR Jobs">
+                                    <field name="name"/>
+                                    <field name="images_count" string="Số ảnh"/>
+                                    <field name="images_processed" string="Đã xử lý"/>
+                                    <field name="processing_time" string="Thời gian (s)" widget="float_time"/>
+                                    <field name="peak_ram_mb" string="Đỉnh RAM (MB)"/>
+                                    <field name="state" widget="badge" 
+                                           decoration-info="state == 'pending'" 
+                                           decoration-warning="state in ('processing', 'done_with_errors')" 
+                                           decoration-success="state == 'done'" 
+                                           decoration-danger="state == 'failed'"/>
                                 </tree>
                             </field>
                         </page>
@@ -182,6 +211,7 @@
                 <field name="apply_year" optional="show"/>
                 <field name="file_size" string="Dung lượng (KB)" optional="show"/>
                 <field name="chunks_count" string="Số Chunks" optional="show"/>
+                <field name="estimated_time_display" string="TG Dự kiến" optional="show"/>
                 <field name="state" decoration-info="state == 'draft'" decoration-warning="state in ('processing', 'partial')" decoration-success="state == 'done'" decoration-danger="state == 'error'"/>
                 <button name="action_process_document" string="Xử lý" type="object" icon="fa-play" class="btn-primary" invisible="state in ('processing', 'done')"/>
                 <button name="action_reprocess_document" string="Xử lý lại" type="object" icon="fa-refresh" class="btn-secondary" invisible="state != 'done'"/>

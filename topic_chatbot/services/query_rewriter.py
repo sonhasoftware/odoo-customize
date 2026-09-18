@@ -316,7 +316,11 @@ def rewrite_search_query(env, message, conversation_id, api_key, model):
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{clean_model}:generateContent?key={api_key}"
         payload = {
             'contents': [{'role': 'user', 'parts': [{'text': rewrite_prompt}]}],
-            'generationConfig': {'maxOutputTokens': 250, 'temperature': 0.1}
+            'generationConfig': {
+                'maxOutputTokens': 1024,
+                'temperature': 0.0,
+                'responseMimeType': 'application/json'
+            }
         }
 
         res = requests.post(url, headers={'Content-Type': 'application/json'}, json=payload, timeout=10)
@@ -385,9 +389,10 @@ def rewrite_search_query(env, message, conversation_id, api_key, model):
                         )
                         return query, clean_filters, True, route_type, structured_query, route_reason
                     except json.JSONDecodeError:
-                        h_route, h_reason = classify_route_with_reason(raw_text)
-                        structured_query = parse_to_structured_query_object(raw_text) if h_route == 'STRUCTURED_DATA' else None
-                        _logger.info("Rewrote query (text fallback): '%s' -> '%s' (Route: %s [%s])", message, raw_text, h_route, h_reason)
+                        # CRITICAL: Always fallback to original message, never return corrupted raw_text
+                        h_route, h_reason = classify_route_with_reason(message)
+                        structured_query = parse_to_structured_query_object(message) if h_route == 'STRUCTURED_DATA' else None
+                        _logger.warning("Rewrote query (JSONDecodeError fallback to original message): '%s' (raw_text: '%s')", message, raw_text[:100].replace('\n', ' '))
                         _logger.info(
                             "[RAG_DEBUG][QUERY]\n"
                             "  - original_query: '%s'\n"
@@ -398,9 +403,9 @@ def rewrite_search_query(env, message, conversation_id, api_key, model):
                             "  - is_valid: True (fallback)\n"
                             "  - conversation_id: %s\n"
                             "  - metadata_filters: %s",
-                            message, raw_text, h_route, h_reason, json.dumps(structured_query, ensure_ascii=False) if structured_query else 'null', conversation_id, json.dumps(default_filters, ensure_ascii=False)
+                            message, message, h_route, h_reason, json.dumps(structured_query, ensure_ascii=False) if structured_query else 'null', conversation_id, json.dumps(default_filters, ensure_ascii=False)
                         )
-                        return raw_text, default_filters, True, h_route, structured_query, h_reason
+                        return message, default_filters, True, h_route, structured_query, h_reason
     except Exception as e:
         _logger.warning("Failed to rewrite query: %s", str(e))
 
