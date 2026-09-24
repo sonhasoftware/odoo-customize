@@ -392,9 +392,26 @@ class MDMTongHop(models.Model):
             return None
         return record.bang_con_ids.filtered(lambda item: item.dvcs.id == company.id)[:1]
 
+    def _get_api_company(self, record, line=None, company=None):
+        """Return the company that was explicitly requested for this API call.
+
+        An explicit ``company`` must take precedence over the company on a
+        line or the parent record.  This prevents Odoo's current company from
+        being used as an unintended fallback when a caller requests a
+        different company.
+        """
+        if company:
+            api_company = self._normalize_api_company(company)
+            if not api_company:
+                raise ValidationError("Không tìm thấy công ty để gửi API.")
+            return api_company
+        if line and line.dvcs:
+            return line.dvcs
+        return record.dvcs
+
     def _prepare_api_payload(self, record, sync_type, line=None, company=None):
         line = self._get_api_line_by_company(record, company=company, line=line)
-        company = line.dvcs if line and line.dvcs else (False if company else record.dvcs)
+        company = self._get_api_company(record, line=line, company=company)
         return {'ma_chung_loai1': record.chung_loai1.ma or None,
                 'ten_chung_loai1': record.chung_loai1.ten or None,
                 'ma_chung_loai2': record.chung_loai2.ma or None,
@@ -481,7 +498,16 @@ class MDMTongHop(models.Model):
         if not self.env.context.get('skip_mdm_similarity'):
             for r in self:
                 self.create_write_action_data(r)
-        if not self.env.context.get('skip_mdm_api_sync'):
+        # Changes submitted from the one2many widget are written to the line
+        # records first.  Each line then sends its own company in
+        # ``mdm.tong.hop.line.write``.  Calling the parent API here as well
+        # sends ``r.dvcs`` (the current/default company) afterwards, which can
+        # overwrite the company selected on that line at the API endpoint.
+        # Let the line be the sole API caller for a line-only update.
+        if (
+            not self.env.context.get('skip_mdm_api_sync')
+            and 'bang_con_ids' not in vals
+        ):
             for r in self:
                 self.call_api_update(r)
         return res
