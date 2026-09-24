@@ -364,6 +364,12 @@ class MDMKhachHang(models.Model):
     def write(self, vals):
         res = super().write(vals)
 
+        # Parent edits must also retain the company selected on the newest
+        # child line.  This runs before the parent API update below so its
+        # payload uses the child-line company.
+        if not self.env.context.get('skip_mdm_parent_company_sync'):
+            self.mapped('bang_con_ids')._sync_parent_company()
+
         should_check_duplicate = self._should_run_duplicate_check(vals)
         if not self.env.context.get('skip_mdm_similarity'):
             for r in self:
