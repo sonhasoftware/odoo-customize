@@ -369,7 +369,13 @@ class MDMKhachHang(models.Model):
             for r in self:
                 if should_check_duplicate:
                     self.create_write_action_data(r)
-        if not self.env.context.get('skip_mdm_api_sync'):
+        # A one2many update is synchronized by the affected line, whose
+        # ``dvcs`` is the company selected for that customer.  Do not follow
+        # it with a parent sync that uses the parent/current company.
+        if (
+            not self.env.context.get('skip_mdm_api_sync')
+            and 'bang_con_ids' not in vals
+        ):
             for r in self:
                 self.call_api_update(r)
         return res
@@ -414,9 +420,20 @@ class MDMKhachHang(models.Model):
             return None
         return record.bang_con_ids.filtered(lambda item: item.dvcs.id == company.id)[:1]
 
+    def _get_api_company(self, record, line=None, company=None):
+        """Return the company explicitly selected for this API payload."""
+        if company:
+            api_company = self._normalize_api_company(company)
+            if not api_company:
+                raise ValidationError("Không tìm thấy công ty để gửi API.")
+            return api_company
+        if line and line.dvcs:
+            return line.dvcs
+        return record.dvcs
+
     def _prepare_api_payload(self, record, sync_type, line=None, company=None):
         line = self._get_api_line_by_company(record, company=company, line=line)
-        company = line.dvcs if line and line.dvcs else (False if company else record.dvcs)
+        company = self._get_api_company(record, line=line, company=company)
         return {
             "cccd": record.cccd or None,
             "mst": record.mst or None,
