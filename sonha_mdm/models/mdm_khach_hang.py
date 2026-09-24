@@ -364,6 +364,9 @@ class MDMKhachHang(models.Model):
     def write(self, vals):
         res = super().write(vals)
 
+        if not self.env.context.get('skip_mdm_parent_company_sync'):
+            self.mapped('bang_con_ids')._sync_parent_company()
+
         should_check_duplicate = self._should_run_duplicate_check(vals)
         if not self.env.context.get('skip_mdm_similarity'):
             for r in self:
