@@ -69,11 +69,11 @@ def _empty_metrics():
     }
 
 
-def _metrics_from_lines(bcu_rec, b5_rec=None):
-    """SL đặt mua = chốt B5; MOQ = chốt B6 (theo quy ước BCU trên biểu in)."""
+def _metrics_from_lines(bcu_rec):
+    """SL đặt mua / MOQ — cùng nguồn B6 (Tổng hợp KH BCU)."""
     return {
-        'sl_dat_mua': (b5_rec.sl_dat_mua_chot if b5_rec else 0.0) or 0.0,
-        'moq': bcu_rec.sl_dat_mua_chot or 0.0,
+        'sl_dat_mua': bcu_rec.sl_dat_mua_chot or 0.0,
+        'moq': bcu_rec.sl_can_mua_theo_moq or 0.0,
         'sl_dieu_chuyen': 0.0,
         'sl_ton_kho': bcu_rec.sl_ton_kho_cuoi_ky or 0.0,
         'sl_can_dung': bcu_rec.tong_vt_can_dung or 0.0,
@@ -213,15 +213,8 @@ class BaoCaoVtCanDatWizard(models.TransientModel):
 
     def _build_detail_rows(self, periods, company_specs):
         Bcu = self.env['kh.dat.vat.tu.bcu'].sudo()
-        B5 = self.env['kh.dat.vat.tu'].sudo()
         period_ids = periods.ids
         bcu_lines = Bcu.search([('period_id', 'in', period_ids)])
-        b5_lines = B5.search([('period_id', 'in', period_ids)])
-        b5_map = {
-            (line.period_id.id, (line.ma_sap or '').strip()): line
-            for line in b5_lines
-            if (line.ma_sap or '').strip()
-        }
 
         ma_codes = {
             (rec.ma_sap or '').strip() for rec in bcu_lines if (rec.ma_sap or '').strip()
@@ -256,8 +249,7 @@ class BaoCaoVtCanDatWizard(models.TransientModel):
             })
             if rec.ten_nvl and not bucket['ten_nvl']:
                 bucket['ten_nvl'] = rec.ten_nvl
-            b5_rec = b5_map.get((rec.period_id.id, ma))
-            metrics = _metrics_from_lines(rec, b5_rec)
+            metrics = _metrics_from_lines(rec)
             bucket['total'] = _sum_metrics(bucket['total'], metrics)
             comp_code = code_by_period.get(rec.period_id.id)
             if comp_code:
