@@ -11,6 +11,10 @@ class MDMTongHopImportWizard(models.TransientModel):
     _name = 'mdm.tong.hop.import.wizard'
     _description = 'Import MDM Hàng hóa từ Excel'
 
+    # Excel uses one-based column numbers; Mã SAP is in column 19 (index 18).
+    SAP_COLUMN_INDEX = 18
+    EXCEL_COLUMN_COUNT = SAP_COLUMN_INDEX + 1
+
     LOOKUP_FIELDS = (
         ('mdm_hh_type_id', 'mdm.hh.type', 3, 'Loại hàng hóa'),
         ('dvt', 'mdm.dvt', 6, 'Đơn vị tính'),
@@ -48,7 +52,10 @@ class MDMTongHopImportWizard(models.TransientModel):
         company_codes = set()
         lookup_codes_by_model = {model_name: set() for _, model_name, _, _ in self.LOOKUP_FIELDS}
 
-        for row_index, row in enumerate(sheet.iter_rows(min_row=2, max_col=18, values_only=True), start=2):
+        for row_index, row in enumerate(
+            sheet.iter_rows(min_row=2, max_col=self.EXCEL_COLUMN_COUNT, values_only=True),
+            start=2,
+        ):
             cleaned = [self._clean_value(value) for value in row]
             if not any(cleaned):
                 continue
@@ -67,7 +74,7 @@ class MDMTongHopImportWizard(models.TransientModel):
                 'company_code': company_code,
                 'ma_hang_don_vi': cleaned[1],
                 'ma_mdm': cleaned[2],
-                'ma_sap': cleaned[18],
+                'ma_sap': cleaned[self.SAP_COLUMN_INDEX],
                 'values': cleaned,
             })
 
@@ -104,7 +111,7 @@ class MDMTongHopImportWizard(models.TransientModel):
         vals = {
             'ma_tg': row_data['ma_hang_don_vi'],
             'ma': row_data['ma_mdm'],
-            'ma_sap': row_values[18],
+            'ma_sap': row_values[self.SAP_COLUMN_INDEX],
             'ten_ngan': row_values[4],
             'ten': row_values[5],
             'do_day': row_values[14],
