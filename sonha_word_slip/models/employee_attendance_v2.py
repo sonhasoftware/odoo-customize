@@ -9,6 +9,7 @@ import io
 import base64
 import calendar
 import xlsxwriter
+from collections import defaultdict
 
 
 _logger = logging.getLogger(__name__)
@@ -94,6 +95,101 @@ class EmployeeAttendanceV2(models.Model):
     CHECK_WINDOW_HOURS = 1
     MAX_OT_SHIFT_GAP_HOURS = 1
 
+    def _get_recompute_batch_cache(self):
+        """Return preloaded source data when recalculating an attendance batch.
+
+        The cache is intentionally scoped to a single explicit recompute call.  It
+        contains recordsets (not calculated results), so all existing attendance
+        rules continue to run unchanged while avoiding repeated ORM searches for
+        every employee/day row.
+        """
+        return self.env.context.get('_attendance_v2_recompute_batch_cache') or {}
+
+    def _get_cached_employee_records(self, cache_key, employee_id):
+        cache = self._get_recompute_batch_cache()
+        return cache.get(cache_key, {}).get(employee_id)
+
+    def _build_recompute_batch_cache(self, employee_ids, date_from, date_to):
+        """Load all query inputs used by attendance computes once per batch."""
+        employee_ids = list(set(employee_ids))
+        if not employee_ids:
+            return {}
+
+        # One-day neighbours are required by the CI/CO and overtime ownership
+        # rules.  The wider raw-punch interval covers overnight shifts and the
+        # configured one-hour matching window.
+        neighbour_from = date_from - timedelta(days=1)
+        neighbour_to = date_to + timedelta(days=1)
+        punch_from = self._to_utc_datetime(datetime.combine(date_from - timedelta(days=3), time.min))
+        punch_to = self._to_utc_datetime(datetime.combine(date_to + timedelta(days=4), time.max))
+
+        def group_by_employee(records, employee_getter):
+            grouped = defaultdict(records.browse)
+            for item in records:
+                for employee_id in employee_getter(item):
+                    grouped[employee_id] = grouped[employee_id] | item
+            return {employee_id: grouped[employee_id] for employee_id in employee_ids}
+
+        attendance_records = self.sudo().search([
+            ('employee_id', 'in', employee_ids),
+            ('date', '>=', neighbour_from),
+            ('date', '<=', neighbour_to),
+        ])
+        shifts = self.env['register.shift.rel'].sudo().search([
+            ('register_shift.employee_id', 'in', employee_ids),
+            ('date', '>=', neighbour_from),
+            ('date', '<=', neighbour_to),
+        ], order='id')
+        register_work = self.env['register.work'].sudo().search([
+            ('employee_id', 'in', employee_ids),
+            ('start_date', '<=', neighbour_to),
+            ('end_date', '>=', neighbour_from),
+        ], order='id')
+        word_slips = self.env['word.slip'].sudo().search([
+            ('from_date', '<=', neighbour_to + timedelta(days=1)),
+            ('to_date', '>=', neighbour_from - timedelta(days=1)),
+            ('word_slip.status', '=', 'done'),
+        ], order='id')
+        free_time = self.env['free.timekeeping'].sudo().search([
+            ('employee_id', 'in', employee_ids),
+            ('state', '=', 'active'),
+            ('start_date', '<=', date_to),
+            ('end_date', '>=', date_from),
+        ])
+        overtime = self.env['overtime.rel'].sudo().search([
+            ('date', '>=', neighbour_from),
+            ('date', '<=', neighbour_to),
+            '|',
+            ('overtime_id.status', '=', 'done'),
+            ('overtime_id.status_lv2', '=', 'done'),
+        ], order='id')
+        public_leaves = self.env['resource.calendar.leaves'].sudo().search([
+            ('date_from', '<=', datetime.combine(date_to + timedelta(days=1), time.max)),
+            ('date_to', '>=', datetime.combine(date_from - timedelta(days=1), time.min)),
+        ])
+        raw_attendance = self.env['master.data.attendance'].sudo().search([
+            ('employee_id', 'in', employee_ids),
+            ('attendance_time', '>=', punch_from),
+            ('attendance_time', '<=', punch_to),
+        ], order='employee_id, attendance_time ASC')
+
+        return {
+            'attendance_records': group_by_employee(attendance_records, lambda r: [r.employee_id.id]),
+            'shift_rel': group_by_employee(shifts, lambda r: [r.register_shift.employee_id.id]),
+            'register_work': group_by_employee(register_work, lambda r: r.employee_id.ids),
+            'word_slips': group_by_employee(
+                word_slips,
+                lambda r: ([r.word_slip.employee_id.id] if r.word_slip.employee_id else []) + r.word_slip.employee_ids.ids,
+            ),
+            'free_time': group_by_employee(free_time, lambda r: [r.employee_id.id]),
+            'overtime': group_by_employee(
+                overtime,
+                lambda r: ([r.overtime_id.employee_id.id] if r.overtime_id.employee_id else []) + r.overtime_id.employee_ids.ids,
+            ),
+            'raw_attendance': group_by_employee(raw_attendance, lambda r: [r.employee_id.id]),
+            'public_leaves': public_leaves,
+        }
+
     def _get_actual_attendance_interval_local(self, record):
         """Return the actual CI/CO anchors after considering contiguous overtime."""
         shift_start, shift_end = self._get_shift_interval_local(record)
@@ -156,11 +252,17 @@ class EmployeeAttendanceV2(models.Model):
         previous_check_out_bound = None
         next_check_in_bound = None
 
-        neighbor_records = self.sudo().search([
-            ('employee_id', '=', record.employee_id.id),
-            ('date', '>=', record.date - timedelta(days=1)),
-            ('date', '<=', record.date + timedelta(days=1)),
-        ])
+        neighbor_records = self._get_cached_employee_records('attendance_records', record.employee_id.id)
+        if neighbor_records is None:
+            neighbor_records = self.sudo().search([
+                ('employee_id', '=', record.employee_id.id),
+                ('date', '>=', record.date - timedelta(days=1)),
+                ('date', '<=', record.date + timedelta(days=1)),
+            ])
+        else:
+            neighbor_records = neighbor_records.filtered(
+                lambda item: record.date - timedelta(days=1) <= item.date <= record.date + timedelta(days=1)
+            )
         for neighbor in neighbor_records:
             if neighbor.id == record.id:
                 continue
@@ -357,6 +459,9 @@ class EmployeeAttendanceV2(models.Model):
         )
 
     def _get_overtime_candidates(self, employee, date_from, date_to):
+        cached_lines = self._get_cached_employee_records('overtime', employee.id)
+        if cached_lines is not None:
+            return cached_lines.filtered(lambda line: date_from <= line.date <= date_to)
         lines = self.env['overtime.rel'].sudo().search([
             ('date', '>=', date_from),
             ('date', '<=', date_to),
@@ -412,11 +517,15 @@ class EmployeeAttendanceV2(models.Model):
         ot_start, ot_end = self._get_overtime_line_interval_local(line)
         if not ot_start or not ot_end:
             return self.env['employee.attendance.v2']
-        records = self.sudo().search([
-            ('employee_id', '=', employee.id),
-            ('date', '>=', line.date - timedelta(days=1)),
-            ('date', '<=', line.date + timedelta(days=1)),
-        ])
+        records = self._get_cached_employee_records('attendance_records', employee.id)
+        if records is None:
+            records = self.sudo().search([
+                ('employee_id', '=', employee.id),
+                ('date', '>=', line.date - timedelta(days=1)),
+                ('date', '<=', line.date + timedelta(days=1)),
+            ])
+        else:
+            records = records.filtered(lambda item: line.date - timedelta(days=1) <= item.date <= line.date + timedelta(days=1))
         best_record = self.env['employee.attendance.v2']
         best_key = None
         for attendance in records:
@@ -501,12 +610,16 @@ class EmployeeAttendanceV2(models.Model):
             r.sunday_work = 0
             r.normal_sunday_work = 0
             if r.weekday == '6':
-                word_slip = self.env['word.slip'].sudo().search([('from_date', '<=', r.date),
-                                                                 ('to_date', '>=', r.date),
-                                                                 ('word_slip.status', '=', 'done')])
+                word_slip = self._get_cached_employee_records('word_slips', r.employee_id.id)
+                if word_slip is None:
+                    word_slip = self.env['word.slip'].sudo().search([('from_date', '<=', r.date),
+                                                                     ('to_date', '>=', r.date),
+                                                                     ('word_slip.status', '=', 'done')])
                 word_slips = word_slip.filtered(
-                    lambda x: (x.word_slip.employee_id and x.word_slip.employee_id.id == r.employee_id.id) or (
-                            x.word_slip.employee_ids and r.employee_id.id in x.word_slip.employee_ids.ids))
+                    lambda x: x.from_date <= r.date <= x.to_date and (
+                        (x.word_slip.employee_id and x.word_slip.employee_id.id == r.employee_id.id) or
+                        (x.word_slip.employee_ids and r.employee_id.id in x.word_slip.employee_ids.ids)
+                    ))
 
                 for slip in word_slips:
                     if slip.word_slip.type.sunday_count == 'haft' and slip.start_time == slip.end_time and (r.check_in or r.check_out):
@@ -578,7 +691,9 @@ class EmployeeAttendanceV2(models.Model):
     @api.depends('employee_id', 'date')
     def _get_time_off(self):
         # Lấy tất cả public leaves một lần, giảm số lần truy vấn
-        all_public_leaves = self.env['resource.calendar.leaves'].sudo().search([])
+        all_public_leaves = self._get_recompute_batch_cache().get('public_leaves')
+        if all_public_leaves is None:
+            all_public_leaves = self.env['resource.calendar.leaves'].sudo().search([])
 
         for r in self:
             # Khởi tạo giá trị mặc định
@@ -596,15 +711,19 @@ class EmployeeAttendanceV2(models.Model):
                 continue
 
             # Tìm tất cả các word.slip liên quan
-            word_slips = self.env['word.slip'].sudo().search([
-                ('from_date', '<=', r.date),
-                ('to_date', '>=', r.date),
-                ('word_slip.status', '=', 'done')
-            ])
+            word_slips = self._get_cached_employee_records('word_slips', r.employee_id.id)
+            if word_slips is None:
+                word_slips = self.env['word.slip'].sudo().search([
+                    ('from_date', '<=', r.date),
+                    ('to_date', '>=', r.date),
+                    ('word_slip.status', '=', 'done')
+                ])
 
             word_slips = word_slips.filtered(
-                lambda x: (x.word_slip.employee_id and x.word_slip.employee_id.id == r.employee_id.id) or (
-                            x.word_slip.employee_ids and r.employee_id.id in x.word_slip.employee_ids.ids))
+                lambda x: x.from_date <= r.date <= x.to_date and (
+                    (x.word_slip.employee_id and x.word_slip.employee_id.id == r.employee_id.id) or
+                    (x.word_slip.employee_ids and r.employee_id.id in x.word_slip.employee_ids.ids)
+                ))
 
             # Xử lý word.slip
             for slip in word_slips:
@@ -824,8 +943,7 @@ class EmployeeAttendanceV2(models.Model):
             'Start recompute employee_attendance_v2 for %s employees from %s to %s.',
             len(employee_ids), date_from, date_to,
         )
-        for emp_id in employee_ids:
-            attendance.recompute_for_employee(emp_id, date_from, date_to)
+        attendance.recompute_for_employees(employee_ids, date_from, date_to)
         _logger.info(
             'Done recompute employee_attendance_v2 for %s employees from %s to %s.',
             len(employee_ids), date_from, date_to,
@@ -896,18 +1014,26 @@ class EmployeeAttendanceV2(models.Model):
                 continue
 
             # Tìm shift theo register.shift.rel
-            shift = self.env['register.shift.rel'].sudo().search([
-                ('register_shift.employee_id', '=', r.employee_id.id),
-                ('date', '=', r.date)
-            ], limit=1)
+            shift = self._get_cached_employee_records('shift_rel', r.employee_id.id)
+            if shift is None:
+                shift = self.env['register.shift.rel'].sudo().search([
+                    ('register_shift.employee_id', '=', r.employee_id.id),
+                    ('date', '=', r.date)
+                ], limit=1)
+            else:
+                shift = shift.filtered(lambda item: item.date == r.date)[:1]
 
             # Nếu không tìm thấy shift, tìm trong register.work
             if not shift:
-                shift_re = self.env['register.work'].sudo().search([
-                    ('start_date', '<=', r.date),
-                    ('end_date', '>=', r.date),
-                    ('employee_id', 'in', [r.employee_id.id])
-                ], limit=1)
+                shift_re = self._get_cached_employee_records('register_work', r.employee_id.id)
+                if shift_re is None:
+                    shift_re = self.env['register.work'].sudo().search([
+                        ('start_date', '<=', r.date),
+                        ('end_date', '>=', r.date),
+                        ('employee_id', 'in', [r.employee_id.id])
+                    ], limit=1)
+                else:
+                    shift_re = shift_re.filtered(lambda item: item.start_date <= r.date <= item.end_date)[:1]
                 if shift_re:
                     shift = shift_re
 
@@ -1009,15 +1135,20 @@ class EmployeeAttendanceV2(models.Model):
 
         window_start_local = self._to_local_datetime(window_start_utc)
         window_end_local = self._to_local_datetime(window_end_utc)
-        word_slips = self.env['word.slip'].sudo().search([
-            ('from_date', '<=', window_end_local.date()),
-            ('to_date', '>=', window_start_local.date() - timedelta(days=1)),
-            ('type.date_and_time', '=', 'time'),
-            ('word_slip.status', '=', 'done'),
-        ])
+        word_slips = self._get_cached_employee_records('word_slips', employee.id)
+        if word_slips is None:
+            word_slips = self.env['word.slip'].sudo().search([
+                ('from_date', '<=', window_end_local.date()),
+                ('to_date', '>=', window_start_local.date() - timedelta(days=1)),
+                ('type.date_and_time', '=', 'time'),
+                ('word_slip.status', '=', 'done'),
+            ])
         word_slips = word_slips.filtered(
-            lambda x: (x.word_slip.employee_id and x.word_slip.employee_id.id == employee.id) or (
-                    x.word_slip.employee_ids and employee.id in x.word_slip.employee_ids.ids))
+            lambda x: x.from_date <= window_end_local.date() and
+            x.to_date >= window_start_local.date() - timedelta(days=1) and (
+                (x.word_slip.employee_id and x.word_slip.employee_id.id == employee.id) or
+                (x.word_slip.employee_ids and employee.id in x.word_slip.employee_ids.ids)
+            ))
         return word_slips.filtered(
             lambda line: any(
                 window_start_utc <= point <= window_end_utc
@@ -1047,14 +1178,17 @@ class EmployeeAttendanceV2(models.Model):
                 if window and window[1]
             ) if windows else r.time_check_out
 
-            attendance_times = self.env['master.data.attendance'].sudo().search_read(
-                [('attendance_time', '>=', search_start),
-                 ('attendance_time', '<=', search_end),
-                 ('employee_id', '=', r.employee_id.id)],
-                ['attendance_time'],
-                order='attendance_time ASC'
-            )
-            attendance_values = [a['attendance_time'] for a in attendance_times if a['attendance_time']]
+            raw_attendance = self._get_cached_employee_records('raw_attendance', r.employee_id.id)
+            if raw_attendance is None:
+                attendance_times = self.env['master.data.attendance'].sudo().search_read(
+                    [('attendance_time', '>=', search_start),
+                     ('attendance_time', '<=', search_end),
+                     ('employee_id', '=', r.employee_id.id)],
+                    ['attendance_time'], order='attendance_time ASC')
+                attendance_values = [a['attendance_time'] for a in attendance_times if a['attendance_time']]
+            else:
+                attendance_values = [item.attendance_time for item in raw_attendance
+                                     if search_start <= item.attendance_time <= search_end]
             check_in, check_out = self._get_check_in_out_from_priority_windows(attendance_values, windows)
 
             word_slip_values = []
@@ -1135,21 +1269,29 @@ class EmployeeAttendanceV2(models.Model):
             part_time_hour = 0
             weekday = r.date.weekday()
             week_number = r.date.isocalendar()[1]
-            free_time = self.env['free.timekeeping'].sudo().search([('employee_id', '=', r.employee_id.id),
-                                                                    ('state', '=', 'active'),
-                                                                    ('start_date', '<=', r.date),
-                                                                    ('end_date', '>=', r.date)])
+            free_time = self._get_cached_employee_records('free_time', r.employee_id.id)
+            if free_time is None:
+                free_time = self.env['free.timekeeping'].sudo().search([('employee_id', '=', r.employee_id.id),
+                                                                        ('state', '=', 'active'),
+                                                                        ('start_date', '<=', r.date),
+                                                                        ('end_date', '>=', r.date)])
+            else:
+                free_time = free_time.filtered(lambda item: item.start_date <= r.date <= item.end_date)
 
-            leave_no_work = self.env['word.slip'].sudo().search([
-                ('from_date', '<=', r.date),
-                ('to_date', '>=', r.date),
-                ('word_slip.status', '=', 'done'),
-                ('word_slip.type.key', '=', "KL"),
-            ])
+            leave_no_work = self._get_cached_employee_records('word_slips', r.employee_id.id)
+            if leave_no_work is None:
+                leave_no_work = self.env['word.slip'].sudo().search([
+                    ('from_date', '<=', r.date),
+                    ('to_date', '>=', r.date),
+                    ('word_slip.status', '=', 'done'),
+                    ('word_slip.type.key', '=', "KL"),
+                ])
 
             leave_no_work = leave_no_work.filtered(
-                lambda x: (x.word_slip.employee_id and x.word_slip.employee_id.id == r.employee_id.id) or (
-                        x.word_slip.employee_ids and r.employee_id.id in x.word_slip.employee_ids.ids))
+                lambda x: x.from_date <= r.date <= x.to_date and x.word_slip.type.key == 'KL' and (
+                    (x.word_slip.employee_id and x.word_slip.employee_id.id == r.employee_id.id) or
+                    (x.word_slip.employee_ids and r.employee_id.id in x.word_slip.employee_ids.ids)
+                ))
 
             if r.shift.is_office_hour and (weekday == 6 or (weekday == 5 and week_number % 2 == 1)):
                 r.work_day = 0
@@ -1245,15 +1387,19 @@ class EmployeeAttendanceV2(models.Model):
             week_number = r.date.isocalendar()[1]
 
             # Tính toán số ngày nghỉ (on_leave)
-            word_slips = self.env['word.slip'].sudo().search([
-                ('from_date', '<=', r.date),
-                ('to_date', '>=', r.date),
-                ('type.date_and_time', '=', 'date'),
-                ('word_slip.status', '=', 'done')
-            ])
+            word_slips = self._get_cached_employee_records('word_slips', r.employee_id.id)
+            if word_slips is None:
+                word_slips = self.env['word.slip'].sudo().search([
+                    ('from_date', '<=', r.date),
+                    ('to_date', '>=', r.date),
+                    ('type.date_and_time', '=', 'date'),
+                    ('word_slip.status', '=', 'done')
+                ])
             word_slips = word_slips.filtered(
-                lambda x: (x.word_slip.employee_id and x.word_slip.employee_id.id == r.employee_id.id) or (
-                        x.word_slip.employee_ids and r.employee_id.id in x.word_slip.employee_ids.ids))
+                lambda x: x.from_date <= r.date <= x.to_date and x.type.date_and_time == 'date' and (
+                    (x.word_slip.employee_id and x.word_slip.employee_id.id == r.employee_id.id) or
+                    (x.word_slip.employee_ids and r.employee_id.id in x.word_slip.employee_ids.ids)
+                ))
             on_leave = 0
             if word_slips:
                 for slip in word_slips:
@@ -1451,6 +1597,26 @@ class EmployeeAttendanceV2(models.Model):
         records._get_forgot_time()
         records._get_work_eat()
         records._compute_color()
+        return True
+
+    def recompute_for_employees(self, employee_ids, date_from, date_to):
+        """Recompute a group with query inputs preloaded once for the whole group."""
+        employee_ids = list(set(employee_ids))
+        if not employee_ids:
+            return True
+        date_from = fields.Date.to_date(date_from)
+        date_to = fields.Date.to_date(date_to)
+        cache = self._build_recompute_batch_cache(employee_ids, date_from, date_to)
+        records = self.sudo().search([
+            ('employee_id', 'in', employee_ids),
+            ('date', '>=', date_from),
+            ('date', '<=', date_to),
+        ])
+        if records:
+            records.with_context(
+                _attendance_v2_recompute_batch_cache=cache,
+                skip_attendance_v2_auto_recompute=True,
+            )._recompute_attendance_v2_fields()
         return True
 
     def recompute_for_employee(self, employee, date_from=None, date_to=None):
@@ -2000,6 +2166,15 @@ class EmployeeAttendanceV2(models.Model):
 
             CREATE INDEX IF NOT EXISTS employee_attendance_v2_employee_date_idx
                 ON employee_attendance_v2 (employee_id, date);
+
+            CREATE INDEX IF NOT EXISTS register_shift_rel_date_register_shift_idx
+                ON register_shift_rel (date, register_shift);
+
+            CREATE INDEX IF NOT EXISTS free_timekeeping_employee_state_dates_idx
+                ON free_timekeeping (employee_id, state, start_date, end_date);
+
+            CREATE INDEX IF NOT EXISTS overtime_rel_date_overtime_idx
+                ON overtime_rel (date, overtime_id);
 
             DROP TRIGGER IF EXISTS master_data_attendance_sync_v2_check_in_out
                 ON master_data_attendance;
