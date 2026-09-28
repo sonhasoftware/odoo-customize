@@ -546,8 +546,8 @@
                             <field name="sl_du_tru_toi_thieu" string="Dự trữ tối thiểu đơn vị" readonly="1"/>
                             <field name="sl_du_tru_toi_thieu_bcu" string="Dự trữ tối thiểu BCU" readonly="1"/>
                             <field name="sl_dat_mua_de_xuat" string="Đề xuất đặt mua" readonly="1"/>
-                            <field name="sl_dat_mua_chot" string="Đặt mua chốt BCU"/>
                             <field name="sl_can_mua_theo_moq" string="SL cần mua dựa theo MOQ NCC"/>
+                            <field name="sl_dat_mua_chot" string="Đặt mua chốt BCU"/>
                             <field name="don_gia_mua" string="Đơn giá mua" widget="monetary"/>
                             <field name="gia_tri_mua_hang" string="Giá trị mua" widget="monetary" readonly="1" force_save="1"/>
 
