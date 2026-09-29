@@ -71,6 +71,7 @@ BEGIN
         v_cn_eq := CASE v_company_code
             WHEN 'NAN' THEN '3000'
             WHEN 'TM2' THEN '4000'
+            WHEN 'TM' THEN '5000'
             ELSE NULL
         END;
 
@@ -112,7 +113,7 @@ BEGIN
 
         CREATE INDEX ON _tmp_period_tp (ma_tp_goc);
 
-        -- BOM theo chi nhánh ĐV SX: BNH 21%, SSP 22%, NAN =3000, TM2 =4000
+        -- BOM theo chi nhánh ĐV SX: BNH 21%, SSP 22%, NAN 3000, TM2 4000, TM 5000
         DROP TABLE IF EXISTS _tmp_bom_cn;
         CREATE TEMP TABLE _tmp_bom_cn ON COMMIT DROP AS
         SELECT b.*
@@ -681,6 +682,9 @@ BEGIN
     SELECT ma_hang, 'TM2', SUM(ton_cuoi), SUM(ton_dau), SUM(tien_ton_dau)
     FROM latest WHERE TRIM(chi_nhanh) = '4000' GROUP BY ma_hang
     UNION ALL
+    SELECT ma_hang, 'TM', SUM(ton_cuoi), SUM(ton_dau), SUM(tien_ton_dau)
+    FROM latest WHERE TRIM(chi_nhanh) = '5000' GROUP BY ma_hang
+    UNION ALL
     SELECT ma_hang, 'ALL', SUM(ton_cuoi), SUM(ton_dau), SUM(tien_ton_dau)
     FROM latest WHERE chi_nhanh NOT LIKE '10%' GROUP BY ma_hang;
 
@@ -843,6 +847,7 @@ BEGIN
                 WHEN c.company_code LIKE '22%' OR c.company_code = 'SSP' THEN 'SSP'
                 WHEN c.company_code = 'NAN' THEN 'NAN'
                 WHEN c.company_code = 'TM2' THEN 'TM2'
+                WHEN c.company_code = 'TM' THEN 'TM'
                 ELSE 'ALL'
             END
         LEFT JOIN LATERAL (
@@ -990,28 +995,55 @@ BEGIN
     ),
     calc AS (
         SELECT
-            b.*,
+            inner_b.*,
             CASE
-                WHEN b.sx_company_code NOT IN ('NAN', 'TM2')
-                     AND cd_t0 > 0
-                THEN (cd_t0 / 28.0) * p_ngay_dt
+                WHEN inner_b.sx_company_code IN ('NAN', 'TM2') THEN 0.0
+                WHEN inner_b.sx_company_code = 'TM' AND inner_b.n_cd_pos > 0
+                THEN round(
+                    (inner_b.sum_cd_pos / inner_b.n_cd_pos::numeric),
+                    -3
+                ) * 1.2
+                WHEN inner_b.sx_company_code NOT IN ('NAN', 'TM2', 'TM')
+                     AND inner_b.cd_t0 > 0
+                THEN (inner_b.cd_t0 / 28.0) * p_ngay_dt
                 ELSE 0.0
             END AS sl_du_tru
-        FROM b4_data b
+        FROM (
+            SELECT
+                b.*,
+                (
+                    CASE WHEN b.cd_t0 > 0 THEN 1 ELSE 0 END
+                  + CASE WHEN b.cd_t1 > 0 THEN 1 ELSE 0 END
+                  + CASE WHEN b.cd_t2 > 0 THEN 1 ELSE 0 END
+                  + CASE WHEN b.cd_t3 > 0 THEN 1 ELSE 0 END
+                ) AS n_cd_pos,
+                (
+                    CASE WHEN b.cd_t0 > 0 THEN b.cd_t0 ELSE 0 END
+                  + CASE WHEN b.cd_t1 > 0 THEN b.cd_t1 ELSE 0 END
+                  + CASE WHEN b.cd_t2 > 0 THEN b.cd_t2 ELSE 0 END
+                  + CASE WHEN b.cd_t3 > 0 THEN b.cd_t3 ELSE 0 END
+                ) AS sum_cd_pos
+            FROM b4_data b
+        ) inner_b
     ),
     calc_moq AS (
         SELECT
             c.*,
             (ton_dau - tcd + tdd - sl_du_tru) AS sl_de_xuat,
-            CASE WHEN (ton_dau - tcd + tdd - sl_du_tru) > 0 THEN 0.0
-                 ELSE -(ton_dau - tcd + tdd - sl_du_tru)
+            CASE
+                WHEN c.sx_company_code = 'TM' THEN 0.0
+                WHEN (ton_dau - tcd + tdd - sl_du_tru) > 0 THEN 0.0
+                ELSE -(ton_dau - tcd + tdd - sl_du_tru)
             END AS sl_chot
         FROM calc c
     ),
     calc_final AS (
         SELECT
             m.*,
-            sl_chot AS sl_moq,
+            CASE
+                WHEN m.sx_company_code = 'TM' THEN 0.0
+                ELSE m.sl_chot
+            END AS sl_moq,
             0.0 AS don_gia_mua_val,
             0.0 AS gia_tri_mua,
             (ton_dau - tcd + tdd + sl_chot) AS sl_ton_kho,

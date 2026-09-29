@@ -6,7 +6,17 @@ from markupsafe import Markup, escape
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
-from .b5_du_tru_policy import b5_du_tru_is_manual
+import math
+
+from .b5_du_tru_policy import (
+    DU_TRU_MANUAL,
+    DU_TRU_TM_AVG,
+    b5_chot_is_manual,
+    b5_du_tru_formula,
+    b5_du_tru_is_manual,
+    b5_moq_from_chot,
+    b5_plan_recompute_fields,
+)
 
 _B5_TRACKED_FIELDS = {
     'sl_du_tru_toi_thieu': 'Dự trữ tối thiểu đơn vị',
@@ -34,16 +44,6 @@ _B5_DD_FIELDS = (
 _MANUAL_RECOMPUTE_FIELDS = {
     'ma_sap', 'sl_du_tru_toi_thieu', *_B5_QTY_FIELDS, *_B5_DD_FIELDS,
 }
-
-# Cột sinh lại khi đổi cần dùng / đi đường trên B5.
-_B5_PLAN_OUTPUT_FIELDS = (
-    'tong_vt_can_dung',
-    'tong_hang_di_duong',
-    'sl_du_tru_toi_thieu',
-    'sl_dat_mua_de_xuat',
-    'sl_dat_mua_chot',
-    'sl_can_mua_theo_moq',
-)
 
 _B5_MANUAL_CAN_FIELDS = _B5_QTY_FIELDS
 _B5_MANUAL_DD_FIELDS = _B5_DD_FIELDS
@@ -125,11 +125,19 @@ class KhDatVatTu(models.Model):
     sl_du_tru_toi_thieu = fields.Float(string='Dự trữ tối thiểu đơn vị', digits=(16, 3))
     is_sl_du_tru_editable = fields.Boolean(
         string='Dự trữ tối thiểu nhập tay',
-        compute='_compute_is_sl_du_tru_editable',
+        compute='_compute_b5_field_flags',
     )
     sl_dat_mua_de_xuat = fields.Float(string='SL đặt mua đề xuất', digits=(16, 3))
     sl_dat_mua_chot = fields.Float(string='SL đặt mua chốt', digits=(16, 3))
+    is_sl_dat_mua_chot_editable = fields.Boolean(
+        string='Đặt mua chốt nhập tay',
+        compute='_compute_b5_field_flags',
+    )
     sl_can_mua_theo_moq = fields.Float(string='SL cần mua dựa theo MOQ NCC', digits=(16, 3))
+    is_sl_moq_editable = fields.Boolean(
+        string='MOQ nhập tay',
+        compute='_compute_b5_field_flags',
+    )
     don_gia_mua = fields.Monetary(
         string='Đơn giá mua', currency_field='currency_id')
     gia_tri_mua_hang = fields.Monetary(
@@ -198,9 +206,30 @@ class KhDatVatTu(models.Model):
         'company_id', 'company_id.company_code',
         'period_id', 'period_id.company_sx_id', 'period_id.company_sx_id.company_code',
     )
-    def _compute_is_sl_du_tru_editable(self):
+    def _compute_b5_field_flags(self):
         for rec in self:
-            rec.is_sl_du_tru_editable = b5_du_tru_is_manual(rec._b5_company_code())
+            code = rec._b5_company_code()
+            rec.is_sl_du_tru_editable = b5_du_tru_is_manual(code)
+            rec.is_sl_dat_mua_chot_editable = b5_chot_is_manual(code)
+            rec.is_sl_moq_editable = b5_moq_from_chot(code)
+
+    @staticmethod
+    def _round_excel_thousand(value):
+        """Làm tròn nghìn kg — khớp Excel ROUND(x, -3)."""
+        if not value:
+            return 0.0
+        if value > 0:
+            return math.floor(value / 1000.0 + 0.5) * 1000.0
+        return math.ceil(value / 1000.0 - 0.5) * 1000.0
+
+    @staticmethod
+    def _sl_du_tru_tm_avg_buffer(t0, t1, t2, t3):
+        """TM: TB các tháng cần dùng > 0 → round 1.000 kg → ×120%."""
+        positive = [q for q in (t0, t1, t2, t3) if (q or 0.0) > 0]
+        if not positive:
+            return 0.0
+        avg = sum(positive) / len(positive)
+        return KhDatVatTu._round_excel_thousand(avg) * 1.2
 
     @staticmethod
     def _count_months_with_can_dung(t0, t1, t2, t3):
@@ -230,6 +259,8 @@ class KhDatVatTu(models.Model):
             return "TRIM(chi_nhanh) = '3000'"
         if code == 'TM2':
             return "TRIM(chi_nhanh) = '4000'"
+        if code == 'TM':
+            return "TRIM(chi_nhanh) = '5000'"
         return "chi_nhanh NOT LIKE '10%%'"
 
     @api.model
@@ -347,27 +378,37 @@ class KhDatVatTu(models.Model):
     @staticmethod
     def _calc_b5_plan(
         ton_dau, t0, t1, t2, t3, dd_t0, dd_t1, dd_t2, dd_t3,
-        ngay_dt=20.0, sl_du_tru=None, auto_du_tru=True,
+        company_code='',
+        ngay_dt=20.0,
+        sl_du_tru=None,
+        sl_dat_mua_chot=None,
     ):
         """Công thức B5 thuần — khớp fn_ke_hoach_dat_vat_tu (procedure SQL)."""
         tcd = (t0 or 0.0) + (t1 or 0.0) + (t2 or 0.0) + (t3 or 0.0)
         tdd = (dd_t0 or 0.0) + (dd_t1 or 0.0) + (dd_t2 or 0.0) + (dd_t3 or 0.0)
         cd_t0 = t0 or 0.0
         ngay_dt = ngay_dt or 20.0
-        if auto_du_tru:
-            sl_du_tru = (cd_t0 / 28.0) * ngay_dt if cd_t0 > 0 else 0.0
-        else:
+        du_formula = b5_du_tru_formula(company_code)
+        if du_formula == DU_TRU_MANUAL:
             sl_du_tru = sl_du_tru or 0.0
+        elif du_formula == DU_TRU_TM_AVG:
+            sl_du_tru = KhDatVatTu._sl_du_tru_tm_avg_buffer(t0, t1, t2, t3)
+        else:
+            sl_du_tru = (cd_t0 / 28.0) * ngay_dt if cd_t0 > 0 else 0.0
         ton_dau = ton_dau or 0.0
         sl_de_xuat = ton_dau - tcd + tdd - sl_du_tru
-        sl_chot = 0.0 if sl_de_xuat > 0 else -sl_de_xuat
+        if b5_chot_is_manual(company_code):
+            sl_chot = sl_dat_mua_chot or 0.0
+        else:
+            sl_chot = 0.0 if sl_de_xuat > 0 else -sl_de_xuat
+        sl_moq = sl_chot if b5_moq_from_chot(company_code) else 0.0
         return {
             'tong_vt_can_dung': tcd,
             'tong_hang_di_duong': tdd,
             'sl_du_tru_toi_thieu': sl_du_tru,
             'sl_dat_mua_de_xuat': sl_de_xuat,
             'sl_dat_mua_chot': sl_chot,
-            'sl_can_mua_theo_moq': sl_chot,
+            'sl_can_mua_theo_moq': sl_moq,
         }
 
     def _m2o_id(self, fname, vals=None):
@@ -405,14 +446,14 @@ class KhDatVatTu(models.Model):
         """Tính lại các cột kế hoạch đặt mua từ dict đầu vào (+ dòng hiện tại nếu có)."""
         vals = dict(vals)
         company_code = self._b5_company_code(vals)
-        auto_du_tru = not b5_du_tru_is_manual(company_code)
         return self._calc_b5_plan(
             self._b5_field_from_vals('tong_ton_nvl_sl', vals),
             *[self._b5_field_from_vals(f, vals) for f in _B5_QTY_FIELDS],
             *[self._b5_field_from_vals(f, vals) for f in _B5_DD_FIELDS],
-            self._b5_ngay_du_tru(vals),
+            company_code=company_code,
+            ngay_dt=self._b5_ngay_du_tru(vals),
             sl_du_tru=self._b5_field_from_vals('sl_du_tru_toi_thieu', vals),
-            auto_du_tru=auto_du_tru,
+            sl_dat_mua_chot=self._b5_field_from_vals('sl_dat_mua_chot', vals),
         )
 
     def _b5_plan_values(self):
@@ -525,8 +566,9 @@ class KhDatVatTu(models.Model):
 
     def _apply_b5_plan_onchange(self, vals=None):
         for rec in self:
-            plan = rec._calc_b5_plan_from_vals(vals or {})
-            for key in _B5_PLAN_OUTPUT_FIELDS:
+            merged = vals or {}
+            plan = rec._calc_b5_plan_from_vals(merged)
+            for key in b5_plan_recompute_fields(rec._b5_company_code(merged)):
                 rec[key] = plan[key]
 
     @api.onchange(
@@ -592,13 +634,13 @@ class KhDatVatTu(models.Model):
         ):
             if len(self) == 1:
                 row = self._b5_row_after_recompute(vals)
-                for key in _B5_PLAN_OUTPUT_FIELDS:
+                for key in b5_plan_recompute_fields(self._b5_company_code(vals)):
                     vals[key] = row[key]
             else:
                 for rec in self:
                     rec_vals = dict(vals)
                     row = rec._b5_row_after_recompute(rec_vals)
-                    for key in _B5_PLAN_OUTPUT_FIELDS:
+                    for key in b5_plan_recompute_fields(rec._b5_company_code(rec_vals)):
                         rec_vals[key] = row[key]
                     super(KhDatVatTu, rec.with_context(
                         skip_b5_manual_recompute=True,

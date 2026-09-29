@@ -36,11 +36,15 @@
 
                 <!-- Kế hoạch đặt mua & Chỉ số cuối kỳ -->
                 <field name="is_sl_du_tru_editable" column_invisible="1"/>
+                <field name="is_sl_dat_mua_chot_editable" column_invisible="1"/>
+                <field name="is_sl_moq_editable" column_invisible="1"/>
                 <field name="sl_du_tru_toi_thieu" string="Dự trữ tối thiểu đơn vị"
                        readonly="not is_sl_du_tru_editable"/>
                 <field name="sl_dat_mua_de_xuat" string="Đề xuất đặt mua"/>
-                <field name="sl_dat_mua_chot" string="Đặt mua chốt"/>
-                <field name="sl_can_mua_theo_moq" string="SL cần mua dựa theo MOQ NCC"/>
+                <field name="sl_dat_mua_chot" string="Đặt mua chốt"
+                       readonly="not is_sl_dat_mua_chot_editable"/>
+                <field name="sl_can_mua_theo_moq" string="SL cần mua dựa theo MOQ NCC"
+                       readonly="not is_sl_moq_editable"/>
                 <field name="don_gia_mua" string="Đơn giá mua" widget="monetary"/>
                 <field name="gia_tri_mua_hang" string="Giá trị mua" widget="monetary"/>
                 <field name="sl_ton_kho_cuoi_ky" string="Tồn kho cuối kỳ"/>
@@ -104,11 +108,15 @@
                             <group>
                                 <group>
                                     <field name="is_sl_du_tru_editable" invisible="1"/>
+                                    <field name="is_sl_dat_mua_chot_editable" invisible="1"/>
+                                    <field name="is_sl_moq_editable" invisible="1"/>
                                     <field name="sl_du_tru_toi_thieu"
                                            readonly="not is_sl_du_tru_editable"/>
                                     <field name="sl_dat_mua_de_xuat"/>
-                                    <field name="sl_dat_mua_chot"/>
-                                    <field name="sl_can_mua_theo_moq"/>
+                                    <field name="sl_dat_mua_chot"
+                                           readonly="not is_sl_dat_mua_chot_editable"/>
+                                    <field name="sl_can_mua_theo_moq"
+                                           readonly="not is_sl_moq_editable"/>
                                     <field name="don_gia_mua" widget="monetary"/>
                                     <field name="gia_tri_mua_hang" widget="monetary" readonly="1"/>
                                 </group>
