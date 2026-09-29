@@ -1,27 +1,70 @@
 # -*- coding: utf-8 -*-
-"""Chính sách cột Dự trữ tối thiểu đơn vị (B5) theo mã công ty SX."""
+"""Chính sách B5 (dự trữ, đặt mua chốt, MOQ) theo mã công ty SX."""
 
-DU_TRU_MODE_AUTO = 'auto'
-DU_TRU_MODE_MANUAL = 'manual'
+DU_TRU_BNH = 'bnh'
+DU_TRU_MANUAL = 'manual'
+DU_TRU_TM_AVG = 'tm_avg'
 
-# Mỗi công ty một mode;
-B5_DU_TRU_POLICIES = {
-    'BNH': {'mode': DU_TRU_MODE_AUTO},
-    'NAN': {'mode': DU_TRU_MODE_MANUAL},
-    'TM2': {'mode': DU_TRU_MODE_MANUAL},
+CHOT_AUTO = 'auto'
+CHOT_MANUAL = 'manual'
+
+_B5_DEFAULT = {
+    'du_tru': DU_TRU_BNH,
+    'chot': CHOT_AUTO,
+    'moq_from_chot': True,
 }
 
-_DEFAULT_POLICY = {'mode': DU_TRU_MODE_AUTO}
+B5_COMPANY_RULES = {
+    'NAN': {
+        'du_tru': DU_TRU_MANUAL,
+        'chot': CHOT_AUTO,
+        'moq_from_chot': True,
+    },
+    'TM2': {
+        'du_tru': DU_TRU_MANUAL,
+        'chot': CHOT_AUTO,
+        'moq_from_chot': True,
+    },
+    'TM': {
+        'du_tru': DU_TRU_TM_AVG,
+        'chot': CHOT_MANUAL,
+        'moq_from_chot': False,
+    },
+}
 
 
-def b5_du_tru_policy(company_code):
+def _b5_rule(company_code):
     code = (company_code or '').strip().upper()
-    return B5_DU_TRU_POLICIES.get(code, _DEFAULT_POLICY)
+    rule = dict(_B5_DEFAULT)
+    rule.update(B5_COMPANY_RULES.get(code, {}))
+    return rule
+
+
+def b5_du_tru_formula(company_code):
+    return _b5_rule(company_code)['du_tru']
 
 
 def b5_du_tru_is_manual(company_code):
-    return b5_du_tru_policy(company_code)['mode'] == DU_TRU_MODE_MANUAL
+    return b5_du_tru_formula(company_code) == DU_TRU_MANUAL
 
 
-def b5_du_tru_is_auto(company_code):
-    return not b5_du_tru_is_manual(company_code)
+def b5_chot_is_manual(company_code):
+    return _b5_rule(company_code)['chot'] == CHOT_MANUAL
+
+
+def b5_moq_from_chot(company_code):
+    return _b5_rule(company_code)['moq_from_chot']
+
+
+def b5_plan_recompute_fields(company_code):
+    """Cột B5 được ghi đè khi tính lại kế hoạch (chốt TM giữ nguyên)."""
+    fields = (
+        'tong_vt_can_dung',
+        'tong_hang_di_duong',
+        'sl_du_tru_toi_thieu',
+        'sl_dat_mua_de_xuat',
+    )
+    if not b5_chot_is_manual(company_code):
+        fields += ('sl_dat_mua_chot',)
+    fields += ('sl_can_mua_theo_moq',)
+    return fields

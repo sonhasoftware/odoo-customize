@@ -120,6 +120,8 @@ class BaoCaoKhDatSxWizard(models.TransientModel):
             return "TRIM(chi_nhanh) = '3000'"
         if code == 'TM2':
             return "TRIM(chi_nhanh) = '4000'"
+        if code == 'TM':
+            return "TRIM(chi_nhanh) = '5000'"
         return "chi_nhanh NOT LIKE '10%%'"
 
     @api.model
