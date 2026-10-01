@@ -130,38 +130,95 @@ const MONTH_FIELD_LABELS = (() => {
     return labels;
 })();
 
+/** Tra cứu BOM (tinh.toan.vat.tu.chi.tiet): wizard truyền bom_tra_label_t0..t3. */
+const BOM_TRA_FIELD_LABELS = (() => {
+    const labels = {};
+    for (let offset = 0; offset < 4; offset++) {
+        labels[`qty_kh_t${offset}`] = { offset, prefix: "Kế hoạch" };
+        labels[`qty_nvl_t${offset}`] = { offset, prefix: "Vật tư cần" };
+    }
+    return labels;
+})();
+
+function getBomTraMonthLabel(list, offset) {
+    const ctx = list?.context || {};
+    const fromCtx = (ctx[`bom_tra_label_t${offset}`] || "").trim();
+    if (fromCtx) {
+        return fromCtx;
+    }
+    const periodMonth = getPeriodMonth(list);
+    return getMonthText(periodMonth, offset);
+}
+
+function listHasDynamicMonthColumns(columns) {
+    return columns?.some(
+        (col) =>
+            col.type === "field" &&
+            (MONTH_FIELD_LABELS[col.name] || BOM_TRA_FIELD_LABELS[col.name]),
+    );
+}
+
+function canApplyDynamicMonthLabels(list, columns) {
+    if (!listHasDynamicMonthColumns(columns)) {
+        return false;
+    }
+    const ctx = list?.context || {};
+    if (ctx.bom_tra_period_id) {
+        return true;
+    }
+    return Boolean(getPeriodMonth(list));
+}
+
+function bomTraLabelDeps(list) {
+    const ctx = list?.context || {};
+    return [0, 1, 2, 3].map((i) => ctx[`bom_tra_label_t${i}`] || "");
+}
+
 patch(ListRenderer.prototype, {
     setup() {
         super.setup(...arguments);
         useEffect(
             () => {
                 const columns = this.props?.archInfo?.columns;
-                if (!columns?.some((col) => col.type === "field" && MONTH_FIELD_LABELS[col.name])) {
+                const list = this.props.list;
+                if (!canApplyDynamicMonthLabels(list, columns)) {
                     return;
                 }
-                const periodMonth = getPeriodMonth(this.props.list);
-                if (!periodMonth) {
-                    return;
-                }
-                this.allColumns = this.processAllColumn(columns, this.props.list);
-                this.state.columns = this.getActiveColumns(this.props.list);
+                this.allColumns = this.processAllColumn(columns, list);
+                this.state.columns = this.getActiveColumns(list);
             },
-            () => [getPeriodMonth(this.props.list), this.props.list?.records?.length],
+            () => [
+                getPeriodMonth(this.props.list),
+                this.props.list?.records?.length,
+                ...bomTraLabelDeps(this.props.list),
+            ],
         );
     },
 
     processAllColumn(allColumns, list) {
         const result = super.processAllColumn(allColumns, list);
-        const periodMonth = getPeriodMonth(list);
-        if (!periodMonth) {
+        if (!canApplyDynamicMonthLabels(list, allColumns)) {
             return result;
         }
+        const periodMonth = getPeriodMonth(list);
         return result.map((col) => {
-            const cfg = col.type === "field" ? MONTH_FIELD_LABELS[col.name] : undefined;
-            if (!cfg) {
+            if (col.type !== "field") {
                 return col;
             }
-            const monthText = getMonthText(periodMonth, cfg.offset);
+            let cfg = MONTH_FIELD_LABELS[col.name];
+            let monthText = "";
+            if (cfg) {
+                if (!periodMonth) {
+                    return col;
+                }
+                monthText = getMonthText(periodMonth, cfg.offset);
+            } else {
+                cfg = BOM_TRA_FIELD_LABELS[col.name];
+                if (!cfg) {
+                    return col;
+                }
+                monthText = getBomTraMonthLabel(list, cfg.offset);
+            }
             if (!monthText) {
                 return col;
             }

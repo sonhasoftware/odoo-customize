@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Audit B3: không dùng cho tra cứu BOM (xem tra_cuu_bom_line_views.xml). -->
+</odoo>

@@ -1,0 +1,101 @@
+.o_bom_cay_explorer {
+    .o_bom_cay_tree {
+        font-family: ui-monospace, Consolas, "Courier New", monospace;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .o_bom_tree_line {
+        white-space: nowrap;
+    }
+
+    .o_bom_tree_prefix,
+    .o_bom_tree_note {
+        white-space: pre;
+    }
+
+    .o_bom_tree_prefix {
+        color: var(--bs-secondary-color, #6c757d);
+    }
+
+    .o_bom_tree_loai_BTP {
+        color: #0d6efd;
+    }
+
+    .o_bom_tree_loai_NVL {
+        color: #198754;
+    }
+
+    .o_bom_tree_line_mua {
+        background: rgba(25, 135, 84, 0.12);
+
+        .o_bom_tree_loai_NVL,
+        .o_bom_tree_ma {
+            color: #0a5c36;
+            font-weight: 700;
+        }
+
+        .o_bom_tree_sl {
+            color: #0a5c36;
+            font-weight: 600;
+        }
+    }
+
+    .o_bom_tree_line_dim {
+        // Làm mờ nhưng vẫn đọc được (0.38 quá nhạt trên nền bg-light)
+        opacity: 0.82;
+
+        .o_bom_tree_loai_BTP {
+            color: #4d8bd9 !important;
+        }
+
+        .o_bom_tree_loai_NVL {
+            color: #3d8b5f !important;
+        }
+
+        .o_bom_tree_ma,
+        .o_bom_tree_sl,
+        .o_bom_tree_note,
+        .o_bom_tree_prefix {
+            color: #495057 !important;
+        }
+    }
+
+    .o_bom_tree_ma {
+        font-weight: 600;
+    }
+
+    .o_bom_tree_sl {
+        color: var(--bs-secondary-color, #6c757d);
+    }
+
+    .o_bom_tree_note {
+        font-size: 0.9em;
+    }
+
+    .o_bom_cay_nvl_table {
+        border-collapse: separate;
+        border-spacing: 0;
+
+        th,
+        td {
+            white-space: nowrap;
+            border-right: 1px solid var(--bs-border-color, #dee2e6);
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+
+            &:last-child {
+                border-right: none;
+            }
+        }
+
+        thead th {
+            border-bottom: 2px solid var(--bs-border-color, #dee2e6);
+            vertical-align: bottom;
+        }
+
+        tbody td {
+            border-top: 1px solid var(--bs-border-color-translucent, rgba(0, 0, 0, 0.075));
+        }
+    }
+}

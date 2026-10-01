@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_tra_cuu_bom_line_tree" model="ir.ui.view">
+        <field name="name">tra.cuu.bom.line.tree</field>
+        <field name="model">tra.cuu.bom.line</field>
+        <field name="arch" type="xml">
+            <tree duplicate="0" string="Tra cứu BOM" create="0" edit="0" delete="0"
+                  class="sh_free_width_tree"
+                  default_order="ma_tp_goc,cap_bom,ma_tp_cha,ma_con,don_vi_kd_code">
+                <field name="wizard_id" column_invisible="1"/>
+                <field name="don_vi_kd_code" string="ĐV KD"/>
+                <field name="ma_tp_goc" string="Mã TP gốc"/>
+                <field name="ten_tp_goc" string="Tên TP gốc"/>
+                <field name="ma_tp_cha" string="Mã TP cha"/>
+                <field name="ten_tp_cha" string="Tên TP cha"/>
+                <field name="ma_con" string="Mã con"/>
+                <field name="ten_con" string="Tên con"/>
+                <field name="cap_bom" string="Cấp BOM"/>
+                <field name="sl_thuc_te" string="Định mức"/>
+                <field name="chi_nhanh" string="Chi nhánh" optional="hide"/>
+                <field name="ma_hang" string="Mã hàng" optional="hide"/>
+                <field name="qty_kh_t0" string="Kế hoạch T0"
+                       column_invisible="not context.get('bom_tra_show_t0', True)"/>
+                <field name="qty_nvl_t0" string="Vật tư cần T0"
+                       column_invisible="not context.get('bom_tra_show_t0', True)"/>
+                <field name="qty_kh_t1" string="Kế hoạch T1"
+                       column_invisible="not context.get('bom_tra_show_t1', True)"/>
+                <field name="qty_nvl_t1" string="Vật tư cần T1"
+                       column_invisible="not context.get('bom_tra_show_t1', True)"/>
+                <field name="qty_kh_t2" string="Kế hoạch T2"
+                       column_invisible="not context.get('bom_tra_show_t2', True)"/>
+                <field name="qty_nvl_t2" string="Vật tư cần T2"
+                       column_invisible="not context.get('bom_tra_show_t2', True)"/>
+                <field name="qty_kh_t3" string="Kế hoạch T3"
+                       column_invisible="not context.get('bom_tra_show_t3', True)"/>
+                <field name="qty_nvl_t3" string="Vật tư cần T3"
+                       column_invisible="not context.get('bom_tra_show_t3', True)"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_tra_cuu_bom_line_search" model="ir.ui.view">
+        <field name="name">tra.cuu.bom.line.search</field>
+        <field name="model">tra.cuu.bom.line</field>
+        <field name="arch" type="xml">
+            <search string="Tra cứu BOM">
+                <field name="ma_tp_goc" string="TP gốc (mã KH, vd. 10000184)"
+                       filter_domain="['|', ('ma_tp_goc', 'ilike', self), ('ten_tp_goc', 'ilike', self)]"/>
+                <field name="ma_tp_cha" string="TP cha (BTP/tấm trên nhánh)"
+                       filter_domain="['|', ('ma_tp_cha', 'ilike', self), ('ten_tp_cha', 'ilike', self)]"/>
+                <field name="ma_con" string="Mã con / NVL"
+                       filter_domain="['|', ('ma_con', 'ilike', self), ('ten_con', 'ilike', self)]"/>
+                <field name="ma_hang"/>
+                <field name="don_vi_kd_code"/>
+                <field name="ten_con"/>
+                <field name="ten_tp_goc"/>
+                <field name="ten_tp_cha"/>
+                <separator/>
+                <filter name="f_has_nvl_t0" string="Có VT T0"
+                        domain="[('qty_nvl_t0', '!=', 0)]"/>
+                <filter name="f_has_nvl_t1" string="Có VT T1"
+                        domain="[('qty_nvl_t1', '!=', 0)]"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="g_tp_goc" string="Mã TP gốc"
+                            context="{'group_by': 'ma_tp_goc'}"/>
+                    <filter name="g_tp_cha" string="Mã TP cha"
+                            context="{'group_by': 'ma_tp_cha'}"/>
+                    <filter name="g_cap_bom" string="Cấp BOM"
+                            context="{'group_by': 'cap_bom'}"/>
+                    <filter name="g_dv_kd" string="Đơn vị KD"
+                            context="{'group_by': 'don_vi_kd_code'}"/>
+                    <filter name="g_ma_con" string="Mã con (NVL)"
+                            context="{'group_by': 'ma_con'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+</odoo>
