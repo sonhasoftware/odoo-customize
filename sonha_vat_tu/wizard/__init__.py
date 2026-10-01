@@ -6,3 +6,5 @@ from . import import_ma_hang_phan_tram_wizard
 from . import import_tong_hop_bcu_wizard
 from . import import_kh_dat_vat_tu_wizard
 from . import bao_cao_nhu_cau_vat_tu_wizard
+from . import tra_cuu_bom_line
+from . import tra_cuu_bom_wizard

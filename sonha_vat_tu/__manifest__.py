@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Sơn Hà Vật tư',
-    'version': '17.0.1.0.2',
+    'version': '17.0.1.0.3',
     'category': 'Kế hoạch vật tư',
     'summary': 'Lập kế hoạch đặt mua vật tư cần theo kỳ',
     'description': """
-      Module kế hoạch đặt mua vật tư
+      Module kế hoạch đặt mua vật tưsp
     """,
     'author': 'Sơn Hà',
     'website': 'https://sonha.com.vn',
@@ -26,6 +26,10 @@
         'wizard/bao_cao_dinh_muc_vt_tb_wizard_views.xml',
         'wizard/bao_cao_vat_tu_can_dat_wizard_views.xml',
         'wizard/bao_cao_kh_dat_sx_wizard_views.xml',
+        'wizard/tra_cuu_bom_wizard_views.xml',
+        'views/tra_cuu_bom_line_views.xml',
+        'views/bom_cay_explorer_views.xml',
+        'views/tinh_toan_vat_tu_chi_tiet_views.xml',
         'report/bao_cao_vat_tu_can_dat_report.xml',
         'views/danh_muc_views.xml',
         'views/ma_hang_phan_tram_views.xml',
@@ -58,6 +62,9 @@
             'sonha_vat_tu/static/src/js/vat_tu_sticky_nvl_columns.js',
             'sonha_vat_tu/static/src/js/sticky_header.js',
             'sonha_vat_tu/static/src/xml/vat_tu_list_header.xml',
+            'sonha_vat_tu/static/src/js/bom_cay_explorer.js',
+            'sonha_vat_tu/static/src/xml/bom_cay_explorer.xml',
+            'sonha_vat_tu/static/src/scss/bom_cay_explorer.scss',
         ],
     },
     'installable': True,

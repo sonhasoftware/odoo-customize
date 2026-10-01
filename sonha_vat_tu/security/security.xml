@@ -125,6 +125,17 @@
         <field name="perm_unlink" eval="False"/>
     </record>
 
+    <record id="rule_tinh_toan_vat_tu_chi_tiet_admin" model="ir.rule">
+        <field name="name">Tinh toan vat tu chi tiet - Admin - read all</field>
+        <field name="model_id" ref="model_tinh_toan_vat_tu_chi_tiet"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
     <!-- B4-B5: ban cung ứng chỉ xem -->
     <record id="rule_tong_hop_vat_tu_ban_cung_ung" model="ir.rule">
         <field name="name">Tong hop vat tu - Ban cung ung - read all</field>
