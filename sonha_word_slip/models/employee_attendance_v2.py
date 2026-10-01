@@ -1116,7 +1116,7 @@ class EmployeeAttendanceV2(models.Model):
                 if check_out_time < shift_end_time:
                     r.minutes_early = int((shift_end_time - check_out_time).total_seconds() / 60)
 
-            if r.leave > 0 or r.compensatory > 0 or r.vacation > 0:
+            if r.leave > 0 or r.compensatory > 0 or r.vacation > 0 or r.unpaid_leave:
                 r.minutes_early = 0
                 r.minutes_late = 0
 
@@ -1279,7 +1279,7 @@ class EmployeeAttendanceV2(models.Model):
             else:
                 pass
 
-            if weekday == 6 or (weekday == 5 and week_number % 2 == 1):
+            if weekday == 6 or (weekday == 5 and week_number % 2 == 1) and r.shift.is_office_hour:
                 if tong_cong == 0 or r.employee_id.company_id.calender_work != 'odd':
                     r.color = None
                 elif r.over_time != 0:
