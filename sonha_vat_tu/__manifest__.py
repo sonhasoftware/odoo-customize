@@ -5,7 +5,7 @@
     'category': 'Kế hoạch vật tư',
     'summary': 'Lập kế hoạch đặt mua vật tư cần theo kỳ',
     'description': """
-      Module kế hoạch đặt mua vật tưsp
+      Module kế hoạch đặt mua vật tư
     """,
     'author': 'Sơn Hà',
     'website': 'https://sonha.com.vn',
@@ -29,6 +29,7 @@
         'wizard/tra_cuu_bom_wizard_views.xml',
         'views/tra_cuu_bom_line_views.xml',
         'views/bom_cay_explorer_views.xml',
+        'views/bom_tra_cuu_explorer_views.xml',
         'views/tinh_toan_vat_tu_chi_tiet_views.xml',
         'report/bao_cao_vat_tu_can_dat_report.xml',
         'views/danh_muc_views.xml',
@@ -65,6 +66,8 @@
             'sonha_vat_tu/static/src/js/bom_cay_explorer.js',
             'sonha_vat_tu/static/src/xml/bom_cay_explorer.xml',
             'sonha_vat_tu/static/src/scss/bom_cay_explorer.scss',
+            'sonha_vat_tu/static/src/js/bom_tra_cuu_explorer.js',
+            'sonha_vat_tu/static/src/xml/bom_tra_cuu_explorer.xml',
         ],
     },
     'installable': True,

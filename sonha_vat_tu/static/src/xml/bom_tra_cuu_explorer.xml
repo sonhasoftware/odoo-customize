@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
 
-    <t t-name="sonha_vat_tu.BomCayExplorer">
+    <t t-name="sonha_vat_tu.BomTraCuuExplorer">
         <div class="o_bom_cay_explorer o_action o_view_controller container-fluid h-100 d-flex flex-column min-h-0 p-3">
             <div class="row g-2 align-items-end mb-3 flex-shrink-0">
                 <div class="col-md-4">
@@ -15,9 +15,9 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Mã TP gốc</label>
-                    <input class="form-control" list="bom_cay_ma_list" t-model="state.maTpGoc"/>
-                    <datalist id="bom_cay_ma_list">
+                    <label class="form-label">Mã NVL</label>
+                    <input class="form-control" list="bom_tra_ma_nvl_list" t-model="state.maNvl"/>
+                    <datalist id="bom_tra_ma_nvl_list">
                         <t t-foreach="state.maList" t-as="m" t-key="m.ma">
                             <option t-att-value="m.ma"><t t-esc="m.ten"/></option>
                         </t>
@@ -32,7 +32,7 @@
                     <input class="form-control" t-model="state.thangDen" placeholder="MM/YYYY"/>
                 </div>
                 <div class="col-md-1">
-                    <button type="button" class="btn btn-primary w-100" t-on-click="loadTree"
+                    <button type="button" class="btn btn-primary w-100" t-on-click="loadData"
                             t-att-disabled="state.loading ? 'disabled' : None">
                         <t t-if="state.loading">...</t>
                         <t t-else="">Xem</t>
@@ -43,51 +43,61 @@
             <t t-if="state.loaded">
                 <div class="o_bom_explorer_loaded d-flex flex-column flex-grow-1 min-h-0 overflow-hidden">
                 <div class="mb-2 flex-shrink-0">
-                    <strong t-esc="state.header.title"/>
+                    <strong t-esc="state.header.ma"/>
+                    <t t-esc="state.header.ten ? ' — ' + state.header.ten : ''"/>
                     <span class="text-muted ms-2" t-esc="state.header.range"/>
-                    <span class="text-muted ms-2" t-if="state.header.chiNhanh">
-                        (CN: <t t-esc="state.header.chiNhanh"/>)
-                    </span>
-                    <span class="badge text-bg-secondary ms-2" t-if="state.stats.nvl_on_tree">
-                        Lá NVL cây: <t t-esc="state.stats.nvl_on_tree"/>
-                        / ma_hang: <t t-esc="state.stats.nvl_in_ma_hang"/>
-                        / định mức kỳ: <t t-esc="state.stats.nvl_on_dm"/>
+                    <span class="badge text-bg-secondary ms-2" t-if="state.stats.tp_count">
+                        TP gốc: <t t-esc="state.stats.tp_count"/>
+                        / dòng: <t t-esc="state.stats.line_count"/>
                     </span>
                 </div>
 
                 <div class="row o_bom_explorer_panels flex-grow-1 g-3 min-h-0 overflow-hidden">
-                    <div class="col-lg-5 d-flex flex-column min-h-0 o_bom_explorer_panel">
-                        <h6 class="border-bottom pb-1 flex-shrink-0">Cây BOM</h6>
+                    <div class="col-lg-4 d-flex flex-column min-h-0 o_bom_explorer_panel">
+                        <h6 class="border-bottom pb-1 flex-shrink-0">Thành phẩm dùng NVL</h6>
                         <div class="o_bom_cay_tree mb-0 p-2 bg-light border rounded">
-                            <div class="o_bom_tree_line"><span class="o_bom_tree_ma" t-esc="state.header.ma"/><t t-esc="state.header.ten ? ' — ' + state.header.ten : ''"/><span class="o_bom_tree_sl"> (TP gốc)</span></div>
+                            <div class="o_bom_tree_line">
+                                <span class="o_bom_tree_loai_NVL">[NVL] </span>
+                                <span class="o_bom_tree_ma" t-esc="state.header.ma"/>
+                                <t t-esc="state.header.ten ? ' — ' + state.header.ten : ''"/>
+                            </div>
                             <t t-foreach="state.treeLines" t-as="line" t-key="line_index">
-                                <div t-attf-class="o_bom_tree_line {{ line.on_dm ? 'o_bom_tree_line_mua' : '' }} {{ line.dim ? 'o_bom_tree_line_dim' : '' }}"><span class="o_bom_tree_prefix" t-esc="line.prefix"/><span t-attf-class="o_bom_tree_loai_{{ line.loai }}" t-esc="'[' + line.loai + '] '"/><span class="o_bom_tree_ma" t-esc="line.ma"/><t t-esc="line.ten ? ' ' + line.ten : ''"/><span class="o_bom_tree_sl" t-if="line.sl" t-esc="' × ' + line.sl"/></div>
+                                <div class="o_bom_tree_line o_bom_tree_line_mua">
+                                    <span class="o_bom_tree_prefix" t-esc="line.prefix"/>
+                                    <span t-attf-class="o_bom_tree_loai_{{ line.loai }}" t-esc="'[' + line.loai + '] '"/>
+                                    <span class="o_bom_tree_ma" t-esc="line.ma"/>
+                                    <t t-esc="line.ten ? ' ' + line.ten : ''"/>
+                                </div>
                             </t>
                         </div>
                     </div>
-                    <div class="col-lg-7 d-flex flex-column min-h-0 o_bom_explorer_panel">
-                        <h6 class="border-bottom pb-1 flex-shrink-0">NVL trên định mức kỳ (mua / cần dùng)</h6>
+                    <div class="col-lg-8 d-flex flex-column min-h-0 o_bom_explorer_panel">
+                        <h6 class="border-bottom pb-1 flex-shrink-0">Chi tiết định mức kỳ (theo TP gốc)</h6>
                         <div class="o_bom_explorer_table_wrap table-responsive border rounded">
                             <table class="table table-sm table-striped table-hover mb-0 o_bom_cay_nvl_table">
                                 <thead class="table-light sticky-top">
                                     <tr>
+                                        <th>ĐV KD</th>
+                                        <th>Mã TP gốc</th>
+                                        <th>Tên TP gốc</th>
                                         <th>Mã NVL</th>
-                                        <th>Tên NVL</th>
                                         <th class="text-end">Định mức</th>
                                         <t t-foreach="state.visibleMonths" t-as="mo" t-key="mo.offset">
-                                            <th class="text-end" t-esc="'Kế hoạch ' + mo.label"/>
-                                            <th class="text-end" t-esc="'Vật tư cần ' + mo.label"/>
+                                            <th class="text-end" t-esc="'KH ' + mo.label"/>
+                                            <th class="text-end" t-esc="'VT cần ' + mo.label"/>
                                         </t>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <t t-if="!state.nvlTable.length">
-                                        <tr><td colspan="99" class="text-muted">Không có dòng định mức cho mã gốc này.</td></tr>
+                                    <t t-if="!state.detailTable.length">
+                                        <tr><td colspan="99" class="text-muted">Không có dòng.</td></tr>
                                     </t>
-                                    <t t-foreach="state.nvlTable" t-as="row" t-key="row.ma_nvl">
+                                    <t t-foreach="state.detailTable" t-as="row" t-key="row_index">
                                         <tr>
+                                            <td t-esc="row.don_vi_kd_code"/>
+                                            <td t-esc="row.ma_tp_goc"/>
+                                            <td t-esc="row.ten_tp_goc"/>
                                             <td t-esc="row.ma_nvl"/>
-                                            <td t-esc="row.ten_nvl"/>
                                             <td class="text-end" t-esc="formatNum(row.sl_thuc_te, 6)"/>
                                             <t t-foreach="state.visibleMonths" t-as="mo" t-key="mo.offset">
                                                 <td class="text-end" t-esc="monthQty(row, mo.offset, 'qty_kh')"/>
@@ -96,6 +106,15 @@
                                         </tr>
                                     </t>
                                 </tbody>
+                                <tfoot class="table-secondary" t-if="state.detailTable.length">
+                                    <tr>
+                                        <th colspan="5" class="text-end">Tổng</th>
+                                        <t t-foreach="state.visibleMonths" t-as="mo" t-key="mo.offset">
+                                            <th class="text-end" t-esc="totalQty(mo.offset, 'qty_kh')"/>
+                                            <th class="text-end" t-esc="totalQty(mo.offset, 'qty_nvl')"/>
+                                        </t>
+                                    </tr>
+                                </tfoot>
                             </table>
                         </div>
                     </div>

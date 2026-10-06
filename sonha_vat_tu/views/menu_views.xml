@@ -127,20 +127,24 @@
               parent="menu_danh_muc_root"
               action="action_cau_hinh_bo_qua_nvl" sequence="24"
               groups="base.group_system"/>
-    <menuitem id="menu_tra_cuu_bom"
-              name="Tra cứu Bom định mức"
-              parent="menu_danh_muc_root"
-              action="action_tra_cuu_bom_wizard" sequence="23"
-              groups="base.group_system"/>
-    <menuitem id="menu_bom_cay_explorer"
-              name="Xem cây BOM"
-              parent="menu_danh_muc_root"
-              action="action_bom_cay_explorer" sequence="24"
-              groups="base.group_system"/>
     <menuitem id="menu_dmtb_nhom"
               name="Nhóm định mức vật tư TB"
               parent="menu_danh_muc_root"
               action="action_dmtb_nhom" sequence="26"
               groups="sonha_vat_tu.group_ban_cung_ung_vat_tu"/>
+
+    <menuitem id="menu_cai_dat_root" name="Kỹ thuật"
+              parent="menu_ke_hoach_vat_tu_root" sequence="50"
+              groups="base.group_system"/>
+    <menuitem id="menu_bom_cay_explorer"
+              name="Xem cây BOM"
+              parent="menu_cai_dat_root"
+              action="action_bom_cay_explorer" sequence="10"
+              groups="base.group_system"/>
+    <menuitem id="menu_tra_cuu_bom"
+              name="Tra cứu Bom định mức"
+              parent="menu_cai_dat_root"
+              action="action_bom_tra_cuu_explorer" sequence="20"
+              groups="base.group_system"/>
 
 </odoo>

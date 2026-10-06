@@ -1,4 +1,40 @@
 .o_bom_cay_explorer {
+    // Client action: chiều cao cố định theo viewport để cây/bảng scroll bên trong
+    &.o_action.o_view_controller {
+        height: calc(100vh - 46px);
+        max-height: calc(100vh - 46px);
+        overflow: hidden;
+        box-sizing: border-box;
+    }
+
+    .o_bom_explorer_loaded {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .o_bom_explorer_panels {
+        flex: 1 1 auto;
+        min-height: 200px;
+        max-height: 100%;
+        overflow: hidden;
+    }
+
+    .o_bom_explorer_panel {
+        min-height: 0;
+        max-height: 100%;
+    }
+
+    .o_bom_cay_tree,
+    .o_bom_explorer_table_wrap {
+        flex: 1 1 0;
+        min-height: 0;
+        max-height: 100%;
+        overflow-x: auto;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
     .o_bom_cay_tree {
         font-family: ui-monospace, Consolas, "Courier New", monospace;
         font-size: 13px;
@@ -24,6 +60,10 @@
 
     .o_bom_tree_loai_NVL {
         color: #198754;
+    }
+
+    .o_bom_tree_loai_TP {
+        color: #0d6efd;
     }
 
     .o_bom_tree_line_mua {

@@ -19,6 +19,7 @@ from . import cau_hinh_bo_qua_nvl
 from . import tinh_toan_vat_tu
 from . import tinh_toan_vat_tu_chi_tiet
 from . import bom_cay_explorer
+from . import bom_tra_cuu_explorer
 from . import tong_hop_vat_tu
 from . import kh_dat_vat_tu
 from . import kh_dat_vat_tu_bcu
