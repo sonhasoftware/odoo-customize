@@ -82,10 +82,13 @@ class TraCuuBomWizard(models.TransientModel):
             return ' AND b.chi_nhanh LIKE %s', [str(val)]
         return ' AND TRIM(b.chi_nhanh) = %s', [str(val)]
 
-    def _fetch_rows_sql(self):
+    def _fetch_rows_sql(self, ma_nvl=None):
         """Chỉ dòng NVL trên định mức kỳ (dinh_muc) + NVL nhập thẳng B1."""
         self.ensure_one()
         period_id = self.period_id.id
+        ma_nvl = (ma_nvl or '').strip()
+        dm_nvl_sql = ' AND TRIM(dm.ma_nvl) = %s' if ma_nvl else ''
+        b1_nvl_sql = ' WHERE TRIM(d.ma_sap) = %s' if ma_nvl else ''
         bom_cn_sql, bom_cn_params = self._bom_chi_nhanh_sql()
 
         query = """
@@ -205,6 +208,7 @@ class TraCuuBomWizard(models.TransientModel):
                 LEFT JOIN bom_meta ON bom_meta.dm_id = dm.id
                 WHERE dm.period_id = %s
                   AND dm.company_id IS NOT NULL
+                  {dm_nvl_sql}
 
                 UNION ALL
 
@@ -230,14 +234,20 @@ class TraCuuBomWizard(models.TransientModel):
                     d.qty_t3 AS qty_nvl_t3
                 FROM b1_direct d
                 JOIN res_company dv ON dv.id = d.company_id
+                {b1_nvl_sql}
             )
             SELECT *
             FROM detail
             ORDER BY ma_tp_goc, cap_bom NULLS LAST, ma_tp_cha, ma_con, don_vi_kd_code
         """.format(
             bom_cn_sql=bom_cn_sql,
+            dm_nvl_sql=dm_nvl_sql,
+            b1_nvl_sql=b1_nvl_sql,
         )
         params = [period_id] + bom_cn_params + [period_id, period_id]
+        if ma_nvl:
+            params.append(ma_nvl)
+            params.append(ma_nvl)
         self.env.cr.execute(query, params)
         return self.env.cr.dictfetchall()
 
