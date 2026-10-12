@@ -95,33 +95,26 @@ class MaHang(models.Model):
             return {}
         self.env.cr.execute(
             """
-            SELECT TRIM(l.ma_dv) AS ma_dv,
+            SELECT DISTINCT ON (TRIM(l.ma_dv))
+                   TRIM(l.ma_dv) AS ma_dv,
                    NULLIF(TRIM(th.ma_sap), '') AS ma_sap
             FROM mdm_tong_hop_line l
             JOIN mdm_tong_hop th ON th.id = l.tong_hop_id
             WHERE TRIM(l.ma_dv) = ANY(%s)
+            ORDER BY TRIM(l.ma_dv), l.id DESC
             """,
             (codes,),
         )
-        found = set()
-        saps_by_dv = {}
-        for ma_dv, ma_sap in self.env.cr.fetchall():
-            found.add(ma_dv)
-            if ma_sap:
-                saps_by_dv.setdefault(ma_dv, set()).add(ma_sap)
+        found = dict(self.env.cr.fetchall())
 
         result = {}
         for ma_dv in codes:
             if ma_dv not in found:
                 result[ma_dv] = {'state': 'missing', 'ma_sap': None}
-                continue
-            saps = saps_by_dv.get(ma_dv, set())
-            if not saps:
+            elif not found[ma_dv]:
                 result[ma_dv] = {'state': 'no_sap', 'ma_sap': None}
-            elif len(saps) > 1:
-                result[ma_dv] = {'state': 'ambiguous', 'ma_sap': None}
             else:
-                result[ma_dv] = {'state': 'ok', 'ma_sap': next(iter(saps))}
+                result[ma_dv] = {'state': 'ok', 'ma_sap': found[ma_dv]}
         return result
 
     @api.model
