@@ -78,7 +78,6 @@ class Project(models.Model):
             self.env.cr.execute(
                 "CALL sp_update_ns_trong_da(%s)", (parent,)
             )
-            self.env.cr.dictfetchall()
         return res
 
     def _can_edit_after_end_date(self):
