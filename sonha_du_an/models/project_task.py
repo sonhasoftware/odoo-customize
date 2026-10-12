@@ -116,70 +116,70 @@ class Task(models.Model):
             'pd',
         ]
 
-    @api.model
-    def default_get(self, fields_list):
-        res = super().default_get(fields_list)
-
-        # Lấy task mới nhất
-        last_task = self.search(
-            [],
-            order='id desc',
-            limit=1
-        )
-
-        if not last_task:
-            return res
-
-        # =========================
-        # COPY DỮ LIỆU
-        # =========================
-
-        # Nội dung công việc
-        res['name'] = last_task.name
-
-        # Dự án con
-        if 'cap' in self._fields:
-            res['cap'] = last_task.cap.id
-
-        # Dự án cha
-        if 'du_an_cha_task_id' in self._fields:
-            res['du_an_cha_task_id'] = last_task.du_an_cha_task_id.id
-
-        # Số ngày
-        if 'so_ngay' in self._fields:
-            res['so_ngay'] = last_task.so_ngay
-
-        # Ngày bắt đầu
-        if 'ngay_bat_dau' in self._fields:
-            res['ngay_bat_dau'] = last_task.ngay_bat_dau
-
-        # Ngày kết thúc
-        if 'ngay_ket_thuc' in self._fields:
-            res['ngay_ket_thuc'] = last_task.ngay_ket_thuc
-
-        # Ngày hoàn thành
-        if 'ngay_hoan_thanh' in self._fields:
-            res['ngay_hoan_thanh'] = last_task.ngay_hoan_thanh
-
-        # NS làm - Many2many
-        if 'ns_lam' in self._fields:
-            res['ns_lam'] = [
-                (6, 0, last_task.ns_lam.ids)
-            ]
-
-        # Người QLDA - Many2many
-        if 'nguoi_qlda' in self._fields:
-            res['nguoi_qlda'] = [
-                (6, 0, last_task.nguoi_qlda.ids)
-            ]
-
-        # Chủ sở hữu
-        if 'chu_so_huu' in self._fields:
-            res['chu_so_huu'] = [
-                (6, 0, last_task.chu_so_huu.ids)
-            ]
-
-        return res
+    # @api.model
+    # def default_get(self, fields_list):
+    #     res = super().default_get(fields_list)
+    #
+    #     # Lấy task mới nhất
+    #     last_task = self.search(
+    #         [],
+    #         order='id desc',
+    #         limit=1
+    #     )
+    #
+    #     if not last_task:
+    #         return res
+    #
+    #     # =========================
+    #     # COPY DỮ LIỆU
+    #     # =========================
+    #
+    #     # Nội dung công việc
+    #     res['name'] = last_task.name
+    #
+    #     # Dự án con
+    #     if 'cap' in self._fields:
+    #         res['cap'] = last_task.cap.id
+    #
+    #     # Dự án cha
+    #     if 'du_an_cha_task_id' in self._fields:
+    #         res['du_an_cha_task_id'] = last_task.du_an_cha_task_id.id
+    #
+    #     # Số ngày
+    #     if 'so_ngay' in self._fields:
+    #         res['so_ngay'] = last_task.so_ngay
+    #
+    #     # Ngày bắt đầu
+    #     if 'ngay_bat_dau' in self._fields:
+    #         res['ngay_bat_dau'] = last_task.ngay_bat_dau
+    #
+    #     # Ngày kết thúc
+    #     if 'ngay_ket_thuc' in self._fields:
+    #         res['ngay_ket_thuc'] = last_task.ngay_ket_thuc
+    #
+    #     # Ngày hoàn thành
+    #     if 'ngay_hoan_thanh' in self._fields:
+    #         res['ngay_hoan_thanh'] = last_task.ngay_hoan_thanh
+    #
+    #     # NS làm - Many2many
+    #     if 'ns_lam' in self._fields:
+    #         res['ns_lam'] = [
+    #             (6, 0, last_task.ns_lam.ids)
+    #         ]
+    #
+    #     # Người QLDA - Many2many
+    #     if 'nguoi_qlda' in self._fields:
+    #         res['nguoi_qlda'] = [
+    #             (6, 0, last_task.nguoi_qlda.ids)
+    #         ]
+    #
+    #     # Chủ sở hữu
+    #     if 'chu_so_huu' in self._fields:
+    #         res['chu_so_huu'] = [
+    #             (6, 0, last_task.chu_so_huu.ids)
+    #         ]
+    #
+    #     return res
 
     def _get_project_end_date_limit(self):
         self.ensure_one()

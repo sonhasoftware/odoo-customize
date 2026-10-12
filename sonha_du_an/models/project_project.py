@@ -5,8 +5,14 @@ from datetime import timedelta, date
 
 class Project(models.Model):
     _inherit = 'project.project'
+    _order = 'ma_sap_xep, du_an_cha desc, id'
 
     so_du_an = fields.Char("Số dự án", store=True)
+    ma_sap_xep = fields.Char(
+        string='Mã sắp xếp',
+        compute='_compute_ma_sap_xep',
+        store=True,
+    )
     group_du_an = fields.Many2one(
         'group.du.an',
         string="Group dự án", store=True, required=False
@@ -46,6 +52,11 @@ class Project(models.Model):
 
     ngay_kt_da_tt = fields.Date("Ngày kết thúc dự án thực rế", store=True)
     ns_trong_da = fields.Char("Nhân sự trong dự án", store=True)
+
+    @api.depends('so_du_an', 'du_an_cha_id.so_du_an')
+    def _compute_ma_sap_xep(self):
+        for project in self:
+            project.ma_sap_xep = project.du_an_cha_id.so_du_an or project.so_du_an or ''
 
     @api.depends('name')
     def get_name_duan(self):
