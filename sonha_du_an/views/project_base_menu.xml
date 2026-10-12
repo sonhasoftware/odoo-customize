@@ -16,6 +16,17 @@
         <field name="active" eval="False"/>
     </record>
 
+    <record id="view_project_kanban_order" model="ir.ui.view">
+        <field name="name">project.project.kanban.order</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.view_project_kanban"/>
+        <field name="arch" type="xml">
+            <kanban position="attributes">
+                <attribute name="default_order">ma_sap_xep, du_an_cha desc, id</attribute>
+            </kanban>
+        </field>
+    </record>
+
     <record id="project.open_view_project_all" model="ir.actions.act_window">
         <field name="name">Dự án đang chạy</field>
         <field name="domain">[('hoan_thanh', '=', False)]</field>
