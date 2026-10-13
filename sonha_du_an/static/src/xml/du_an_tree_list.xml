@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="sonha_du_an.DuAnTreeListRenderer.Rows" t-inherit="web.ListRenderer.Rows" t-inherit-mode="primary">
+        <xpath expr="//t[@t-foreach='list.records']" position="attributes">
+            <attribute name="t-foreach">getVisibleRecords(list)</attribute>
+        </xpath>
+    </t>
+
+    <t t-name="sonha_du_an.DuAnTreeNameField">
+        <span class="o_du_an_tree_name text-nowrap" t-attf-style="padding-left: {{ info.depth * 20 }}px;">
+            <i t-if="info.hasChildren"
+               t-attf-class="fa fa-fw me-1 o_du_an_tree_toggle {{ isExpanded ? 'fa-minus-square-o' : 'fa-plus-square' }}"
+               t-on-click.stop="onToggle"/>
+            <i t-else="" class="fa fa-fw me-1"/>
+            <span t-att-class="{ 'fw-bold': info.depth === 0 }" t-esc="label"/>
+        </span>
+    </t>
+
+</templates>
