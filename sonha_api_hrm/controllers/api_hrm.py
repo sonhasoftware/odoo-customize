@@ -1011,7 +1011,7 @@ class AuthAPI(http.Controller):
                         request.env['form.word.slip'].sudo().action_noti_manager(record)
                     elif record.status_lv2 == 'draft':
                         record.status = 'draft'
-                        record.status_lv1 = 'confirm'
+                        record.status_lv2 = 'confirm'
                         vals = {
                             'employee_id': record.employee_approval.id,
                             'user_id': record.employee_approval.user_id.id,
@@ -1030,7 +1030,7 @@ class AuthAPI(http.Controller):
                         request.env['form.word.slip'].sudo().action_noti_manager(record)
                     elif record.status_lv2 == 'confirm':
                         record.status = 'done'
-                        record.status_lv1 = 'done'
+                        record.status_lv2 = 'done'
                         vals = {
                             'token': employee_id.user_id.token or "",
                             'create_user_id':  {
