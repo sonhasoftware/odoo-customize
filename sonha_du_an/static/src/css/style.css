@@ -8,3 +8,7 @@
 .o_list_table tbody tr.text-info td {
     font-weight: bold !important;
 }
+
+.o_du_an_tree_toggle {
+    cursor: pointer;
+}

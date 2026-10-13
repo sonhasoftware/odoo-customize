@@ -26,8 +26,10 @@
     'assets': {
         'web.assets_backend': [
             'sonha_du_an/static/src/css/style.css',
-            'sonha_du_an/static/src/js/preserve_whitespace_field.js',
-            'sonha_du_an/static/src/xml/preserve_whitespace_field.xml',
+            # 'sonha_du_an/static/src/js/preserve_whitespace_field.js',
+            # 'sonha_du_an/static/src/xml/preserve_whitespace_field.xml',
+            'sonha_du_an/static/src/js/du_an_tree_list.js',
+            'sonha_du_an/static/src/xml/du_an_tree_list.xml',
         ],
     },
     'installable': True,

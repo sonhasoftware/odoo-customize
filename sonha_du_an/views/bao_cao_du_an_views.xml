@@ -5,7 +5,8 @@
         <field name="name">sonha.du.an.bao.cao.tree</field>
         <field name="model">sonha.du.an.bao.cao</field>
         <field name="arch" type="xml">
-            <tree string="Báo cáo dự án" create="0" edit="0" delete="0" default_order="stt" decoration-success="in_dam == 1" decoration-info="in_dam == 2">
+<!--            <tree string="Báo cáo dự án" create="0" edit="0" delete="0" default_order="stt" decoration-success="in_dam == 1" decoration-info="in_dam == 2">-->
+            <tree string="Báo cáo dự án" create="0" edit="0" delete="0" default_order="stt" limit="5000" js_class="sonha_du_an_tree_list">
                 <header>
                     <button name="action_open_generate_wizard"
                         type="object"
@@ -13,7 +14,8 @@
                         class="btn-primary"/>
                 </header>
 <!--                <field name="stt"/>-->
-                <field name="noi_dung_cv_con" widget="preserve_whitespace"/>
+<!--                <field name="noi_dung_cv_con" widget="preserve_whitespace"/>-->
+                <field name="noi_dung_cv_con" widget="du_an_tree_name"/>
                 <field name="ngay_bat_dau"/>
                 <field name="ngay_ket_thuc"/>
                 <field name="ngay_hoan_thanh"/>
