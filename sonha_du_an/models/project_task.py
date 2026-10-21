@@ -349,10 +349,10 @@ class Task(models.Model):
 
     @api.model
     def _get_deadline_reminder_demo_emails(self):
-        # Cron gửi theo email_values
+        """Chỉ lấy từ ir.config_parameter — không fallback mail cứng."""
         emails = self.env['ir.config_parameter'].sudo().get_param(
             'sonha_du_an.deadline_reminder_emails',
-            'anhbq@sonha.com.vn,tuannv3@sonha.com.vn',
+            '',
         )
         return (emails or '').strip()
 
@@ -386,7 +386,7 @@ class Task(models.Model):
         """
         Cron hằng ngày: tìm nhiệm vụ có ngày_ket_thuc - today = N ngày
         (N lấy từ ir.config_parameter sonha_du_an.deadline_reminder_days)
-        rồi gửi mail nhắc.
+        rồi gửi mail nhắc theo sonha_du_an.deadline_reminder_emails.
         """
         days = self._get_deadline_reminder_days()
         target_date = fields.Date.today() + timedelta(days=days)
@@ -398,6 +398,10 @@ class Task(models.Model):
         if not tasks:
             return True
 
+        email_to = self._get_deadline_reminder_demo_emails()
+        if not email_to:
+            return True
+
         template = self.env.ref(
             'sonha_du_an.mail_template_nhiem_vu_sap_den_han',
             raise_if_not_found=False,
@@ -405,13 +409,18 @@ class Task(models.Model):
         if not template:
             return False
 
-        email_to = self._get_deadline_reminder_demo_emails()
+        if template.email_to:
+            template.sudo().write({'email_to': False})
+
         for task in tasks:
             template.with_context(
                 task_link=task._get_task_form_link(),
             ).send_mail(
                 task.id,
                 force_send=True,
-                email_values={'email_to': email_to},
+                email_values={
+                    'email_to': email_to,
+                    'recipient_ids': [(5, 0, 0)],
+                },
             )
         return True

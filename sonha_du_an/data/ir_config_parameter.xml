@@ -5,10 +5,9 @@
         <field name="key">sonha_du_an.deadline_reminder_days</field>
         <field name="value">2</field>
     </record>
-    <!-- Email nhận mail test, cách nhau bởi dấu phẩy. -->
+    <!-- Email nhận mail test, cách nhau bởi dấu phẩy. Để trống — cấu hình trên System Parameters. -->
     <record id="param_deadline_reminder_emails" model="ir.config_parameter">
         <field name="key">sonha_du_an.deadline_reminder_emails</field>
-        <field name="value">anhbq@sonha.com.vn,tuannv3@sonha.com.vn</field>
+        <field name="value"></field>
     </record>
 </odoo>
-

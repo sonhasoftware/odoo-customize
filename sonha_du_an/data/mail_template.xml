@@ -5,7 +5,7 @@
             <field name="name">Nhắc công việc sắp đến hạn</field>
             <field name="model_id" ref="project.model_project_task"/>
             <field name="email_from">adminservices@sonha.com.vn</field>
-            <field name="email_to">anhbq@sonha.com.vn,tuannv3@sonha.com.vn</field>
+            <field name="email_to"></field>
             <field name="subject">CÔNG VIỆC CẦN THỰC HIỆN</field>
             <field name="body_html" type="html">
                 <div style="margin:0;padding:24px;background:#f5f5f5;font-family:Arial,Helvetica,sans-serif;">
