@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <!-- Số ngày trước hạn để gửi mail nhắc nhiệm vụ (ngày_kt - today = N) -->
+    <record id="param_deadline_reminder_days" model="ir.config_parameter">
+        <field name="key">sonha_du_an.deadline_reminder_days</field>
+        <field name="value">2</field>
+    </record>
+    <!-- Email nhận mail test, cách nhau bởi dấu phẩy. -->
+    <record id="param_deadline_reminder_emails" model="ir.config_parameter">
+        <field name="key">sonha_du_an.deadline_reminder_emails</field>
+        <field name="value">anhbq@sonha.com.vn,tuannv3@sonha.com.vn</field>
+    </record>
+</odoo>
+

@@ -333,3 +333,85 @@ class Task(models.Model):
                 'default_so_ngay_pending': self.so_ngay_pending,
             },
         }
+
+    @api.model
+    def _get_deadline_reminder_days(self):
+        """Số ngày trước hạn để gửi mail."""
+        param = self.env['ir.config_parameter'].sudo().get_param(
+            'sonha_du_an.deadline_reminder_days',
+            '2',
+        )
+        try:
+            days = int(param)
+        except (TypeError, ValueError):
+            days = 2
+        return max(days, 0)
+
+    @api.model
+    def _get_deadline_reminder_demo_emails(self):
+        # Cron gửi theo email_values
+        emails = self.env['ir.config_parameter'].sudo().get_param(
+            'sonha_du_an.deadline_reminder_emails',
+            'anhbq@sonha.com.vn,tuannv3@sonha.com.vn',
+        )
+        return (emails or '').strip()
+
+    def _get_task_form_link(self):
+        self.ensure_one()
+        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+        return (
+            f"{base_url}/web#id={self.id}"
+            f"&model=project.task"
+            f"&view_type=form"
+        )
+
+    def _get_deadline_mail_project_name(self):
+        self.ensure_one()
+        if self.du_an_cha_task_id:
+            return self.du_an_cha_task_id.name or ''
+        return (self.project_id.name if self.project_id else '') or ''
+
+    def _get_deadline_mail_ns_lam(self):
+        self.ensure_one()
+        return ', '.join(self.ns_lam.mapped('name'))
+
+    def _get_deadline_mail_date_display(self):
+        self.ensure_one()
+        if not self.ngay_ket_thuc:
+            return ''
+        return self.ngay_ket_thuc.strftime('%d/%m/%Y')
+
+    @api.model
+    def cron_nhac_nhiem_vu_sap_den_han(self):
+        """
+        Cron hằng ngày: tìm nhiệm vụ có ngày_ket_thuc - today = N ngày
+        (N lấy từ ir.config_parameter sonha_du_an.deadline_reminder_days)
+        rồi gửi mail nhắc.
+        """
+        days = self._get_deadline_reminder_days()
+        target_date = fields.Date.today() + timedelta(days=days)
+
+        tasks = self.search([
+            ('ngay_ket_thuc', '=', target_date),
+            ('trang_thai', '!=', 'ht'),
+        ])
+        if not tasks:
+            return True
+
+        template = self.env.ref(
+            'sonha_du_an.mail_template_nhiem_vu_sap_den_han',
+            raise_if_not_found=False,
+        )
+        if not template:
+            return False
+
+        email_to = self._get_deadline_reminder_demo_emails()
+        for task in tasks:
+            template.with_context(
+                task_link=task._get_task_form_link(),
+            ).send_mail(
+                task.id,
+                force_send=True,
+                email_values={'email_to': email_to},
+            )
+        return True
