@@ -3,6 +3,8 @@ from odoo.tests.common import TransactionCase, tagged
 from odoo.exceptions import ValidationError, UserError, AccessError
 from odoo import fields
 import base64
+import requests
+from unittest.mock import Mock, patch
 
 
 @tagged('post_install', '-at_install')
@@ -578,6 +580,37 @@ class TestTopicChatbotModels(TransactionCase):
         
         for option in expected_options:
             self.assertIn(option, actual_options)
+
+    def test_33a_gemini_connection_uses_extended_read_timeout(self):
+        settings = self.env['res.config.settings'].create({
+            'topic_chatbot_gemini_api_key': 'test-key',
+            'topic_chatbot_gemini_model': 'gemini-3.5-flash-lite',
+        })
+        response = Mock(status_code=200)
+
+        with patch(
+            'odoo.addons.topic_chatbot.models.res_config_settings.requests.post',
+            return_value=response,
+        ) as post:
+            result = settings.action_test_gemini_connection()
+
+        self.assertEqual(post.call_args.kwargs['timeout'], (10, 90))
+        self.assertEqual(result['params']['type'], 'success')
+
+    def test_33b_gemini_read_timeout_has_clear_warning(self):
+        settings = self.env['res.config.settings'].create({
+            'topic_chatbot_gemini_api_key': 'test-key',
+            'topic_chatbot_gemini_model': 'gemini-3.5-flash-lite',
+        })
+
+        with patch(
+            'odoo.addons.topic_chatbot.models.res_config_settings.requests.post',
+            side_effect=requests.exceptions.ReadTimeout(),
+        ):
+            result = settings.action_test_gemini_connection()
+
+        self.assertEqual(result['params']['type'], 'warning')
+        self.assertIn('90 giây', result['params']['message'])
 
     # =================================================================
     # EXCEL STRUCTURED EXTRACTION & CHUNKING TESTS

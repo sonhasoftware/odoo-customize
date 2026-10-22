@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_decision_document_user,decision.document.user,model_decision_document,base.group_user,1,0,0,0
+access_decision_document_manager,decision.document.manager,model_decision_document,group_decision_archive_manager,1,1,1,1
+access_decision_category_user,decision.document.category.user,model_decision_document_category,base.group_user,1,0,0,0
+access_decision_category_manager,decision.document.category.manager,model_decision_document_category,group_decision_archive_manager,1,1,1,1
+

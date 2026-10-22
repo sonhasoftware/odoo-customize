@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_decision_document_category_tree" model="ir.ui.view">
+        <field name="name">decision.document.category.tree</field>
+        <field name="model">decision.document.category</field>
+        <field name="arch" type="xml">
+            <tree string="Danh mục tài liệu">
+                <field name="complete_name"/>
+                <field name="code" optional="show"/>
+                <field name="department_id" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                <field name="document_count" string="Số tài liệu"/>
+                <field name="active" optional="hide"/>
+                <button name="action_view_documents" type="object" string="Xem tài liệu" icon="fa-folder-open"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_decision_document_category_form" model="ir.ui.view">
+        <field name="name">decision.document.category.form</field>
+        <field name="model">decision.document.category</field>
+        <field name="arch" type="xml">
+            <form string="Danh mục tài liệu">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_documents" type="object" class="oe_stat_button" icon="fa-files-o">
+                            <field name="document_count" widget="statinfo" string="Tài liệu"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Đã lưu trữ" bg_color="text-bg-secondary" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Ví dụ: Nhân sự / Quyết định bổ nhiệm"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="parent_id"/>
+                            <field name="department_id"/>
+                        </group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <group string="Mô tả">
+                        <field name="description" nolabel="1" placeholder="Mô tả phạm vi tài liệu thuộc đầu mục này..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_decision_document_category_search" model="ir.ui.view">
+        <field name="name">decision.document.category.search</field>
+        <field name="model">decision.document.category</field>
+        <field name="arch" type="xml">
+            <search string="Tìm danh mục">
+                <field name="complete_name" string="Tên danh mục"/>
+                <field name="code"/>
+                <field name="department_id"/>
+                <filter string="Đã lưu trữ" name="inactive" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter string="Danh mục cha" name="group_parent" context="{'group_by': 'parent_id'}"/>
+                    <filter string="Phòng ban" name="group_department" context="{'group_by': 'department_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_decision_document_category" model="ir.actions.act_window">
+        <field name="name">Danh mục tài liệu</field>
+        <field name="res_model">decision.document.category</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_decision_document_category_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Tạo đầu mục đầu tiên cho kho quyết định.</p>
+            <p>Có thể tạo danh mục cha–con và gắn phòng ban phụ trách.</p>
+        </field>
+    </record>
+</odoo>
+

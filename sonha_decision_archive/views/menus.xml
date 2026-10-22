@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Documents becomes a menu group. Keep the original document screen as
+         its first child so the existing feature remains directly accessible. -->
+    <record id="topic_chatbot.menu_topic_chatbot_documents" model="ir.ui.menu">
+        <field name="action" eval="False"/>
+    </record>
+
+    <menuitem id="menu_topic_chatbot_document_list"
+              name="Tài liệu Chatbot"
+              parent="topic_chatbot.menu_topic_chatbot_documents"
+              action="topic_chatbot.action_topic_chatbot_document"
+              sequence="10"
+              groups="topic_chatbot.group_topic_chatbot_user"/>
+
+    <menuitem id="menu_decision_archive_root"
+              name="Kho Quyết định"
+              parent="topic_chatbot.menu_topic_chatbot_documents"
+              sequence="20"
+              groups="topic_chatbot.group_topic_chatbot_user"/>
+
+    <menuitem id="menu_decision_document_search"
+              name="Tra cứu quyết định"
+              parent="menu_decision_archive_root"
+              action="action_decision_document_search"
+              sequence="10"
+              groups="base.group_user"/>
+
+    <menuitem id="menu_decision_document_manage"
+              name="Quản lý quyết định"
+              parent="menu_decision_archive_root"
+              action="action_decision_document_manage"
+              sequence="20"
+              groups="sonha_decision_archive.group_decision_archive_manager"/>
+
+    <menuitem id="menu_decision_document_category"
+              name="Danh mục tài liệu"
+              parent="menu_decision_archive_root"
+              action="action_decision_document_category"
+              sequence="30"
+              groups="sonha_decision_archive.group_decision_archive_manager"/>
+</odoo>
+

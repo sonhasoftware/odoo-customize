@@ -24,18 +24,26 @@ def execute_odoo_query(model, domain=None, fields=None, env=None):
     model_alias_map = {
         'employees': 'hr.employee',
         'departments': 'hr.department',
+        'decision_documents': 'decision.document',
         'kpi_month_results': 'sonha.kpi.result.month',
         'kpi_month_report': 'report.kpi.month',
         'kpi_year_results': 'sonha.kpi.year',
+        'hr_approval_requests': 'form.word.slip',
+        'car_approval_config': 'config.approve.line',
+        'document_approval_steps': 'dk.vb.d',
     }
     actual_model = model_alias_map.get(str(model).strip().lower(), model)
 
     safe_models = [
         'hr.employee',
         'hr.department',
+        'decision.document',
         'sonha.kpi.result.month',
         'report.kpi.month',
-        'sonha.kpi.year'
+        'sonha.kpi.year',
+        'form.word.slip',
+        'config.approve.line',
+        'dk.vb.d',
     ]
 
     if actual_model not in safe_models:
@@ -49,23 +57,60 @@ def execute_odoo_query(model, domain=None, fields=None, env=None):
     model_obj = env[model]
     valid_model_fields = set(model_obj._fields.keys())
 
-    # Lọc bỏ các tên field không tồn tại do AI tự suy đoán
+    # Lọc bỏ các tên field không tồn tại do AI tự suy đoán. Kho quyết định
+    # dùng whitelist riêng để không bao giờ trả dữ liệu file nhị phân cho LLM.
+    decision_document_fields = {
+        'name', 'reference', 'document_type', 'category_id', 'department_id',
+        'employee_id', 'issue_date', 'effective_date', 'expiry_date', 'signer',
+        'keywords', 'summary', 'file_name', 'file_url', 'has_file', 'state',
+    }
     clean_fields = []
     if fields and isinstance(fields, list):
         for f in fields:
-            if isinstance(f, str) and f in valid_model_fields:
+            if (
+                isinstance(f, str)
+                and f in valid_model_fields
+                and (model != 'decision.document' or f in decision_document_fields)
+            ):
                 clean_fields.append(f)
 
     # Nếu mảng fields rỗng hoặc AI truyền sai toàn bộ fields, gán mảng field mặc định an toàn
     if not clean_fields:
         default_field_map = {
             'hr.department': ['name', 'complete_name', 'manager_id', 'parent_id'],
-            'hr.employee': ['name', 'work_email', 'work_phone', 'job_title', 'department_id'],
+            'decision.document': [
+                'name', 'reference', 'document_type', 'category_id',
+                'department_id', 'employee_id', 'issue_date', 'effective_date',
+                'expiry_date', 'signer', 'summary', 'file_name', 'file_url', 'state'
+            ],
+            'hr.employee': [
+                'name', 'work_email', 'work_phone', 'job_title',
+                'department_id', 'parent_id', 'coach_id'
+            ],
             'sonha.kpi.result.month': ['name', 'employee_id', 'department_id', 'score', 'month', 'year', 'state'],
             'report.kpi.month': ['name', 'department_id', 'score', 'month', 'year', 'state'],
             'sonha.kpi.year': ['name', 'employee_id', 'department_id', 'score', 'year', 'state'],
+            'form.word.slip': [
+                'code', 'employee_id', 'department', 'type', 'employee_confirm',
+                'employee_approval', 'status', 'status_lv1', 'status_lv2'
+            ],
+            'config.approve.line': [
+                'department_id', 'competency_employee', 'approve_people'
+            ],
+            'dk.vb.d': [
+                'dk_vb_h', 'user_duyet', 'xu_ly', 'is_approved',
+                'sn_duyet', 'ngay_bd_duyet', 'ngay_duyet'
+            ],
         }
         clean_fields = [f for f in default_field_map.get(model, ['name', 'display_name']) if f in valid_model_fields]
+
+    # Employee answers and organization charts must always carry their
+    # identity and manager relationship. Do not rely on the LLM to request
+    # every required field correctly.
+    if model == 'hr.employee':
+        for required_field in ('name', 'job_title', 'department_id', 'parent_id'):
+            if required_field in valid_model_fields and required_field not in clean_fields:
+                clean_fields.append(required_field)
 
     # Chuyển đổi domain từ chuỗi JSON sang list nếu cần thiết
     domain_list = []
@@ -121,23 +166,51 @@ def execute_odoo_query(model, domain=None, fields=None, env=None):
                     return {'error': f"Không tìm thấy nhân viên nào có tên '{val}'."}
         clean_domain.append(term)
 
+    # Chatbot chỉ được công bố đường dẫn của tài liệu đã phát hành, kể cả khi
+    # người đang hỏi có quyền quản trị kho quyết định.
+    if model == 'decision.document':
+        clean_domain.append(('state', '=', 'published'))
+
     try:
         _logger.info(
             "[DB_QUERY_AUDIT] execute_odoo_query: model='%s', domain=%s, fields=%s",
             model, clean_domain, clean_fields
         )
-        records = model_obj.search_read(clean_domain, clean_fields, limit=80)
-        _logger.info("[DB_QUERY_AUDIT] execute_odoo_query: returned %d record(s)", len(records))
-        is_truncated = (len(records) == 80)
+        # Fetch one extra row so exactly 80 matching records are not falsely
+        # reported as truncated.
+        records = model_obj.search_read(clean_domain, clean_fields, limit=81)
+        is_truncated = len(records) > 80
+        records = records[:80]
+        _logger.info(
+            "[DB_QUERY_AUDIT] execute_odoo_query: returned %d record(s), truncated=%s",
+            len(records), is_truncated
+        )
 
         cleaned_records = []
+        base_url = (env['ir.config_parameter'].sudo().get_param('web.base.url') or '').rstrip('/')
         for rec in records:
             clean_rec = {}
             for k, v in rec.items():
                 if isinstance(v, tuple) and len(v) == 2:
                     clean_rec[k] = v[1]
+                    # Keep the relational identifier next to the display name.
+                    # Hybrid diagram validation uses this value to rebuild
+                    # manager -> employee edges from the database itself.
+                    clean_rec[f'{k}_record_id'] = v[0]
+                elif isinstance(v, (dt, dt_date)):
+                    clean_rec[k] = v.isoformat()
+                elif isinstance(v, decimal.Decimal):
+                    clean_rec[k] = float(v)
                 else:
                     clean_rec[k] = v
+            if model == 'decision.document':
+                file_url = clean_rec.get('file_url')
+                if file_url and file_url.startswith('/') and base_url:
+                    clean_rec['file_url'] = f'{base_url}{file_url}'
+                clean_rec['record_url'] = (
+                    f'{base_url}/web#id={rec["id"]}&model=decision.document&view_type=form'
+                    if base_url else ''
+                )
             cleaned_records.append(clean_rec)
 
         if 'name' in clean_fields:

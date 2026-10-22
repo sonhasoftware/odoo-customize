@@ -4,3 +4,9 @@ from . import test_models
 from . import test_controllers
 from . import test_streaming
 from . import test_ocr_pipeline
+from . import test_document_routing
+from . import test_ollama_options
+from . import test_chat_attachment
+from . import test_diagram_service
+from . import test_openai_tool_loop
+from . import test_hybrid_pipeline

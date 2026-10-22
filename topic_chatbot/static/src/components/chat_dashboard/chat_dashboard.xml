@@ -140,6 +140,14 @@
                                     </div>
                                     <div class="message_bubble">
                                         <div class="message_sender" t-out="msg.role === 'user' ? 'Bạn' : 'AI Assistant'"/>
+                                        <div class="chat_attachment_message" t-if="msg.attachment_name">
+                                            <img t-if="msg.attachment_mimetype?.startsWith('image/') &amp;&amp; msg.attachment_url"
+                                                 t-att-src="msg.attachment_url" alt="Ảnh đính kèm" class="chat_attachment_image"/>
+                                            <a t-if="msg.attachment_url" t-att-href="msg.attachment_url" t-att-download="msg.attachment_name" class="chat_attachment_link">
+                                                <i class="fa fa-paperclip me-1"/><t t-out="msg.attachment_name"/>
+                                            </a>
+                                            <span t-else="" class="chat_attachment_link"><i class="fa fa-paperclip me-1"/><t t-out="msg.attachment_name"/></span>
+                                        </div>
                                         <t t-if="!msg.isStreaming">
                                             <div class="message_content" t-att-class="{'ai-response-prose': msg.role !== 'user'}" t-out="this.formatMarkdown(msg.content)"/>
                                         </t>
@@ -165,15 +173,25 @@
 
                 <!-- Input Footer Box -->
                 <div class="chat_footer" t-if="state.activeConversationId">
+                    <div class="chat_selected_attachment" t-if="state.attachmentName">
+                        <i class="fa fa-paperclip me-2"/><span t-out="state.attachmentName"/>
+                        <button type="button" class="chat_remove_attachment" t-on-click="clearSelectedAttachment" title="Bỏ tệp đính kèm">×</button>
+                    </div>
                     <div class="input_container">
+                        <input type="file" class="d-none" t-ref="chatAttachmentInput"
+                               accept=".pdf,.docx,.xlsx,.xls,.csv,.txt,.png,.jpg,.jpeg,.webp"
+                               t-on-change="onAttachmentChange"/>
+                        <button type="button" class="chat_attach_button" t-on-click="openAttachmentPicker"
+                                t-att-disabled="state.sendingConversationIds.includes(state.activeConversationId)"
+                                title="Đính kèm tệp hoặc ảnh"><i class="fa fa-paperclip"/></button>
                         <textarea t-ref="inputMessageRef"
                                   t-model="state.inputMessage"
                                   t-on-keydown="handleKeyPress"
                                   placeholder="Nhập câu hỏi của bạn tại đây... (Nhấn Enter để gửi, Shift+Enter để xuống dòng)"
                                   rows="2"
-                                  t-att-disabled="state.isSending"/>
+                                  t-att-disabled="state.sendingConversationIds.includes(state.activeConversationId)"/>
                         <button class="btn btn-send" 
-                                t-att-disabled="!state.inputMessage.trim() || state.isSending"
+                                t-att-disabled="(!state.inputMessage.trim() &amp;&amp; !state.attachmentName) || state.sendingConversationIds.includes(state.activeConversationId)"
                                 t-on-click="sendMessage">
                             <i class="fa fa-paper-plane"></i>
                         </button>

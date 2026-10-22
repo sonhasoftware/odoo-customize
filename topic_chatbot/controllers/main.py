@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
+import base64
+from urllib.parse import quote
 from odoo import http
 from odoo.http import request
 
@@ -178,8 +180,33 @@ class TopicChatbotController(http.Controller):
             'id': m.id,
             'role': m.role,
             'content': m.content,
-            'create_date': m.create_date
+            'create_date': m.create_date,
+            'attachment_name': m.attachment_name or '',
+            'attachment_mimetype': m.attachment_mimetype or '',
+            'attachment_url': f'/topic_chatbot/message_attachment/{m.id}' if m.attachment_name else '',
         } for m in messages]
+
+    @http.route('/topic_chatbot/message_attachment/<int:message_id>', type='http', auth='user', methods=['GET'])
+    def message_attachment(self, message_id):
+        """Serve only attachments from conversations owned by the current user."""
+        message = request.env['topic_chatbot.message'].search([
+            ('id', '=', message_id),
+            ('conversation_id.user_id', '=', request.env.uid),
+        ], limit=1)
+        if not message or not message.attachment_data:
+            return request.not_found()
+        topic = request.env['topic_chatbot.topic'].search([('id', '=', message.conversation_id.topic_id.id)], limit=1)
+        if not topic:
+            return request.not_found()
+        mimetype = message.attachment_mimetype or 'application/octet-stream'
+        disposition = 'inline' if mimetype.startswith('image/') else 'attachment'
+        filename = quote(message.attachment_name or 'attachment')
+        return request.make_response(base64.b64decode(message.attachment_data), headers=[
+            ('Content-Type', mimetype),
+            ('Content-Disposition', f"{disposition}; filename*=UTF-8''{filename}"),
+            ('X-Content-Type-Options', 'nosniff'),
+            ('Cache-Control', 'private, no-store'),
+        ])
 
     @http.route('/topic_chatbot/create_conversation', type='json', auth='user')
     def create_conversation(self, topic_id):
@@ -225,10 +252,10 @@ class TopicChatbotController(http.Controller):
         return {'error': 'Conversation not found or access denied.'}
 
     @http.route('/topic_chatbot/ask', type='json', auth='user')
-    def ask(self, conversation_id, message):
+    def ask(self, conversation_id, message, attachment=None):
         """Send message to Gemini API with RAG context and Odoo Tools (Synchronous JSON)."""
         chat_service = ChatService(request.env)
-        return chat_service.handle_ask(conversation_id, message)
+        return chat_service.handle_ask(conversation_id, message, attachment=attachment)
 
     @http.route('/topic_chatbot/ask_stream', type='http', auth='user', csrf=False, methods=['POST'])
     def ask_stream(self):

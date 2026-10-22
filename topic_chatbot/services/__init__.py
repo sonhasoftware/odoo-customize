@@ -10,3 +10,5 @@ from . import image_filter
 from . import image_classifier
 from . import ocr_service
 from . import vision_service
+from . import diagram_service
+from . import hybrid_pipeline

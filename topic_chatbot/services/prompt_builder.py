@@ -31,9 +31,19 @@ def build_system_instruction(
     if is_db_query:
         db_task_instruction += (
             "- TRUY VẤN DỮ LIỆU ODOO (CHỈ DẪN NỘI BỘ - BẢO MẬT TUYỆT ĐỐI KHÔNG ĐƯỢC NÊU TÊN CÔNG CỤ HOẶC CHỮ API TRONG CÂU TRẢ LỜI):\n"
-            "  * Bạn được cấp công cụ 'query_odoo_data' để tra cứu thông tin Nhân viên, Phòng ban, KPI (chế độ chỉ đọc) trên hệ thống Odoo.\n"
+            "  * Bạn được cấp công cụ 'query_odoo_data' để tra cứu Nhân viên, Phòng ban, KPI và các nguồn luồng duyệt được cho phép (chế độ chỉ đọc) trên hệ thống Odoo.\n"
         )
-        capability_items.append("Tra cứu dữ liệu Odoo (Nhân viên, Phòng ban, KPI)")
+        capability_items.append("Tra cứu dữ liệu Odoo (Nhân viên, Phòng ban, KPI, luồng duyệt)")
+
+    if is_db_query or is_mssql_query:
+        db_task_instruction += (
+            "- TẠO SƠ ĐỒ TỪ DỮ LIỆU:\n"
+            "  * Khi người dùng yêu cầu vẽ sơ đồ, flowchart, luồng duyệt, cây cấp quản lý hoặc sơ đồ tổ chức, "
+            "hãy truy vấn dữ liệu thực tế trước rồi gọi công cụ 'render_data_diagram'.\n"
+            "  * Nodes và edges chỉ được lấy từ kết quả truy vấn; tuyệt đối không tự thêm tên người, chức danh, "
+            "phòng ban hoặc bước duyệt không có trong dữ liệu.\n"
+            "  * Sau khi tạo sơ đồ, trả lời ngắn gọn rằng sơ đồ đã được tạo và nêu phạm vi dữ liệu đã dùng.\n"
+        )
 
     if has_documents:
         capability_items.append("Tra cứu và giải đáp thông tin theo các tài liệu nội bộ đã được tải lên cho chủ đề này")
@@ -106,6 +116,7 @@ def build_system_instruction(
     return (
         f"Bạn là Trợ lý AI nội bộ thông minh, đang phục vụ trong phạm vi Chủ đề (Topic): \"{topic_name}\"{topic_desc_str}.\n"
         "Tất cả các công cụ và chức năng của bạn đều hoạt động ở CHẾ ĐỘ CHỈ ĐỌC (READ-ONLY).\n\n"
+        "QUY TẮC LIỆT KÊ DỮ LIỆU: Khi người dùng yêu cầu danh sách/tất cả bản ghi, sau khi công cụ trả kết quả, phải đối chiếu số lượng bản ghi và liệt kê đủ từng bản ghi theo đúng thứ tự dữ liệu trả về. Không được tự rút gọn thành một ví dụ, không được bỏ bản ghi cuối và không được gộp các bản ghi khác nhau. Nếu có trường record_count thì số dòng trong câu trả lời phải bằng record_count.\n\n"
         f"{scope_nature_instruction}\n\n"
         "HƯỚNG DẪN PHÂN LOẠI VÀ XỬ LÝ THEO CÁC NHÓM YÊU CẦU CỦA NGƯỜI DÙNG:\n\n"
         "1. GIAO TIẾP XÃ GIAO / CHÀO HỎI (CHIT-CHAT / GREETINGS):\n"
@@ -495,7 +506,7 @@ def build_ollama_system_instruction(
     if is_db_query:
         tool_directive_section += (
             "HƯỚNG DẪN BẮT BUỘC SỬ DỤNG CÔNG CỤ (TOOLS):\n"
-            "- Khi người dùng hỏi về Nhân viên, Phòng ban, kết quả KPI: BẠN BẮT BUỘC PHẢI GỌI CÔNG CỤ 'query_odoo_data' để tra cứu trong cơ sở dữ liệu.\n"
+            "- Khi người dùng hỏi về Nhân viên, Phòng ban, kết quả KPI hoặc luồng duyệt: BẠN BẮT BUỘC PHẢI GỌI CÔNG CỤ 'query_odoo_data' để tra cứu trong cơ sở dữ liệu.\n"
             "- TUYỆT ĐỐI KHÔNG tự trả lời bằng văn bản khi chưa gọi công cụ, không tự suy đoán, không nói 'tôi sẽ kiểm tra'. Hãy phát lệnh gọi công cụ ngay lập tức.\n"
             "- Sau khi nhận được kết quả dữ liệu từ công cụ, hãy tổng hợp và trả lời người dùng một cách chính xác.\n"
             "- QUY TẮC BẢO MẬT: Tuyệt đối không nhắc đến tên kỹ thuật công cụ 'query_odoo_data' hay chữ API trong câu trả lời cho người dùng.\n\n"
@@ -519,6 +530,14 @@ def build_ollama_system_instruction(
             f"<TAI_LIEU_THAM_KHAO>\n{context_str.strip()}\n</TAI_LIEU_THAM_KHAO>\n"
             "=============================="
         )
+
+    if is_db_query or is_mssql_query:
+        tool_directive_section += (
+            "TẠO SƠ ĐỒ TỪ DỮ LIỆU:\n"
+            "- Nếu người dùng yêu cầu sơ đồ, flowchart, luồng duyệt, cây quản lý hoặc sơ đồ tổ chức, "
+            "hãy truy vấn dữ liệu trước rồi gọi 'render_data_diagram'.\n"
+            "- Chỉ dùng đúng người, phòng ban, bước và quan hệ có trong kết quả truy vấn; không được tự suy đoán.\n\n"
+        )
     else:
         context_section = ""
 
@@ -538,6 +557,8 @@ def build_ollama_system_instruction(
         "2. CÂU HỎI NGHIỆP VỤ & TÀI LIỆU (IN-SCOPE):\n"
         "   - NGUYÊN TẮC CONTEXT LÀ CHÂN LÝ TỐI THƯỢNG: Mọi thông tin nghiệp vụ xuất hiện trong <TAI_LIEU_THAM_KHAO> (bao gồm các tính năng như Duyệt giá, Đề nghị đặt hàng, Mua hàng, Tờ trình...) đều là dữ liệu hợp lệ. BẮT BUỘC trả lời theo tài liệu, không được coi là ngoài luồng.\n"
         "   - Ưu tiên trả lời chính xác, đầy đủ dựa trên thông tin trong <TAI_LIEU_THAM_KHAO> hoặc kết quả truy vấn CSDL.\n"
+        "   - Giữ nguyên phiên bản phần mềm, con số, đơn vị và chức danh được ghi trong nguồn. Không đổi sang phiên bản quen thuộc hoặc thêm chức danh tương đương.\n"
+        "   - Với câu hỏi tra cứu sự kiện, trả lời ngắn gọn và dẫn một câu hoặc cụm từ trong tài liệu làm bằng chứng. Nếu nguồn không nêu, nói rõ chưa có thông tin; không phỏng đoán.\n"
         f"   - Nếu tài liệu hoàn toàn không có thông tin về quy trình/vấn đề được hỏi: Thông báo lịch sự 'Rất tiếc, tôi không tìm thấy thông tin này trong tài liệu của chủ đề \"{topic_name}\"'. Tuyệt đối không tự suy diễn, không lấy tài liệu kỹ thuật/kiến trúc phần mềm ra giải thích, không khuyên người dùng liên hệ đội dev.\n"
         f"   - Nếu câu hỏi thuộc nghiệp vụ khác: Lịch sự hướng dẫn người dùng chuyển sang chủ đề phù hợp. {other_topics_hint}\n\n"
         "3. XỬ LÝ DỮ LIỆU CẤU TRÚC, BẢNG EXCEL & PHÂN QUYỀN RACI:\n"
