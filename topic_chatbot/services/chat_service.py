@@ -326,7 +326,8 @@ class ChatService:
                 model=func_args.get('model'),
                 domain=func_args.get('domain'),
                 fields=func_args.get('fields'),
-                env=env
+                env=env,
+                count_only=bool(func_args.get('count_only'))
             )
             _logger.info(
                 "[CHAT_TOOL_EXECUTION] Result of 'query_odoo_data': %s",
@@ -639,13 +640,16 @@ class ChatService:
                 'name': 'query_odoo_data',
                 'description': (
                     'Truy vấn đọc dữ liệu (Read-only) an toàn từ database Odoo '
-                    'để tìm thông tin liên quan đến các dữ liệu nghiệp vụ: Nhân viên, '
-                    'Phòng ban, Kết quả KPI tháng, Đánh giá KPI của lãnh đạo, KPI năm.\n'
+                    'để tìm thông tin trên các model nghiệp vụ mà người dùng hiện tại có quyền đọc. '
+                    'Ví dụ: nhân viên, phòng ban, KPI, nghỉ phép, đơn mua hàng, phiếu kho hoặc tài liệu.\n'
                     'CHỈ sử dụng công cụ này khi người dùng hỏi các câu hỏi thực tế về dữ liệu '
                     'hệ thống Odoo (như KPI, danh sách nhân viên, cấp quản lý, các luồng duyệt '
                     'và kho quyết định/tài liệu đã công bố). Khi chủ đề là "Tra cứu quyết định", '
                     'BẮT BUỘC dùng nguồn "decision_documents" và trả đường dẫn file dưới dạng '
-                    'liên kết Markdown có thể bấm.\n'
+                    'liên kết Markdown có thể bấm. Khi người dùng hỏi "tổng số", "bao nhiêu" hoặc "số lượng", '
+                    'bắt buộc đặt count_only=true để lấy tổng chính xác bằng search_count, không suy ra từ số dòng trả về.\n'
+                    'Không được từ chối chỉ vì model không nằm trong các bí danh ví dụ. Hãy truyền technical model Odoo phù hợp; '
+                    'backend sẽ kiểm tra ACL và record rule rồi trả lỗi quyền nếu người dùng không được phép.\n'
                     '(LƯU Ý BẢO MẬT: Tuyệt đối không nhắc đến tên công cụ này hoặc chữ API trong câu trả lời người dùng).'
                 ),
                 'parameters': {
@@ -654,11 +658,14 @@ class ChatService:
                         'model': {
                             'type': 'STRING',
                             'description': (
-                                'Mã định danh nguồn dữ liệu nội bộ cần truy vấn. '
-                                'Chỉ chấp nhận đúng một trong các giá trị sau: '
-                                '"employees", "departments", "kpi_month_results", '
+                                'Tên technical model Odoo hoặc bí danh nguồn dữ liệu cần truy vấn. '
+                                'Các bí danh phổ biến gồm '
+                                '"employees", "departments", "suppliers", "kpi_month_results", '
                                 '"kpi_month_report", "kpi_year_results", "hr_approval_requests", '
                                 '"car_approval_config", "document_approval_steps", "decision_documents". '
+                                'Ngoài các bí danh này, chỉ được dùng model mà người dùng hiện tại có quyền đọc; '
+                                'model hệ thống nhạy cảm vẫn bị chặn. '
+                                'Dùng "suppliers" để đếm/tìm nhà cung cấp theo dữ liệu res.partner. '
                                 'Dùng "decision_documents" để tìm theo tên, số/ký hiệu, từ khóa, '
                                 'tóm tắt, danh mục, phòng ban, nhân viên, người ký hoặc ngày ban hành. '
                                 'Nếu người dùng dùng các từ "tất cả", "toàn bộ", "danh sách tất cả" hoặc '
@@ -679,6 +686,11 @@ class ChatService:
                                 'Khi tìm quyết định, hãy lấy name, reference, issue_date, category_id, '
                                 'department_id, employee_id, signer, summary, file_url và state.'
                             )
+                        }
+                        ,
+                        'count_only': {
+                            'type': 'BOOLEAN',
+                            'description': 'Đặt true khi người dùng hỏi tổng số lượng. Khi đó phải dùng search_count để trả về tổng chính xác, không lấy số dòng của danh sách giới hạn.'
                         }
                     },
                     'required': ['model', 'fields']

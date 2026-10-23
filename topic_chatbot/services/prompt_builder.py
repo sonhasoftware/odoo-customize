@@ -31,9 +31,9 @@ def build_system_instruction(
     if is_db_query:
         db_task_instruction += (
             "- TRUY VẤN DỮ LIỆU ODOO (CHỈ DẪN NỘI BỘ - BẢO MẬT TUYỆT ĐỐI KHÔNG ĐƯỢC NÊU TÊN CÔNG CỤ HOẶC CHỮ API TRONG CÂU TRẢ LỜI):\n"
-            "  * Bạn được cấp công cụ 'query_odoo_data' để tra cứu Nhân viên, Phòng ban, KPI và các nguồn luồng duyệt được cho phép (chế độ chỉ đọc) trên hệ thống Odoo.\n"
+            "  * Bạn được cấp công cụ 'query_odoo_data' để tra cứu mọi model nghiệp vụ Odoo mà người dùng hiện tại có quyền đọc. Backend sẽ kiểm tra ACL và record rule trước khi trả dữ liệu.\n"
         )
-        capability_items.append("Tra cứu dữ liệu Odoo (Nhân viên, Phòng ban, KPI, luồng duyệt)")
+        capability_items.append("Tra cứu các model nghiệp vụ Odoo theo đúng quyền đọc của người dùng")
 
     if is_db_query or is_mssql_query:
         db_task_instruction += (
@@ -68,7 +68,7 @@ def build_system_instruction(
     if is_mssql_query:
         db_hint = "Dữ liệu quản lý nghiệp vụ thực tế từ hệ thống cơ sở dữ liệu nội bộ."
     elif is_db_query:
-        db_hint = "Dữ liệu Odoo: Nhân viên, Phòng ban, Kết quả đánh giá KPI."
+        db_hint = "Dữ liệu Odoo: các model nghiệp vụ mà người dùng hiện tại được cấp quyền đọc."
 
     has_context = bool(context_str and context_str.strip())
     if has_context:
@@ -506,7 +506,7 @@ def build_ollama_system_instruction(
     if is_db_query:
         tool_directive_section += (
             "HƯỚNG DẪN BẮT BUỘC SỬ DỤNG CÔNG CỤ (TOOLS):\n"
-            "- Khi người dùng hỏi về Nhân viên, Phòng ban, kết quả KPI hoặc luồng duyệt: BẠN BẮT BUỘC PHẢI GỌI CÔNG CỤ 'query_odoo_data' để tra cứu trong cơ sở dữ liệu.\n"
+            "- Khi người dùng hỏi dữ liệu thực tế của bất kỳ nghiệp vụ Odoo nào: BẮT BUỘC gọi công cụ 'query_odoo_data' với technical model phù hợp. Không tự từ chối chỉ vì model không nằm trong danh sách ví dụ; backend sẽ kiểm tra quyền đọc của người dùng.\n"
             "- TUYỆT ĐỐI KHÔNG tự trả lời bằng văn bản khi chưa gọi công cụ, không tự suy đoán, không nói 'tôi sẽ kiểm tra'. Hãy phát lệnh gọi công cụ ngay lập tức.\n"
             "- Sau khi nhận được kết quả dữ liệu từ công cụ, hãy tổng hợp và trả lời người dùng một cách chính xác.\n"
             "- QUY TẮC BẢO MẬT: Tuyệt đối không nhắc đến tên kỹ thuật công cụ 'query_odoo_data' hay chữ API trong câu trả lời cho người dùng.\n\n"

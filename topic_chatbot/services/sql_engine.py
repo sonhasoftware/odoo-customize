@@ -13,7 +13,7 @@ except ImportError:
 _logger = logging.getLogger(__name__)
 
 
-def execute_odoo_query(model, domain=None, fields=None, env=None):
+def execute_odoo_query(model, domain=None, fields=None, env=None, count_only=False):
     """Execute a safe, read-only Odoo search_read query using the given or current user's environment."""
     if env is None:
         try:
@@ -24,6 +24,7 @@ def execute_odoo_query(model, domain=None, fields=None, env=None):
     model_alias_map = {
         'employees': 'hr.employee',
         'departments': 'hr.department',
+        'suppliers': 'res.partner',
         'decision_documents': 'decision.document',
         'kpi_month_results': 'sonha.kpi.result.month',
         'kpi_month_report': 'report.kpi.month',
@@ -32,22 +33,8 @@ def execute_odoo_query(model, domain=None, fields=None, env=None):
         'car_approval_config': 'config.approve.line',
         'document_approval_steps': 'dk.vb.d',
     }
-    actual_model = model_alias_map.get(str(model).strip().lower(), model)
-
-    safe_models = [
-        'hr.employee',
-        'hr.department',
-        'decision.document',
-        'sonha.kpi.result.month',
-        'report.kpi.month',
-        'sonha.kpi.year',
-        'form.word.slip',
-        'config.approve.line',
-        'dk.vb.d',
-    ]
-
-    if actual_model not in safe_models:
-        return {'error': 'Loại dữ liệu này không thuộc phạm vi truy vấn được phép hoặc bị hạn chế vì lý do bảo mật.'}
+    requested_model_key = str(model).strip().lower()
+    actual_model = model_alias_map.get(requested_model_key, model)
 
     model = actual_model
 
@@ -55,7 +42,32 @@ def execute_odoo_query(model, domain=None, fields=None, env=None):
         return {'error': 'Loại dữ liệu yêu cầu không tồn tại trên hệ thống.'}
 
     model_obj = env[model]
-    valid_model_fields = set(model_obj._fields.keys())
+    # Resolve access dynamically for the current user instead of maintaining a
+    # static model whitelist.  Keep technical/security models out of chatbot
+    # scope even when an employee has broad administrative access.
+    protected_prefixes = ('ir.', 'res.users', 'res.groups', 'res.company', 'res.config.')
+    if model.startswith(protected_prefixes):
+        return {'error': 'Model này chứa dữ liệu hệ thống nhạy cảm và không được phép truy vấn qua chatbot.'}
+    if not model_obj.check_access_rights('read', raise_exception=False):
+        return {'error': 'Bạn không có quyền đọc model này theo nhóm quyền hiện tại.'}
+    # fields_get() is evaluated with the current user's environment and hides
+    # fields restricted by field-level groups.  Do not expose _fields directly.
+    try:
+        readable_field_names = set(model_obj.fields_get().keys())
+    except Exception:
+        readable_field_names = set()
+    if not readable_field_names:
+        return {'error': 'Không thể xác định các trường dữ liệu mà người dùng được phép đọc trên model này.'}
+    valid_model_fields = readable_field_names
+    blocked_fields = {
+        'password', 'password_crypt', 'oauth_access_token', 'access_token',
+        'api_key', 'secret', 'private_key', 'token', 'signature', 'datas'
+    }
+    blocked_field_tokens = ('password', 'token', 'secret', 'api_key', 'private_key')
+
+    def is_blocked_field(field_name):
+        normalized = str(field_name or '').strip().lower()
+        return normalized in blocked_fields or any(token in normalized for token in blocked_field_tokens)
 
     # Lọc bỏ các tên field không tồn tại do AI tự suy đoán. Kho quyết định
     # dùng whitelist riêng để không bao giờ trả dữ liệu file nhị phân cho LLM.
@@ -64,13 +76,19 @@ def execute_odoo_query(model, domain=None, fields=None, env=None):
         'employee_id', 'issue_date', 'effective_date', 'expiry_date', 'signer',
         'keywords', 'summary', 'file_name', 'file_url', 'has_file', 'state',
     }
+    supplier_fields = {
+        'name', 'display_name', 'email', 'phone', 'mobile', 'vat',
+        'supplier_rank', 'company_type', 'active', 'city', 'country_id'
+    }
     clean_fields = []
     if fields and isinstance(fields, list):
         for f in fields:
             if (
                 isinstance(f, str)
                 and f in valid_model_fields
+                and not is_blocked_field(f)
                 and (model != 'decision.document' or f in decision_document_fields)
+                and (model != 'res.partner' or f in supplier_fields)
             ):
                 clean_fields.append(f)
 
@@ -78,6 +96,7 @@ def execute_odoo_query(model, domain=None, fields=None, env=None):
     if not clean_fields:
         default_field_map = {
             'hr.department': ['name', 'complete_name', 'manager_id', 'parent_id'],
+            'res.partner': ['name', 'email', 'phone', 'supplier_rank', 'company_type', 'active'],
             'decision.document': [
                 'name', 'reference', 'document_type', 'category_id',
                 'department_id', 'employee_id', 'issue_date', 'effective_date',
@@ -129,8 +148,11 @@ def execute_odoo_query(model, domain=None, fields=None, env=None):
     # Ánh xạ tên phòng ban/nhân viên nếu AI truyền chuỗi text thay vì ID
     clean_domain = []
     for term in domain_list:
-        if isinstance(term, list) and len(term) == 3:
+        if isinstance(term, (list, tuple)) and len(term) == 3:
             field, op, val = term
+            root_field = str(field).split('.', 1)[0]
+            if root_field not in valid_model_fields or is_blocked_field(field):
+                return {'error': f"Trường lọc '{field}' không tồn tại, bị giới hạn quyền hoặc chứa dữ liệu nhạy cảm."}
             if field == 'department_id' and isinstance(val, str):
                 clean_v = re.sub(r'^[0-9\s\-_]+', '', val).strip() or val
                 short_v = clean_v.replace('phòng', '').replace('Phòng', '').replace('ban', '').replace('Ban', '').strip()
@@ -170,6 +192,22 @@ def execute_odoo_query(model, domain=None, fields=None, env=None):
     # người đang hỏi có quyền quản trị kho quyết định.
     if model == 'decision.document':
         clean_domain.append(('state', '=', 'published'))
+    elif requested_model_key == 'suppliers' and not any(
+        isinstance(term, (list, tuple)) and len(term) == 3 and term[0] == 'supplier_rank'
+        for term in clean_domain
+    ):
+        # The suppliers alias must never expose every contact; restrict it to
+        # partners that Odoo marks as suppliers.
+        clean_domain.append(('supplier_rank', '>', 0))
+
+    if count_only:
+        try:
+            count = model_obj.search_count(clean_domain)
+            _logger.info("[DB_QUERY_AUDIT] execute_odoo_query: count=%d, domain=%s", count, clean_domain)
+            return {'count': count, 'domain': clean_domain, 'exact': True}
+        except Exception as e:
+            _logger.error("Odoo ORM Count Error (%s): %s", model, str(e))
+            return {'error': f'Error counting data from Odoo: {str(e)}'}
 
     try:
         _logger.info(
