@@ -10,10 +10,14 @@ const _ = _t;
 
 class ChatbotDashboard extends Component {
     setup() {
+        // Keep each active stream tied to the conversation that started it.
+        this.pendingMessages = new Map();
         this.rpc = useService("rpc");
         this.notification = useService("notification");
         this.chatContainer = useRef("chatContainer");
         this.inputRef = useRef("inputMessageRef");
+        this.fileInputRef = useRef("chatAttachmentInput");
+        this.selectedAttachment = null;
 
         this.userHasScrolledUp = false;
 
@@ -24,8 +28,10 @@ class ChatbotDashboard extends Component {
             activeConversationId: null,
             messages: [],
             inputMessage: "",
+            attachmentName: "",
+            attachmentPreview: "",
             isLoading: false,
-            isSending: false,
+            sendingConversationIds: [],
             showDeleteConfirm: false,
             conversationToDeleteId: null,
         });
@@ -37,7 +43,7 @@ class ChatbotDashboard extends Component {
         // Automatically scroll to bottom on new messages if user hasn't scrolled up
         useEffect(() => {
             this.scrollToBottom();
-        }, () => [this.state.messages.length, this.state.isSending, (this.state.messages[this.state.messages.length - 1] || {}).content]);
+        }, () => [this.state.messages.length, this.state.sendingConversationIds.length, (this.state.messages[this.state.messages.length - 1] || {}).content]);
     }
 
     onChatScroll(ev) {
@@ -65,6 +71,7 @@ class ChatbotDashboard extends Component {
     }
 
     async selectTopic(topicId) {
+        this.clearSelectedAttachment();
         this.state.selectedTopicId = topicId;
         this.state.activeConversationId = null;
         this.state.messages = [];
@@ -76,7 +83,7 @@ class ChatbotDashboard extends Component {
         try {
             this.state.isLoading = true;
             const result = await this.rpc("/topic_chatbot/get_conversations", { topic_id: topicId });
-            this.state.conversations = result || [];
+            if (this.state.selectedTopicId === topicId) this.state.conversations = result || [];
             this.state.isLoading = false;
         } catch (error) {
             this.state.isLoading = false;
@@ -85,9 +92,16 @@ class ChatbotDashboard extends Component {
     }
 
     async selectConversation(conversationId) {
+        this.clearSelectedAttachment();
         this.state.activeConversationId = conversationId;
         this.userHasScrolledUp = false;
-        await this.loadMessages(conversationId);
+        const pending = this.pendingMessages.get(conversationId);
+        if (pending) {
+            this.state.messages = pending;
+        } else {
+            this.state.messages = [];
+            await this.loadMessages(conversationId);
+        }
         setTimeout(() => this.scrollToBottom(true), 50);
     }
 
@@ -95,7 +109,9 @@ class ChatbotDashboard extends Component {
         try {
             this.state.isLoading = true;
             const result = await this.rpc("/topic_chatbot/get_messages", { conversation_id: conversationId });
-            this.state.messages = result || [];
+            if (this.state.activeConversationId === conversationId && !this.pendingMessages.has(conversationId)) {
+                this.state.messages = result || [];
+            }
             this.state.isLoading = false;
         } catch (error) {
             this.state.isLoading = false;
@@ -105,6 +121,7 @@ class ChatbotDashboard extends Component {
 
     async startNewConversation() {
         if (!this.state.selectedTopicId) return;
+        this.clearSelectedAttachment();
         try {
             const result = await this.rpc("/topic_chatbot/create_conversation", { topic_id: this.state.selectedTopicId });
             if (result.error) {
@@ -159,10 +176,34 @@ class ChatbotDashboard extends Component {
     }
 
     async sendMessage() {
-        const text = this.state.inputMessage.trim();
-        if (!text || this.state.isSending || !this.state.activeConversationId) return;
+        const file = this.selectedAttachment;
+        const text = this.state.inputMessage.trim() || (file ? "Hãy phân tích tệp đính kèm này." : "");
+        const conversationId = this.state.activeConversationId;
+        if (!text || !conversationId || this.state.sendingConversationIds.includes(conversationId)) return;
+
+        let attachment = null;
+        let attachmentPreview = this.state.attachmentPreview;
+        if (file) {
+            try {
+                const bytes = new Uint8Array(await file.arrayBuffer());
+                let binary = "";
+                for (let offset = 0; offset < bytes.length; offset += 32768) {
+                    binary += String.fromCharCode(...bytes.subarray(offset, offset + 32768));
+                }
+                const encoded = btoa(binary);
+                attachment = {name: file.name, data: encoded};
+                if (file.type.startsWith("image/")) attachmentPreview = `data:${file.type};base64,${encoded}`;
+            } catch (error) {
+                this.notification.add(_("Không đọc được tệp đính kèm: ") + error.message, {type: "danger"});
+                return;
+            }
+        }
+
+        // The user may switch conversations while a large file is being read.
+        if (this.state.activeConversationId !== conversationId) return;
 
         this.state.inputMessage = "";
+        this.clearSelectedAttachment();
         this.userHasScrolledUp = false;
 
         const userMsgId = Date.now();
@@ -170,7 +211,10 @@ class ChatbotDashboard extends Component {
             id: userMsgId,
             role: "user",
             content: text,
-            create_date: new Date()
+            create_date: new Date(),
+            attachment_name: attachment?.name || "",
+            attachment_mimetype: file?.type || "",
+            attachment_url: attachmentPreview || "",
         });
 
         const botMsgId = Date.now() + 1;
@@ -182,7 +226,10 @@ class ChatbotDashboard extends Component {
             isStreaming: true
         });
 
-        this.state.isSending = true;
+        const messages = this.state.messages;
+        const botMsg = messages.find(m => m.id === botMsgId);
+        this.pendingMessages.set(conversationId, messages);
+        this.state.sendingConversationIds = [...this.state.sendingConversationIds, conversationId];
         setTimeout(() => this.scrollToBottom(true), 30);
 
         try {
@@ -190,8 +237,9 @@ class ChatbotDashboard extends Component {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    conversation_id: this.state.activeConversationId,
-                    message: text
+                    conversation_id: conversationId,
+                    message: text,
+                    attachment: attachment,
                 })
             });
 
@@ -216,7 +264,7 @@ class ChatbotDashboard extends Component {
                     if (line.startsWith("data: ")) {
                         try {
                             const event = JSON.parse(line.slice(6));
-                            this._handleStreamEvent(event, botMsgId);
+                            this._handleStreamEvent(event, botMsg, conversationId);
                         } catch (_e) {
                             // skip malformed event
                         }
@@ -224,34 +272,32 @@ class ChatbotDashboard extends Component {
                 }
             }
         } catch (error) {
-            const botMsg = this.state.messages.find(m => m.id === botMsgId);
             if (botMsg) {
                 botMsg.content = "Đã xảy ra lỗi kết nối: " + error.message;
                 botMsg.isStreaming = false;
             }
         } finally {
-            const botMsg = this.state.messages.find(m => m.id === botMsgId);
             if (botMsg) {
                 botMsg.isStreaming = false;
             }
-            this.state.isSending = false;
-            this.scrollToBottom();
+            this.pendingMessages.delete(conversationId);
+            this.state.sendingConversationIds = this.state.sendingConversationIds.filter(id => id !== conversationId);
+            if (this.state.activeConversationId === conversationId) this.scrollToBottom();
         }
     }
 
-    _handleStreamEvent(event, botMsgId) {
-        const botMsg = this.state.messages.find(m => m.id === botMsgId);
+    _handleStreamEvent(event, botMsg, conversationId) {
         if (!botMsg) return;
 
         switch (event.type) {
             case "token":
                 botMsg.content += event.content;
                 botMsg.statusText = "";
-                this.scrollToBottom();
+                if (this.state.activeConversationId === conversationId) this.scrollToBottom();
                 break;
             case "status":
                 botMsg.statusText = event.content;
-                this.scrollToBottom();
+                if (this.state.activeConversationId === conversationId) this.scrollToBottom();
                 break;
             case "error":
                 botMsg.content = event.content;
@@ -261,13 +307,18 @@ class ChatbotDashboard extends Component {
             case "done":
                 botMsg.isStreaming = false;
                 botMsg.statusText = "";
+                if (event.attachment_name) {
+                    botMsg.attachment_name = event.attachment_name;
+                    botMsg.attachment_mimetype = event.attachment_mimetype || "image/svg+xml";
+                    botMsg.attachment_url = event.attachment_url || "";
+                }
                 if (event.conversation_name) {
                     const conv = this.state.conversations.find(
-                        c => c.id === this.state.activeConversationId
+                        c => c.id === conversationId
                     );
                     if (conv) conv.name = event.conversation_name;
                 }
-                this.scrollToBottom();
+                if (this.state.activeConversationId === conversationId) this.scrollToBottom();
                 break;
         }
     }
@@ -277,6 +328,32 @@ class ChatbotDashboard extends Component {
             ev.preventDefault();
             this.sendMessage();
         }
+    }
+
+    openAttachmentPicker() {
+        this.fileInputRef.el?.click();
+    }
+
+    onAttachmentChange(ev) {
+        const file = ev.target.files?.[0];
+        if (!file) return;
+        const extension = file.name.split(".").pop()?.toLowerCase();
+        const accepted = ["pdf", "docx", "xlsx", "xls", "csv", "txt", "png", "jpg", "jpeg", "webp"];
+        if (!accepted.includes(extension) || !file.size || file.size > 10 * 1024 * 1024) {
+            this.notification.add(_("Tệp phải thuộc định dạng PDF, DOCX, Excel, CSV, TXT hoặc ảnh PNG/JPG/WEBP và không quá 10 MB."), {type: "warning"});
+            ev.target.value = "";
+            return;
+        }
+        this.selectedAttachment = file;
+        this.state.attachmentName = file.name;
+        this.state.attachmentPreview = "";
+    }
+
+    clearSelectedAttachment() {
+        this.selectedAttachment = null;
+        this.state.attachmentName = "";
+        this.state.attachmentPreview = "";
+        if (this.fileInputRef?.el) this.fileInputRef.el.value = "";
     }
 
     _escapeHtml(text) {
@@ -301,7 +378,7 @@ class ChatbotDashboard extends Component {
                 "PRE", "CODE", "A", "BR", "SPAN", "DIV", "BUTTON"
             ]);
             const allowedAttrs = new Set([
-                "class", "id", "data-code", "href", "target", "rel", "title", "style"
+                "class", "id", "data-code", "href", "target", "rel", "title", "style", "start"
             ]);
 
             const cleanNode = (node) => {
@@ -438,7 +515,20 @@ class ChatbotDashboard extends Component {
         // 2. Process Inline markdown helper
         const applyInlineMarkdown = (val) => {
             if (!val) return "";
-            return val
+            // Protect Markdown links before processing emphasis. Otherwise the
+            // underscores in URLs such as `file_data/Bao_cao.pdf` are parsed as
+            // italics and become encoded `<em>` tags inside the href.
+            const links = [];
+            let formatted = val.replace(
+                /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+                (_match, label, url) => {
+                    const index = links.length;
+                    links.push({ label, url });
+                    return `@@MDLINK${index}@@`;
+                }
+            );
+
+            formatted = formatted
                 .replace(/\$\s*\\rightarrow\s*\$/g, "→")
                 .replace(/\\rightarrow/g, "→")
                 .replace(/\$\s*\\Rightarrow\s*\$/g, "⇒")
@@ -450,8 +540,15 @@ class ChatbotDashboard extends Component {
                 .replace(/__([^_]+)__/g, "<strong>$1</strong>")
                 .replace(/\*([^*]+)\*/g, "<em>$1</em>")
                 .replace(/_([^_]+)_/g, "<em>$1</em>")
-                .replace(/~~([^~]+)~~/g, "<del>$1</del>")
-                .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+                .replace(/~~([^~]+)~~/g, "<del>$1</del>");
+
+            return formatted.replace(/@@MDLINK(\d+)@@/g, (_match, index) => {
+                const link = links[Number(index)];
+                if (!link) return "";
+                const safeUrl = this._escapeHtml(link.url);
+                const safeLabel = this._escapeHtml(link.label);
+                return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${safeLabel}</a>`;
+            });
         };
 
         // Split table row helper
@@ -567,14 +664,22 @@ class ChatbotDashboard extends Component {
             }
 
             // Check Ordered List
-            if (/^\d+\.\s+/.test(trimmed)) {
+            if (/^\d+[.)]\s+/.test(trimmed)) {
                 const listItems = [];
-                while (i < lines.length && /^\d+\.\s+/.test(lines[i].trim())) {
-                    const itemContent = lines[i].trim().replace(/^\d+\.\s+/, "");
+                const firstNumber = Number(trimmed.match(/^(\d+)[.)]/)[1]);
+                while (i < lines.length) {
+                    // Markdown permits blank lines between items of the same list.
+                    if (!lines[i].trim()) {
+                        let nextItem = i;
+                        while (nextItem < lines.length && !lines[nextItem].trim()) nextItem++;
+                        if (/^\d+[.)]\s+/.test((lines[nextItem] || "").trim())) i = nextItem;
+                    }
+                    if (!/^\d+[.)]\s+/.test((lines[i] || "").trim())) break;
+                    const itemContent = lines[i].trim().replace(/^\d+[.)]\s+/, "");
                     listItems.push(`<li>${applyInlineMarkdown(itemContent)}</li>`);
                     i++;
                 }
-                outBlocks.push(`<ol>${listItems.join("")}</ol>`);
+                outBlocks.push(`<ol${firstNumber === 1 ? "" : ` start="${firstNumber}"`}>${listItems.join("")}</ol>`);
                 continue;
             }
 
@@ -584,7 +689,7 @@ class ChatbotDashboard extends Component {
             while (i < lines.length) {
                 const curTrimmed = lines[i].trim();
                 if (!curTrimmed) break;
-                if (curTrimmed.startsWith("#") || curTrimmed.startsWith(">") || /^[-*+]\s+/.test(curTrimmed) || /^\d+\.\s+/.test(curTrimmed) || curTrimmed.match(/^@@CODEBLOCK_\d+@@$/) || /^(---|\*\*\*|___)$/.test(curTrimmed)) {
+                if (curTrimmed.startsWith("#") || curTrimmed.startsWith(">") || /^[-*+]\s+/.test(curTrimmed) || /^\d+[.)]\s+/.test(curTrimmed) || curTrimmed.match(/^@@CODEBLOCK_\d+@@$/) || /^(---|\*\*\*|___)$/.test(curTrimmed)) {
                     break;
                 }
                 // If it looks like start of a complete table, break so table parser handles it

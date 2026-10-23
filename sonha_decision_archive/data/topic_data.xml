@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <record id="topic_decision_archive_search" model="topic_chatbot.topic">
+            <field name="name">Tra cứu quyết định</field>
+            <field name="description">Tra cứu quyết định và tài liệu công ty đã công bố. Khi người dùng hỏi, hãy tìm trong nguồn decision_documents theo số/ký hiệu, tên, từ khóa, tóm tắt, danh mục, phòng ban, nhân viên, người ký hoặc ngày ban hành. Trả kết quả ngắn gọn gồm số tài liệu, ngày ban hành, tên, đơn vị liên quan và liên kết Markdown đến file. Chỉ dùng dữ liệu tìm thấy, không tự tạo quyết định hoặc đường dẫn.</field>
+            <field name="is_public" eval="True"/>
+            <field name="is_db_query" eval="True"/>
+        </record>
+    </data>
+</odoo>

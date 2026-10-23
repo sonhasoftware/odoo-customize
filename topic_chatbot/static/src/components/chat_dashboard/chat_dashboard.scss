@@ -299,6 +299,28 @@
                     margin-bottom: 4px;
                 }
 
+                .chat_attachment_message {
+                    max-width: 720px;
+                    width: 100%;
+                    margin: 4px 0 10px;
+                    text-align: left;
+                }
+
+                .chat_attachment_image {
+                    display: block;
+                    max-width: 100%;
+                    max-height: 280px;
+                    object-fit: contain;
+                    border-radius: 8px;
+                    margin-bottom: 6px;
+                }
+
+                .chat_attachment_link {
+                    color: #c5e8dc;
+                    font-size: 13px;
+                    overflow-wrap: anywhere;
+                }
+
                 .message_content {
                     font-size: 15px;
                     line-height: 1.65;
@@ -552,6 +574,23 @@
             background-color: #343541;
             border-top: 1px solid transparent;
 
+            .chat_selected_attachment {
+                max-width: 800px;
+                margin: 0 auto 8px;
+                color: #e1e5ea;
+                font-size: 13px;
+                overflow-wrap: anywhere;
+            }
+
+            .chat_remove_attachment {
+                margin-left: 10px;
+                border: 0;
+                background: transparent;
+                color: #e1e5ea;
+                font-size: 18px;
+                cursor: pointer;
+            }
+
             .input_container {
                 max-width: 800px;
                 margin: 0 auto;
@@ -564,6 +603,18 @@
                 padding: 10px 16px;
                 position: relative;
                 transition: border-color 0.2s, box-shadow 0.2s;
+
+                .chat_attach_button {
+                    flex-shrink: 0;
+                    margin-right: 10px;
+                    border: 0;
+                    background: transparent;
+                    color: #c5c5d2;
+                    font-size: 19px;
+                    cursor: pointer;
+
+                    &:disabled { opacity: 0.45; cursor: not-allowed; }
+                }
 
                 &:focus-within {
                     border-color: #10a37f;

@@ -17,11 +17,17 @@ class ResConfigSettings(models.TransientModel):
 
     topic_chatbot_llm_provider = fields.Selection([
         ('gemini', 'Google Gemini (Cloud)'),
+        ('hybrid', 'Hybrid Ollama → Gemini (Xác minh dữ liệu)'),
+        ('openai', 'OpenAI API (ChatGPT models)'),
         ('ollama', 'Ollama Server nội bộ (100% Offline / On-Premise)'),
     ], string='Chat LLM Provider',
         config_parameter='topic_chatbot.llm_provider',
         default='gemini',
-        help="Chọn nhà cung cấp mô hình trí tuệ nhân tạo để sinh câu trả lời chat. Khi chọn Ollama Server, dữ liệu chạy 100% nội bộ."
+        help=(
+            "Chọn nhà cung cấp mô hình trí tuệ nhân tạo để sinh câu trả lời chat. "
+            "Hybrid dùng Ollama truy vấn/tóm tắt trước, xác minh lại dữ liệu rồi mới gửi sang Gemini. "
+            "Khi chọn Ollama Server, dữ liệu chạy 100% nội bộ."
+        )
     )
     topic_chatbot_ollama_chat_model = fields.Char(
         string='Ollama Chat Model',
@@ -48,6 +54,23 @@ class ResConfigSettings(models.TransientModel):
         config_parameter='topic_chatbot.gemini_model',
         default='gemini-3.6-flash',
         help="Select the Gemini model for the chatbot."
+    )
+    topic_chatbot_openai_api_key = fields.Char(
+        string='OpenAI API Key',
+        config_parameter='topic_chatbot.openai_api_key',
+        help="Khóa OpenAI API. Tài khoản ChatGPT và OpenAI API được quản lý riêng."
+    )
+    topic_chatbot_openai_model = fields.Char(
+        string='OpenAI Model',
+        config_parameter='topic_chatbot.openai_model',
+        default='gpt-4o-mini',
+        help="Tên model OpenAI hỗ trợ function calling, ví dụ gpt-4o-mini."
+    )
+    topic_chatbot_openai_base_url = fields.Char(
+        string='OpenAI Base URL',
+        config_parameter='topic_chatbot.openai_base_url',
+        default='https://api.openai.com/v1',
+        help="Base URL tương thích OpenAI. Mặc định: https://api.openai.com/v1"
     )
     topic_chatbot_stop_words = fields.Char(
         string='Custom Stop Words',
@@ -183,6 +206,220 @@ class ResConfigSettings(models.TransientModel):
         default='ODBC Driver 17 for SQL Server',
         help="Ví dụ: ODBC Driver 17 for SQL Server hoặc ODBC Driver 18 for SQL Server"
     )
+
+    @staticmethod
+    def _provider_error_message(response, provider):
+        try:
+            payload = response.json()
+            detail = payload.get('error') or {}
+            message = detail.get('message') if isinstance(detail, dict) else str(detail)
+        except Exception:
+            message = ''
+        if response.status_code == 429:
+            return f"{provider}: API Key hợp lệ nhưng quota/credit hiện đã hết hoặc đang bị giới hạn."
+        if response.status_code in (401, 403):
+            return f"{provider}: API Key không hợp lệ hoặc chưa có quyền sử dụng model."
+        if response.status_code == 404:
+            return f"{provider}: Không tìm thấy model đã cấu hình."
+        return (message or f"HTTP {response.status_code}")[:300]
+
+    def action_test_gemini_connection(self):
+        """Run a tiny generation request to verify Gemini key, model and quota."""
+        self.ensure_one()
+        params = self.env['ir.config_parameter'].sudo()
+        api_key = self.topic_chatbot_gemini_api_key or params.get_param('topic_chatbot.gemini_api_key')
+        model = self._normalize_gemini_model(
+            self.topic_chatbot_gemini_model or params.get_param('topic_chatbot.gemini_model')
+        )
+        if not api_key:
+            return {
+                'type': 'ir.actions.client', 'tag': 'display_notification',
+                'params': {
+                    'title': 'Thiếu Gemini API Key',
+                    'message': 'Vui lòng nhập Gemini API Key trước khi kiểm tra kết nối.',
+                    'type': 'warning', 'sticky': False,
+                }
+            }
+
+        try:
+            response = requests.post(
+                f'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent',
+                headers={'Content-Type': 'application/json', 'x-goog-api-key': api_key},
+                json={
+                    'contents': [{'role': 'user', 'parts': [{'text': 'Trả lời đúng một từ: OK'}]}],
+                    'generationConfig': {'maxOutputTokens': 8, 'temperature': 0},
+                },
+                # Google đôi khi phản hồi chậm ở lần gọi đầu tiên dù DNS/TCP và
+                # API key vẫn hợp lệ. Tách timeout kết nối và timeout đọc để
+                # tránh báo lỗi giả sau 30 giây.
+                timeout=(10, 90),
+            )
+            if response.status_code != 200:
+                message = self._provider_error_message(response, 'Gemini')
+                return {
+                    'type': 'ir.actions.client', 'tag': 'display_notification',
+                    'params': {
+                        'title': 'Không thể sinh nội dung bằng Gemini',
+                        'message': message,
+                        'type': 'danger', 'sticky': True,
+                    }
+                }
+            return {
+                'type': 'ir.actions.client', 'tag': 'display_notification',
+                'params': {
+                    'title': 'Kết nối Gemini thành công',
+                    'message': f"API Key, model '{model}' và quota sinh nội dung đều hoạt động.",
+                    'type': 'success', 'sticky': False,
+                }
+            }
+        except requests.exceptions.ReadTimeout:
+            return {
+                'type': 'ir.actions.client', 'tag': 'display_notification',
+                'params': {
+                    'title': 'Gemini phản hồi chậm',
+                    'message': (
+                        'Đã kết nối được tới Google nhưng chưa nhận đủ phản hồi trong 90 giây. '
+                        'Vui lòng thử lại sau; API Key chưa được kết luận là sai.'
+                    ),
+                    'type': 'warning', 'sticky': True,
+                }
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                'type': 'ir.actions.client', 'tag': 'display_notification',
+                'params': {
+                    'title': 'Không thể kết nối Gemini',
+                    'message': 'Máy chủ Odoo không kết nối được tới Google. Vui lòng kiểm tra mạng, proxy hoặc tường lửa.',
+                    'type': 'danger', 'sticky': True,
+                }
+            }
+        except Exception as error:
+            message = str(error).replace(api_key, 'REDACTED')
+            return {
+                'type': 'ir.actions.client', 'tag': 'display_notification',
+                'params': {
+                    'title': 'Không thể kết nối Gemini',
+                    'message': message[:300],
+                    'type': 'danger', 'sticky': True,
+                }
+            }
+
+    def action_test_ollama_chat_connection(self):
+        """Verify the Ollama chat model used by Ollama and Hybrid modes."""
+        self.ensure_one()
+        params = self.env['ir.config_parameter'].sudo()
+        url = (
+            self.topic_chatbot_ollama_url
+            or params.get_param('topic_chatbot.ollama_url')
+            or 'http://localhost:11434'
+        ).rstrip('/')
+        model = (
+            self.topic_chatbot_ollama_chat_model
+            or params.get_param('topic_chatbot.ollama_chat_model')
+            or 'qwen2.5:7b'
+        )
+        try:
+            response = requests.post(
+                f'{url}/api/chat',
+                json={
+                    'model': model,
+                    'stream': False,
+                    'messages': [{'role': 'user', 'content': 'Trả lời đúng một từ: OK'}],
+                    'options': {'temperature': 0, 'num_predict': 8},
+                },
+                timeout=(10, 120),
+            )
+            if response.status_code != 200:
+                message = self._provider_error_message(response, 'Ollama')
+                return {
+                    'type': 'ir.actions.client', 'tag': 'display_notification',
+                    'params': {
+                        'title': 'Không thể dùng Ollama Chat',
+                        'message': message,
+                        'type': 'danger', 'sticky': True,
+                    }
+                }
+            return {
+                'type': 'ir.actions.client', 'tag': 'display_notification',
+                'params': {
+                    'title': 'Kết nối Ollama Chat thành công',
+                    'message': f"Server và model '{model}' đều hoạt động.",
+                    'type': 'success', 'sticky': False,
+                }
+            }
+        except Exception as error:
+            return {
+                'type': 'ir.actions.client', 'tag': 'display_notification',
+                'params': {
+                    'title': 'Không thể kết nối Ollama Chat',
+                    'message': str(error)[:300],
+                    'type': 'danger', 'sticky': True,
+                }
+            }
+
+    def action_test_openai_connection(self):
+        """Run a tiny chat request to verify OpenAI key, model and credits."""
+        self.ensure_one()
+        params = self.env['ir.config_parameter'].sudo()
+        api_key = self.topic_chatbot_openai_api_key or params.get_param('topic_chatbot.openai_api_key')
+        model = self.topic_chatbot_openai_model or params.get_param('topic_chatbot.openai_model') or 'gpt-4o-mini'
+        base_url = (
+            self.topic_chatbot_openai_base_url
+            or params.get_param('topic_chatbot.openai_base_url')
+            or 'https://api.openai.com/v1'
+        ).rstrip('/')
+        if not api_key:
+            return {
+                'type': 'ir.actions.client', 'tag': 'display_notification',
+                'params': {
+                    'title': 'Thiếu OpenAI API Key',
+                    'message': 'Vui lòng nhập OpenAI API Key trước khi kiểm tra kết nối.',
+                    'type': 'warning', 'sticky': False,
+                }
+            }
+        try:
+            response = requests.post(
+                f'{base_url}/chat/completions',
+                headers={
+                    'Authorization': f'Bearer {api_key}',
+                    'Content-Type': 'application/json',
+                },
+                json={
+                    'model': model,
+                    'messages': [{'role': 'user', 'content': 'Reply with exactly: OK'}],
+                    'temperature': 0,
+                    'max_tokens': 8,
+                },
+                timeout=30,
+            )
+            if response.status_code != 200:
+                message = self._provider_error_message(response, 'OpenAI')
+                return {
+                    'type': 'ir.actions.client', 'tag': 'display_notification',
+                    'params': {
+                        'title': 'Không thể sinh nội dung bằng OpenAI',
+                        'message': message,
+                        'type': 'danger', 'sticky': True,
+                    }
+                }
+            return {
+                'type': 'ir.actions.client', 'tag': 'display_notification',
+                'params': {
+                    'title': 'Kết nối OpenAI thành công',
+                    'message': f"API Key, model '{model}' và quota/credit sinh nội dung đều hoạt động.",
+                    'type': 'success', 'sticky': False,
+                }
+            }
+        except Exception as error:
+            message = str(error).replace(api_key, 'REDACTED')
+            return {
+                'type': 'ir.actions.client', 'tag': 'display_notification',
+                'params': {
+                    'title': 'Không thể kết nối OpenAI',
+                    'message': message[:300],
+                    'type': 'danger', 'sticky': True,
+                }
+            }
 
     def action_test_mssql_connection(self):
         """Test connection to SQL Server database."""

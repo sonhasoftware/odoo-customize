@@ -13,7 +13,7 @@ except ImportError:
 _logger = logging.getLogger(__name__)
 
 
-def execute_odoo_query(model, domain=None, fields=None, env=None):
+def execute_odoo_query(model, domain=None, fields=None, env=None, count_only=False):
     """Execute a safe, read-only Odoo search_read query using the given or current user's environment."""
     if env is None:
         try:
@@ -24,22 +24,17 @@ def execute_odoo_query(model, domain=None, fields=None, env=None):
     model_alias_map = {
         'employees': 'hr.employee',
         'departments': 'hr.department',
+        'suppliers': 'res.partner',
+        'decision_documents': 'decision.document',
         'kpi_month_results': 'sonha.kpi.result.month',
         'kpi_month_report': 'report.kpi.month',
         'kpi_year_results': 'sonha.kpi.year',
+        'hr_approval_requests': 'form.word.slip',
+        'car_approval_config': 'config.approve.line',
+        'document_approval_steps': 'dk.vb.d',
     }
-    actual_model = model_alias_map.get(str(model).strip().lower(), model)
-
-    safe_models = [
-        'hr.employee',
-        'hr.department',
-        'sonha.kpi.result.month',
-        'report.kpi.month',
-        'sonha.kpi.year'
-    ]
-
-    if actual_model not in safe_models:
-        return {'error': 'Loại dữ liệu này không thuộc phạm vi truy vấn được phép hoặc bị hạn chế vì lý do bảo mật.'}
+    requested_model_key = str(model).strip().lower()
+    actual_model = model_alias_map.get(requested_model_key, model)
 
     model = actual_model
 
@@ -47,25 +42,94 @@ def execute_odoo_query(model, domain=None, fields=None, env=None):
         return {'error': 'Loại dữ liệu yêu cầu không tồn tại trên hệ thống.'}
 
     model_obj = env[model]
-    valid_model_fields = set(model_obj._fields.keys())
+    # Resolve access dynamically for the current user instead of maintaining a
+    # static model whitelist.  Keep technical/security models out of chatbot
+    # scope even when an employee has broad administrative access.
+    protected_prefixes = ('ir.', 'res.users', 'res.groups', 'res.company', 'res.config.')
+    if model.startswith(protected_prefixes):
+        return {'error': 'Model này chứa dữ liệu hệ thống nhạy cảm và không được phép truy vấn qua chatbot.'}
+    if not model_obj.check_access_rights('read', raise_exception=False):
+        return {'error': 'Bạn không có quyền đọc model này theo nhóm quyền hiện tại.'}
+    # fields_get() is evaluated with the current user's environment and hides
+    # fields restricted by field-level groups.  Do not expose _fields directly.
+    try:
+        readable_field_names = set(model_obj.fields_get().keys())
+    except Exception:
+        readable_field_names = set()
+    if not readable_field_names:
+        return {'error': 'Không thể xác định các trường dữ liệu mà người dùng được phép đọc trên model này.'}
+    valid_model_fields = readable_field_names
+    blocked_fields = {
+        'password', 'password_crypt', 'oauth_access_token', 'access_token',
+        'api_key', 'secret', 'private_key', 'token', 'signature', 'datas'
+    }
+    blocked_field_tokens = ('password', 'token', 'secret', 'api_key', 'private_key')
 
-    # Lọc bỏ các tên field không tồn tại do AI tự suy đoán
+    def is_blocked_field(field_name):
+        normalized = str(field_name or '').strip().lower()
+        return normalized in blocked_fields or any(token in normalized for token in blocked_field_tokens)
+
+    # Lọc bỏ các tên field không tồn tại do AI tự suy đoán. Kho quyết định
+    # dùng whitelist riêng để không bao giờ trả dữ liệu file nhị phân cho LLM.
+    decision_document_fields = {
+        'name', 'reference', 'document_type', 'category_id', 'department_id',
+        'employee_id', 'issue_date', 'effective_date', 'expiry_date', 'signer',
+        'keywords', 'summary', 'file_name', 'file_url', 'has_file', 'state',
+    }
+    supplier_fields = {
+        'name', 'display_name', 'email', 'phone', 'mobile', 'vat',
+        'supplier_rank', 'company_type', 'active', 'city', 'country_id'
+    }
     clean_fields = []
     if fields and isinstance(fields, list):
         for f in fields:
-            if isinstance(f, str) and f in valid_model_fields:
+            if (
+                isinstance(f, str)
+                and f in valid_model_fields
+                and not is_blocked_field(f)
+                and (model != 'decision.document' or f in decision_document_fields)
+                and (model != 'res.partner' or f in supplier_fields)
+            ):
                 clean_fields.append(f)
 
     # Nếu mảng fields rỗng hoặc AI truyền sai toàn bộ fields, gán mảng field mặc định an toàn
     if not clean_fields:
         default_field_map = {
             'hr.department': ['name', 'complete_name', 'manager_id', 'parent_id'],
-            'hr.employee': ['name', 'work_email', 'work_phone', 'job_title', 'department_id'],
+            'res.partner': ['name', 'email', 'phone', 'supplier_rank', 'company_type', 'active'],
+            'decision.document': [
+                'name', 'reference', 'document_type', 'category_id',
+                'department_id', 'employee_id', 'issue_date', 'effective_date',
+                'expiry_date', 'signer', 'summary', 'file_name', 'file_url', 'state'
+            ],
+            'hr.employee': [
+                'name', 'work_email', 'work_phone', 'job_title',
+                'department_id', 'parent_id', 'coach_id'
+            ],
             'sonha.kpi.result.month': ['name', 'employee_id', 'department_id', 'score', 'month', 'year', 'state'],
             'report.kpi.month': ['name', 'department_id', 'score', 'month', 'year', 'state'],
             'sonha.kpi.year': ['name', 'employee_id', 'department_id', 'score', 'year', 'state'],
+            'form.word.slip': [
+                'code', 'employee_id', 'department', 'type', 'employee_confirm',
+                'employee_approval', 'status', 'status_lv1', 'status_lv2'
+            ],
+            'config.approve.line': [
+                'department_id', 'competency_employee', 'approve_people'
+            ],
+            'dk.vb.d': [
+                'dk_vb_h', 'user_duyet', 'xu_ly', 'is_approved',
+                'sn_duyet', 'ngay_bd_duyet', 'ngay_duyet'
+            ],
         }
         clean_fields = [f for f in default_field_map.get(model, ['name', 'display_name']) if f in valid_model_fields]
+
+    # Employee answers and organization charts must always carry their
+    # identity and manager relationship. Do not rely on the LLM to request
+    # every required field correctly.
+    if model == 'hr.employee':
+        for required_field in ('name', 'job_title', 'department_id', 'parent_id'):
+            if required_field in valid_model_fields and required_field not in clean_fields:
+                clean_fields.append(required_field)
 
     # Chuyển đổi domain từ chuỗi JSON sang list nếu cần thiết
     domain_list = []
@@ -84,8 +148,11 @@ def execute_odoo_query(model, domain=None, fields=None, env=None):
     # Ánh xạ tên phòng ban/nhân viên nếu AI truyền chuỗi text thay vì ID
     clean_domain = []
     for term in domain_list:
-        if isinstance(term, list) and len(term) == 3:
+        if isinstance(term, (list, tuple)) and len(term) == 3:
             field, op, val = term
+            root_field = str(field).split('.', 1)[0]
+            if root_field not in valid_model_fields or is_blocked_field(field):
+                return {'error': f"Trường lọc '{field}' không tồn tại, bị giới hạn quyền hoặc chứa dữ liệu nhạy cảm."}
             if field == 'department_id' and isinstance(val, str):
                 clean_v = re.sub(r'^[0-9\s\-_]+', '', val).strip() or val
                 short_v = clean_v.replace('phòng', '').replace('Phòng', '').replace('ban', '').replace('Ban', '').strip()
@@ -121,23 +188,67 @@ def execute_odoo_query(model, domain=None, fields=None, env=None):
                     return {'error': f"Không tìm thấy nhân viên nào có tên '{val}'."}
         clean_domain.append(term)
 
+    # Chatbot chỉ được công bố đường dẫn của tài liệu đã phát hành, kể cả khi
+    # người đang hỏi có quyền quản trị kho quyết định.
+    if model == 'decision.document':
+        clean_domain.append(('state', '=', 'published'))
+    elif requested_model_key == 'suppliers' and not any(
+        isinstance(term, (list, tuple)) and len(term) == 3 and term[0] == 'supplier_rank'
+        for term in clean_domain
+    ):
+        # The suppliers alias must never expose every contact; restrict it to
+        # partners that Odoo marks as suppliers.
+        clean_domain.append(('supplier_rank', '>', 0))
+
+    if count_only:
+        try:
+            count = model_obj.search_count(clean_domain)
+            _logger.info("[DB_QUERY_AUDIT] execute_odoo_query: count=%d, domain=%s", count, clean_domain)
+            return {'count': count, 'domain': clean_domain, 'exact': True}
+        except Exception as e:
+            _logger.error("Odoo ORM Count Error (%s): %s", model, str(e))
+            return {'error': f'Error counting data from Odoo: {str(e)}'}
+
     try:
         _logger.info(
             "[DB_QUERY_AUDIT] execute_odoo_query: model='%s', domain=%s, fields=%s",
             model, clean_domain, clean_fields
         )
-        records = model_obj.search_read(clean_domain, clean_fields, limit=80)
-        _logger.info("[DB_QUERY_AUDIT] execute_odoo_query: returned %d record(s)", len(records))
-        is_truncated = (len(records) == 80)
+        # Fetch one extra row so exactly 80 matching records are not falsely
+        # reported as truncated.
+        records = model_obj.search_read(clean_domain, clean_fields, limit=81)
+        is_truncated = len(records) > 80
+        records = records[:80]
+        _logger.info(
+            "[DB_QUERY_AUDIT] execute_odoo_query: returned %d record(s), truncated=%s",
+            len(records), is_truncated
+        )
 
         cleaned_records = []
+        base_url = (env['ir.config_parameter'].sudo().get_param('web.base.url') or '').rstrip('/')
         for rec in records:
             clean_rec = {}
             for k, v in rec.items():
                 if isinstance(v, tuple) and len(v) == 2:
                     clean_rec[k] = v[1]
+                    # Keep the relational identifier next to the display name.
+                    # Hybrid diagram validation uses this value to rebuild
+                    # manager -> employee edges from the database itself.
+                    clean_rec[f'{k}_record_id'] = v[0]
+                elif isinstance(v, (dt, dt_date)):
+                    clean_rec[k] = v.isoformat()
+                elif isinstance(v, decimal.Decimal):
+                    clean_rec[k] = float(v)
                 else:
                     clean_rec[k] = v
+            if model == 'decision.document':
+                file_url = clean_rec.get('file_url')
+                if file_url and file_url.startswith('/') and base_url:
+                    clean_rec['file_url'] = f'{base_url}{file_url}'
+                clean_rec['record_url'] = (
+                    f'{base_url}/web#id={rec["id"]}&model=decision.document&view_type=form'
+                    if base_url else ''
+                )
             cleaned_records.append(clean_rec)
 
         if 'name' in clean_fields:

@@ -9,18 +9,36 @@
             <xpath expr="//form" position="inside">
                 <app data-string="Topic Chatbot" string="Topic Chatbot" name="topic_chatbot">
                     <block title="Mô hình Chat (LLM Provider)" id="topic_chatbot_llm_config">
-                        <setting string="Chế độ Chat LLM Provider" help="Chọn 'Google Gemini (Cloud)' hoặc 'Ollama Server nội bộ (100% Offline / On-Premise)'.">
+                        <setting string="Chế độ Chat LLM Provider" help="Chọn Gemini, OpenAI, Ollama nội bộ hoặc Hybrid Ollama → Gemini có bước xác minh dữ liệu.">
                             <field name="topic_chatbot_llm_provider" widget="radio"/>
                         </setting>
-                        <setting string="Ollama Chat Model" help="Tên model chat trên server Ollama. Khuyến nghị: qwen2.5:14b hoặc qwen2.5:7b." invisible="topic_chatbot_llm_provider != 'ollama'">
+                        <setting string="Ollama Chat Model" help="Tên model chat trên server Ollama. Khuyến nghị: qwen2.5:14b hoặc qwen2.5:7b." invisible="topic_chatbot_llm_provider not in ['ollama', 'hybrid']">
                             <field name="topic_chatbot_ollama_chat_model"/>
                         </setting>
-                        <setting string="Gemini API Key" help="Nhập Google Gemini API Key." invisible="topic_chatbot_llm_provider == 'ollama'">
+                        <div class="mt16" invisible="topic_chatbot_llm_provider not in ['ollama', 'hybrid']">
+                            <button name="action_test_ollama_chat_connection" string="Kiểm tra Ollama Chat" type="object" class="btn-secondary" icon="fa-bolt"/>
+                        </div>
+                        <setting string="Gemini API Key" help="Nhập Google Gemini API Key." invisible="topic_chatbot_llm_provider not in ['gemini', 'hybrid']">
                             <field name="topic_chatbot_gemini_api_key" password="True"/>
                         </setting>
-                        <setting string="Gemini Model" help="Chọn model Gemini (ví dụ: gemini-3.6-flash, gemini-3.5-flash)." invisible="topic_chatbot_llm_provider == 'ollama'">
+                        <setting string="Gemini Model" help="Chọn model Gemini (ví dụ: gemini-3.6-flash, gemini-3.5-flash)." invisible="topic_chatbot_llm_provider not in ['gemini', 'hybrid']">
                             <field name="topic_chatbot_gemini_model"/>
                         </setting>
+                        <div class="mt16" invisible="topic_chatbot_llm_provider not in ['gemini', 'hybrid']">
+                            <button name="action_test_gemini_connection" string="Kiểm tra kết nối Gemini" type="object" class="btn-secondary" icon="fa-bolt"/>
+                        </div>
+                        <setting string="OpenAI API Key" help="Nhập khóa OpenAI API. Khóa này tách biệt với gói ChatGPT." invisible="topic_chatbot_llm_provider != 'openai'">
+                            <field name="topic_chatbot_openai_api_key" password="True"/>
+                        </setting>
+                        <setting string="OpenAI Model" help="Model hỗ trợ function calling, ví dụ gpt-4o-mini." invisible="topic_chatbot_llm_provider != 'openai'">
+                            <field name="topic_chatbot_openai_model"/>
+                        </setting>
+                        <setting string="OpenAI Base URL" help="Mặc định https://api.openai.com/v1. Có thể dùng endpoint tương thích OpenAI." invisible="topic_chatbot_llm_provider != 'openai'">
+                            <field name="topic_chatbot_openai_base_url"/>
+                        </setting>
+                        <div class="mt16" invisible="topic_chatbot_llm_provider != 'openai'">
+                            <button name="action_test_openai_connection" string="Kiểm tra kết nối OpenAI" type="object" class="btn-secondary" icon="fa-bolt"/>
+                        </div>
                         <setting string="Custom Stop Words" help="Comma-separated stop words to ignore during RAG search.">
                             <field name="topic_chatbot_stop_words"/>
                         </setting>
